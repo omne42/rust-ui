@@ -815,7 +815,7 @@ fn select_ui_theme_layer_uses_shared_token_pipeline_without_rebuilding_theme() {
     }
 
     for needle in [
-        "Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。",
+        "Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。",
         "量化尺寸基准必须可回归",
     ] {
         assert!(
@@ -944,7 +944,7 @@ fn select_ui_components_layer_keeps_assembly_boundaries_and_public_api_clean() {
             !mod_source.contains(forbidden)
                 && !motion_source.contains(forbidden)
                 && !lib_source.contains(forbidden),
-            "ui-components public API surface must not leak DOM/web-sys detail `{forbidden}`.",
+            "ui public API surface must not leak DOM/web-sys detail `{forbidden}`.",
         );
     }
 
@@ -955,7 +955,7 @@ fn select_ui_components_layer_keeps_assembly_boundaries_and_public_api_clean() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components should expose select via feature-gated stable public API `{needle}`.",
+            "ui should expose select via feature-gated stable public API `{needle}`.",
         );
     }
 }
@@ -964,13 +964,13 @@ fn select_ui_components_layer_keeps_assembly_boundaries_and_public_api_clean() {
 fn select_check2_marks_ui_components_layer_complete() {
     let source = load_source("src/select/check2.md");
     assert!(
-        source.contains("- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。"),
-        "select check2 should mark ui-components architecture item complete.",
+        source.contains("- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。"),
+        "select check2 should mark ui architecture item complete.",
     );
     assert!(
         source
             .contains("select_ui_components_layer_keeps_assembly_boundaries_and_public_api_clean"),
-        "select check2 should reference executable regression evidence for ui-components layering.",
+        "select check2 should reference executable regression evidence for ui layering.",
     );
 }
 
@@ -1251,7 +1251,7 @@ fn select_token_first_static_style_contract_is_aggregated_and_injected_via_ui_ro
     ] {
         assert!(
             components_css_source.contains(needle),
-            "ui-components css aggregation should include `{needle}` for select style contract.",
+            "ui css aggregation should include `{needle}` for select style contract.",
         );
     }
 
@@ -1385,7 +1385,7 @@ fn select_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo tree-shaking contract should include `{needle}`.",
+            "ui Cargo tree-shaking contract should include `{needle}`.",
         );
     }
 
@@ -1419,7 +1419,7 @@ fn select_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components.",
+        "web-demo should consume ui via web-demo-components, not all-components.",
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -1430,15 +1430,15 @@ fn select_tree_shaking_keeps_component_feature_and_css_boundaries() {
 
 #[test]
 fn select_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
@@ -1474,10 +1474,10 @@ fn select_check2_marks_tree_shaking_contract_complete() {
     for needle in [
         "select_tree_shaking_keeps_component_feature_and_css_boundaries",
         "select_tree_shaking_check_script_covers_feature_tree_wasm_and_budget",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-select,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-select,inject-css",
-        "bash ./scripts/check-ui-components-tree-shaking.sh",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-select,inject-css",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-select,inject-css",
+        "bash ./scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             source.contains(needle),
@@ -1850,7 +1850,7 @@ fn select_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_web_s
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components should keep explicit wasm target dependency split via `{needle}`.",
+            "ui should keep explicit wasm target dependency split via `{needle}`.",
         );
     }
 
@@ -1899,10 +1899,10 @@ fn select_check2_marks_ssr_cross_platform_item_complete() {
     );
 
     for needle in [
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-select,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-select,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-        "cargo check -p ui-components",
+        "cargo check -p ui",
         "select_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_web_sys_free",
     ] {
         assert!(
@@ -1946,7 +1946,7 @@ fn select_ui_headless_web_ssr_mutex_contract_is_explicit_and_component_safe() {
 
 #[test]
 fn select_ui_headless_platform_script_enforces_mutex_failure_and_dual_compile_paths() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "cargo check -p ui-headless --no-default-features --features ssr",
@@ -1998,7 +1998,7 @@ fn select_check2_marks_ui_motion_non_wasm_stub_item_complete() {
     for needle in [
         "cargo check -p ui-motion",
         "cargo test -p ui-motion --test non_wasm_stub",
-        "cargo check -p ui-components --no-default-features --features component-select,inject-css",
+        "cargo check -p ui --no-default-features --features component-select,inject-css",
         "select_ui_motion_non_wasm_stub_contract_is_predictable",
         "select_check2_marks_ui_motion_non_wasm_stub_item_complete",
     ] {
@@ -2089,8 +2089,8 @@ fn select_check2_marks_reduced_motion_ssr_wasm_item_complete() {
     );
 
     for needle in [
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-select,inject-css",
-        "cargo check -p ui-components --no-default-features --features component-select,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-select,inject-css",
+        "cargo check -p ui --no-default-features --features component-select,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo test -p ui-motion --test spring",
         "select_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
@@ -2112,7 +2112,7 @@ fn select_performance_governance_contract_is_mount_only_traceable_and_blocking()
     let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/select/view.rs");
 
     for needle in [
@@ -2193,8 +2193,8 @@ fn select_performance_governance_contract_is_mount_only_traceable_and_blocking()
     }
 
     for needle in [
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2228,9 +2228,9 @@ fn select_check2_marks_performance_governance_item_complete() {
 
     for needle in [
         "select_performance_governance_contract_is_mount_only_traceable_and_blocking",
-        "cargo test -p ui-components --test select_semantics --no-default-features --features component-select,inject-css select_performance_governance_contract_is_mount_only_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test select_semantics --no-default-features --features component-select,inject-css select_performance_governance_contract_is_mount_only_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             source.contains(needle),
@@ -2402,7 +2402,7 @@ fn select_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep shared wasm-debug marker `{needle}`.",
+            "ui Cargo features should keep shared wasm-debug marker `{needle}`.",
         );
     }
     for forbidden in [
@@ -2422,7 +2422,7 @@ fn select_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     ] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components root should keep wasm-debug isolation marker `{needle}`.",
+            "ui root should keep wasm-debug isolation marker `{needle}`.",
         );
     }
 
@@ -2664,7 +2664,7 @@ fn select_check2_marks_entry_files_agent_contract_and_streaming_items_complete()
     let source = load_source("src/select/check2.md");
 
     for needle in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "- [x] 组件目录标准文件落点正确。",
         "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。",
         "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。",
@@ -2707,7 +2707,7 @@ fn select_engineering_contract_keeps_tracing_semantics_unified_without_component
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -2724,7 +2724,7 @@ fn select_engineering_contract_keeps_tracing_semantics_unified_without_component
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::select::",
+        "target: \"ui::select::",
         "const SELECT_TRACE_TARGET",
     ] {
         assert!(
@@ -2792,7 +2792,7 @@ fn select_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep stable export/gate marker `{needle}`.",
+            "ui lib entry should keep stable export/gate marker `{needle}`.",
         );
     }
 
@@ -2803,7 +2803,7 @@ fn select_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css entry should keep marker `{needle}`.",
+            "ui css entry should keep marker `{needle}`.",
         );
     }
 
@@ -2840,7 +2840,7 @@ fn select_ui_components_fixed_entry_files_follow_layered_boundaries() {
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !manifest_dir.join(forbidden).exists(),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`.",
+            "ui forbidden entrypoint file should not exist: `{forbidden}`.",
         );
     }
 
@@ -3243,7 +3243,7 @@ fn select_source_first_docs_are_copy_paste_ready_via_playground_and_code_block()
     let check2_source = load_source("src/select/check2.md");
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String",
         "code_signal: Option<Signal<String>>",
         "return compose_copy_ready_code(&dynamic_code.get(), &code_imports.get_value());",
@@ -3380,8 +3380,8 @@ fn select_check2_marks_api_a11y_docs_e2e_antipattern_and_merge_gate_items_comple
         "select_only_consumes_state_primitives_without_business_store_binding",
         "select_ui_components_layer_keeps_assembly_boundaries_and_public_api_clean",
         "/root/.cargo/bin/cargo fmt --all -- --check",
-        "/root/.cargo/bin/cargo clippy -p ui-components --test select_semantics --no-default-features --features component-select,inject-css -- -D warnings",
-        "/root/.cargo/bin/cargo test -p ui-components --test select_semantics --no-default-features --features component-select,inject-css",
+        "/root/.cargo/bin/cargo clippy -p ui --test select_semantics --no-default-features --features component-select,inject-css -- -D warnings",
+        "/root/.cargo/bin/cargo test -p ui --test select_semantics --no-default-features --features component-select,inject-css",
         "npx playwright test tests/docs_app_select_contract.spec.mjs --reporter=list",
     ] {
         assert!(

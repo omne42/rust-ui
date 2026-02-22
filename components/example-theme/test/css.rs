@@ -1,4 +1,4 @@
-use ui_components::push_components_css;
+use ui::push_components_css;
 
 #[test]
 fn push_components_css_emits_expected_layer_and_selectors() {
@@ -165,7 +165,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
     ] {
         assert!(
             !css.contains(forbidden),
-            "ui-components aggregated CSS should not include layout selector `{forbidden}` after split to ui-layout."
+            "ui aggregated CSS should not include layout selector `{forbidden}` after split to ui-layout."
         );
     }
 }

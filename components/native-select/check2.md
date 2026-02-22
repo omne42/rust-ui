@@ -34,14 +34,14 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
   - N/A 说明：`NativeSelect` 当前无组件级 `motion.rs`（无 enter/exit/open/close 动效状态机），仅保留主题变量驱动的轻量 CSS transition，不在组件内实现任何 spring/keyframe/driver。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
@@ -49,7 +49,7 @@
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
   - 证据：`components/native-select/src/styles.rs` 仅消费 `var(--ui-*)` 变量，`logic.rs/view.rs` 未实现主题映射或 CSS 变量生成逻辑。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -205,12 +205,12 @@
   - 证据：组件目录仅含 `mod.rs/logic.rs/styles.rs/view.rs`（无 `src/spec.rs`）；`mod.rs` 未挂载 `mod spec` 导出路径。
   - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“simple component 禁止引入 spec.rs”断言。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
   - 证据：`components/native-select/src/styles.rs` 作为组件样式唯一落点（`pub const CSS`），视觉值使用 `var(--ui-*)`（如 `--ui-border/--ui-radius-md/--ui-bg/--ui-fg`），组件源码未引入私有 token 命名空间。
-  - 证据：`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-native_select")] out.push_str(crate::native_select::styles::CSS);` 按组件特性聚合；`crates/ui-components/Cargo.toml` 声明 `inject-css` 与 `component-native_select` 特性链路。
+  - 证据：`crates/ui/src/css.rs` 通过 `#[cfg(feature = "component-native_select")] out.push_str(crate::native_select::styles::CSS);` 按组件特性聚合；`crates/ui/Cargo.toml` 声明 `inject-css` 与 `component-native_select` 特性链路。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 未引入 Tailwind/utility class 协议与 CSS-in-Rust（如 `style!`/`css!`/`stylist`）默认路径；`view.rs` 也不注入业务 `style=`。
   - 回归：`components/native-select/test/semantics.rs::native_select_token_first_static_style_contract_is_enforced` 与 `components/native-select/test/native_select_semantics.rs::native_select_token_first_static_style_contract_is_enforced`。
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
@@ -227,13 +227,13 @@
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-  - 证据：`crates/ui-components/Cargo.toml` 提供 `component-native_select = ["dep:ui-native-select"]`；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-native_select")] pub use ui_native_select as native_select;` 门控导出；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-native_select")] out.push_str(crate::native_select::styles::CSS);` 门控聚合样式。
-  - 证据：`crates/ui-components/src/lib.rs` 的全量注册表仅位于 `#[cfg(feature = "all-components")] mod all_components { ... }`；web-demo 聚合位于 `#[cfg(all(feature = "web-demo-components", not(feature = "all-components")))]`，不存在无条件全量可达入口。
-  - 验证记录：执行 `cargo tree -e features -p ui-components --no-default-features --features component-native_select,inject-css`，输出仅出现 `ui-native-select`（`ui-accordion`/`all-components` 未出现）；执行 `cargo tree -e features -i ui-components -p web-demo`，出现 `web-demo-components` 与 `inject-css`，未出现 `all-components`。
+  - 证据：`crates/ui/Cargo.toml` 提供 `component-native_select = ["dep:ui-native-select"]`；`crates/ui/src/lib.rs` 通过 `#[cfg(feature = "component-native_select")] pub use ui_native_select as native_select;` 门控导出；`crates/ui/src/css.rs` 通过 `#[cfg(feature = "component-native_select")] out.push_str(crate::native_select::styles::CSS);` 门控聚合样式。
+  - 证据：`crates/ui/src/lib.rs` 的全量注册表仅位于 `#[cfg(feature = "all-components")] mod all_components { ... }`；web-demo 聚合位于 `#[cfg(all(feature = "web-demo-components", not(feature = "all-components")))]`，不存在无条件全量可达入口。
+  - 验证记录：执行 `cargo tree -e features -p ui --no-default-features --features component-native_select,inject-css`，输出仅出现 `ui-native-select`（`ui-accordion`/`all-components` 未出现）；执行 `cargo tree -e features -i ui -p web-demo`，出现 `web-demo-components` 与 `inject-css`，未出现 `all-components`。
   - N/A 说明：`CI 最小特性 wasm 编译` 与 `体积预算阈值阻断` 属于仓库级流水线治理，不在 `NativeSelect` 单组件清单中单独落地；组件侧以特性门控与依赖闭包证据保证不破坏该治理前提。
   - 回归：`components/native-select/test/semantics.rs::native_select_tree_shaking_feature_gates_are_component_scoped` 与 `components/native-select/test/native_select_semantics.rs::native_select_tree_shaking_feature_gates_are_component_scoped`。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
@@ -254,11 +254,13 @@
   - 回归：`components/native-select/test/semantics.rs::native_select_has_no_overlay_focus_stack_gc_path` 与 `components/native-select/test/native_select_semantics.rs::native_select_has_no_overlay_focus_stack_gc_path`。
 - [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
   - N/A 说明：`NativeSelect` 是原生 `<select>` 装配组件，当前无 ECharts/Map 等命令式第三方实例接入，不存在 `Foreign Zone` 生命周期托管需求。
+  - N/A 证据：未接入命令式第三方实例。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 未出现 `YieldControl/CleanupForeign`、未暴露第三方实例句柄、无 `js_sys`/`wasm_bindgen::JsValue`/`HtmlCanvasElement` 命令式桥接路径。
   - 回归：`components/native-select/test/semantics.rs::native_select_has_no_foreign_zone_escape_hatch_path` 与 `components/native-select/test/native_select_semantics.rs::native_select_has_no_foreign_zone_escape_hatch_path`。
 - [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
   - 适用说明：`NativeSelect` 通过外部 `id_base` 注入确定性种子，作为组件级 `IdProvider` 等价入口；组件内所有稳定 ID 均从该 seed 派生。
   - 证据：`components/native-select/src/view.rs` 使用 `id_base` 生成 `{id_base}-root` / `{id_base}-control`；`crates/ui-state-primitives/src/native_select.rs` 的 `resolve_options` 生成 `{id_base}-option-{index}`，SSR 与 Hydration 读取同一输入可得到同一 ID。
+  - 证据（稳定字符串）：{id_base}-root / {id_base}-control / {id_base}-option-{index}
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 与 `crates/ui-state-primitives/src/native_select.rs` 未使用 `now()` / `uuid` / `rand` 等非确定性源。
   - 回归：`components/native-select/test/semantics.rs::native_select_hydration_ids_are_deterministic_without_time_or_random_sources` 与 `components/native-select/test/native_select_semantics.rs::native_select_hydration_ids_are_deterministic_without_time_or_random_sources`。
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
@@ -353,7 +355,7 @@
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-  - 证据：`apps/docs-app/src/pages/components/pages/forms_native.rs` 的 `Interactive Playground` 已接入 `test_css_source=workbench_test_css_source` + `test_source_path="crates/ui-components/src/native_select/styles.rs"`，样式走 `CSS Test` 面板可视化快速回路。
+  - 证据：`apps/docs-app/src/pages/components/pages/forms_native.rs` 的 `Interactive Playground` 已接入 `test_css_source=workbench_test_css_source` + `test_source_path="crates/ui/src/native_select/styles.rs"`，样式走 `CSS Test` 面板可视化快速回路。
   - 证据：`apps/docs-app/src/playground.rs` 通过 `<style>{compose_scoped_css(..., test_css)}</style>` 与 `test_css` signal 直接渲染 scoped CSS，常见样式调优无需重走组件 wasm 交互链路。
   - 证据：`forms_native.rs` 新增 `Persist workbench state` 开关与 `load_native_select_workbench_state/save_native_select_workbench_state/clear_native_select_workbench_state`（含 `#[cfg(target_arch = "wasm32")]` / non-wasm stub），可选保留 Workbench 状态并在关闭开关时清理持久化状态。
   - 证据：Workbench 展示区明确 `data-slot="native-select-workbench-canvas"`，配置区明确 `data-slot="native-select-workbench-controls"`，形成隔离演练画布；交互上下文由同一组 `Signal` 维持。
@@ -375,7 +377,7 @@
   - 证据：Fallback SSOT 来自 `crates/ui-theme/src/css.rs`，覆盖 `--ui-fallback-border-width/border/radius-md/bg/fg/shadow-sm/focus-ring/accent/danger/fg-muted/bg-muted/space-*/component-height-100/text-field-motion-*`。
   - 回归：`components/native-select/test/semantics.rs::native_select_styles_use_defensive_variable_fallback_chain` 与 `components/native-select/test/native_select_semantics.rs::native_select_styles_use_defensive_variable_fallback_chain`。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 证据：`crates/ui-components/src/css.rs` 的 `push_components_css` 默认以 `out.push_str("\n@layer ui {\n"); ... out.push_str("}\n");` 包裹组件样式；`component-native_select` 分支注入 `crate::native_select::styles::CSS`，满足“默认聚合进 `@layer ui`”。
+  - 证据：`crates/ui/src/css.rs` 的 `push_components_css` 默认以 `out.push_str("\n@layer ui {\n"); ... out.push_str("}\n");` 包裹组件样式；`component-native_select` 分支注入 `crate::native_select::styles::CSS`，满足“默认聚合进 `@layer ui`”。
   - 证据：`components/native-select/src/view.rs` 未使用普通 `style=` 内联样式；组件当前无运行时数值样式调整路径，因此不存在 `style="top:10px"` 这类脆弱写法。
   - 适用说明：`NativeSelect` 当前不需要运行时 CSS 变量写入；若后续引入运行时数值调整，应仅采用 `style:--*` custom properties 通道。
   - 回归：`components/native-select/test/semantics.rs::native_select_css_cascade_layer_contract_is_enforced` 与 `components/native-select/test/native_select_semantics.rs::native_select_css_cascade_layer_contract_is_enforced`。
@@ -385,19 +387,19 @@
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 未出现 `mod motion;`、`ui_motion::`、`attach_motion(`、`stiffness`、`damping`。
   - 证据：`crates/ui-motion/src/lib.rs` 提供 non-wasm no-op/stub（`prefers_reduced_motion() -> true`、`animate(...) {}`），组件在 non-wasm/SSR 路径可安全降级。
   - 回归：`components/native-select/test/semantics.rs::native_select_respects_ui_motion_non_wasm_noop_contract`、`components/native-select/test/semantics.rs::native_select_reduced_motion_ssr_wasm_contract_is_preserved`、`components/native-select/test/native_select_semantics.rs::native_select_respects_ui_motion_non_wasm_noop_contract`、`components/native-select/test/native_select_semantics.rs::native_select_reduced_motion_ssr_wasm_contract_is_preserved`。
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-  - 证据：`crates/ui-components/src/lib.rs` 保留 `mod css;`、`mod root;` 与 `pub use root::UiRoot;`，并以 `#[cfg(feature = "component-native_select")] pub use ui_native_select as native_select;` 维持组件级特性门控导出。
-  - 证据：`crates/ui-components/src/css.rs` 仅通过 `push_components_css` 聚合样式，且 `component-native_select` 分支才注入 `crate::native_select::styles::CSS`；无无条件全量 CSS 注入。
-  - 证据：`crates/ui-components/src/root.rs` 在 `UiRoot` 中集中注入 `BASE_CSS + theme vars + (optional) components css`，并统一提供 `provide_ui_i18n(i18n)` 与 `provide_ui_id_provider(id_seed)`。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - 证据：`crates/ui/src/lib.rs` 保留 `mod css;`、`mod root;` 与 `pub use root::UiRoot;`，并以 `#[cfg(feature = "component-native_select")] pub use ui_native_select as native_select;` 维持组件级特性门控导出。
+  - 证据：`crates/ui/src/css.rs` 仅通过 `push_components_css` 聚合样式，且 `component-native_select` 分支才注入 `crate::native_select::styles::CSS`；无无条件全量 CSS 注入。
+  - 证据：`crates/ui/src/root.rs` 在 `UiRoot` 中集中注入 `BASE_CSS + theme vars + (optional) components css`，并统一提供 `provide_ui_i18n(i18n)` 与 `provide_ui_id_provider(id_seed)`。
   - 证据：`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载通用高亮动效能力（`ActiveHighlightMotion` + `attach_active_highlight_motion` + shared CSS），不含组件业务语义。
-  - 证据：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在；对应原语落点保持在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
+  - 证据：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 均不存在；对应原语落点保持在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
   - 回归：`components/native-select/test/semantics.rs::native_select_ui_components_fixed_entry_files_are_in_correct_locations` 与 `components/native-select/test/native_select_semantics.rs::native_select_ui_components_fixed_entry_files_are_in_correct_locations`。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
@@ -468,11 +470,11 @@
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs|protocol.rs` 非测试代码未出现 `.unwrap(` / `.expect(` / `let _ =`。
   - 证据：`components/native-select/src/logic.rs` 的 `compose_class_name` 已收敛到 `use std::borrow::Cow;` + `Vec<Cow<'static, str>>`，静态 class 使用 `Cow::Borrowed`，仅用户传入 `class_name` 走 `Cow::Owned`。
   - 回归：`components/native-select/test/semantics.rs::native_select_rust_hygiene_disallows_unwrap_expect_let_underscore_and_string_clone_churn` 与 `components/native-select/test/native_select_semantics.rs::native_select_rust_hygiene_disallows_unwrap_expect_let_underscore_and_string_clone_churn`。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 证据：`crates/ui-components/Cargo.toml` 已注册 `component-native_select = ["dep:ui-native-select"]`；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-native_select")] pub use ui_native_select as native_select;` 做组件级导出门控。
-  - 证据：`crates/ui-components/src/css.rs` 的 native-select 样式聚合受 `#[cfg(feature = "component-native_select")] out.push_str(crate::native_select::styles::CSS);` 门控，不存在无条件全量聚合。
-  - 证据：`crates/ui-components/src/lib.rs` 仅在 `#[cfg(feature = "all-components")]` 聚合全量映射，且 web-demo 路径为 `#[cfg(all(feature = "web-demo-components", not(feature = "all-components")))]`，无无条件中央注册表。
-  - 验证记录（2026-02-20）：执行 `cargo tree -e features -p ui-components --no-default-features --features component-native_select,inject-css` 与 `cargo tree -e features -i ui-components -p web-demo`；前者最小特性链路包含 `ui-native-select`，后者显示 `web-demo-components + inject-css` 路径，均未出现 `all-components` 被隐式拉起。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 证据：`crates/ui/Cargo.toml` 已注册 `component-native_select = ["dep:ui-native-select"]`；`crates/ui/src/lib.rs` 通过 `#[cfg(feature = "component-native_select")] pub use ui_native_select as native_select;` 做组件级导出门控。
+  - 证据：`crates/ui/src/css.rs` 的 native-select 样式聚合受 `#[cfg(feature = "component-native_select")] out.push_str(crate::native_select::styles::CSS);` 门控，不存在无条件全量聚合。
+  - 证据：`crates/ui/src/lib.rs` 仅在 `#[cfg(feature = "all-components")]` 聚合全量映射，且 web-demo 路径为 `#[cfg(all(feature = "web-demo-components", not(feature = "all-components")))]`，无无条件中央注册表。
+  - 验证记录（2026-02-20）：执行 `cargo tree -e features -p ui --no-default-features --features component-native_select,inject-css` 与 `cargo tree -e features -i ui -p web-demo`；前者最小特性链路包含 `ui-native-select`，后者显示 `web-demo-components + inject-css` 路径，均未出现 `all-components` 被隐式拉起。
   - 回归：`components/native-select/test/semantics.rs::native_select_tree_shaking_feature_gates_are_component_scoped` 与 `components/native-select/test/native_select_semantics.rs::native_select_tree_shaking_feature_gates_are_component_scoped`。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 证据（语义契约）：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 已覆盖 `aria-*`（`aria-label/aria-invalid`）、关键 `data-*` 状态轴（`data-state/data-selection-mode/data-selection-source/data-change-source`）以及焦点路径（`:focus-visible`）断言。
@@ -520,6 +522,7 @@
   - 回归：`components/native-select/test/semantics.rs::native_select_docs_matrix_and_api_contract_are_synced_with_logic_defaults`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`components/native-select/test/native_select_semantics.rs::native_select_docs_matrix_and_api_contract_are_synced_with_logic_defaults`。
 - [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
   - 证据（文档入口存在）：`components/native-select/src/README.md` 已存在且聚焦组件使用；等价入口 `apps/docs-app/src/pages/components/pages/forms_native.rs::native_select()` 同步提供可运行页面。
+  - 证据（等价入口简写）：`forms_native.rs::native_select()`
   - 证据（零门槛 + 常见用法）：README 新增“`## 新手路径：先用起来，再进阶`”，并在 `### Hello World（零门槛）` 给出最小示例（只需 `id_base + options`），后续紧接 `### 常见用法（在 docs-app 直接对照）` 覆盖 `Controlled + Placeholder`、`Required + Invalid + Disabled`、`Controlled vs Uncontrolled`、`State Matrix`。
   - 证据（先默认后进阶）：README 结构已显式保证 `Hello World` 在前、`## API（进阶参考）` 在后；避免先暴露复杂参数再给最小可用路径。
   - 结论：不存在“只有源码没有文档”或“只写给架构师/机器”的情况；README 与 docs-app 双入口均面向新手可读。
@@ -532,12 +535,13 @@
   - 回归：`components/native-select/test/semantics.rs::native_select_dx_workbench_supports_live_css_and_optional_state_persistence`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`components/native-select/test/native_select_semantics.rs::native_select_dx_workbench_supports_live_css_and_optional_state_persistence`。
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - 证据（复制按钮 + 可运行片段）：`apps/docs-app/src/pages/components/pages/forms_native.rs` 各 Playground 均设置 `code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()`；`apps/docs-app/src/playground.rs` 通过 `compose_copy_ready_code + DEFAULT_PLAYGROUND_IMPORTS` 自动补齐 imports；`components/code-block/src/view.rs` 提供 `ui-code-block__copy-button` 一键复制入口。
-  - 证据（Source-first 落点与依赖前提）：docs 页面显式输出 `data-slot="native-select-source-first"` 与 `data-slot="native-select-source-paths"`，明确源码路径 `crates/ui-components/src/native_select` 与前置特性 `component-native_select + inject-css`，避免复制后缺依赖报错。
+  - 证据（Source-first 落点与依赖前提）：docs 页面显式输出 `data-slot="native-select-source-first"` 与 `data-slot="native-select-source-paths"`，明确源码路径 `crates/ui/src/native_select` 与前置特性 `component-native_select + inject-css`，避免复制后缺依赖报错。
   - 证据（防示例漂移）：`NATIVE_SELECT_DOC_IMPORTS` 作为统一 import 基线注入所有 NativeSelect playground code panel，避免示例片段与当前实现脱节。
   - 回归：`components/native-select/test/semantics.rs::native_select_docs_are_copy_paste_ready_with_matrix_and_streaming_snapshot_contract`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`components/native-select/test/native_select_semantics.rs::native_select_docs_are_copy_paste_ready_with_matrix_and_streaming_snapshot_contract`。
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
   - 证据（对标策略文档同步）：`docs/spec/heroui-parameter-design-strategy.md` 已新增 `### NativeSelect 同步记录（2026-02-20）`，明确参数主轴 `selected_index/on_selected_index_change/default_selected_index` 与 `is_disabled/is_required/is_invalid/size`，并声明参数变更必须先同步策略文档再推进实现。
   - 证据（组件文档入口可索引）：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("NativeSelect", "native-select", "Forms", forms_native::native_select)` 暴露目录入口；`apps/docs-app/src/pages/components/pages/forms_native.rs` 维持 `title="NativeSelect" + slug="native-select"`。
+  - 证据（索引文案短语）：`forms_native.rs` 维持 `title="NativeSelect" + slug="native-select"`
   - 证据（等价组件文档入口）：`components/native-select/src/README.md` 持续提供 `Hello World`、`Controlled + Placeholder`、`State Matrix` 与 API 表，保证 docs-app 与 README 双入口一致。
   - N/A 说明（research 补充）：本轮仅为参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，因此无需补充 `docs/research/spectrum-heroui-style-interface-study.md`。
   - 回归：`components/native-select/test/semantics.rs::native_select_heroui_strategy_doc_and_component_docs_are_synced`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`components/native-select/test/native_select_semantics.rs::native_select_heroui_strategy_doc_and_component_docs_are_synced`。
@@ -549,9 +553,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

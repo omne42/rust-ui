@@ -5,12 +5,12 @@
 
 ## A. 全局规则（必须遵守，违反即返工）
 
-- [ ] 分层不破：`ui-state-primitives`（纯状态）→ `ui-headless`（交互/A11y）→ `ui-components`（组件）→ `apps/*`（应用）；`ui-theme/ui-motion` 作为组件横向服务层
-- [ ] 依赖单向：`ui-state-primitives/ui-theme/ui-motion` 不依赖上层；`ui-headless` 不依赖 `ui-components/ui-theme`
+- [ ] 分层不破：`ui-state-primitives`（纯状态）→ `ui-headless`（交互/A11y）→ `ui`（组件）→ `apps/*`（应用）；`ui-theme/ui-motion` 作为组件横向服务层
+- [ ] 依赖单向：`ui-state-primitives/ui-theme/ui-motion` 不依赖上层；`ui-headless` 不依赖 `ui/ui-theme`
 - [ ] `ui-state-primitives` 禁止 `web-sys` / DOM / 平台能力（保持可移植、可单测）
-- [ ] `ui-components` 不直接碰 `web-sys`（一律通过 `ui-headless` 注入行为）
+- [ ] `ui` 不直接碰 `web-sys`（一律通过 `ui-headless` 注入行为）
 - [ ] `ui-headless` 的 DOM 交互必须 feature-gated（至少 `web`/`ssr`），且能 `wasm32-unknown-unknown` 编译
-- [ ] `ui-components` 必须支持组件级 feature 切分（最小特性集可编译），禁止全组件中央注册表
+- [ ] `ui` 必须支持组件级 feature 切分（最小特性集可编译），禁止全组件中央注册表
 - [ ] 对外 API “小而稳”：v0 先冻结公开 API；上层不透传下层内部结构体（避免耦合）
 - [ ] 每个 TODO 都必须有 Stop Gate（可运行命令）；没过门禁不允许继续加功能
 
@@ -20,12 +20,12 @@
 - [ ] Gate B：`cargo clippy --workspace --all-targets -- -D warnings`
 - [ ] Gate C：`cargo test --workspace`
 - [ ] Gate D（WASM 编译）：`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`
-- [ ] Gate E（WASM 编译）：`cargo check -p ui-components --target wasm32-unknown-unknown`
+- [ ] Gate E（WASM 编译）：`cargo check -p ui --target wasm32-unknown-unknown`
 - [ ] Gate F（WASM 编译）：`cargo check -p web-demo --target wasm32-unknown-unknown`
 - [ ] Gate F2（WASM 编译）：`cargo check -p docs-app --target wasm32-unknown-unknown`
 - [ ] Gate G（SSR 编译）：`cargo check -p ui-headless --no-default-features --features ssr`
-- [ ] Gate H（组件级裁剪）：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,component-input,inject-css`
-- [ ] Gate I（CSS 聚合回归，当前实现）：`cargo test -p ui-components --test css`
+- [ ] Gate H（组件级裁剪）：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,component-input,inject-css`
+- [ ] Gate I（CSS 聚合回归，当前实现）：`cargo test -p ui --test css`
 - [ ] 说明：WASM Gates 需要安装 `wasm32-unknown-unknown` target（推荐 `rustup target add wasm32-unknown-unknown`）；临时可用 `SKIP_WASM=1 ./scripts/check.sh`
 
 ## 0) 冻结输入（不做这个会反复返工）
@@ -46,7 +46,7 @@
   - [x] `crates/ui-headless`
   - [x] `crates/ui-theme`
   - [x] `crates/ui-motion`
-  - [x] `crates/ui-components`
+  - [x] `crates/ui`
   - [x] `apps/web-demo`
   - [x] `apps/docs-app`
   - [x] `apps/tauri-demo`（Phase 2，可先占位）
@@ -61,10 +61,10 @@
 - [ ] 固化依赖关系（写入各 `Cargo.toml`，禁止循环）：
   - [ ] `ui-state-primitives`：无内部依赖
   - [ ] `ui-theme`：无内部依赖
-  - [ ] `ui-headless`：可依赖 `ui-state-primitives`（可选），不可依赖 `ui-components/ui-theme`
+  - [ ] `ui-headless`：可依赖 `ui-state-primitives`（可选），不可依赖 `ui/ui-theme`
   - [ ] `ui-motion`：无内部依赖
-  - [ ] `ui-components`：仅依赖 `ui-headless` + `ui-theme`（必要时再依赖 `ui-state-primitives`，但优先不依赖）
-  - [ ] `apps/*`：依赖 `ui-components`（可间接使用 headless/theme）
+  - [ ] `ui`：仅依赖 `ui-headless` + `ui-theme`（必要时再依赖 `ui-state-primitives`，但优先不依赖）
+  - [ ] `apps/*`：依赖 `ui`（可间接使用 headless/theme）
 
 **Stop Gate**
 - [ ] `cargo check --workspace`
@@ -109,11 +109,11 @@
   - [ ] `ui_theme::Theme`（包含 tokens + `to_css_variables()`）
   - [ ] `ui_theme::css::{BASE_CSS, SAFE_AREA_CSS(optional)}`
 
-### 3.4 ui-components v0 API（组件）
+### 3.4 ui v0 API（组件）
 
 - [ ] 冻结模块与导出（示例）：
-  - [ ] `ui_components::Button`（props：`disabled`, `variant`, `on_press`）
-  - [ ] `ui_components::Overlay`（或 `Popover`/`Modal` 二选一）
+  - [ ] `ui::Button`（props：`disabled`, `variant`, `on_press`）
+  - [ ] `ui::Overlay`（或 `Popover`/`Modal` 二选一）
 - [ ] 组件 props 只暴露稳定字段；不把 `ui-headless` 的内部 structs 直接暴露给 app
 
 **Stop Gate**
@@ -207,9 +207,9 @@
 
 **Stop Gate**
 - [ ] `cargo test -p ui-theme`
-- [ ] `cargo test -p ui-components --test style_rules --no-default-features --features inject-css`
+- [ ] `cargo test -p ui --test style_rules --no-default-features --features inject-css`
 
-## 7) ui-components（Spectrum v0：组件实现）
+## 7) ui（Spectrum v0：组件实现）
 
 目标：验证 headless + theme 的可组合性（先正确、再好看）。
 
@@ -219,7 +219,7 @@
 - [x] `Button`：拆分为 `logic.rs` / `styles.rs` / `motion.rs` / `view.rs`
 - [x] `<UiRoot>`：统一注入组件 CSS（先从 Button 开始）
 - [x] 其余组件迁移到相同结构（Checkbox/Switch/Overlay/Popover/Modal/Menu/ListBox/Select/MenuTrigger）
-- [x] 清理 `ui-components` 的 inline style（改为 `styles.rs` + `data-*` + CSS variables）
+- [x] 清理 `ui` 的 inline style（改为 `styles.rs` + `data-*` + CSS variables）
 
 ### 7.0.1 受控“外交特区”（Foreign Zone / Escape Hatch）
 
@@ -252,17 +252,17 @@
   - [x] 禁止把 `ui-headless` 的内部结构体透传给 app
 
 **Stop Gate**
-- [ ] `cargo check -p ui-components --target wasm32-unknown-unknown`
+- [ ] `cargo check -p ui --target wasm32-unknown-unknown`
 - [ ] `cargo check -p docs-app --target wasm32-unknown-unknown`
-- [ ] `cargo test -p ui-components`
+- [ ] `cargo test -p ui`
 
 ### 7.1.1 组件级裁剪（Tree Shaking）v0
 
-- [ ] 新增 `ui-components` 组件级 features（至少 `component-button`、`component-input`、`component-select`、`component-overlay` 样例 + `all-components`）
+- [ ] 新增 `ui` 组件级 features（至少 `component-button`、`component-input`、`component-select`、`component-overlay` 样例 + `all-components`）
 - [ ] `lib.rs` 模块与 re-export 按 feature 条件编译
 - [ ] `css.rs` 聚合按 feature 条件拼接（只注入启用组件 CSS）
 - [ ] 反模式清理：禁止全组件中央注册表导致所有组件可达
-- [ ] 新增最小特性 CSS slicing 测试（当前仅有 `cargo test -p ui-components --test css` 的全量聚合回归）
+- [ ] 新增最小特性 CSS slicing 测试（当前仅有 `cargo test -p ui --test css` 的全量聚合回归）
 
 **Stop Gate**
 - [ ] Gate H
@@ -278,7 +278,7 @@
   - [x] focus trap v0：Tab 不逃逸；关闭后把焦点还给触发元素（如可获取）
 
 **Stop Gate**
-- [ ] `cargo check -p ui-components --target wasm32-unknown-unknown`
+- [ ] `cargo check -p ui --target wasm32-unknown-unknown`
 
 ## 8) apps/web-demo（可见的验证入口）
 
@@ -360,7 +360,7 @@
 - [ ] Overlay v2+：`popstate` 与 Tauri back 事件统一走 headless 关闭通道（先关闭 topmost overlay，再决定是否放行路由回退）
 - [ ] Overlay v2+：关闭 overlay 后正确回收历史占位，避免污染正常浏览历史栈
 
-### 12.3 ui-components（从原子到复合）
+### 12.3 ui（从原子到复合）
 
 - [x] `ListBox`（v0：消费 `use_listbox`）
 - [x] `Checkbox` / `Switch`（复用 toggle + press + focus）
@@ -498,6 +498,7 @@
 - [ ] 定义测试金字塔落地清单与 E2E 选择器规范
 - [ ] 启动性能/内存 profiling workbench 与预算基线
 - [ ] 建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据
+- [ ] 建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据
 - [ ] 定义 Agent Contract 版本策略与迁移流程
 - [ ] 起草贡献与治理文档（Contributing + RFC 模板）
 - [ ] 建立 ADR 模板与目录规范

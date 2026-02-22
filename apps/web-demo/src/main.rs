@@ -13,7 +13,7 @@ use demos::{
     TextAreaDemo, TextFieldDemo, TooltipDemo, TypographyDemo,
 };
 use leptos::{mount::mount_to_body, prelude::*};
-use ui_components::{Button, OnPress, Theme, UiRoot};
+use ui::{Button, OnPress, Theme, UiRoot};
 use ui_headless::{provide_focus_visible, provide_overlay_stack};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -182,7 +182,7 @@ fn App() -> impl IntoView {
                 <div>
                     <h1 class="demo-title">"rust-ui"</h1>
                     <div class="demo-subtitle">
-                        "Leptos UI primitives: " <code>"ui-state-primitives"</code> " / " <code>"ui-headless"</code> " / " <code>"ui-theme"</code> " / " <code>"ui-components"</code> " · active: " {move || active_section.get().label()}
+                        "Leptos UI primitives: " <code>"ui-state-primitives"</code> " / " <code>"ui-headless"</code> " / " <code>"ui-theme"</code> " / " <code>"ui"</code> " · active: " {move || active_section.get().label()}
                     </div>
                 </div>
                 <Button on_press=toggle_theme>

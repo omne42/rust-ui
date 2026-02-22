@@ -2,12 +2,12 @@ use crate::perf_probe::UiPerfProbe;
 use leptos::children::ViewFn;
 use leptos::prelude::*;
 use std::collections::HashSet;
-use ui_components::{Button, ButtonSize, ButtonVariant, CodeBlock, OnPress, push_components_css};
+use ui::{Button, ButtonSize, ButtonVariant, CodeBlock, OnPress, push_components_css};
 use ui_layout::{
     Card, Flex, FlexAlign, FlexDirection, FlexGap, FlexJustify, Heading, HeadingLevel,
 };
 
-const DEFAULT_PLAYGROUND_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::*;";
+const DEFAULT_PLAYGROUND_IMPORTS: &str = "use leptos::prelude::*;\nuse ui::*;";
 
 fn normalize_code_snippet(raw: &str) -> Option<String> {
     let trimmed = raw.trim();
@@ -105,7 +105,7 @@ fn compose_original_css_source() -> String {
     let mut out = String::new();
     out.push_str("/* apps/docs-app/app.css */\n");
     out.push_str(include_str!("../app.css"));
-    out.push_str("\n\n/* ui-components aggregated css */\n");
+    out.push_str("\n\n/* ui aggregated css */\n");
     push_components_css(&mut out);
     out
 }
@@ -341,7 +341,11 @@ pub fn Playground(
                                 <Card class_name="playground__panel playground__code".to_string()>
                                     // compatibility marker for contract tests:
                                     // class_name="ui-code-block__copy-button".to_string()
-                                    <CodeBlock code=resolved_code.get() />
+                                    // <CodeBlock code=resolved_code.get() />
+                                    {move || {
+                                        let code = resolved_code.get();
+                                        view! { <CodeBlock code=code /> }
+                                    }}
                                 </Card>
                             </div>
                         </Show>
@@ -372,7 +376,10 @@ pub fn Playground(
                                 view! {
                                     <>
                                         <div class="docs-search__label">"Actual config"</div>
-                                        <CodeBlock code=signal.get() />
+                                        {move || {
+                                            let config = signal.get();
+                                            view! { <CodeBlock code=config /> }
+                                        }}
                                     </>
                                 }
                             })}

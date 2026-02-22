@@ -8,7 +8,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::ComboBox;
+use ui::ComboBox;
 
 let (selected, set_selected) = signal(None::<usize>);
 

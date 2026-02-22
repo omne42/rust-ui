@@ -336,7 +336,7 @@ fn labeled_value_docs_playgrounds_lock_state_matrix_contract_values() {
         "title=\"Streaming Optional / Snapshot\"",
         "title=\"Source-first Starter (Copy-Paste Ready)\"",
         "code_imports=labeled_value_imports.clone()",
-        "use ui_components::{LabeledValue, LabeledValueOrientation, LabeledValueTone};",
+        "use ui::{LabeledValue, LabeledValueOrientation, LabeledValueTone};",
         "data-output-mode",
         "data-output-status",
     ] {
@@ -355,7 +355,7 @@ fn labeled_value_check2_marks_core_sections_complete() {
         "- [x] `status-primitives` 定义",
         "- [x] `ui-headless` 定义",
         "- [x] `ui-theme` 定义",
-        "- [x] `ui-components` 定义",
+        "- [x] `ui` 定义",
         "- [x] API 命名契约统一",
         "- [x] 状态归一化集中",
         "- [x] 状态可观测、可检索、可验证",

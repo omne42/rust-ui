@@ -105,7 +105,7 @@ fn step_list_check2_documents_architecture_and_api_first_eight_rules() {
         "`ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。",
         "`ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。",
         "`ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。",
-        "`ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
+        "`ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
         "API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。",
         "受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。",
         "默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。",
@@ -1204,7 +1204,7 @@ fn step_list_check2_documents_late_stage_governance_rules() {
     for required in [
         "DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。",
         "工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。",
-        "`ui-components` 固定入口文件落点正确。",
+        "`ui` 固定入口文件落点正确。",
         "组件目录标准文件落点正确。",
         "语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。",
         "流式在这里仅指 LLM 输出渲染（只看两种显示模式）。",
@@ -1266,7 +1266,7 @@ fn step_list_ui_components_entrypoint_files_and_forbidden_files_contract_hold() 
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !path_exists(forbidden),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`."
+            "ui forbidden entrypoint file should not exist: `{forbidden}`."
         );
     }
 }

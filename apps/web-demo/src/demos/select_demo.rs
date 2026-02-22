@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::Select;
+use ui::Select;
 
 #[component]
 pub fn SelectDemo() -> impl IntoView {

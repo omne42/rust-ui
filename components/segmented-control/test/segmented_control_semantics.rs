@@ -511,8 +511,8 @@ fn segmented_control_ui_components_layer_boundary_is_enforced() {
     }
 
     assert!(
-        check2_source.contains("- [x] `ui-components` 定义："),
-        "segmented_control check2 should mark ui-components gate as completed."
+        check2_source.contains("- [x] `ui` 定义："),
+        "segmented_control check2 should mark ui gate as completed."
     );
 }
 
@@ -1181,15 +1181,15 @@ fn segmented_control_docs_are_copy_paste_ready_with_imports_copy_button_and_sync
         "pub(super) fn segmented_control() -> AnyView",
         "data-slot=\"segmented-control-source-first\"",
         "<h3>\"Source-first / Copy-Paste Ready\"</h3>",
-        "<ui_components::Snippet",
+        "<ui::Snippet",
         "copyable=true",
         "class_name=\"docs-segmented-control-source-copy\".to_string()",
         "data-slot=\"segmented-control-source-paths\"",
-        "\"crates/ui-components/src/segmented_control/mod.rs\"",
-        "\"crates/ui-components/src/segmented_control/logic.rs\"",
-        "\"crates/ui-components/src/segmented_control/view.rs\"",
-        "\"crates/ui-components/src/segmented_control/styles.rs\"",
-        "\"crates/ui-components/src/segmented_control/motion.rs\"",
+        "\"crates/ui/src/segmented_control/mod.rs\"",
+        "\"crates/ui/src/segmented_control/logic.rs\"",
+        "\"crates/ui/src/segmented_control/view.rs\"",
+        "\"crates/ui/src/segmented_control/styles.rs\"",
+        "\"crates/ui/src/segmented_control/motion.rs\"",
         "data-slot=\"segmented-control-source-prerequisites\"",
         "\"component-segmented_control\"",
         "\"inject-css\"",
@@ -1448,14 +1448,14 @@ fn segmented_control_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semant
 
 #[test]
 fn segmented_control_e2e_check_script_covers_selector_and_key_flow_contracts() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-segmented-control.sh");
+    let script_source = load_source("../../components/segmented-control/scripts/check-ui-e2e-segmented-control.sh");
 
     for needle in [
-        "cargo test -p ui-components --test segmented_control_semantics --no-default-features --features component-segmented_control,inject-css segmented_control_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test segmented_control_semantics --no-default-features --features component-segmented_control,inject-css segmented_control_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test segmented_control_semantics --no-default-features --features component-segmented_control,inject-css segmented_control_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "cargo test -p ui-components --test segmented_control_semantics --no-default-features --features component-segmented_control,inject-css segmented_control_check2_documents_e2e_repeatable_key_flow_rules",
-        "cargo test -p ui-components --test segmented_control_semantics --no-default-features --features component-segmented_control,inject-css segmented_control_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test segmented_control_semantics --no-default-features --features component-segmented_control,inject-css segmented_control_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test segmented_control_semantics --no-default-features --features component-segmented_control,inject-css segmented_control_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test segmented_control_semantics --no-default-features --features component-segmented_control,inject-css segmented_control_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test segmented_control_semantics --no-default-features --features component-segmented_control,inject-css segmented_control_check2_documents_e2e_repeatable_key_flow_rules",
+        "cargo test -p ui --test segmented_control_semantics --no-default-features --features component-segmented_control,inject-css segmented_control_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1759,7 +1759,7 @@ fn segmented_control_token_first_styles_are_feature_gated_in_css_aggregation() {
     assert!(
         css_source.contains("#[cfg(feature = \"component-segmented_control\")]")
             && css_source.contains("out.push_str(crate::segmented_control::styles::CSS);"),
-        "ui-components css aggregation should feature-gate segmented_control CSS injection."
+        "ui css aggregation should feature-gate segmented_control CSS injection."
     );
 
     assert!(
@@ -1871,7 +1871,7 @@ fn segmented_control_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo feature graph should include `{needle}`."
+            "ui Cargo feature graph should include `{needle}`."
         );
     }
 
@@ -1891,7 +1891,7 @@ fn segmented_control_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components."
+        "web-demo should consume ui via web-demo-components, not all-components."
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -1907,16 +1907,16 @@ fn segmented_control_tree_shaking_keeps_component_feature_and_css_boundaries() {
 
 #[test]
 fn segmented_control_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
     let check2_source = load_source("src/segmented_control/check2.md");
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "size regression",
@@ -1961,14 +1961,14 @@ fn segmented_control_ui_components_fixed_entry_files_follow_layered_boundaries()
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib.rs should keep segmented-control/public-surface boundary `{needle}`."
+            "ui lib.rs should keep segmented-control/public-surface boundary `{needle}`."
         );
     }
 
     for forbidden in ["pub use web_sys::", "pub use leptos::web_sys::"] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib.rs should not leak platform detail marker `{forbidden}`."
+            "ui lib.rs should not leak platform detail marker `{forbidden}`."
         );
     }
 
@@ -1976,7 +1976,7 @@ fn segmented_control_ui_components_fixed_entry_files_follow_layered_boundaries()
         css_source.contains(
             "#[cfg(feature = \"component-segmented_control\")]\n    out.push_str(crate::segmented_control::styles::CSS);"
         ),
-        "ui-components css.rs should feature-gate segmented_control CSS aggregation."
+        "ui css.rs should feature-gate segmented_control CSS aggregation."
     );
 
     for needle in [
@@ -1992,7 +1992,7 @@ fn segmented_control_ui_components_fixed_entry_files_follow_layered_boundaries()
     ] {
         assert!(
             root_source.contains(needle),
-            "ui-components root.rs should keep centralized theme/i18n injection marker `{needle}`."
+            "ui root.rs should keep centralized theme/i18n injection marker `{needle}`."
         );
     }
 
@@ -2026,7 +2026,7 @@ fn segmented_control_ui_components_fixed_entry_files_follow_layered_boundaries()
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !manifest_dir.join(forbidden).exists(),
-            "ui-components forbidden entry file should remain absent: `{forbidden}`."
+            "ui forbidden entry file should remain absent: `{forbidden}`."
         );
     }
 
@@ -2042,14 +2042,14 @@ fn segmented_control_ui_components_fixed_entry_files_follow_layered_boundaries()
     }
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
-        "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
-        "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
-        "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
+        "- [x] `ui` 固定入口文件落点正确。",
+        "`crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
+        "`crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
+        "`crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
         "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
-        "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
-        "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
-        "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
+        "`crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
+        "`crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
+        "`crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
         "segmented_control_ui_components_fixed_entry_files_follow_layered_boundaries",
     ] {
         assert!(
@@ -2130,7 +2130,7 @@ fn segmented_control_platform_paths_are_cfg_gated_and_non_wasm_safe() {
     assert!(
         cargo_source.contains("[target.'cfg(target_arch = \"wasm32\")'.dependencies]")
             && cargo_source.contains("web-sys = { version = "),
-        "ui-components should keep browser dependencies behind wasm32 target dependency gating."
+        "ui should keep browser dependencies behind wasm32 target dependency gating."
     );
 
     for needle in [
@@ -2330,8 +2330,8 @@ fn segmented_control_reduced_motion_ssr_and_wasm_branches_keep_semantic_contract
     for needle in [
         "- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。",
         "cargo test -p ui-motion --test spring --no-default-features",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-segmented_control,inject-css",
-        "cargo check -p ui-components --no-default-features --features component-segmented_control,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-segmented_control,inject-css",
+        "cargo check -p ui --no-default-features --features component-segmented_control,inject-css",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2346,7 +2346,7 @@ fn segmented_control_performance_governance_budget_is_defined_traceable_and_bloc
     let forms_source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
     let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let view_source = load_source("src/segmented_control/view.rs");
     let check2_source = load_source("src/segmented_control/check2.md");
@@ -2399,8 +2399,8 @@ fn segmented_control_performance_governance_budget_is_defined_traceable_and_bloc
     }
 
     for needle in [
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2617,7 +2617,7 @@ fn segmented_control_wasm_debug_contract_reuses_global_trace_and_keeps_feature_i
     ] {
         assert!(
             components_lib_source.contains(needle),
-            "ui-components should keep shared wasm debug isolation entrypoint `{needle}`."
+            "ui should keep shared wasm debug isolation entrypoint `{needle}`."
         );
     }
 
@@ -2880,7 +2880,7 @@ fn segmented_control_engineering_contract_keeps_tracing_semantics_unified_withou
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -2898,7 +2898,7 @@ fn segmented_control_engineering_contract_keeps_tracing_semantics_unified_withou
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::segmented_control::",
+        "target: \"ui::segmented_control::",
         "const SEGMENTED_CONTROL_TRACE_TARGET",
     ] {
         assert!(

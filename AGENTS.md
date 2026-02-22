@@ -7,9 +7,9 @@
 - `crates/ui-headless`：交互行为与 A11y 语义契约。
 - `crates/ui-theme`：设计 token 与 CSS 变量输出。
 - `crates/ui-motion`：动效能力（spring/WAAPI）。
-- `crates/ui-visual-primitive`：供 `ui-components/ui-layout` 复用的内部视觉原语。
+- `crates/ui-visual-primitive`：供 `ui/ui-layout` 复用的内部视觉原语。
 - `crates/ui-layout`：布局类组件聚合层。
-- `crates/ui-components`：通用组件聚合层。
+- `crates/ui`：通用组件聚合层。
 - `crates/ui-ai-runtime`：AI 渲染模式与状态上下文基础能力。
 - `components/*`：组件源实现分片（大量按组件拆分的独立 crate）。
 - `apps/web-demo`、`apps/docs-app`、`apps/tauri-demo`：可运行验收应用（CSR/Tauri）。

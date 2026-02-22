@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// Component protocol contract for `ui-components/src/text_input/input/group`.
+/// Component protocol contract for `ui/src/text_input/input/group`.
 ///
 /// This schema is intentionally minimal and versioned so component-specific
 /// protocol fields can evolve without breaking deserialization.

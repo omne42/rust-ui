@@ -342,7 +342,7 @@ fn action_bar_stays_in_ui_components_assembly_layer_and_public_api_boundary_is_s
     ] {
         assert!(
             mod_source.contains(needle),
-            "ActionBar module should keep ui-components assembly layout token `{needle}`."
+            "ActionBar module should keep ui assembly layout token `{needle}`."
         );
     }
 
@@ -385,7 +385,7 @@ fn action_bar_stays_in_ui_components_assembly_layer_and_public_api_boundary_is_s
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components public API should expose ActionBar through feature-gated stable export `{needle}`."
+            "ui public API should expose ActionBar through feature-gated stable export `{needle}`."
         );
     }
 
@@ -1969,7 +1969,7 @@ fn action_bar_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo features should include `{needle}` for tree-shaking boundaries."
+            "ui Cargo features should include `{needle}` for tree-shaking boundaries."
         );
     }
 
@@ -1994,7 +1994,7 @@ fn action_bar_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components."
+        "web-demo should consume ui via web-demo-components, not all-components."
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -2005,15 +2005,15 @@ fn action_bar_tree_shaking_keeps_component_feature_and_css_boundaries() {
 
 #[test]
 fn action_bar_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
@@ -2055,14 +2055,14 @@ fn action_bar_entrypoint_files_and_headless_boundaries_are_stable() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep stable boundary token `{needle}`."
+            "ui lib entry should keep stable boundary token `{needle}`."
         );
     }
 
     for forbidden in ["web_sys::", "HtmlElement", "JsCast"] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components public lib boundary should not expose platform detail `{forbidden}`."
+            "ui public lib boundary should not expose platform detail `{forbidden}`."
         );
     }
 
@@ -2077,7 +2077,7 @@ fn action_bar_entrypoint_files_and_headless_boundaries_are_stable() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css entry should keep feature-gated aggregation token `{needle}`."
+            "ui css entry should keep feature-gated aggregation token `{needle}`."
         );
     }
 
@@ -2118,14 +2118,14 @@ fn action_bar_entrypoint_files_and_headless_boundaries_are_stable() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let workspace = workspace_root(manifest_dir);
     for forbidden_path in [
-        "crates/ui-components/src/overlay_open.rs",
-        "crates/ui-components/src/presence.rs",
-        "crates/ui-components/src/a11y.rs",
+        "crates/ui/src/overlay_open.rs",
+        "crates/ui/src/presence.rs",
+        "crates/ui/src/a11y.rs",
     ] {
         let path = workspace.join(forbidden_path);
         assert!(
             !path.exists(),
-            "ui-components should not host deprecated/shared primitive file `{forbidden_path}`."
+            "ui should not host deprecated/shared primitive file `{forbidden_path}`."
         );
     }
 
@@ -2176,14 +2176,14 @@ fn action_bar_platform_guards_keep_cfg_split_and_non_wasm_web_sys_free() {
 
 #[test]
 fn action_bar_platform_check_script_covers_default_ssr_wasm_compile_paths() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
-        "cargo check -p ui-components",
-        "cargo check -p ui-components --no-default-features --features component-action_bar,inject-css",
+        "cargo check -p ui",
+        "cargo check -p ui --no-default-features --features component-action_bar,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-action_bar,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-action_bar,inject-css",
         "components/action-bar/src/view.rs",
         "components/action-bar/src/motion.rs",
         "cfg(target_arch = \"wasm32\")",
@@ -2199,7 +2199,7 @@ fn action_bar_platform_check_script_covers_default_ssr_wasm_compile_paths() {
 #[test]
 fn action_bar_ui_headless_feature_mutex_contract_is_guarded() {
     let headless_lib_source = load_source("../ui-headless/src/lib.rs");
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "#[cfg(all(feature = \"web\", feature = \"ssr\"))]",
@@ -2230,7 +2230,7 @@ fn action_bar_ui_headless_feature_mutex_contract_is_guarded() {
 fn action_bar_ui_motion_non_wasm_noop_stub_contract_is_guarded() {
     let motion_lib_source = load_source("../ui-motion/src/lib.rs");
     let action_bar_motion_source = load_source("src/action_bar/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "#[cfg(not(target_arch = \"wasm32\"))]",
@@ -2279,7 +2279,7 @@ fn action_bar_ui_motion_non_wasm_noop_stub_contract_is_guarded() {
 fn action_bar_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
     let view_source = load_source("src/action_bar/view.rs");
     let motion_source = load_source("src/action_bar/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "!motion.enabled || ui_motion::web::prefers_reduced_motion()",
@@ -2343,7 +2343,7 @@ fn action_bar_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
 
     for needle in [
         "cargo check -p ui-headless --no-default-features --features ssr",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-action_bar,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-action_bar,inject-css",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2361,7 +2361,7 @@ fn action_bar_performance_governance_budget_is_defined_and_blocking() {
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("src/action_bar/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/action_bar/view.rs");
 
     for needle in [
@@ -2463,7 +2463,7 @@ fn action_bar_performance_governance_budget_is_defined_and_blocking() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test action_bar_semantics --no-default-features --features component-action_bar,inject-css action_bar_performance_governance_budget_is_defined_and_blocking";
+    let script_needle = "cargo test -p ui --test action_bar_semantics --no-default-features --features component-action_bar,inject-css action_bar_performance_governance_budget_is_defined_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`.",
@@ -2476,7 +2476,7 @@ fn action_bar_semantic_and_performance_regression_gates_cover_aria_data_focus_an
     let suite_source = load_source("tests/action_bar_semantics.rs");
     let view_source = load_source("src/action_bar/view.rs");
     let button_semantics_source = load_source("../../components/button/test/semantics.rs");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("src/action_bar/check2.md");
 
@@ -2517,7 +2517,7 @@ fn action_bar_semantic_and_performance_regression_gates_cover_aria_data_focus_an
     }
 
     for needle in [
-        "cargo test -p ui-components --test action_bar_semantics --no-default-features --features component-action_bar,inject-css action_bar_performance_governance_budget_is_defined_and_blocking",
+        "cargo test -p ui --test action_bar_semantics --no-default-features --features component-action_bar,inject-css action_bar_performance_governance_budget_is_defined_and_blocking",
         "perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
@@ -2831,7 +2831,7 @@ fn action_bar_docs_copy_paste_ready_contract_covers_playgrounds_matrix_control_a
 
     for needle in [
         "let action_bar_code_imports =",
-        "use leptos::prelude::*;\\nuse ui_components::{ActionBar, ActionBarMotion, ActionBarPosition, ActionButton};",
+        "use leptos::prelude::*;\\nuse ui::{ActionBar, ActionBarMotion, ActionBarPosition, ActionButton};",
         "code_imports=action_bar_code_imports.clone()",
     ] {
         assert!(
@@ -2841,7 +2841,7 @@ fn action_bar_docs_copy_paste_ready_contract_covers_playgrounds_matrix_control_a
     }
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String",
         "format!(\"{}\\n\\n{raw}\", missing_imports.join(\"\\n\"))",
         "code_imports: Option<String>",
@@ -2866,8 +2866,8 @@ fn action_bar_docs_api_and_state_matrix_track_logic_defaults_and_contract_axes()
         "default_selected_count: Option&lt;usize&gt;",
         "default = implicit 0 via logic::normalize_default_selected_count",
         "default = ActionBarPosition::",
-        "ui_components::action_bar::DEFAULT_ARIA_LABEL",
-        "ui_components::action_bar::DEFAULT_CLEAR_LABEL",
+        "ui::action_bar::DEFAULT_ARIA_LABEL",
+        "ui::action_bar::DEFAULT_CLEAR_LABEL",
         "data-slot=\"action-bar-state-matrix\"",
         "<h3>\"State Matrix\"</h3>",
         "control mode",
@@ -2964,7 +2964,7 @@ fn action_bar_source_first_docs_are_copy_paste_ready_with_real_paths_and_depende
         "components/action-bar/src/styles.rs",
         "components/action-bar/src/motion.rs",
         "Dependency prerequisites",
-        "ui-components = { workspace = true, default-features = false, features = [\"component-action_bar\", \"inject-css\"] }",
+        "ui = { workspace = true, default-features = false, features = [\"component-action_bar\", \"inject-css\"] }",
         "code_imports=action_bar_code_imports.clone()",
     ] {
         assert!(

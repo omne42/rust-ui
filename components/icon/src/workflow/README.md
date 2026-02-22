@@ -54,7 +54,7 @@
 - 展示区: current 与 baseline 并排展示，验证 icon/source/state 行为差异。
 - Config 区: 交互切换 icon reference、size/tone、is_disabled/is_decorative、aria/class/glyph source。
 - Code 区: 根据当前配置动态生成可复制 `IconsWorkflow` 代码。
-- CSS Test 区: 加载 `crates/ui-components/src/icon/workflow/styles.rs` 做 scoped CSS 合同验证。
+- CSS Test 区: 加载 `crates/ui/src/icon/workflow/styles.rs` 做 scoped CSS 合同验证。
 
 ## 对比场景
 

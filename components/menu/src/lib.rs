@@ -1,7 +1,7 @@
-pub use ui_components::MenuItemKind;
-pub use ui_components::OnPress;
-pub use ui_components::button;
-pub use ui_components::popover;
+pub use ui::MenuItemKind;
+pub use ui::OnPress;
+pub use ui::button;
+pub use ui::popover;
 
 #[path = "action_menu/mod.rs"]
 pub mod action_menu;

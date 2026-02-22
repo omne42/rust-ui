@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{MenuItemKind, MenuTrigger};
+use ui::{MenuItemKind, MenuTrigger};
 
 #[component]
 pub fn MenuDemo() -> impl IntoView {

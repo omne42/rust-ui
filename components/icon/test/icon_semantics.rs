@@ -483,9 +483,9 @@ fn icon_docs_are_copy_paste_ready_with_controlled_contrast_and_stream_snapshot_c
         "title=\"Streaming / Snapshot Contract\"",
         "title=\"Source-first Starter (Copy-Paste Ready)\"",
         "let icon_code_imports =",
-        "use leptos::prelude::*;\\nuse ui_components::{Icon, IconSize, IconTone};",
+        "use leptos::prelude::*;\\nuse ui::{Icon, IconSize, IconTone};",
         "code_imports=icon_code_imports.clone()",
-        "requires `ui_components` dependency in Cargo.toml",
+        "requires `ui` dependency in Cargo.toml",
         "streaming is optional and falls back to snapshot",
         "aria_label=\"Mapped from upstream app state\".to_string()",
     ] {
@@ -544,7 +544,7 @@ fn icon_readme_is_beginner_friendly_with_default_path_before_advanced_sections()
     for needle in [
         "## 先用起来（Hello World）",
         "不需要先理解分层架构，先用默认 API：",
-        "use ui_components::Icon;",
+        "use ui::Icon;",
         "<Icon>\"✓\"</Icon>",
         "## 常见用法（默认路径优先）",
         "## 进阶（需要时再看）",

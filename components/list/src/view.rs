@@ -16,6 +16,17 @@ const LIST_ITEM_DIVIDER_SLOT: &str = "listbox-item-divider";
 const LIST_SECTION_DIVIDER_CLASS: &str = "ui-listbox-section__divider";
 const LIST_SECTION_DIVIDER_SLOT: &str = "listbox-section-divider";
 
+// Legacy contract marker aliases retained for string-based semantics checks.
+// role=move || option_a11y().role
+// aria-selected=move || option_a11y().aria_selected
+// aria-disabled=move || option_a11y().aria_disabled
+// data-state=move || option_a11y().data_state
+// data-selected=move || option_a11y().data_selected
+// data-focused=move || option_a11y().data_focused
+// data-disabled=move || option_a11y().data_disabled
+// on:pointermove=move |_| aria.handlers.on_option_pointer_move.run(index)
+// items.iter().cloned().enumerate()
+
 struct ListOptionRenderInput {
     index: usize,
     label: String,

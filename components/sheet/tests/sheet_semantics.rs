@@ -4,10 +4,10 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let mapped = match rel_path {
-        "Cargo.toml" => "../../crates/ui-components/Cargo.toml".to_string(),
-        "src/lib.rs" => "../../crates/ui-components/src/lib.rs".to_string(),
-        "src/css.rs" => "../../crates/ui-components/src/css.rs".to_string(),
-        "src/root.rs" => "../../crates/ui-components/src/root.rs".to_string(),
+        "Cargo.toml" => "../../crates/ui/Cargo.toml".to_string(),
+        "src/lib.rs" => "../../crates/ui/src/lib.rs".to_string(),
+        "src/css.rs" => "../../crates/ui/src/css.rs".to_string(),
+        "src/root.rs" => "../../crates/ui/src/root.rs".to_string(),
         "src/code_block/view.rs" => "../../components/code-block/src/view.rs".to_string(),
         _ if rel_path.starts_with("src/") => {
             format!("src/{}", &rel_path["src/".len()..])
@@ -575,7 +575,7 @@ fn sheet_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::sheet::styles::CSS);"),
-        "ui-components css aggregator should include sheet styles."
+        "ui css aggregator should include sheet styles."
     );
 }
 
@@ -608,7 +608,7 @@ fn sheet_token_first_static_css_contract_is_wired_through_ui_root() {
     ] {
         assert!(
             css_aggregator.contains(needle),
-            "ui-components css aggregator should gate and include sheet css via `{needle}`."
+            "ui css aggregator should gate and include sheet css via `{needle}`."
         );
     }
 
@@ -669,7 +669,7 @@ fn sheet_source_first_docs_are_copy_paste_ready_and_traceable() {
         "Snippet",
         "label=\"Copy starter\".to_string()",
         "copyable=true",
-        "use leptos::prelude::*;\\nuse ui_components::*;",
+        "use leptos::prelude::*;\\nuse ui::*;",
         "data-slot=\"sheet-source-paths\"",
         "components/sheet/src/mod.rs",
         "components/sheet/src/logic.rs",
@@ -818,7 +818,7 @@ fn sheet_tree_shaking_contract_is_feature_gated_and_budgeted() {
     let lib = load_source("src/lib.rs");
     let css = load_source("src/css.rs");
     let web_demo_cargo = load_source("../../apps/web-demo/Cargo.toml");
-    let script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
@@ -828,7 +828,7 @@ fn sheet_tree_shaking_contract_is_feature_gated_and_budgeted() {
     ] {
         assert!(
             cargo.contains(needle),
-            "ui-components feature surface should include `{needle}` for tree-shaking contracts."
+            "ui feature surface should include `{needle}` for tree-shaking contracts."
         );
     }
 
@@ -844,10 +844,10 @@ fn sheet_tree_shaking_contract_is_feature_gated_and_budgeted() {
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components'",
         "if ! grep -q 'web-demo-components'",
     ] {
@@ -868,19 +868,19 @@ fn sheet_tree_shaking_contract_is_feature_gated_and_budgeted() {
     }
 
     for needle in [
-        "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
+        "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
         "default-features = false",
         "web-demo-components",
     ] {
         assert!(
             web_demo_cargo.contains(needle),
-            "web-demo should consume ui-components via feature-bundled source mode contract `{needle}`."
+            "web-demo should consume ui via feature-bundled source mode contract `{needle}`."
         );
     }
 
     assert!(
         !web_demo_cargo.contains("all-components"),
-        "web-demo should not pull ui-components all-components feature."
+        "web-demo should not pull ui all-components feature."
     );
 }
 
@@ -990,7 +990,7 @@ fn sheet_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_web_sy
 fn sheet_headless_web_ssr_mutex_guard_is_preserved() {
     let sheet_view = load_source("src/view.rs");
     let headless_lib = load_source("../ui-headless/src/lib.rs");
-    let platform_script = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "use ui_headless::{",
@@ -1032,7 +1032,7 @@ fn sheet_ui_motion_non_wasm_stub_contract_is_predictable_and_tooling_safe() {
     let ui_motion_lib = load_source("../ui-motion/src/lib.rs");
     let ui_motion_non_wasm_test = load_source("../ui-motion/tests/non_wasm_stub.rs");
     let sheet_motion = load_source("src/motion.rs");
-    let platform_script = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "#[cfg(not(target_arch = \"wasm32\"))]",
@@ -1135,7 +1135,7 @@ fn sheet_performance_governance_contract_is_budgeted_traceable_and_blocking() {
     let pages_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
     let perf_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("src/check2.md");
     let view_source = load_source("src/view.rs");
@@ -1187,10 +1187,10 @@ fn sheet_performance_governance_contract_is_budgeted_traceable_and_blocking() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1521,7 +1521,7 @@ fn sheet_wasm_debug_contract_has_trace_entry_and_feature_isolation() {
     ] {
         assert!(
             cargo_toml.contains(needle),
-            "ui-components features should keep debug isolation via `{needle}`."
+            "ui features should keep debug isolation via `{needle}`."
         );
     }
 
@@ -1610,7 +1610,7 @@ fn sheet_engineering_and_entry_boundaries_stay_consistent() {
     ] {
         assert!(
             lib.contains(needle),
-            "ui-components lib entry should keep feature-gated sheet boundary via `{needle}`."
+            "ui lib entry should keep feature-gated sheet boundary via `{needle}`."
         );
     }
     assert!(
@@ -1618,7 +1618,7 @@ fn sheet_engineering_and_entry_boundaries_stay_consistent() {
             || (lib.contains("pub use sheet::Sheet;")
                 && lib.contains("pub use sheet::SheetMotion;")
                 && lib.contains("pub use sheet::SheetPlacement;")),
-        "ui-components lib entry should re-export Sheet contracts without leaking internals."
+        "ui lib entry should re-export Sheet contracts without leaking internals."
     );
 
     for needle in [
@@ -1627,7 +1627,7 @@ fn sheet_engineering_and_entry_boundaries_stay_consistent() {
     ] {
         assert!(
             css.contains(needle),
-            "ui-components css entry should keep feature-gated sheet css via `{needle}`."
+            "ui css entry should keep feature-gated sheet css via `{needle}`."
         );
     }
 
@@ -1651,7 +1651,7 @@ fn sheet_engineering_and_entry_boundaries_stay_consistent() {
     for missing in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !manifest_dir.join(missing).exists(),
-            "ui-components should not define deprecated shared primitive file `{missing}`."
+            "ui should not define deprecated shared primitive file `{missing}`."
         );
     }
 
@@ -1674,7 +1674,7 @@ fn sheet_engineering_and_entry_boundaries_stay_consistent() {
 
     for needle in [
         "工程能力统一",
-        "`ui-components` 固定入口文件落点正确",
+        "`ui` 固定入口文件落点正确",
         "组件目录标准文件落点正确",
     ] {
         assert!(
@@ -2134,7 +2134,7 @@ fn sheet_check2_marks_architecture_and_api_foundations_complete() {
         "- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。",
         "- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。",
         "- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。",
-        "- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
+        "- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
         "- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。",
         "- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。",
         "- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。",

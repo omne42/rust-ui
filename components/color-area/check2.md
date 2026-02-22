@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -145,8 +145,8 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - ColorArea 样式集中在 `styles.rs`（`CSS` 常量），通过 `crates/ui-components/src/css.rs` 的 `component-color_area` gate 聚合，并由 `UiRoot` 注入；运行时仅写入 `--ui-color-area-*` 自定义属性；组件未引入 Utility-First/CSS-in-Rust 作为默认样式机制。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - ColorArea 样式集中在 `styles.rs`（`CSS` 常量），通过 `crates/ui/src/css.rs` 的 `component-color_area` gate 聚合，并由 `UiRoot` 注入；运行时仅写入 `--ui-color-area-*` 自定义属性；组件未引入 Utility-First/CSS-in-Rust 作为默认样式机制。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -157,14 +157,14 @@
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
 - [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
-  - ColorArea 已具备组件级特性门控（`component-color_area`）并在 `lib.rs`/`css.rs` 条件导出与聚合；本地执行 `cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css` 与 `cargo tree -e features -i ui-components -p web-demo`，结果未出现 `all-components` 隐式全量拉起（`web-demo` 走 `web-demo-components`）。
+  - ColorArea 已具备组件级特性门控（`component-color_area`）并在 `lib.rs`/`css.rs` 条件导出与聚合；本地执行 `cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css` 与 `cargo tree -e features -i ui -p web-demo`，结果未出现 `all-components` 隐式全量拉起（`web-demo` 走 `web-demo-components`）。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - ColorArea 已用 `enum`/新类型建模关键状态轴（如 `ColorAreaInteractivity`/`ColorAreaValueControlMode`/`ColorAreaValueSourceAttr`），无效状态由 `logic.rs` 归一化并在单测锁定；关键状态通过稳定 `data-*` 标记（含 `data-value-control-mode`/`data-value-source`/`data-ui-*`）对外可读，语义契约破坏可由编译期类型约束与测试断言直接定位。
@@ -207,7 +207,7 @@
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-  - 证据：`apps/docs-app/src/pages/components/shell.rs:34` 统一定义组件页性能预算并在 `apps/docs-app/src/pages/components/shell.rs:272` 通过 `UiPerfProbe` 挂载到包括 `color-area` 在内的组件页面（`color-area` 走 `apps/docs-app/src/pages/components/shell.rs:176` 的 `mount_only(120.0)` 默认预算）；`apps/docs-app/src/perf_probe.rs:55` 暴露稳定 `data-perf-*` 指标与 `data-perf-violation` 阈值阻断标记；`e2e/tests/docs_app_components_coverage.spec.mjs:70` 对 all-components 页面循环断言 perf probe 阈值（含 `color-area`）；基础组件预算与阻断契约由 `components/text-input/test/input_semantics.rs:327`（含 Button/Input 预算与 render_count 约束文本）和 `scripts/check-ui-components-performance.sh:7` 的门禁用例执行；`render_count` 自动化缺口已由 `components/accordion/test/accordion_semantics.rs:1651` + `docs/plan/TODO.md:500` 跟踪为后续必做项。
+  - 证据：`apps/docs-app/src/pages/components/shell.rs:34` 统一定义组件页性能预算并在 `apps/docs-app/src/pages/components/shell.rs:272` 通过 `UiPerfProbe` 挂载到包括 `color-area` 在内的组件页面（`color-area` 走 `apps/docs-app/src/pages/components/shell.rs:176` 的 `mount_only(120.0)` 默认预算）；`apps/docs-app/src/perf_probe.rs:55` 暴露稳定 `data-perf-*` 指标与 `data-perf-violation` 阈值阻断标记；`e2e/tests/docs_app_components_coverage.spec.mjs:70` 对 all-components 页面循环断言 perf probe 阈值（含 `color-area`）；基础组件预算与阻断契约由 `components/text-input/test/input_semantics.rs:327`（含 Button/Input 预算与 render_count 约束文本）和 `scripts/check-ui-performance.sh:7` 的门禁用例执行；`render_count` 自动化缺口已由 `components/accordion/test/accordion_semantics.rs:1651` + `docs/plan/TODO.md:500` 跟踪为后续必做项。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
@@ -248,18 +248,18 @@
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
   - 证据：ColorArea 样式入口已统一为双层防御变量（如 `--ui-color-area-border-width`/`--ui-color-area-motion-duration`/`--ui-color-area-font-size-100`/`--ui-color-area-thumb-radius`，均为 `var(--ui-*, var(--ui-fallback-*))` 形态，见 `components/color-area/src/styles.rs:3`、`components/color-area/src/styles.rs:34`、`components/color-area/src/styles.rs:48`、`components/color-area/src/styles.rs:16`）；组件侧移除了字面量终值 fallback 与硬编码尺寸（原 `1px/32px/14px/9999px/20rem` 已收敛为 theme token 派生变量，见 `components/color-area/src/styles.rs:51`、`components/color-area/src/styles.rs:56`、`components/color-area/src/styles.rs:110`）；对应 fallback 终值由 `ui-theme` SSOT 输出（`crates/ui-theme/src/css.rs:390`、`crates/ui-theme/src/css.rs:423`、`crates/ui-theme/src/css.rs:798`、`crates/ui-theme/src/css.rs:966`、`crates/ui-theme/src/css.rs:976`）。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 证据：组件样式默认通过 `ui-components` 聚合器注入 `@layer ui`（`crates/ui-components/src/css.rs:3`）并按 `component-color_area` gate 聚合 ColorArea CSS（`crates/ui-components/src/css.rs:76`）；ColorArea 运行时仅有一处 `style` 绑定（`components/color-area/src/view.rs:195`），其内容由 `attach_motion` 生成 `--ui-color-area-*` 自定义属性（`components/color-area/src/motion.rs:55`、`components/color-area/src/motion.rs:70`），并且 `preview_color` 先经 primitive 白名单清洗（`components/color-area/src/logic.rs:413` -> `crates/ui-state-primitives/src/color_area.rs:133` -> `crates/ui-state-primitives/src/swatch.rs:171`、`crates/ui-state-primitives/src/swatch.rs:183`），不可注入 `top/left` 等普通内联样式键。
+  - 证据：组件样式默认通过 `ui` 聚合器注入 `@layer ui`（`crates/ui/src/css.rs:3`）并按 `component-color_area` gate 聚合 ColorArea CSS（`crates/ui/src/css.rs:76`）；ColorArea 运行时仅有一处 `style` 绑定（`components/color-area/src/view.rs:195`），其内容由 `attach_motion` 生成 `--ui-color-area-*` 自定义属性（`components/color-area/src/motion.rs:55`、`components/color-area/src/motion.rs:70`），并且 `preview_color` 先经 primitive 白名单清洗（`components/color-area/src/logic.rs:413` -> `crates/ui-state-primitives/src/color_area.rs:133` -> `crates/ui-state-primitives/src/swatch.rs:171`、`crates/ui-state-primitives/src/swatch.rs:183`），不可注入 `top/left` 等普通内联样式键。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 证据：ColorArea `motion.rs` 已定义组件内置 Motion Contract（当前为 timing 轴 `duration_ms`，无 spring 需求时 `stiffness/damping` 记为 N/A）并通过 `attach_motion` 输出 `--ui-color-area-motion-duration` 挂载（`components/color-area/src/motion.rs:2`、`components/color-area/src/motion.rs:55`、`components/color-area/src/motion.rs:70`，调用点 `components/color-area/src/view.rs:108`）；`prefers-reduced-motion` 由样式层显式降级（`@media (prefers-reduced-motion: reduce)` 下禁用过渡，`components/color-area/src/styles.rs:166`）；non-wasm/SSR no-op 基线由 `ui-motion` 提供并已在组件清单中验收（`crates/ui-motion/src/lib.rs:20`、`crates/ui-motion/src/lib.rs:24`），而 ColorArea 自身 motion 仅拼装 CSS 变量字符串，不依赖 wasm 动画句柄（`components/color-area/src/motion.rs:56`）。
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-  - 证据：`ui-components` 总入口以 `component-*` 特性门控导出模块与 `pub use`（`crates/ui-components/src/lib.rs:25`、`crates/ui-components/src/lib.rs:92`、`crates/ui-components/src/lib.rs:110`）；CSS 聚合入口固定为 `push_components_css` 且位于 `@layer ui`，并对组件样式逐项特性门控（`crates/ui-components/src/css.rs:1`、`crates/ui-components/src/css.rs:3`、`crates/ui-components/src/css.rs:76`）；`UiRoot` 统一注入 `BASE_CSS + theme vars + 可选 components css` 并集中提供 i18n/id 上下文（`crates/ui-components/src/root.rs:59`、`crates/ui-components/src/root.rs:60`、`crates/ui-components/src/root.rs:76`、`crates/ui-components/src/root.rs:77`、`crates/ui-components/src/root.rs:82`）；共享高亮能力落在 `ui-visual-primitive` 并以通用 motion driver 实现（`crates/ui-visual-primitive/src/active_highlight.rs:3`、`crates/ui-visual-primitive/src/active_highlight.rs:20`、`crates/ui-visual-primitive/src/active_highlight.rs:105`）；`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在，同时对应原语固定在 headless（`crates/ui-headless/src/controllable_state.rs:20`、`crates/ui-headless/src/presence.rs:9`、`crates/ui-headless/src/a11y.rs:335`）。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - 证据：`ui` 总入口以 `component-*` 特性门控导出模块与 `pub use`（`crates/ui/src/lib.rs:25`、`crates/ui/src/lib.rs:92`、`crates/ui/src/lib.rs:110`）；CSS 聚合入口固定为 `push_components_css` 且位于 `@layer ui`，并对组件样式逐项特性门控（`crates/ui/src/css.rs:1`、`crates/ui/src/css.rs:3`、`crates/ui/src/css.rs:76`）；`UiRoot` 统一注入 `BASE_CSS + theme vars + 可选 components css` 并集中提供 i18n/id 上下文（`crates/ui/src/root.rs:59`、`crates/ui/src/root.rs:60`、`crates/ui/src/root.rs:76`、`crates/ui/src/root.rs:77`、`crates/ui/src/root.rs:82`）；共享高亮能力落在 `ui-visual-primitive` 并以通用 motion driver 实现（`crates/ui-visual-primitive/src/active_highlight.rs:3`、`crates/ui-visual-primitive/src/active_highlight.rs:20`、`crates/ui-visual-primitive/src/active_highlight.rs:105`）；`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 均不存在，同时对应原语固定在 headless（`crates/ui-headless/src/controllable_state.rs:20`、`crates/ui-headless/src/presence.rs:9`、`crates/ui-headless/src/a11y.rs:335`）。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -300,14 +300,14 @@
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
   - 证据：`color-area` 非测试源码扫描未命中 `unwrap/expect` 与 `let _ = ...`（`rg -n "\\.(unwrap|unwrap_err|expect)\\s*\\(" components/color-area/src --glob '!**/test/**'`、`rg -n "^[[:space:]]*let[[:space:]]+_[[:space:]]*=" components/color-area/src --glob '!**/test/**'` 均空结果）。字符串热点已收敛：`compose_class_name` 改为 `Vec<Cow<'static, str>>`（`components/color-area/src/logic.rs:443`），并去除 `default_value.to_string()`（`components/color-area/src/logic.rs:395`）。门禁命令在当前环境存在外部阻塞：`./scripts/check-rust-hygiene.sh` 因调用 `./scripts/check-api-contracts.sh` 权限位报错；`bash ./scripts/check-api-contracts.sh` 又受 `rg` 无 PCRE2 与仓库级 baseline 漂移影响失败（非 `color-area` 组件本地 hygiene 回归）。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 证据：`color-area` 已注册组件级特性（`component-color_area = ["dep:ui-color-area"]`，`crates/ui-components/Cargo.toml:423`）；`lib.rs` 对模块导出与聚合入口均受 feature 门控（`#[cfg(feature = "component-color_area")] pub use ui_color_area as color_area;` 见 `crates/ui-components/src/lib.rs:92`，`push_components_css` 受 `inject-css` gate 见 `crates/ui-components/src/lib.rs:810`）；`css.rs` 的 CSS 注入同样按 feature 条件聚合（`crates/ui-components/src/css.rs:1`、`crates/ui-components/src/css.rs:76`，并在未开启时走 no-op `crates/ui-components/src/css.rs:360`）。最小特性树验证中仅解析到 `ui-color-area` 依赖链（`cargo tree -e features -p ui-components --no-default-features --features component-color_area,inject-css` 命中 `ui-color-area`，见输出行 1956-1957），且无 `all-components` 命中（同命令 `rg "all-components"` 空结果）。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 证据：`color-area` 已注册组件级特性（`component-color_area = ["dep:ui-color-area"]`，`crates/ui/Cargo.toml:423`）；`lib.rs` 对模块导出与聚合入口均受 feature 门控（`#[cfg(feature = "component-color_area")] pub use ui_color_area as color_area;` 见 `crates/ui/src/lib.rs:92`，`push_components_css` 受 `inject-css` gate 见 `crates/ui/src/lib.rs:810`）；`css.rs` 的 CSS 注入同样按 feature 条件聚合（`crates/ui/src/css.rs:1`、`crates/ui/src/css.rs:76`，并在未开启时走 no-op `crates/ui/src/css.rs:360`）。最小特性树验证中仅解析到 `ui-color-area` 依赖链（`cargo tree -e features -p ui --no-default-features --features component-color_area,inject-css` 命中 `ui-color-area`，见输出行 1956-1957），且无 `all-components` 命中（同命令 `rg "all-components"` 空结果）。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 证据：ColorArea 语义测试已覆盖 `data-*`/`aria-*`/焦点流转且不依赖视觉快照：`components/color-area/test/color_area_semantics.rs:237`-`components/color-area/test/color_area_semantics.rs:260` 约束关键 `data-*` 与 Agent Contract 字段，`components/color-area/test/color_area_semantics.rs:553`-`components/color-area/test/color_area_semantics.rs:560` 要求 E2E 含 `aria-disabled`、`root.focus()` 与键盘路径；对应 E2E 断言为属性/焦点断言而非截图（`e2e/tests/docs_app_color_area_contract.spec.mjs:43`、`e2e/tests/docs_app_color_area_contract.spec.mjs:62`、`e2e/tests/docs_app_color_area_contract.spec.mjs:71`）。性能回归采用可重复测量基线：组件页统一挂载 `UiPerfProbe`（`apps/docs-app/src/pages/components/shell.rs:292`）并暴露稳定 `data-perf-*` 指标与超预算阻断位（`apps/docs-app/src/perf_probe.rs:55`-`apps/docs-app/src/perf_probe.rs:66`），`docs_app_components_coverage` 在 sample/all 模式均断言无 `data-perf-violation`（`e2e/tests/docs_app_components_coverage.spec.mjs:39`-`e2e/tests/docs_app_components_coverage.spec.mjs:43`、`e2e/tests/docs_app_components_coverage.spec.mjs:76`-`e2e/tests/docs_app_components_coverage.spec.mjs:80`）。`render_count` 自动化仍为仓库级后续项，已被显式跟踪（`docs/plan/TODO.md:500`；守护测试 `components/accordion/test/accordion_semantics.rs:1651`）。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - N/A（本次未触发跨大版本破坏升级）：ColorArea 对外导出面保持稳定（`components/color-area/src/mod.rs:6`-`components/color-area/src/mod.rs:8`），组件协议版本仍为 `V1`（`components/color-area/src/protocol.rs:9`-`components/color-area/src/protocol.rs:12`，`schema_version` 字段仍为同一轴 `components/color-area/src/protocol.rs:18`），未引入 `v2` 协议或破坏性迁移入口，因此无需新增 Schema Registry 弃用窗口与 `migrate_v1_to_v2`。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
-  - 证据：`color-area` docs 页已补齐所需 Playground：`Hello World`（`apps/docs-app/src/pages/components/pages/forms_color.rs:397`）、`State Matrix`（`apps/docs-app/src/pages/components/pages/forms_color.rs:467`）、`Controlled vs Uncontrolled`（`apps/docs-app/src/pages/components/pages/forms_color.rs:420`）；并新增 `Streaming Optional / Snapshot` 展示（`apps/docs-app/src/pages/components/pages/forms_color.rs:499`，含 `data-ui-streaming="optional"` / `data-ui-fallback="snapshot"` / `data-ui-output-state="snapshot"`）。Source-first copy-ready 能力通过 Playground 统一注入：默认 imports 基线 `use leptos::prelude::*; use ui_components::*;`（`apps/docs-app/src/playground.rs:10`），复制前自动补齐缺失 imports（`apps/docs-app/src/playground.rs:176`）；ColorArea 页面补充了明确文案与源码落点（`apps/docs-app/src/pages/components/pages/forms_color.rs:664`）。
+  - 证据：`color-area` docs 页已补齐所需 Playground：`Hello World`（`apps/docs-app/src/pages/components/pages/forms_color.rs:397`）、`State Matrix`（`apps/docs-app/src/pages/components/pages/forms_color.rs:467`）、`Controlled vs Uncontrolled`（`apps/docs-app/src/pages/components/pages/forms_color.rs:420`）；并新增 `Streaming Optional / Snapshot` 展示（`apps/docs-app/src/pages/components/pages/forms_color.rs:499`，含 `data-ui-streaming="optional"` / `data-ui-fallback="snapshot"` / `data-ui-output-state="snapshot"`）。Source-first copy-ready 能力通过 Playground 统一注入：默认 imports 基线 `use leptos::prelude::*; use ui::*;`（`apps/docs-app/src/playground.rs:10`），复制前自动补齐缺失 imports（`apps/docs-app/src/playground.rs:176`）；ColorArea 页面补充了明确文案与源码落点（`apps/docs-app/src/pages/components/pages/forms_color.rs:664`）。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 证据：组件侧与聚合侧均有语义测试入口（`components/color-area/test/semantics.rs:1`、`components/color-area/test/color_area_semantics.rs:1`）；断言覆盖关键状态轴与来源标记（`data-disabled-source`、`data-value-source`、`data-ui-*`，见 `components/color-area/test/color_area_semantics.rs:239`、`components/color-area/test/color_area_semantics.rs:250`）；键盘/焦点/可访问性路径通过语义断言验证（`await root.focus()`、`ArrowRight/ArrowUp`、`aria-disabled`，见 `components/color-area/test/color_area_semantics.rs:537`、`components/color-area/test/color_area_semantics.rs:558`，以及 `e2e/tests/docs_app_color_area_contract.spec.mjs:42`、`e2e/tests/docs_app_color_area_contract.spec.mjs:45`、`e2e/tests/docs_app_color_area_contract.spec.mjs:62`）。当前验证以语义契约断言为主，不依赖视觉快照。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
@@ -331,7 +331,7 @@
   - AI Spec 联动示例适用性：ColorArea 非 AI Spec 组件（无 `spec.rs`/Spec 输入协议），该子条款对本组件为 N/A。
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - 证据（复制按钮）：Playground 代码面板使用 `CodeBlock` 渲染（`apps/docs-app/src/playground.rs:339`），`CodeBlock` 头部内置复制按钮并绑定 `on_copy_press`（`components/code-block/src/view.rs:196`、`components/code-block/src/view.rs:201`），满足 docs 页一键复制入口。
-  - 证据（可直接运行 imports）：复制输出统一经 `compose_copy_ready_code` 自动补齐缺失 imports（`apps/docs-app/src/playground.rs:48`、`apps/docs-app/src/playground.rs:176`），默认 imports 基线为 `use leptos::prelude::*; use ui_components::*;`（`apps/docs-app/src/playground.rs:10`）。
+  - 证据（可直接运行 imports）：复制输出统一经 `compose_copy_ready_code` 自动补齐缺失 imports（`apps/docs-app/src/playground.rs:48`、`apps/docs-app/src/playground.rs:176`），默认 imports 基线为 `use leptos::prelude::*; use ui::*;`（`apps/docs-app/src/playground.rs:10`）。
   - 证据（source-first 落点与依赖前提）：ColorArea docs 页明确标注 source-first 路径与 copy-ready 机制（`apps/docs-app/src/pages/components/pages/forms_color.rs:664`、`apps/docs-app/src/pages/components/pages/forms_color.rs:679`），并给出 imports 前提（`apps/docs-app/src/pages/components/pages/forms_color.rs:673`）；组件 README 同步列出真实源码落点及分层依赖（`components/color-area/src/README.md:120`、`components/color-area/src/README.md:123`、`components/color-area/src/README.md:128`、`components/color-area/src/README.md:129`）。
   - 证据（示例与实现同步）：ColorArea docs 示例直接使用当前公开 props（如 `default_value/grid_size/step/is_disabled`，`apps/docs-app/src/pages/components/pages/forms_color.rs:316`），与当前组件签名一致（`components/color-area/src/view.rs:47`、`components/color-area/src/view.rs:50`、`components/color-area/src/view.rs:49`、`components/color-area/src/view.rs:45`），避免示例漂移。
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
@@ -347,9 +347,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

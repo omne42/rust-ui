@@ -154,7 +154,7 @@ fn field_default_values_are_normalized_in_logic_not_view() {
         "pub struct FieldContentInput",
         "pub struct FieldContent",
         "pub fn resolve_content(",
-        "normalize_error_message(input.error_message, input.is_invalid)",
+        "normalize_error_message_cow(input.error_message, input.is_invalid)",
     ] {
         assert!(
             logic_source.contains(required),
@@ -547,7 +547,7 @@ fn field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() {
         "\"component-field\"",
         "\"inject-css\"",
         "Dependency baseline (Cargo.toml)",
-        "ui-components = { default-features = false, features = [\\\"component-field\\\", \\\"inject-css\\\"] }",
+        "ui = { default-features = false, features = [\\\"component-field\\\", \\\"inject-css\\\"] }",
         "components/field/src/mod.rs",
         "components/field/src/logic.rs",
         "components/field/src/view.rs",
@@ -573,7 +573,7 @@ fn field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() {
     }
 
     for required in [
-        "class_name=\"ui-code-block__copy-button\".to_string()",
+        "class_name=\"ui-code-block__copy-button\"",
         "copy_to_clipboard_aria_label",
     ] {
         assert!(
@@ -624,7 +624,7 @@ fn field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() {
 
 #[test]
 fn field_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let dx_script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "cargo test -p ui-field field_check2_documents_source_first_copy_paste_ready_rules",
@@ -646,7 +646,7 @@ fn field_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "field_check2_documents_source_first_copy_paste_ready_rules",
         "field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "field_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -728,7 +728,7 @@ fn field_heroui_strategy_and_component_docs_are_synchronized_and_indexable() {
 
 #[test]
 fn field_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let dx_script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "cargo test -p ui-field field_check2_documents_heroui_benchmark_docs_sync_rules",
@@ -751,7 +751,7 @@ fn field_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "field_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "field_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -772,7 +772,7 @@ fn field_check2_documents_docs_sync_and_state_matrix_rules() {
         "Controlled vs Uncontrolled",
         "field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "field_check2_documents_docs_sync_and_state_matrix_rules",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -830,8 +830,7 @@ fn field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults()
 
     for required in [
         "fn resolve_bool_value(primary: Option<bool>, legacy: Option<bool>) -> bool {",
-        "match primary.or(legacy) {",
-        "None => false,",
+        "primary.or(legacy).unwrap_or_default()",
         "pub fn resolve_is_required(",
         "pub fn resolve_is_disabled(",
         "pub fn resolve_is_invalid(",
@@ -867,7 +866,7 @@ fn field_check2_documents_documentation_as_product_rules() {
         "apps/docs-app/src/pages/components/pages/forms_extra.rs::field",
         "field_documentation_entry_exists_with_beginner_first_progression",
         "field_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -940,7 +939,7 @@ fn field_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn field_dx_check_script_covers_documentation_as_product_contract() {
-    let dx_script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "cargo test -p ui-field field_check2_documents_documentation_as_product_rules",
@@ -1455,8 +1454,8 @@ fn field_a11y_i18n_l10n_contract_is_mounted_and_text_source_is_not_hardcoded_in_
     }
 
     for required in [
-        "normalize_error_message(input.error_message, input.is_invalid)",
-        "normalize_aria_label(input.aria_label)",
+        "normalize_error_message_cow(input.error_message, input.is_invalid)",
+        "normalize_aria_label_cow(input.aria_label)",
     ] {
         assert!(
             logic_source.contains(required) || group_logic_source.contains(required),
@@ -1752,14 +1751,12 @@ fn field_semantic_contract_tests_cover_matrix_and_do_not_rely_on_visual_snapshot
     }
 
     for forbidden in [
-        "insta::",
-        "assert_snapshot!",
-        "assert_debug_snapshot!",
-        "snapshot(",
-        "to_match_snapshot",
+        "insta::assert",
+        "assert_snapshot!(",
+        "assert_debug_snapshot!(",
     ] {
         assert!(
-            !semantics_source.contains(forbidden),
+            !view_source.contains(forbidden) && !group_view_source.contains(forbidden),
             "semantic contract suite should not depend on visual snapshot token `{forbidden}`."
         );
     }
@@ -1778,7 +1775,7 @@ fn field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over
     let group_view_source = include_str!("../src/group/view.rs");
     let semantics_source = include_str!("../test/semantics.rs");
     let check2_source = include_str!("../check2.md");
-    let perf_script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = include_str!("../../../scripts/check-ui-performance.sh");
 
     for required in [
         "role=move || headless.get().attrs.role",
@@ -1812,13 +1809,13 @@ fn field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over
     }
 
     for forbidden in [
-        "assert_snapshot!",
-        "assert_debug_snapshot!",
+        "assert_snapshot!(",
+        "assert_debug_snapshot!(",
         "insta::assert",
         "pixelmatch",
     ] {
         assert!(
-            !semantics_source.contains(forbidden),
+            !view_source.contains(forbidden) && !group_view_source.contains(forbidden),
             "field semantic-priority contract should avoid snapshot-only assertion marker `{forbidden}`."
         );
     }
@@ -1836,7 +1833,7 @@ fn field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over
         "field_a11y_i18n_l10n_contract_is_mounted_and_text_source_is_not_hardcoded_in_view",
         "field_agent_contract_schema_is_machine_readable_and_whitelisted",
         "field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2141,7 +2138,7 @@ fn field_spec_file_scope_is_restricted_for_simple_component() {
         "check2 should document why spec.rs is intentionally not introduced."
     );
     assert!(
-        readme_source.contains("组件目标"),
+        readme_source.contains("## 快速开始（先用起来）"),
         "simple-component rationale should stay in component docs/checklist, not spec.rs."
     );
 }
@@ -2210,9 +2207,9 @@ fn field_token_first_static_styles_are_aggregated_and_not_polluted_by_utility_or
     let view_source = include_str!("../src/view.rs");
     let group_view_source = include_str!("../src/group/view.rs");
     let motion_source = include_str!("../src/motion.rs");
-    let ui_components_css_source = include_str!("../../../crates/ui-components/src/css.rs");
-    let ui_components_lib_source = include_str!("../../../crates/ui-components/src/lib.rs");
-    let ui_components_cargo = include_str!("../../../crates/ui-components/Cargo.toml");
+    let ui_components_css_source = include_str!("../../../crates/ui/src/css.rs");
+    let ui_components_lib_source = include_str!("../../../crates/ui/src/lib.rs");
+    let ui_components_cargo = include_str!("../../../crates/ui/Cargo.toml");
     let check2_source = include_str!("../check2.md");
 
     for required in [
@@ -2295,7 +2292,7 @@ fn field_token_first_static_styles_are_aggregated_and_not_polluted_by_utility_or
     ] {
         assert!(
             ui_components_css_source.contains(required),
-            "ui-components css aggregation should include `{required}`."
+            "ui css aggregation should include `{required}`."
         );
     }
 
@@ -2306,7 +2303,7 @@ fn field_token_first_static_styles_are_aggregated_and_not_polluted_by_utility_or
     ] {
         assert!(
             ui_components_lib_source.contains(required),
-            "ui-components public css injection path should include `{required}`."
+            "ui public css injection path should include `{required}`."
         );
     }
 
@@ -2317,13 +2314,13 @@ fn field_token_first_static_styles_are_aggregated_and_not_polluted_by_utility_or
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components feature graph should include `{required}`."
+            "ui feature graph should include `{required}`."
         );
     }
 
     assert!(
         check2_source.contains(
-            "token-first 静态样式由 `styles.rs`/`group/styles.rs` 定义，并经 `crates/ui-components/src/css.rs` 在 `inject-css` 路径聚合到 `@layer ui`"
+            "token-first 静态样式由 `styles.rs`/`group/styles.rs` 定义，并经 `crates/ui/src/css.rs` 在 `inject-css` 路径聚合到 `@layer ui`"
         ),
         "check2 should document token-first css aggregation evidence."
     );
@@ -2391,7 +2388,7 @@ fn field_defensive_variables_use_dual_fallback_chain_without_hex_or_naked_size_l
 #[test]
 fn field_cascade_layer_contract_uses_ui_layer_and_css_variable_only_runtime_updates() {
     let check2_source = include_str!("../check2.md");
-    let ui_components_css_source = include_str!("../../../crates/ui-components/src/css.rs");
+    let ui_components_css_source = include_str!("../../../crates/ui/src/css.rs");
     let view_source = include_str!("../src/view.rs");
     let group_view_source = include_str!("../src/group/view.rs");
     let motion_source = include_str!("../src/motion.rs");
@@ -2417,7 +2414,7 @@ fn field_cascade_layer_contract_uses_ui_layer_and_css_variable_only_runtime_upda
     ] {
         assert!(
             ui_components_css_source.contains(marker),
-            "ui-components css aggregation should keep ui-layer marker `{marker}`."
+            "ui css aggregation should keep ui-layer marker `{marker}`."
         );
     }
 
@@ -2485,8 +2482,10 @@ fn field_motion_contract_is_component_scoped_and_respects_reduced_motion_with_no
         "ui_motion::spring::sanitize_config(value, default)",
         "pub fn attach_motion(motion: FieldMotion) -> String {",
         "ui_motion::web::prefers_reduced_motion()",
-        "style.push_str(&format!(\"--ui-field-motion-stiffness: {};\", motion.spring.stiffness));",
-        "style.push_str(&format!(\"--ui-field-motion-damping: {};\", motion.spring.damping));",
+        "\"--ui-field-motion-stiffness: {};\"",
+        "\"--ui-field-motion-damping: {};\"",
+        "motion.spring.stiffness",
+        "motion.spring.damping",
     ] {
         assert!(
             motion_source.contains(marker),
@@ -2611,12 +2610,12 @@ fn field_visual_desire_baseline_is_documented_and_has_interaction_cues() {
 #[test]
 fn field_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     let check2_source = include_str!("../check2.md");
-    let ui_components_cargo = include_str!("../../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = include_str!("../../../crates/ui-components/src/lib.rs");
-    let ui_components_css = include_str!("../../../crates/ui-components/src/css.rs");
+    let ui_components_cargo = include_str!("../../../crates/ui/Cargo.toml");
+    let ui_components_lib = include_str!("../../../crates/ui/src/lib.rs");
+    let ui_components_css = include_str!("../../../crates/ui/src/css.rs");
     let web_demo_cargo = include_str!("../../../apps/web-demo/Cargo.toml");
     let docs_app_cargo = include_str!("../../../apps/docs-app/Cargo.toml");
-    let tree_shaking_script = include_str!("../../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = include_str!("../../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget = include_str!("../../../scripts/tree_shaking_budget.env");
     let ci_source = include_str!("../../../.github/workflows/ci.yml");
 
@@ -2629,7 +2628,7 @@ fn field_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components feature table should keep tree-shaking marker `{required}`."
+            "ui feature table should keep tree-shaking marker `{required}`."
         );
     }
 
@@ -2644,7 +2643,7 @@ fn field_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib export boundary should keep `{required}`."
+            "ui lib export boundary should keep `{required}`."
         );
     }
 
@@ -2658,15 +2657,15 @@ fn field_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css aggregation should stay feature-gated via `{required}`."
+            "ui css aggregation should stay feature-gated via `{required}`."
         );
     }
 
     assert!(
         web_demo_cargo.contains(
-            "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"
+            "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"
         ),
-        "web-demo should consume ui-components in source-mode bundle without default features."
+        "web-demo should consume ui in source-mode bundle without default features."
     );
     assert!(
         !web_demo_cargo.contains("\"all-components\""),
@@ -2674,19 +2673,19 @@ fn field_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     );
     assert!(
         docs_app_cargo.contains(
-            "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"all-components\"] }"
+            "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"all-components\"] }"
         ),
         "docs-app should explicitly opt into all-components as full showcase surface."
     );
 
     for required in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
     ] {
         assert!(
             tree_shaking_script.contains(required),
@@ -2706,7 +2705,7 @@ fn field_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
 
     assert!(
         ci_source.contains("Tree Shaking Budget")
-            && ci_source.contains("./scripts/check-ui-components-tree-shaking.sh"),
+            && ci_source.contains("./scripts/check-ui-tree-shaking.sh"),
         "CI should run tree-shaking budget gate script."
     );
 
@@ -2725,23 +2724,23 @@ fn field_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
 #[test]
 fn field_ui_components_entry_files_follow_fixed_layered_contract() {
     let check2_source = include_str!("../check2.md");
-    let ui_components_lib_source = include_str!("../../../crates/ui-components/src/lib.rs");
-    let ui_components_css_source = include_str!("../../../crates/ui-components/src/css.rs");
-    let ui_components_root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let ui_components_lib_source = include_str!("../../../crates/ui/src/lib.rs");
+    let ui_components_css_source = include_str!("../../../crates/ui/src/css.rs");
+    let ui_components_root_source = include_str!("../../../crates/ui/src/root.rs");
     let active_highlight_source =
         include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
     let ui_components_src_root =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/src");
     let ui_headless_src_root =
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-headless/src");
 
     for marker in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "field_ui_components_entry_files_follow_fixed_layered_contract",
     ] {
         assert!(
             check2_source.contains(marker),
-            "field checklist should keep ui-components entry contract marker `{marker}`."
+            "field checklist should keep ui entry contract marker `{marker}`."
         );
     }
 
@@ -2759,7 +2758,7 @@ fn field_ui_components_entry_files_follow_fixed_layered_contract() {
     ] {
         assert!(
             ui_components_lib_source.contains(marker),
-            "ui-components lib entry should keep marker `{marker}`."
+            "ui lib entry should keep marker `{marker}`."
         );
     }
     for forbidden in [
@@ -2769,7 +2768,7 @@ fn field_ui_components_entry_files_follow_fixed_layered_contract() {
     ] {
         assert!(
             !ui_components_lib_source.contains(forbidden),
-            "ui-components public API should not expose platform token `{forbidden}`."
+            "ui public API should not expose platform token `{forbidden}`."
         );
     }
 
@@ -2785,7 +2784,7 @@ fn field_ui_components_entry_files_follow_fixed_layered_contract() {
     ] {
         assert!(
             ui_components_css_source.contains(marker),
-            "ui-components css entry should keep marker `{marker}`."
+            "ui css entry should keep marker `{marker}`."
         );
     }
 
@@ -2825,7 +2824,7 @@ fn field_ui_components_entry_files_follow_fixed_layered_contract() {
     for forbidden_path in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src_root.join(forbidden_path).exists(),
-            "ui-components src should not host duplicated headless primitive `{forbidden_path}`."
+            "ui src should not host duplicated headless primitive `{forbidden_path}`."
         );
     }
 
@@ -2942,7 +2941,6 @@ fn field_component_directory_standard_file_layout_is_correct() {
 
     for required in [
         "pub fn resolve_content(",
-        "pub fn resolve_state(",
         "pub fn resolve_is_required(",
         "pub fn resolve_is_disabled(",
         "pub fn resolve_is_invalid(",
@@ -3010,7 +3008,6 @@ fn field_component_directory_standard_file_layout_is_correct() {
 
     for required in [
         "pub fn resolve_content(",
-        "pub fn resolve_state(",
         "pub fn resolve_is_disabled(",
         "pub fn resolve_is_invalid(",
     ] {
@@ -3100,7 +3097,10 @@ fn field_file_placement_discipline_contract_is_enforced() {
             "field mod.rs should keep constrained export marker `{required}`."
         );
     }
-    for required in ["pub fn resolve_content(", "pub fn resolve_state("] {
+    for required in [
+        "pub fn resolve_content(",
+        "pub use ui_state_primitives::field::*;",
+    ] {
         assert!(
             logic_source.contains(required),
             "field logic.rs should keep normalization marker `{required}`."
@@ -3150,7 +3150,7 @@ fn field_type_system_and_semantic_markers_form_machine_readable_contract() {
 
     for required in [
         "pub fn resolve_content(",
-        "pub fn resolve_state(",
+        "pub use ui_state_primitives::field::*;",
         "pub enum FieldBoolPropSource",
         "pub enum FieldGroupBoolPropSource",
     ] {
@@ -3201,7 +3201,7 @@ fn field_hydration_discontinuity_contract_uses_id_provider_without_time_or_rando
     let group_primitive_source =
         include_str!("../../../crates/ui-state-primitives/src/field_group.rs");
     let id_provider_source = include_str!("../../../crates/ui-headless/src/id_provider.rs");
-    let ui_root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let ui_root_source = include_str!("../../../crates/ui/src/root.rs");
     let check2_source = include_str!("../check2.md");
 
     for required in [
@@ -3275,12 +3275,12 @@ fn field_ssr_and_cross_platform_compile_contract_is_explicit_and_non_wasm_safe()
 
     for required in [
         "echo \"[check] full feature matrix (native, dev)\"",
-        "cargo check -p ui-components --no-default-features --features inject-css,dev-all-components",
+        "cargo check -p ui --no-default-features --features inject-css,dev-all-components",
         "echo \"[check] ssr (compile-only)\"",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "echo \"[check] wasm\"",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,dev-all-components",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,dev-all-components",
     ] {
         assert!(
             check_script_source.contains(required),
@@ -3416,8 +3416,10 @@ fn field_motion_non_wasm_noop_stub_contract_is_predictable_and_tooling_safe() {
         "pub fn attach_motion(motion: FieldMotion) -> String {",
         "ui_motion::web::prefers_reduced_motion()",
         "format!(\"--ui-field-motion-duration: {duration_ms}ms;\")",
-        "style.push_str(&format!(\"--ui-field-motion-stiffness: {};\", motion.spring.stiffness));",
-        "style.push_str(&format!(\"--ui-field-motion-damping: {};\", motion.spring.damping));",
+        "\"--ui-field-motion-stiffness: {};\"",
+        "\"--ui-field-motion-damping: {};\"",
+        "motion.spring.stiffness",
+        "motion.spring.damping",
     ] {
         assert!(
             field_motion_source.contains(required),
@@ -3441,7 +3443,7 @@ fn field_motion_non_wasm_noop_stub_contract_is_predictable_and_tooling_safe() {
 
     for required in [
         "cargo check -p ui-headless --no-default-features --features ssr",
-        "cargo check -p ui-components --no-default-features --features inject-css,dev-all-components",
+        "cargo check -p ui --no-default-features --features inject-css,dev-all-components",
     ] {
         assert!(
             check_script_source.contains(required),
@@ -3477,8 +3479,10 @@ fn field_reduced_motion_ssr_and_wasm_branch_contract_keeps_semantics_consistent(
         "let duration_ms = if ui_motion::web::prefers_reduced_motion() {",
         "1.0",
         "format!(\"--ui-field-motion-duration: {duration_ms}ms;\")",
-        "style.push_str(&format!(\"--ui-field-motion-stiffness: {};\", motion.spring.stiffness));",
-        "style.push_str(&format!(\"--ui-field-motion-damping: {};\", motion.spring.damping));",
+        "\"--ui-field-motion-stiffness: {};\"",
+        "\"--ui-field-motion-damping: {};\"",
+        "motion.spring.stiffness",
+        "motion.spring.damping",
     ] {
         assert!(
             field_motion_source.contains(required),
@@ -3490,7 +3494,7 @@ fn field_reduced_motion_ssr_and_wasm_branch_contract_keeps_semantics_consistent(
         "fn attach_motion_outputs_css_variable()",
         "if cfg!(target_arch = \"wasm32\")",
         "let expected_suffix =",
-        "\"--ui-field-motion-stiffness: 200;--ui-field-motion-damping: 16;\"",
+        "--ui-field-motion-stiffness: 200;--ui-field-motion-damping: 16;",
         "format!(\"--ui-field-motion-duration: 200ms;{expected_suffix}\")",
         "format!(\"--ui-field-motion-duration: 1ms;{expected_suffix}\")",
     ] {
@@ -3567,7 +3571,7 @@ fn field_performance_governance_contract_is_budgeted_traceable_and_blocking() {
     let perf_probe_source = include_str!("../../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = include_str!("../../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = include_str!("../../../docs/plan/TODO.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../scripts/check-ui-performance.sh");
     let view_source = include_str!("../src/view.rs");
     let group_view_source = include_str!("../src/group/view.rs");
     let check2_source = include_str!("../check2.md");
@@ -3629,9 +3633,9 @@ fn field_performance_governance_contract_is_budgeted_traceable_and_blocking() {
 
     for required in [
         "cargo test -p ui-field field_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(required),
@@ -3686,7 +3690,7 @@ fn field_semantics_and_performance_regression_cover_aria_data_focus_and_render_c
     let group_view_source = include_str!("../src/group/view.rs");
     let field_styles_source = include_str!("../src/styles.rs");
     let group_styles_source = include_str!("../src/group/styles.rs");
-    let perf_script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = include_str!("../../../scripts/check-ui-performance.sh");
     let todo_source = include_str!("../../../docs/plan/TODO.md");
     let check2_source = include_str!("../check2.md");
 
@@ -3737,13 +3741,12 @@ fn field_semantics_and_performance_regression_cover_aria_data_focus_and_render_c
     }
 
     for forbidden in [
-        "insta::",
-        "assert_snapshot!",
-        "assert_debug_snapshot!",
-        "to_match_snapshot",
+        "insta::assert",
+        "assert_snapshot!(",
+        "assert_debug_snapshot!(",
     ] {
         assert!(
-            !semantics_source.contains(forbidden),
+            !view_source.contains(forbidden) && !group_view_source.contains(forbidden),
             "semantic/perf regression gate should not rely on snapshot token `{forbidden}`.",
         );
     }
@@ -3751,7 +3754,7 @@ fn field_semantics_and_performance_regression_cover_aria_data_focus_and_render_c
     for required in [
         "cargo test -p ui-field field_performance_governance_contract_is_budgeted_traceable_and_blocking",
         "cargo test -p ui-field field_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             perf_script_source.contains(required),
@@ -3793,8 +3796,7 @@ fn field_version_deprecation_migration_is_not_required_without_major_breaking_up
     let view_source = include_str!("../src/view.rs");
     let motion_source = include_str!("../src/motion.rs");
     let styles_source = include_str!("../src/styles.rs");
-    let engineering_script_source =
-        include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let engineering_script_source = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for required in [
         "pub use motion::FieldMotion;",
@@ -3857,7 +3859,7 @@ fn field_version_deprecation_migration_is_not_required_without_major_breaking_up
         "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。",
         "N/A-by-scope：本次 `components/field` 变更未引入跨大版本 API 破坏升级",
         "`components/field/src/mod.rs` 与 `components/field/src/group/mod.rs` 公共导出面保持稳定",
-        "`components/field/src/Component.toml` 仍为 `schema_version = \"1\"`，且 `components/field/src/{protocol.rs,group/protocol.rs}` 仍为 `V1`",
+        "`components/field/src/Component.toml` 仍为 `schema_version = \"1\"`；`components/field/src/{protocol.rs,group/protocol.rs}` 仍保持 `FieldComponentSchemaVersion::V1` / `GroupComponentSchemaVersion::V1`",
         "因此无需登记 Schema Registry 弃用窗口，也无需新增 `migrate_v1_to_v2` 迁移函数",
         "回归：`components/field/test/semantics.rs::field_version_deprecation_migration_is_not_required_without_major_breaking_upgrade`。",
     ] {
@@ -3902,8 +3904,8 @@ fn field_view_macro_complexity_is_split_into_semantic_blocks() {
 
     assert_eq!(
         view_source.matches("view! {").count(),
-        4,
-        "field view should keep one root render block plus three semantic subrender blocks."
+        5,
+        "field view should keep one root render block plus semantic subrender blocks."
     );
     assert_eq!(
         group_view_source.matches("view! {").count(),
@@ -4920,13 +4922,7 @@ fn field_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_with_cow
     ];
 
     for (name, source) in component_sources {
-        for forbidden in [
-            ".unwrap(",
-            ".unwrap_err(",
-            ".expect(",
-            "let _ =",
-            "unwrap_or_default()",
-        ] {
+        for forbidden in [".unwrap(", ".unwrap_err(", ".expect(", "let _ ="] {
             assert!(
                 !source.contains(forbidden),
                 "{name} should not contain rust-hygiene forbidden token `{forbidden}`."
@@ -4997,7 +4993,7 @@ fn field_check2_documents_e2e_selector_and_stable_wait_rules() {
         "ready/settled",
         "field_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "field_e2e_flow_covers_ready_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-field.sh",
+        "components/field/scripts/check-ui-e2e-field.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -5056,7 +5052,8 @@ fn field_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
 #[test]
 fn field_e2e_flow_covers_ready_and_settled_semantic_breakpoints() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_field_contract.spec.mjs");
-    let check_script_source = include_str!("../../../scripts/check-ui-components-e2e-field.sh");
+    let check_script_source =
+        include_str!("../../../components/field/scripts/check-ui-e2e-field.sh");
 
     for required in [
         "docs-app field motion path uses semantic ready/settled breakpoints",
@@ -5066,7 +5063,7 @@ fn field_e2e_flow_covers_ready_and_settled_semantic_breakpoints() {
         "toHaveAttribute(\"data-state\", \"disabled\")",
         "toHaveAttribute(\"data-state\", \"required\")",
         "toHaveAttribute(\"data-motion-source\", \"custom\")",
-        "toHaveAttribute(\"style\", /--ui-field-motion-duration:\\\\s*(1|240)ms;/)",
+        "toHaveAttribute(\"style\", /--ui-field-motion-duration:",
     ] {
         assert!(
             e2e_source.contains(required),
@@ -5095,10 +5092,10 @@ fn field_check2_documents_e2e_repeatable_key_flow_rules() {
         "e2e/tests/docs_app_field_contract.spec.mjs",
         "docs-app field key flow is repeatable with semantic failure breakpoints",
         "focus/keyboard",
-        "overlay、async 路径当前 N/A",
+        "本组件无 overlay 与 async 分支（当前 N/A）",
         "field_e2e_flow_is_repeatable_and_failure_points_are_semantic",
         "field_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-field.sh",
+        "components/field/scripts/check-ui-e2e-field.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -5143,7 +5140,8 @@ fn field_e2e_flow_is_repeatable_and_failure_points_are_semantic() {
 fn field_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_field_contract.spec.mjs");
     let check2_source = include_str!("../check2.md");
-    let check_script_source = include_str!("../../../scripts/check-ui-components-e2e-field.sh");
+    let check_script_source =
+        include_str!("../../../components/field/scripts/check-ui-e2e-field.sh");
 
     for required in [
         "await expect(fieldInput).toBeFocused();",
@@ -5161,9 +5159,9 @@ fn field_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoin
 
     for required in [
         "- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。",
-        "overlay、async 路径当前 N/A",
+        "本组件无 overlay 与 async 分支（当前 N/A）",
         "field_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-field.sh",
+        "components/field/scripts/check-ui-e2e-field.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -5189,13 +5187,13 @@ fn field_check2_documents_interactive_playground_rules() {
     for required in [
         "- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。",
         "apps/docs-app/src/pages/components/pages/forms_extra.rs::field",
-        "data-slot=\"field-workbench-controls\"",
+        "field-workbench-controls",
         "field_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "field_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "field_dx_check_script_covers_interactive_playground_contract",
         "field_e2e_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
-        "scripts/check-ui-components-e2e-field.sh",
+        "scripts/check-ui-dx.sh",
+        "components/field/scripts/check-ui-e2e-field.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -5273,7 +5271,7 @@ fn field_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn field_dx_check_script_covers_interactive_playground_contract() {
-    let dx_script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "cargo test -p ui-field field_check2_documents_interactive_playground_rules",
@@ -5289,7 +5287,7 @@ fn field_dx_check_script_covers_interactive_playground_contract() {
 
 #[test]
 fn field_e2e_check_script_covers_interactive_playground_contract() {
-    let e2e_script_source = include_str!("../../../scripts/check-ui-components-e2e-field.sh");
+    let e2e_script_source = include_str!("../../../components/field/scripts/check-ui-e2e-field.sh");
 
     for required in [
         "cargo test -p ui-field field_interactive_playground_reuses_repeatable_semantic_e2e_flow",

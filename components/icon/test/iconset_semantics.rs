@@ -153,7 +153,7 @@ fn iconset_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::iconset::styles::CSS);"),
-        "ui-components css aggregator should include iconset styles."
+        "ui css aggregator should include iconset styles."
     );
 }
 
@@ -294,7 +294,7 @@ fn iconset_check2_marks_architecture_layer_definitions_complete() {
         "- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。",
         "- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。",
         "- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。",
-        "- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
+        "- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
     ] {
         assert!(
             check2_source.contains(needle),

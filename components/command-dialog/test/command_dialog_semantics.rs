@@ -331,9 +331,9 @@ fn command_dialog_styles_use_defensive_variable_fallback_chain() {
 
 #[test]
 fn command_dialog_defensive_variables_check_script_covers_style_fallback_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_styles_use_defensive_variable_fallback_chain";
+    let needle = "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`.",
@@ -352,7 +352,7 @@ fn command_dialog_check2_marks_defensive_variables_contract_complete() {
     for needle in [
         "command_dialog_styles_use_defensive_variable_fallback_chain",
         "command_dialog_defensive_variables_check_script_covers_style_fallback_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "components/command-dialog/src/styles.rs",
         "crates/ui-theme/src/css.rs",
     ] {
@@ -378,7 +378,7 @@ fn command_dialog_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_entry_source.contains(needle),
-            "ui-components css entry should enforce cascade-layer contract `{needle}`."
+            "ui css entry should enforce cascade-layer contract `{needle}`."
         );
     }
 
@@ -435,9 +435,9 @@ fn command_dialog_cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn command_dialog_cascade_layer_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_cascade_layer_and_runtime_style_contract_is_enforced";
+    let needle = "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -456,9 +456,9 @@ fn command_dialog_check2_marks_cascade_layer_contract_complete() {
     for needle in [
         "command_dialog_cascade_layer_and_runtime_style_contract_is_enforced",
         "command_dialog_cascade_layer_check_script_covers_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "scripts/check-ui-contract-hygiene.sh",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "components/command-dialog/src/view.rs",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -567,9 +567,9 @@ fn command_dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_n
 
 #[test]
 fn command_dialog_motion_contract_platform_script_covers_guard() {
-    let source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let source = load_source("../../scripts/check-ui-platforms.sh");
 
-    let needle = "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
+    let needle = "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
     assert!(
         source.contains(needle),
         "platform check script should enforce `{needle}`.",
@@ -592,7 +592,7 @@ fn command_dialog_check2_marks_motion_contractualization_complete() {
         "finish_exit.run(())",
         "command_dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
         "command_dialog_motion_contract_platform_script_covers_guard",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -626,7 +626,7 @@ fn command_dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep marker `{needle}`.",
+            "ui lib entry should keep marker `{needle}`.",
         );
     }
 
@@ -638,7 +638,7 @@ fn command_dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform/internal marker `{forbidden}`.",
+            "ui lib entry should not leak platform/internal marker `{forbidden}`.",
         );
     }
 
@@ -655,7 +655,7 @@ fn command_dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css registry should keep feature-gated marker `{needle}`.",
+            "ui css registry should keep feature-gated marker `{needle}`.",
         );
     }
 
@@ -710,7 +710,7 @@ fn command_dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !path_exists(forbidden),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`.",
+            "ui forbidden entrypoint file should not exist: `{forbidden}`.",
         );
     }
 
@@ -741,9 +741,9 @@ fn command_dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
 #[test]
 fn command_dialog_entrypoints_check_script_covers_fixed_entrypoint_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
 
-    let needle = "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let needle = "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         script_source.contains(needle),
         "entrypoints check script should enforce `{needle}`."
@@ -755,13 +755,13 @@ fn command_dialog_check2_marks_ui_components_fixed_entry_files_contract_complete
     let source = load_source("../../components/command-dialog/check2.md");
 
     for needle in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "command_dialog_ui_components_fixed_entry_files_follow_layered_boundaries",
         "command_dialog_entrypoints_check_script_covers_fixed_entrypoint_contract",
-        "scripts/check-ui-components-entrypoints.sh",
-        "crates/ui-components/src/lib.rs",
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "scripts/check-ui-entrypoints.sh",
+        "crates/ui/src/lib.rs",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "crates/ui-visual-primitive/src/active_highlight.rs",
         "crates/ui-headless/src/controllable_state.rs",
         "crates/ui-headless/src/presence.rs",
@@ -784,7 +784,7 @@ fn command_dialog_tree_shaking_feature_registration_and_gated_aggregates() {
     assert!(
         cargo_source
             .contains("component-command_dialog = [\"component-command\", \"component-modal\"]"),
-        "ui-components feature tree should register command-dialog with minimal dependency chain.",
+        "ui feature tree should register command-dialog with minimal dependency chain.",
     );
 
     for required in [
@@ -794,7 +794,7 @@ fn command_dialog_tree_shaking_feature_registration_and_gated_aggregates() {
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib should keep command-dialog gate marker `{required}`.",
+            "ui lib should keep command-dialog gate marker `{required}`.",
         );
     }
 
@@ -816,15 +816,15 @@ fn command_dialog_tree_shaking_feature_registration_and_gated_aggregates() {
 
 #[test]
 fn command_dialog_tree_shaking_script_covers_command_dialog_minimal_feature_chain() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
 
     for needle in [
         "COMMAND_DIALOG_MIN_FEATURES=\"component-command_dialog,inject-css\"",
         "command-dialog minimal feature tree",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$COMMAND_DIALOG_MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$COMMAND_DIALOG_MIN_FEATURES\"",
         "missing command-line feature: component-command_dialog",
         "command-dialog minimal feature tree should not pull all-components",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_tree_shaking_feature_registration_and_gated_aggregates",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_tree_shaking_feature_registration_and_gated_aggregates",
     ] {
         assert!(
             script_source.contains(needle),
@@ -838,11 +838,11 @@ fn command_dialog_check2_marks_tree_shaking_feature_gating_complete() {
     let source = load_source("../../components/command-dialog/check2.md");
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "command_dialog_tree_shaking_feature_registration_and_gated_aggregates",
         "command_dialog_tree_shaking_script_covers_command_dialog_minimal_feature_chain",
-        "scripts/check-ui-components-tree-shaking.sh",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-command_dialog,inject-css",
+        "scripts/check-ui-tree-shaking.sh",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-command_dialog,inject-css",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -995,12 +995,12 @@ fn command_dialog_component_directory_standard_files_follow_contract_and_na_path
 
 #[test]
 fn command_dialog_component_files_check_script_covers_standard_directory_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_component_directory_standard_files_follow_contract_and_na_paths",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_file_placement_discipline_is_strict_for_component_scope",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_component_directory_standard_files_follow_contract_and_na_paths",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_file_placement_discipline_is_strict_for_component_scope",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1017,7 +1017,7 @@ fn command_dialog_check2_marks_component_directory_standard_files_contract_compl
         "- [x] 组件目录标准文件落点正确。",
         "command_dialog_component_directory_standard_files_follow_contract_and_na_paths",
         "command_dialog_component_files_check_script_covers_standard_directory_contract",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "components/command-dialog/src/mod.rs",
         "components/command-dialog/src/logic.rs",
         "components/command-dialog/src/styles.rs",
@@ -1046,7 +1046,7 @@ fn command_dialog_check2_marks_file_placement_discipline_contract_complete() {
         "- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。",
         "command_dialog_file_placement_discipline_is_strict_for_component_scope",
         "command_dialog_component_directory_standard_files_follow_contract_and_na_paths",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1099,7 +1099,7 @@ fn command_dialog_check2_marks_hyper_structure_builder_item_complete() {
         "- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。",
         "N/A-by-design：`command-dialog` 当前为简单组件装配",
         "command_dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1166,9 +1166,9 @@ fn command_dialog_context_compression_manifest_and_rbi_projection_are_present_an
 
 #[test]
 fn command_dialog_component_files_script_covers_context_compression_manifest_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let needle = "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`.",
@@ -1189,7 +1189,7 @@ fn command_dialog_check2_marks_context_compression_manifest_and_rbi_contract_com
         "components/command-dialog/src/command_dialog.rbi",
         "command_dialog_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "command_dialog_component_files_script_covers_context_compression_manifest_contract",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1212,7 +1212,7 @@ fn command_dialog_check2_documents_agent_contract_schema_governance_rules() {
         "command_dialog_agent_contract_is_schema_typed_and_machine_readable",
         "command_dialog_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "command_dialog_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -1333,13 +1333,13 @@ fn command_dialog_agent_contract_render_path_is_whitelist_safe_and_script_inject
 
 #[test]
 fn command_dialog_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_agent_contract_schema_governance_rules",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1359,7 +1359,7 @@ fn command_dialog_check2_marks_agent_contract_schema_governance_complete() {
         "command_dialog_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "command_dialog_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
         "command_dialog_contract_hygiene_script_covers_agent_contract_schema_guards",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1460,9 +1460,9 @@ fn command_dialog_streaming_display_modes_are_limited_to_streaming_and_snapshot(
 
 #[test]
 fn command_dialog_streaming_script_covers_two_mode_definition_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
-    let needle = "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let needle = "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(needle),
         "streaming check script should enforce `{needle}`.",
@@ -1478,7 +1478,7 @@ fn command_dialog_check2_marks_streaming_two_mode_definition_complete() {
         "command_dialog_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
         "command_dialog_streaming_display_modes_are_limited_to_streaming_and_snapshot",
         "command_dialog_streaming_script_covers_two_mode_definition_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1542,11 +1542,11 @@ fn command_dialog_snapshot_baseline_consumes_complete_result_and_renders_stably(
 
 #[test]
 fn command_dialog_streaming_script_covers_snapshot_baseline_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1564,7 +1564,7 @@ fn command_dialog_check2_marks_snapshot_baseline_capability_complete() {
         "command_dialog_check2_documents_snapshot_as_default_baseline_capability",
         "command_dialog_snapshot_baseline_consumes_complete_result_and_renders_stably",
         "command_dialog_streaming_script_covers_snapshot_baseline_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1648,12 +1648,12 @@ fn command_dialog_streaming_validation_retry_resilience_boundaries_stay_outside_
 
 #[test]
 fn command_dialog_streaming_script_covers_required_optional_classification_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1672,7 +1672,7 @@ fn command_dialog_check2_marks_streaming_required_optional_classification_comple
         "command_dialog_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
         "command_dialog_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
         "command_dialog_streaming_script_covers_required_optional_classification_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1786,12 +1786,12 @@ fn command_dialog_semantic_markers_changed_in_view_must_be_covered_by_semantics_
 
 #[test]
 fn command_dialog_contract_hygiene_script_covers_semantics_first_contract_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_semantics_first_testing_rules",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_semantics_suite_is_contract_first_not_snapshot_only",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_semantics_first_testing_rules",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_semantics_suite_is_contract_first_not_snapshot_only",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1862,7 +1862,7 @@ fn command_dialog_docs_state_source_playground_locks_contract_values() {
         "empty_label=\"No command matches your search.\".to_string()",
         "aria_label=\"Workspace command dialog\".to_string()",
         "class_name=\"docs-command-dialog-custom\".to_string()",
-        "let marker_overlay_motion = ui_components::OverlayMotion {",
+        "let marker_overlay_motion = ui::OverlayMotion {",
         "initial_scale: 0.95",
         "initial_y_px: 10.0",
         "overlay_motion=marker_overlay_motion",
@@ -1941,7 +1941,7 @@ fn command_dialog_docs_playgrounds_lock_state_matrix_contract_values() {
         "empty_label=\"No command matches your search.\".to_string()",
         "aria_label=\"Workspace command dialog\".to_string()",
         "class_name=\"docs-command-dialog-custom\".to_string()",
-        "let marker_overlay_motion = ui_components::OverlayMotion {",
+        "let marker_overlay_motion = ui::OverlayMotion {",
         "initial_scale: 0.95",
         "initial_y_px: 10.0",
         "overlay_motion=marker_overlay_motion",
@@ -2052,7 +2052,7 @@ fn command_dialog_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_
 
     for needle in [
         "const COMMAND_DIALOG_DOC_IMPORTS: &str =",
-        "use leptos::prelude::*;\\nuse ui_components::{CommandDialog, CommandGroup, CommandItem};",
+        "use leptos::prelude::*;\\nuse ui::{CommandDialog, CommandGroup, CommandItem};",
         "code_imports=COMMAND_DIALOG_DOC_IMPORTS.to_string()",
         "title=\"Hello World (Default API)\"",
         "title=\"State Matrix\"",
@@ -2108,7 +2108,7 @@ fn command_dialog_dx_workbench_supports_optional_state_persistence_and_isolated_
         "test_css_source=workbench_test_css_source",
         "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/components/command-dialog/src/styles.rs\".to_string()",
         "test_config_signal=workbench_actual_config",
-        "ui_components::command_dialog::styles::CSS",
+        "ui::command_dialog::styles::CSS",
         "let (workbench_preserve_context, set_workbench_preserve_context) = signal(true);",
         "if !workbench_preserve_context.get() {",
         "set_last_workbench_action.set(\"none\".to_string());",
@@ -2306,11 +2306,11 @@ fn command_dialog_heroui_strategy_and_component_docs_are_synced_for_parameter_mo
 
 #[test]
 fn command_dialog_dx_check_script_covers_docs_sync_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2321,14 +2321,14 @@ fn command_dialog_dx_check_script_covers_docs_sync_state_matrix_contract() {
 
 #[test]
 fn command_dialog_dx_check_script_covers_hot_reload_and_workbench_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2339,11 +2339,11 @@ fn command_dialog_dx_check_script_covers_hot_reload_and_workbench_contract() {
 
 #[test]
 fn command_dialog_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2354,11 +2354,11 @@ fn command_dialog_dx_check_script_covers_interactive_playground_contract() {
 
 #[test]
 fn command_dialog_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2369,11 +2369,11 @@ fn command_dialog_dx_check_script_covers_source_first_copy_paste_ready_contract(
 
 #[test]
 fn command_dialog_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_marks_heroui_strategy_and_component_docs_sync_complete",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_marks_heroui_strategy_and_component_docs_sync_complete",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2391,7 +2391,7 @@ fn command_dialog_check2_marks_docs_sync_and_state_matrix_contract_complete() {
         "command_dialog_check2_documents_docs_sync_and_state_matrix_rules",
         "command_dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "command_dialog_dx_check_script_covers_docs_sync_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2415,7 +2415,7 @@ fn command_dialog_check2_marks_docs_product_copy_paste_ready_contract_complete()
         "compose_copy_ready_code",
         "command_dialog_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract",
         "command_dialog_dx_check_script_covers_hot_reload_and_workbench_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2434,7 +2434,7 @@ fn command_dialog_check2_marks_interactive_playground_contract_complete() {
         "command_dialog_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "command_dialog_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "command_dialog_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2455,7 +2455,7 @@ fn command_dialog_check2_documents_source_first_copy_paste_ready_rules() {
         "文档代码与当前实现必须同步，防止示例漂移。",
         "command_dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "command_dialog_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2476,7 +2476,7 @@ fn command_dialog_check2_marks_heroui_strategy_and_component_docs_sync_complete(
         "“仅代码更新无文档更新”在接口变更场景下直接判不通过。",
         "command_dialog_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
         "command_dialog_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2666,7 +2666,7 @@ fn command_dialog_engineering_contract_keeps_tracing_semantics_unified_without_c
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::command_dialog::",
+        "target: \"ui::command_dialog::",
         "const COMMAND_DIALOG_TRACE_TARGET",
     ] {
         assert!(
@@ -2717,13 +2717,13 @@ fn command_dialog_engineering_contract_avoids_runtime_leaks_in_public_api_surfac
 
 #[test]
 fn command_dialog_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_version_deprecation_migration_is_na_without_major_breaking_upgrade",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2929,11 +2929,11 @@ fn command_dialog_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn command_dialog_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2951,7 +2951,7 @@ fn command_dialog_check2_marks_documentation_as_product_contract_complete() {
         "command_dialog_check2_documents_documentation_as_product_rules",
         "command_dialog_documentation_entry_exists_with_beginner_first_progression",
         "command_dialog_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3101,15 +3101,15 @@ fn command_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 #[test]
 fn command_dialog_e2e_check_script_covers_selector_contract() {
     assert!(
-        path_exists("../../scripts/check-ui-components-e2e-command-dialog.sh"),
+        path_exists("../../components/command-dialog/scripts/check-ui-e2e-command-dialog.sh"),
         "command-dialog e2e check script should exist.",
     );
 
-    let script_source = load_source("../../scripts/check-ui-components-e2e-command-dialog.sh");
+    let script_source = load_source("../../components/command-dialog/scripts/check-ui-e2e-command-dialog.sh");
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3121,16 +3121,16 @@ fn command_dialog_e2e_check_script_covers_selector_contract() {
 #[test]
 fn command_dialog_e2e_check_script_covers_selector_and_key_flow_contracts() {
     assert!(
-        path_exists("../../scripts/check-ui-components-e2e-command-dialog.sh"),
+        path_exists("../../components/command-dialog/scripts/check-ui-e2e-command-dialog.sh"),
         "command-dialog e2e check script should exist.",
     );
 
-    let script_source = load_source("../../scripts/check-ui-components-e2e-command-dialog.sh");
+    let script_source = load_source("../../components/command-dialog/scripts/check-ui-e2e-command-dialog.sh");
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3147,7 +3147,7 @@ fn command_dialog_check2_marks_e2e_repeatable_key_flow_contract_complete() {
         "- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。",
         "command_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "command_dialog_e2e_check_script_covers_selector_and_key_flow_contracts",
-        "scripts/check-ui-components-e2e-command-dialog.sh",
+        "components/command-dialog/scripts/check-ui-e2e-command-dialog.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3167,7 +3167,7 @@ fn command_dialog_performance_governance_contract_is_mount_only_traceable_and_bl
     let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/command_dialog/view.rs");
 
     for needle in [
@@ -3247,9 +3247,9 @@ fn command_dialog_performance_governance_contract_is_mount_only_traceable_and_bl
     }
 
     for needle in [
-        "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_performance_governance_contract_is_mount_only_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_performance_governance_contract_is_mount_only_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3291,7 +3291,7 @@ fn command_dialog_semantics_and_performance_regression_cover_aria_data_focus_and
     let view_source = load_source("../../components/command-dialog/src/view.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_command_dialog.spec.mjs");
     let check2_source = load_source("../../components/command-dialog/check2.md");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
     let semantics_source = load_source("tests/command_dialog_semantics.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
 
@@ -3334,13 +3334,13 @@ fn command_dialog_semantics_and_performance_regression_cover_aria_data_focus_and
         );
     }
 
-    let perf_gate_needle = "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_performance_governance_contract_is_mount_only_traceable_and_blocking";
+    let perf_gate_needle = "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_performance_governance_contract_is_mount_only_traceable_and_blocking";
     assert!(
         perf_script_source.contains(perf_gate_needle),
         "performance gate script should include `{perf_gate_needle}`.",
     );
 
-    let matrix_gate_needle = "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement";
+    let matrix_gate_needle = "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement";
     assert!(
         perf_script_source.contains(matrix_gate_needle),
         "performance gate script should include `{matrix_gate_needle}`.",
@@ -3527,7 +3527,7 @@ fn command_dialog_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isol
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../ui-headless/src/trace.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_command_dialog.spec.mjs");
-    let wasm_debug_script = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let wasm_debug_script = load_source("../../scripts/check-ui-wasm-debug.sh");
     let check2_source = load_source("../../components/command-dialog/check2.md");
 
     for needle in [
@@ -3561,7 +3561,7 @@ fn command_dialog_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isol
     ] {
         assert!(
             cargo_source.contains(required_feature),
-            "ui-components should keep shared wasm-debug opt-in feature `{required_feature}`.",
+            "ui should keep shared wasm-debug opt-in feature `{required_feature}`.",
         );
     }
 
@@ -3620,7 +3620,7 @@ fn command_dialog_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isol
         );
     }
 
-    let gate_command = "cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isolated";
+    let gate_command = "cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isolated";
     assert!(
         wasm_debug_script.contains(gate_command),
         "wasm-debug gate script should include command-dialog contract command."

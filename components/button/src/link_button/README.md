@@ -37,7 +37,7 @@ docs-app `link-button` 页面包含多场景对比：
 
 ## css test
 
-- 样式来源：`crates/ui-components/src/button/link_button/styles.rs`
+- 样式来源：`crates/ui/src/button/link_button/styles.rs`
 - docs Playground 用状态矩阵验证链接按钮在不同语义态下的样式稳定性。
 
 ## docs-app 入口

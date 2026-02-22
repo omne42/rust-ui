@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// Component protocol contract for `ui-components/src/switch`.
+/// Component protocol contract for `ui/src/switch`.
 ///
 /// This schema is intentionally minimal and versioned so component-specific
 /// protocol fields can evolve without breaking deserialization.

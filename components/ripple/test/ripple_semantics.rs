@@ -306,7 +306,7 @@ fn ripple_docs_playgrounds_lock_state_matrix_contract_values() {
         "is_bounded=false",
         "duration_ms: 620",
         "duration_ms: 520",
-        "ui_components::ripple::trigger_ripple_at(",
+        "ui::ripple::trigger_ripple_at(",
         "18.0, 48.0",
         "class_name=\"docs-ripple-custom\".to_string()",
         "\"Unbounded + Origin\"",
@@ -408,7 +408,7 @@ fn ripple_tree_shaking_keeps_component_feature_and_css_boundaries() {
     let css_source = load_source("src/css.rs");
     let web_demo_cargo = load_source("../../apps/web-demo/Cargo.toml");
     let docs_app_cargo = load_source("../../apps/docs-app/Cargo.toml");
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
@@ -420,7 +420,7 @@ fn ripple_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo features should include `{needle}` for tree-shaking boundaries."
+            "ui Cargo features should include `{needle}` for tree-shaking boundaries."
         );
     }
 
@@ -438,7 +438,7 @@ fn ripple_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components."
+        "web-demo should consume ui via web-demo-components, not all-components."
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -447,10 +447,10 @@ fn ripple_tree_shaking_keeps_component_feature_and_css_boundaries() {
     );
 
     for needle in [
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
@@ -699,8 +699,8 @@ fn ripple_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
         "title=\"Hello World\"",
         "title=\"Animation Matrix\"",
         "title=\"Custom Boundary + Class\"",
-        "ui_components::ripple::trigger_ripple(",
-        "ui_components::ripple::trigger_ripple_at(",
+        "ui::ripple::trigger_ripple(",
+        "ui::ripple::trigger_ripple_at(",
     ] {
         assert!(
             docs_source.contains(needle),

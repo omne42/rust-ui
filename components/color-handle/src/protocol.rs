@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// Component protocol contract for `ui-components/src/color/handle`.
+/// Component protocol contract for `ui/src/color/handle`.
 ///
 /// This schema is intentionally minimal and versioned so component-specific
 /// protocol fields can evolve without breaking deserialization.

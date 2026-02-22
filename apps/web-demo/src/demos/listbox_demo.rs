@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::List;
+use ui::List;
 
 #[component]
 pub fn ListBoxDemo() -> impl IntoView {

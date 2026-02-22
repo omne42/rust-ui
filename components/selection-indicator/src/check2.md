@@ -36,22 +36,22 @@
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 已核验：通用动效数学与执行后端位于 `crates/ui-motion/src/{spring,keyframes,web}.rs`，且 `crates/ui-motion/src/lib.rs` 在 non-wasm 提供 `web::animate` no-op/stub；`selection_indicator` 当前无本地 `motion.rs`，不存在组件语义状态到动效契约的私有重实现。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
   - 已核验：`ui-theme` 的 token/映射/变量输出落点分别位于 `crates/ui-theme/src/{tokens,theme,css}.rs`；三轴上下文由 `ThemeContext { system, color, scale }` 在 `theme.rs` 定义；尺寸与主题回归由 `crates/ui-theme/tests/token_scale_baseline.rs` 覆盖；`selection_indicator` 目录无样式实现文件，无法重建主题。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
-  - 已核验：`crates/ui-components/Cargo.toml` 依赖 `ui-state-primitives/ui-headless/ui-motion/ui-theme`；`crates/ui-components/src/lib.rs` 通过 `component-*` feature gate 暴露组件入口；`selection_indicator` 当前仅治理清单，无 `logic.rs/view.rs/styles.rs/motion.rs`，因此不存在本地状态机重写与 `web-sys`/DOM 公共 API 泄露。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+  - 已核验：`crates/ui/Cargo.toml` 依赖 `ui-state-primitives/ui-headless/ui-motion/ui-theme`；`crates/ui/src/lib.rs` 通过 `component-*` feature gate 暴露组件入口；`selection_indicator` 当前仅治理清单，无 `logic.rs/view.rs/styles.rs/motion.rs`，因此不存在本地状态机重写与 `web-sys`/DOM 公共 API 泄露。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -99,7 +99,7 @@
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
 - [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
-  - 已核验（N/A-无独立公共 API 面）：`selection_indicator` 未在 `crates/ui-components/src/lib.rs` 导出独立组件，基础用法直接复用宿主 `ListItem/MenuItem` 默认路径；docs 入口由 `apps/docs-app/src/pages/components/mod.rs` 的 `"selection-indicator" => &["list-item", "menu-item"]` 映射到可直接运行示例。`apps/docs-app/src/pages/components/pages/collections_extra.rs` 中 `list-item`/`menu-item` 示例均可在不手动接线 `ui-state-primitives/ui-headless`、不要求 `state=...` 必填参数的前提下完成选择指示器交互（如 `show_selection_indicator=true` + `on_press` 可选增强）。
+  - 已核验（N/A-无独立公共 API 面）：`selection_indicator` 未在 `crates/ui/src/lib.rs` 导出独立组件，基础用法直接复用宿主 `ListItem/MenuItem` 默认路径；docs 入口由 `apps/docs-app/src/pages/components/mod.rs` 的 `"selection-indicator" => &["list-item", "menu-item"]` 映射到可直接运行示例。`apps/docs-app/src/pages/components/pages/collections_extra.rs` 中 `list-item`/`menu-item` 示例均可在不手动接线 `ui-state-primitives/ui-headless`、不要求 `state=...` 必填参数的前提下完成选择指示器交互（如 `show_selection_indicator=true` + `on_press` 可选增强）。
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
@@ -113,7 +113,7 @@
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
 - [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
-  - 已核验（N/A-无独立渲染入口）：`selection_indicator` 当前不导出独立组件且无 `view.rs`，不存在组件层硬编码用户可见文本；A11y/locale 契约由 `crates/ui-headless/src/a11y.rs` 统一提供（`A11yDirection`/`locale_attrs`/`aria_controls_when_open`），i18n 注入由 `crates/ui-components/src/root.rs` 通过 `UiRoot` 的 `i18n: UiI18n` + `provide_ui_i18n(i18n)` 完成；实际 `selection_indicator` 语义由宿主 `list-item/menu-item` 挂载 `role/aria-*` 并经 `normalize_aria_label` 走“外部输入优先、组件兜底”路径。
+  - 已核验（N/A-无独立渲染入口）：`selection_indicator` 当前不导出独立组件且无 `view.rs`，不存在组件层硬编码用户可见文本；A11y/locale 契约由 `crates/ui-headless/src/a11y.rs` 统一提供（`A11yDirection`/`locale_attrs`/`aria_controls_when_open`），i18n 注入由 `crates/ui/src/root.rs` 通过 `UiRoot` 的 `i18n: UiI18n` + `provide_ui_i18n(i18n)` 完成；实际 `selection_indicator` 语义由宿主 `list-item/menu-item` 挂载 `role/aria-*` 并经 `normalize_aria_label` 走“外部输入优先、组件兜底”路径。
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
@@ -135,20 +135,20 @@
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
 - [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
-  - 已核验（N/A-无独立组件文件面）：`selection_indicator` 当前目录仅保留治理清单 `check2.md`，不存在 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`，因此不存在职责错位风险；对外也未在 `crates/ui-components/src/lib.rs` 导出 `selection_indicator` 模块。语义职责由宿主 `list/menu item` 组件按既有分层文件承担，`selection_indicator` 本身仅维护契约治理。
+  - 已核验（N/A-无独立组件文件面）：`selection_indicator` 当前目录仅保留治理清单 `check2.md`，不存在 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`，因此不存在职责错位风险；对外也未在 `crates/ui/src/lib.rs` 导出 `selection_indicator` 模块。语义职责由宿主 `list/menu item` 组件按既有分层文件承担，`selection_indicator` 本身仅维护契约治理。
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
 - [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
-  - 已核验（N/A-无独立 Schema 面）：`selection_indicator` 当前无独立组件实现与外部 Schema 契约需求，目录下不存在 `spec.rs`；复杂 Schema 形态仍由 `crates/ui-components/src/button/spec.rs` 作为少数正例承载（并在 `button` 模块导出与测试约束），`selection_indicator` 说明与治理保留在 `check2.md`。
+  - 已核验（N/A-无独立 Schema 面）：`selection_indicator` 当前无独立组件实现与外部 Schema 契约需求，目录下不存在 `spec.rs`；复杂 Schema 形态仍由 `crates/ui/src/button/spec.rs` 作为少数正例承载（并在 `button` 模块导出与测试约束），`selection_indicator` 说明与治理保留在 `check2.md`。
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 已核验（N/A-无独立样式实现）：`selection_indicator` 目录无 `styles.rs`，样式由宿主 `list/menu item` 的 `styles.rs` 提供，并通过 `crates/ui-components/src/css.rs::push_components_css` 聚合后在 `crates/ui-components/src/root.rs` 由 `UiRoot` 注入；宿主样式视觉值使用 `var(--ui-*)`，运行时 `view.rs` 未注入业务 `style=`。未引入 Utility-First 或 CSS-in-Rust 作为组件库默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 已核验（N/A-无独立样式实现）：`selection_indicator` 目录无 `styles.rs`，样式由宿主 `list/menu item` 的 `styles.rs` 提供，并通过 `crates/ui/src/css.rs::push_components_css` 聚合后在 `crates/ui/src/root.rs` 由 `UiRoot` 注入；宿主样式视觉值使用 `var(--ui-*)`，运行时 `view.rs` 未注入业务 `style=`。未引入 Utility-First 或 CSS-in-Rust 作为组件库默认范式。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -159,14 +159,14 @@
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
 - [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
-  - 已核验：`ui-components` 保持组件级 feature 边界（`crates/ui-components/Cargo.toml` 中 `component-list`/`component-menu_item` 等独立特性；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-*")]` 条件导出/聚合）。`apps/web-demo/Cargo.toml` 采用 `default-features = false + web-demo-components`，`apps/docs-app/Cargo.toml` 显式使用 `all-components` 作为全集验收面。Tree-shaking 证据命令已执行：`/root/.cargo/bin/cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-accordion,inject-css` 仅出现命令行特性 `component-accordion` 与 `inject-css`；`/root/.cargo/bin/cargo tree -e features -i ui-components -p web-demo` 出现 `web-demo-components` 且无 `all-components`；`/root/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css` 通过。CI 预算/阻断由 `scripts/check-ui-components-tree-shaking.sh` + `scripts/tree_shaking_budget.env`（`TREE_SHAKING_BASELINE_RLIB_BYTES` / `TREE_SHAKING_MAX_RATIO_PERCENT`）固化。
+  - 已核验：`ui` 保持组件级 feature 边界（`crates/ui/Cargo.toml` 中 `component-list`/`component-menu_item` 等独立特性；`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 通过 `#[cfg(feature = "component-*")]` 条件导出/聚合）。`apps/web-demo/Cargo.toml` 采用 `default-features = false + web-demo-components`，`apps/docs-app/Cargo.toml` 显式使用 `all-components` 作为全集验收面。Tree-shaking 证据命令已执行：`/root/.cargo/bin/cargo tree -e features -i ui -p ui --no-default-features --features component-accordion,inject-css` 仅出现命令行特性 `component-accordion` 与 `inject-css`；`/root/.cargo/bin/cargo tree -e features -i ui -p web-demo` 出现 `web-demo-components` 且无 `all-components`；`/root/.cargo/bin/cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css` 通过。CI 预算/阻断由 `scripts/check-ui-tree-shaking.sh` + `scripts/tree_shaking_budget.env`（`TREE_SHAKING_BASELINE_RLIB_BYTES` / `TREE_SHAKING_MAX_RATIO_PERCENT`）固化。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 已核验（N/A-无独立输入面）：`selection_indicator` 无独立 props/API；关键输入与状态轴由宿主与原语类型化建模（`crates/ui-state-primitives/src/selection.rs` 的 `SelectedKey`，`components/list/src/logic.rs` 的 `ListItemSelectionIndicator`，`components/menu/src/item/logic.rs` 的 `MenuItemSelectionIndicator`）。关键状态通过稳定语义标记对外暴露（`components/list/src/view.rs` / `components/menu/src/item/view.rs` 的 `data-state/data-selection-indicator/data-aria-source/data-class-source/aria-*`），并由 `components/selection-indicator/test/selection_indicator_module_semantics.rs` 持续断言。
@@ -177,7 +177,7 @@
 
 ### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
-  - 已核验（共享平台门禁 + compile-only 证据）：已执行 `/root/.cargo/bin/cargo check -p ui-components`（默认 native）、`/root/.cargo/bin/cargo check -p ui-headless --no-default-features --features ssr`（ssr native）与 `/root/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`（web wasm）并通过。平台策略与阻断脚本位于 `scripts/check-ui-components-platforms.sh`。`selection_indicator` 无独立平台分支实现；宿主 `list/menu item` non-wasm 路径未引入 `web-sys` 浏览器对象。
+  - 已核验（共享平台门禁 + compile-only 证据）：已执行 `/root/.cargo/bin/cargo check -p ui`（默认 native）、`/root/.cargo/bin/cargo check -p ui-headless --no-default-features --features ssr`（ssr native）与 `/root/.cargo/bin/cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`（web wasm）并通过。平台策略与阻断脚本位于 `scripts/check-ui-platforms.sh`。`selection_indicator` 无独立平台分支实现；宿主 `list/menu item` non-wasm 路径未引入 `web-sys` 浏览器对象。
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
@@ -192,12 +192,12 @@
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
 - [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
-  - 已核验（N/A-无独立 `selection_indicator/motion.rs`）：`selection_indicator` 无本地动效实现，分支覆盖继承宿主与共享能力：`crates/ui-visual-primitive/src/active_highlight.rs` 显式 `#[cfg(target_arch = "wasm32")] / #[cfg(not(target_arch = "wasm32"))]`，`crates/ui-motion/src/spring.rs` 通过 `ui_motion::web::prefers_reduced_motion()` 降级；平台 compile-only 与 reduced-motion 契约由 `scripts/check-ui-components-platforms.sh` 持续回归。语义标记输出来自宿主 `list/menu item` 统一 `data-*`/`aria-*`，不按平台分裂。
+  - 已核验（N/A-无独立 `selection_indicator/motion.rs`）：`selection_indicator` 无本地动效实现，分支覆盖继承宿主与共享能力：`crates/ui-visual-primitive/src/active_highlight.rs` 显式 `#[cfg(target_arch = "wasm32")] / #[cfg(not(target_arch = "wasm32"))]`，`crates/ui-motion/src/spring.rs` 通过 `ui_motion::web::prefers_reduced_motion()` 降级；平台 compile-only 与 reduced-motion 契约由 `scripts/check-ui-platforms.sh` 持续回归。语义标记输出来自宿主 `list/menu item` 统一 `data-*`/`aria-*`，不按平台分裂。
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
-  - 已核验（共享性能门禁 + N/A-无独立渲染面）：性能预算与阻断由公共链路承担：`apps/docs-app/src/pages/components/shell.rs` 的 `component_page_perf_budget` + `UiPerfProbe` 提供 `data-perf-*` 指标，`e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言预算属性与无 `data-perf-violation=true`；阻断脚本 `scripts/check-ui-components-performance.sh` 覆盖组件性能契约并包含 `perf_render_count_follow_up_is_tracked_in_plan` 跟踪项。已执行 `/root/.cargo/bin/cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages` 与 `/root/.cargo/bin/cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan` 通过，`docs/plan/TODO.md` 保留 `render_count` 自动化补齐任务。
+  - 已核验（共享性能门禁 + N/A-无独立渲染面）：性能预算与阻断由公共链路承担：`apps/docs-app/src/pages/components/shell.rs` 的 `component_page_perf_budget` + `UiPerfProbe` 提供 `data-perf-*` 指标，`e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言预算属性与无 `data-perf-violation=true`；阻断脚本 `scripts/check-ui-performance.sh` 覆盖组件性能契约并包含 `perf_render_count_follow_up_is_tracked_in_plan` 跟踪项。已执行 `/root/.cargo/bin/cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages` 与 `/root/.cargo/bin/cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan` 通过，`docs/plan/TODO.md` 保留 `render_count` 自动化补齐任务。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
@@ -225,33 +225,33 @@
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
 - [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
-  - 已核验（N/A-无独立 `selection_indicator` 组件调试面）：调试能力复用全局链路而非组件私有实现；`crates/ui-headless/src/trace.rs` 以 `UiTraceEvent { ts_ms, component, kind }` 记录时间戳与来源，`crates/ui-headless/src/controllable_state.rs::use_controllable_open_state_traced` 输出 `UiTraceEventKind::OpenChange`；`apps/docs-app/src/lib.rs` 在 `debug_assertions` 下启用 `provide_ui_trace(debug_overlay_enabled)` 并挂载 `<debug_overlay::UiDebugOverlay enabled=true />`，`apps/docs-app/src/debug_overlay.rs` 提供 inspect snapshot + event timeline（含 `format!("{ts_ms}ms")`）；`selection_indicator` 宿主 `list/menu item` 通过 `data-*-source` + `on:keydown/on:pointermove/on:click` 暴露可追踪/可回放链路。feature 隔离保持在 `crates/ui-components/Cargo.toml`（仅 `accordion-wasm-debug`/`button-wasm-debug`）与 `scripts/check-ui-components-wasm-debug.sh`，未引入 `selection_indicator` 私有 debug feature。
+  - 已核验（N/A-无独立 `selection_indicator` 组件调试面）：调试能力复用全局链路而非组件私有实现；`crates/ui-headless/src/trace.rs` 以 `UiTraceEvent { ts_ms, component, kind }` 记录时间戳与来源，`crates/ui-headless/src/controllable_state.rs::use_controllable_open_state_traced` 输出 `UiTraceEventKind::OpenChange`；`apps/docs-app/src/lib.rs` 在 `debug_assertions` 下启用 `provide_ui_trace(debug_overlay_enabled)` 并挂载 `<debug_overlay::UiDebugOverlay enabled=true />`，`apps/docs-app/src/debug_overlay.rs` 提供 inspect snapshot + event timeline（含 `format!("{ts_ms}ms")`）；`selection_indicator` 宿主 `list/menu item` 通过 `data-*-source` + `on:keydown/on:pointermove/on:click` 暴露可追踪/可回放链路。feature 隔离保持在 `crates/ui/Cargo.toml`（仅 `accordion-wasm-debug`/`button-wasm-debug`）与 `scripts/check-ui-wasm-debug.sh`，未引入 `selection_indicator` 私有 debug feature。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
 - [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
-  - 已核验（N/A-无独立 `selection_indicator` workbench）：样式热重载与隔离画布复用 docs 通用 `Playground`（`apps/docs-app/src/playground.rs`）能力，包含 scoped CSS 注入 `<style>{move || compose_scoped_css(..)}</style>`、测试面板输入 `on:input=...set_test_css...`、`"Restore original CSS"`，无需重编 wasm；宿主示例 `apps/docs-app/src/pages/components/pages/collections_extra.rs` 的 `list-item/menu-item` 通过本地 `signal` + `on_press` 回调保持当前交互上下文（例如 `selected_default/selected_states/radio_selected`）；隔离演练入口由 `Playground` 的 `data-playground-scope` + `playground__preview-stage` + `playground-controls` 提供。可选状态保留在 `selection_indicator` 当前范围标记为 N/A（无独立 workbench 存储键与持久化协议），并沿用共享 `scripts/check-ui-components-dx.sh` 门禁。
+  - 已核验（N/A-无独立 `selection_indicator` workbench）：样式热重载与隔离画布复用 docs 通用 `Playground`（`apps/docs-app/src/playground.rs`）能力，包含 scoped CSS 注入 `<style>{move || compose_scoped_css(..)}</style>`、测试面板输入 `on:input=...set_test_css...`、`"Restore original CSS"`，无需重编 wasm；宿主示例 `apps/docs-app/src/pages/components/pages/collections_extra.rs` 的 `list-item/menu-item` 通过本地 `signal` + `on_press` 回调保持当前交互上下文（例如 `selected_default/selected_states/radio_selected`）；隔离演练入口由 `Playground` 的 `data-playground-scope` + `playground__preview-stage` + `playground-controls` 提供。可选状态保留在 `selection_indicator` 当前范围标记为 N/A（无独立 workbench 存储键与持久化协议），并沿用共享 `scripts/check-ui-dx.sh` 门禁。
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
 - [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
-  - 已核验（N/A-无独立 `selection_indicator` spec/config 面）：`selection_indicator` 当前不导出组件模块，目录仅保留 `check2.md`，不存在 `spec.rs` 与组件级 serde 序列化/版本迁移实现；schema 序列化与结构化错误路径由共享复杂组件契约承载（如 `crates/ui-components/src/button/spec.rs`，`scripts/check-ui-components-engineering.sh` 中 `button_engineering_contract_uses_serde_schema_and_structured_migration_errors`）。tracing 语义沿用全库统一基线（如 `crates/ui-components/src/button/view.rs` 的 `target: "ui_components::button::state_change"` 与 `ui-headless` trace 合约），`selection_indicator` 宿主 `list/menu item` 无组件私有 tracing 词汇漂移。异步边界保持 runtime-agnostic：宿主实现与公共导出无 `tokio/async-std/runtime::Handle` 泄露，并复用共享 engineering 门禁脚本。
+  - 已核验（N/A-无独立 `selection_indicator` spec/config 面）：`selection_indicator` 当前不导出组件模块，目录仅保留 `check2.md`，不存在 `spec.rs` 与组件级 serde 序列化/版本迁移实现；schema 序列化与结构化错误路径由共享复杂组件契约承载（如 `crates/ui/src/button/spec.rs`，`scripts/check-ui-engineering.sh` 中 `button_engineering_contract_uses_serde_schema_and_structured_migration_errors`）。tracing 语义沿用全库统一基线（如 `crates/ui/src/button/view.rs` 的 `target: "ui::button::state_change"` 与 `ui-headless` trace 合约），`selection_indicator` 宿主 `list/menu item` 无组件私有 tracing 词汇漂移。异步边界保持 runtime-agnostic：宿主实现与公共导出无 `tokio/async-std/runtime::Handle` 泄露，并复用共享 engineering 门禁脚本。
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 文件落点检查（必须提及）
-- [x] `ui-components` 固定入口文件落点正确。
-  - 已核验（N/A-无独立 `selection_indicator` 入口文件面）：`crates/ui-components/src/lib.rs` 保持总入口与 feature gate 导出边界（含 `mod css;`、`pub mod root;`、`#[cfg(feature = "component-list")]` / `#[cfg(feature = "component-menu_item")]`）；`lib.rs` 通过 `#[cfg(feature = "inject-css")] pub fn push_components_css(...)` 作为稳定外部入口委托到 `css.rs`。`crates/ui-components/src/css.rs` 以 `push_components_css` 聚合组件样式并按 `component-*` 条件注入（如 `component-list`/`component-menu_item`）；`crates/ui-components/src/root.rs` 的 `UiRoot` 集中注入 base css + theme vars + 可选 component css，并通过 `provide_ui_i18n` 提供全局 i18n 上下文。`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver。`crates/ui-components/src/overlay_open.rs` / `presence.rs` / `a11y.rs` 在组件层不存在；对应 canonical 能力位于 `crates/ui-headless/src/{controllable_state,presence,a11y}.rs`。门禁沿用 `scripts/check-ui-components-entrypoints.sh` 共享入口契约检查。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。
+  - 已核验（N/A-无独立 `selection_indicator` 入口文件面）：`crates/ui/src/lib.rs` 保持总入口与 feature gate 导出边界（含 `mod css;`、`pub mod root;`、`#[cfg(feature = "component-list")]` / `#[cfg(feature = "component-menu_item")]`）；`lib.rs` 通过 `#[cfg(feature = "inject-css")] pub fn push_components_css(...)` 作为稳定外部入口委托到 `css.rs`。`crates/ui/src/css.rs` 以 `push_components_css` 聚合组件样式并按 `component-*` 条件注入（如 `component-list`/`component-menu_item`）；`crates/ui/src/root.rs` 的 `UiRoot` 集中注入 base css + theme vars + 可选 component css，并通过 `provide_ui_i18n` 提供全局 i18n 上下文。`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver。`crates/ui/src/overlay_open.rs` / `presence.rs` / `a11y.rs` 在组件层不存在；对应 canonical 能力位于 `crates/ui-headless/src/{controllable_state,presence,a11y}.rs`。门禁沿用 `scripts/check-ui-entrypoints.sh` 共享入口契约检查。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。
-  - 已核验（N/A-无独立 `selection_indicator` 组件目录面）：`components/selection-indicator/src/` 当前仅保留治理清单 `check2.md`，不存在 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs/spec.rs`，因此不存在目录职责错位与 `render.rs` 漂移风险。`selection_indicator` 语义能力由宿主组件目录承担（`components/list/src/{mod,logic,styles,view,motion}.rs` 与 `components/menu/src/item/{mod,logic,styles,view}.rs`），并复用共享 `scripts/check-ui-components-component-files.sh` 门禁，不引入组件私有目录契约分叉。
+  - 已核验（N/A-无独立 `selection_indicator` 组件目录面）：`components/selection-indicator/src/` 当前仅保留治理清单 `check2.md`，不存在 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs/spec.rs`，因此不存在目录职责错位与 `render.rs` 漂移风险。`selection_indicator` 语义能力由宿主组件目录承担（`components/list/src/{mod,logic,styles,view,motion}.rs` 与 `components/menu/src/item/{mod,logic,styles,view}.rs`），并复用共享 `scripts/check-ui-component-files.sh` 门禁，不引入组件私有目录契约分叉。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -288,12 +288,12 @@
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
-  - 已核验（N/A-无独立 `selection_indicator` E2E 用例，复用共享契约）：`e2e/tests/docs_app_components_coverage.spec.mjs` 通过稳定语义选择器（如 `[data-slot=\"${slug}\"]`）覆盖 docs 组件页可达性并使用 `body:not(:has(#boot))` 就绪等待；仓库 E2E 契约脚本（如 `scripts/check-ui-components-e2e-time-field.sh`）统一要求语义选择器与 ready/settled 路径，避免固定 sleep。
+  - 已核验（N/A-无独立 `selection_indicator` E2E 用例，复用共享契约）：`e2e/tests/docs_app_components_coverage.spec.mjs` 通过稳定语义选择器（如 `[data-slot=\"${slug}\"]`）覆盖 docs 组件页可达性并使用 `body:not(:has(#boot))` 就绪等待；仓库 E2E 契约脚本（如 `components/text-input/scripts/check-ui-e2e-time-field.sh`）统一要求语义选择器与 ready/settled 路径，避免固定 sleep。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
 - [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。
-  - 已核验（N/A-无独立流程，复用宿主与共享回归）：`selection_indicator` 通过宿主 `list-item/menu-item` 文档页进入回归面；`e2e/tests/docs_app_components_coverage.spec.mjs` 的 sample/all 流程可重复遍历组件页面并断言 playground 与语义挂载存在，失败点可定位到具体 slug；高风险 ready/settled 路径由共享 E2E 契约脚本覆盖（`scripts/check-ui-components-e2e-*.sh`）。
+  - 已核验（N/A-无独立流程，复用宿主与共享回归）：`selection_indicator` 通过宿主 `list-item/menu-item` 文档页进入回归面；`e2e/tests/docs_app_components_coverage.spec.mjs` 的 sample/all 流程可重复遍历组件页面并断言 playground 与语义挂载存在，失败点可定位到具体 slug；高风险 ready/settled 路径由共享 E2E 契约脚本覆盖（`scripts/check-ui-e2e-*.sh`）。
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
@@ -328,7 +328,7 @@
   - 已核验：`selection_indicator` 相关状态原语位于 `crates/ui-state-primitives/src/selection.rs`，保持纯 Rust（无 Leptos/DOM/CSS 依赖），未引入 `web-sys` 或样式逻辑。
   - 发现 `ui-state-primitives` 引入 DOM/样式依赖即判架构越层，必须回滚并迁移到正确层。
 - [x] 在 `ui-headless` 写视觉和动画编排。
-  - 已核验：`selection_indicator` 复用 `ui-headless` 语义契约而非视觉实现；视觉样式与动效编排保持在 `ui-components`/`ui-motion` 层，`ui-headless` 未承载 class/CSS/时间线编排。
+  - 已核验：`selection_indicator` 复用 `ui-headless` 语义契约而非视觉实现；视觉样式与动效编排保持在 `ui`/`ui-motion` 层，`ui-headless` 未承载 class/CSS/时间线编排。
   - headless 只输出交互/A11y 契约；出现 class/CSS/动效时间线即判职责污染。
 - [x] 在 `view` 层隐藏关键状态决策。
   - 已核验：宿主 `components/list/src/logic.rs` 与 `components/menu/src/item/logic.rs` 负责状态归一和来源标记，`view.rs` 只消费派生结果挂载语义属性（`data-state/*-source`），无关键状态机规则回流到 view。
@@ -341,7 +341,7 @@
   - 标题、语义、内容必须显式绑定在同一 item 结构；依赖位置索引配对视为反模式。
   - 发现“少写几行但语义变弱”的接口设计，默认拒绝合入。
 - [x] 公共 API 泄露底层实现细节类型。
-  - 已核验：`selection_indicator` 未在 `crates/ui-components/src/lib.rs` 导出独立模块与平台类型，公共 API 不暴露 `web-sys`/运行时私有细节。
+  - 已核验：`selection_indicator` 未在 `crates/ui/src/lib.rs` 导出独立模块与平台类型，公共 API 不暴露 `web-sys`/运行时私有细节。
   - 公共接口不得暴露 `web-sys`/运行时私有类型；平台细节只允许存在于内部模块。
 - [x] 用临时补丁破坏跨组件一致性。
   - 已核验：`selection_indicator` 改动保持在治理清单与语义测试层，未引入组件私有临时分叉；契约仍复用共享命名/状态/语义基线。
@@ -365,4 +365,4 @@
 - [x] 覆盖 reduced-motion / SSR / wasm 分支。
 - [x] 文档与示例同步更新。
 - [x] 门禁完整通过（fmt/clippy/test/smoke 等）。
-  - 已核验（按 `selection_indicator` 责任范围）：已完成 `/root/.cargo/bin/rustfmt --check components/selection-indicator/test/selection_indicator_module_semantics.rs`、`/root/.cargo/bin/cargo clippy -p ui-components --no-default-features --test selection_indicator_module_semantics -- -D warnings`、`/root/.cargo/bin/cargo test -p ui-components --no-default-features --test selection_indicator_module_semantics`（92 tests passed），并执行逐项单独验证：基于 `-- --list` 枚举 92 条测试后逐条 `-- --exact` 单跑，结果 `INDIVIDUAL_TEST_SUMMARY total=92 passed=92 failed=0`。默认特性全量链路受他人并行改动影响（`clippy` 命中 `crates/ui-components/src/tray/logic.rs` 未使用导入告警；`test` 命中 `crates/ui-components/src/sheet/view.rs` `FnOnce` 编译错误），本任务未越界修改他人文件。
+  - 已核验（按 `selection_indicator` 责任范围）：已完成 `/root/.cargo/bin/rustfmt --check components/selection-indicator/test/selection_indicator_module_semantics.rs`、`/root/.cargo/bin/cargo clippy -p ui --no-default-features --test selection_indicator_module_semantics -- -D warnings`、`/root/.cargo/bin/cargo test -p ui --no-default-features --test selection_indicator_module_semantics`（92 tests passed），并执行逐项单独验证：基于 `-- --list` 枚举 92 条测试后逐条 `-- --exact` 单跑，结果 `INDIVIDUAL_TEST_SUMMARY total=92 passed=92 failed=0`。默认特性全量链路受他人并行改动影响（`clippy` 命中 `crates/ui/src/tray/logic.rs` 未使用导入告警；`test` 命中 `crates/ui/src/sheet/view.rs` `FnOnce` 编译错误），本任务未越界修改他人文件。

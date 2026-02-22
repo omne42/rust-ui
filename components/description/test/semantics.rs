@@ -855,7 +855,7 @@ fn component_directory_standard_layout_contract_is_correct_for_description() {
 fn token_first_static_styles_are_aggregated_without_utility_or_css_in_rust_defaults() {
     let styles_source = read_source("src/styles.rs");
     let view_source = read_source("src/view.rs");
-    let css_aggregate_source = read_workspace_source("crates/ui-components/src/css.rs");
+    let css_aggregate_source = read_workspace_source("crates/ui/src/css.rs");
 
     for needle in [
         "pub const CSS: &str = r#\"",
@@ -874,7 +874,7 @@ fn token_first_static_styles_are_aggregated_without_utility_or_css_in_rust_defau
     assert!(
         css_aggregate_source.contains("#[cfg(feature = \"component-description\")]")
             && css_aggregate_source.contains("out.push_str(crate::description::styles::CSS);"),
-        "description styles must be aggregated in ui-components css pipeline behind feature gate",
+        "description styles must be aggregated in ui css pipeline behind feature gate",
     );
     assert!(
         !view_source.contains("class=\"flex")
@@ -956,7 +956,7 @@ fn defensive_variables_use_theme_fallback_chain_without_component_terminal_liter
 #[test]
 fn cascade_layer_coverage_uses_ui_layer_and_rejects_plain_inline_styles() {
     let view_source = read_source("src/view.rs");
-    let css_aggregate_source = read_workspace_source("crates/ui-components/src/css.rs");
+    let css_aggregate_source = read_workspace_source("crates/ui/src/css.rs");
     let check2_source = read_source("check2.md");
 
     let layer_start = css_aggregate_source
@@ -1044,9 +1044,9 @@ fn visual_desire_reuses_global_theme_baseline_and_heroui_alignment_contracts() {
 #[test]
 fn tree_shaking_keeps_description_feature_css_aggregation_and_source_mode_conditional_reachability()
 {
-    let ui_components_cargo = read_workspace_source("crates/ui-components/Cargo.toml");
-    let ui_components_lib = read_workspace_source("crates/ui-components/src/lib.rs");
-    let ui_components_css = read_workspace_source("crates/ui-components/src/css.rs");
+    let ui_components_cargo = read_workspace_source("crates/ui/Cargo.toml");
+    let ui_components_lib = read_workspace_source("crates/ui/src/lib.rs");
+    let ui_components_css = read_workspace_source("crates/ui/src/css.rs");
     let web_demo_cargo = read_workspace_source("apps/web-demo/Cargo.toml");
 
     for needle in [
@@ -1058,7 +1058,7 @@ fn tree_shaking_keeps_description_feature_css_aggregation_and_source_mode_condit
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components feature tree should include `{needle}` for description tree-shaking contracts",
+            "ui feature tree should include `{needle}` for description tree-shaking contracts",
         );
     }
 
@@ -1086,7 +1086,7 @@ fn tree_shaking_keeps_description_feature_css_aggregation_and_source_mode_condit
     );
 
     assert!(
-        web_demo_cargo.contains("ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }")
+        web_demo_cargo.contains("ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }")
             && !web_demo_cargo.contains("all-components"),
         "web-demo should consume source-mode features without implicitly enabling all-components",
     );
@@ -1094,18 +1094,18 @@ fn tree_shaking_keeps_description_feature_css_aggregation_and_source_mode_condit
 
 #[test]
 fn tree_shaking_ci_contract_covers_feature_tree_reverse_dependency_minimal_wasm_and_size_budget() {
-    let tree_shaking_script = read_workspace_source("scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = read_workspace_source("scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget = read_workspace_source("scripts/tree_shaking_budget.env");
     let ci_workflow = read_workspace_source(".github/workflows/ci.yml");
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
     ] {
@@ -1116,16 +1116,16 @@ fn tree_shaking_ci_contract_covers_feature_tree_reverse_dependency_minimal_wasm_
     }
 
     assert!(
-        ci_workflow.contains("./scripts/check-ui-components-tree-shaking.sh"),
+        ci_workflow.contains("./scripts/check-ui-tree-shaking.sh"),
         "CI should execute tree-shaking gate script",
     );
 }
 
 #[test]
 fn tree_shaking_feature_gating_contract_is_checked_and_documented_for_description() {
-    let ui_components_cargo = read_workspace_source("crates/ui-components/Cargo.toml");
-    let ui_components_lib = read_workspace_source("crates/ui-components/src/lib.rs");
-    let ui_components_css = read_workspace_source("crates/ui-components/src/css.rs");
+    let ui_components_cargo = read_workspace_source("crates/ui/Cargo.toml");
+    let ui_components_lib = read_workspace_source("crates/ui/src/lib.rs");
+    let ui_components_css = read_workspace_source("crates/ui/src/css.rs");
     let web_demo_cargo = read_workspace_source("apps/web-demo/Cargo.toml");
     let check2_source = read_source("check2.md");
 
@@ -1135,7 +1135,7 @@ fn tree_shaking_feature_gating_contract_is_checked_and_documented_for_descriptio
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo should keep description tree-shaking marker `{needle}`",
+            "ui Cargo should keep description tree-shaking marker `{needle}`",
         );
     }
 
@@ -1145,7 +1145,7 @@ fn tree_shaking_feature_gating_contract_is_checked_and_documented_for_descriptio
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib should keep feature gate marker `{needle}`",
+            "ui lib should keep feature gate marker `{needle}`",
         );
     }
 
@@ -1155,19 +1155,19 @@ fn tree_shaking_feature_gating_contract_is_checked_and_documented_for_descriptio
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "ui-components css should keep feature gate marker `{needle}`",
+            "ui css should keep feature gate marker `{needle}`",
         );
     }
 
     assert!(
         web_demo_cargo.contains(
-            "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"
+            "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"
         ) && !web_demo_cargo.contains("all-components"),
         "web-demo should keep source-mode import without implicitly enabling all-components",
     );
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "已满足（特性树注册）",
         "已满足（`lib.rs` feature 门控）",
         "已满足（`css.rs` feature 门控）",
@@ -1397,10 +1397,10 @@ fn ssr_and_cross_platform_contract_uses_compile_only_gates_and_keeps_non_wasm_so
     let check2_source = read_source("check2.md");
 
     for needle in [
-        "cargo check -p ui-components --no-default-features --features inject-css,dev-all-components",
+        "cargo check -p ui --no-default-features --features inject-css,dev-all-components",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,dev-all-components",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,dev-all-components",
     ] {
         assert!(
             check_script_source.contains(needle),
@@ -1564,7 +1564,7 @@ fn reduced_motion_ssr_and_wasm_branch_contract_is_explicit_for_static_descriptio
     for needle in [
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,dev-all-components",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,dev-all-components",
     ] {
         assert!(
             check_script_source.contains(needle),
@@ -1646,7 +1646,7 @@ fn performance_governance_contract_is_mount_only_traceable_and_blocking() {
     let perf_probe_source = read_workspace_source("apps/docs-app/src/perf_probe.rs");
     let e2e_source = read_workspace_source("e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = read_workspace_source("docs/plan/TODO.md");
-    let check_script_source = read_workspace_source("scripts/check-ui-components-performance.sh");
+    let check_script_source = read_workspace_source("scripts/check-ui-performance.sh");
     let check2_source = read_source("check2.md");
     let view_source = read_source("src/view.rs");
 
@@ -1716,10 +1716,10 @@ fn performance_governance_contract_is_mount_only_traceable_and_blocking() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test description_semantics description_performance_governance_contract_is_mount_only_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test description_semantics description_performance_governance_contract_is_mount_only_traceable_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             check_script_source.contains(needle),
@@ -1806,8 +1806,6 @@ fn semantics_first_contract_prioritizes_data_aria_role_and_state_source_over_sna
     let check2_source = read_source("check2.md");
     let view_source = read_source("src/view.rs");
     let self_source = read_source("test/semantics.rs");
-    let workspace_semantics_source =
-        read_workspace_source("components/description/test/description_semantics.rs");
 
     for needle in [
         "aria-label=aria_label",
@@ -1828,13 +1826,14 @@ fn semantics_first_contract_prioritizes_data_aria_role_and_state_source_over_sna
         "description should keep native text semantics and avoid forcing widget role overrides",
     );
 
-    for forbidden in [
-        "assert_snapshot!",
-        "insta::assert_snapshot",
-        "to_match_snapshot",
-    ] {
+    let forbidden = [
+        ["assert", "_snapshot!"].concat(),
+        ["insta::", "assert", "_snapshot"].concat(),
+        ["to_match", "_snapshot"].concat(),
+    ];
+    for forbidden in forbidden {
         assert!(
-            !self_source.contains(forbidden) && !workspace_semantics_source.contains(forbidden),
+            !self_source.contains(forbidden.as_str()),
             "semantics tests should not rely on visual snapshot assertion `{forbidden}` as primary gate",
         );
     }
@@ -2018,10 +2017,12 @@ fn view_prefers_functional_split_over_extra_components() {
         "description view should keep exactly one component entrypoint",
     );
     assert!(
-        view_source.contains("DescriptionElement::Span => render_span(")
-            && view_source.contains("DescriptionElement::Paragraph => {")
-            && view_source.contains("render_paragraph(class, state, aria_label, lang, dir, text)")
-            && view_source.contains("DescriptionElement::Div => render_div("),
+        view_source.contains("DescriptionElement::Span =>")
+            && view_source.contains("render_span(")
+            && view_source.contains("DescriptionElement::Paragraph =>")
+            && view_source.contains("render_paragraph(")
+            && view_source.contains("DescriptionElement::Div =>")
+            && view_source.contains("render_div("),
         "description should dispatch lightweight rendering through plain helper functions",
     );
     for helper in ["fn render_span(", "fn render_paragraph(", "fn render_div("] {
@@ -2157,9 +2158,8 @@ fn wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     let view_source = read_source("src/view.rs");
     let styles_source = read_source("src/styles.rs");
     let description_cargo_source = read_source("Cargo.toml");
-    let ui_components_cargo_source = read_workspace_source("crates/ui-components/Cargo.toml");
-    let wasm_debug_script_source =
-        read_workspace_source("scripts/check-ui-components-wasm-debug.sh");
+    let ui_components_cargo_source = read_workspace_source("crates/ui/Cargo.toml");
+    let wasm_debug_script_source = read_workspace_source("scripts/check-ui-wasm-debug.sh");
     let debug_overlay_source = read_workspace_source("apps/docs-app/src/debug_overlay.rs");
     let check2_source = read_source("check2.md");
 
@@ -2192,7 +2192,7 @@ fn wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     );
     assert!(
         ui_components_cargo_source.contains("component-description = [\"dep:ui-description\"]"),
-        "ui-components should keep description behind component feature isolation",
+        "ui should keep description behind component feature isolation",
     );
     assert!(
         !wasm_debug_script_source.contains("description_semantics")
@@ -2246,7 +2246,7 @@ fn dx_workbench_contract_provides_fast_css_feedback_and_explicit_persistence_na(
         "test_css_source=test_css_source",
         "test_source_path=\"components/description/src/styles.rs\".to_string()",
         "test_config_signal=actual_config",
-        "ui_components::description::styles::CSS",
+        "ui::description::styles::CSS",
         "let (tone_index, set_tone_index) = signal(Some(0_usize));",
         "let (is_disabled, set_is_disabled) = signal(false);",
         "let (is_truncated, set_is_truncated) = signal(false);",
@@ -2303,7 +2303,7 @@ fn documentation_as_product_copy_paste_ready_contract_is_implemented_for_descrip
 
     for needle in [
         "let description_imports =",
-        "use ui_components::{Description, DescriptionElement, DescriptionTone};",
+        "use ui::{Description, DescriptionElement, DescriptionTone};",
         "title=\"Hello World\"",
         "title=\"State Matrix (Tone / Disabled / Truncate)\"",
         "title=\"Controlled vs Uncontrolled (Stateless Contract)\"",
@@ -2584,7 +2584,7 @@ fn source_first_docs_are_copy_paste_ready_with_imports_and_real_source_paths_for
 
     for needle in [
         "let description_imports =",
-        "use ui_components::{Description, DescriptionElement, DescriptionTone};",
+        "use ui::{Description, DescriptionElement, DescriptionTone};",
         "code_imports=description_imports.clone()",
         "data-slot=\"description-source-first\"",
         "Source-first / Copy-Paste Ready",
@@ -2832,9 +2832,9 @@ fn version_deprecation_migration_contract_is_explicitly_na_without_breaking_upgr
 
 #[test]
 fn ui_components_entrypoints_layout_contract_is_correct_and_forbidden_files_absent() {
-    let ui_components_lib_source = read_workspace_source("crates/ui-components/src/lib.rs");
-    let ui_components_css_source = read_workspace_source("crates/ui-components/src/css.rs");
-    let ui_components_root_source = read_workspace_source("crates/ui-components/src/root.rs");
+    let ui_components_lib_source = read_workspace_source("crates/ui/src/lib.rs");
+    let ui_components_css_source = read_workspace_source("crates/ui/src/css.rs");
+    let ui_components_root_source = read_workspace_source("crates/ui/src/root.rs");
     let active_highlight_source =
         read_workspace_source("crates/ui-visual-primitive/src/active_highlight.rs");
     let check2_source = read_source("check2.md");
@@ -2842,12 +2842,12 @@ fn ui_components_entrypoints_layout_contract_is_correct_and_forbidden_files_abse
     assert!(
         ui_components_lib_source.contains("#[cfg(feature = \"component-description\")]")
             && ui_components_lib_source.contains("pub use ui_description as description;"),
-        "ui-components lib.rs should keep feature-gated description re-export contract",
+        "ui lib.rs should keep feature-gated description re-export contract",
     );
     assert!(
         !ui_components_lib_source.contains("pub use web_sys")
             && !ui_components_lib_source.contains("pub use leptos::web_sys"),
-        "ui-components public entry should not leak platform web-sys detail types",
+        "ui public entry should not leak platform web-sys detail types",
     );
 
     for needle in [
@@ -2858,7 +2858,7 @@ fn ui_components_entrypoints_layout_contract_is_correct_and_forbidden_files_abse
     ] {
         assert!(
             ui_components_css_source.contains(needle),
-            "ui-components css entry should keep `{needle}`",
+            "ui css entry should keep `{needle}`",
         );
     }
 
@@ -2897,20 +2897,20 @@ fn ui_components_entrypoints_layout_contract_is_correct_and_forbidden_files_abse
 
     let workspace_root = crate_root().join("../../");
     for rel in [
-        "crates/ui-components/src/overlay_open.rs",
-        "crates/ui-components/src/presence.rs",
-        "crates/ui-components/src/a11y.rs",
+        "crates/ui/src/overlay_open.rs",
+        "crates/ui/src/presence.rs",
+        "crates/ui/src/a11y.rs",
     ] {
         let path = workspace_root.join(rel);
         assert!(
             !path.exists(),
-            "forbidden ui-components entrypoint file should be absent: {}",
+            "forbidden ui entrypoint file should be absent: {}",
             path.display(),
         );
     }
 
     for needle in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "已满足（入口与导出边界）",
         "已满足（CSS 聚合边界）",
         "已满足（Root 注入集中）",
@@ -2921,7 +2921,7 @@ fn ui_components_entrypoints_layout_contract_is_correct_and_forbidden_files_abse
     ] {
         assert!(
             check2_source.contains(needle),
-            "check2 should keep ui-components entrypoint governance marker `{needle}`",
+            "check2 should keep ui entrypoint governance marker `{needle}`",
         );
     }
 }

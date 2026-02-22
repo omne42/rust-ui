@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -199,11 +199,11 @@
   - 边界证据：组件目录保持 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 五文件职责拆分，`mod.rs` 未声明 `mod spec;`，目录中不存在 `src/spec.rs`。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_spec_rs_is_not_introduced_for_simple_component`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_spec_rs_is_not_introduced_for_simple_component`。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-  - 聚合链路证据：`components/drop-zone/src/styles.rs` 以 `pub const CSS` 导出静态样式；`crates/ui-components/src/css.rs` 在 `#[cfg(feature = "component-drop_zone")]` 下聚合 `crate::drop_zone::styles::CSS`；`crates/ui-components/src/root.rs` 通过 `inject_components_css` 调用 `crate::css::push_components_css(&mut out)` 注入到 `UiRoot`。
+  - 聚合链路证据：`components/drop-zone/src/styles.rs` 以 `pub const CSS` 导出静态样式；`crates/ui/src/css.rs` 在 `#[cfg(feature = "component-drop_zone")]` 下聚合 `crate::drop_zone::styles::CSS`；`crates/ui/src/root.rs` 通过 `inject_components_css` 调用 `crate::css::push_components_css(&mut out)` 注入到 `UiRoot`。
   - token-first 证据：`drop-zone` 的颜色/间距/圆角/阴影与尺寸均使用 `var(--ui-*)`（含 `var(--ui-drop-zone-*, var(--ui-fallback-drop-zone-*))` 回退链），未引入组件私有平行 token 体系。
   - 运行时与范式边界：`components/drop-zone/src/view.rs` 无业务 `style=` 内联样式；组件未引入 Utility-First class 协议或 CSS-in-Rust `style!`/运行时样式 DSL 作为默认实现。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_token_first_static_styles_are_aggregated_and_do_not_use_utility_or_css_in_rust_defaults`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_token_first_static_styles_are_aggregated_and_do_not_use_utility_or_css_in_rust_defaults`。
@@ -222,15 +222,15 @@
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-  - package feature 证据：`crates/ui-components/Cargo.toml` 定义 `component-drop_zone = ["dep:ui-drop-zone"]`，且 `ui-drop-zone` 依赖为 `optional = true`；`crates/ui-components/src/lib.rs` 使用 `#[cfg(feature = "component-drop_zone")] pub use ui_drop_zone as drop_zone;`；`crates/ui-components/src/css.rs` 仅在 `#[cfg(feature = "component-drop_zone")]` 下聚合 `crate::drop_zone::styles::CSS`。
+  - package feature 证据：`crates/ui/Cargo.toml` 定义 `component-drop_zone = ["dep:ui-drop-zone"]`，且 `ui-drop-zone` 依赖为 `optional = true`；`crates/ui/src/lib.rs` 使用 `#[cfg(feature = "component-drop_zone")] pub use ui_drop_zone as drop_zone;`；`crates/ui/src/css.rs` 仅在 `#[cfg(feature = "component-drop_zone")]` 下聚合 `crate::drop_zone::styles::CSS`。
   - source 模式证据：`components/drop-zone/src/mod.rs` 仅暴露组件 API，不包含全量组件注册表；组件源码按需由上层 feature gate 引入，不通过中心映射强制保持全可达。
-  - 特性树实测：执行 `cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-drop_zone,inject-css` 输出仅含 `feature "component-drop_zone" (command-line)` 与 `feature "inject-css" (command-line)`，未出现 `all-components`。
-  - 反向依赖实测：执行 `cargo tree -e features -i ui-components -p web-demo` 输出包含 `feature "web-demo-components"`、`feature "component-drop_zone"` 与 `feature "inject-css"`，未出现 `all-components`。
-  - CI 证据：`.github/workflows/ci.yml` 已调用 `./scripts/check-ui-components-tree-shaking.sh`；脚本包含最小特性 wasm 编译检查（`cargo check ... --no-default-features --features component-accordion,inject-css`）与 release 产物预算检查（读取 `scripts/tree_shaking_budget.env` 的 `TREE_SHAKING_BASELINE_RLIB_BYTES` / `TREE_SHAKING_MAX_RATIO_PERCENT`，并阻断超预算）。
+  - 特性树实测：执行 `cargo tree -e features -i ui -p ui --no-default-features --features component-drop_zone,inject-css` 输出仅含 `feature "component-drop_zone" (command-line)` 与 `feature "inject-css" (command-line)`，未出现 `all-components`。
+  - 反向依赖实测：执行 `cargo tree -e features -i ui -p web-demo` 输出包含 `feature "web-demo-components"`、`feature "component-drop_zone"` 与 `feature "inject-css"`，未出现 `all-components`。
+  - CI 证据：`.github/workflows/ci.yml` 已调用 `./scripts/check-ui-tree-shaking.sh`；脚本包含最小特性 wasm 编译检查（`cargo check ... --no-default-features --features component-accordion,inject-css`）与 release 产物预算检查（读取 `scripts/tree_shaking_budget.env` 的 `TREE_SHAKING_BASELINE_RLIB_BYTES` / `TREE_SHAKING_MAX_RATIO_PERCENT`，并阻断超预算）。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks`。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -261,7 +261,7 @@
   - 升级约束：若未来新增 `aria-labelledby/aria-describedby` 等动态 ID 需求，必须接入 `ui-headless::id_provider`（`provide_ui_id_provider/use_ui_id_provider`）并以确定性 seed 保证 SSR/Hydration 一致。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_hydration_discontinuity_is_not_applicable_without_runtime_id_generation`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_hydration_discontinuity_is_not_applicable_without_runtime_id_generation`。
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
-  - compile-only 命令矩阵：`cargo check -p ui-drop-zone`（default 本地 native）、`cargo check -p ui-components --no-default-features --features component-drop_zone,inject-css`（ssr native）、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-drop_zone,inject-css`（web wasm32）。
+  - compile-only 命令矩阵：`cargo check -p ui-drop-zone`（default 本地 native）、`cargo check -p ui --no-default-features --features component-drop_zone,inject-css`（ssr native）、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-drop_zone,inject-css`（web wasm32）。
   - 平台分支证据：`components/drop-zone/src/view.rs` 的 `collect_files_from_drag_event/collect_files_from_clipboard_event` 与 `components/drop-zone/src/motion.rs` 的 `attach_motion` 均通过 `#[cfg(target_arch = "wasm32")]` / `#[cfg(not(target_arch = "wasm32"))]` 显式分支管理。
   - non-wasm 安全证据：`view.rs` non-wasm 分支仅返回 `Vec::new()`；`motion.rs` non-wasm 分支仅执行 `std::hint::black_box(sanitize_motion(motion))` no-op，不引用 `web-sys`/`window`/`document` 浏览器对象。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ssr_and_cross_platform_compile_paths_are_cfg_gated_and_non_wasm_safe`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_ssr_and_cross_platform_compile_paths_are_cfg_gated_and_non_wasm_safe`。
@@ -273,7 +273,7 @@
 - [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
   - no-op/stub 证据：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(...) {}` 空实现，并有 `non_wasm_web_backend_is_predictable_noop` 测试锁定可预测行为。
   - 组件降级证据：`components/drop-zone/src/motion.rs` 的 `#[cfg(not(target_arch = "wasm32"))] attach_motion` 仅执行 `std::hint::black_box(sanitize_motion(motion))`，不创建 `SpringAnimator`、不触发 DOM/WAAPI 调用，不会因动画句柄缺失而 panic。
-  - compile-only 验证矩阵：`cargo check -p ui-motion`（native toolchain）、`cargo check -p ui-components --no-default-features --features component-drop_zone,inject-css`（SSR/tooling 路径）、`cargo check -p ui-motion --target wasm32-unknown-unknown`（wasm 分支）。
+  - compile-only 验证矩阵：`cargo check -p ui-motion`（native toolchain）、`cargo check -p ui --no-default-features --features component-drop_zone,inject-css`（SSR/tooling 路径）、`cargo check -p ui-motion --target wasm32-unknown-unknown`（wasm 分支）。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ui_motion_non_wasm_noop_stub_keeps_ssr_tooling_compilable`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_ui_motion_non_wasm_noop_stub_keeps_ssr_tooling_compilable`。
 - [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
   - reduced-motion 证据：`components/drop-zone/src/motion.rs` 的 wasm `attach_motion` 在 `ui_motion::web::prefers_reduced_motion()` 为真时直接走降级路径，仅同步写入 `--ui-drop-zone-scale/--ui-drop-zone-highlight` 目标值并 `return`，跳过 `SpringAnimator` 驱动。
@@ -284,7 +284,7 @@
   - 预算基线证据：`apps/docs-app/src/pages/components/shell.rs::component_page_perf_budget` 为 `drop-zone` 定义 `UiPerfBudget { max_mount_ms: 30.0, max_update_ms: Some(10.0), max_heap_kb: Some(512.0) }`；`Button/Input` 基线预算同一处已定义并持续受门禁保护。
   - 可重复阈值证据：`apps/docs-app/src/perf_probe.rs::UiPerfProbe` 输出 `data-perf-mount-ms/data-perf-budget-ms/data-perf-budget-update-ms/data-perf-budget-heap-kb/data-perf-violation`；`e2e/tests/docs_app_components_coverage.spec.mjs` 对上述标记断言并阻断 `data-perf-violation="true"`。
   - 可归因证据：性能信号按状态/渲染/样式/动效四路可追踪，`components/drop-zone/src/view.rs` 暴露 `data-drag-phase/data-drop-target/data-focused/data-motion-source`，`motion.rs` 统一挂载动效 contract；`apps/docs-app/src/debug_overlay.rs` 通过 `ui_headless::use_ui_trace().emit(...)` 提供 trace 归因入口。
-  - 阻断门禁证据：`scripts/check-ui-components-performance.sh` 新增 `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_performance_governance_contract_is_budgeted_traceable_and_blocking`，并保留 `Button/Input` 与 render_count follow-up 追踪门禁。
+  - 阻断门禁证据：`scripts/check-ui-performance.sh` 新增 `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_performance_governance_contract_is_budgeted_traceable_and_blocking`，并保留 `Button/Input` 与 render_count follow-up 追踪门禁。
   - render_count 现状与计划：当前 `DropZone` 测试路径采用 mount/update/heap 等价证据（`UiPerfProbe` + e2e + trace），精确 `render_count` 自动化在 `docs/plan/TODO.md` 记录为后续任务“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone）”。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_performance_governance_contract_is_budgeted_traceable_and_blocking`、`components/drop-zone/test/semantics.rs::drop_zone_performance_check_script_covers_budget_and_follow_up_gates`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_performance_governance_contract_is_budgeted_traceable_and_blocking`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_performance_check_script_covers_budget_and_follow_up_gates`。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
@@ -314,53 +314,53 @@
   - 时间与回放证据：`crates/ui-headless/src/trace.rs` 的 `UiTraceEvent` 含 `ts_ms/component/kind`，`apps/docs-app/src/debug_overlay.rs::render_events` 按事件序列展示 `ts_ms + component + kind + body`，支持最小交互链路回放排障。
   - 可视化入口证据：`apps/docs-app/src/lib.rs` 在开发模式 `cfg!(debug_assertions)` 下启用 `UiDebugOverlay`，提供 `Inspect + Events` 面板用于 wasm 调试可视化。
   - 隔离证据：`provide_ui_trace(debug_overlay_enabled)` 仅在开发模式启用；`emit_drop_zone_debug_note` 在 `#[cfg(all(target_arch = "wasm32", debug_assertions))]` 下才真正写入事件，默认产物与公共 API 不暴露调试开关。
-  - 门禁证据：`scripts/check-ui-components-wasm-debug.sh` 新增 `drop-zone` 调试契约测试命令，确保约束可回归。
+  - 门禁证据：`scripts/check-ui-wasm-debug.sh` 新增 `drop-zone` 调试契约测试命令，确保约束可回归。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。
 - [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
   - 热样式路径证据：`apps/docs-app/src/playground.rs` 通过 `test_css_source + compose_scoped_css` 提供 scoped CSS 热编辑反馈，常见样式调整无需完整 wasm 重编译。
   - Workbench 证据：`apps/docs-app/src/pages/components/pages/files.rs::drop_zone` 新增 `Workbench（展示 + Config + Code + CSS Test）`，并提供 `data-slot="drop-zone-workbench-canvas"` 隔离画布。
   - 上下文保留证据：workbench 提供 `Persist workbench state` 开关；`load/save/clear_drop_zone_workbench_state` 在 wasm32 持久化 `is_disabled/custom_motion`，non-wasm 下安全 no-op。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/drop-zone/test/semantics.rs::drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canvas`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canvas`。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增 drop-zone DX 合同命令，阻断热重载/隔离画布/可选状态保留回归。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增 drop-zone DX 合同命令，阻断热重载/隔离画布/可选状态保留回归。
 - [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
   - `serde/spec` 边界：`DropZone` 属简单交互组件，当前无 `spec.rs` 与 schema 迁移面；`components/drop-zone/Cargo.toml` 未引入 `serde/serde_json`，序列化迁移路径标注 N/A。
   - tracing 语义边界：组件复用 `ui_headless::use_ui_trace` 输出调试事件，不引入组件私有 `tracing::span/event` 协议，避免埋点语义分叉。
   - async/runtime 边界：`DropZone` 无 async runtime 依赖；公共 API 仅暴露 `DropZone/DroppedFile/DropZoneMotion` 与 `Callback<Vec<DroppedFile>>`，未泄露 `tokio/async-std/runtime handle` 类型。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::{drop_zone_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope,drop_zone_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events,drop_zone_engineering_contract_avoids_runtime_leaks_in_public_api_surface}`、`components/drop-zone/test/drop_zone_semantics.rs::{drop_zone_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope,drop_zone_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events,drop_zone_engineering_contract_avoids_runtime_leaks_in_public_api_surface}`。
-  - 门禁证据：`scripts/check-ui-components-engineering.sh` 新增 drop-zone 工程能力合同命令，阻断 `serde/spec`、tracing 语义与 runtime 边界回归。
+  - 门禁证据：`scripts/check-ui-engineering.sh` 新增 drop-zone 工程能力合同命令，阻断 `serde/spec`、tracing 语义与 runtime 边界回归。
 
 ### 5. 样式与动效（Theme & Motion）
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
   - 回退链证据：`components/drop-zone/src/styles.rs` 的颜色/间距/圆角/阴影/焦点均升级为双层回退链（如 `var(--ui-fg, var(--ui-fallback-fg))`、`var(--ui-space-lg, var(--ui-fallback-space-lg))`、`var(--ui-drop-zone-border-width, var(--ui-fallback-drop-zone-border-width))`）。
   - SSOT 证据：fallback 终值统一来自 `crates/ui-theme/src/css.rs`（`--ui-fallback-*` 与 `--ui-fallback-drop-zone-*`），组件层不自带终值常量。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_styles_use_defensive_variable_fallback_chain`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_styles_use_defensive_variable_fallback_chain`。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `drop_zone_styles_use_defensive_variable_fallback_chain` 命令，防止回退链回归。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `drop_zone_styles_use_defensive_variable_fallback_chain` 命令，防止回退链回归。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 聚合层证据：`crates/ui-components/src/css.rs` 通过 `out.push_str("\n@layer ui {\n"); ... out.push_str(crate::drop_zone::styles::CSS); ... out.push_str("\n}\n");` 将 `drop-zone` CSS 聚合在 `@layer ui` 内。
+  - 聚合层证据：`crates/ui/src/css.rs` 通过 `out.push_str("\n@layer ui {\n"); ... out.push_str(crate::drop_zone::styles::CSS); ... out.push_str("\n}\n");` 将 `drop-zone` CSS 聚合在 `@layer ui` 内。
   - 运行时数值策略（DropZone N/A）：`components/drop-zone/src/view.rs` 当前无运行时数值内联样式路径（无 `style=`/`style:`），因此不存在 `style="top: ..."` 一类普通内联样式；若未来新增动态数值，仅允许 `style:--ui-*` 自定义变量透传。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_cascade_layer_and_runtime_style_contract_is_enforced`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_cascade_layer_and_runtime_style_contract_is_enforced`。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `drop_zone_cascade_layer_and_runtime_style_contract_is_enforced` 命令，阻断 `@layer ui` 边界和 inline style 约束回归。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `drop_zone_cascade_layer_and_runtime_style_contract_is_enforced` 命令，阻断 `@layer ui` 边界和 inline style 约束回归。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - Contract 证据：`components/drop-zone/src/motion.rs::DropZoneMotion` 内置 `spring/hover_scale/drop_scale/hover_highlight`，`Default` 从 `ui_theme::default_drop_zone_motion_tokens()` 映射 `stiffness/damping/mass/precision`，并经 `sanitize_motion` 统一归一。
   - 挂载证据：`components/drop-zone/src/view.rs` 通过 `motion::attach_motion(zone_ref, hover.is_hovered, is_drop_target, focus_ring.is_focused, is_disabled, motion)` 执行组件语义到动效 contract 的绑定。
   - reduced-motion + non-wasm 证据：wasm `attach_motion` 在 `ui_motion::web::prefers_reduced_motion()` 为真时只同步写 `--ui-drop-zone-scale/--ui-drop-zone-highlight` 并 `return`；`#[cfg(not(target_arch = "wasm32"))] attach_motion` 仅 `std::hint::black_box(sanitize_motion(motion))` no-op，SSR/tooling 可预测降级。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop`。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop` 命令，阻断 motion contract / reduced-motion / non-wasm no-op 回归。
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop` 命令，阻断 motion contract / reduced-motion / non-wasm no-op 回归。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-  - 入口证据：`crates/ui-components/src/lib.rs` 保持 `mod css;` + `pub mod root;` + `pub use root::UiRoot;`，并在 `#[cfg(feature = "component-drop_zone")]` 下导出 `pub use ui_drop_zone as drop_zone;`，公共 API 不泄露 `web_sys/NodeRef/HtmlElement` 平台细节。
-  - CSS 入口证据：`crates/ui-components/src/css.rs` 通过 `push_components_css` 聚合样式，并在 `#[cfg(feature = "component-drop_zone")]` 下注入 `crate::drop_zone::styles::CSS`；同时保留 `#[cfg(not(feature = "inject-css"))]` no-op 分支，避免无条件聚合。
-  - Root 入口证据：`crates/ui-components/src/root.rs::UiRoot` 统一执行 `provide_ui_i18n` / `provide_ui_id_provider` 与 base css + theme vars +（可选）components css 注入，主题与注入策略集中不下沉到组件层。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - 入口证据：`crates/ui/src/lib.rs` 保持 `mod css;` + `pub mod root;` + `pub use root::UiRoot;`，并在 `#[cfg(feature = "component-drop_zone")]` 下导出 `pub use ui_drop_zone as drop_zone;`，公共 API 不泄露 `web_sys/NodeRef/HtmlElement` 平台细节。
+  - CSS 入口证据：`crates/ui/src/css.rs` 通过 `push_components_css` 聚合样式，并在 `#[cfg(feature = "component-drop_zone")]` 下注入 `crate::drop_zone::styles::CSS`；同时保留 `#[cfg(not(feature = "inject-css"))]` no-op 分支，避免无条件聚合。
+  - Root 入口证据：`crates/ui/src/root.rs::UiRoot` 统一执行 `provide_ui_i18n` / `provide_ui_id_provider` 与 base css + theme vars +（可选）components css 注入，主题与注入策略集中不下沉到组件层。
   - 共享原语落点证据：`crates/ui-visual-primitive/src/active_highlight.rs` 仅提供通用高亮样式与 motion driver（`ActiveHighlightMotion` + `attach_active_highlight_motion`），不承载 DropZone/业务语义。
-  - 禁止文件证据：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在；对应原语固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
+  - 禁止文件证据：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 均不存在；对应原语固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries`。
-  - 门禁证据：`scripts/check-ui-components-entrypoints.sh` 新增 `drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries` 命令，阻断入口落点与禁止文件回归。
+  - 门禁证据：`scripts/check-ui-entrypoints.sh` 新增 `drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries` 命令，阻断入口落点与禁止文件回归。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -373,7 +373,7 @@
   - 职责证据：`logic.rs` 仅做 props 归一化与状态派生；`styles.rs` 仅承载 token-first 静态 CSS；`view.rs` 仅做 Leptos 结构渲染 + headless 语义挂载；`motion.rs` 仅做 `DropZoneMotion + attach_motion` 映射。
   - spec N/A 证据：`components/drop-zone/src/spec.rs` 不存在，`mod.rs` 未声明 `mod spec;`；简单组件不引入 spec。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_component_directory_standard_files_follow_contract_and_na_paths`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_component_directory_standard_files_follow_contract_and_na_paths`。
-  - 门禁证据：`scripts/check-ui-components-component-files.sh` 新增 `drop_zone_component_directory_standard_files_follow_contract_and_na_paths` 命令，阻断目录落点回归。
+  - 门禁证据：`scripts/check-ui-component-files.sh` 新增 `drop_zone_component_directory_standard_files_follow_contract_and_na_paths` 命令，阻断目录落点回归。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
 - [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
@@ -381,18 +381,18 @@
   - 职责证据：`mod.rs` 仅维护稳定导出边界；`logic.rs` 负责归一与派生；`styles.rs` 负责 token-first 静态样式；`view.rs` 负责结构渲染与语义挂载；`motion.rs` 负责动效 contract 映射与 attach。
   - `spec.rs` N/A 证据：`components/drop-zone/src/spec.rs` 不存在且组件复杂度不需要稳定外部 schema，保持“复杂组件才引入 spec.rs”约束。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_component_directory_standard_files_follow_contract_and_na_paths`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_component_directory_standard_files_follow_contract_and_na_paths`。
-  - 门禁证据：`scripts/check-ui-components-component-files.sh` 覆盖 `drop_zone_component_directory_standard_files_follow_contract_and_na_paths`，可阻断目录落点回归。
+  - 门禁证据：`scripts/check-ui-component-files.sh` 覆盖 `drop_zone_component_directory_standard_files_follow_contract_and_na_paths`，可阻断目录落点回归。
 - [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
   - 适用性结论：N/A（`drop-zone` 为简单文件交互容器，不属于复杂 schema/builder 组件；不引入 `*Spec::new()...render()`，避免抽象噪音）。
   - 已落实（N/A 证据）：`components/drop-zone/src/spec.rs` 不存在；`components/drop-zone/src/mod.rs` 未声明 `mod spec;` 且公共导出未暴露 `DropZoneSpec`。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_hyper_structure_builder_spec_is_not_applicable_for_simple_component`、`components/drop-zone/test/semantics.rs::drop_zone_hyper_structure_builder_check_script_covers_na_contract`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_hyper_structure_builder_spec_is_not_applicable_for_simple_component`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_hyper_structure_builder_check_script_covers_na_contract`。
-  - 门禁证据：`scripts/check-ui-components-component-files.sh` 覆盖 `drop_zone_hyper_structure_builder_spec_is_not_applicable_for_simple_component` 命令，阻断 Builder 适用性回归。
+  - 门禁证据：`scripts/check-ui-component-files.sh` 覆盖 `drop_zone_hyper_structure_builder_spec_is_not_applicable_for_simple_component` 命令，阻断 Builder 适用性回归。
 - [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
   - 已落实（工件落点）：`components/drop-zone/src/Component.toml` 与 `components/drop-zone/src/drop_zone.rbi` 已新增并纳入组件目录，避免 AI 检索使用过时接口上下文。
   - 已落实（Manifest 结构）：`Component.toml` 固化 `schema_version = "1"`、`component.name = "DropZone"`、`crate = "ui-drop-zone"`、`rbi = "drop_zone.rbi"`，并列出输入轴（`label/aria_label/lang/dir/is_disabled/disabled/motion/on_drop_files/children`）、输出语义以及 `context_compression_manifest`、`rbi_signature_projection` 能力标记。
   - 已落实（RBI 投影）：`drop_zone.rbi` 投影公开类型与签名（`DroppedFile`、`DropZoneMotion`、`sanitize_motion`、`attach_motion`、`DropZone(...) -> impl IntoView`），确保 Agent 可基于稳定签名检索而非解析实现细节。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_context_compression_manifest_and_rbi_projection_are_present_and_current`、`components/drop-zone/test/semantics.rs::drop_zone_component_files_check_script_covers_context_compression_manifest_contract`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_context_compression_manifest_and_rbi_projection_are_present_and_current`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_component_files_check_script_covers_context_compression_manifest_contract`。
-  - 门禁证据：`scripts/check-ui-components-component-files.sh` 覆盖 `drop_zone_context_compression_manifest_and_rbi_projection_are_present_and_current` 命令，阻断工件缺失/投影漂移回归。
+  - 门禁证据：`scripts/check-ui-component-files.sh` 覆盖 `drop_zone_context_compression_manifest_and_rbi_projection_are_present_and_current` 命令，阻断工件缺失/投影漂移回归。
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
@@ -402,7 +402,7 @@
   - 已落实（类型化来源）：`data-ui-*` 字段来自 `DropZoneAgentContract` 的 enum/struct `as_str()` 映射，`view.rs` 未使用 `format!` 拼接 schema 字符串；`motion_source/aria_source/disabled_source` 均可追溯到状态轴与来源轴。
   - 已落实（白名单边界）：`components/drop-zone/src/Component.toml` 新增 `[agent_contract]`、`[[agent_contract_markers]]`、`[[agent_contract_whitelist]]`（blocked: `inner_html`/`dangerously_set_inner_html`/`<script`/`javascript:`），并同步 `components/drop-zone/src/drop_zone.rbi` 投影类型化契约。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_check2_documents_agent_contract_schema_governance_rules`、`components/drop-zone/test/semantics.rs::drop_zone_agent_contract_is_schema_typed_and_machine_readable`、`components/drop-zone/test/semantics.rs::drop_zone_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`、`components/drop-zone/test/semantics.rs::drop_zone_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`、`components/drop-zone/test/semantics.rs::drop_zone_contract_hygiene_script_covers_agent_contract_schema_guards`、`components/drop-zone/test/drop_zone_semantics.rs` 同名回归。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 覆盖 `drop_zone_check2_documents_agent_contract_schema_governance_rules`、`drop_zone_agent_contract_is_schema_typed_and_machine_readable`、`drop_zone_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`、`drop_zone_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 覆盖 `drop_zone_check2_documents_agent_contract_schema_governance_rules`、`drop_zone_agent_contract_is_schema_typed_and_machine_readable`、`drop_zone_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`、`drop_zone_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`。
 - [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
@@ -410,7 +410,7 @@
   - 边界证据：`components/drop-zone/src/view.rs`、`components/drop-zone/src/logic.rs`、`components/drop-zone/src/motion.rs`、`components/drop-zone/src/mod.rs` 未引入 `AiRenderMode`、`AiOutputStatus`、`data-ui-stream-*`、`data-stream-*` 等流式协议字段。
   - 术语收敛证据：本条仅保留 `Streaming|Snapshot` 两种显示模式定义，避免在组件层引入第三种“伪流式”命名漂移。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`、`components/drop-zone/test/semantics.rs::drop_zone_streaming_script_covers_two_mode_definition_contract`、`components/drop-zone/test/semantics.rs::drop_zone_check2_marks_streaming_two_mode_definition_complete`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_streaming_script_covers_two_mode_definition_contract`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_marks_streaming_two_mode_definition_complete`。
-  - 门禁证据：`scripts/check-ui-components-streaming.sh` 覆盖 `drop_zone_check2_documents_streaming_definition_is_llm_output_only_with_two_modes` 命令。
+  - 门禁证据：`scripts/check-ui-streaming.sh` 覆盖 `drop_zone_check2_documents_streaming_definition_is_llm_output_only_with_two_modes` 命令。
 - [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
@@ -418,7 +418,7 @@
   - 基线能力证据：`components/drop-zone/src/view.rs::DropZone` 接收完整输入轴（`label/aria_label/lang/dir/is_disabled/disabled/motion/on_drop_files/children`），并在 `components/drop-zone/src/logic.rs::resolve_props` 与 `resolve_agent_contract` 统一归一后挂载稳定 `data-*`/`aria-*`/`data-ui-*` 语义标记。
   - 稳定渲染证据：渲染路径不依赖 `now()/rand/uuid` 等非确定性输入；`components/drop-zone/src/Component.toml` 的 `[agent_contract]` 固定 `streaming = \"optional\"`、`fallback = \"snapshot\"`，确保 fallback 语义封闭。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_check2_documents_snapshot_as_default_baseline_capability`、`components/drop-zone/test/semantics.rs::drop_zone_snapshot_baseline_consumes_complete_result_and_renders_stably`、`components/drop-zone/test/semantics.rs::drop_zone_streaming_script_covers_snapshot_baseline_contract`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_snapshot_as_default_baseline_capability`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_snapshot_baseline_consumes_complete_result_and_renders_stably`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_streaming_script_covers_snapshot_baseline_contract`。
-  - 门禁证据：`scripts/check-ui-components-streaming.sh` 覆盖 `drop_zone_check2_documents_snapshot_as_default_baseline_capability` 与 `drop_zone_snapshot_baseline_consumes_complete_result_and_renders_stably` 命令。
+  - 门禁证据：`scripts/check-ui-streaming.sh` 覆盖 `drop_zone_check2_documents_snapshot_as_default_baseline_capability` 与 `drop_zone_snapshot_baseline_consumes_complete_result_and_renders_stably` 命令。
 - [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
@@ -428,7 +428,7 @@
   - 连续语义证据：`components/drop-zone/src/view.rs::DropZone` 在 root/zone 持续输出 `data-ui-output-status` + `role="group"` + `aria-label/aria-disabled` + `data-drag-phase/data-drop-target/data-disabled`，保证 `Streaming Optional` 路径下 `role`/`aria-*`/`data-*` 连续可读。
   - 边界证据：`components/drop-zone/src/view.rs`、`components/drop-zone/src/logic.rs`、`components/drop-zone/src/motion.rs` 不包含 `retry/reconnect/backoff/resume_stream/stream_error` 等断线恢复与校验策略，保持“组件只负责稳定渲染，上层负责数据治理”。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_check2_documents_streaming_required_optional_classification_rules`、`components/drop-zone/test/semantics.rs::drop_zone_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/drop-zone/test/semantics.rs::drop_zone_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`、`components/drop-zone/test/semantics.rs::drop_zone_streaming_script_covers_streaming_required_optional_contract`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_streaming_required_optional_classification_rules`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_streaming_script_covers_streaming_required_optional_contract`。
-  - 门禁证据：`scripts/check-ui-components-streaming.sh` 覆盖 `drop_zone_check2_documents_streaming_required_optional_classification_rules`、`drop_zone_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`drop_zone_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer` 命令。
+  - 门禁证据：`scripts/check-ui-streaming.sh` 覆盖 `drop_zone_check2_documents_streaming_required_optional_classification_rules`、`drop_zone_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`drop_zone_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer` 命令。
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
@@ -436,28 +436,28 @@
   - 字符串热点证据：`components/drop-zone/src/view.rs` 的 i18n 文案注入使用 `into()`，避免 `.to_string()` 热点；组件非测试源码未出现 `.to_owned()`、`String::from(...)`、显式字段类 `.to_string()` 复制热点。
   - 门禁证据：`scripts/check-rust-hygiene.sh` 持续执行 `unwrap/expect`、`let _ = ...`、字符串复制热点扫描，并在违规时阻断（`[rust-hygiene] failed`）。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_check2_documents_rust_hygiene_contract`、`components/drop-zone/test/semantics.rs::drop_zone_non_test_source_disallows_unwrap_expect_and_let_underscore_swallowing`、`components/drop-zone/test/semantics.rs::drop_zone_non_test_string_copy_hotspots_are_absent_or_cow_driven`、`components/drop-zone/test/semantics.rs::drop_zone_rust_hygiene_script_enforces_core_guards`、`components/drop-zone/test/drop_zone_semantics.rs` 同名回归。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 组件特性树证据：`crates/ui-components/Cargo.toml` 已注册 `component-drop_zone = ["dep:ui-drop-zone"]` 且依赖为 `optional = true`；`crates/ui-components/src/lib.rs` 和 `crates/ui-components/src/css.rs` 均以 `#[cfg(feature = "component-drop_zone")]` 做导出与 CSS 聚合门控，未出现无条件全局依赖。
-  - 最小特性与反向依赖证据：`scripts/check-ui-components-tree-shaking.sh` 持续执行最小特性树检查（`cargo tree -e features -i ui-components -p ui-components --no-default-features --features "$MIN_FEATURES"`）和 web-demo 反向依赖检查（`cargo tree -e features -i ui-components -p web-demo`），并阻断 `all-components` 被隐式拉起。
-  - 门禁证据：`scripts/check-ui-components-tree-shaking.sh` 显式覆盖 `drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks`，防止 `drop-zone` 的 feature 门控与 CSS 聚合回归。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 组件特性树证据：`crates/ui/Cargo.toml` 已注册 `component-drop_zone = ["dep:ui-drop-zone"]` 且依赖为 `optional = true`；`crates/ui/src/lib.rs` 和 `crates/ui/src/css.rs` 均以 `#[cfg(feature = "component-drop_zone")]` 做导出与 CSS 聚合门控，未出现无条件全局依赖。
+  - 最小特性与反向依赖证据：`scripts/check-ui-tree-shaking.sh` 持续执行最小特性树检查（`cargo tree -e features -i ui -p ui --no-default-features --features "$MIN_FEATURES"`）和 web-demo 反向依赖检查（`cargo tree -e features -i ui -p web-demo`），并阻断 `all-components` 被隐式拉起。
+  - 门禁证据：`scripts/check-ui-tree-shaking.sh` 显式覆盖 `drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks`，防止 `drop-zone` 的 feature 门控与 CSS 聚合回归。
   - 回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_check2_marks_tree_shaking_feature_pruning_contract_complete`、`components/drop-zone/test/semantics.rs::drop_zone_tree_shaking_script_covers_component_feature_pruning_contract`、`components/drop-zone/test/semantics.rs::drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks`、`components/drop-zone/test/drop_zone_semantics.rs` 同名回归。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 已满足（语义覆盖）：`components/drop-zone/src/view.rs` 持续输出 `role="group"`、`aria-label/aria-disabled` 与 `data-drag-phase/data-drop-target/data-focused/data-focus-visible/data-disabled/data-disabled-source/data-motion-source`，覆盖 `aria-*`/`data-*` 与焦点流转语义。
   - 已满足（非快照优先）：`components/drop-zone/test/semantics.rs::drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 与 `components/drop-zone/test/drop_zone_semantics.rs::drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 显式阻断 `toHaveScreenshot/toMatchSnapshot/insta` 快照依赖。
-  - 已满足（性能门禁）：`scripts/check-ui-components-performance.sh` 增加 `drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 命令，并由 `components/drop-zone/test/semantics.rs::drop_zone_performance_script_covers_semantics_and_performance_regression_matrix`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_performance_script_covers_semantics_and_performance_regression_matrix` 回归校验。
+  - 已满足（性能门禁）：`scripts/check-ui-performance.sh` 增加 `drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 命令，并由 `components/drop-zone/test/semantics.rs::drop_zone_performance_script_covers_semantics_and_performance_regression_matrix`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_performance_script_covers_semantics_and_performance_regression_matrix` 回归校验。
   - render_count 现状：`DropZone` 保持仓库级 follow-up（`docs/plan/TODO.md`：建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone））；当前以 `UiPerfBudget` + `data-perf-*` 可重复测量/阻断作为等价证据。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - N/A：本次 `DropZone` 未发生跨大版本 API 破坏升级，`components/drop-zone/src/Component.toml` 仍固定 `schema_version = "1"`，`components/drop-zone/src/drop_zone.rbi` 仅存在 `DropZoneAgentSchemaVersion::V1`。
   - 已满足（迁移层边界）：当前组件未引入 `schema_version = "2"`、`migrate_v1_to_v2`、`deprecation_window`、`SchemaRegistry` 等跨大版本迁移标记，避免制造伪需求。
   - 已满足（自动化回归）：`components/drop-zone/test/semantics.rs::drop_zone_version_deprecation_migration_is_na_without_major_breaking_upgrade`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_version_deprecation_migration_is_na_without_major_breaking_upgrade`、`components/drop-zone/test/semantics.rs::drop_zone_check2_marks_version_deprecation_migration_item_complete`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_marks_version_deprecation_migration_item_complete`。
-  - 已满足（门禁可阻断）：`scripts/check-ui-components-engineering.sh` 已纳入 `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_version_deprecation_migration_is_na_without_major_breaking_upgrade`。
+  - 已满足（门禁可阻断）：`scripts/check-ui-engineering.sh` 已纳入 `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_version_deprecation_migration_is_na_without_major_breaking_upgrade`。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
   - 已满足（Playground 覆盖）：`apps/docs-app/src/pages/components/pages/files.rs::drop_zone` 现包含 `Hello World`、`State Matrix (Disabled / Motion / Callback)`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional (fallback=snapshot)` 与 `Quick Start/Workbench`，覆盖最小上手 + 状态矩阵 + 受控/非受控对照（本组件 N/A）+ 流式/快照展现。
   - 已满足（受控/非受控对照边界）：`DropZone` 无持久受控状态轴，文档在 `Controlled vs Uncontrolled (N/A)` 明确“事件驱动 + `on_drop_files` 回调同步应用状态”，避免伪造半受控 API。
-  - 已满足（Source-first 一键复制 + imports）：`apps/docs-app/src/playground.rs` 保持 `DEFAULT_PLAYGROUND_IMPORTS = "use leptos::prelude::*;\\nuse ui_components::*;"` 与 `compose_copy_ready_code`，代码面板复制默认补齐 imports。
+  - 已满足（Source-first 一键复制 + imports）：`apps/docs-app/src/playground.rs` 保持 `DEFAULT_PLAYGROUND_IMPORTS = "use leptos::prelude::*;\\nuse ui::*;"` 与 `compose_copy_ready_code`，代码面板复制默认补齐 imports。
   - 已满足（自动化回归）：`components/drop-zone/test/semantics.rs::drop_zone_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`components/drop-zone/test/semantics.rs::drop_zone_check2_marks_docs_product_copy_paste_ready_item_complete`、`components/drop-zone/test/semantics.rs::drop_zone_dx_check_script_covers_docs_product_copy_paste_ready_contract`、`components/drop-zone/test/drop_zone_semantics.rs` 同名回归。
-  - 已满足（门禁可阻断）：`scripts/check-ui-components-dx.sh` 已纳入 `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`。
+  - 已满足（门禁可阻断）：`scripts/check-ui-dx.sh` 已纳入 `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
@@ -465,10 +465,10 @@
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
   - 已满足（组件级语义测试）：`components/drop-zone/test/semantics.rs` 持续覆盖关键状态轴与动作语义（`drop_zone_semantics_contract_tests_are_primary_and_not_snapshot_only`、`drop_zone_state_markers_are_observable_searchable_and_enumerable`、`drop_zone_has_a11y_i18n_l10n_contract_without_view_hardcoded_copy`），断言聚焦 `data-*`/`aria-*`/`role` 与状态来源标记。
   - 已满足（语义契约优先）：新增 `components/drop-zone/test/semantics.rs::drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks` 与 `components/drop-zone/test/drop_zone_semantics.rs::drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`，并显式阻断 `assert_snapshot/insta/toMatchSnapshot/toHaveScreenshot` 快照优先路径。
-  - 已满足（脚本门禁）：`scripts/check-ui-components-performance.sh` 新增 `drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks` 命令，并由 `components/drop-zone/test/semantics.rs::drop_zone_performance_script_covers_semantic_test_priority_contract` 与 `components/drop-zone/test/drop_zone_semantics.rs::drop_zone_performance_script_covers_semantic_test_priority_contract` 回归校验。
+  - 已满足（脚本门禁）：`scripts/check-ui-performance.sh` 新增 `drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks` 命令，并由 `components/drop-zone/test/semantics.rs::drop_zone_performance_script_covers_semantic_test_priority_contract` 与 `components/drop-zone/test/drop_zone_semantics.rs::drop_zone_performance_script_covers_semantic_test_priority_contract` 回归校验。
   - compile/test 证据（命令）：
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`
-    - `bash scripts/check-ui-components-performance.sh`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`
+    - `bash scripts/check-ui-performance.sh`
   - 当前环境说明：上述 `cargo test` 命令在本执行环境于依赖编译阶段触发 `Invalid cross-device link (os error 18)`；该阻断为环境问题，非 DropZone 语义测试优先契约回归。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
@@ -477,12 +477,12 @@
   - 已满足（语义选择器）：新增 `e2e/tests/docs_app_drop_zone_contract.spec.mjs`，使用 `[data-component="drop-zone"]`、`[data-slot="drop-zone-e2e-quick-start"]`、`[data-slot="drop-zone-e2e-state-disabled"]`、`[data-slot="drop-zone-e2e-state-custom-motion"]`、`[data-slot="drop-zone-workbench-toggle-custom-motion"]`、`[data-slot="drop-zone-workbench-surface"]` 等稳定语义锚点；未依赖文本定位、`nth-child` 或脆弱层级路径。
   - 已满足（WASM 稳定等待）：E2E 统一使用 `body:not(:has(#boot))` 作为 wasm ready 断点；未引入 `waitForTimeout/setTimeout/sleep` 固定时延等待。
   - 已满足（ready/settled 断点）：`docs-app drop-zone motion interaction uses semantic ready and settled breakpoints` 覆盖 `workbench custom motion` 开关后 `data-motion-source` 的 `default -> custom -> default` 收敛链路，并持续断言 `data-drag-phase="idle"` 作为 settled 语义断点。
-  - 已满足（脚本门禁）：新增 `scripts/check-ui-components-e2e-drop-zone.sh`，纳入 `drop_zone_check2_documents_e2e_selector_and_stable_wait_rules`、`drop_zone_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`drop_zone_e2e_contract_covers_ready_and_settled_conditions_for_motion_interaction` 三条阻断回归。
+  - 已满足（脚本门禁）：新增 `components/drop-zone/scripts/check-ui-e2e-drop-zone.sh`，纳入 `drop_zone_check2_documents_e2e_selector_and_stable_wait_rules`、`drop_zone_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`drop_zone_e2e_contract_covers_ready_and_settled_conditions_for_motion_interaction` 三条阻断回归。
   - compile/test 证据（命令）：
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_e2e_selector_and_stable_wait_rules`
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_e2e_selector_contract_uses_semantic_markers_and_stable_waits`
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_e2e_contract_covers_ready_and_settled_conditions_for_motion_interaction`
-    - `bash scripts/check-ui-components-e2e-drop-zone.sh`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_e2e_selector_and_stable_wait_rules`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_e2e_selector_contract_uses_semantic_markers_and_stable_waits`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_e2e_contract_covers_ready_and_settled_conditions_for_motion_interaction`
+    - `bash components/drop-zone/scripts/check-ui-e2e-drop-zone.sh`
   - 当前环境说明：上述 `cargo test` 命令在本执行环境于依赖编译阶段触发 `Invalid cross-device link (os error 18)`；该阻断为环境问题，非 DropZone E2E 选择器稳定契约回归。
   - 回归：`components/drop-zone/test/semantics.rs::drop_zone_check2_documents_e2e_selector_and_stable_wait_rules`、`components/drop-zone/test/semantics.rs::drop_zone_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_e2e_selector_and_stable_wait_rules`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_e2e_contract_covers_ready_and_settled_conditions_for_motion_interaction`、`e2e/tests/docs_app_drop_zone_contract.spec.mjs`。
 - [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。
@@ -492,11 +492,11 @@
   - 已满足（可重复关键流程）：新增 `e2e/tests/docs_app_drop_zone_contract.spec.mjs::docs-app drop-zone key flow is repeatable with semantic breakpoints`，覆盖 `ready -> keyboard toggle disabled -> focus transfer -> keyboard restore -> reload` 两轮可重复回放路径。
   - 已满足（语义断点可定位）：关键断点固定在 `data-slot="drop-zone-workbench-toggle-disabled"`、`data-slot="drop-zone-button"`、`data-disabled/data-disabled-source/aria-disabled/data-focused/data-drag-phase`；失败可直接定位到语义契约，而非笼统“页面不一致”。
   - 已满足（高风险路径优先）：`DropZone` 不涉及 overlay 与远程 async；该流程优先覆盖 `focus + keyboard` 高风险路径，并通过 `data-drag-phase="idle"` 验证交互 settled 语义不漂移。
-  - 已满足（脚本门禁）：`scripts/check-ui-components-e2e-drop-zone.sh` 新增 `drop_zone_check2_documents_e2e_repeatable_key_flow_rules` 与 `drop_zone_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`，确保关键流程回归可阻断。
+  - 已满足（脚本门禁）：`components/drop-zone/scripts/check-ui-e2e-drop-zone.sh` 新增 `drop_zone_check2_documents_e2e_repeatable_key_flow_rules` 与 `drop_zone_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`，确保关键流程回归可阻断。
   - compile/test 证据（命令）：
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_e2e_repeatable_key_flow_rules`
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`
-    - `bash scripts/check-ui-components-e2e-drop-zone.sh`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_e2e_repeatable_key_flow_rules`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`
+    - `bash components/drop-zone/scripts/check-ui-e2e-drop-zone.sh`
   - 当前环境说明：上述 `cargo test` 命令在本执行环境于依赖编译阶段触发 `Invalid cross-device link (os error 18)`；该阻断为环境问题，非 DropZone 关键流程回归契约退化。
   - 回归：`components/drop-zone/test/semantics.rs::drop_zone_check2_documents_e2e_repeatable_key_flow_rules`、`components/drop-zone/test/semantics.rs::drop_zone_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/drop-zone/test/semantics.rs::drop_zone_check2_marks_e2e_repeatable_key_flow_item_complete`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_e2e_repeatable_key_flow_rules`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_marks_e2e_repeatable_key_flow_item_complete`、`e2e/tests/docs_app_drop_zone_contract.spec.mjs`。
 - [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
@@ -506,11 +506,11 @@
   - 已满足（docs 页面同步）：`apps/docs-app/src/pages/components/pages/files.rs::drop_zone` 已同步包含 `Hello World`、`Quick Start (Default API)`、`State Matrix (Disabled / Motion / Callback)`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional (fallback=snapshot)`，覆盖默认路径与状态语义说明。
   - 已满足（状态矩阵）：`State Matrix (Disabled / Motion / Callback)` 覆盖 `Default/Disabled/Custom motion`，并固定语义锚点 `data-slot="drop-zone-e2e-state-default"`、`data-slot="drop-zone-e2e-state-disabled"`、`data-slot="drop-zone-e2e-state-custom-motion"`。
   - 已满足（API/默认值对齐）：文档示例使用当前 API `is_disabled`/`motion`/`on_drop_files`，并与 `components/drop-zone/src/logic.rs::classify_disabled_input/resolve_is_disabled/resolve_props` 的默认值规则一致（`DisabledInput::Default => (false, DisabledSource::Default)`、`motion.unwrap_or_default()`）。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增 docs-sync 合同命令，覆盖 `drop_zone_check2_documents_docs_sync_and_state_matrix_rules` 与 `drop_zone_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`，阻断 docs 与逻辑默认值漂移。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增 docs-sync 合同命令，覆盖 `drop_zone_check2_documents_docs_sync_and_state_matrix_rules` 与 `drop_zone_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`，阻断 docs 与逻辑默认值漂移。
   - compile/test 证据（命令）：
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_docs_sync_and_state_matrix_rules`
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`
-    - `bash scripts/check-ui-components-dx.sh`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_docs_sync_and_state_matrix_rules`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`
+    - `bash scripts/check-ui-dx.sh`
   - 当前环境说明：上述 `cargo test` 命令在本执行环境于依赖编译阶段触发 `Invalid cross-device link (os error 18)`；该阻断为环境问题，非 DropZone docs-sync/state-matrix 契约退化。
   - 回归：`components/drop-zone/test/semantics.rs::drop_zone_check2_documents_docs_sync_and_state_matrix_rules`、`components/drop-zone/test/semantics.rs::drop_zone_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`components/drop-zone/test/semantics.rs::drop_zone_check2_marks_docs_sync_and_state_matrix_item_complete`、`components/drop-zone/test/semantics.rs::drop_zone_dx_check_script_covers_docs_sync_and_state_matrix_contract`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_docs_sync_and_state_matrix_rules`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_marks_docs_sync_and_state_matrix_item_complete`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_dx_check_script_covers_docs_sync_and_state_matrix_contract`。
 - [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
@@ -520,11 +520,11 @@
   - 已满足（文档入口）：新增 `components/drop-zone/src/README.md`，提供 `Hello World`、`常见用法`、`新手路径（先用起来，再进阶）`、`API 约定`，不要求用户先理解分层架构。
   - 已满足（先易后难顺序）：README 与 docs-app 页面 `apps/docs-app/src/pages/components/pages/files.rs::drop_zone` 均保持默认路径在前（`Hello World`、`Quick Start (Default API)`），进阶配置在后（`State Matrix`、`Workbench`）。
   - 已满足（文档不是机器文）：README 明确可复制最小示例与高频参数语义（`is_disabled`、`on_drop_files`、`motion`），避免“只有源码没有文档”。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增文档友好合同命令，覆盖 `drop_zone_check2_documents_documentation_as_product_rules` 与 `drop_zone_documentation_entry_exists_with_beginner_first_progression`。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增文档友好合同命令，覆盖 `drop_zone_check2_documents_documentation_as_product_rules` 与 `drop_zone_documentation_entry_exists_with_beginner_first_progression`。
   - compile/test 证据（命令）：
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_documentation_as_product_rules`
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_documentation_entry_exists_with_beginner_first_progression`
-    - `bash scripts/check-ui-components-dx.sh`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_documentation_as_product_rules`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_documentation_entry_exists_with_beginner_first_progression`
+    - `bash scripts/check-ui-dx.sh`
   - 当前环境说明：上述 `cargo test` 命令在本执行环境于依赖编译阶段触发 `Invalid cross-device link (os error 18)`；该阻断为环境问题，非 DropZone Documentation-as-Product 契约退化。
   - 回归：`components/drop-zone/test/semantics.rs::drop_zone_check2_documents_documentation_as_product_rules`、`components/drop-zone/test/semantics.rs::drop_zone_documentation_entry_exists_with_beginner_first_progression`、`components/drop-zone/test/semantics.rs::drop_zone_dx_check_script_covers_documentation_as_product_contract`、`components/drop-zone/test/semantics.rs::drop_zone_check2_marks_documentation_as_product_contract_complete`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_documentation_as_product_rules`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_documentation_entry_exists_with_beginner_first_progression`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_dx_check_script_covers_documentation_as_product_contract`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_marks_documentation_as_product_contract_complete`。
 - [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
@@ -535,12 +535,12 @@
   - 已满足（基础 props/状态调整）：Workbench 控件通过 `Switch checked=workbench_is_disabled/workbench_custom_motion/workbench_persist_state` 驱动 `DropZone` 的 `is_disabled/motion/on_drop_files` 组合，满足在线调参 + 状态切换 + 交互反馈观察。
   - AI Spec 联动示例 N/A（`DropZone` 非 AI Spec 输入组件），当前职责为文件投递交互容器，不承载 Spec 输入到渲染输出联动协议。
   - 已满足（可重复关键流程）：`e2e/tests/docs_app_drop_zone_contract.spec.mjs` 已覆盖 `docs-app drop-zone key flow is repeatable with semantic breakpoints`，并通过 `await page.reload()` 与稳定语义断言验证可重复回放。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增 interactive-playground 合同命令，覆盖 `drop_zone_check2_documents_interactive_playground_rules` 与 `drop_zone_docs_app_provides_interactive_playground_for_props_state_and_preview`。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增 interactive-playground 合同命令，覆盖 `drop_zone_check2_documents_interactive_playground_rules` 与 `drop_zone_docs_app_provides_interactive_playground_for_props_state_and_preview`。
   - compile/test 证据（命令）：
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_interactive_playground_rules`
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_app_provides_interactive_playground_for_props_state_and_preview`
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_interactive_playground_reuses_repeatable_semantic_e2e_flow`
-    - `bash scripts/check-ui-components-dx.sh`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_interactive_playground_rules`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_app_provides_interactive_playground_for_props_state_and_preview`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_interactive_playground_reuses_repeatable_semantic_e2e_flow`
+    - `bash scripts/check-ui-dx.sh`
   - 当前环境说明：上述 `cargo test` 命令在本执行环境于依赖编译阶段触发 `Invalid cross-device link (os error 18)`；该阻断为环境问题，非 DropZone interactive-playground 契约退化。
   - 回归：`components/drop-zone/test/semantics.rs::drop_zone_check2_documents_interactive_playground_rules`、`components/drop-zone/test/semantics.rs::drop_zone_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/drop-zone/test/semantics.rs::drop_zone_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/drop-zone/test/semantics.rs::drop_zone_dx_check_script_covers_interactive_playground_contract`、`components/drop-zone/test/semantics.rs::drop_zone_check2_marks_interactive_playground_contract_complete`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_interactive_playground_rules`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_dx_check_script_covers_interactive_playground_contract`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_marks_interactive_playground_contract_complete`、`e2e/tests/docs_app_drop_zone_contract.spec.mjs`。
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
@@ -551,11 +551,11 @@
   - 已满足（真实源码与依赖前提）：docs 页面新增 `data-slot="drop-zone-source-paths"` 与 `data-slot="drop-zone-source-prerequisites"`，明确 `components/drop-zone/src/{mod,logic,view,styles,motion}.rs` 与 `component-drop_zone` / `inject-css` 依赖基线。
   - 已满足（文档同步防漂移）：`components/drop-zone/src/README.md` 新增 `## Source-first`，同步源码落点与 `Cargo.toml` 依赖示例，和 docs-app 页面一致。
   - 可重复验收：`e2e/tests/docs_app_drop_zone_contract.spec.mjs` 新增 `docs-app drop-zone source-first docs are copy-paste ready and traceable`，使用语义选择器验证路径/特性文本、imports 展示与复制按钮可见。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增 source-first 合同命令，覆盖 `drop_zone_check2_documents_source_first_copy_paste_ready_rules` 与 `drop_zone_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增 source-first 合同命令，覆盖 `drop_zone_check2_documents_source_first_copy_paste_ready_rules` 与 `drop_zone_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`。
   - compile/test 证据（命令）：
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_source_first_copy_paste_ready_rules`
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`
-    - `bash scripts/check-ui-components-dx.sh`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_source_first_copy_paste_ready_rules`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`
+    - `bash scripts/check-ui-dx.sh`
   - 当前环境说明：上述 `cargo test` 命令在本执行环境于依赖编译阶段触发 `Invalid cross-device link (os error 18)`；该阻断为环境问题，非 DropZone source-first 契约退化。
   - 回归：`components/drop-zone/test/semantics.rs::drop_zone_check2_documents_source_first_copy_paste_ready_rules`、`components/drop-zone/test/semantics.rs::drop_zone_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`components/drop-zone/test/semantics.rs::drop_zone_dx_check_script_covers_source_first_copy_paste_ready_contract`、`components/drop-zone/test/semantics.rs::drop_zone_check2_marks_source_first_copy_paste_ready_contract_complete`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_source_first_copy_paste_ready_rules`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_dx_check_script_covers_source_first_copy_paste_ready_contract`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_marks_source_first_copy_paste_ready_contract_complete`、`e2e/tests/docs_app_drop_zone_contract.spec.mjs::docs-app drop-zone source-first docs are copy-paste ready and traceable`。
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
@@ -565,11 +565,11 @@
   - 已满足（策略文档同步）：`docs/spec/heroui-parameter-design-strategy.md` 新增 `### DropZone 同步记录（2026-02-20）`，明确当前参数主轴 `label/aria_label/is_disabled/disabled/motion/on_drop_files/lang/dir` 与文档同步边界。
   - 已满足（组件文档入口可索引）：`apps/docs-app/src/pages/components/pages.rs` 保持 `component_doc!("DropZone", "drop-zone", "Files", files::drop_zone)`；`apps/docs-app/src/pages/components/pages/files.rs::drop_zone()` 保持 `title="DropZone"` + `slug="drop-zone"`；`components/drop-zone/src/README.md` 提供等价文档入口。
   - 研究文档补充判定：本轮仅为参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，`docs/research/spectrum-heroui-style-interface-study.md` 维持 N/A（无需新增）。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增 heroui-benchmark 合同命令，覆盖 `drop_zone_check2_documents_heroui_benchmark_docs_sync_rules` 与 `drop_zone_heroui_strategy_and_component_docs_are_synchronized_and_indexable`。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增 heroui-benchmark 合同命令，覆盖 `drop_zone_check2_documents_heroui_benchmark_docs_sync_rules` 与 `drop_zone_heroui_strategy_and_component_docs_are_synchronized_and_indexable`。
   - compile/test 证据（命令）：
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_heroui_benchmark_docs_sync_rules`
-    - `cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_heroui_strategy_and_component_docs_are_synchronized_and_indexable`
-    - `bash scripts/check-ui-components-dx.sh`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_heroui_benchmark_docs_sync_rules`
+    - `cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_heroui_strategy_and_component_docs_are_synchronized_and_indexable`
+    - `bash scripts/check-ui-dx.sh`
   - 当前环境说明：上述 `cargo test` 命令在本执行环境于依赖编译阶段触发 `Invalid cross-device link (os error 18)`；该阻断为环境问题，非 DropZone heroui-benchmark docs-sync 契约退化。
   - 回归：`components/drop-zone/test/semantics.rs::drop_zone_check2_documents_heroui_benchmark_docs_sync_rules`、`components/drop-zone/test/semantics.rs::drop_zone_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/drop-zone/test/semantics.rs::drop_zone_dx_check_script_covers_heroui_benchmark_docs_sync_contract`、`components/drop-zone/test/semantics.rs::drop_zone_check2_marks_heroui_benchmark_docs_sync_contract_complete`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_heroui_benchmark_docs_sync_rules`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_dx_check_script_covers_heroui_benchmark_docs_sync_contract`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_marks_heroui_benchmark_docs_sync_contract_complete`。
 
@@ -580,9 +580,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

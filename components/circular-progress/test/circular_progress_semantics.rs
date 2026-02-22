@@ -27,7 +27,7 @@ fn ui_components_reexports_circular_progress_component_crate() {
     assert!(
         lib_source.contains("#[cfg(feature = \"component-circular_progress\")]")
             && lib_source.contains("pub use ui_circular_progress as circular_progress;"),
-        "ui-components should re-export the external ui-circular-progress crate as `circular_progress`.",
+        "ui should re-export the external ui-circular-progress crate as `circular_progress`.",
     );
     assert!(
         cargo_source.contains("component-circular_progress = [\"dep:ui-circular-progress\"]"),
@@ -36,7 +36,7 @@ fn ui_components_reexports_circular_progress_component_crate() {
     assert!(
         cargo_source
             .contains("ui-circular-progress = { path = \"../../components/circular-progress\", optional = true }"),
-        "ui-components Cargo.toml should include the optional ui-circular-progress dependency.",
+        "ui Cargo.toml should include the optional ui-circular-progress dependency.",
     );
 }
 
@@ -398,7 +398,7 @@ fn circular_progress_ui_components_layer_keeps_assembly_boundaries() {
     ] {
         assert!(
             module_source.contains(needle),
-            "CircularProgress module should keep ui-components assembly marker `{needle}`.",
+            "CircularProgress module should keep ui assembly marker `{needle}`.",
         );
     }
 
@@ -429,7 +429,7 @@ fn circular_progress_ui_components_layer_keeps_assembly_boundaries() {
             !module_source.contains(forbidden)
                 && !logic_source.contains(forbidden)
                 && !view_source.contains(forbidden),
-            "CircularProgress ui-components layer must not leak platform detail `{forbidden}`.",
+            "CircularProgress ui layer must not leak platform detail `{forbidden}`.",
         );
     }
 
@@ -444,13 +444,13 @@ fn circular_progress_ui_components_layer_keeps_assembly_boundaries() {
     }
 
     for needle in [
-        "- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
+        "- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
         "components/circular-progress/test/semantics.rs",
         "circular_progress_ui_components_layer_keeps_assembly_boundaries",
     ] {
         assert!(
             check2_source.contains(needle),
-            "circular-progress check2 should keep ui-components evidence marker `{needle}`.",
+            "circular-progress check2 should keep ui evidence marker `{needle}`.",
         );
     }
 }
@@ -1859,7 +1859,7 @@ fn circular_progress_semantic_test_priority_prefers_data_aria_role_and_source_co
     let local_semantics_source = load_circular_progress_component_source("test/semantics.rs");
     let semantics_source = load_ui_components_source("tests/circular_progress_semantics.rs");
     let perf_script_source =
-        load_ui_components_source("../../scripts/check-ui-components-performance.sh");
+        load_ui_components_source("../../scripts/check-ui-performance.sh");
 
     for needle in [
         "role=semantics.attrs.role",
@@ -1898,7 +1898,7 @@ fn circular_progress_semantic_test_priority_prefers_data_aria_role_and_source_co
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         perf_script_source.contains(script_needle),
         "performance script should include semantic-priority gate `{script_needle}`.",
@@ -1908,11 +1908,11 @@ fn circular_progress_semantic_test_priority_prefers_data_aria_role_and_source_co
 #[test]
 fn circular_progress_performance_script_covers_semantic_test_priority_contract() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-performance.sh");
+        load_ui_components_source("../../scripts/check-ui-performance.sh");
 
     for needle in [
         "echo \"[perf] contract: circular-progress semantic test priority\"",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1933,7 +1933,7 @@ fn circular_progress_check2_documents_semantic_test_priority_rules() {
         "circular_progress_semantic_contract_test_suite_prioritizes_contract_markers_over_visual_snapshots",
         "circular_progress_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "circular_progress_performance_script_covers_semantic_test_priority_contract",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1958,7 +1958,7 @@ fn circular_progress_check2_marks_semantic_test_priority_item_complete() {
         "circular_progress_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "circular_progress_performance_script_covers_semantic_test_priority_contract",
         "components/circular-progress/test/semantics.rs::circular_progress_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks_locally",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2105,15 +2105,15 @@ fn circular_progress_e2e_key_flow_regression_is_repeatable_and_breakpoint_diagno
 #[test]
 fn circular_progress_e2e_check_script_covers_selector_and_settled_wait_contract() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-e2e-circular-progress.sh");
+        load_ui_components_source("../../components/circular-progress/scripts/check-ui-e2e-circular-progress.sh");
 
     for needle in [
         "echo \"[e2e-circular-progress] contract: checklist e2e-selector/stable-wait governance\"",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_e2e_selector_and_stable_wait_rules",
         "echo \"[e2e-circular-progress] contract: semantic selectors + settled waits\"",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "echo \"[e2e-circular-progress] contract: animation path ready/settled semantic breakpoints\"",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_e2e_contract_covers_ready_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_e2e_contract_covers_ready_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2125,11 +2125,11 @@ fn circular_progress_e2e_check_script_covers_selector_and_settled_wait_contract(
 #[test]
 fn circular_progress_e2e_check_script_covers_key_flow_regression_contract() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-e2e-circular-progress.sh");
+        load_ui_components_source("../../components/circular-progress/scripts/check-ui-e2e-circular-progress.sh");
 
     for needle in [
         "echo \"[e2e-circular-progress] contract: key flow regression is repeatable and semantic-breakpoint diagnosable\"",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_e2e_key_flow_regression_is_repeatable_and_breakpoint_diagnosable",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_e2e_key_flow_regression_is_repeatable_and_breakpoint_diagnosable",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2152,7 +2152,7 @@ fn circular_progress_check2_marks_e2e_selector_stability_item_complete() {
         "components/circular-progress/test/circular_progress_semantics.rs::circular_progress_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "components/circular-progress/test/circular_progress_semantics.rs::circular_progress_e2e_contract_covers_ready_and_settled_semantic_breakpoints",
         "components/circular-progress/test/semantics.rs::circular_progress_e2e_selector_stability_prefers_semantic_markers_and_settled_waits_locally",
-        "scripts/check-ui-components-e2e-circular-progress.sh",
+        "components/circular-progress/scripts/check-ui-e2e-circular-progress.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2176,7 +2176,7 @@ fn circular_progress_check2_marks_key_flow_regression_collection_complete() {
         "components/circular-progress/test/circular_progress_semantics.rs::circular_progress_e2e_key_flow_regression_is_repeatable_and_breakpoint_diagnosable",
         "components/circular-progress/test/circular_progress_semantics.rs::circular_progress_e2e_check_script_covers_key_flow_regression_contract",
         "components/circular-progress/test/semantics.rs::circular_progress_e2e_key_flow_regression_collection_is_repeatable_and_breakpoint_diagnosable_locally",
-        "scripts/check-ui-components-e2e-circular-progress.sh",
+        "components/circular-progress/scripts/check-ui-e2e-circular-progress.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2424,9 +2424,9 @@ fn circular_progress_hyper_structure_builder_spec_contract_is_not_applicable_for
 #[test]
 fn circular_progress_component_files_check_script_covers_hyper_structure_builder_contract() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-component-files.sh");
+        load_ui_components_source("../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_hyper_structure_builder_spec_contract_is_not_applicable_for_simple_component";
+    let needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_hyper_structure_builder_spec_contract_is_not_applicable_for_simple_component";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`.",
@@ -2504,9 +2504,9 @@ fn circular_progress_context_compression_manifest_and_rbi_are_present_and_consis
 #[test]
 fn circular_progress_component_files_check_script_covers_context_compression_contract() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-component-files.sh");
+        load_ui_components_source("../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_context_compression_manifest_and_rbi_are_present_and_consistent";
+    let needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_context_compression_manifest_and_rbi_are_present_and_consistent";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`.",
@@ -2653,13 +2653,13 @@ fn circular_progress_agent_contract_render_path_is_whitelist_safe_and_script_inj
 #[test]
 fn circular_progress_contract_hygiene_script_covers_agent_contract_schema_guards() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-contract-hygiene.sh");
+        load_ui_components_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_agent_contract_schema_governance_rules",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2723,7 +2723,7 @@ fn circular_progress_token_first_static_style_contract_is_aggregated_and_injecte
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css aggregation should include circular-progress marker `{required}`.",
+            "ui css aggregation should include circular-progress marker `{required}`.",
         );
     }
 
@@ -2863,7 +2863,7 @@ fn circular_progress_tree_shaking_contract_is_feature_gated_and_prunable_for_pac
     ] {
         assert!(
             cargo_source.contains(required),
-            "ui-components Cargo features should keep tree-shaking marker `{required}`.",
+            "ui Cargo features should keep tree-shaking marker `{required}`.",
         );
     }
 
@@ -2878,7 +2878,7 @@ fn circular_progress_tree_shaking_contract_is_feature_gated_and_prunable_for_pac
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib export surface should keep feature-gated marker `{required}`.",
+            "ui lib export surface should keep feature-gated marker `{required}`.",
         );
     }
 
@@ -2892,7 +2892,7 @@ fn circular_progress_tree_shaking_contract_is_feature_gated_and_prunable_for_pac
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css aggregation should keep prunable feature-gate marker `{required}`.",
+            "ui css aggregation should keep prunable feature-gate marker `{required}`.",
         );
     }
 }
@@ -2900,19 +2900,19 @@ fn circular_progress_tree_shaking_contract_is_feature_gated_and_prunable_for_pac
 #[test]
 fn circular_progress_tree_shaking_contract_has_ci_budget_and_feature_tree_guards() {
     let tree_shaking_script =
-        load_ui_components_source("../../scripts/check-ui-components-tree-shaking.sh");
+        load_ui_components_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_ui_components_source("../../scripts/tree_shaking_budget.env");
     let ci_source = load_ui_components_source("../../.github/workflows/ci.yml");
 
     for required in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "source \"$BUDGET_FILE\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
@@ -2936,7 +2936,7 @@ fn circular_progress_tree_shaking_contract_has_ci_budget_and_feature_tree_guards
 
     for required in [
         "- name: Tree Shaking Budget",
-        "run: ./scripts/check-ui-components-tree-shaking.sh",
+        "run: ./scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             ci_source.contains(required),
@@ -2948,16 +2948,16 @@ fn circular_progress_tree_shaking_contract_has_ci_budget_and_feature_tree_guards
 #[test]
 fn circular_progress_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
     let tree_shaking_script =
-        load_ui_components_source("../../scripts/check-ui-components-tree-shaking.sh");
+        load_ui_components_source("../../scripts/check-ui-tree-shaking.sh");
 
     for required in [
         "CIRCULAR_PROGRESS_MIN_FEATURES=\"component-circular_progress,inject-css\"",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_tree_shaking_contract_is_feature_gated_and_prunable_for_package_and_source_modes",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "CIRCULAR_PROGRESS_TREE_OUTPUT=\"$(cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$CIRCULAR_PROGRESS_MIN_FEATURES\")\"",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_tree_shaking_contract_is_feature_gated_and_prunable_for_package_and_source_modes",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "CIRCULAR_PROGRESS_TREE_OUTPUT=\"$(cargo tree -e features -i ui -p ui --no-default-features --features \"$CIRCULAR_PROGRESS_MIN_FEATURES\")\"",
         "if grep -q 'all-components' <<<\"$CIRCULAR_PROGRESS_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$CIRCULAR_PROGRESS_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$CIRCULAR_PROGRESS_MIN_FEATURES\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
     ] {
@@ -2988,12 +2988,12 @@ fn circular_progress_check2_marks_tree_shaking_contract_complete() {
 fn circular_progress_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2_source = load_circular_progress_component_source("check2.md");
     for required in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "circular_progress_tree_shaking_contract_is_feature_gated_and_prunable_for_package_and_source_modes",
         "circular_progress_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "circular_progress_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-circular_progress,inject-css",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-circular_progress,inject-css",
+        "scripts/check-ui-tree-shaking.sh",
         "components/circular-progress/test/semantics.rs::circular_progress_tree_shaking_feature_pruning_contract_is_gated_in_lib_css_and_script_locally",
     ] {
         assert!(
@@ -3303,7 +3303,7 @@ fn circular_progress_check2_marks_hydration_discontinuity_contract_complete() {
 #[test]
 fn circular_progress_cross_platform_compile_contract_covers_default_native_ssr_and_wasm_paths() {
     let platform_script =
-        load_ui_components_source("../../scripts/check-ui-components-platforms.sh");
+        load_ui_components_source("../../scripts/check-ui-platforms.sh");
     let headless_lib_source = load_ui_components_source("../../crates/ui-headless/src/lib.rs");
     let headless_cargo_source = load_ui_components_source("../../crates/ui-headless/Cargo.toml");
     let motion_lib_source = load_ui_components_source("../../crates/ui-motion/src/lib.rs");
@@ -3315,15 +3315,15 @@ fn circular_progress_cross_platform_compile_contract_covers_default_native_ssr_a
 
     for required in [
         "[platform] compile-only: default native path",
-        "cargo check -p ui-components",
+        "cargo check -p ui",
         "[platform] compile-only: ssr native path",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "[platform] compile-only: web wasm path (ui-headless)",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
         "[platform] compile-only: circular-progress native path",
-        "cargo check -p ui-components --no-default-features --features component-circular_progress,inject-css",
+        "cargo check -p ui --no-default-features --features component-circular_progress,inject-css",
         "[platform] compile-only: circular-progress wasm path",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-circular_progress,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-circular_progress,inject-css",
         "[platform] source guard: non-wasm circular-progress files must not reference web_sys",
         "components/circular-progress/src/mod.rs",
         "components/circular-progress/src/logic.rs",
@@ -3405,7 +3405,7 @@ fn circular_progress_ui_headless_web_ssr_mutex_contract_is_guarded_by_compile_er
  {
     let headless_lib_source = load_ui_components_source("../../crates/ui-headless/src/lib.rs");
     let platform_script =
-        load_ui_components_source("../../scripts/check-ui-components-platforms.sh");
+        load_ui_components_source("../../scripts/check-ui-platforms.sh");
     let view_source = load_circular_progress_component_source("src/view.rs");
     let local_semantics_source = load_circular_progress_component_source("test/semantics.rs");
 
@@ -3468,7 +3468,7 @@ fn circular_progress_check2_marks_ui_headless_web_ssr_mutex_contract_complete() 
 fn circular_progress_ui_motion_non_wasm_stub_contract_is_predictable_and_tooling_safe() {
     let motion_lib_source = load_ui_components_source("../../crates/ui-motion/src/lib.rs");
     let platform_script =
-        load_ui_components_source("../../scripts/check-ui-components-platforms.sh");
+        load_ui_components_source("../../scripts/check-ui-platforms.sh");
     let view_source = load_circular_progress_component_source("src/view.rs");
     let logic_source = load_circular_progress_component_source("src/logic.rs");
     let local_semantics_source = load_circular_progress_component_source("test/semantics.rs");
@@ -3544,7 +3544,7 @@ fn circular_progress_reduced_motion_ssr_wasm_branches_keep_semantics_consistent(
     let headless_source =
         load_ui_components_source("../../crates/ui-headless/src/circular_progress.rs");
     let platform_script =
-        load_ui_components_source("../../scripts/check-ui-components-platforms.sh");
+        load_ui_components_source("../../scripts/check-ui-platforms.sh");
     let local_semantics_source = load_circular_progress_component_source("test/semantics.rs");
 
     for required in [
@@ -3564,11 +3564,11 @@ fn circular_progress_reduced_motion_ssr_wasm_branches_keep_semantics_consistent(
         "[platform] compile-only: ssr native path",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "[platform] compile-only: circular-progress wasm path",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-circular_progress,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-circular_progress,inject-css",
         "[platform] compile-only: ui-motion wasm path",
         "cargo check -p ui-motion --target wasm32-unknown-unknown",
         "[platform] circular-progress reduced-motion/ssr/wasm contract",
-        "cargo test -p ui-components --test circular_progress_semantics circular_progress_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
+        "cargo test -p ui --test circular_progress_semantics circular_progress_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
     ] {
         assert!(
             platform_script.contains(required),
@@ -3638,7 +3638,7 @@ fn circular_progress_performance_governance_budget_is_defined_and_blocking() {
     let check2_source = load_circular_progress_component_source("check2.md");
     let todo_source = load_ui_components_source("../../docs/plan/TODO.md");
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-performance.sh");
+        load_ui_components_source("../../scripts/check-ui-performance.sh");
     let view_source = load_circular_progress_component_source("src/view.rs");
     let logic_source = load_circular_progress_component_source("src/logic.rs");
     let styles_source = load_circular_progress_component_source("src/styles.rs");
@@ -3736,7 +3736,7 @@ fn circular_progress_performance_governance_budget_is_defined_and_blocking() {
         );
     }
 
-    let needle = "cargo test -p ui-components --test circular_progress_semantics circular_progress_performance_governance_budget_is_defined_and_blocking";
+    let needle = "cargo test -p ui --test circular_progress_semantics circular_progress_performance_governance_budget_is_defined_and_blocking";
     assert!(
         script_source.contains(needle),
         "performance gate script should include `{needle}`.",
@@ -3746,14 +3746,14 @@ fn circular_progress_performance_governance_budget_is_defined_and_blocking() {
 #[test]
 fn circular_progress_performance_check_script_covers_budget_and_follow_up_gates() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-performance.sh");
+        load_ui_components_source("../../scripts/check-ui-performance.sh");
 
     for needle in [
-        "cargo test -p ui-components --test circular_progress_semantics circular_progress_performance_governance_budget_is_defined_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test circular_progress_semantics circular_progress_performance_governance_budget_is_defined_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3854,12 +3854,12 @@ fn circular_progress_semantics_and_performance_regression_cover_aria_data_focus_
 #[test]
 fn circular_progress_semantics_and_performance_script_covers_contract() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-performance.sh");
+        load_ui_components_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
-        "cargo test -p ui-components --test circular_progress_semantics circular_progress_performance_governance_budget_is_defined_and_blocking",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test circular_progress_semantics circular_progress_performance_governance_budget_is_defined_and_blocking",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(marker),
@@ -3880,7 +3880,7 @@ fn circular_progress_check2_marks_semantics_and_performance_regression_contract_
         "circular_progress_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "components/circular-progress/test/semantics.rs::circular_progress_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement_locally",
         "`render_count` 自动化回归仍在仓库统一 follow-up",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -3950,7 +3950,7 @@ fn circular_progress_docs_are_copy_paste_ready_with_hello_world_state_matrix_and
         "title=\"Controlled vs Uncontrolled (N/A)\"",
         "title=\"Streaming Optional / Snapshot\"",
         "title=\"Source-first Starter (Copy-Paste Ready)\"",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::CircularProgress;\"",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::CircularProgress;\"",
         "data-slot=\"circular-progress-streaming-policy\"",
         "Streaming Optional; fallback=snapshot.",
         "data-slot=\"circular-progress-copy-ready-hint\"",
@@ -4020,12 +4020,12 @@ fn circular_progress_docs_are_source_first_copy_paste_ready_with_imports_copy_bu
 
 #[test]
 fn circular_progress_dx_check_script_covers_docs_product_copy_paste_ready_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_docs_product_copy_paste_ready_rules",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_docs_product_copy_paste_ready_rules",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4046,7 +4046,7 @@ fn circular_progress_check2_documents_docs_product_copy_paste_ready_rules() {
         "circular_progress_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
         "circular_progress_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync",
         "circular_progress_dx_check_script_covers_docs_product_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4149,12 +4149,12 @@ fn circular_progress_docs_source_first_copy_paste_ready_with_real_paths_and_depe
 
 #[test]
 fn circular_progress_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: circular-progress source-first docs are copy-paste-ready with real paths and deps\"",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4181,7 +4181,7 @@ fn circular_progress_check2_marks_source_first_copy_paste_ready_contract_complet
         "circular_progress_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "circular_progress_dx_check_script_covers_source_first_copy_paste_ready_contract",
         "components/circular-progress/test/semantics.rs::circular_progress_source_first_copy_paste_ready_contract_is_documented_and_scripted_locally",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4263,13 +4263,13 @@ fn circular_progress_heroui_strategy_and_component_docs_are_synchronized_and_ind
 
 #[test]
 fn circular_progress_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: circular-progress heroui benchmark strategy + docs entry synchronization\"",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4298,7 +4298,7 @@ fn circular_progress_check2_marks_heroui_benchmark_docs_sync_contract_complete()
         "circular_progress_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "circular_progress_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "components/circular-progress/test/semantics.rs::circular_progress_heroui_benchmark_docs_sync_contract_is_documented_and_scripted_locally",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4399,7 +4399,7 @@ fn circular_progress_docs_examples_and_state_matrix_sync_with_logic_api_names_an
     for needle in [
         "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
         "circular_progress_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "apps/docs-app/src/pages/components/pages/display.rs::circular_progress",
     ] {
         assert!(
@@ -4411,12 +4411,12 @@ fn circular_progress_docs_examples_and_state_matrix_sync_with_logic_api_names_an
 
 #[test]
 fn circular_progress_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: circular-progress docs examples + api/state matrix sync with logic API/defaults\"",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4441,7 +4441,7 @@ fn circular_progress_check2_marks_docs_sync_and_state_matrix_item_complete() {
         "circular_progress_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "circular_progress_dx_check_script_covers_docs_sync_and_state_matrix_contract",
         "components/circular-progress/test/semantics.rs::circular_progress_docs_sync_and_state_matrix_contract_is_documented_and_scripted_locally",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4532,13 +4532,13 @@ fn circular_progress_documentation_entry_exists_with_beginner_first_progression(
 
 #[test]
 fn circular_progress_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: circular-progress documentation-as-product keeps beginner-first docs entry\"",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_documentation_entry_exists_with_beginner_first_progression",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_dx_check_script_covers_documentation_as_product_contract",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_dx_check_script_covers_documentation_as_product_contract",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4565,7 +4565,7 @@ fn circular_progress_check2_marks_documentation_as_product_item_complete() {
         "circular_progress_documentation_entry_exists_with_beginner_first_progression",
         "circular_progress_dx_check_script_covers_documentation_as_product_contract",
         "components/circular-progress/test/semantics.rs::circular_progress_documentation_as_product_contract_is_documented_and_scripted_locally",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4662,14 +4662,14 @@ fn circular_progress_interactive_playground_reuses_repeatable_semantic_e2e_flow(
 
 #[test]
 fn circular_progress_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: circular-progress interactive playground docs acceptance surface\"",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_dx_check_script_covers_interactive_playground_contract",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_dx_check_script_covers_interactive_playground_contract",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4698,7 +4698,7 @@ fn circular_progress_check2_marks_interactive_playground_item_complete() {
         "circular_progress_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "circular_progress_dx_check_script_covers_interactive_playground_contract",
         "components/circular-progress/test/semantics.rs::circular_progress_interactive_playground_contract_is_documented_and_scripted_locally",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4712,7 +4712,7 @@ fn circular_progress_check2_marks_interactive_playground_item_complete() {
 fn circular_progress_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders() {
     let view_source = load_circular_progress_component_source("src/view.rs");
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-view-macro.sh");
+        load_ui_components_source("../../scripts/check-ui-view-macro.sh");
 
     assert!(
         view_source.contains("view! {"),
@@ -4741,7 +4741,7 @@ fn circular_progress_view_macro_complexity_is_small_and_does_not_require_semanti
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -4751,8 +4751,8 @@ fn circular_progress_view_macro_complexity_is_small_and_does_not_require_semanti
 #[test]
 fn circular_progress_view_macro_check_script_covers_complexity_gate() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-view-macro.sh");
-    let needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders";
+        load_ui_components_source("../../scripts/check-ui-view-macro.sh");
+    let needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders";
     assert!(
         script_source.contains(needle),
         "view-macro gate script should include `{needle}`.",
@@ -4779,7 +4779,7 @@ fn circular_progress_check2_marks_view_macro_complexity_contract_complete() {
 fn circular_progress_view_functional_split_prefers_no_extra_local_components_for_simple_layout() {
     let view_source = load_circular_progress_component_source("src/view.rs");
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-view-macro.sh");
+        load_ui_components_source("../../scripts/check-ui-view-macro.sh");
 
     assert_eq!(
         view_source.matches("#[component]").count(),
@@ -4811,7 +4811,7 @@ fn circular_progress_view_functional_split_prefers_no_extra_local_components_for
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_view_functional_split_prefers_no_extra_local_components_for_simple_layout";
+    let script_needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_view_functional_split_prefers_no_extra_local_components_for_simple_layout";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -4821,8 +4821,8 @@ fn circular_progress_view_functional_split_prefers_no_extra_local_components_for
 #[test]
 fn circular_progress_view_macro_check_script_covers_functional_split_gate() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-view-macro.sh");
-    let needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_view_functional_split_prefers_no_extra_local_components_for_simple_layout";
+        load_ui_components_source("../../scripts/check-ui-view-macro.sh");
+    let needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_view_functional_split_prefers_no_extra_local_components_for_simple_layout";
     assert!(
         script_source.contains(needle),
         "view-macro gate script should include `{needle}`.",
@@ -4849,7 +4849,7 @@ fn circular_progress_check2_marks_view_functional_split_contract_complete() {
 fn circular_progress_static_fragments_are_constantized_or_absent_for_simple_indicator_layout() {
     let view_source = load_circular_progress_component_source("src/view.rs");
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-view-macro.sh");
+        load_ui_components_source("../../scripts/check-ui-view-macro.sh");
 
     for forbidden in [
         "inner_html=",
@@ -4886,7 +4886,7 @@ fn circular_progress_static_fragments_are_constantized_or_absent_for_simple_indi
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_static_fragments_are_constantized_or_absent_for_simple_indicator_layout";
+    let script_needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_static_fragments_are_constantized_or_absent_for_simple_indicator_layout";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -4896,8 +4896,8 @@ fn circular_progress_static_fragments_are_constantized_or_absent_for_simple_indi
 #[test]
 fn circular_progress_view_macro_check_script_covers_static_fragment_gate() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-view-macro.sh");
-    let needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_static_fragments_are_constantized_or_absent_for_simple_indicator_layout";
+        load_ui_components_source("../../scripts/check-ui-view-macro.sh");
+    let needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_static_fragments_are_constantized_or_absent_for_simple_indicator_layout";
     assert!(
         script_source.contains(needle),
         "view-macro gate script should include `{needle}`.",
@@ -4960,8 +4960,8 @@ fn circular_progress_inner_html_usage_is_forbidden_in_component_and_docs_example
 #[test]
 fn circular_progress_inner_html_check_script_covers_security_contract() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-inner-html.sh");
-    let needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+        load_ui_components_source("../../scripts/check-ui-inner-html.sh");
+    let needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(needle),
         "inner-html check script should enforce `{needle}`.",
@@ -5001,7 +5001,7 @@ fn circular_progress_wasm_debug_contract_is_explicitly_na_and_feature_isolated()
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep shared wasm-debug marker `{needle}`.",
+            "ui Cargo features should keep shared wasm-debug marker `{needle}`.",
         );
     }
 
@@ -5035,7 +5035,7 @@ fn circular_progress_wasm_debug_contract_is_explicitly_na_and_feature_isolated()
     ] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components root should keep shared wasm-debug isolation marker `{needle}`.",
+            "ui root should keep shared wasm-debug isolation marker `{needle}`.",
         );
     }
 
@@ -5134,8 +5134,8 @@ fn circular_progress_wasm_debug_contract_is_explicitly_na_and_feature_isolated()
 #[test]
 fn circular_progress_wasm_debug_check_script_covers_shared_contract() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-wasm-debug.sh");
-    let needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_wasm_debug_contract_is_explicitly_na_and_feature_isolated";
+        load_ui_components_source("../../scripts/check-ui-wasm-debug.sh");
+    let needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_wasm_debug_contract_is_explicitly_na_and_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm-debug check script should enforce `{needle}`.",
@@ -5241,11 +5241,11 @@ fn circular_progress_dx_non_interactive_scope_keeps_isolated_canvas_and_marks_pe
 
 #[test]
 fn circular_progress_dx_check_script_covers_hot_reload_and_isolated_canvas_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_dx_non_interactive_scope_keeps_isolated_canvas_and_marks_persist_state_na",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_dx_non_interactive_scope_keeps_isolated_canvas_and_marks_persist_state_na",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5348,7 +5348,7 @@ fn circular_progress_engineering_contract_keeps_tracing_semantics_unified_withou
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -5371,7 +5371,7 @@ fn circular_progress_engineering_contract_keeps_tracing_semantics_unified_withou
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::circular_progress::",
+        "target: \"ui::circular_progress::",
         "const CIRCULAR_PROGRESS_TRACE_TARGET",
     ] {
         assert!(
@@ -5415,13 +5415,13 @@ fn circular_progress_engineering_contract_avoids_runtime_leaks_in_public_api_sur
 #[test]
 fn circular_progress_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-engineering.sh");
+        load_ui_components_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_version_deprecation_migration_is_na_without_major_breaking_upgrade",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_version_deprecation_migration_is_na_without_major_breaking_upgrade",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5486,7 +5486,7 @@ fn circular_progress_version_deprecation_migration_is_na_without_major_breaking_
         "N/A：本次 `CircularProgress` 未发生跨大版本 API 破坏升级",
         "schema_version = \"1\"",
         "circular_progress_version_deprecation_migration_is_na_without_major_breaking_upgrade_locally",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -5499,9 +5499,9 @@ fn circular_progress_version_deprecation_migration_is_na_without_major_breaking_
 #[test]
 fn circular_progress_version_deprecation_migration_script_covers_engineering_gate() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-engineering.sh");
+        load_ui_components_source("../../scripts/check-ui-engineering.sh");
 
-    let marker = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_version_deprecation_migration_is_na_without_major_breaking_upgrade";
+    let marker = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_version_deprecation_migration_is_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(marker),
         "engineering check script should enforce `{marker}`.",
@@ -5598,9 +5598,9 @@ fn circular_progress_styles_use_defensive_variable_fallback_chain() {
 #[test]
 fn circular_progress_defensive_variables_check_script_covers_style_fallback_contract() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-contract-hygiene.sh");
+        load_ui_components_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_styles_use_defensive_variable_fallback_chain";
+    let needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`.",
@@ -5638,7 +5638,7 @@ fn circular_progress_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_entry_source.contains(needle),
-            "ui-components css entry should keep cascade-layer contract marker `{needle}`.",
+            "ui css entry should keep cascade-layer contract marker `{needle}`.",
         );
     }
 
@@ -5687,9 +5687,9 @@ fn circular_progress_cascade_layer_and_runtime_style_contract_is_enforced() {
 #[test]
 fn circular_progress_cascade_layer_check_script_covers_layer_and_inline_style_guard() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-contract-hygiene.sh");
+        load_ui_components_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_cascade_layer_and_runtime_style_contract_is_enforced";
+    let needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`.",
@@ -5774,11 +5774,11 @@ fn circular_progress_motion_contract_is_explicitly_na_for_runtime_attach_and_kee
 
 #[test]
 fn circular_progress_motion_contract_check_script_covers_reduced_motion_and_noop_guards() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
-        "cargo test -p ui-components --test circular_progress_semantics circular_progress_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
-        "cargo test -p ui-components --test circular_progress_semantics circular_progress_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_reduced_motion_noop_guards",
+        "cargo test -p ui --test circular_progress_semantics circular_progress_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
+        "cargo test -p ui --test circular_progress_semantics circular_progress_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_reduced_motion_noop_guards",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5823,14 +5823,14 @@ fn circular_progress_ui_components_fixed_entry_files_follow_layered_boundaries()
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib.rs should keep fixed entry marker `{required}`.",
+            "ui lib.rs should keep fixed entry marker `{required}`.",
         );
     }
 
     for forbidden in ["web_sys::", "web-sys", "HtmlElement", "NodeRef", "JsValue"] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib.rs should not leak platform detail `{forbidden}`.",
+            "ui lib.rs should not leak platform detail `{forbidden}`.",
         );
     }
 
@@ -5843,7 +5843,7 @@ fn circular_progress_ui_components_fixed_entry_files_follow_layered_boundaries()
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css.rs should keep fixed entry marker `{required}`.",
+            "ui css.rs should keep fixed entry marker `{required}`.",
         );
     }
 
@@ -5859,7 +5859,7 @@ fn circular_progress_ui_components_fixed_entry_files_follow_layered_boundaries()
     ] {
         assert!(
             root_source.contains(required),
-            "ui-components root.rs should keep centralized injection marker `{required}`.",
+            "ui root.rs should keep centralized injection marker `{required}`.",
         );
     }
 
@@ -5884,7 +5884,7 @@ fn circular_progress_ui_components_fixed_entry_files_follow_layered_boundaries()
     for forbidden_file in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src_dir.join(forbidden_file).exists(),
-            "ui-components/src/{forbidden_file} should be absent by fixed-entrypoint contract.",
+            "ui/src/{forbidden_file} should be absent by fixed-entrypoint contract.",
         );
     }
 
@@ -5917,9 +5917,9 @@ fn circular_progress_ui_components_fixed_entry_files_follow_layered_boundaries()
 #[test]
 fn circular_progress_entrypoints_check_script_covers_fixed_entry_files_contract() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-entrypoints.sh");
+        load_ui_components_source("../../scripts/check-ui-entrypoints.sh");
 
-    let needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         script_source.contains(needle),
         "entrypoints check script should enforce `{needle}`.",
@@ -5930,7 +5930,7 @@ fn circular_progress_entrypoints_check_script_covers_fixed_entry_files_contract(
 fn circular_progress_check2_marks_ui_components_fixed_entry_files_contract_complete() {
     let check2_source = load_circular_progress_component_source("check2.md");
     for needle in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "circular_progress_ui_components_fixed_entry_files_follow_layered_boundaries",
         "circular_progress_entrypoints_check_script_covers_fixed_entry_files_contract",
         "circular_progress_ui_components_fixed_entry_files_follow_layered_boundaries_locally",
@@ -6064,9 +6064,9 @@ fn circular_progress_component_directory_standard_files_follow_contract_and_na_p
 #[test]
 fn circular_progress_component_files_check_script_covers_standard_directory_contract() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-component-files.sh");
+        load_ui_components_source("../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_component_directory_standard_files_follow_contract_and_na_paths";
+    let needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_component_directory_standard_files_follow_contract_and_na_paths";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`.",
@@ -6149,9 +6149,9 @@ fn circular_progress_streaming_definition_contract_is_snapshot_only_and_protocol
 
 #[test]
 fn circular_progress_streaming_check_script_covers_two_mode_definition_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-streaming.sh");
 
-    let needle = "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let needle = "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(needle),
         "streaming check script should enforce `{needle}`.",
@@ -6248,11 +6248,11 @@ fn circular_progress_snapshot_baseline_consumes_complete_result_and_renders_stab
 
 #[test]
 fn circular_progress_streaming_check_script_covers_snapshot_baseline_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(needle),
@@ -6341,12 +6341,12 @@ fn circular_progress_streaming_validation_retry_resilience_boundaries_stay_outsi
 
 #[test]
 fn circular_progress_streaming_check_script_covers_required_optional_classification_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test circular_progress_semantics --no-default-features --features component-circular_progress,inject-css circular_progress_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -6405,7 +6405,7 @@ fn circular_progress_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_a
 fn circular_progress_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let hygiene_script = load_ui_components_source("../../scripts/check-rust-hygiene.sh");
     let engineering_script =
-        load_ui_components_source("../../scripts/check-ui-components-engineering.sh");
+        load_ui_components_source("../../scripts/check-ui-engineering.sh");
 
     for required in [
         "forbidden unwrap/expect in non-test code",

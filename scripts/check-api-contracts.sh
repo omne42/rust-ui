@@ -626,7 +626,7 @@ done
 
 # Rule 22: spec.rs should stay scarce and versioned with contract tests.
 mapfile -t spec_files < <(
-  find components crates/ui-components -type f -path '*/src/spec.rs' 2>/dev/null | sort
+  find components crates/ui -type f -path '*/src/spec.rs' 2>/dev/null | sort
 )
 
 for spec_file in "${spec_files[@]}"; do
@@ -647,7 +647,7 @@ for spec_file in "${spec_files[@]}"; do
 
   component_slug="$(sed -E \
     -e 's#^components/([^/]+)/src/spec\.rs$#\1#' \
-    -e 's#^crates/ui-components/src/([^/]+)/spec\.rs$#\1#' \
+    -e 's#^crates/ui/src/([^/]+)/spec\.rs$#\1#' \
     <<<"$spec_file")"
   if [[ "$component_slug" == "$spec_file" ]]; then
     component_slug="$(basename "$(dirname "$spec_file")")"
@@ -673,11 +673,11 @@ for spec_file in "${spec_files[@]}"; do
 done
 
 # Rule 23: token-first static style + centralized CSS registry.
-css_registry_file="crates/ui-components/src/css.rs"
-ui_root_file="crates/ui-components/src/root.rs"
+css_registry_file="crates/ui/src/css.rs"
+ui_root_file="crates/ui/src/root.rs"
 
 if [[ ! -f "$css_registry_file" ]]; then
-  emit "css_registry_missing" "$css_registry_file" "0" "crates/ui-components/src/css.rs"
+  emit "css_registry_missing" "$css_registry_file" "0" "crates/ui/src/css.rs"
 else
   rg -n --pcre2 'push_components_css' "$css_registry_file" >/dev/null 2>&1 \
     || emit "css_registry_api_missing" "$css_registry_file" "0" "push_components_css"
@@ -696,7 +696,7 @@ if [[ -f "$ui_root_file" ]]; then
   rg -n --pcre2 'crate::css::push_components_css' "$ui_root_file" >/dev/null 2>&1 \
     || emit "ui_root_css_injection_missing" "$ui_root_file" "0" "crate::css::push_components_css"
 else
-  emit "ui_root_missing" "$ui_root_file" "0" "crates/ui-components/src/root.rs"
+  emit "ui_root_missing" "$ui_root_file" "0" "crates/ui/src/root.rs"
 fi
 
 while IFS= read -r row; do
@@ -708,7 +708,7 @@ while IFS= read -r row; do
 done < <(
   rg -n --pcre2 \
     'tailwind|class_variance_authority|cva!|stylist|stylex|emotion|tw_merge|tw!|css!\s*\(' \
-    components crates/ui-components/src \
+    components crates/ui/src \
     --glob '!**/test/**' || true
 )
 

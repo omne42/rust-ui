@@ -6,7 +6,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::CircularProgress;
+use ui::CircularProgress;
 
 view! {
     <CircularProgress />
@@ -19,7 +19,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::CircularProgress;
+use ui::CircularProgress;
 
 view! {
     <CircularProgress
@@ -34,7 +34,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::CircularProgress;
+use ui::CircularProgress;
 
 view! {
     <CircularProgress
@@ -50,8 +50,8 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::color::area::A11yDirection;
-use ui_components::CircularProgress;
+use ui::color::area::A11yDirection;
+use ui::CircularProgress;
 
 view! {
     <CircularProgress
@@ -65,7 +65,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::CircularProgress;
+use ui::CircularProgress;
 
 let upstream_label = "Syncing mail".to_string();
 

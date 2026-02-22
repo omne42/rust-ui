@@ -204,7 +204,7 @@ fn action_group_selection_primitive_is_sourced_from_state_primitives() {
     ] {
         assert!(
             !logic_source.contains(forbidden),
-            "ActionGroup selection state machine should not be reimplemented in ui-components: `{forbidden}`."
+            "ActionGroup selection state machine should not be reimplemented in ui: `{forbidden}`."
         );
     }
 }

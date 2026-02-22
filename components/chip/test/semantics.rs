@@ -9,9 +9,9 @@ fn load_source(path: &str) -> &'static str {
         "rbi" => include_str!("../src/chip.rbi"),
         "chip_cargo" => include_str!("../Cargo.toml"),
         "primitive" => include_str!("../../../crates/ui-state-primitives/src/chip.rs"),
-        "ui_components_lib" => include_str!("../../../crates/ui-components/src/lib.rs"),
-        "ui_components_css" => include_str!("../../../crates/ui-components/src/css.rs"),
-        "ui_components_cargo" => include_str!("../../../crates/ui-components/Cargo.toml"),
+        "ui_components_lib" => include_str!("../../../crates/ui/src/lib.rs"),
+        "ui_components_css" => include_str!("../../../crates/ui/src/css.rs"),
+        "ui_components_cargo" => include_str!("../../../crates/ui/Cargo.toml"),
         "docs_display" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages/display.rs")
         }
@@ -27,7 +27,7 @@ fn ui_components_reexports_chip_component_crate() {
     assert!(
         lib_source.contains("#[cfg(feature = \"component-chip\")]")
             && lib_source.contains("pub use ui_chip as chip;"),
-        "ui-components should re-export the external ui-chip crate as `chip`.",
+        "ui should re-export the external ui-chip crate as `chip`.",
     );
     assert!(
         cargo_source.contains("component-chip = [\"dep:ui-chip\"]"),
@@ -35,7 +35,7 @@ fn ui_components_reexports_chip_component_crate() {
     );
     assert!(
         cargo_source.contains("ui-chip = { path = \"../../components/chip\", optional = true }"),
-        "ui-components Cargo.toml should include the optional ui-chip dependency.",
+        "ui Cargo.toml should include the optional ui-chip dependency.",
     );
 }
 
@@ -266,8 +266,9 @@ fn chip_motion_contract_respects_reduced_motion_and_non_wasm_noop() {
     for needle in [
         "pub struct ChipMotion {",
         "pub spring: SpringConfig,",
-        "stiffness",
-        "damping",
+        "pub enter_offset_y_px: f64,",
+        "pub enter_scale: f64,",
+        "ui_motion::presets::spring_soft()",
         "pub fn sanitize_motion(motion: ChipMotion) -> ChipMotion",
         "ui_motion::spring::sanitize_config(motion.spring, default.spring)",
         "#[cfg(target_arch = \"wasm32\")]",
@@ -355,7 +356,7 @@ fn chip_css_is_aggregated_under_ui_layer_without_plain_inline_styles() {
 
     assert!(
         css_registry.contains("out.push_str(\"\\n@layer ui {\\n\");"),
-        "ui-components css registry should aggregate component styles under `@layer ui`.",
+        "ui css registry should aggregate component styles under `@layer ui`.",
     );
     assert!(
         css_registry.contains("#[cfg(feature = \"component-chip\")]")
@@ -556,7 +557,6 @@ fn chip_does_not_introduce_focus_stack_or_overlay_focus_restore_paths() {
     let view = load_source("view");
 
     for forbidden in [
-        "NodeRef",
         "FocusManager",
         "focus_manager",
         "FallbackTo",

@@ -349,7 +349,7 @@ fn color_field_check2_marks_component_governance_complete() {
         "- [x] `ui-headless` 定义",
         "- [x] `ui-motion` 定义",
         "- [x] `ui-theme` 定义",
-        "- [x] `ui-components` 定义",
+        "- [x] `ui` 定义",
         "- [x] 语义测试优先",
         "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
         "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",

@@ -364,11 +364,11 @@ fn avatar_docs_playgrounds_lock_state_matrix_contract_values() {
         "let hello_code = Signal::derive(move || r#\"<Avatar />\"#.to_string());",
         "title=\"Hello World\"",
         "code_signal=hello_code",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::Avatar;\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::Avatar;\".to_string()",
         "test_source_path=\"components/avatar/src/view.rs\".to_string()",
         "<Avatar />",
         "title=\"Image + Fallback\"",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::{Avatar, AvatarSize};\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::{Avatar, AvatarSize};\".to_string()",
         "let state_matrix_code = Signal::derive(move || {",
         "title=\"State Matrix\"",
         "alt=\"Profile photo\".to_string()",
@@ -508,7 +508,7 @@ fn avatar_docs_expose_hello_world_path_without_state_machine_wiring() {
         "let hello_code = Signal::derive(move || r#\"<Avatar />\"#.to_string());",
         "title=\"Hello World\"",
         "code_signal=hello_code",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::Avatar;\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::Avatar;\".to_string()",
         "<Avatar />",
     ] {
         assert!(
@@ -541,7 +541,7 @@ fn avatar_docs_source_first_copy_paste_ready_contract_is_present_and_synced() {
         "label=\"Copy avatar starter\".to_string()",
         "copyable=true",
         "class_name=\"docs-avatar-source-copy\".to_string()",
-        "use ui_components::{Avatar, AvatarSize};",
+        "use ui::{Avatar, AvatarSize};",
         "<Avatar name=\"Ada Lovelace\".to_string() size=AvatarSize::Md />",
         "data-slot=\"avatar-source-paths\"",
         "components/avatar/src/mod.rs",
@@ -844,7 +844,7 @@ fn avatar_stays_as_ui_components_assembly_layer_without_platform_leakage() {
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components public API should expose stable avatar exports via `{required}`."
+            "ui public API should expose stable avatar exports via `{required}`."
         );
     }
 
@@ -855,7 +855,7 @@ fn avatar_stays_as_ui_components_assembly_layer_without_platform_leakage() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components public API should not leak platform detail `{forbidden}`."
+            "ui public API should not leak platform detail `{forbidden}`."
         );
     }
 }
@@ -1734,7 +1734,7 @@ fn avatar_readme_is_beginner_friendly_with_default_first_and_advanced_later() {
     for required in [
         "# Avatar",
         "## Quick Start (Hello World)",
-        "use ui_components::Avatar;",
+        "use ui::Avatar;",
         "<Avatar />",
         "No state machine wiring is required.",
         "## Common Usage",
@@ -1934,7 +1934,7 @@ fn avatar_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci
     let cargo_source = load_source("Cargo.toml");
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
     let web_demo_cargo_source = load_source("../../apps/web-demo/Cargo.toml");
 
@@ -1950,7 +1950,7 @@ fn avatar_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components feature graph should keep avatar tree-shaking token `{needle}`."
+            "ui feature graph should keep avatar tree-shaking token `{needle}`."
         );
     }
 
@@ -2007,24 +2007,24 @@ fn avatar_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci
     }
 
     for needle in [
-        "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
+        "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
         "default-features = false",
         "\"web-demo-components\"",
     ] {
         assert!(
             web_demo_cargo_source.contains(needle),
-            "web-demo should consume ui-components via minimal tree-shake-friendly dependency token `{needle}`."
+            "web-demo should consume ui via minimal tree-shake-friendly dependency token `{needle}`."
         );
     }
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
     ] {

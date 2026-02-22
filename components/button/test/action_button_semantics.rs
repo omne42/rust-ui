@@ -887,8 +887,8 @@ fn action_button_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
         "pub(super) fn action_button() -> AnyView",
         "title=\"ActionButton Workbench\"",
         "test_css_source=workbench_test_css_source",
-        "test_source_path=\"/root/code/personal/omne/rust-ui/crates/ui-components/src/button/styles.rs\".to_string()",
-        "ui_components::button::styles::CSS",
+        "test_source_path=\"/root/code/personal/omne/rust-ui/crates/ui/src/button/styles.rs\".to_string()",
+        "ui::button::styles::CSS",
         "scoped css live-edit",
     ] {
         assert!(
@@ -1066,17 +1066,17 @@ fn action_button_reuses_button_motion_and_ui_motion_has_non_wasm_stub() {
 
 #[test]
 fn action_button_ssr_and_cross_platform_compile_paths_are_covered() {
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let action_view_source = load_source("src/button/action/view.rs");
     let action_logic_source = load_source("src/button/action/logic.rs");
     let action_motion_source = load_source("src/button/action/motion.rs");
 
     for needle in [
-        "cargo check -p ui-components",
-        "cargo check -p ui-components --no-default-features --features component-button,inject-css",
+        "cargo check -p ui",
+        "cargo check -p ui --no-default-features --features component-button,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
         "ui-headless web+ssr must fail",
         "mutually exclusive",
     ] {
@@ -1122,7 +1122,7 @@ fn action_button_wasm_debug_contract_reuses_button_debug_and_keeps_feature_isola
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components feature contract should keep `{needle}`."
+            "ui feature contract should keep `{needle}`."
         );
     }
 
@@ -1320,7 +1320,7 @@ fn action_button_engineering_contract_reuses_button_tracing_and_avoids_runtime_l
     }
 
     for needle in [
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
         "data-debug-source=",
         "data-debug-before=",
         "data-debug-after=",
@@ -1365,7 +1365,7 @@ fn action_button_performance_governance_budget_is_defined_and_blocking() {
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let check2_source = load_source("src/button/action/check2.md");
     let pages_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for needle in [
         "\"action-button\" => UiPerfBudget {",
@@ -1421,7 +1421,7 @@ fn action_button_performance_governance_budget_is_defined_and_blocking() {
         );
     }
 
-    let needle = "cargo test -p ui-components --test action_button_semantics action_button_performance_governance_budget_is_defined_and_blocking";
+    let needle = "cargo test -p ui --test action_button_semantics action_button_performance_governance_budget_is_defined_and_blocking";
     assert!(
         script_source.contains(needle),
         "performance gate script should include `{needle}`."

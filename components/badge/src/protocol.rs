@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// Component protocol contract for `ui-components/src/badge`.
+/// Component protocol contract for `ui/src/badge`.
 ///
 /// This schema is intentionally minimal and versioned so component-specific
 /// protocol fields can evolve without breaking deserialization.

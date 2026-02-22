@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -144,6 +144,10 @@
   - 共享 A11y 工具证据：`components/menu/src/action_menu/view.rs`、`components/menu/src/context_menu/view.rs`、`components/menu/src/dropdown/view.rs`、`components/menu/src/dropdown_menu/view.rs`、`components/menu/src/trigger/view.rs` 使用 `ui_headless::aria_controls_when_open`（定义于 `crates/ui-headless/src/a11y.rs`）。
   - 回归：`components/menu/test/semantics.rs::menu_a11y_i18n_l10n_contract_is_wired_without_view_hardcoded_copy`。
 - [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+  - `open/closed/disabled/selected/focused`
+  - `data-controlled` / `data-uncontrolled`
+  - `data-*-source`
+  - `custom/default`
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
@@ -175,6 +179,11 @@
   - 快照策略证据：`components/menu/test/semantics.rs` 不依赖视觉 snapshot 断言（无 `insta::` / `assert_snapshot!`）来替代语义契约验证。
   - 回归：`components/menu/test/semantics.rs::menu_semantic_contract_tests_cover_interaction_matrix_without_snapshot_dependency`。
 - [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+  - `mod.rs` 保持最小导出边界
+  - `logic.rs` 不包含 DOM/事件绑定
+  - `styles.rs` 仅提供静态 CSS 常量
+  - `view.rs` 负责结构渲染与 headless 挂载
+  - `motion.rs` 仅做动效契约映射
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
@@ -196,11 +205,11 @@
   - 契约承载证据：当前结构化能力通过 `MenuItemSpec` + `protocol.rs` + 本检查文档表达；未引入独立 `spec.rs` 文件。
   - 回归：`components/menu/test/semantics.rs::menu_spec_rs_is_not_introduced_for_simple_component_and_is_documented`。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-  - 聚合注入证据：`crates/ui-components/src/css.rs` 通过 feature gate 聚合 `menu/item/section/action_menu/context_menu/dropdown/dropdown_menu/menu_trigger/menubar/navigation_menu` 的 `styles::CSS`，`crates/ui-components/src/root.rs` 仅在 `inject_components_css=true` 时经 `UiRoot` 注入。
+  - 聚合注入证据：`crates/ui/src/css.rs` 通过 feature gate 聚合 `menu/item/section/action_menu/context_menu/dropdown/dropdown_menu/menu_trigger/menubar/navigation_menu` 的 `styles::CSS`，`crates/ui/src/root.rs` 仅在 `inject_components_css=true` 时经 `UiRoot` 注入。
   - token-first 证据：`components/menu/src/styles.rs`、`components/menu/src/item/styles.rs`、`components/menu/src/section/styles.rs` 的间距/圆角声明已改为 `var(--ui-space-*)` 与 `var(--ui-radius-*)`（保留 fallback），颜色与阴影路径持续使用 `var(--ui-*)`。
   - 契约边界证据：`components/menu/src/*/view.rs` 不使用 `style=` / `set_property` 注入业务样式；`components/menu/src/*` 未引入 Utility-First class 约定与 CSS-in-Rust 方案。
   - 回归：`components/menu/test/semantics.rs::menu_token_first_static_styles_are_aggregated_through_uiroot_without_utility_css_leakage`。
@@ -219,15 +228,15 @@
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-  - feature 注册证据：`crates/ui-components/Cargo.toml` 定义 `component-menu/component-menu_item/component-menu_section/component-menu_trigger/component-menubar`，并在 `web-demo-components` 中按需聚合；`apps/web-demo/Cargo.toml` 对 `ui-components` 使用 `default-features = false` + `features = ["inject-css", "web-demo-components"]`。
-  - 聚合门控证据：`crates/ui-components/src/lib.rs` 的 menu 家族模块与导出均使用 `#[cfg(feature = "...")]`；`crates/ui-components/src/css.rs` 对 menu 家族 CSS 聚合同样逐项 `#[cfg(feature = "...")]` 门控。
-  - 实测特性树证据：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-menu,inject-css` 输出仅含 `component-menu` 与 `inject-css` 命令行特性链，无 `all-components`。
-  - 实测反向依赖证据：`cargo tree -e features -i ui-components -p web-demo` 输出包含 `web-demo-components`，未出现 `all-components` 拉起。
-  - CI/预算证据：`scripts/check-ui-components-tree-shaking.sh` 已包含最小特性树、反向依赖、`wasm32` 最小编译、release 构建体积预算校验；阈值来自 `scripts/tree_shaking_budget.env`（`TREE_SHAKING_BASELINE_RLIB_BYTES`、`TREE_SHAKING_MAX_RATIO_PERCENT`）。
+  - feature 注册证据：`crates/ui/Cargo.toml` 定义 `component-menu/component-menu_item/component-menu_section/component-menu_trigger/component-menubar`，并在 `web-demo-components` 中按需聚合；`apps/web-demo/Cargo.toml` 对 `ui` 使用 `default-features = false` + `features = ["inject-css", "web-demo-components"]`。
+  - 聚合门控证据：`crates/ui/src/lib.rs` 的 menu 家族模块与导出均使用 `#[cfg(feature = "...")]`；`crates/ui/src/css.rs` 对 menu 家族 CSS 聚合同样逐项 `#[cfg(feature = "...")]` 门控。
+  - 实测特性树证据：`cargo tree -e features -i ui -p ui --no-default-features --features component-menu,inject-css` 输出仅含 `component-menu` 与 `inject-css` 命令行特性链，无 `all-components`。
+  - 实测反向依赖证据：`cargo tree -e features -i ui -p web-demo` 输出包含 `web-demo-components`，未出现 `all-components` 拉起。
+  - CI/预算证据：`scripts/check-ui-tree-shaking.sh` 已包含最小特性树、反向依赖、`wasm32` 最小编译、release 构建体积预算校验；阈值来自 `scripts/tree_shaking_budget.env`（`TREE_SHAKING_BASELINE_RLIB_BYTES`、`TREE_SHAKING_MAX_RATIO_PERCENT`）。
   - 回归：`components/menu/test/semantics.rs::menu_tree_shaking_contract_is_feature_gated_and_budget_guarded`。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -241,6 +250,9 @@
 
 ### 4. DOM/环境边界治理
 - [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
+  - `components/menu/src/*/view.rs` 的 overlay 统一经 `Popover` 装配
+  - `components/popover/src/view.rs` 使用 `use_focus_trap + RestorePolicy::FallbackTo`
+  - `crates/ui-headless/src/focus_trap.rs` 维护 `FOCUS_MANAGER_STACK`
   - 本组件判定：适用且已落地；`components/menu/src/*/view.rs` 的 overlay 统一经 `Popover` 装配，菜单侧不私有实现焦点恢复状态机。
   - 全局焦点管理证据：`components/popover/src/view.rs` 使用 `use_focus_trap(FocusTrapOptions::enabled(...).with_scope_id(\"popover\").with_restore_policy(RestorePolicy::FallbackTo(...)))`，由 `crates/ui-headless/src/focus_trap.rs` 的 `FOCUS_MANAGER_STACK` 执行栈式恢复。
   - NodeRef 边界证据：menu 侧 `NodeRef` 仅用于锚点定位与 roving focus，不作为 overlay 关闭后的私有恢复目标；恢复策略通过 `RestorePolicy::Selector/FallbackTo` 定义。
@@ -269,7 +281,7 @@
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
   - 互斥守卫证据：`crates/ui-headless/src/lib.rs` 顶部存在 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)`，强制禁止 `web+ssr` 同时启用。
-  - 组件依赖边界证据：`components/menu/Cargo.toml` 与 `crates/ui-components/Cargo.toml` 对 `ui-headless` 仅声明 path 依赖，未在组件层同时开启 `web` 与 `ssr` 特性。
+  - 组件依赖边界证据：`components/menu/Cargo.toml` 与 `crates/ui/Cargo.toml` 对 `ui-headless` 仅声明 path 依赖，未在组件层同时开启 `web` 与 `ssr` 特性。
   - compile-only 命令固定为：`cargo check -p ui-headless --no-default-features --features web`、`cargo check -p ui-headless --no-default-features --features ssr`；互斥负向校验：`cargo check -p ui-headless --no-default-features --features web,ssr`（应触发 `compile_error!`）。
   - 验证记录：本地执行 compile-only 命令在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；命令与源码契约由回归测试锁定，待环境修复后复跑。
   - 回归：`components/menu/test/semantics.rs::menu_ui_headless_web_ssr_feature_mutex_is_compile_error_guarded`。
@@ -301,7 +313,7 @@
   - 预算基线证据：`apps/docs-app/src/pages/components/shell.rs::component_page_perf_budget` 已为 `menu/menu-trigger/dropdown-menu/action-menu/context-menu/menubar/navigation-menu` 提供显式 `UiPerfBudget { max_mount_ms, max_update_ms, max_heap_kb }`，不走默认 `_ => UiPerfBudget::mount_only(120.0)`。
   - 可重复阈值证据：`apps/docs-app/src/perf_probe.rs` 挂载 `data-perf-mount-ms`、`data-perf-budget-ms`、`data-perf-budget-update-ms`、`data-perf-budget-heap-kb`、`data-perf-violation`；`e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言 `data-perf-violation != true`。
   - 可归因证据：`components/menu/src/*/view.rs` 持续输出稳定来源标记（如 `data-open-source`、`data-class-source`、`data-motion-source`、`data-ui-source`），可把性能回归定位到状态/渲染/动效链路。
-  - 阻断证据：`scripts/check-ui-components-performance.sh` 已纳入 `cargo test -p ui-menu menu_performance_governance_contract_is_budgeted_traceable_and_blocking`，并复用 `button/input` 预算门禁与 `perf_render_count_follow_up_is_tracked_in_plan`。
+  - 阻断证据：`scripts/check-ui-performance.sh` 已纳入 `cargo test -p ui-menu menu_performance_governance_contract_is_budgeted_traceable_and_blocking`，并复用 `button/input` 预算门禁与 `perf_render_count_follow_up_is_tracked_in_plan`。
   - `render_count` 现状：`Menu` 当前走 mount/probe 等价证据；`docs/plan/TODO.md` 保留 `render_count` 自动化补齐任务（含 `Button/Input/Accordion/DropZone`）。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
   - 回归：`components/menu/test/semantics.rs::menu_performance_governance_contract_is_budgeted_traceable_and_blocking`。
@@ -312,7 +324,7 @@
   - 拆分证据（menu）：`components/menu/src/view.rs` 已将 item 子树从主 `view!` 抽离为 `fn render_menu_item(...) -> impl IntoView`，主树仅负责容器与状态挂载。
   - 拆分证据（menu family）：`components/menu/src/menubar/view.rs` 使用 `let render_menu = ...` 并通过 `children=render_menu` 分块；`components/menu/src/navigation_menu/view.rs` 使用 `let render_item = ...` 并通过 `children=render_item` 分块。
   - 宏体量护栏：`components/menu/src/view.rs` `view!` 计数受控（<=2），`menubar/navigation_menu` 受控（<=3），`action_menu/context_menu/dropdown/dropdown_menu/trigger` 受控（<=2）。
-  - 阻断证据：`scripts/check-ui-components-view-macro.sh` 已纳入 `cargo test -p ui-menu menu_view_macro_complexity_is_split_into_semantic_subblocks`。
+  - 阻断证据：`scripts/check-ui-view-macro.sh` 已纳入 `cargo test -p ui-menu menu_view_macro_complexity_is_split_into_semantic_subblocks`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
   - 回归：`components/menu/test/semantics.rs::menu_view_macro_complexity_is_split_into_semantic_subblocks`。
 - [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
@@ -323,7 +335,7 @@
   - 函数化证据（menu-item）：`components/menu/src/item/view.rs` 已把 submenu 指示器提取为 `fn render_submenu_indicator(has_submenu: bool) -> impl IntoView`，替代内联 `Show + fallback` 微片段。
   - 局部组件噪音防护：`components/menu/src/*/view.rs` 保持“每文件一个 `#[component]` 公共入口”，未把 `render_*` helper 升格为本地组件。
   - 语义稳定性：函数化后仍保留原有 `data-slot="menu-item"`、`data-slot="menu-item-submenu-indicator"` 与 `data-visible` 状态标记。
-  - 阻断证据：`scripts/check-ui-components-view-macro.sh` 已纳入 `cargo test -p ui-menu menu_view_functional_split_prefers_plain_functions_over_local_components`。
+  - 阻断证据：`scripts/check-ui-view-macro.sh` 已纳入 `cargo test -p ui-menu menu_view_functional_split_prefers_plain_functions_over_local_components`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
   - 回归：`components/menu/test/semantics.rs::menu_view_functional_split_prefers_plain_functions_over_local_components`。
 - [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
@@ -334,7 +346,7 @@
   - 常量化证据（menu-item）：`components/menu/src/item/view.rs` 将 submenu 指示符号与 slot 路径集中为 `SUBMENU_INDICATOR_MARK`/`SUBMENU_INDICATOR_SLOT`，避免分散硬编码。
   - A11y 语义保持：常量化后仍保留 `aria-hidden="true"`、`data-slot=SUBMENU_INDICATOR_SLOT`、`data-visible` 状态标记，未改变读屏与状态可观测契约。
   - 路径清晰性：静态片段入口固定在 `components/menu/src/view.rs` 与 `components/menu/src/item/view.rs` 顶部常量区，后续变更可单点追踪。
-  - 阻断证据：`scripts/check-ui-components-view-macro.sh` 已纳入 `cargo test -p ui-menu menu_static_fragments_are_constantized_with_stable_semantics`。
+  - 阻断证据：`scripts/check-ui-view-macro.sh` 已纳入 `cargo test -p ui-menu menu_static_fragments_are_constantized_with_stable_semantics`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
   - 回归：`components/menu/test/semantics.rs::menu_static_fragments_are_constantized_with_stable_semantics`。
 - [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
@@ -344,7 +356,7 @@
   - N/A 说明：`components/menu/src/*` 与 docs 示例页（`actions.rs`/`collections*.rs`）不使用 `inner_html`/`set_inner_html`/`dangerously_set_inner_html`，组件面保持零注入面。
   - 白名单边界：`apps/docs-app/src/pages/components/shell.rs` 仅允许 `component_readme_markdown(slug)` 返回 `include_str!` 常量；menu 仅映射 `"dropdown-menu" => Some(DROPDOWN_MENU_README_MD)`，其余分支 `_ => None`。
   - 语义与安全回归：`components/menu/test/semantics.rs::menu_inner_html_usage_is_forbidden_in_component_and_docs_examples`。
-  - 门禁脚本：`scripts/check-ui-components-inner-html.sh` 已纳入 `cargo test -p ui-menu menu_inner_html_usage_is_forbidden_in_component_and_docs_examples`。
+  - 门禁脚本：`scripts/check-ui-inner-html.sh` 已纳入 `cargo test -p ui-menu menu_inner_html_usage_is_forbidden_in_component_and_docs_examples`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
@@ -354,8 +366,8 @@
   - 时间与来源证据：`crates/ui-headless/src/trace.rs` 的 `UiTraceEvent { ts_ms, component, kind }` 提供时间戳与来源；`crates/ui-headless/src/controllable_state.rs` 在 open 变更时通过 `trace.emit(component, UiTraceEventKind::OpenChange { open: next })` 记录前后值语义事件。
   - 可视化入口证据：`apps/docs-app/src/lib.rs` 以 `let debug_overlay_enabled = cfg!(debug_assertions);` + `provide_ui_trace(debug_overlay_enabled)` 在开发模式启用调试；`apps/docs-app/src/debug_overlay.rs` 渲染 `data-slot="ui-debug-overlay-event"` 并显示 `format!("{ts_ms}ms")`。
   - 交互可回放证据：`apps/docs-app/src/pages/components/pages/actions.rs` 的 `ActionMenu` 提供 `State + Source Markers` 面板与 `"open: ... · last action: ..."` 读数；`apps/docs-app/src/pages/components/pages/collections.rs` 的 `MenuTrigger` workbench 提供 `"display: current config vs baseline"` 与 open 状态读数。
-  - feature 隔离证据：`components/menu/Cargo.toml` 不定义 `wasm-debug/dep:tracing`；`crates/ui-components/Cargo.toml` 仅保留共享 debug feature（如 `button-wasm-debug`），不存在 `menu-wasm-debug`。
-  - 门禁脚本：`scripts/check-ui-components-wasm-debug.sh` 已纳入 `cargo test -p ui-menu menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。
+  - feature 隔离证据：`components/menu/Cargo.toml` 不定义 `wasm-debug/dep:tracing`；`crates/ui/Cargo.toml` 仅保留共享 debug feature（如 `button-wasm-debug`），不存在 `menu-wasm-debug`。
+  - 门禁脚本：`scripts/check-ui-wasm-debug.sh` 已纳入 `cargo test -p ui-menu menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。
   - 回归：`components/menu/test/semantics.rs::menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
@@ -366,7 +378,7 @@
   - Workbench 隔离画布证据：`apps/docs-app/src/pages/components/pages/collections.rs::menu_trigger()` 使用 `Interactive Playground (Display / Config / Code / CSS Test)`，包含 `test_css_source=workbench_test_css_source`、`test_config_signal=workbench_actual_config`、`data-slot="menu-trigger-workbench-display"`；`dropdown_menu()` 同样提供 `test_css_source=interactive_test_css` 与独立交互画布。
   - 上下文保持证据：`menu_trigger`/`dropdown_menu`/`action_menu` 都在同一画布持续暴露 `"open: ..."`、`"last: ..."`、`"last action: ..."`，并通过 `on_open_change`/`on_action` 保留操作上下文进行连续调试。
   - 可选状态保留：N/A（`menu` 家族 workbench 当前不引入 `localStorage/sessionStorage` 持久化；避免把示例态写入全局存储导致跨场景污染）。
-  - 门禁脚本：`scripts/check-ui-components-dx.sh` 已纳入 `cargo test -p ui-menu menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_workbench`。
+  - 门禁脚本：`scripts/check-ui-dx.sh` 已纳入 `cargo test -p ui-menu menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_workbench`。
   - 回归：`components/menu/test/semantics.rs::menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_workbench`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
@@ -377,7 +389,7 @@
   - tracing 语义证据：menu 家族 open 轴统一复用 `use_controllable_open_state_traced`（`components/menu/src/action_menu/view.rs`、`components/menu/src/context_menu/view.rs`、`components/menu/src/dropdown/view.rs`、`components/menu/src/dropdown_menu/view.rs`、`components/menu/src/trigger/view.rs`），共享 trace 主链路在 `crates/ui-headless/src/trace.rs` 与 `crates/ui-headless/src/controllable_state.rs`。
   - runtime 边界证据：`components/menu/Cargo.toml` 不定义 `tokio`/`async-std`/`dep:tracing`，组件 `src/*.rs` 不包含 `tracing::span!`/`tracing::event!`/`#[tracing::instrument]` 与运行时类型泄露。
   - 回归：`components/menu/test/semantics.rs::menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`。
-  - 门禁脚本：`scripts/check-ui-components-engineering.sh` 已纳入 `cargo test -p ui-menu menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`。
+  - 门禁脚本：`scripts/check-ui-engineering.sh` 已纳入 `cargo test -p ui-menu menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 
 ### 5. 样式与动效（Theme & Motion）
@@ -386,13 +398,14 @@
   - 裸终值收敛：menu 样式文件已移除组件层 `px/rem` 与 Hex 终值；尺寸与颜色统一回退到 `ui-theme` 变量（如 `--ui-fallback-overlay-panel-min-width`、`--ui-fallback-drop-zone-min-height`、`--ui-fallback-focus-ring`）。
   - SSOT 证据：`crates/ui-theme/src/css.rs` 持续统一输出 `--ui-fallback-*` 终值，组件不再自定义终值常量。
   - 回归：`components/menu/test/semantics.rs::menu_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals`。
-  - 门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 已纳入 `cargo test -p ui-menu menu_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals`。
+  - 门禁脚本：`scripts/check-ui-contract-hygiene.sh` 已纳入 `cargo test -p ui-menu menu_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 聚合证据：`crates/ui-components/src/css.rs` 通过 `out.push_str("\n@layer ui {\n")` 开始统一级联层，并在对应 feature gate 下聚合 menu 家族样式（`menu/menu_item/menu_section/dropdown/dropdown_menu/context_menu/action_menu/menu_trigger/menubar/navigation_menu`），最终以 `out.push_str("\n}\n")` 闭合。
+  - 聚合证据：`crates/ui/src/css.rs` 通过 `out.push_str("\n@layer ui {\n")` 开始统一级联层，并在对应 feature gate 下聚合 menu 家族样式（`menu/menu_item/menu_section/dropdown/dropdown_menu/context_menu/action_menu/menu_trigger/menubar/navigation_menu`），最终以 `out.push_str("\n}\n")` 闭合。
   - 运行时样式证据：`components/menu/src/*/view.rs` 未使用普通内联样式（`style=` / `style:top`）；当前组件运行时样式调整判定为 N/A（无 runtime style patch 路径），如未来引入样式动态值，仅允许 `style:--*` CSS 自定义属性通道。
+  - 审核提示：style= / style:top
   - 回归：`components/menu/test/semantics.rs::menu_cascade_layer_contract_is_aggregated_in_ui_layer_and_runtime_style_is_css_variable_only`。
-  - 门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 已纳入 `cargo test -p ui-menu menu_cascade_layer_contract_is_aggregated_in_ui_layer_and_runtime_style_is_css_variable_only`。
+  - 门禁脚本：`scripts/check-ui-contract-hygiene.sh` 已纳入 `cargo test -p ui-menu menu_cascade_layer_contract_is_aggregated_in_ui_layer_and_runtime_style_is_css_variable_only`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 合同固化证据：`components/menu/src/motion.rs` 以 `MenuMotion { highlight }` 承载组件动效输入，并在 `sanitize_motion` 中对 `stiffness/damping/mass/precision` 做字段级清洗；`attach_motion(...)` 统一作为组件挂载入口，不在 `view.rs` 直接触碰底层动效驱动。
@@ -400,23 +413,23 @@
   - reduced-motion 证据：`crates/ui-motion/src/spring.rs` 在 `SpringAnimator::set_target` 中显式检查 `crate::web::prefers_reduced_motion()`，命中后立即收敛到目标值并触发 `on_rest`，避免额外动画帧。
   - non-wasm/SSR 降级证据：`crates/ui-visual-primitive/src/active_highlight.rs` 提供 `#[cfg(not(target_arch = "wasm32"))] attach_active_highlight_motion(...)` no-op 分支，确保 SSR/tooling 路径安全可编译。
   - 回归：`components/menu/test/semantics.rs::menu_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`。
-  - 门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 已纳入 `cargo test -p ui-menu menu_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`。
+  - 门禁脚本：`scripts/check-ui-contract-hygiene.sh` 已纳入 `cargo test -p ui-menu menu_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-  - lib 入口证据：`crates/ui-components/src/lib.rs` 维持 `component-menu/component-menu_trigger/component-menubar/component-navigation_menu` 的 feature gate 模块导出，并持续暴露 `pub mod root; pub use root::UiRoot;` 稳定入口，不暴露 `web_sys/wasm_bindgen` 平台细节类型。
-  - css 聚合证据：`crates/ui-components/src/css.rs` 通过 `push_components_css` 在 `@layer ui` 内按 feature 条件聚合 menu 家族样式（`menu/menu_item/menu_section/menu_trigger/menubar/navigation_menu`），未出现无条件全量注入。
-  - root 注入证据：`crates/ui-components/src/root.rs::UiRoot` 统一注入 `BASE_CSS + theme variables + optional components css`，并集中提供 `provide_ui_i18n(i18n)` 与 `provide_ui_id_provider(id_seed)`。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - lib 入口证据：`crates/ui/src/lib.rs` 维持 `component-menu/component-menu_trigger/component-menubar/component-navigation_menu` 的 feature gate 模块导出，并持续暴露 `pub mod root; pub use root::UiRoot;` 稳定入口，不暴露 `web_sys/wasm_bindgen` 平台细节类型。
+  - css 聚合证据：`crates/ui/src/css.rs` 通过 `push_components_css` 在 `@layer ui` 内按 feature 条件聚合 menu 家族样式（`menu/menu_item/menu_section/menu_trigger/menubar/navigation_menu`），未出现无条件全量注入。
+  - root 注入证据：`crates/ui/src/root.rs::UiRoot` 统一注入 `BASE_CSS + theme variables + optional components css`，并集中提供 `provide_ui_i18n(i18n)` 与 `provide_ui_id_provider(id_seed)`。
   - 共享 primitive 证据：`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享 `CSS + ActiveHighlightMotion + attach_active_highlight_motion`，未携带 menu 业务语义标记。
-  - 禁止文件证据：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 当前不存在；canonical 落点保留在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
+  - 禁止文件证据：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 当前不存在；canonical 落点保留在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
   - 回归：`components/menu/test/semantics.rs::menu_ui_components_fixed_entry_files_follow_layered_boundaries`。
-  - 门禁脚本：`scripts/check-ui-components-entrypoints.sh` 已纳入 `cargo test -p ui-menu menu_ui_components_fixed_entry_files_follow_layered_boundaries`。
+  - 门禁脚本：`scripts/check-ui-entrypoints.sh` 已纳入 `cargo test -p ui-menu menu_ui_components_fixed_entry_files_follow_layered_boundaries`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
@@ -428,7 +441,7 @@
   - 目录与导出证据：`components/menu/src/` 保持 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`，且无 `render.rs/spec.rs`；`mod.rs` 维持最小稳定导出（`pub use view::Menu`、`pub use motion::MenuMotion`），未过度开放实现细节模块。
   - 职责边界证据：`logic.rs` 聚焦归一化/派生；`styles.rs` 保持静态 token-first CSS（`var(--ui-*)`）；`view.rs` 只做 Leptos 结构与 headless 语义挂载；`motion.rs` 只做语义到 motion contract 的映射与 attach。
   - 回归：`components/menu/test/semantics.rs::menu_component_directory_standard_files_follow_contract_and_na_spec`。
-  - 门禁脚本：`scripts/check-ui-components-component-files.sh` 已纳入 `cargo test -p ui-menu menu_component_directory_standard_files_follow_contract_and_na_spec`。
+  - 门禁脚本：`scripts/check-ui-component-files.sh` 已纳入 `cargo test -p ui-menu menu_component_directory_standard_files_follow_contract_and_na_spec`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
@@ -437,20 +450,20 @@
   - 导出边界证据：`components/menu/src/mod.rs` 仅保留固定分层入口与稳定 `pub use`，不存在 `render/spec` 相关模块导出。
   - 职责落点证据：`logic.rs` 负责归一化，`styles.rs` 提供静态 token-first CSS，`view.rs` 承载 `#[component] + view!` 渲染，`motion.rs` 提供 `attach_motion`。
   - 回归：`components/menu/test/semantics.rs::menu_file_placement_discipline_is_strict_for_component_scope`。
-  - 门禁脚本：`scripts/check-ui-components-component-files.sh` 已纳入 `cargo test -p ui-menu menu_file_placement_discipline_is_strict_for_component_scope`。
+  - 门禁脚本：`scripts/check-ui-component-files.sh` 已纳入 `cargo test -p ui-menu menu_file_placement_discipline_is_strict_for_component_scope`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
   - 本组件判定：N/A（`menu` 为 simple component，当前不需要独立 `spec.rs` 与 `*Spec::new()...render()` builder 链路）。
   - 结构证据：`components/menu/src/` 不存在 `spec.rs`；`mod.rs` 未导出 `spec` 模块，也无 `MenuSpec` 类型入口。
   - 兼容证据：当前结构化输入仍由 `MenuItemSpec` 与 `protocol.rs` 提供，未引入复杂组件专属 builder API。
   - 回归：`components/menu/test/semantics.rs::menu_hyper_structure_builder_spec_is_not_applicable_for_simple_component`。
-  - 门禁脚本：`scripts/check-ui-components-component-files.sh` 已纳入 `cargo test -p ui-menu menu_hyper_structure_builder_spec_is_not_applicable_for_simple_component`。
+  - 门禁脚本：`scripts/check-ui-component-files.sh` 已纳入 `cargo test -p ui-menu menu_hyper_structure_builder_spec_is_not_applicable_for_simple_component`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
   - 文件落点证据：已新增 `components/menu/src/Component.toml` 与 `components/menu/src/menu.rbi`，分别承载能力清单与接口签名投影。
   - 约束证据：`Component.toml` 显式声明 `context_compression_manifest` 与 `rbi_signature_projection` 能力；`menu.rbi` 固定 `Menu/MenuItemSpec/MenuMotion` 与 motion attach 相关签名，避免检索漂移。
   - 回归：`components/menu/test/semantics.rs::menu_context_compression_manifest_and_rbi_projection_are_present_and_current`。
-  - 门禁脚本：`scripts/check-ui-components-component-files.sh` 已纳入 `cargo test -p ui-menu menu_context_compression_manifest_and_rbi_projection_are_present_and_current`。
+  - 门禁脚本：`scripts/check-ui-component-files.sh` 已纳入 `cargo test -p ui-menu menu_context_compression_manifest_and_rbi_projection_are_present_and_current`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
@@ -461,7 +474,7 @@
   - 挂载证据：`components/menu/src/view.rs` 通过 `agent_contract` 挂载 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source` 与 `data-ui-state-source/data-ui-motion-source/data-ui-items-source/data-ui-config-policy`，不靠 DOM 猜测。
   - Manifest/RBI 证据：`components/menu/src/Component.toml` 补齐 `agent-contract-markers`、`[[agent_contract]]` 与 `[[agent_contract_whitelist]]`；`components/menu/src/menu.rbi` 补齐 `MenuAgentContract*` 类型与 `resolve_agent_contract` 投影。
   - 回归：`components/menu/test/semantics.rs::menu_check2_documents_agent_contract_schema_governance_rules`、`components/menu/test/semantics.rs::menu_agent_contract_is_schema_typed_and_machine_readable`、`components/menu/test/semantics.rs::menu_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`、`components/menu/test/semantics.rs::menu_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`。
-  - 门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 已纳入上述四个 `cargo test -p ui-menu ...` 目标。
+  - 门禁脚本：`scripts/check-ui-contract-hygiene.sh` 已纳入上述四个 `cargo test -p ui-menu ...` 目标。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
@@ -470,7 +483,7 @@
   - 挂载证据：`components/menu/src/view.rs` 挂载 `data-ui-stream-support/data-ui-stream-fallback/data-ui-stream-mode`，保证语义标记可机读。
   - Manifest 证据：`components/menu/src/Component.toml` 的 `[streaming_policy]` 显式声明 `term_scope = "llm-output-rendering"` 与 `defined_modes = ["streaming", "snapshot"]`，避免术语漂移。
   - 回归：`components/menu/test/semantics.rs::menu_streaming_term_is_limited_to_llm_output_render_modes`。
-  - 门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 已纳入 `cargo test -p ui-menu menu_streaming_term_is_limited_to_llm_output_render_modes`。
+  - 门禁脚本：`scripts/check-ui-contract-hygiene.sh` 已纳入 `cargo test -p ui-menu menu_streaming_term_is_limited_to_llm_output_render_modes`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
@@ -479,7 +492,7 @@
   - Snapshot 语义证据：`components/menu/src/logic.rs` 固定 `output_status=verified` 与 `stream_mode=snapshot`，`components/menu/src/view.rs` 挂载 `data-ui-output-status/data-ui-stream-fallback/data-ui-stream-mode`，确保完整结果输入走稳定 `snapshot` 输出路径。
   - Manifest 证据：`components/menu/src/Component.toml` 显式声明 `snapshot_rendering` 能力、`[streaming_policy] fallback/default=\"snapshot\"`，并补齐 `data-ui-output-status=verified` 与 `data-ui-stream-fallback/mode=snapshot` 语义枚举。
   - 回归：`components/menu/test/semantics.rs::menu_snapshot_is_foundational_and_complete_config_renders_stably`。
-  - 门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 已纳入 `cargo test -p ui-menu menu_snapshot_is_foundational_and_complete_config_renders_stably`。
+  - 门禁脚本：`scripts/check-ui-contract-hygiene.sh` 已纳入 `cargo test -p ui-menu menu_snapshot_is_foundational_and_complete_config_renders_stably`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试与门禁脚本锁定，待环境修复后复跑。
 - [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
@@ -492,7 +505,7 @@
   - 决策输出证据：`components/menu/src/logic.rs` 固定 `stream_support=unsupported`、`stream_fallback=snapshot`、`stream_mode=snapshot`、`output_status=verified`。
   - 边界证据：`components/menu/src/{logic,view}.rs` 不承载 `retry/is_loading/fetch` 协议，数据校验与断线恢复/重试仍由上层负责。
   - 回归：`components/menu/test/semantics.rs::menu_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status`。
-  - 门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 已纳入 `cargo test -p ui-menu menu_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status`。
+  - 门禁脚本：`scripts/check-ui-contract-hygiene.sh` 已纳入 `cargo test -p ui-menu menu_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试与门禁脚本锁定，待环境修复后复跑。
 
 ### 7. 测试、门禁与交付
@@ -500,29 +513,29 @@
   - 非测试源码证据：`components/menu/src/**/*.rs`（含 `logic/view/styles/motion/protocol` 与子模块）已通过回归约束 `unwrap/expect/unwrap_err/let _ =` 禁止规则。
   - 字符串热点证据：`components/menu/src/logic.rs::normalize_props` 已改为 `Cow<'static, str>` 组装 class（`Cow::Borrowed(BASE_CLASS_NAME)` + `Cow::Owned(class_name)`），移除 `BASE_CLASS_NAME.to_string()` 热点写法。
   - 回归：`components/menu/test/semantics.rs::menu_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/menu/test/semantics.rs::menu_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/menu/test/semantics.rs::menu_rust_hygiene_script_enforces_repo_level_hygiene_guards`、`components/menu/test/semantics.rs::menu_check2_marks_rust_hygiene_contract_complete`。
-  - 门禁脚本：`scripts/check-ui-components-engineering.sh` 已纳入 `cargo test -p ui-menu menu_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`cargo test -p ui-menu menu_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`cargo test -p ui-menu menu_rust_hygiene_script_enforces_repo_level_hygiene_guards`。
+  - 门禁脚本：`scripts/check-ui-engineering.sh` 已纳入 `cargo test -p ui-menu menu_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`cargo test -p ui-menu menu_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`cargo test -p ui-menu menu_rust_hygiene_script_enforces_repo_level_hygiene_guards`。
   - 验证记录：已执行 `./scripts/check-rust-hygiene.sh`（当前环境失败：`PCRE2 is not available in this build of ripgrep`，且前置 `check-api-contracts` 报 baseline drift）；新增 `cargo test -p ui-menu ...menu_rust_hygiene_*` 在依赖编译阶段受 `Invalid cross-device link (os error 18)` 阻塞，组件契约由回归测试与门禁命令锁定。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 特性树注册证据：`crates/ui-components/Cargo.toml` 已声明 `component-menu/component-menu_item/component-menu_section/component-menu_trigger/component-menubar/component-navigation_menu`，并保持按需聚合，不依赖无条件全量注册。
-  - 聚合门控证据：`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 的 menu 家族导出/样式注入均由 `#[cfg(feature = \"component-*\")]` 与 `inject-css` 联合门控。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 特性树注册证据：`crates/ui/Cargo.toml` 已声明 `component-menu/component-menu_item/component-menu_section/component-menu_trigger/component-menubar/component-navigation_menu`，并保持按需聚合，不依赖无条件全量注册。
+  - 聚合门控证据：`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 的 menu 家族导出/样式注入均由 `#[cfg(feature = \"component-*\")]` 与 `inject-css` 联合门控。
   - 回归：`components/menu/test/semantics.rs::menu_tree_shaking_contract_is_feature_gated_and_budget_guarded`、`components/menu/test/semantics.rs::menu_check2_marks_tree_shaking_feature_pruning_contract_complete`。
-  - 门禁脚本：`scripts/check-ui-components-tree-shaking.sh` 已纳入 `cargo test -p ui-menu menu_tree_shaking_contract_is_feature_gated_and_budget_guarded`、`cargo test -p ui-menu menu_check2_marks_tree_shaking_feature_pruning_contract_complete`，并新增 `component-menu,inject-css` 最小特性树与 `wasm` 编译校验。
+  - 门禁脚本：`scripts/check-ui-tree-shaking.sh` 已纳入 `cargo test -p ui-menu menu_tree_shaking_contract_is_feature_gated_and_budget_guarded`、`cargo test -p ui-menu menu_check2_marks_tree_shaking_feature_pruning_contract_complete`，并新增 `component-menu,inject-css` 最小特性树与 `wasm` 编译校验。
   - 验证记录：`cargo test -p ui-menu menu_check2_marks_tree_shaking_feature_pruning_contract_complete` 在当前环境编译阶段受 `Invalid cross-device link (os error 18)` 阻塞；tree-shaking 契约由语义回归与脚本门禁锁定。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 语义与焦点流转证据：`components/menu/src/view.rs` 与 `components/menu/src/item/view.rs` 持续挂载 `role/aria-*`、`data-*`（含 `data-state`/`data-controlled`/`data-uncontrolled`/`data-focused`）以及 `on:keydown`、`on:pointermove` 交互路径。
   - 回归：`components/menu/test/semantics.rs::menu_semantic_contract_tests_cover_interaction_matrix_without_snapshot_dependency`、`components/menu/test/semantics.rs::menu_performance_governance_contract_is_budgeted_traceable_and_blocking`、`components/menu/test/semantics.rs::menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
-  - 门禁脚本：`scripts/check-ui-components-performance.sh` 已纳入 `cargo test -p ui-menu menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
+  - 门禁脚本：`scripts/check-ui-performance.sh` 已纳入 `cargo test -p ui-menu menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
   - N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”。
   - 验证记录：`cargo test -p ui-menu menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 在当前环境编译阶段受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试与门禁命令锁定。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - N/A（触发条件未满足）：本次 `menu` 提交未发生跨大版本 API 破坏升级，`components/menu/src/Component.toml` 与 `components/menu/src/logic.rs` 仍保持 `schema_version = "1"` / `MenuAgentSchemaVersion::V1`，不需要引入 `migrate_v1_to_v2`。
   - 契约边界证据：`components/menu/src/protocol.rs` 与 `components/menu/src/*/protocol.rs` 持续采用版本化 `*SchemaVersion + *Spec` 的 serde 协议，当前未引入破坏性变更窗口。
   - 回归：`components/menu/test/semantics.rs::menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries` 对 `migrate_v1_to_v2(` 等临时迁移 token 保持禁止，防止未注册迁移层的漂移实现。
-  - 门禁脚本：`scripts/check-ui-components-engineering.sh` 已纳入 `cargo test -p ui-menu menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`。
+  - 门禁脚本：`scripts/check-ui-engineering.sh` 已纳入 `cargo test -p ui-menu menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
   - Playground/Hello World/受控对照证据：`apps/docs-app/src/pages/components/pages/collections.rs::menu_trigger()` 已提供 `Playground title="Default"`、`title="Controlled + persistent open"` 与 `title="Interactive Playground (Display / Config / Code / CSS Test)"`；`dropdown_menu()` 提供 `Interactive Playground` + `Default` + `Controlled + Persistent Open`，覆盖基础路径与受控/非受控对照。
   - 流式/快照展现证据：`apps/docs-app/src/pages/components/pages/collections.rs` 在 Collections 页面提供 `AiSpace mode=snapshot_mode` / `AiSpace mode=streaming_mode` 与 `data-ui-streaming="optional" data-ui-fallback="snapshot"` 的并列展示，保持 snapshot 基线与 streaming optional 契约可见。
-  - Source-first 一键复制与 imports 补全证据：`apps/docs-app/src/playground.rs::compose_copy_ready_code` 在 `Show code` 路径自动补齐缺失 imports（默认 `use leptos::prelude::*; use ui_components::*;`），并由 `CodeBlock` 输出 copy-ready 片段；Collections 页面同步声明 `"Source-first / Copy-Paste Ready"` 入口。
+  - Source-first 一键复制与 imports 补全证据：`apps/docs-app/src/playground.rs::compose_copy_ready_code` 在 `Show code` 路径自动补齐缺失 imports（默认 `use leptos::prelude::*; use ui::*;`），并由 `CodeBlock` 输出 copy-ready 片段；Collections 页面同步声明 `"Source-first / Copy-Paste Ready"` 入口。
   - 回归：`components/menu/test/semantics.rs::menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_workbench` 覆盖 `menu_trigger/dropdown_menu` Playground 合约；`e2e/tests/docs_app_components_coverage.spec.mjs` 覆盖 docs-app 组件页 playground 可见性回归。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
@@ -530,7 +543,7 @@
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
   - `*_semantics.rs` 覆盖证据：`components/menu/test/menu_semantics.rs`、`components/menu/test/menu_trigger_semantics.rs`、`components/menu/test/dropdown_menu_semantics.rs`、`components/menu/test/context_menu_semantics.rs` 等已覆盖 menu 家族关键交互组件。
   - 语义断言证据：`components/menu/test/semantics.rs::menu_semantic_contract_tests_cover_interaction_matrix_without_snapshot_dependency` 与 `components/menu/test/semantics.rs::menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 持续约束 `role/aria/data-*`、键盘路径、状态来源标记，不以视觉快照替代契约断言。
-  - 门禁脚本：`scripts/check-ui-components-performance.sh` 已纳入 `cargo test -p ui-menu menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
+  - 门禁脚本：`scripts/check-ui-performance.sh` 已纳入 `cargo test -p ui-menu menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
   - 验证记录：`cargo test -p ui-menu menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 在当前环境编译阶段受 `Invalid cross-device link (os error 18)` 阻塞；语义契约由回归测试与门禁命令锁定。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
@@ -592,9 +605,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

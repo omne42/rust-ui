@@ -11,7 +11,7 @@
     "test": "cargo test --workspace",
     "wasm_check": [
       "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-      "cargo check -p ui-components --target wasm32-unknown-unknown",
+      "cargo check -p ui --target wasm32-unknown-unknown",
       "cargo check -p web-demo --target wasm32-unknown-unknown",
       "cargo check -p docs-app --target wasm32-unknown-unknown"
     ],
@@ -46,7 +46,7 @@
         "crates/ui-headless/Cargo.toml",
         "crates/ui-theme/Cargo.toml",
         "crates/ui-motion/Cargo.toml",
-        "crates/ui-components/Cargo.toml",
+        "crates/ui/Cargo.toml",
         "apps/web-demo/Cargo.toml",
         "apps/docs-app/Cargo.toml"
       ],
@@ -66,7 +66,7 @@
         "cargo test --workspace",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-        "cargo check -p ui-components --target wasm32-unknown-unknown",
+        "cargo check -p ui --target wasm32-unknown-unknown",
         "cargo check -p web-demo --target wasm32-unknown-unknown",
         "cargo check -p docs-app --target wasm32-unknown-unknown"
       ]
@@ -145,13 +145,13 @@
     },
     {
       "id": "t30",
-      "title": "ui-components: Button v0",
-      "outputs": ["ui-components::Button"],
+      "title": "ui: Button v0",
+      "outputs": ["ui::Button"],
       "depends_on": ["t22", "t11"],
       "acceptance": ["native + wasm cargo check passes"],
       "verify": [
-        "cargo check -p ui-components",
-        "cargo check -p ui-components --target wasm32-unknown-unknown"
+        "cargo check -p ui",
+        "cargo check -p ui --target wasm32-unknown-unknown"
       ]
     },
     {
@@ -165,10 +165,10 @@
     {
       "id": "t40",
       "title": "Overlay v1 (Popover or Modal)",
-      "outputs": ["ui-components overlay v1 + demo usage"],
+      "outputs": ["ui overlay v1 + demo usage"],
       "depends_on": ["t22", "t31"],
-      "acceptance": ["ui-components wasm cargo check passes"],
-      "verify": ["cargo check -p ui-components --target wasm32-unknown-unknown"]
+      "acceptance": ["ui wasm cargo check passes"],
+      "verify": ["cargo check -p ui --target wasm32-unknown-unknown"]
     },
     {
       "id": "t50",

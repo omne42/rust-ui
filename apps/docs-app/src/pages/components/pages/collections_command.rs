@@ -2,17 +2,19 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use std::sync::Arc;
-use ui_components::{
+use ui::{
     Carousel, CarouselItem, CarouselOrientation, Command, CommandDialog, CommandGroup, CommandItem,
     ContextMenu, MenuItemKind, Menubar, MenubarMenu, NavigationMenu, NavigationMenuItem,
     SegmentedControl, SegmentedControlSize, Switch,
 };
+use ui_headless::A11yDirection;
 
 const COMMAND_DIALOG_DOC_IMPORTS: &str =
-    "use leptos::prelude::*;\nuse ui_components::{CommandDialog, CommandGroup, CommandItem};";
-const COMMAND_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse std::sync::Arc;\nuse ui_components::{Command, CommandGroup, CommandItem};";
+    "use leptos::prelude::*;\nuse ui::{CommandDialog, CommandGroup, CommandItem};";
+const COMMAND_DOC_IMPORTS: &str =
+    "use leptos::prelude::*;\nuse std::sync::Arc;\nuse ui::{Command, CommandGroup, CommandItem};";
 const CAROUSEL_DOC_IMPORTS: &str =
-    "use leptos::prelude::*;\nuse ui_components::{Carousel, CarouselItem, CarouselOrientation};";
+    "use leptos::prelude::*;\nuse ui::{Carousel, CarouselItem, CarouselOrientation};";
 
 pub(super) fn command() -> AnyView {
     let groups: Arc<[CommandGroup]> = Arc::from(vec![
@@ -103,6 +105,80 @@ pub(super) fn command() -> AnyView {
   groups=Arc::from(vec![CommandGroup::new("Quick Start", vec![CommandItem::new("open-dashboard", "Open Dashboard")])])
 />"#
             .to_string()
+    });
+
+    let command_api_groups = groups.clone();
+    let (command_api_query_raw, set_command_api_query_raw) = signal("cal".to_string());
+    let command_api_query: Signal<String> = Signal::derive(move || command_api_query_raw.get());
+    let (command_api_disabled, set_command_api_disabled) = signal(false);
+    let (command_api_rtl, set_command_api_rtl) = signal(false);
+    let (command_api_custom_motion, set_command_api_custom_motion) = signal(false);
+    let (command_api_custom_class, set_command_api_custom_class) = signal(false);
+    let (command_api_query_change_runs, set_command_api_query_change_runs) = signal(0_u32);
+    let on_command_api_query_change = Callback::new(move |next: String| {
+        set_command_api_query_raw.set(next);
+        set_command_api_query_change_runs.update(|count| *count += 1);
+    });
+    let (command_api_action_runs, set_command_api_action_runs) = signal(0_u32);
+    let (command_api_last_action, set_command_api_last_action) = signal("none".to_string());
+    let on_command_api_action = Callback::new(move |id: String| {
+        set_command_api_last_action.set(id);
+        set_command_api_action_runs.update(|count| *count += 1);
+    });
+    let command_api_motion = Signal::derive(move || {
+        if command_api_custom_motion.get() {
+            let mut motion = ui::CommandMotion::default();
+            motion.spring.stiffness = 260.0;
+            motion.spring.damping = 21.0;
+            motion
+        } else {
+            ui::CommandMotion::default()
+        }
+    });
+    let command_api_code = Signal::derive(move || {
+        let lang = if command_api_rtl.get() { "ar" } else { "en" };
+        let dir = if command_api_rtl.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
+        let class_name = if command_api_custom_class.get() {
+            "docs-command-custom"
+        } else {
+            ""
+        };
+        let motion = if command_api_custom_motion.get() {
+            "CommandMotion { spring: SpringConfig { stiffness: 260.0, damping: 21.0, ..spring_slide() }, ..CommandMotion::default() }"
+        } else {
+            "CommandMotion::default()"
+        };
+        format!(
+            "<Command\n  id_base=\"docs-command-api-workbench\".to_string()\n  groups=groups.clone()\n  query=Signal::derive(move || query_raw.get())\n  default_query=\"cal\".to_string()\n  on_query_change=on_query_change\n  on_action=on_action\n  is_disabled={}\n  motion={motion}\n  placeholder=\"Search docs actions...\".to_string()\n  empty_label=\"No docs action found.\".to_string()\n  aria_label=\"Docs command center\".to_string()\n  lang=\"{lang}\".to_string()\n  dir={dir}\n  class_name={:?}\n/>",
+            command_api_disabled.get(),
+            class_name,
+        )
+    });
+    let command_api_actual_config = Signal::derive(move || {
+        let class_name = if command_api_custom_class.get() {
+            Some("docs-command-custom")
+        } else {
+            Some("")
+        };
+        format!(
+            "CommandApiWorkbenchConfig {{\n  id_base: \"docs-command-api-workbench\",\n  groups: \"sample_groups(len=2)\",\n  query: {:?},\n  default_query: Some(\"cal\"),\n  on_query_change: \"runs={}\",\n  on_action: \"runs={}, last={:?}\",\n  is_disabled: {},\n  motion: {},\n  placeholder: Some(\"Search docs actions...\"),\n  empty_label: Some(\"No docs action found.\"),\n  aria_label: Some(\"Docs command center\"),\n  lang: Some({:?}),\n  dir: Some({:?}),\n  class_name: {class_name:?},\n}}",
+            command_api_query_raw.get(),
+            command_api_query_change_runs.get(),
+            command_api_action_runs.get(),
+            command_api_last_action.get(),
+            command_api_disabled.get(),
+            if command_api_custom_motion.get() {
+                "CommandMotion::custom"
+            } else {
+                "CommandMotion::default"
+            },
+            if command_api_rtl.get() { "ar" } else { "en" },
+            if command_api_rtl.get() { "rtl" } else { "ltr" },
+        )
     });
 
     let state_matrix_groups = groups.clone();
@@ -255,7 +331,7 @@ let groups = vec![
     });
 
     let marker_code = Signal::derive(move || {
-        r#"let mut custom_motion = ui_components::CommandMotion::default();
+        r#"let mut custom_motion = ui::CommandMotion::default();
 custom_motion.spring.stiffness = 240.0;
 custom_motion.spring.damping = 20.0;
 let (last_action, set_last_action) = signal("none".to_string());
@@ -283,7 +359,7 @@ let (last_action, set_last_action) = signal("none".to_string());
             .to_string()
     });
 
-    let mut marker_motion = ui_components::CommandMotion::default();
+    let mut marker_motion = ui::CommandMotion::default();
     marker_motion.spring.stiffness = 240.0;
     marker_motion.spring.damping = 20.0;
 
@@ -302,7 +378,7 @@ let (last_action, set_last_action) = signal("none".to_string());
     let groups_for_workbench = groups.clone();
 
     let workbench_motion = Signal::derive(move || {
-        let mut motion = ui_components::CommandMotion::default();
+        let mut motion = ui::CommandMotion::default();
         if workbench_custom_motion.get() {
             motion.spring.stiffness = 280.0;
             motion.spring.damping = 21.0;
@@ -336,7 +412,7 @@ let (last_action, set_last_action) = signal("none".to_string());
         }
 
         if use_motion {
-            lines.push("  motion=ui_components::CommandMotion {".to_string());
+            lines.push("  motion=ui::CommandMotion {".to_string());
             lines.push("    spring: ui_motion::spring::SpringConfig {".to_string());
             lines.push("      stiffness: 280.0,".to_string());
             lines.push("      damping: 21.0,".to_string());
@@ -351,8 +427,8 @@ let (last_action, set_last_action) = signal("none".to_string());
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/command/styles.rs */\n{}",
-            ui_components::command::styles::CSS
+            "/* crates/ui/src/command/styles.rs */\n{}",
+            ui::command::styles::CSS
         )
     });
 
@@ -384,6 +460,66 @@ let (last_action, set_last_action) = signal("none".to_string());
                 code_imports=COMMAND_DOC_IMPORTS.to_string()
             >
                 <Command id_base="docs-command-hello".to_string() groups=hello_groups />
+            </Playground>
+
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=command_api_code
+                code_imports=COMMAND_DOC_IMPORTS.to_string()
+                test_config_signal=command_api_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="command-api-workbench-controls">
+                        <Switch checked=command_api_disabled set_checked=set_command_api_disabled>
+                            "is_disabled"
+                        </Switch>
+                        <Switch checked=command_api_rtl set_checked=set_command_api_rtl>
+                            "lang/dir RTL"
+                        </Switch>
+                        <Switch checked=command_api_custom_motion set_checked=set_command_api_custom_motion>
+                            "motion"
+                        </Switch>
+                        <Switch checked=command_api_custom_class set_checked=set_command_api_custom_class>
+                            "class_name"
+                        </Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Command
+                        id_base="docs-command-api-workbench".to_string()
+                        groups=command_api_groups.clone()
+                        query=command_api_query
+                        default_query="cal".to_string()
+                        on_query_change=on_command_api_query_change
+                        on_action=on_command_api_action
+                        is_disabled=command_api_disabled.get()
+                        motion=command_api_motion.get()
+                        placeholder="Search docs actions...".to_string()
+                        empty_label="No docs action found.".to_string()
+                        aria_label="Docs command center".to_string()
+                        lang=if command_api_rtl.get() {
+                            "ar".to_string()
+                        } else {
+                            "en".to_string()
+                        }
+                        dir=if command_api_rtl.get() {
+                            A11yDirection::Rtl
+                        } else {
+                            A11yDirection::Ltr
+                        }
+                        class_name=if command_api_custom_class.get() {
+                            "docs-command-custom".to_string()
+                        } else {
+                            String::new()
+                        }
+                    />
+                    <span class="ui-muted">
+                        "query: " {move || command_api_query_raw.get()}
+                        " · on_query_change: " {move || command_api_query_change_runs.get()}
+                        " · on_action: " {move || command_api_action_runs.get()}
+                        " · last action: " {move || command_api_last_action.get()}
+                    </span>
+                </div>
             </Playground>
 
             <Playground
@@ -673,7 +809,7 @@ let (last_action, set_last_action) = signal("none".to_string());
                 <p class="ui-muted">
                     "Dependency prerequisites: "
                     <code>
-                        "ui-components = { workspace = true, default-features = false, features = [\"component-command\", \"inject-css\"] }"
+                        "ui = { workspace = true, default-features = false, features = [\"component-command\", \"inject-css\"] }"
                     </code>
                 </p>
                 <ul class="docs-stack docs-stack--tight" data-slot="command-source-paths">
@@ -690,42 +826,41 @@ let (last_action, set_last_action) = signal("none".to_string());
 }
 
 pub(super) fn context_menu() -> AnyView {
-    let default_items = vec![
-        "Back".to_string(),
-        "Forward".to_string(),
-        "Reload".to_string(),
-    ];
-    let keep_open_items = vec![
-        "Copy".to_string(),
-        "Paste".to_string(),
-        "Inspect".to_string(),
-    ];
-    let marker_items = vec![
-        "Duplicate".to_string(),
+    let workbench_items = vec![
+        "Open".to_string(),
         "Rename".to_string(),
         "Delete".to_string(),
     ];
+    let workbench_item_kinds = vec![
+        MenuItemKind::Action,
+        MenuItemKind::Action,
+        MenuItemKind::Action,
+    ];
+    let (workbench_open_raw, set_workbench_open_raw) = signal(false);
+    let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
+    let on_workbench_open_change =
+        Callback::new(move |next: bool| set_workbench_open_raw.set(next));
+    let (last_action, set_last_action) = signal("None".to_string());
+    let on_workbench_action =
+        Callback::new(move |index: usize| set_last_action.set(index.to_string()));
+    let (open_change_count, set_open_change_count) = signal(0_u32);
+    let on_workbench_open_change_with_count = Callback::new(move |next: bool| {
+        set_open_change_count.update(|count| *count += 1);
+        on_workbench_open_change.run(next);
+    });
 
-    let (last_default_action, set_last_default_action) = signal(None::<usize>);
-    let on_default_action =
-        Callback::new(move |index: usize| set_last_default_action.set(Some(index)));
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_force_close_on_action, set_workbench_force_close_on_action) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_disable_middle, set_workbench_disable_middle) = signal(false);
+    let (workbench_placement_key, set_workbench_placement_key) = signal("bottom-start".to_string());
 
-    let (last_keep_open_action, set_last_keep_open_action) = signal(None::<usize>);
-    let on_keep_open_action =
-        Callback::new(move |index: usize| set_last_keep_open_action.set(Some(index)));
-
-    let (marker_open_raw, set_marker_open_raw) = signal(false);
-    let marker_open: Signal<bool> = Signal::derive(move || marker_open_raw.get());
-    let on_marker_open_change = Callback::new(move |next: bool| set_marker_open_raw.set(next));
-
-    let (last_marker_action, set_last_marker_action) = signal(None::<usize>);
-    let on_marker_action =
-        Callback::new(move |index: usize| set_last_marker_action.set(Some(index)));
-
-    let code = Signal::derive(move || {
+    let hello_code = Signal::derive(move || {
         r#"<ContextMenu
   id_base="docs-context-menu".to_string()
-  items=vec!["Open".to_string(), "Rename".to_string(), "Archive".to_string()]
+  items=vec!["Open".to_string(), "Rename".to_string(), "Delete".to_string()]
   on_action=Callback::new(move |_: usize| {})
 >
   "Right click or press Shift+F10"
@@ -733,168 +868,250 @@ pub(super) fn context_menu() -> AnyView {
             .to_string()
     });
 
-    let states_code = Signal::derive(move || {
-        r#"<ContextMenu
-  id_base="docs-context-menu-persistent".to_string()
-  items=vec!["Open".to_string(), "Rename".to_string(), "Archive".to_string()]
-  on_action=Callback::new(move |_: usize| {})
-  close_on_action=false
-  disabled_indices=vec![1]
-  item_kinds=vec![MenuItemKind::Action, MenuItemKind::Action, MenuItemKind::Action]
->
-  "Persistent + disabled item"
+    let workbench_code = Signal::derive(move || {
+        let placement = if workbench_placement_key.get() == "top-start" {
+            "ui_headless::PopoverPlacement::TopStart"
+        } else {
+            "ui_headless::PopoverPlacement::BottomStart"
+        };
+        format!(
+            "<ContextMenu\n  id_base=\"docs-context-menu-workbench\".to_string()\n  items=vec![\"Open\".to_string(), \"Rename\".to_string(), \"Delete\".to_string()]\n  on_action=on_action\n  is_disabled={}\n  disabled={}\n  disabled_indices={}\n  item_kinds=vec![MenuItemKind::Action, MenuItemKind::Action, MenuItemKind::Action]\n  is_close_on_action={}\n  close_on_action={}\n  placement={placement}\n  is_open=Signal::derive(move || open_raw.get())\n  open=Signal::derive(move || open_raw.get())\n  default_open={}\n  on_open_change=on_open_change\n  motion={}\n  lang={}\n  dir={}\n  aria_label=\"Workspace actions\".to_string()\n  class_name={}\n>\n  \"Right click to inspect\"\n</ContextMenu>",
+            workbench_disabled.get(),
+            workbench_disabled.get(),
+            if workbench_disable_middle.get() {
+                "vec![1]"
+            } else {
+                "vec![]"
+            },
+            workbench_force_close_on_action.get(),
+            workbench_force_close_on_action.get(),
+            workbench_open_raw.get(),
+            if workbench_custom_motion.get() {
+                "ui::ContextMenuMotion { popover: ui::PopoverMotion { initial_scale: 0.92, offset_y_px: 8.0, ..ui::PopoverMotion::default() } }"
+            } else {
+                "ui::ContextMenuMotion::default()"
+            },
+            if workbench_rtl.get() {
+                "\"ar\".to_string()"
+            } else {
+                "\"en\".to_string()"
+            },
+            if workbench_rtl.get() {
+                "ui_headless::A11yDirection::Rtl"
+            } else {
+                "ui_headless::A11yDirection::Ltr"
+            },
+            if workbench_custom_class.get() {
+                "\"docs-context-menu-workbench\".to_string()"
+            } else {
+                "String::new()"
+            }
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let placement = if workbench_placement_key.get() == "top-start" {
+            "TopStart"
+        } else {
+            "BottomStart"
+        };
+        format!(
+            "ContextMenuWorkbenchConfig {{\n  id_base: \"docs-context-menu-workbench\",\n  items: [\"Open\", \"Rename\", \"Delete\"],\n  on_action: Some(\"Callback<usize>\"),\n  is_disabled: Some({}),\n  disabled: {},\n  disabled_indices: {},\n  item_kinds: [Action, Action, Action],\n  is_close_on_action: Some({}),\n  close_on_action: {},\n  placement: {placement},\n  is_open: Some({}),\n  open: Some({}),\n  default_open: Some({}),\n  on_open_change: Some(\"Callback<bool>\"),\n  motion: {},\n  lang: {},\n  dir: {},\n  aria_label: Some(\"Workspace actions\"),\n  class_name: {},\n}}",
+            workbench_disabled.get(),
+            workbench_disabled.get(),
+            if workbench_disable_middle.get() {
+                "[1]"
+            } else {
+                "[]"
+            },
+            workbench_force_close_on_action.get(),
+            workbench_force_close_on_action.get(),
+            workbench_open_raw.get(),
+            workbench_open_raw.get(),
+            workbench_open_raw.get(),
+            if workbench_custom_motion.get() {
+                "ContextMenuMotion::custom"
+            } else {
+                "ContextMenuMotion::default"
+            },
+            if workbench_rtl.get() {
+                "Some(\"ar\")"
+            } else {
+                "Some(\"en\")"
+            },
+            if workbench_rtl.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
+            if workbench_custom_class.get() {
+                "Some(\"docs-context-menu-workbench\")"
+            } else {
+                "None"
+            }
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<ContextMenu id_base="ctx-default".to_string() items=vec!["Open".to_string(), "Rename".to_string(), "Delete".to_string()] on_action=Callback::new(move |_| {})>
+  "Default"
+</ContextMenu>
+<ContextMenu id_base="ctx-keep-open".to_string() items=vec!["Copy".to_string(), "Paste".to_string(), "Inspect".to_string()] on_action=Callback::new(move |_| {}) close_on_action=false disabled_indices=vec![1]>
+  "Keep open + disabled item"
+</ContextMenu>
+<ContextMenu id_base="ctx-disabled".to_string() items=vec!["Open".to_string()] on_action=Callback::new(move |_| {}) disabled=true>
+  "Disabled trigger"
 </ContextMenu>"#
             .to_string()
     });
-
-    let marker_code = Signal::derive(move || {
-        r#"let (open_raw, set_open_raw) = signal(false);
-
-<ContextMenu
-  id_base="docs-context-menu-markers".to_string()
-  items=vec!["Open".to_string(), "Rename".to_string(), "Archive".to_string()]
-  on_action=Callback::new(move |_: usize| {})
-  open=Signal::derive(move || open_raw.get())
-  default_open=true
-  on_open_change=Callback::new(move |next: bool| set_open_raw.set(next))
-  close_on_action=false
-  disabled_indices=vec![2]
-  item_kinds=vec![MenuItemKind::Action, MenuItemKind::Action, MenuItemKind::Action]
-  aria_label="Workspace context actions".to_string()
-  class_name="docs-context-menu-custom".to_string()
-  motion=ui_components::ContextMenuMotion {
-    popover: ui_components::PopoverMotion {
-      initial_scale: 0.94,
-      offset_y_px: 10.0,
-      ..ui_components::PopoverMotion::default()
-    },
-  }
->
-  "Inspect state + source markers"
-</ContextMenu>"#
-            .to_string()
-    });
-
-    let marker_motion = ui_components::ContextMenuMotion {
-        popover: ui_components::PopoverMotion {
-            initial_scale: 0.94,
-            offset_y_px: 10.0,
-            ..ui_components::PopoverMotion::default()
-        },
-    };
 
     view! {
         <ComponentPage
             title="ContextMenu"
             slug="context-menu"
             group="Collections"
-            description="baseline-compatible context trigger menu with right-click + keyboard open semantics, baseline state/source attrs, and baseline-level popover spring motion reuse."
+            description="Context trigger menu with controlled open state and action callbacks."
         >
-            <Playground title="Right Click + Keyboard Open" code_signal=code>
-                <div class="docs-stack docs-stack--tight">
+            <Playground title="Hello World" code_signal=hello_code>
+                <ContextMenu
+                    id_base="docs-context-menu-hello".to_string()
+                    items=vec![
+                        "Open".to_string(),
+                        "Rename".to_string(),
+                        "Delete".to_string(),
+                    ]
+                    on_action=Callback::new(|_: usize| {})
+                >
+                    "Right click or press Shift+F10"
+                </ContextMenu>
+            </Playground>
+
+            <Playground
+                title="Config Workbench"
+                description="Covers full ContextMenu API and shows open/action callback feedback."
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="context-menu-workbench-controls">
+                        <label class="docs-choice-row">
+                            <span>"Placement"</span>
+                            <select class="docs-select" on:change=move |ev| set_workbench_placement_key.set(event_target_value(&ev))>
+                                <option value="bottom-start" selected=move || workbench_placement_key.get() == "bottom-start">"BottomStart"</option>
+                                <option value="top-start" selected=move || workbench_placement_key.get() == "top-start">"TopStart"</option>
+                            </select>
+                        </label>
+                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>"Disabled"</Switch>
+                        <Switch checked=workbench_disable_middle set_checked=set_workbench_disable_middle>"Disabled middle item"</Switch>
+                        <Switch checked=workbench_force_close_on_action set_checked=set_workbench_force_close_on_action>"Close on action"</Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>"Custom class"</Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>"RTL"</Switch>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>"Custom motion"</Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="context-menu-workbench-preview">
+                    <div class="docs-row">
+                        <button type="button" on:click=move |_| set_workbench_open_raw.set(true)>"Open"</button>
+                        <button type="button" on:click=move |_| set_workbench_open_raw.set(false)>"Close"</button>
+                    </div>
                     <ContextMenu
-                        id_base="docs-context-menu-default".to_string()
-                        items=default_items
-                        on_action=on_default_action
-                        item_kinds=vec![
-                            MenuItemKind::Action,
-                            MenuItemKind::Action,
-                            MenuItemKind::Action,
-                        ]
+                        id_base="docs-context-menu-workbench".to_string()
+                        items=workbench_items
+                        on_action=on_workbench_action
+                        is_disabled=workbench_disabled.get()
+                        disabled=workbench_disabled.get()
+                        disabled_indices=if workbench_disable_middle.get() {
+                            vec![1]
+                        } else {
+                            vec![]
+                        }
+                        item_kinds=workbench_item_kinds
+                        is_close_on_action=workbench_force_close_on_action.get()
+                        close_on_action=workbench_force_close_on_action.get()
+                        placement=if workbench_placement_key.get() == "top-start" {
+                            ui_headless::PopoverPlacement::TopStart
+                        } else {
+                            ui_headless::PopoverPlacement::BottomStart
+                        }
+                        is_open=workbench_open
+                        open=workbench_open
+                        default_open=workbench_open_raw.get()
+                        on_open_change=on_workbench_open_change_with_count
+                        motion=if workbench_custom_motion.get() {
+                            ui::ContextMenuMotion {
+                                popover: ui::PopoverMotion {
+                                    initial_scale: 0.92,
+                                    offset_y_px: 8.0,
+                                    ..ui::PopoverMotion::default()
+                                },
+                            }
+                        } else {
+                            ui::ContextMenuMotion::default()
+                        }
+                        lang=if workbench_rtl.get() {
+                            "ar".to_string()
+                        } else {
+                            "en".to_string()
+                        }
+                        dir=if workbench_rtl.get() {
+                            ui_headless::A11yDirection::Rtl
+                        } else {
+                            ui_headless::A11yDirection::Ltr
+                        }
+                        aria_label="Workspace actions".to_string()
+                        class_name=if workbench_custom_class.get() {
+                            "docs-context-menu-workbench".to_string()
+                        } else {
+                            String::new()
+                        }
                     >
                         "Right click or press Shift+F10"
                     </ContextMenu>
                     <span class="ui-muted">
-                        "last action: "
-                        {move || {
-                            last_default_action
-                                .get()
-                                .map(|value| value.to_string())
-                                .unwrap_or_else(|| "None".to_string())
-                        }}
+                        "open=" {move || workbench_open_raw.get()}
+                        " · open_change_count=" {move || open_change_count.get()}
+                        " · last_action=" {move || last_action.get()}
                     </span>
                 </div>
             </Playground>
 
-            <Playground title="Persistent + Disabled + ItemKinds" code_signal=states_code>
-                <div class="docs-stack docs-stack--tight">
+            <Playground title="State Matrix" code_signal=matrix_code>
+                <div class="docs-row">
                     <ContextMenu
-                        id_base="docs-context-menu-persistent".to_string()
-                        items=keep_open_items
-                        on_action=on_keep_open_action
+                        id_base="docs-context-menu-matrix-default".to_string()
+                        items=vec![
+                            "Open".to_string(),
+                            "Rename".to_string(),
+                            "Delete".to_string(),
+                        ]
+                        on_action=Callback::new(|_: usize| {})
+                    >
+                        "Default"
+                    </ContextMenu>
+                    <ContextMenu
+                        id_base="docs-context-menu-matrix-keep-open".to_string()
+                        items=vec![
+                            "Copy".to_string(),
+                            "Paste".to_string(),
+                            "Inspect".to_string(),
+                        ]
+                        on_action=Callback::new(|_: usize| {})
                         close_on_action=false
                         disabled_indices=vec![1]
-                        item_kinds=vec![
-                            MenuItemKind::Action,
-                            MenuItemKind::Action,
-                            MenuItemKind::Action,
-                        ]
-                        aria_label="File actions".to_string()
-                        class_name="docs-context-menu-custom".to_string()
                     >
-                        "Persistent + disabled item"
+                        "Keep open + disabled"
                     </ContextMenu>
-                    <span class="ui-muted">
-                        "last action: "
-                        {move || {
-                            last_keep_open_action
-                                .get()
-                                .map(|value| value.to_string())
-                                .unwrap_or_else(|| "None".to_string())
-                        }}
-                    </span>
-                    <span class="ui-muted">"close_on_action: false (selection keeps menu open)"</span>
+                    <ContextMenu
+                        id_base="docs-context-menu-matrix-disabled".to_string()
+                        items=vec!["Open".to_string()]
+                        on_action=Callback::new(|_: usize| {})
+                        disabled=true
+                    >
+                        "Disabled trigger"
+                    </ContextMenu>
                 </div>
             </Playground>
 
-            <Playground title="State + Source Markers" code_signal=marker_code>
-                <div class="docs-stack docs-stack--tight">
-                    <div class="docs-row">
-                        <button type="button" on:click=move |_| set_marker_open_raw.set(true)>
-                            "Open"
-                        </button>
-                        <button type="button" on:click=move |_| set_marker_open_raw.set(false)>
-                            "Close"
-                        </button>
-                    </div>
-                    <div class="ui-muted">
-                        "Inspect data-id-source / data-aria-label-source / data-disabled-indices-source / data-close-on-action-source / data-open-source / data-motion-source in DevTools."
-                    </div>
-                    <ContextMenu
-                        id_base="docs-context-menu-markers".to_string()
-                        items=marker_items
-                        on_action=on_marker_action
-                        open=marker_open
-                        default_open=true
-                        on_open_change=on_marker_open_change
-                        close_on_action=false
-                        disabled_indices=vec![2]
-                        item_kinds=vec![
-                            MenuItemKind::Action,
-                            MenuItemKind::Action,
-                            MenuItemKind::Action,
-                        ]
-                        aria_label="Workspace context actions".to_string()
-                        class_name="docs-context-menu-custom".to_string()
-                        motion=marker_motion
-                    >
-                        "Right click or press Shift+F10 to inspect markers"
-                    </ContextMenu>
-                    <span class="ui-muted">
-                        "open: "
-                        {move || if marker_open_raw.get() { "true" } else { "false" }}
-                    </span>
-                    <span class="ui-muted">
-                        "last action: "
-                        {move || {
-                            last_marker_action
-                                .get()
-                                .map(|value| value.to_string())
-                                .unwrap_or_else(|| "None".to_string())
-                        }}
-                    </span>
-                </div>
-            </Playground>
         </ComponentPage>
     }
     .into_any()
@@ -1131,11 +1348,13 @@ pub(super) fn menubar() -> AnyView {
             "  close_on_action={}",
             workbench_close_on_action.get()
         ));
+        lines.push(format!(
+            "  is_close_on_action={}",
+            workbench_close_on_action.get()
+        ));
 
         if workbench_flip_placement.get() {
-            lines.push(
-                "  placement=ui_components::menubar::DEFAULT_PLACEMENT.flip_vertical()".to_string(),
-            );
+            lines.push("  placement=ui::menubar::DEFAULT_PLACEMENT.flip_vertical()".to_string());
         }
         if workbench_default_open.get() {
             lines.push("  default_open_index=0".to_string());
@@ -1144,11 +1363,11 @@ pub(super) fn menubar() -> AnyView {
             lines.push("  class_name=\"docs-menubar-custom\".into()".to_string());
         }
         if workbench_custom_motion.get() {
-            lines.push("  motion=ui_components::MenubarMotion {".to_string());
-            lines.push("    popover: ui_components::PopoverMotion {".to_string());
+            lines.push("  motion=ui::MenubarMotion {".to_string());
+            lines.push("    popover: ui::PopoverMotion {".to_string());
             lines.push("      initial_scale: 0.94,".to_string());
             lines.push("      offset_y_px: 10.0,".to_string());
-            lines.push("      ..ui_components::PopoverMotion::default()".to_string());
+            lines.push("      ..ui::PopoverMotion::default()".to_string());
             lines.push("    },".to_string());
             lines.push("  }".to_string());
         }
@@ -1161,8 +1380,8 @@ pub(super) fn menubar() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/menu/menubar/styles.rs */\n{}",
-            ui_components::menubar::styles::CSS
+            "/* crates/ui/src/menu/menubar/styles.rs */\n{}",
+            ui::menubar::styles::CSS
         )
     });
 
@@ -1173,7 +1392,13 @@ pub(super) fn menubar() -> AnyView {
             class_tokens.push("docs-menubar-custom".to_string());
         }
         format!(
-            "MenubarActualConfig {{\n  menu_set: \"{}\",\n  menu_count: {},\n  close_on_action: {},\n  placement: \"{}\",\n  default_open_index: {},\n  custom_motion: {},\n  custom_class_name: {},\n  class: \"{}\",\n}}",
+            "MenubarActualConfig {{\n  id_base: {:?},\n  menus: {:?},\n  on_open_index_change: {:?},\n  menu_set: \"{}\",\n  menu_count: {},\n  close_on_action: {},\n  placement: \"{}\",\n  default_open_index: {},\n  custom_motion: {},\n  custom_class_name: {},\n  class_name: {:?},\n  class: \"{}\",\n}}",
+            "docs-menubar-workbench",
+            menus
+                .iter()
+                .map(|menu| menu.id.as_str())
+                .collect::<Vec<_>>(),
+            "handler",
             match menu_set_index.get().unwrap_or(0) {
                 1 => "workspace",
                 2 => "compact",
@@ -1193,6 +1418,11 @@ pub(super) fn menubar() -> AnyView {
             },
             workbench_custom_motion.get(),
             workbench_custom_class.get(),
+            if workbench_custom_class.get() {
+                "docs-menubar-custom"
+            } else {
+                ""
+            },
             class_tokens.join(" ")
         )
     });
@@ -1243,29 +1473,33 @@ pub(super) fn menubar() -> AnyView {
   ]
   on_action=Callback::new(move |_: (usize, usize)| {})
   close_on_action=false
-  placement=ui_components::menubar::DEFAULT_PLACEMENT.flip_vertical()
+  placement=ui::menubar::DEFAULT_PLACEMENT.flip_vertical()
   open_index=Signal::derive(move || open_raw.get())
   default_open_index=1
   on_open_index_change=Callback::new(move |next| set_open_raw.set(next))
   class_name="docs-menubar-custom".to_string()
-  motion=ui_components::MenubarMotion {
-    popover: ui_components::PopoverMotion {
+  motion=ui::MenubarMotion {
+    popover: ui::PopoverMotion {
       initial_scale: 0.94,
       offset_y_px: 10.0,
-      ..ui_components::PopoverMotion::default()
+      ..ui::PopoverMotion::default()
     },
   }
 />"#
         .to_string()
     });
 
-    let marker_motion = ui_components::MenubarMotion {
-        popover: ui_components::PopoverMotion {
+    let marker_motion = ui::MenubarMotion {
+        popover: ui::PopoverMotion {
             initial_scale: 0.94,
             offset_y_px: 10.0,
-            ..ui_components::PopoverMotion::default()
+            ..ui::PopoverMotion::default()
         },
     };
+    let default_menus_for_hello = default_menus.clone();
+    let default_menus_for_default = default_menus.clone();
+    let controlled_menus_for_matrix = controlled_menus.clone();
+    let controlled_menus_for_controlled = controlled_menus.clone();
 
     view! {
         <ComponentPage
@@ -1274,12 +1508,22 @@ pub(super) fn menubar() -> AnyView {
             group="Collections"
             description="baseline-compatible persistent menubar with horizontal trigger navigation, baseline-style state/source attrs, and baseline-level spring popover motion reuse."
         >
+            <Playground title="Hello World (Default API)" code_signal=code>
+                <div class="docs-stack docs-stack--tight">
+                    <Menubar
+                        id_base="docs-menubar-hello".to_string()
+                        menus=default_menus_for_hello
+                        on_action=on_action
+                    />
+                </div>
+            </Playground>
+
             <Playground
                 title="Workbench"
                 description="Interactive display/config/code/css-test playground for Menubar."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/menu/menubar/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui/src/menu/menubar/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -1330,9 +1574,9 @@ pub(super) fn menubar() -> AnyView {
                         <div class="docs-stack docs-stack--tight">
                             {move || {
                                 let placement = if workbench_flip_placement.get() {
-                                    ui_components::menubar::DEFAULT_PLACEMENT.flip_vertical()
+                                    ui::menubar::DEFAULT_PLACEMENT.flip_vertical()
                                 } else {
-                                    ui_components::menubar::DEFAULT_PLACEMENT
+                                    ui::menubar::DEFAULT_PLACEMENT
                                 };
                                 let class_name = if workbench_custom_class.get() {
                                     "docs-menubar-custom".to_string()
@@ -1340,15 +1584,15 @@ pub(super) fn menubar() -> AnyView {
                                     String::new()
                                 };
                                 let motion = if workbench_custom_motion.get() {
-                                    ui_components::MenubarMotion {
-                                        popover: ui_components::PopoverMotion {
+                                    ui::MenubarMotion {
+                                        popover: ui::PopoverMotion {
                                             initial_scale: 0.94,
                                             offset_y_px: 10.0,
-                                            ..ui_components::PopoverMotion::default()
+                                            ..ui::PopoverMotion::default()
                                         },
                                     }
                                 } else {
-                                    ui_components::MenubarMotion::default()
+                                    ui::MenubarMotion::default()
                                 };
 
                                 if workbench_default_open.get() {
@@ -1358,6 +1602,7 @@ pub(super) fn menubar() -> AnyView {
                                             menus=workbench_menus.get()
                                             on_action=on_workbench_action
                                             close_on_action=workbench_close_on_action.get()
+                                            is_close_on_action=workbench_close_on_action.get()
                                             placement=placement
                                             default_open_index=0
                                             on_open_index_change=on_workbench_open_change
@@ -1373,6 +1618,7 @@ pub(super) fn menubar() -> AnyView {
                                             menus=workbench_menus.get()
                                             on_action=on_workbench_action
                                             close_on_action=workbench_close_on_action.get()
+                                            is_close_on_action=workbench_close_on_action.get()
                                             placement=placement
                                             on_open_index_change=on_workbench_open_change
                                             class_name=class_name
@@ -1407,11 +1653,26 @@ pub(super) fn menubar() -> AnyView {
                 }}
             </Playground>
 
+            <Playground title="State Matrix (Open / Close / Controlled Comparison)" code_signal=states_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Menubar
+                        id_base="docs-menubar-matrix".to_string()
+                        menus=controlled_menus_for_matrix
+                        on_action=on_controlled_action
+                        close_on_action=false
+                        is_close_on_action=false
+                        open_index=controlled_open
+                        on_open_index_change=on_open_index_change
+                        class_name="docs-menubar-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
             <Playground title="Desktop Menubar + Action Dispatch" code_signal=code>
                 <div class="docs-stack docs-stack--tight">
                     <Menubar
                         id_base="docs-menubar-default".to_string()
-                        menus=default_menus
+                        menus=default_menus_for_default
                         on_action=on_action
                     />
                     <span class="ui-muted">
@@ -1432,7 +1693,7 @@ pub(super) fn menubar() -> AnyView {
                 <div class="docs-stack docs-stack--tight">
                     <Menubar
                         id_base="docs-menubar-controlled".to_string()
-                        menus=controlled_menus
+                        menus=controlled_menus_for_controlled
                         on_action=on_controlled_action
                         close_on_action=false
                         open_index=controlled_open
@@ -1483,7 +1744,7 @@ pub(super) fn menubar() -> AnyView {
                         menus=marker_menus
                         on_action=on_marker_action
                         close_on_action=false
-                        placement=ui_components::menubar::DEFAULT_PLACEMENT.flip_vertical()
+                        placement=ui::menubar::DEFAULT_PLACEMENT.flip_vertical()
                         open_index=marker_open
                         default_open_index=1
                         on_open_index_change=on_marker_open_change
@@ -1593,7 +1854,7 @@ pub(super) fn navigation_menu() -> AnyView {
 
     let marker_code = Signal::derive(move || {
         r#"let (selected, set_selected) = signal(Some("projects".to_string()));
-let mut custom_motion = ui_components::NavigationMenuMotion::default();
+let mut custom_motion = ui::NavigationMenuMotion::default();
 custom_motion.spring.stiffness = 260.0;
 custom_motion.spring.damping = 24.0;
 
@@ -1654,7 +1915,7 @@ custom_motion.spring.damping = 24.0;
         };
         let motion_line = if custom_motion {
             format!(
-                "  motion={{\n    let mut motion = ui_components::NavigationMenuMotion::default();\n    motion.spring.stiffness = {}.0;\n    motion.spring.damping = {}.0;\n    motion\n  }}\n",
+                "  motion={{\n    let mut motion = ui::NavigationMenuMotion::default();\n    motion.spring.stiffness = {}.0;\n    motion.spring.damping = {}.0;\n    motion\n  }}\n",
                 workbench_stiffness.get(),
                 workbench_damping.get(),
             )
@@ -1668,8 +1929,8 @@ custom_motion.spring.damping = 24.0;
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/menu/navigation_menu/styles.rs */\n{}",
-            ui_components::navigation_menu::styles::CSS
+            "/* crates/ui/src/menu/navigation_menu/styles.rs */\n{}",
+            ui::navigation_menu::styles::CSS
         )
     });
 
@@ -1683,8 +1944,41 @@ custom_motion.spring.damping = 24.0;
         let custom_class = workbench_custom_class.get();
         let custom_aria = workbench_custom_aria.get();
         let custom_motion = workbench_custom_motion.get();
+        let workbench_items = {
+            let items = if disable_second {
+                let items = vec![
+                    NavigationMenuItem::new("workspace", "Workspace", "/workspace"),
+                    NavigationMenuItem::new("projects", "Projects", "/projects").disabled(true),
+                    NavigationMenuItem::new("settings", "Settings", "/settings"),
+                ];
+                items
+            } else {
+                vec![
+                    NavigationMenuItem::new("workspace", "Workspace", "/workspace"),
+                    NavigationMenuItem::new("projects", "Projects", "/projects"),
+                    NavigationMenuItem::new("settings", "Settings", "/settings"),
+                ]
+            };
+            items
+                .iter()
+                .map(|item| item.id.clone())
+                .collect::<Vec<String>>()
+        };
         format!(
-            "NavigationMenuActualConfig {{\n  mode: \"{}\",\n  selected_id: \"{}\",\n  activate_on_focus: {},\n  disable_second_item: {},\n  custom_class: {},\n  custom_aria_label: {},\n  custom_motion: {},\n  spring_stiffness: {}.0,\n  spring_damping: {}.0,\n}}",
+            "NavigationMenuActualConfig {{\n  id_base: {:?},\n  items: {:?},\n  default_selected_id: {:?},\n  on_selected_id_change: {:?},\n  class_name: {:?},\n  mode: \"{}\",\n  selected_id: \"{}\",\n  activate_on_focus: {},\n  disable_second_item: {},\n  custom_class: {},\n  custom_aria_label: {},\n  custom_motion: {},\n  spring_stiffness: {}.0,\n  spring_damping: {}.0,\n}}",
+            "docs-navigation-menu-workbench",
+            workbench_items,
+            if controlled {
+                None::<String>
+            } else {
+                Some("workspace".to_string())
+            },
+            "handler",
+            if custom_class {
+                "docs-navigation-menu-custom"
+            } else {
+                ""
+            },
             if controlled {
                 "controlled"
             } else {
@@ -1701,7 +1995,7 @@ custom_motion.spring.damping = 24.0;
         )
     });
 
-    let mut marker_motion = ui_components::NavigationMenuMotion::default();
+    let mut marker_motion = ui::NavigationMenuMotion::default();
     marker_motion.spring.stiffness = 260.0;
     marker_motion.spring.damping = 24.0;
 
@@ -1789,7 +2083,7 @@ custom_motion.spring.damping = 24.0;
                 description="Button-style playground with baseline/configured comparison, live settings, copy-ready code, and scoped CSS test."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/menu/navigation_menu/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui/src/menu/navigation_menu/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="navigation-menu-workbench-controls">
@@ -1913,7 +2207,7 @@ custom_motion.spring.damping = 24.0;
                             ];
                             let custom_class = workbench_custom_class.get();
                             let custom_aria = workbench_custom_aria.get();
-                            let mut motion = ui_components::NavigationMenuMotion::default();
+                            let mut motion = ui::NavigationMenuMotion::default();
                             if workbench_custom_motion.get() {
                                 motion.spring.stiffness = f64::from(workbench_stiffness.get());
                                 motion.spring.damping = f64::from(workbench_damping.get());
@@ -2092,6 +2386,7 @@ pub(super) fn carousel() -> AnyView {
         "Disabled Middle".to_string(),
         "Vertical + No Loop".to_string(),
     ];
+    let state_matrix_options_for_gallery = state_matrix_options.clone();
     let (state_matrix_index, set_state_matrix_index) = signal(Some(0_usize));
     let state_matrix_selected = Signal::derive(move || state_matrix_index.get().unwrap_or(0));
     let state_matrix_items = Signal::derive(move || match state_matrix_selected.get() {
@@ -2252,7 +2547,7 @@ let (selected, set_selected) = signal(Some(0_usize));
 
     let marker_code = Signal::derive(move || {
         r#"let (selected, set_selected) = signal(Some(1_usize));
-let mut custom_motion = ui_components::CarouselMotion::default();
+let mut custom_motion = ui::CarouselMotion::default();
 custom_motion.spring.stiffness = 250.0;
 custom_motion.spring.damping = 22.0;
 
@@ -2275,7 +2570,7 @@ custom_motion.spring.damping = 22.0;
         .to_string()
     });
 
-    let mut marker_motion = ui_components::CarouselMotion::default();
+    let mut marker_motion = ui::CarouselMotion::default();
     marker_motion.spring.stiffness = 250.0;
     marker_motion.spring.damping = 22.0;
 
@@ -2290,6 +2585,8 @@ custom_motion.spring.damping = 22.0;
     let workbench_custom_text = Signal::derive(move || workbench_index.get().unwrap_or(0) >= 1);
     let workbench_custom_motion = Signal::derive(move || workbench_index.get().unwrap_or(0) == 2);
     let (workbench_preserve_context, set_workbench_preserve_context) = signal(true);
+    let (workbench_lang_zh, set_workbench_lang_zh) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
 
     let (workbench_selected_raw, set_workbench_selected_raw) = signal(Some(0_usize));
     let workbench_selected: Signal<Option<usize>> =
@@ -2347,7 +2644,7 @@ custom_motion.spring.damping = 22.0;
     });
 
     let workbench_motion = Signal::derive(move || {
-        let mut motion = ui_components::CarouselMotion::default();
+        let mut motion = ui::CarouselMotion::default();
         if workbench_custom_motion.get() {
             motion.spring.stiffness = 280.0;
             motion.spring.damping = 24.0;
@@ -2359,20 +2656,35 @@ custom_motion.spring.damping = 22.0;
         let scenario = workbench_index.get().unwrap_or(0);
         let preserve = workbench_preserve_context.get();
         let selected = workbench_selected_raw.get();
+        let aria_label = if workbench_custom_text.get() {
+            "\"Workbench carousel\".to_string()"
+        } else {
+            "String::new()"
+        };
+        let class_name = if workbench_custom_text.get() {
+            "\"docs-carousel-custom\".to_string()"
+        } else {
+            "String::new()"
+        };
         let orientation_line = if workbench_vertical.get() {
             "  orientation=CarouselOrientation::Vertical\n"
         } else {
-            ""
-        };
-        let class_line = if workbench_custom_text.get() {
-            "  class_name=\"docs-carousel-custom\".to_string()\n"
-        } else {
-            ""
+            "  orientation=CarouselOrientation::Horizontal\n"
         };
         let motion_line = if workbench_custom_motion.get() {
-            "  motion={ let mut motion = ui_components::CarouselMotion::default(); motion.spring.stiffness = 280.0; motion.spring.damping = 24.0; motion }\n"
+            "  motion={ let mut motion = ui::CarouselMotion::default(); motion.spring.stiffness = 280.0; motion.spring.damping = 24.0; motion }\n"
         } else {
-            ""
+            "  motion=ui::CarouselMotion::default()\n"
+        };
+        let lang_line = if workbench_lang_zh.get() {
+            "  lang=\"zh-CN\".to_string()\n"
+        } else {
+            "  lang=\"en-US\".to_string()\n"
+        };
+        let dir_line = if workbench_rtl.get() {
+            "  dir=ui_headless::A11yDirection::Rtl\n"
+        } else {
+            "  dir=ui_headless::A11yDirection::Ltr\n"
         };
         format!(
             "let (selected, set_selected) = signal({selected:?});\n\
@@ -2381,10 +2693,18 @@ let preserve_context = {preserve}; // optional\n\
 <Carousel\n\
   id_base=\"docs-carousel-workbench\".to_string()\n\
   items=workbench_items\n\
+  default_selected_index=0\n\
   selected_index=Signal::derive(move || selected.get())\n\
   on_selected_index_change=Callback::new(move |next| set_selected.set(next))\n\
   is_loop_navigation={}\n\
-{orientation_line}{class_line}{motion_line}/>",
+  aria_label={aria_label}\n\
+  controls_aria_label=\"Carousel controls\".to_string()\n\
+  indicators_aria_label=\"Carousel indicators\".to_string()\n\
+  previous_label=\"Previous slide\".to_string()\n\
+  next_label=\"Next slide\".to_string()\n\
+  indicator_aria_label_template=\"Go to slide {{index}}\".to_string()\n\
+{orientation_line}{lang_line}{dir_line}  class_name={class_name}\n\
+{motion_line}/>",
             !workbench_disabled.get(),
         )
     });
@@ -2392,17 +2712,42 @@ let preserve_context = {preserve}; // optional\n\
     let workbench_test_css_source = Signal::derive(move || {
         format!(
             "/* components/carousel/src/styles.rs */\n{}",
-            ui_components::carousel::styles::CSS
+            ui::carousel::styles::CSS
         )
     });
 
     let workbench_actual_config = Signal::derive(move || {
         let scenario = workbench_index.get().unwrap_or(0);
+        let is_vertical = workbench_vertical.get();
+        let is_loop_navigation = !workbench_disabled.get();
+        let class_name = if workbench_custom_text.get() {
+            Some("docs-carousel-custom")
+        } else {
+            None
+        };
         format!(
-            "CarouselWorkbenchConfig {{\n  scenario: {scenario},\n  preserve_context: {},\n  selected_index: {:?},\n  vertical: {},\n  disabled_middle_item: {},\n  custom_text: {},\n  custom_motion: {},\n}}",
+            "CarouselWorkbenchConfig {{\n  id_base: \"docs-carousel-workbench\",\n  items: [\"workbench-overview\", \"workbench-metrics\", \"workbench-release\"],\n  default_selected_index: Some(0),\n  on_selected_index_change: \"last_selected={:?}\",\n  orientation: {:?},\n  is_loop_navigation: {},\n  aria_label: {:?},\n  controls_aria_label: Some(\"Carousel controls\"),\n  indicators_aria_label: Some(\"Carousel indicators\"),\n  previous_label: Some(\"Previous slide\"),\n  next_label: Some(\"Next slide\"),\n  indicator_aria_label_template: Some(\"Go to slide {{index}}\"),\n  lang: Some({:?}),\n  dir: Some({:?}),\n  class_name: {class_name:?},\n  scenario: {scenario},\n  preserve_context: {},\n  selected_index: {:?},\n  vertical: {},\n  disabled_middle_item: {},\n  custom_text: {},\n  custom_motion: {},\n}}",
+            workbench_last_selected.get(),
+            if is_vertical {
+                CarouselOrientation::Vertical
+            } else {
+                CarouselOrientation::Horizontal
+            },
+            is_loop_navigation,
+            if workbench_custom_text.get() {
+                Some("Workbench carousel")
+            } else {
+                None
+            },
+            if workbench_lang_zh.get() {
+                "zh-CN"
+            } else {
+                "en-US"
+            },
+            if workbench_rtl.get() { "rtl" } else { "ltr" },
             workbench_preserve_context.get(),
             workbench_selected_raw.get(),
-            workbench_vertical.get(),
+            is_vertical,
             workbench_disabled.get(),
             workbench_custom_text.get(),
             workbench_custom_motion.get(),
@@ -2444,7 +2789,7 @@ let preserve_context = {preserve}; // optional\n\
             </Playground>
 
             <Playground
-                title="State Matrix"
+                title="Scenario Gallery"
                 description="Switch between default/empty/disabled/vertical branches and verify state markers."
                 code_signal=state_matrix_code
                 code_imports=carousel_imports.clone()
@@ -2452,7 +2797,7 @@ let preserve_context = {preserve}; // optional\n\
                 <div class="docs-stack docs-stack--tight" data-slot="carousel-state-matrix">
                     <SegmentedControl
                         id_base="docs-carousel-state-matrix-scenario".to_string()
-                        options=state_matrix_options.clone()
+                        options=state_matrix_options_for_gallery.clone()
                         selected_index=state_matrix_index
                         set_selected_index=set_state_matrix_index
                         size=SegmentedControlSize::Sm
@@ -2687,6 +3032,12 @@ let preserve_context = {preserve}; // optional\n\
                             "custom_motion: "
                             {move || workbench_custom_motion.get()}
                         </div>
+                        <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
+                            "lang=zh-CN"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                            "dir=rtl"
+                        </Switch>
                     </div>
                 }
             >
@@ -2718,6 +3069,7 @@ let preserve_context = {preserve}; // optional\n\
                         <Carousel
                             id_base="docs-carousel-workbench".to_string()
                             items=workbench_items.get()
+                            default_selected_index=0
                             selected_index=workbench_selected
                             on_selected_index_change=on_workbench_selected_change
                             orientation=if workbench_vertical.get() {
@@ -2730,6 +3082,21 @@ let preserve_context = {preserve}; // optional\n\
                                 "Workbench carousel".to_string()
                             } else {
                                 String::new()
+                            }
+                            controls_aria_label="Carousel controls".to_string()
+                            indicators_aria_label="Carousel indicators".to_string()
+                            previous_label="Previous slide".to_string()
+                            next_label="Next slide".to_string()
+                            indicator_aria_label_template="Go to slide {index}".to_string()
+                            lang=if workbench_lang_zh.get() {
+                                "zh-CN".to_string()
+                            } else {
+                                "en-US".to_string()
+                            }
+                            dir=if workbench_rtl.get() {
+                                ui_headless::A11yDirection::Rtl
+                            } else {
+                                ui_headless::A11yDirection::Ltr
                             }
                             class_name=if workbench_custom_text.get() {
                                 "docs-carousel-custom".to_string()
@@ -2759,6 +3126,50 @@ let preserve_context = {preserve}; // optional\n\
                 </div>
             </Playground>
 
+            <Playground
+                title="State Matrix (Default / Empty / Disabled / Vertical)"
+                description="Switch between default/empty/disabled/vertical branches and verify state markers."
+                code_signal=state_matrix_code
+                code_imports=carousel_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="carousel-state-matrix-final">
+                    <SegmentedControl
+                        id_base="docs-carousel-state-matrix-final-scenario".to_string()
+                        options=state_matrix_options.clone()
+                        selected_index=state_matrix_index
+                        set_selected_index=set_state_matrix_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Carousel state matrix scenario".to_string()
+                    />
+
+                    <Carousel
+                        id_base="docs-carousel-state-matrix-final".to_string()
+                        items=state_matrix_items.get()
+                        default_selected_index=0
+                        orientation=state_matrix_orientation.get()
+                        is_loop_navigation=state_matrix_is_loop.get()
+                        controls_aria_label="Carousel controls".to_string()
+                        indicators_aria_label="Carousel indicators".to_string()
+                        previous_label="Previous slide".to_string()
+                        next_label="Next slide".to_string()
+                        indicator_aria_label_template="Go to slide {index}".to_string()
+                        lang="en-US".to_string()
+                        dir=ui_headless::A11yDirection::Ltr
+                        motion=ui::CarouselMotion::default()
+                    />
+
+                    <span class="ui-muted">
+                        "state mode: "
+                        {move || match state_matrix_selected.get() {
+                            0 => "default",
+                            1 => "empty",
+                            2 => "disabled-middle",
+                            _ => "vertical-no-loop",
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
             <div class="docs-stack docs-stack--tight" data-slot="carousel-source-first">
                 <h3>"Source-first Copy-Paste"</h3>
                 <p class="ui-muted" data-slot="carousel-copy-ready-hint">
@@ -2778,7 +3189,7 @@ let preserve_context = {preserve}; // optional\n\
                 <p class="ui-muted">
                     "Dependency prerequisites: "
                     <code>
-                        "ui-components = { workspace = true, default-features = false, features = [\"component-carousel\", \"inject-css\"] }"
+                        "ui = { workspace = true, default-features = false, features = [\"component-carousel\", \"inject-css\"] }"
                     </code>
                 </p>
                 <ul class="docs-stack docs-stack--tight" data-slot="carousel-source-paths">
@@ -2857,6 +3268,151 @@ pub(super) fn command_dialog() -> AnyView {
   default_open=true
 />"#
         .to_string()
+    });
+
+    let command_dialog_api_groups = groups.clone();
+    let (command_dialog_api_open_raw, set_command_dialog_api_open_raw) = signal(false);
+    let command_dialog_api_open: Signal<bool> =
+        Signal::derive(move || command_dialog_api_open_raw.get());
+    let (command_dialog_api_default_open, set_command_dialog_api_default_open) = signal(false);
+    let (command_dialog_api_close_on_action, set_command_dialog_api_close_on_action) = signal(true);
+    let (command_dialog_api_is_disabled, set_command_dialog_api_is_disabled) = signal(false);
+    let (command_dialog_api_disabled, set_command_dialog_api_disabled) = signal(false);
+    let (command_dialog_api_custom_text, set_command_dialog_api_custom_text) = signal(true);
+    let (command_dialog_api_custom_class, set_command_dialog_api_custom_class) = signal(false);
+    let (command_dialog_api_custom_motion, set_command_dialog_api_custom_motion) = signal(false);
+    let (command_dialog_api_open_change_runs, set_command_dialog_api_open_change_runs) =
+        signal(0_u32);
+    let on_command_dialog_api_open_change = Callback::new(move |next: bool| {
+        set_command_dialog_api_open_raw.set(next);
+        set_command_dialog_api_open_change_runs.update(|count| *count += 1);
+    });
+    let (command_dialog_api_action_runs, set_command_dialog_api_action_runs) = signal(0_u32);
+    let (command_dialog_api_last_action, set_command_dialog_api_last_action) =
+        signal("none".to_string());
+    let on_command_dialog_api_action = Callback::new(move |id: String| {
+        set_command_dialog_api_last_action.set(id);
+        set_command_dialog_api_action_runs.update(|count| *count += 1);
+    });
+    let command_dialog_api_command_motion = Signal::derive(move || {
+        if command_dialog_api_custom_motion.get() {
+            let mut motion = ui::CommandMotion::default();
+            motion.spring.stiffness = 260.0;
+            motion.spring.damping = 22.0;
+            motion
+        } else {
+            ui::CommandMotion::default()
+        }
+    });
+    let command_dialog_api_overlay_motion = Signal::derive(move || {
+        if command_dialog_api_custom_motion.get() {
+            ui::OverlayMotion {
+                initial_scale: 0.96,
+                initial_y_px: 8.0,
+                ..ui::OverlayMotion::default()
+            }
+        } else {
+            ui::OverlayMotion::default()
+        }
+    });
+    let command_dialog_api_code = Signal::derive(move || {
+        let description = if command_dialog_api_custom_text.get() {
+            "Try command search with marker-rich contracts."
+        } else {
+            ""
+        };
+        let placeholder = if command_dialog_api_custom_text.get() {
+            "Search docs commands..."
+        } else {
+            ""
+        };
+        let empty_label = if command_dialog_api_custom_text.get() {
+            "No docs command found."
+        } else {
+            ""
+        };
+        let aria_label = if command_dialog_api_custom_text.get() {
+            "Docs command dialog"
+        } else {
+            ""
+        };
+        let class_name = if command_dialog_api_custom_class.get() {
+            "docs-command-dialog-custom"
+        } else {
+            ""
+        };
+        let command_motion = if command_dialog_api_custom_motion.get() {
+            "CommandMotion { spring: SpringConfig { stiffness: 260.0, damping: 22.0, ..spring_slide() }, ..CommandMotion::default() }"
+        } else {
+            "CommandMotion::default()"
+        };
+        let overlay_motion = if command_dialog_api_custom_motion.get() {
+            "OverlayMotion { initial_scale: 0.96, initial_y_px: 8.0, ..OverlayMotion::default() }"
+        } else {
+            "OverlayMotion::default()"
+        };
+
+        format!(
+            "<CommandDialog\n  groups=groups.clone()\n  open=Signal::derive(move || open_raw.get())\n  default_open={}\n  on_open_change=on_open_change\n  on_action=on_action\n  close_on_action={}\n  id_base=\"docs-command-dialog-api-workbench\".to_string()\n  title=\"Docs Command Center\".to_string()\n  description={:?}\n  is_disabled={}\n  disabled={}\n  command_motion={command_motion}\n  overlay_motion={overlay_motion}\n  placeholder={:?}\n  empty_label={:?}\n  aria_label={:?}\n  class_name={:?}\n/>",
+            command_dialog_api_default_open.get(),
+            command_dialog_api_close_on_action.get(),
+            description,
+            command_dialog_api_is_disabled.get(),
+            command_dialog_api_disabled.get(),
+            placeholder,
+            empty_label,
+            aria_label,
+            class_name,
+        )
+    });
+    let command_dialog_api_actual_config = Signal::derive(move || {
+        let description = if command_dialog_api_custom_text.get() {
+            Some("Try command search with marker-rich contracts.")
+        } else {
+            Some("")
+        };
+        let placeholder = if command_dialog_api_custom_text.get() {
+            Some("Search docs commands...")
+        } else {
+            Some("")
+        };
+        let empty_label = if command_dialog_api_custom_text.get() {
+            Some("No docs command found.")
+        } else {
+            Some("")
+        };
+        let aria_label = if command_dialog_api_custom_text.get() {
+            Some("Docs command dialog")
+        } else {
+            Some("")
+        };
+        let class_name = if command_dialog_api_custom_class.get() {
+            Some("docs-command-dialog-custom")
+        } else {
+            Some("")
+        };
+
+        format!(
+            "CommandDialogApiWorkbenchConfig {{\n  groups: \"sample_groups(len=2)\",\n  open: Some({}),\n  default_open: Some({}),\n  on_open_change: \"runs={}\",\n  on_action: \"runs={}, last={:?}\",\n  close_on_action: {},\n  id_base: Some(\"docs-command-dialog-api-workbench\"),\n  title: Some(\"Docs Command Center\"),\n  description: {description:?},\n  is_disabled: Some({}),\n  disabled: {},\n  command_motion: {},\n  overlay_motion: {},\n  placeholder: {placeholder:?},\n  empty_label: {empty_label:?},\n  aria_label: {aria_label:?},\n  class_name: {class_name:?},\n}}",
+            command_dialog_api_open_raw.get(),
+            command_dialog_api_default_open.get(),
+            command_dialog_api_open_change_runs.get(),
+            command_dialog_api_action_runs.get(),
+            command_dialog_api_last_action.get(),
+            command_dialog_api_close_on_action.get(),
+            command_dialog_api_is_disabled.get(),
+            command_dialog_api_disabled.get(),
+            if command_dialog_api_custom_motion.get() {
+                "CommandMotion::custom"
+            } else {
+                "CommandMotion::default"
+            },
+            if command_dialog_api_custom_motion.get() {
+                "OverlayMotion::custom"
+            } else {
+                "OverlayMotion::default"
+            },
+        )
     });
 
     let state_matrix_options = vec![
@@ -3033,19 +3589,19 @@ let (last_action, set_last_action) = signal("none".to_string());
   empty_label="No command matches your search.".to_string()
   aria_label="Workspace command dialog".to_string()
   class_name="docs-command-dialog-custom".to_string()
-  overlay_motion=ui_components::OverlayMotion {
+  overlay_motion=ui::OverlayMotion {
     initial_scale: 0.95,
     initial_y_px: 10.0,
-    ..ui_components::OverlayMotion::default()
+    ..ui::OverlayMotion::default()
   }
 />"#
         .to_string()
     });
 
-    let marker_overlay_motion = ui_components::OverlayMotion {
+    let marker_overlay_motion = ui::OverlayMotion {
         initial_scale: 0.95,
         initial_y_px: 10.0,
-        ..ui_components::OverlayMotion::default()
+        ..ui::OverlayMotion::default()
     };
 
     let workbench_options = vec![
@@ -3069,7 +3625,7 @@ let (last_action, set_last_action) = signal("none".to_string());
     let workbench_groups = groups.clone();
 
     let workbench_command_motion = Signal::derive(move || {
-        let mut motion = ui_components::CommandMotion::default();
+        let mut motion = ui::CommandMotion::default();
         if workbench_custom_motion.get() {
             motion.spring.stiffness = 260.0;
             motion.spring.damping = 22.0;
@@ -3078,7 +3634,7 @@ let (last_action, set_last_action) = signal("none".to_string());
     });
 
     let workbench_overlay_motion = Signal::derive(move || {
-        let mut motion = ui_components::OverlayMotion::default();
+        let mut motion = ui::OverlayMotion::default();
         if workbench_custom_motion.get() {
             motion.initial_scale = 0.96;
             motion.initial_y_px = 8.0;
@@ -3127,17 +3683,17 @@ let (last_action, set_last_action) = signal("none".to_string());
             lines.push("  class_name=\"docs-command-dialog-custom\".into()".to_string());
         }
         if workbench_custom_motion.get() {
-            lines.push("  command_motion=ui_components::CommandMotion {".to_string());
+            lines.push("  command_motion=ui::CommandMotion {".to_string());
             lines.push("    spring: ui_motion::spring::SpringConfig {".to_string());
             lines.push("      stiffness: 260.0,".to_string());
             lines.push("      damping: 22.0,".to_string());
             lines.push("      ..ui_motion::presets::spring_slide()".to_string());
             lines.push("    },".to_string());
             lines.push("  }".to_string());
-            lines.push("  overlay_motion=ui_components::OverlayMotion {".to_string());
+            lines.push("  overlay_motion=ui::OverlayMotion {".to_string());
             lines.push("    initial_scale: 0.96,".to_string());
             lines.push("    initial_y_px: 8.0,".to_string());
-            lines.push("    ..ui_components::OverlayMotion::default()".to_string());
+            lines.push("    ..ui::OverlayMotion::default()".to_string());
             lines.push("  }".to_string());
         }
         lines.push("/>".to_string());
@@ -3153,7 +3709,7 @@ let (last_action, set_last_action) = signal("none".to_string());
     let workbench_test_css_source = Signal::derive(move || {
         format!(
             "/* components/command-dialog/src/styles.rs */\n{}",
-            ui_components::command_dialog::styles::CSS
+            ui::command_dialog::styles::CSS
         )
     });
 
@@ -3194,6 +3750,94 @@ let (last_action, set_last_action) = signal("none".to_string());
                     <p class="ui-muted">
                         "Hello World path: drop in one group and rely on default snapshot rendering."
                     </p>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=command_dialog_api_code
+                code_imports=COMMAND_DIALOG_DOC_IMPORTS.to_string()
+                test_config_signal=command_dialog_api_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="command-dialog-api-workbench-controls">
+                        <Switch checked=command_dialog_api_default_open set_checked=set_command_dialog_api_default_open>
+                            "default_open"
+                        </Switch>
+                        <Switch checked=command_dialog_api_close_on_action set_checked=set_command_dialog_api_close_on_action>
+                            "close_on_action"
+                        </Switch>
+                        <Switch checked=command_dialog_api_is_disabled set_checked=set_command_dialog_api_is_disabled>
+                            "is_disabled"
+                        </Switch>
+                        <Switch checked=command_dialog_api_disabled set_checked=set_command_dialog_api_disabled>
+                            "disabled"
+                        </Switch>
+                        <Switch checked=command_dialog_api_custom_text set_checked=set_command_dialog_api_custom_text>
+                            "description/placeholder/empty_label/aria_label"
+                        </Switch>
+                        <Switch checked=command_dialog_api_custom_class set_checked=set_command_dialog_api_custom_class>
+                            "class_name"
+                        </Switch>
+                        <Switch checked=command_dialog_api_custom_motion set_checked=set_command_dialog_api_custom_motion>
+                            "command_motion/overlay_motion"
+                        </Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <button type="button" on:click=move |_| set_command_dialog_api_open_raw.set(true)>
+                            "Open"
+                        </button>
+                        <button type="button" on:click=move |_| set_command_dialog_api_open_raw.set(false)>
+                            "Close"
+                        </button>
+                    </div>
+                    <CommandDialog
+                        groups=command_dialog_api_groups.clone()
+                        open=command_dialog_api_open
+                        default_open=command_dialog_api_default_open.get()
+                        on_open_change=on_command_dialog_api_open_change
+                        on_action=on_command_dialog_api_action
+                        close_on_action=command_dialog_api_close_on_action.get()
+                        id_base="docs-command-dialog-api-workbench".to_string()
+                        title="Docs Command Center".to_string()
+                        description=if command_dialog_api_custom_text.get() {
+                            "Try command search with marker-rich contracts.".to_string()
+                        } else {
+                            String::new()
+                        }
+                        is_disabled=command_dialog_api_is_disabled.get()
+                        disabled=command_dialog_api_disabled.get()
+                        command_motion=command_dialog_api_command_motion.get()
+                        overlay_motion=command_dialog_api_overlay_motion.get()
+                        placeholder=if command_dialog_api_custom_text.get() {
+                            "Search docs commands...".to_string()
+                        } else {
+                            String::new()
+                        }
+                        empty_label=if command_dialog_api_custom_text.get() {
+                            "No docs command found.".to_string()
+                        } else {
+                            String::new()
+                        }
+                        aria_label=if command_dialog_api_custom_text.get() {
+                            "Docs command dialog".to_string()
+                        } else {
+                            String::new()
+                        }
+                        class_name=if command_dialog_api_custom_class.get() {
+                            "docs-command-dialog-custom".to_string()
+                        } else {
+                            String::new()
+                        }
+                    />
+                    <span class="ui-muted">
+                        "open: " {move || command_dialog_api_open_raw.get()}
+                        " · on_open_change: " {move || command_dialog_api_open_change_runs.get()}
+                        " · on_action: " {move || command_dialog_api_action_runs.get()}
+                        " · last action: " {move || command_dialog_api_last_action.get()}
+                    </span>
                 </div>
             </Playground>
 
@@ -3583,7 +4227,7 @@ let (last_action, set_last_action) = signal("none".to_string());
                 <p class="ui-muted">
                     "Dependency prerequisites: "
                     <code>
-                        "ui-components = { workspace = true, default-features = false, features = [\"component-command_dialog\", \"inject-css\"] }"
+                        "ui = { workspace = true, default-features = false, features = [\"component-command_dialog\", \"inject-css\"] }"
                     </code>
                 </p>
                 <ul class="docs-stack docs-stack--tight" data-slot="command-dialog-source-paths">

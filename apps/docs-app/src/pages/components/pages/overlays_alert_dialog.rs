@@ -1,12 +1,15 @@
 use crate::pages::components::ComponentPage;
+use crate::pages::components::pages::playground_workbench::{
+    bool_word, push_line_when, rust_string_literal,
+};
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     AlertDialog, AlertDialogVariant, Button, ButtonVariant, OnPress, SegmentedControl,
     SegmentedControlSize, Snippet,
 };
 
-const ALERT_DIALOG_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::{AlertDialog, AlertDialogAutoFocusButton, AlertDialogMotion, AlertDialogVariant, Button, ButtonVariant, OnPress, OverlayMotion, SegmentedControl, SegmentedControlSize};";
+const ALERT_DIALOG_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui::{AlertDialog, AlertDialogAutoFocusButton, AlertDialogMotion, AlertDialogVariant, Button, ButtonVariant, OnPress, OverlayMotion, SegmentedControl, SegmentedControlSize};";
 
 pub(super) fn alert_dialog() -> AnyView {
     let (hello_open_raw, set_hello_open_raw) = signal(false);
@@ -83,13 +86,13 @@ let close_alert: OnPress = Callback::new(move |_| set_open_raw.set(false));
   secondary_label="Save draft".to_string()
   on_confirm=Callback::new(move |_| {})
   on_secondary=Callback::new(move |_| {})
-  auto_focus_button=ui_components::AlertDialogAutoFocusButton::Secondary
+  auto_focus_button=ui::AlertDialogAutoFocusButton::Secondary
   secondary_disabled=true
-  motion=ui_components::AlertDialogMotion {
-    overlay: ui_components::OverlayMotion {
+  motion=ui::AlertDialogMotion {
+    overlay: ui::OverlayMotion {
       initial_scale: 0.95,
       initial_y_px: 12.0,
-      ..ui_components::OverlayMotion::default()
+      ..ui::OverlayMotion::default()
     }
   }
 />"#
@@ -101,6 +104,8 @@ let close_alert: OnPress = Callback::new(move |_| set_open_raw.set(false));
         "Warning + Secondary Disabled".to_string(),
         "Error + Confirm Disabled".to_string(),
     ];
+    let state_matrix_options_for_primary = state_matrix_options.clone();
+    let state_matrix_options_for_after = state_matrix_options.clone();
     let (state_matrix_index, set_state_matrix_index) = signal(Some(0_usize));
     let state_matrix_is_warning =
         Signal::derive(move || state_matrix_index.get().unwrap_or(0) == 1);
@@ -216,6 +221,214 @@ let close_alert: OnPress = Callback::new(move |_| set_open_raw.set(false));
         .to_string()
     });
 
+    let workbench_variant_options = vec![
+        "Destructive".to_string(),
+        "Warning".to_string(),
+        "Error".to_string(),
+    ];
+    let (workbench_variant_index, set_workbench_variant_index) = signal(Some(0_usize));
+    let workbench_variant =
+        Signal::derive(move || match workbench_variant_index.get().unwrap_or(0) {
+            1 => AlertDialogVariant::Warning,
+            2 => AlertDialogVariant::Error,
+            _ => AlertDialogVariant::Destructive,
+        });
+
+    let (workbench_show_description, set_workbench_show_description) = signal(true);
+    let (workbench_show_secondary, set_workbench_show_secondary) = signal(false);
+    let (workbench_confirm_disabled, set_workbench_confirm_disabled) = signal(false);
+    let (workbench_secondary_disabled, set_workbench_secondary_disabled) = signal(false);
+    let (workbench_auto_focus_secondary, set_workbench_auto_focus_secondary) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+
+    let (workbench_open_raw, set_workbench_open_raw) = signal(false);
+    let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
+    let (workbench_present, set_workbench_present) = signal(workbench_open.get_untracked());
+    Effect::new(move |_| {
+        if workbench_open.get() {
+            set_workbench_present.set(true);
+        }
+    });
+    let open_workbench_alert: OnPress = Callback::new(move |_| set_workbench_open_raw.set(true));
+    let close_workbench_alert: OnPress = Callback::new(move |_| set_workbench_open_raw.set(false));
+    let on_workbench_exit_complete = Callback::new(move |_| set_workbench_present.set(false));
+
+    let (workbench_confirm_count, set_workbench_confirm_count) = signal(0_u32);
+    let on_workbench_confirm: OnPress = Callback::new(move |_| {
+        set_workbench_confirm_count.update(|value| *value = value.saturating_add(1));
+    });
+    let on_workbench_secondary: OnPress = Callback::new(move |_| {
+        set_workbench_confirm_count.update(|value| *value = value.saturating_add(10));
+    });
+
+    let workbench_motion = Signal::derive(move || {
+        if workbench_custom_motion.get() {
+            ui::AlertDialogMotion {
+                overlay: ui::OverlayMotion {
+                    initial_scale: 0.92,
+                    initial_y_px: 10.0,
+                    ..ui::OverlayMotion::default()
+                },
+            }
+        } else {
+            ui::AlertDialogMotion::default()
+        }
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let variant = workbench_variant.get();
+        let show_description = workbench_show_description.get();
+        let show_secondary = workbench_show_secondary.get();
+        let confirm_disabled = workbench_confirm_disabled.get();
+        let secondary_disabled = workbench_secondary_disabled.get();
+        let auto_focus_secondary = workbench_auto_focus_secondary.get();
+        let custom_motion = workbench_custom_motion.get();
+
+        let title = match variant {
+            AlertDialogVariant::Warning => "Warning review required",
+            AlertDialogVariant::Error => "Error acknowledgement required",
+            _ => "Delete item?",
+        };
+        let description = match variant {
+            AlertDialogVariant::Warning => {
+                "Potentially destructive operation. Confirm after review."
+            }
+            AlertDialogVariant::Error => {
+                "Critical issue detected. Confirm remains disabled for safe acknowledgment."
+            }
+            _ => "This operation cannot be undone.",
+        };
+
+        let mut lines = vec![
+            "let (open_raw, set_open_raw) = signal(false);".to_string(),
+            "let open: Signal<bool> = Signal::derive(move || open_raw.get());".to_string(),
+            "<AlertDialog".to_string(),
+            "  open=open".to_string(),
+            "  id_base=\"docs-alert-workbench\".to_string()".to_string(),
+            format!("  title={}.to_string()", rust_string_literal(title)),
+            "  on_close=Callback::new(move |_| set_open_raw.set(false))".to_string(),
+            "  on_cancel=Callback::new(move |_| set_open_raw.set(false))".to_string(),
+            "  confirm_label=\"Confirm\".to_string()".to_string(),
+            "  on_confirm=Callback::new(move |_| {})".to_string(),
+            format!("  variant=AlertDialogVariant::{variant:?}"),
+            "  lang=Some(\"en\".to_string())".to_string(),
+            "  dir=Some(A11yDirection::Ltr)".to_string(),
+        ];
+        push_line_when(
+            &mut lines,
+            show_description,
+            format!(
+                "  description={}.to_string()",
+                rust_string_literal(description)
+            ),
+        );
+        push_line_when(
+            &mut lines,
+            show_secondary,
+            "  secondary_label=\"Save draft\".to_string()".to_string(),
+        );
+        push_line_when(
+            &mut lines,
+            show_secondary,
+            "  on_secondary=Callback::new(move |_| {})".to_string(),
+        );
+        push_line_when(
+            &mut lines,
+            confirm_disabled,
+            "  confirm_disabled=true".to_string(),
+        );
+        push_line_when(
+            &mut lines,
+            confirm_disabled,
+            "  is_confirm_disabled=Some(true)".to_string(),
+        );
+        push_line_when(
+            &mut lines,
+            show_secondary && secondary_disabled,
+            "  secondary_disabled=true".to_string(),
+        );
+        push_line_when(
+            &mut lines,
+            show_secondary && secondary_disabled,
+            "  is_secondary_disabled=Some(true)".to_string(),
+        );
+        push_line_when(
+            &mut lines,
+            auto_focus_secondary,
+            "  auto_focus_button=ui::AlertDialogAutoFocusButton::Secondary".to_string(),
+        );
+        push_line_when(
+            &mut lines,
+            !auto_focus_secondary,
+            "  auto_focus_button=ui::AlertDialogAutoFocusButton::Confirm".to_string(),
+        );
+        push_line_when(
+            &mut lines,
+            custom_motion,
+            "  motion=ui::AlertDialogMotion { overlay: ui::OverlayMotion { initial_scale: 0.92, initial_y_px: 10.0, ..ui::OverlayMotion::default() } }".to_string(),
+        );
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let auto_focus_button = if workbench_auto_focus_secondary.get() {
+            "Secondary"
+        } else {
+            "Confirm"
+        };
+        let show_secondary = workbench_show_secondary.get();
+        let secondary_disabled = show_secondary && workbench_secondary_disabled.get();
+
+        format!(
+            "AlertDialogWorkbenchConfig {{\n  open: Some(Signal<bool>({})),\n  id_base: \"docs-alert-workbench\",\n  title: {:?},\n  on_close: Some(\"OnPress\"),\n  confirm_label: Some(\"Confirm\"),\n  on_confirm: Some(\"OnPress\"),\n  description: {},\n  cancel_label: Some(\"Cancel\"),\n  secondary_label: {},\n  on_secondary: {},\n  on_cancel: Some(\"OnPress\"),\n  is_confirm_disabled: Some({}),\n  confirm_disabled: Some({}),\n  is_secondary_disabled: {},\n  secondary_disabled: {},\n  auto_focus_button: \"{}\",\n  variant: {:?},\n  motion: {},\n  on_exit_complete: Some(\"Callback<()>\"),\n  lang: Some(\"en\"),\n  dir: Some(\"ltr\"),\n  show_description: {},\n  show_secondary: {},\n  confirm_count: {},\n}}",
+            bool_word(workbench_open_raw.get()),
+            match workbench_variant.get() {
+                AlertDialogVariant::Warning => "Warning review required",
+                AlertDialogVariant::Error => "Error acknowledgement required",
+                AlertDialogVariant::Destructive => "Delete item?",
+                _ => "Confirm action?",
+            },
+            if workbench_show_description.get() {
+                "Some(\"Variant-specific description\")"
+            } else {
+                "None"
+            },
+            if show_secondary {
+                "Some(\"Save draft\")"
+            } else {
+                "None"
+            },
+            if show_secondary {
+                "Some(\"OnPress\")"
+            } else {
+                "None"
+            },
+            bool_word(workbench_confirm_disabled.get()),
+            bool_word(workbench_confirm_disabled.get()),
+            if show_secondary {
+                format!("Some({})", bool_word(secondary_disabled))
+            } else {
+                "None".to_string()
+            },
+            if show_secondary {
+                format!("Some({})", bool_word(secondary_disabled))
+            } else {
+                "None".to_string()
+            },
+            auto_focus_button,
+            workbench_variant.get(),
+            if workbench_custom_motion.get() {
+                "AlertDialogMotion::custom"
+            } else {
+                "AlertDialogMotion::default"
+            },
+            bool_word(workbench_show_description.get()),
+            bool_word(show_secondary),
+            workbench_confirm_count.get(),
+        )
+    });
+
     view! {
         <ComponentPage
             title="AlertDialog"
@@ -289,13 +502,13 @@ let close_alert: OnPress = Callback::new(move |_| set_open_raw.set(false));
                         on_confirm=on_marker_confirm
                         on_secondary=on_marker_secondary
                         variant=AlertDialogVariant::Warning
-                        auto_focus_button=ui_components::AlertDialogAutoFocusButton::Secondary
+                        auto_focus_button=ui::AlertDialogAutoFocusButton::Secondary
                         secondary_disabled=true
-                        motion=ui_components::AlertDialogMotion {
-                            overlay: ui_components::OverlayMotion {
+                        motion=ui::AlertDialogMotion {
+                            overlay: ui::OverlayMotion {
                                 initial_scale: 0.95,
                                 initial_y_px: 12.0,
-                                ..ui_components::OverlayMotion::default()
+                                ..ui::OverlayMotion::default()
                             },
                         }
                         on_exit_complete=on_marker_exit_complete
@@ -304,7 +517,7 @@ let close_alert: OnPress = Callback::new(move |_| set_open_raw.set(false));
             </Playground>
 
             <Playground
-                title="State Matrix"
+                title="State Scenarios"
                 description="Matrix for variant/disabled combinations under the same semantic contract."
                 code_signal=state_matrix_code
                 code_imports=ALERT_DIALOG_DOC_IMPORTS.to_string()
@@ -312,7 +525,7 @@ let close_alert: OnPress = Callback::new(move |_| set_open_raw.set(false));
                 <div class="docs-stack docs-stack--tight" data-slot="alert-dialog-state-matrix">
                     <SegmentedControl
                         id_base="docs-alert-dialog-matrix".to_string()
-                        options=state_matrix_options.clone()
+                        options=state_matrix_options_for_primary.clone()
                         selected_index=state_matrix_index
                         set_selected_index=set_state_matrix_index
                         size=SegmentedControlSize::Sm
@@ -466,6 +679,220 @@ let close_alert: OnPress = Callback::new(move |_| set_open_raw.set(false));
                 </div>
             </Playground>
 
+            <Playground
+                title="Interactive Playground (Display + Config + Code + CSS Test)"
+                description="Button-style workbench: adjust variant/state props and inspect generated config + copy-ready code."
+                code_signal=workbench_code
+                code_imports=ALERT_DIALOG_DOC_IMPORTS.to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="alert-dialog-workbench-controls">
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-alert-dialog-workbench-variant".to_string()
+                            options=workbench_variant_options.clone()
+                            selected_index=workbench_variant_index
+                            set_selected_index=set_workbench_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="AlertDialog workbench variant".to_string()
+                        />
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_show_description.get()
+                                on:change=move |ev| set_workbench_show_description.set(event_target_checked(&ev))
+                            />
+                            " Show description"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_show_secondary.get()
+                                on:change=move |ev| set_workbench_show_secondary.set(event_target_checked(&ev))
+                            />
+                            " Enable secondary action"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_confirm_disabled.get()
+                                on:change=move |ev| set_workbench_confirm_disabled.set(event_target_checked(&ev))
+                            />
+                            " Disable confirm"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_secondary_disabled.get()
+                                on:change=move |ev| set_workbench_secondary_disabled.set(event_target_checked(&ev))
+                            />
+                            " Disable secondary"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_auto_focus_secondary.get()
+                                on:change=move |ev| set_workbench_auto_focus_secondary.set(event_target_checked(&ev))
+                            />
+                            " Auto-focus secondary"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_motion.get()
+                                on:change=move |ev| set_workbench_custom_motion.set(event_target_checked(&ev))
+                            />
+                            " Custom motion"
+                        </label>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="alert-dialog-workbench">
+                    <div class="docs-row">
+                        <Button attr:data-slot="alert-dialog-workbench-open" on_press=open_workbench_alert>
+                            "Open interactive alert"
+                        </Button>
+                        <Button
+                            attr:data-slot="alert-dialog-workbench-close"
+                            variant=ButtonVariant::Secondary
+                            on_press=close_workbench_alert
+                        >
+                            "Close"
+                        </Button>
+                        <span class="ui-muted">"confirm counter: " {move || workbench_confirm_count.get()}</span>
+                    </div>
+                    <Show when=move || workbench_present.get()>
+                        {move || {
+                            let variant = workbench_variant.get();
+                            let description = if workbench_show_description.get() {
+                                match variant {
+                                    AlertDialogVariant::Warning => "Potentially destructive operation. Confirm after review.",
+                                    AlertDialogVariant::Error => "Critical issue detected. Confirm remains disabled for safe acknowledgment.",
+                                    _ => "This operation cannot be undone.",
+                                }
+                                .to_string()
+                            } else {
+                                String::new()
+                            };
+                            let secondary_label = if workbench_show_secondary.get() {
+                                "Save draft".to_string()
+                            } else {
+                                String::new()
+                            };
+                            let auto_focus_button = if workbench_auto_focus_secondary.get() {
+                                ui::AlertDialogAutoFocusButton::Secondary
+                            } else {
+                                ui::AlertDialogAutoFocusButton::Confirm
+                            };
+                            let motion = workbench_motion.get();
+
+                            view! {
+                                <AlertDialog
+                                    open=workbench_open
+                                    id_base="docs-alert-workbench".to_string()
+                                    title=match variant {
+                                        AlertDialogVariant::Warning => "Warning review required".to_string(),
+                                        AlertDialogVariant::Error => "Error acknowledgement required".to_string(),
+                                        _ => "Delete item?".to_string(),
+                                    }
+                                    description=description
+                                    on_close=close_workbench_alert
+                                    confirm_label="Confirm".to_string()
+                                    on_confirm=on_workbench_confirm
+                                    secondary_label=secondary_label
+                                    on_secondary=on_workbench_secondary
+                                    variant=variant
+                                    confirm_disabled=workbench_confirm_disabled.get()
+                                    secondary_disabled=workbench_show_secondary.get()
+                                        && workbench_secondary_disabled.get()
+                                    auto_focus_button=auto_focus_button
+                                    motion=motion
+                                    on_exit_complete=on_workbench_exit_complete
+                                />
+                            }
+                        }}
+                    </Show>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Destructive / Warning / Error)"
+                description="Workbench 后的多参数状态对比。"
+                code_signal=state_matrix_code
+                code_imports=ALERT_DIALOG_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="alert-dialog-state-matrix-after-workbench">
+                    <SegmentedControl
+                        id_base="docs-alert-dialog-matrix-after-workbench".to_string()
+                        options=state_matrix_options_for_after.clone()
+                        selected_index=state_matrix_index
+                        set_selected_index=set_state_matrix_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="AlertDialog state matrix scenario".to_string()
+                    />
+                    <div class="docs-row">
+                        <Button on_press=open_matrix_alert>"Open matrix alert"</Button>
+                        <span class="ui-muted">"confirmed: " {move || confirmed.get()}</span>
+                    </div>
+
+                    <Show when=move || matrix_present.get()>
+                        {move || {
+                            let variant = if state_matrix_is_error.get() {
+                                AlertDialogVariant::Error
+                            } else if state_matrix_is_warning.get() {
+                                AlertDialogVariant::Warning
+                            } else {
+                                AlertDialogVariant::Destructive
+                            };
+                            let title = if state_matrix_is_error.get() {
+                                "Error path"
+                            } else if state_matrix_is_warning.get() {
+                                "Warning path"
+                            } else {
+                                "Destructive path"
+                            };
+                            let description = if state_matrix_is_error.get() {
+                                "Confirm action is disabled to expose error-state marker behavior."
+                            } else if state_matrix_is_warning.get() {
+                                "Secondary action stays visible but disabled in warning matrix branch."
+                            } else {
+                                "Default destructive branch with minimal surface."
+                            };
+                            let title: String = title.into();
+                            let description: String = description.into();
+                            let secondary_label = if state_matrix_is_warning.get() {
+                                "Save draft".to_string()
+                            } else {
+                                String::new()
+                            };
+                            let confirm_label = if state_matrix_is_error.get() {
+                                "Acknowledge".to_string()
+                            } else {
+                                "Delete".to_string()
+                            };
+
+                            view! {
+                                <AlertDialog
+                                    open=matrix_open
+                                    id_base="docs-alert-matrix-after-workbench".to_string()
+                                    title=title
+                                    description=description
+                                    on_close=close_matrix_alert
+                                    confirm_label=confirm_label
+                                    on_confirm=on_matrix_confirm
+                                    secondary_label=secondary_label
+                                    on_secondary=on_matrix_secondary
+                                    secondary_disabled=state_matrix_is_warning.get()
+                                    confirm_disabled=state_matrix_is_error.get()
+                                    variant=variant
+                                    on_exit_complete=on_matrix_exit_complete
+                                />
+                            }
+                        }}
+                    </Show>
+                </div>
+            </Playground>
+
             <section class="docs-card docs-prose" data-slot="alert-dialog-source-first">
                 <h3>"Source-first / Copy-Paste Ready"</h3>
                 <p>
@@ -483,11 +910,11 @@ let close_alert: OnPress = Callback::new(move |_| set_open_raw.set(false));
                 <p>
                     "Dependency prerequisites: "
                     <code>
-                        "ui-components = { workspace = true, default-features = false, features = [\"component-alert_dialog\", \"inject-css\"] }"
+                        "ui = { workspace = true, default-features = false, features = [\"component-alert_dialog\", \"inject-css\"] }"
                     </code>
                 </p>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::{AlertDialog, AlertDialogVariant, OnPress};\n\nlet (open_raw, set_open_raw) = signal(false);\nlet open: Signal<bool> = Signal::derive(move || open_raw.get());\nlet on_close: OnPress = Callback::new(move |_| set_open_raw.set(false));\n\n<AlertDialog open=open id_base=\"docs-alert\".to_string() title=\"Delete item?\".to_string() on_close=on_close confirm_label=\"Delete\".to_string() on_confirm=Callback::new(move |_| {}) variant=AlertDialogVariant::Destructive />".to_string()
+                    text="use leptos::prelude::*;\nuse ui::{AlertDialog, AlertDialogVariant, OnPress};\n\nlet (open_raw, set_open_raw) = signal(false);\nlet open: Signal<bool> = Signal::derive(move || open_raw.get());\nlet on_close: OnPress = Callback::new(move |_| set_open_raw.set(false));\n\n<AlertDialog open=open id_base=\"docs-alert\".to_string() title=\"Delete item?\".to_string() on_close=on_close confirm_label=\"Delete\".to_string() on_confirm=Callback::new(move |_| {}) variant=AlertDialogVariant::Destructive />".to_string()
                     label="Copy alert-dialog starter".to_string()
                     copyable=true
                     class_name="docs-alert-dialog-source-copy".to_string()

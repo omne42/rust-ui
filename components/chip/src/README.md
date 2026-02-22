@@ -41,7 +41,7 @@ Interactive Playground 可调：
 
 ## docs-app CSS Test 区（CSS Test）
 
-- `test_css_source`: `ui_components::chip::styles::CSS`
+- `test_css_source`: `ui::chip::styles::CSS`
 - `test_source_path`: `components/chip/src/styles.rs`
 - `test_config_signal`: `ChipActualConfig`
 

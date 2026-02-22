@@ -287,7 +287,7 @@ fn underlay_css_is_feature_gated_and_aggregated() {
 
     assert!(
         css_source.contains("out.push_str(crate::underlay::styles::CSS);"),
-        "ui-components css aggregator should include underlay styles."
+        "ui css aggregator should include underlay styles."
     );
     assert!(
         lib_source.contains("#[cfg(feature = \"component-underlay\")]"),
@@ -317,8 +317,8 @@ fn underlay_docs_show_recommended_is_prefixed_api_and_source_markers() {
         "data-ui-stream-mode",
         "data-ui-output-status",
         "test_source_path=\"components/underlay/src/view.rs\".to_string()",
-        "Copy-ready snippets auto-include `use leptos::prelude::*; use ui_components::*;`",
-        "requires `ui-components` with `component-underlay`",
+        "Copy-ready snippets auto-include `use leptos::prelude::*; use ui::*;`",
+        "requires `ui` with `component-underlay`",
     ] {
         assert!(
             source.contains(needle),

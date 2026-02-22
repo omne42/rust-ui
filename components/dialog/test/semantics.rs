@@ -560,7 +560,7 @@ fn dialog_hydration_path_avoids_time_random_uuid_and_uses_deterministic_ids() {
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
     let mod_source = load_source("src/mod.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
 
     for forbidden in [
         "SystemTime::now",
@@ -757,7 +757,7 @@ fn dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_
     let overlay_motion_source = load_source("../overlay/src/motion.rs");
     let ui_motion_source = load_source("../../crates/ui-motion/src/lib.rs");
     let view_source = load_source("src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
     let checklist_source = load_source("check2.md");
 
     for needle in [
@@ -826,7 +826,7 @@ fn dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
     assert!(
         script_source.contains(script_needle),
         "platform check script should include `{script_needle}`.",
@@ -835,7 +835,7 @@ fn dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_
     for needle in [
         "- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。",
         "dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
-        "scripts/check-ui-components-platforms.sh",
+        "scripts/check-ui-platforms.sh",
         "stiffness: 225.0",
         "damping: 21.0",
     ] {
@@ -848,16 +848,16 @@ fn dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_
 
 #[test]
 fn dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let active_highlight_source =
         load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
     let controllable_state_source =
         load_source("../../crates/ui-headless/src/controllable_state.rs");
     let presence_source = load_source("../../crates/ui-headless/src/presence.rs");
     let a11y_source = load_source("../../crates/ui-headless/src/a11y.rs");
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
     let checklist_source = load_source("check2.md");
 
     for needle in [
@@ -873,7 +873,7 @@ fn dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep marker `{needle}`.",
+            "ui lib entry should keep marker `{needle}`.",
         );
     }
 
@@ -885,7 +885,7 @@ fn dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform/internal marker `{forbidden}`.",
+            "ui lib entry should not leak platform/internal marker `{forbidden}`.",
         );
     }
 
@@ -902,7 +902,7 @@ fn dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css registry should keep feature-gated marker `{needle}`.",
+            "ui css registry should keep feature-gated marker `{needle}`.",
         );
     }
 
@@ -955,13 +955,13 @@ fn dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
     }
 
     for forbidden in [
-        "../../crates/ui-components/src/overlay_open.rs",
-        "../../crates/ui-components/src/presence.rs",
-        "../../crates/ui-components/src/a11y.rs",
+        "../../crates/ui/src/overlay_open.rs",
+        "../../crates/ui/src/presence.rs",
+        "../../crates/ui/src/a11y.rs",
     ] {
         assert!(
             !component_dir().join(forbidden).exists(),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`.",
+            "ui forbidden entrypoint file should not exist: `{forbidden}`.",
         );
     }
 
@@ -989,19 +989,19 @@ fn dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         script_source.contains(script_needle),
         "entrypoints check script should include `{script_needle}`.",
     );
 
     for needle in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "dialog_ui_components_fixed_entry_files_follow_layered_boundaries",
-        "scripts/check-ui-components-entrypoints.sh",
-        "crates/ui-components/src/lib.rs",
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "scripts/check-ui-entrypoints.sh",
+        "crates/ui/src/lib.rs",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "crates/ui-visual-primitive/src/active_highlight.rs",
         "crates/ui-headless/src/controllable_state.rs",
         "crates/ui-headless/src/presence.rs",
@@ -1016,18 +1016,18 @@ fn dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
 #[test]
 fn dialog_tree_shaking_contract_registers_component_feature_and_gates_lib_css_aggregation() {
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
 
     assert!(
         cargo_source.contains("component-dialog = [\"component-overlay\", \"component-button\"]"),
-        "ui-components feature tree should register `component-dialog` with minimal dependency chain.",
+        "ui feature tree should register `component-dialog` with minimal dependency chain.",
     );
     assert!(
         cargo_source.contains("web-demo-components = [")
             && cargo_source.contains("\"component-dialog\","),
-        "ui-components feature bundles should include component-dialog registration.",
+        "ui feature bundles should include component-dialog registration.",
     );
     assert!(
         cargo_source.contains("all-components = [")
@@ -1043,7 +1043,7 @@ fn dialog_tree_shaking_contract_registers_component_feature_and_gates_lib_css_ag
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib should keep dialog feature gate marker `{required}`.",
+            "ui lib should keep dialog feature gate marker `{required}`.",
         );
     }
 
@@ -1065,18 +1065,18 @@ fn dialog_tree_shaking_contract_registers_component_feature_and_gates_lib_css_ag
 
 #[test]
 fn dialog_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let source = load_source("../../scripts/check-ui-tree-shaking.sh");
 
     for needle in [
         "DIALOG_MIN_FEATURES=\"component-dialog,inject-css\"",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_tree_shaking_contract_registers_component_feature_and_gates_lib_css_aggregation",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_tree_shaking_contract_registers_component_feature_and_gates_lib_css_aggregation",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "dialog minimal feature tree",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$DIALOG_MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$DIALOG_MIN_FEATURES\"",
         "missing command-line feature: component-dialog",
         "missing command-line feature: inject-css for dialog minimal tree",
         "dialog minimal feature tree should not pull all-components",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$DIALOG_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$DIALOG_MIN_FEATURES\"",
     ] {
         assert!(
             source.contains(needle),
@@ -1090,11 +1090,11 @@ fn dialog_check2_documents_tree_shaking_feature_pruning_requirements() {
     let source = load_source("check2.md");
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "dialog_tree_shaking_contract_registers_component_feature_and_gates_lib_css_aggregation",
         "dialog_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "scripts/check-ui-components-tree-shaking.sh",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-dialog,inject-css",
+        "scripts/check-ui-tree-shaking.sh",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-dialog,inject-css",
     ] {
         assert!(
             source.contains(needle),
@@ -1111,7 +1111,7 @@ fn dialog_component_directory_standard_files_follow_contract_and_na_paths() {
     let view_source = load_source("src/view.rs");
     let motion_source = load_source("src/motion.rs");
     let checklist_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     for required in [
         "src/mod.rs",
@@ -1243,7 +1243,7 @@ fn dialog_component_directory_standard_files_follow_contract_and_na_paths() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_component_directory_standard_files_follow_contract_and_na_paths";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_component_directory_standard_files_follow_contract_and_na_paths";
     assert!(
         script_source.contains(script_needle),
         "component-files script should include `{script_needle}`.",
@@ -1252,7 +1252,7 @@ fn dialog_component_directory_standard_files_follow_contract_and_na_paths() {
     for needle in [
         "- [x] 组件目录标准文件落点正确。",
         "dialog_component_directory_standard_files_follow_contract_and_na_paths",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "components/dialog/src/mod.rs",
         "components/dialog/src/logic.rs",
         "components/dialog/src/styles.rs",
@@ -1277,7 +1277,7 @@ fn dialog_file_placement_discipline_is_strict_for_component_scope() {
         "- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。",
         "dialog_file_placement_discipline_is_strict_for_component_scope",
         "dialog_component_directory_standard_files_follow_contract_and_na_paths",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
     ] {
         assert!(
             checklist_source.contains(needle),
@@ -1292,7 +1292,7 @@ fn dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component() 
     let readme_source = load_source("src/README.md");
     let protocol_source = load_source("src/protocol.rs");
     let checklist_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     let spec_path = component_dir().join("src/spec.rs");
     assert!(
@@ -1327,7 +1327,7 @@ fn dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component() 
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
     assert!(
         script_source.contains(script_needle),
         "component-files script should include `{script_needle}`.",
@@ -1349,7 +1349,7 @@ fn dialog_context_compression_manifest_and_rbi_projection_are_present_and_curren
     let manifest_source = load_source("src/Component.toml");
     let rbi_source = load_source("src/dialog.rbi");
     let checklist_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     let src_dir = component_dir().join("src");
     assert!(
@@ -1419,7 +1419,7 @@ fn dialog_context_compression_manifest_and_rbi_projection_are_present_and_curren
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         script_source.contains(script_needle),
         "component-files script should include `{script_needle}`.",
@@ -1430,7 +1430,7 @@ fn dialog_context_compression_manifest_and_rbi_projection_are_present_and_curren
         "components/dialog/src/Component.toml",
         "components/dialog/src/dialog.rbi",
         "dialog_context_compression_manifest_and_rbi_projection_are_present_and_current",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
     ] {
         assert!(
             checklist_source.contains(needle),
@@ -1452,7 +1452,7 @@ fn dialog_check2_documents_agent_contract_schema_governance_rules() {
         "dialog_agent_contract_is_schema_typed_and_machine_readable",
         "dialog_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "dialog_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -1606,13 +1606,13 @@ fn dialog_agent_contract_render_path_is_whitelist_safe_and_script_injection_free
 
 #[test]
 fn dialog_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_agent_contract_schema_governance_rules",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             source.contains(needle),
@@ -1708,11 +1708,11 @@ fn dialog_streaming_display_modes_are_limited_to_streaming_and_snapshot() {
 
 #[test]
 fn dialog_streaming_script_covers_two_mode_definition_contract() {
-    let source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_streaming_display_modes_are_limited_to_streaming_and_snapshot",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_streaming_display_modes_are_limited_to_streaming_and_snapshot",
     ] {
         assert!(
             source.contains(needle),
@@ -1774,11 +1774,11 @@ fn dialog_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
 #[test]
 fn dialog_streaming_script_covers_snapshot_baseline_contract() {
-    let source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             source.contains(needle),
@@ -1859,12 +1859,12 @@ fn dialog_streaming_validation_retry_resilience_boundaries_stay_outside_componen
 
 #[test]
 fn dialog_streaming_script_covers_required_optional_classification_contract() {
-    let source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             source.contains(needle),
@@ -2004,12 +2004,12 @@ fn dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_
 
 #[test]
 fn dialog_semantics_and_performance_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_performance_governance_budget_is_defined_and_blocking",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_performance_governance_budget_is_defined_and_blocking",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(marker),
@@ -2028,7 +2028,7 @@ fn dialog_check2_marks_semantics_and_performance_regression_contract_complete() 
         "dialog_performance_governance_budget_is_defined_and_blocking",
         "dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "`render_count` 自动化回归仍在仓库统一 follow-up",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2047,7 +2047,7 @@ fn dialog_performance_governance_budget_is_defined_and_blocking() {
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/view.rs");
 
     for needle in [
@@ -2152,7 +2152,7 @@ fn dialog_performance_governance_budget_is_defined_and_blocking() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_performance_governance_budget_is_defined_and_blocking";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_performance_governance_budget_is_defined_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`.",
@@ -2162,7 +2162,7 @@ fn dialog_performance_governance_budget_is_defined_and_blocking() {
 #[test]
 fn dialog_view_macro_complexity_is_bounded_with_semantic_subblocks() {
     let view_source = load_source("src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("check2.md");
 
     for needle in [
@@ -2191,7 +2191,7 @@ fn dialog_view_macro_complexity_is_bounded_with_semantic_subblocks() {
         "Dialog view should keep `view!` macro expansion bounded after semantic sub-block extraction.",
     );
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_view_macro_complexity_is_bounded_with_semantic_subblocks";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_view_macro_complexity_is_bounded_with_semantic_subblocks";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -2213,7 +2213,7 @@ fn dialog_view_macro_complexity_is_bounded_with_semantic_subblocks() {
 #[test]
 fn dialog_view_functional_split_prefers_plain_functions_over_local_components() {
     let view_source = load_source("src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("check2.md");
 
     for needle in [
@@ -2252,7 +2252,7 @@ fn dialog_view_functional_split_prefers_plain_functions_over_local_components() 
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_view_functional_split_prefers_plain_functions_over_local_components";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_view_functional_split_prefers_plain_functions_over_local_components";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -2274,7 +2274,7 @@ fn dialog_view_functional_split_prefers_plain_functions_over_local_components() 
 #[test]
 fn dialog_static_fragments_are_constantized_with_accessible_close_icon_template() {
     let view_source = load_source("src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("check2.md");
 
     for needle in [
@@ -2304,7 +2304,7 @@ fn dialog_static_fragments_are_constantized_with_accessible_close_icon_template(
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_static_fragments_are_constantized_with_accessible_close_icon_template";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_static_fragments_are_constantized_with_accessible_close_icon_template";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -2376,8 +2376,8 @@ fn dialog_inner_html_usage_is_explicitly_na_and_guarded() {
         );
     }
 
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_inner_html_usage_is_explicitly_na_and_guarded";
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_inner_html_usage_is_explicitly_na_and_guarded";
     assert!(
         script_source.contains(script_needle),
         "inner-html gate script should include `{script_needle}`.",
@@ -2388,7 +2388,7 @@ fn dialog_inner_html_usage_is_explicitly_na_and_guarded() {
         "- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。",
         "N/A：`Dialog` 当前无 `inner_html` 使用点",
         "dialog_inner_html_usage_is_explicitly_na_and_guarded",
-        "scripts/check-ui-components-inner-html.sh",
+        "scripts/check-ui-inner-html.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2400,10 +2400,10 @@ fn dialog_inner_html_usage_is_explicitly_na_and_guarded() {
 #[test]
 fn dialog_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
     let component_cargo_source = load_source("Cargo.toml");
-    let ui_components_cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib_source = load_source("../../crates/ui-components/src/lib.rs");
+    let ui_components_cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib_source = load_source("../../crates/ui/src/lib.rs");
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
@@ -2434,7 +2434,7 @@ fn dialog_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     assert!(
         ui_components_cargo_source
             .contains("button-wasm-debug = [\"component-button\", \"dep:tracing\"]"),
-        "ui-components should keep shared wasm-debug feature marker `button-wasm-debug`.",
+        "ui should keep shared wasm-debug feature marker `button-wasm-debug`.",
     );
 
     for forbidden in [
@@ -2444,7 +2444,7 @@ fn dialog_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     ] {
         assert!(
             !ui_components_cargo_source.contains(forbidden),
-            "ui-components should not define dialog-local wasm debug feature `{forbidden}`.",
+            "ui should not define dialog-local wasm debug feature `{forbidden}`.",
         );
     }
 
@@ -2468,7 +2468,7 @@ fn dialog_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     ] {
         assert!(
             ui_components_lib_source.contains(needle),
-            "ui-components root should keep wasm-debug isolation marker `{needle}`.",
+            "ui root should keep wasm-debug isolation marker `{needle}`.",
         );
     }
 
@@ -2548,7 +2548,7 @@ fn dialog_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
     assert!(
         script_source.contains(script_needle),
         "wasm-debug gate script should include `{script_needle}`.",
@@ -2557,7 +2557,7 @@ fn dialog_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     for needle in [
         "- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。",
         "dialog_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated",
-        "scripts/check-ui-components-wasm-debug.sh",
+        "scripts/check-ui-wasm-debug.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2570,7 +2570,7 @@ fn dialog_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
 fn dialog_dx_playground_supports_hot_reload_context_and_isolated_workbench() {
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_dialog.rs");
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
     let check2_source = load_source("check2.md");
 
     for needle in [
@@ -2591,7 +2591,7 @@ fn dialog_dx_playground_supports_hot_reload_context_and_isolated_workbench() {
     }
 
     for needle in [
-        "ui_components::dialog::styles::CSS",
+        "ui::dialog::styles::CSS",
         "let (workbench_open_raw, set_workbench_open_raw) = signal(false);",
         "let (workbench_present, set_workbench_present) = signal(workbench_open.get_untracked());",
         "if workbench_open.get() {",
@@ -2609,7 +2609,7 @@ fn dialog_dx_playground_supports_hot_reload_context_and_isolated_workbench() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_dx_playground_supports_hot_reload_context_and_isolated_workbench";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_dx_playground_supports_hot_reload_context_and_isolated_workbench";
     assert!(
         script_source.contains(script_needle),
         "dx gate script should include `{script_needle}`.",
@@ -2618,7 +2618,7 @@ fn dialog_dx_playground_supports_hot_reload_context_and_isolated_workbench() {
     for needle in [
         "- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。",
         "dialog_dx_playground_supports_hot_reload_context_and_isolated_workbench",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2717,12 +2717,12 @@ fn dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() 
 
 #[test]
 fn dialog_dx_check_script_covers_docs_product_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_docs_product_copy_paste_ready_rules",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_docs_product_copy_paste_ready_rules",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2746,7 +2746,7 @@ fn dialog_check2_documents_docs_product_copy_paste_ready_rules() {
         "dialog_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract",
         "dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "dialog_dx_check_script_covers_docs_product_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2833,11 +2833,11 @@ fn dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults(
 
 #[test]
 fn dialog_dx_check_script_covers_docs_sync_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2855,7 +2855,7 @@ fn dialog_check2_marks_docs_sync_and_state_matrix_contract_complete() {
         "dialog_check2_documents_docs_sync_and_state_matrix_rules",
         "dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "dialog_dx_check_script_covers_docs_sync_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2961,11 +2961,11 @@ fn dialog_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn dialog_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2983,7 +2983,7 @@ fn dialog_check2_marks_documentation_as_product_contract_complete() {
         "dialog_check2_documents_documentation_as_product_rules",
         "dialog_documentation_entry_exists_with_beginner_first_progression",
         "dialog_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3067,12 +3067,12 @@ fn dialog_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn dialog_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3090,7 +3090,7 @@ fn dialog_check2_marks_interactive_playground_contract_complete() {
         "dialog_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "dialog_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "dialog_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3102,11 +3102,11 @@ fn dialog_check2_marks_interactive_playground_contract_complete() {
 
 #[test]
 fn dialog_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3126,7 +3126,7 @@ fn dialog_check2_documents_source_first_copy_paste_ready_rules() {
         "文档代码与当前实现必须同步，防止示例漂移。",
         "dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "dialog_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3145,7 +3145,7 @@ fn dialog_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "dialog_check2_documents_source_first_copy_paste_ready_rules",
         "dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "dialog_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3234,11 +3234,11 @@ fn dialog_heroui_strategy_and_component_docs_are_synced_for_parameter_model_chan
 
 #[test]
 fn dialog_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_marks_heroui_strategy_and_component_docs_sync_complete",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_marks_heroui_strategy_and_component_docs_sync_complete",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3258,7 +3258,7 @@ fn dialog_check2_marks_heroui_strategy_and_component_docs_sync_complete() {
         "“仅代码更新无文档更新”在接口变更场景下直接判不通过。",
         "dialog_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
         "dialog_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3387,12 +3387,12 @@ fn dialog_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks()
 
 #[test]
 fn dialog_contract_hygiene_script_covers_semantics_first_contract_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_semantics_first_testing_rules",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_semantics_suite_is_contract_first_not_snapshot_only",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_semantics_first_testing_rules",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_semantics_suite_is_contract_first_not_snapshot_only",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3572,12 +3572,12 @@ fn dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 
 #[test]
 fn dialog_e2e_check_script_covers_selector_and_settled_wait_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-dialog.sh");
+    let script_source = load_source("../../components/dialog/scripts/check-ui-e2e-dialog.sh");
 
     for needle in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3588,12 +3588,12 @@ fn dialog_e2e_check_script_covers_selector_and_settled_wait_contract() {
 
 #[test]
 fn dialog_e2e_check_script_covers_selector_and_key_flow_contracts() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-dialog.sh");
+    let script_source = load_source("../../components/dialog/scripts/check-ui-e2e-dialog.sh");
 
     for needle in [
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3613,7 +3613,7 @@ fn dialog_check2_marks_e2e_selector_stability_item_complete() {
         "components/dialog/test/semantics.rs::dialog_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
         "components/dialog/test/semantics.rs::dialog_e2e_check_script_covers_selector_and_settled_wait_contract",
         "components/dialog/test/dialog_semantics.rs::dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "scripts/check-ui-components-e2e-dialog.sh",
+        "components/dialog/scripts/check-ui-e2e-dialog.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3632,7 +3632,7 @@ fn dialog_check2_marks_e2e_repeatable_key_flow_contract_complete() {
         "components/dialog/test/semantics.rs::dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "components/dialog/test/semantics.rs::dialog_e2e_check_script_covers_selector_and_key_flow_contracts",
         "components/dialog/test/dialog_semantics.rs::dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "scripts/check-ui-components-e2e-dialog.sh",
+        "components/dialog/scripts/check-ui-e2e-dialog.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3702,7 +3702,7 @@ fn dialog_version_deprecation_migration_is_na_without_major_breaking_upgrade() {
         "N/A：本次 `Dialog` 未发生跨大版本 API 破坏升级",
         "schema_version = \"1\"",
         "dialog_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3714,9 +3714,9 @@ fn dialog_version_deprecation_migration_is_na_without_major_breaking_upgrade() {
 
 #[test]
 fn dialog_version_deprecation_migration_script_covers_engineering_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
-    let marker = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_version_deprecation_migration_is_na_without_major_breaking_upgrade";
+    let marker = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_version_deprecation_migration_is_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(marker),
         "engineering check script should enforce `{marker}`."
@@ -3734,7 +3734,7 @@ fn dialog_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_bou
     let motion_source = load_source("src/motion.rs");
     let readme_source = load_source("src/README.md");
     let checklist_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     let spec_path = component_dir().join("src/spec.rs");
     assert!(
@@ -3786,7 +3786,7 @@ fn dialog_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_bou
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::dialog::",
+        "target: \"ui::dialog::",
         "const DIALOG_TRACE_TARGET",
     ] {
         assert!(
@@ -3821,7 +3821,7 @@ fn dialog_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_bou
         }
     }
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries";
     assert!(
         script_source.contains(script_needle),
         "engineering gate script should include `{script_needle}`.",
@@ -3830,7 +3830,7 @@ fn dialog_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_bou
     for needle in [
         "- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。",
         "dialog_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
     ] {
         assert!(
             checklist_source.contains(needle),
@@ -3843,7 +3843,7 @@ fn dialog_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_bou
 fn dialog_styles_use_defensive_variable_fallback_chain() {
     let styles_source = load_source("src/styles.rs");
     let checklist_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
         "var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width))",
@@ -3872,7 +3872,7 @@ fn dialog_styles_use_defensive_variable_fallback_chain() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_styles_use_defensive_variable_fallback_chain";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene script should include `{script_needle}`.",
@@ -3881,7 +3881,7 @@ fn dialog_styles_use_defensive_variable_fallback_chain() {
     for needle in [
         "- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。",
         "dialog_styles_use_defensive_variable_fallback_chain",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             checklist_source.contains(needle),
@@ -3892,12 +3892,12 @@ fn dialog_styles_use_defensive_variable_fallback_chain() {
 
 #[test]
 fn dialog_cascade_layer_and_runtime_style_contract_is_enforced() {
-    let css_entry_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_entry_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let view_source = load_source("src/view.rs");
     let styles_source = load_source("src/styles.rs");
     let checklist_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
         "out.push_str(\"\\n@layer ui {\\n\");",
@@ -3907,7 +3907,7 @@ fn dialog_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_entry_source.contains(needle),
-            "ui-components css entry should enforce cascade-layer contract `{needle}`.",
+            "ui css entry should enforce cascade-layer contract `{needle}`.",
         );
     }
 
@@ -3961,7 +3961,7 @@ fn dialog_cascade_layer_and_runtime_style_contract_is_enforced() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_cascade_layer_and_runtime_style_contract_is_enforced";
+    let script_needle = "cargo test -p ui --test dialog_semantics --no-default-features --features component-dialog,inject-css dialog_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene script should include `{script_needle}`.",
@@ -3970,9 +3970,9 @@ fn dialog_cascade_layer_and_runtime_style_contract_is_enforced() {
     for needle in [
         "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
         "dialog_cascade_layer_and_runtime_style_contract_is_enforced",
-        "scripts/check-ui-components-contract-hygiene.sh",
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "scripts/check-ui-contract-hygiene.sh",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "components/dialog/src/view.rs",
     ] {
         assert!(

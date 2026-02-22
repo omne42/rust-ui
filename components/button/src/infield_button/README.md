@@ -35,7 +35,7 @@ docs-app `infield-button` 页面提供对比：
 
 ## css test
 
-- 样式来源：`crates/ui-components/src/button/infield_button/styles.rs`
+- 样式来源：`crates/ui/src/button/infield_button/styles.rs`
 - docs Playground 可用于 CSS test，验证 quiet/invalid/active 状态分支。
 
 ## docs-app 入口

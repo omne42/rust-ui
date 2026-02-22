@@ -133,7 +133,7 @@ fn picker_button_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::picker_button::styles::CSS);"),
-        "ui-components css aggregator should include picker_button styles."
+        "ui css aggregator should include picker_button styles."
     );
 }
 

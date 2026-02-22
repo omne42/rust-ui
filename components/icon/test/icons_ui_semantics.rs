@@ -145,7 +145,7 @@ fn icons_ui_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::icons_ui::styles::CSS);"),
-        "ui-components css aggregator should include icons_ui styles."
+        "ui css aggregator should include icons_ui styles."
     );
 }
 
@@ -256,7 +256,7 @@ fn icons_ui_docs_interactive_playground_exposes_config_code_css_test_sections() 
         "id_base=\"docs-icons-ui-workbench-icon\".to_string()",
         "id_base=\"docs-icons-ui-workbench-size\".to_string()",
         "id_base=\"docs-icons-ui-workbench-tone\".to_string()",
-        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/icon/ui/styles.rs\".to_string()",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui/src/icon/ui/styles.rs\".to_string()",
     ] {
         assert!(
             source.contains(needle),
@@ -308,7 +308,7 @@ fn icons_ui_check2_marks_core_sections_complete() {
         "- [x] `ui-headless` 定义",
         "- [x] `ui-motion` 定义",
         "- [x] `ui-theme` 定义",
-        "- [x] `ui-components` 定义",
+        "- [x] `ui` 定义",
         "- [x] API 命名契约统一",
         "- [x] 状态归一化集中",
         "- [x] 存在 A11y 实现、国际化与本地化实现",
@@ -320,8 +320,8 @@ fn icons_ui_check2_marks_core_sections_complete() {
         "### 10. IconsUi 本轮验收证据",
         "component-icons_ui -> component-iconset",
         "component-iconset -> component-icon",
-        "crates/ui-components/src/icon/ui/view.rs",
-        "crates/ui-components/src/icon/set/view.rs",
+        "crates/ui/src/icon/ui/view.rs",
+        "crates/ui/src/icon/set/view.rs",
     ] {
         assert!(
             source.contains(needle),

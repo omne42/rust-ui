@@ -58,27 +58,19 @@ pub fn Item(
 
     view! {
         <div
-            class=class_name
-            role="listitem"
-            data-slot="item"
-            data-variant=render_state.variant_attr
-            data-size=render_state.size_attr
+            class=class_name role="listitem" data-slot="item"
+            data-variant=render_state.variant_attr data-size=render_state.size_attr
             data-variant-source=render_state.variant_source_attr
             data-size-source=render_state.size_source_attr
-            data-ui-schema=agent_attrs.schema
-            data-ui-intent=agent_attrs.intent
+            data-ui-schema=agent_attrs.schema data-ui-intent=agent_attrs.intent
             data-ui-action=agent_attrs.action
             data-ui-streaming-policy=agent_attrs.streaming_policy
             data-ui-streaming-fallback=agent_attrs.streaming_fallback
-            data-ui-stream-mode=agent_attrs.stream_mode
-            data-ui-output-mode=agent_attrs.output_mode
+            data-ui-stream-mode=agent_attrs.stream_mode data-ui-output-mode=agent_attrs.output_mode
             data-ui-output-status=agent_attrs.output_status
             data-ui-state-variant=agent_attrs.state_variant
-            data-ui-state-size=agent_attrs.state_size
-            data-ui-source-variant=agent_attrs.source_variant
-            data-ui-source-size=agent_attrs.source_size
-            lang=locale.lang
-            dir=locale.dir
+            data-ui-state-size=agent_attrs.state_size data-ui-source-variant=agent_attrs.source_variant
+            data-ui-source-size=agent_attrs.source_size lang=locale.lang dir=locale.dir
         >
             {children()}
         </div>

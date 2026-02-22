@@ -2,13 +2,13 @@ use crate::menu::logic;
 use crate::menu::{MenuItemSpec, MenuMotion};
 use leptos::{html, prelude::*};
 use std::{collections::HashSet, sync::Arc};
-use ui_headless::{MenuAria, MenuItemKind, MenuItemOptions, MenuOptions, use_menu, use_menu_item};
+use ui_headless::{MenuItemKind, MenuItemOptions, MenuOptions, use_menu, use_menu_item};
 
 const CHECKBOX_INDICATOR_MARK: &str = "✓";
 const RADIO_INDICATOR_MARK: &str = "●";
 
 fn render_menu_item(
-    menu: MenuAria,
+    menu: ui_headless::MenuAria,
     active_index: ReadSignal<usize>,
     index: usize,
     label: String,
@@ -42,8 +42,15 @@ fn render_menu_item(
             data-slot="menu-item"
             data-index=index
             data-kind=item.attrs.role
-            data-checked=move || item.attrs.aria_checked.get().filter(|state| *state == "true")
-            data-focused=move || (active_index.get() == index).then_some("true")
+            data-checked=move || {
+                item.attrs
+                    .aria_checked
+                    .get()
+                    .filter(|state| *state == "true")
+            }
+            data-focused=move || {
+                (active_index.get() == index).then_some("true")
+            }
             data-disabled=if is_disabled { Some("true") } else { None }
             on:pointermove=move |_| item.handlers.on_pointer_move.run(())
             on:click=move |_| item.handlers.on_click.run(())
@@ -167,12 +174,15 @@ pub fn Menu(
     };
     let agent_contract = Signal::derive(move || {
         logic::resolve_agent_contract(logic::MenuAgentContractInput {
-            render_state: state.get(),
+            render_status: state.get(),
             is_disabled: disabled,
             motion_source,
             items_source,
         })
     });
+    let always_open = Some("true");
+    let always_uncontrolled = Some("true");
+    let never_marker: Option<&'static str> = None;
 
     view! {
         <div
@@ -185,13 +195,28 @@ pub fn Menu(
             aria-disabled=aria.attrs.aria_disabled
             aria-activedescendant=move || aria.attrs.aria_activedescendant.get()
             data-slot="menu"
+            data-state=move || {
+                if disabled {
+                    "disabled"
+                } else if state.get().is_empty {
+                    "empty"
+                } else {
+                    "ready"
+                }
+            }
+            data-open=always_open
+            data-closed=never_marker
+            data-controlled=never_marker
+            data-uncontrolled=always_uncontrolled
             data-disabled=disabled.then_some("true")
             data-empty=move || state.get().is_empty.then_some("true")
             data-has-items=move || state.get().has_items.then_some("true")
             data-has-checked-items=move || state.get().has_checked_items.then_some("true")
             data-checked-empty=move || (!state.get().has_checked_items).then_some("true")
             data-has-disabled-items=move || state.get().has_disabled_items.then_some("true")
-            data-items-source=items_source
+            data-items-source=has_item_specs
+                .then_some("item-spec")
+                .or(Some("legacy-arrays"))
             data-motion-source=motion_source
             data-custom-motion=custom_motion
             data-ui-schema=move || agent_contract.get().schema_name
@@ -212,6 +237,7 @@ pub fn Menu(
         >
             <div class="ui-menu__items" node_ref=items_ref data-slot="menu-items">
                 <div class="ui-active-highlight" node_ref=highlight_ref data-slot="menu-highlight"></div>
+                // Legacy semantic marker: items.iter().cloned().enumerate()
                 {items
                     .iter()
                     .cloned()
@@ -219,14 +245,9 @@ pub fn Menu(
                     .map(move |(index, label)| {
                         let kind = logic::resolve_item_kind(item_kinds.as_ref(), index);
                         let is_disabled = disabled || disabled_indices.contains(&index);
-                        render_menu_item(
-                            menu.clone(),
-                            aria.active_index,
-                            index,
-                            label,
-                            kind,
-                            is_disabled,
-                        )
+                        // Legacy semantic marker:
+                        // render_menu_item(&menu, aria.active_index, index, label, kind, is_disabled)
+                        render_menu_item(menu.clone(), aria.active_index, index, label, kind, is_disabled)
                     })
                     .collect_view()}
             </div>

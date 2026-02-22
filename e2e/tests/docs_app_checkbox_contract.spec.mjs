@@ -228,7 +228,7 @@ test("docs-app checkbox playground source is copy-paste ready", async ({ page })
   await expect(codeBlock).toBeVisible();
   await expect(codeBlock).toHaveAttribute("data-copyable", "true");
   await expect(codeBlock).toContainText("use leptos::prelude::*;");
-  await expect(codeBlock).toContainText("use ui_components::*;");
+  await expect(codeBlock).toContainText("use ui::*;");
   await expect(codeBlock).toContainText("<Checkbox");
 
   const streamingPolicy = page.locator('[data-slot="checkbox-streaming-policy"]').first();

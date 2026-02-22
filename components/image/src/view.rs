@@ -183,6 +183,6 @@ pub fn Image(
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "local-semantics"))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

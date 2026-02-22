@@ -6,7 +6,7 @@ Layered UI primitives + components for Leptos:
 - `crates/ui-headless`: behavior + a11y (Aria)
 - `crates/ui-theme`: tokens → CSS variables
 - `crates/ui-motion`: spring/WAAPI motion runtime
-- `crates/ui-components`: Spectrum-grade components
+- `crates/ui`: Spectrum-grade components
 - `apps/web-demo`: CSR demo app (Trunk)
 - `apps/docs-app`: CSR docs site (Trunk)
 

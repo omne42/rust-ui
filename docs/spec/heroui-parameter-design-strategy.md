@@ -4,7 +4,7 @@
 
 ### Goal
 
-在 `ui-components` 中建立一套接近 HeroUI 的参数设计规范：覆盖高频业务需求、保持简单调用、尽量避免业务侧二次封装。
+在 `ui` 中建立一套接近 HeroUI 的参数设计规范：覆盖高频业务需求、保持简单调用、尽量避免业务侧二次封装。
 
 ### Non-Goals
 
@@ -32,7 +32,7 @@
 - [ ] 明确受控/非受控规则：每个可开关状态组件必须定义 `controlled + uncontrolled` 行为优先级。
 - [ ] 明确插槽策略：含内容型组件必须支持 `start_content/end_content`（或等价 slot）与 `class_names`（slot 级覆盖）。
 - [ ] 明确默认值规范：所有 `#[prop(optional)]` 的默认来源可追溯（`Default` / `#[prop(default=...)]` / 逻辑层兜底）。
-- [ ] 给出验收命令并可执行：`cargo fmt --all -- --check`、`cargo clippy --workspace --all-targets -- -D warnings`、`cargo test -p ui-components`。
+- [ ] 给出验收命令并可执行：`cargo fmt --all -- --check`、`cargo clippy --workspace --all-targets -- -D warnings`、`cargo test -p ui`。
 
 ### Options (2-3)
 
@@ -160,7 +160,7 @@
 - 参数模型同步：`Skeleton` 与 `SkeletonGroup` 维持 display primitive 定位；参数聚焦 `variant/is_shimmer/class_name`（Skeleton）与 `is_loading/is_skeleton_only/variant/layout/density/aria_label/class_name`（SkeletonGroup），不引入业务 store、并行数组或组件外状态对象必填接线。
 - docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Skeleton", "skeleton", "Display", display::skeleton)` 与 `component_doc!("SkeletonGroup", "skeleton-group", "Display", display_extra::skeleton_group)` 暴露入口；`#/components/skeleton`、`#/components/skeleton-group` 可索引访问。
 - 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display.rs` 与 `apps/docs-app/src/pages/components/pages/display_extra.rs` 提供 `Shimmer/Still` 与 `Shimmer + Pulse Layout/Loaded + Skeleton Only`，覆盖默认路径与状态矩阵，并保持 API 名称与默认值一致。
-- Source-first / Copy-Paste Ready：Skeleton playground 继续走 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，并为 skeleton/skeleton-group playground 标注 `test_source_path`（`crates/ui-components/src/skeleton/view.rs`、`crates/ui-components/src/skeleton/group/view.rs`）以保证源码可追溯。
+- Source-first / Copy-Paste Ready：Skeleton playground 继续走 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，并为 skeleton/skeleton-group playground 标注 `test_source_path`（`crates/ui/src/skeleton/view.rs`、`crates/ui/src/skeleton/group/view.rs`）以保证源码可追溯。
 - HeroUI 对齐结论：保持“默认调用零门槛、复杂状态按需显式开启”的体验目标；参数语义若变更，先同步本策略文档与 docs 入口再推进实现。
 
 ### Underlay 同步记录（2026-02-17）
@@ -571,7 +571,7 @@
 - 参数模型同步：`Icon` 参数主轴保持 `size/tone/is_disabled/is_decorative/aria_label/class_name/lang/dir/slot`；命名继续遵循统一 `is_*` 状态前缀与 `aria_*` 语义命名，不引入平行别名或破坏性回退。
 - docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Icon", "icon", "Display", display_extra::icon)` 暴露入口；`#/components/icon` 可索引访问，且 `components/icon/src/README.md` 提供等价入门文档入口。
 - 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display_extra.rs::icon()` 已覆盖 `Hello World (Default Path)`、`Size + Tone Matrix`、`Accessible + Disabled + Custom Class`、`Workbench (Display + Config + Code + CSS Test)` 与 `Source-first Starter (Copy-Paste Ready)`，参数语义与默认路径保持一致。
-- Source-first / Copy-Paste Ready：`icon` 文档通过 `code_imports=icon_code_imports` 与 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 输出可运行片段（含 `use leptos::prelude::*;`、`use ui_components::{Icon, IconSize, IconTone};`）；源码落点固定为 `components/icon/src/styles.rs` 并在文档中声明依赖前提（`ui_components`），避免复制即报错。
+- Source-first / Copy-Paste Ready：`icon` 文档通过 `code_imports=icon_code_imports` 与 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 输出可运行片段（含 `use leptos::prelude::*;`、`use ui::{Icon, IconSize, IconTone};`）；源码落点固定为 `components/icon/src/styles.rs` 并在文档中声明依赖前提（`ui`），避免复制即报错。
 - 研究文档补充判定：本轮仅为 `Icon` 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
 - HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
 

@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     Alert, AlertDialog, AlertDialogVariant, AlertFill, AlertLayout, AlertTone, Button,
     ContextualHelp, Dialog, Drawer, DrawerPlacement, Input, InputSize, InputVariant, OnPress,
 };
@@ -149,7 +149,7 @@ pub fn MoreComponentsDemo() -> impl IntoView {
                         />
                         <div class="demo-row">
                             <Button
-                                variant=ui_components::ButtonVariant::Secondary
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| set_input_invalid.update(|v| *v = !*v))
                             >
                                 {move || if input_invalid.get() { "Clear invalid" } else { "Mark invalid" }}
@@ -193,7 +193,7 @@ pub fn MoreComponentsDemo() -> impl IntoView {
                 <div class="demo-row">
                     <Button on_press=open_dialog>"Open Dialog"</Button>
                     <Button on_press=open_drawer>"Open Drawer"</Button>
-                    <Button variant=ui_components::ButtonVariant::Destructive on_press=open_alert>
+                    <Button variant=ui::ButtonVariant::Destructive on_press=open_alert>
                         "Open AlertDialog"
                     </Button>
                 </div>

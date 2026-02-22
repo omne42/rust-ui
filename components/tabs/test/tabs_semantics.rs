@@ -260,7 +260,7 @@ fn tabs_component_files_follow_layered_responsibilities() {
 #[test]
 fn tabs_view_macro_complexity_is_split_into_semantic_subrenders() {
     let view_source = load_source("src/tabs/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "fn render_tab_button(",
@@ -296,7 +296,7 @@ fn tabs_view_macro_complexity_is_split_into_semantic_subrenders() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test tabs_semantics tabs_view_macro_complexity_is_split_into_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test tabs_semantics tabs_view_macro_complexity_is_split_into_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -306,7 +306,7 @@ fn tabs_view_macro_complexity_is_split_into_semantic_subrenders() {
 #[test]
 fn tabs_view_functional_split_prefers_plain_functions_over_local_components() {
     let view_source = load_source("src/tabs/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "fn render_tab_button(",
@@ -349,7 +349,7 @@ fn tabs_view_functional_split_prefers_plain_functions_over_local_components() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test tabs_semantics tabs_view_functional_split_prefers_plain_functions_over_local_components";
+    let script_needle = "cargo test -p ui --test tabs_semantics tabs_view_functional_split_prefers_plain_functions_over_local_components";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -359,7 +359,7 @@ fn tabs_view_functional_split_prefers_plain_functions_over_local_components() {
 #[test]
 fn tabs_static_fragments_are_constantized_with_stable_semantics() {
     let view_source = load_source("src/tabs/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "const CLASS_TABS_TAB: &str = \"ui-tabs__tab\";",
@@ -403,7 +403,7 @@ fn tabs_static_fragments_are_constantized_with_stable_semantics() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test tabs_semantics tabs_static_fragments_are_constantized_with_stable_semantics";
+    let script_needle = "cargo test -p ui --test tabs_semantics tabs_static_fragments_are_constantized_with_stable_semantics";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -418,7 +418,7 @@ fn tabs_inner_html_usage_is_explicitly_na_and_guarded() {
     let styles_source = load_source("src/tabs/styles.rs");
     let view_source = load_source("src/tabs/view.rs");
     let checklist_source = load_source("src/tabs/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
 
     for forbidden in [
         "inner_html=",
@@ -461,7 +461,7 @@ fn tabs_inner_html_usage_is_explicitly_na_and_guarded() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test tabs_semantics tabs_inner_html_usage_is_explicitly_na_and_guarded";
+    let script_needle = "cargo test -p ui --test tabs_semantics tabs_inner_html_usage_is_explicitly_na_and_guarded";
     assert!(
         script_source.contains(script_needle),
         "inner-html check script should include `{script_needle}`.",
@@ -504,13 +504,13 @@ fn tabs_spec_boundary_stays_lightweight_while_button_keeps_schema_contract() {
 
 #[test]
 fn tabs_tree_shaking_feature_gates_stay_explicit() {
-    let cargo_source = load_source("../ui-components/Cargo.toml");
+    let cargo_source = load_source("../ui/Cargo.toml");
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
 
     assert!(
         cargo_source.contains("component-tabs = [\"dep:ui-tabs\"]"),
-        "ui-components Cargo feature map must keep standalone `component-tabs` feature."
+        "ui Cargo feature map must keep standalone `component-tabs` feature."
     );
     assert!(
         cargo_source.contains("default = [\"inject-css\", \"all-components\"]"),
@@ -794,7 +794,7 @@ fn tabs_semantics_cover_wasm_and_non_wasm_platform_branches() {
 #[test]
 fn tabs_ui_headless_feature_mutex_contract_is_guarded() {
     let headless_lib_source = load_source("../ui-headless/src/lib.rs");
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "#[cfg(all(feature = \"web\", feature = \"ssr\"))]",
@@ -825,7 +825,7 @@ fn tabs_ui_headless_feature_mutex_contract_is_guarded() {
 fn tabs_ui_motion_non_wasm_noop_stub_contract_is_guarded() {
     let motion_lib_source = load_source("../ui-motion/src/lib.rs");
     let tabs_motion_source = load_source("src/tabs/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "#[cfg(not(target_arch = \"wasm32\"))]",
@@ -1034,7 +1034,7 @@ fn tabs_styles_follow_token_first_static_contract() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css aggregator should include tabs style injection token `{needle}`."
+            "ui css aggregator should include tabs style injection token `{needle}`."
         );
     }
 
@@ -1317,7 +1317,7 @@ fn tabs_docs_source_is_copy_paste_ready_with_imports_and_copy_control() {
     let e2e_source = load_source("../../e2e/tests/docs_app_field_button_contract.spec.mjs");
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String {",
         "compose_copy_ready_code(&dynamic_code.get(), &code_imports.get_value())",
         ".map(|snippet| compose_copy_ready_code(&snippet, &code_imports.get_value()))",
@@ -1657,11 +1657,11 @@ fn tabs_playground_acceptance_path_is_repeatable_in_e2e_suite() {
 
 #[test]
 fn tabs_e2e_check_script_covers_selector_and_key_flow_contracts() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-tabs.sh");
+    let script_source = load_source("../../components/tabs/scripts/check-ui-e2e-tabs.sh");
 
     for needle in [
-        "cargo test -p ui-components --test tabs_semantics tabs_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test tabs_semantics tabs_e2e_key_flow_covers_keyboard_focus_and_semantic_state_sync",
+        "cargo test -p ui --test tabs_semantics tabs_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test tabs_semantics tabs_e2e_key_flow_covers_keyboard_focus_and_semantic_state_sync",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1829,12 +1829,12 @@ fn tabs_component_file_responsibilities_remain_scoped() {
 
 #[test]
 fn tabs_component_files_check_script_covers_directory_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     for needle in [
-        "cargo test -p ui-components --test tabs_semantics tabs_component_directory_has_standard_file_layout",
-        "cargo test -p ui-components --test tabs_semantics tabs_mod_rs_keeps_minimal_stable_exports",
-        "cargo test -p ui-components --test tabs_semantics tabs_component_file_responsibilities_remain_scoped",
+        "cargo test -p ui --test tabs_semantics tabs_component_directory_has_standard_file_layout",
+        "cargo test -p ui --test tabs_semantics tabs_mod_rs_keeps_minimal_stable_exports",
+        "cargo test -p ui --test tabs_semantics tabs_component_file_responsibilities_remain_scoped",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1848,18 +1848,18 @@ fn tabs_check2_documents_ui_components_entrypoint_rules() {
     let checklist_source = load_source("src/tabs/check2.md");
 
     for required in [
-        "- [ ] `ui-components` 固定入口文件落点正确。",
-        "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
-        "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
-        "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
+        "- [ ] `ui` 固定入口文件落点正确。",
+        "`crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
+        "`crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
+        "`crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
         "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
-        "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
-        "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
-        "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
+        "`crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
+        "`crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
+        "`crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
     ] {
         assert!(
             checklist_source.contains(required),
-            "Tabs checklist should keep ui-components entrypoint governance rule `{required}`."
+            "Tabs checklist should keep ui entrypoint governance rule `{required}`."
         );
     }
 }
@@ -1880,7 +1880,7 @@ fn tabs_ui_components_entry_files_keep_feature_gated_public_surface_and_no_platf
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep marker `{needle}`."
+            "ui lib entry should keep marker `{needle}`."
         );
     }
 
@@ -1892,7 +1892,7 @@ fn tabs_ui_components_entry_files_keep_feature_gated_public_surface_and_no_platf
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform/internal marker `{forbidden}`."
+            "ui lib entry should not leak platform/internal marker `{forbidden}`."
         );
     }
 }
@@ -1914,7 +1914,7 @@ fn tabs_ui_components_css_registry_remains_feature_gated_and_non_global() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css registry should keep feature-gated marker `{needle}`."
+            "ui css registry should keep feature-gated marker `{needle}`."
         );
     }
 }
@@ -1980,7 +1980,7 @@ fn tabs_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_a
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !path_exists(forbidden),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`."
+            "ui forbidden entrypoint file should not exist: `{forbidden}`."
         );
     }
 
@@ -2016,9 +2016,9 @@ fn tabs_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_a
 
 #[test]
 fn tabs_entrypoints_check_script_covers_fixed_entrypoint_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
 
-    let needle = "cargo test -p ui-components --test tabs_semantics tabs_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present";
+    let needle = "cargo test -p ui --test tabs_semantics tabs_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present";
     assert!(
         script_source.contains(needle),
         "entrypoints check script should enforce `{needle}`."
@@ -2090,11 +2090,11 @@ fn tabs_dx_workbench_supports_optional_state_persistence_and_isolated_canvas() {
 
 #[test]
 fn tabs_dx_check_script_covers_hot_reload_and_workbench_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test tabs_semantics tabs_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test tabs_semantics tabs_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
+        "cargo test -p ui --test tabs_semantics tabs_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test tabs_semantics tabs_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2175,7 +2175,7 @@ fn tabs_engineering_contract_keeps_tracing_semantics_unified_without_component_l
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -2192,7 +2192,7 @@ fn tabs_engineering_contract_keeps_tracing_semantics_unified_without_component_l
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::tabs::",
+        "target: \"ui::tabs::",
         "const TABS_TRACE_TARGET",
     ] {
         assert!(
@@ -2243,12 +2243,12 @@ fn tabs_engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
 
 #[test]
 fn tabs_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test tabs_semantics tabs_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test tabs_semantics tabs_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test tabs_semantics tabs_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test tabs_semantics tabs_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test tabs_semantics tabs_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test tabs_semantics tabs_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2393,14 +2393,14 @@ fn tabs_agent_contract_render_path_is_whitelist_safe_and_script_injection_free()
 
 #[test]
 fn tabs_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test tabs_semantics tabs_agent_contract_markers_are_schema_like_and_machine_readable",
-        "cargo test -p ui-components --test tabs_semantics tabs_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "cargo test -p ui-components --test tabs_semantics tabs_check2_documents_semantics_first_testing_rules",
-        "cargo test -p ui-components --test tabs_semantics tabs_semantics_suite_is_contract_first_not_snapshot_only",
-        "cargo test -p ui-components --test tabs_semantics tabs_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
+        "cargo test -p ui --test tabs_semantics tabs_agent_contract_markers_are_schema_like_and_machine_readable",
+        "cargo test -p ui --test tabs_semantics tabs_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test tabs_semantics tabs_check2_documents_semantics_first_testing_rules",
+        "cargo test -p ui --test tabs_semantics tabs_semantics_suite_is_contract_first_not_snapshot_only",
+        "cargo test -p ui --test tabs_semantics tabs_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2550,11 +2550,11 @@ fn tabs_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks() {
 
 #[test]
 fn tabs_streaming_check_script_covers_snapshot_only_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test tabs_semantics tabs_stays_snapshot_only_and_does_not_mount_stream_contract_fields",
-        "cargo test -p ui-components --test tabs_semantics tabs_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
+        "cargo test -p ui --test tabs_semantics tabs_stays_snapshot_only_and_does_not_mount_stream_contract_fields",
+        "cargo test -p ui --test tabs_semantics tabs_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
     ] {
         assert!(
             script_source.contains(needle),

@@ -1,10 +1,10 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{Breadcrumb, BreadcrumbItem, SegmentedControl, SegmentedControlSize, Switch};
+use ui::{Breadcrumb, BreadcrumbItem, SegmentedControl, SegmentedControlSize, Switch};
 
 const BREADCRUMB_DOC_IMPORTS: &str =
-    "use leptos::prelude::*;\nuse ui_components::{Breadcrumb, BreadcrumbItem};";
+    "use leptos::prelude::*;\nuse ui::{Breadcrumb, BreadcrumbItem};";
 
 pub(super) fn breadcrumb() -> AnyView {
     let scenario_options = vec![
@@ -159,7 +159,7 @@ pub(super) fn breadcrumb() -> AnyView {
     let test_css_source = Signal::derive(move || {
         format!(
             "/* components/breadcrumb/src/styles.rs */\n{}",
-            ui_components::breadcrumb::styles::CSS
+            ui::breadcrumb::styles::CSS
         )
     });
 
@@ -385,7 +385,7 @@ let items = vec![
                     >
                         <div class="docs-search__label">"Dependency baseline (Cargo.toml)"</div>
                         <code>
-                            "ui-components = { default-features = false, features = [\"component-breadcrumb\", \"inject-css\"] }"
+                            "ui = { default-features = false, features = [\"component-breadcrumb\", \"inject-css\"] }"
                         </code>
                     </div>
 

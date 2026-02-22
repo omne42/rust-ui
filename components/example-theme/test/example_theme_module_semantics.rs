@@ -126,7 +126,7 @@ fn crate_root_registers_example_theme_module() {
         cargo_source.contains(
             "ui-example-theme = { path = \"../../components/example-theme\", optional = true }"
         ),
-        "ui-components Cargo.toml should include the optional ui-example-theme dependency."
+        "ui Cargo.toml should include the optional ui-example-theme dependency."
     );
 }
 

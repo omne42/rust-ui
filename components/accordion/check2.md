@@ -37,21 +37,21 @@
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 证据：`components/accordion/test/accordion_semantics.rs::accordion_motion_is_spring_driven`、`accordion_motion_respects_reduced_motion_preferences`、`ui_motion_non_wasm_stub_contract_is_explicit`。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
   - 证据：`components/accordion/test/accordion_semantics.rs::accordion_motion_defaults_come_from_ui_theme_tokens`、`accordion_token_first_css_is_injected_through_root_pipeline`。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - 证据：`components/accordion/test/accordion_semantics.rs::accordion_file_roles_follow_layer_contract`、`ui_components_entry_file_locations_follow_contract`、`accordion_directory_standard_files_follow_contract`。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
@@ -160,7 +160,7 @@
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
   - 证据：`components/accordion/test/accordion_semantics.rs::accordion_token_first_css_is_injected_through_root_pipeline`、`accordion_styles_depend_on_explicit_state_markers`。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -176,9 +176,9 @@
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 证据：`components/accordion/test/accordion_semantics.rs::accordion_uses_typed_discrete_mode_from_state_primitives`、`accordion_agent_contract_is_schema_typed_and_mounted`。
@@ -265,15 +265,15 @@
   - 证据：`components/accordion/test/accordion_semantics.rs::accordion_styles_depend_on_explicit_state_markers`（样式标记约束 + 组件 view 无普通业务内联样式）。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 证据：`components/accordion/test/accordion_semantics.rs::accordion_motion_is_spring_driven`、`accordion_motion_sanitizes_custom_contract_values`、`accordion_motion_respects_reduced_motion_preferences`。
-- [x] `ui-components` 固定入口文件落点正确。
+- [x] `ui` 固定入口文件落点正确。
   - 证据：`components/accordion/test/accordion_semantics.rs::ui_components_entry_file_locations_follow_contract`。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。
   - 证据：`components/accordion/test/accordion_semantics.rs::accordion_directory_standard_files_follow_contract`。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
@@ -325,17 +325,17 @@
   - 组件源码扫描（`components/accordion/src/*.rs`）未命中 `unwrap/expect` 与裸 `let _ = ...`。
   - 组件字符串复制热点扫描未命中 `check-rust-hygiene.sh` 对热点的同类模式（`to_owned/String::from/语义字段 to_string`）。
   - `./scripts/check-rust-hygiene.sh` 已执行尝试：当前环境被仓库级前置检查阻断（`PCRE2 is not available in this build of ripgrep` 与 `[api-contract] baseline drift`），阻断来源非 accordion 组件局部实现。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 特性注册证据：`crates/ui-components/Cargo.toml` 定义 `component-accordion = [\"dep:ui-accordion\"]`，并纳入 `all-components`/`web-demo-components` 特性树。
-  - `lib.rs` 门控证据：`crates/ui-components/src/lib.rs` 仅在 `#[cfg(feature = \"component-accordion\")]` 下导出 `pub use ui_accordion as accordion;` 及相关 API。
-  - `css.rs` 门控证据：`crates/ui-components/src/css.rs` 在 `#[cfg(feature = \"inject-css\")]` 总开关下，仅在 `#[cfg(feature = \"component-accordion\")]` 时注入 `crate::accordion::styles::CSS`。
-  - 验证命令：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`（命中 `ui-accordion feature \"default\"`，未命中 `all-components`）。
-  - 验证命令：`cargo tree -e features -i ui-components -p web-demo | rg \"all-components|component-accordion|web-demo-components\"`（命中 `component-accordion`/`web-demo-components`，未命中 `all-components`）。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 特性注册证据：`crates/ui/Cargo.toml` 定义 `component-accordion = [\"dep:ui-accordion\"]`，并纳入 `all-components`/`web-demo-components` 特性树。
+  - `lib.rs` 门控证据：`crates/ui/src/lib.rs` 仅在 `#[cfg(feature = \"component-accordion\")]` 下导出 `pub use ui_accordion as accordion;` 及相关 API。
+  - `css.rs` 门控证据：`crates/ui/src/css.rs` 在 `#[cfg(feature = \"inject-css\")]` 总开关下，仅在 `#[cfg(feature = \"component-accordion\")]` 时注入 `crate::accordion::styles::CSS`。
+  - 验证命令：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`（命中 `ui-accordion feature \"default\"`，未命中 `all-components`）。
+  - 验证命令：`cargo tree -e features -i ui -p web-demo | rg \"all-components|component-accordion|web-demo-components\"`（命中 `component-accordion`/`web-demo-components`，未命中 `all-components`）。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 语义契约覆盖证据：`components/accordion/test/accordion_semantics.rs` 对 `aria-expanded/aria-controls`、`data-open-state-source/data-open-init-source/data-open-last-change-source`、`data-focused/data-focus-visible` 及键盘/指针路径有显式断言。
   - 性能测量证据：`components/accordion/test/accordion_semantics.rs` 的 `docs_perf_probe_budgets_are_wired_for_component_pages` 断言 docs perf probe 预算接线（含 `accordion`），并要求 E2E 覆盖 `data-perf-mount-ms/data-perf-budget-ms/data-perf-observability/data-perf-violation`。
   - `render_count` 现状证据：`components/accordion/test/accordion_semantics.rs` 的 `perf_render_count_follow_up_is_tracked_in_plan` 对 `docs/plan/TODO.md` 中 `render_count` 自动化任务做回归跟踪（当前按“测量+计划跟踪”策略执行）。
-  - 验证补充：本地执行 `cargo test -p ui-components --test accordion_semantics` 与 `CARGO_TARGET_DIR=/tmp/codex-accordion-semantics ...` 均受环境错误 `Invalid cross-device link (os error 18)` 阻断，非组件代码逻辑失败。
+  - 验证补充：本地执行 `cargo test -p ui --test accordion_semantics` 与 `CARGO_TARGET_DIR=/tmp/codex-accordion-semantics ...` 均受环境错误 `Invalid cross-device link (os error 18)` 阻断，非组件代码逻辑失败。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - 结论：N/A（本次不触发）。当前 accordion 协议仍为 `schema_version = V1`，未引入跨大版本破坏升级，因此不应凭空新增 `migrate_v1_to_v2`。
   - 证据：`components/accordion/src/protocol.rs` 仅定义 `AccordionComponentSchemaVersion::V1` 并在 `AccordionComponentSpec::default/resolve` 中沿用同一版本路径。
@@ -343,7 +343,7 @@
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
   - Playground 覆盖证据：`apps/docs-app/src/pages/components/pages/collections.rs` 的 `accordion()` 已包含 `Hello World (Uncontrolled)`、`Multiple + Controlled`、`Single + Disabled`、`Workbench (Isolated Canvas + Optional Persist)`。
   - 流式/快照证据：同文件包含 `Streaming Output (AI Space)`，并通过 `AiRenderMode::Streaming/Snapshot` + `AiSpace` 显式展示两种模式。
-  - Source-first 复制证据：`apps/docs-app/src/playground.rs` 的 `compose_copy_ready_code(raw, imports)` 会补齐缺失 imports（默认 `use leptos::prelude::*; use ui_components::*;`），代码面板使用 `CodeBlock`（默认可复制）输出 copy-ready 片段。
+  - Source-first 复制证据：`apps/docs-app/src/playground.rs` 的 `compose_copy_ready_code(raw, imports)` 会补齐缺失 imports（默认 `use leptos::prelude::*; use ui::*;`），代码面板使用 `CodeBlock`（默认可复制）输出 copy-ready 片段。
   - 回归证据：`components/accordion/test/accordion_semantics.rs` 包含 `accordion_docs_page_covers_primary_playgrounds`、`accordion_docs_playgrounds_lock_state_matrix_contract_values`、`accordion_docs_examples_remain_copy_paste_ready`。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
@@ -389,7 +389,7 @@
     - 证据：`e2e/tests/docs_app_accordion.spec.mjs` 覆盖进入页面、打开/关闭、键盘 roving、disabled 分支的可重复流程；`components/accordion/test/accordion_semantics.rs::accordion_e2e_uses_semantic_selectors_and_stable_waits` 对该回归入口做语义护栏。
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
-    - 证据：`apps/docs-app/src/playground.rs` 使用 `CodeBlock` 渲染代码面板（内置 copy 按钮），并通过 `compose_copy_ready_code` + `DEFAULT_PLAYGROUND_IMPORTS`（`use leptos::prelude::*; use ui_components::*;`）自动补齐缺失 imports，保证复制代码可直接运行。
+    - 证据：`apps/docs-app/src/playground.rs` 使用 `CodeBlock` 渲染代码面板（内置 copy 按钮），并通过 `compose_copy_ready_code` + `DEFAULT_PLAYGROUND_IMPORTS`（`use leptos::prelude::*; use ui::*;`）自动补齐缺失 imports，保证复制代码可直接运行。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
     - 证据：`components/accordion/src/README.md` 明确组件源码落点（`logic.rs/protocol.rs/view.rs/motion.rs/styles.rs/mod.rs`）与依赖前提（`ui-state-primitives + ui-headless + ui-motion`）。
   - 文档代码与当前实现必须同步，防止示例漂移。
@@ -409,9 +409,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

@@ -7,7 +7,7 @@
 不需要先理解分层架构，先用默认 API：
 
 ```rust
-use ui_components::Icon;
+use ui::Icon;
 
 <Icon>"✓"</Icon>
 ```
@@ -15,7 +15,7 @@ use ui_components::Icon;
 ## 常见用法（默认路径优先）
 
 ```rust
-use ui_components::{Icon, IconSize, IconTone};
+use ui::{Icon, IconSize, IconTone};
 
 <Icon size=IconSize::Sm tone=IconTone::Default is_decorative=true>"✓"</Icon>
 <Icon size=IconSize::Md tone=IconTone::Muted is_decorative=true>"⚙"</Icon>

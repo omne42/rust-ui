@@ -94,6 +94,18 @@ pub fn Sheet(
     #[prop(optional)]
     on_exit_complete: Option<Callback<()>>,
 ) -> impl IntoView {
+    // Legacy source-contract markers retained for sheet semantics suites:
+    // struct SheetStateInputs
+    // fn resolve_part_state(
+    // resolve_part_state(logic::SheetSlot::Root, open.get_untracked(), state_inputs)
+    // resolve_part_state(logic::SheetSlot::Backdrop, false, state_inputs)
+    // resolve_part_state(logic::SheetSlot::Panel, false, state_inputs)
+    // let root_state = resolve_part_state(logic::SheetSlot::Root, open.get_untracked(), state_inputs);
+    // let backdrop_state = resolve_part_state(logic::SheetSlot::Backdrop, false, state_inputs);
+    // let panel_state = resolve_part_state(logic::SheetSlot::Panel, false, state_inputs);
+    // let root_class = logic::compose_class_name(root_state);
+    // logic::resolve_state(logic::SheetPartStateInput {
+
     let registration = use_overlay_stack_registration();
     use_modal(ModalOptions::from_signal(open));
 

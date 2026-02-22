@@ -8,7 +8,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::ColorHandle;
+use ui::ColorHandle;
 
 view! {
   <div style="position: relative; inline-size: 12rem; block-size: 7rem;">

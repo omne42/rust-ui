@@ -7,6 +7,16 @@ pub struct ColorThumbMotion {
     pub spring: ui_motion::spring::SpringConfig,
 }
 
+impl ColorThumbMotion {
+    pub fn disabled() -> Self {
+        Self {
+            handle_duration_ms: 60,
+            loupe_duration_ms: 60,
+            ..Self::default()
+        }
+    }
+}
+
 impl Default for ColorThumbMotion {
     fn default() -> Self {
         let tokens = default_text_field_motion_tokens();

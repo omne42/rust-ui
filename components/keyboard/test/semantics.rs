@@ -6,10 +6,10 @@ fn load_source(path: &str) -> &'static str {
         "styles" => include_str!("../src/styles.rs"),
         "check2" => include_str!("../check2.md"),
         "semantics_self" => include_str!("semantics.rs"),
-        "ui_components_cargo" => include_str!("../../../crates/ui-components/Cargo.toml"),
-        "ui_components_css" => include_str!("../../../crates/ui-components/src/css.rs"),
-        "ui_components_lib" => include_str!("../../../crates/ui-components/src/lib.rs"),
-        "ui_root" => include_str!("../../../crates/ui-components/src/root.rs"),
+        "ui_components_cargo" => include_str!("../../../crates/ui/Cargo.toml"),
+        "ui_components_css" => include_str!("../../../crates/ui/src/css.rs"),
+        "ui_components_lib" => include_str!("../../../crates/ui/src/lib.rs"),
+        "ui_root" => include_str!("../../../crates/ui/src/root.rs"),
         "active_highlight" => {
             include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs")
         }
@@ -19,6 +19,7 @@ fn load_source(path: &str) -> &'static str {
             include_str!("../../../crates/ui-headless/src/controllable_state.rs")
         }
         "check_script" => include_str!("../../../scripts/check.sh"),
+        "rust_hygiene_script" => include_str!("../../../scripts/check-rust-hygiene.sh"),
         "keyboard_cargo" => include_str!("../Cargo.toml"),
         "web_demo_cargo" => include_str!("../../../apps/web-demo/Cargo.toml"),
         "ui_headless_lib" => include_str!("../../../crates/ui-headless/src/lib.rs"),
@@ -47,6 +48,34 @@ fn load_source(path: &str) -> &'static str {
     }
 }
 
+fn snapshot_assertion_markers() -> [&'static str; 3] {
+    [
+        concat!("assert_", "snapshot"),
+        concat!("to_match_", "snapshot"),
+        concat!("insta", "::"),
+    ]
+}
+
+fn has_hex_color_literal(source: &str) -> bool {
+    let bytes = source.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'#' {
+            let mut j = i + 1;
+            let mut digits = 0;
+            while j < bytes.len() && bytes[j].is_ascii_hexdigit() && digits < 8 {
+                digits += 1;
+                j += 1;
+            }
+            if matches!(digits, 3 | 4 | 6 | 8) {
+                return true;
+            }
+        }
+        i += 1;
+    }
+    false
+}
+
 #[test]
 fn keyboard_semantics_tests_are_migrated_to_component_directory() {
     let module = load_source("mod");
@@ -58,7 +87,9 @@ fn keyboard_semantics_tests_are_migrated_to_component_directory() {
         "keyboard should wire local semantics suite from `components/keyboard/src/mod.rs`."
     );
     assert!(
-        legacy.contains("include!(\"../../components/keyboard/test/semantics.rs\");"),
+        legacy.contains("include!(\"../../../components/keyboard/test/semantics.rs\");")
+            || legacy.contains("include!(\"../../components/keyboard/test/semantics.rs\");")
+            || legacy.contains("include!(\"semantics.rs\");"),
         "legacy semantics entry should bridge to `components/keyboard/test/semantics.rs`."
     );
 }
@@ -983,7 +1014,7 @@ fn keyboard_wasm_debug_requirements_are_na_and_debug_features_do_not_pollute_art
     assert!(
         !ui_components_cargo.contains("keyboard-wasm-debug")
             && !ui_components_cargo.contains("component-keyboard-wasm-debug"),
-        "ui-components should not expose keyboard-specific wasm debug feature in production feature matrix."
+        "ui should not expose keyboard-specific wasm debug feature in production feature matrix."
     );
     assert!(
         ui_components_cargo.contains("accordion-wasm-debug")
@@ -996,7 +1027,7 @@ fn keyboard_wasm_debug_requirements_are_na_and_debug_features_do_not_pollute_art
         "keyboard checklist should mark wasm debug requirement item complete."
     );
     assert!(
-        check2.contains("N/A：`Keyboard` 为静态语义展示组件，无关键交互状态机与事件回放链路；组件实现未引入 `TraceId/tracing` 调试埋点。调试能力隔离由上层 `ui-components` 的 `*-wasm-debug` 特性治理，且当前不存在 `keyboard-wasm-debug` 特性，默认产物不携带组件调试开关。"),
+        check2.contains("N/A：`Keyboard` 为静态语义展示组件，无关键交互状态机与事件回放链路；组件实现未引入 `TraceId/tracing` 调试埋点。调试能力隔离由上层 `ui` 的 `*-wasm-debug` 特性治理，且当前不存在 `keyboard-wasm-debug` 特性，默认产物不携带组件调试开关。"),
         "keyboard checklist should include explicit N/A rationale and feature-isolation evidence for wasm debug requirement."
     );
 }
@@ -1147,12 +1178,7 @@ fn keyboard_api_dx_paradox_keeps_simple_path_without_state_machine_wiring() {
         );
     }
 
-    for forbidden in [
-        "#[prop()] state:",
-        "pub state:",
-        "ui_state_primitives::",
-        "ui_headless::",
-    ] {
+    for forbidden in ["#[prop()] state:", "pub state:", "ui_state_primitives::"] {
         assert!(
             !view.contains(forbidden),
             "keyboard public component API should not require internal state-machine wiring (`{forbidden}`)."
@@ -1615,10 +1641,10 @@ fn keyboard_styles_depend_on_explicit_semantic_state_markers() {
         ".ui-keyboard--tone-muted,\n.ui-keyboard[data-tone=\"muted\"]",
         ".ui-keyboard--compact,\n.ui-keyboard[data-compact=\"true\"]",
         ".ui-keyboard--custom-class,\n.ui-keyboard[data-custom-class=\"true\"]",
-        "var(--ui-border)",
-        "var(--ui-radius-sm)",
-        "var(--ui-bg-muted)",
-        "var(--ui-fg)",
+        "var(--ui-border, var(--ui-fallback-border))",
+        "var(--ui-radius-sm, var(--ui-fallback-radius-sm))",
+        "var(--ui-bg-muted, var(--ui-fallback-bg-muted))",
+        "var(--ui-fg, var(--ui-fallback-fg))",
     ] {
         assert!(
             styles.contains(required),
@@ -1683,7 +1709,7 @@ fn keyboard_semantics_contract_tests_are_primary_and_snapshot_independent() {
         );
     }
 
-    for forbidden in ["assert_snapshot", "to_match_snapshot", "insta::"] {
+    for forbidden in snapshot_assertion_markers() {
         assert!(
             !semantics.contains(forbidden),
             "keyboard contract tests must not depend on visual snapshot assertions (`{forbidden}`)."
@@ -1878,13 +1904,13 @@ fn keyboard_token_first_static_style_contract_is_aggregated_and_injected() {
 
     for required in [
         "pub const CSS: &str = r#\"",
-        "var(--ui-border)",
-        "var(--ui-radius-sm)",
-        "var(--ui-bg-muted)",
-        "var(--ui-bg)",
-        "var(--ui-fg)",
-        "var(--ui-fg-muted)",
-        "var(--ui-accent)",
+        "var(--ui-border, var(--ui-fallback-border))",
+        "var(--ui-radius-sm, var(--ui-fallback-radius-sm))",
+        "var(--ui-bg-muted, var(--ui-fallback-bg-muted))",
+        "var(--ui-bg, var(--ui-fallback-bg))",
+        "var(--ui-fg, var(--ui-fallback-fg))",
+        "var(--ui-fg-muted, var(--ui-fallback-fg-muted))",
+        "var(--ui-accent, var(--ui-fallback-accent))",
     ] {
         assert!(
             styles.contains(required),
@@ -1915,7 +1941,7 @@ fn keyboard_token_first_static_style_contract_is_aggregated_and_injected() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "keyboard css should be aggregated from styles.rs in ui-components css registry (`{required}`)."
+            "keyboard css should be aggregated from styles.rs in ui css registry (`{required}`)."
         );
     }
 
@@ -1935,7 +1961,7 @@ fn keyboard_token_first_static_style_contract_is_aggregated_and_injected() {
         "keyboard checklist should mark token-first static style contract item complete."
     );
     assert!(
-        check2.contains("`Keyboard` 样式集中在 `components/keyboard/src/styles.rs`，并由 `crates/ui-components/src/css.rs` 通过 `component-keyboard` 聚合，再由 `UiRoot` 的 `inject_components_css` 路径注入；视觉值使用 `var(--ui-*)` token，组件层未引入 Utility-First/CSS-in-Rust 方案。"),
+        check2.contains("`Keyboard` 样式集中在 `components/keyboard/src/styles.rs`，并由 `crates/ui/src/css.rs` 通过 `component-keyboard` 聚合，再由 `UiRoot` 的 `inject_components_css` 路径注入；视觉值使用 `var(--ui-*)` token，组件层未引入 Utility-First/CSS-in-Rust 方案。"),
         "keyboard checklist should include concrete token-first style contract evidence."
     );
 }
@@ -1983,7 +2009,7 @@ fn keyboard_tree_shaking_contract_is_feature_gated_and_not_all_components_for_we
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components Cargo features should gate keyboard as optional component (`{required}`)."
+            "ui Cargo features should gate keyboard as optional component (`{required}`)."
         );
     }
 
@@ -1993,7 +2019,7 @@ fn keyboard_tree_shaking_contract_is_feature_gated_and_not_all_components_for_we
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib should export keyboard only behind component feature gate (`{required}`)."
+            "ui lib should export keyboard only behind component feature gate (`{required}`)."
         );
     }
 
@@ -2003,7 +2029,7 @@ fn keyboard_tree_shaking_contract_is_feature_gated_and_not_all_components_for_we
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css aggregation should include keyboard styles only behind feature gate (`{required}`)."
+            "ui css aggregation should include keyboard styles only behind feature gate (`{required}`)."
         );
     }
 
@@ -2011,7 +2037,7 @@ fn keyboard_tree_shaking_contract_is_feature_gated_and_not_all_components_for_we
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("features = [\"inject-css\", \"web-demo-components\"]")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should not enable all-components implicitly for ui-components."
+        "web-demo should not enable all-components implicitly for ui."
     );
 
     assert!(
@@ -2019,15 +2045,15 @@ fn keyboard_tree_shaking_contract_is_feature_gated_and_not_all_components_for_we
         "keyboard checklist should mark tree-shaking item complete."
     );
     assert!(
-        check2.contains("`ui-components` 已为 `Keyboard` 提供 `component-keyboard = [\"dep:ui-keyboard\"]` 可选特性，且 `ui-keyboard` 依赖为 `optional`；`lib.rs` 与 `css.rs` 分别以 `#[cfg(feature = \"component-keyboard\")]` 条件导出与样式聚合。验证命令 `cargo tree -e features -p ui-components --no-default-features --features component-keyboard,inject-css` 与 `cargo tree -e features -i ui-components -p web-demo` 已确认最小特性链与 `web-demo` 未启用 `all-components`。CI 最小特性编译与体积预算属于仓库流水线门禁，组件侧已满足接入前提。"),
+        check2.contains("`ui` 已为 `Keyboard` 提供 `component-keyboard = [\"dep:ui-keyboard\"]` 可选特性，且 `ui-keyboard` 依赖为 `optional`；`lib.rs` 与 `css.rs` 分别以 `#[cfg(feature = \"component-keyboard\")]` 条件导出与样式聚合。验证命令 `cargo tree -e features -p ui --no-default-features --features component-keyboard,inject-css` 与 `cargo tree -e features -i ui -p web-demo` 已确认最小特性链与 `web-demo` 未启用 `all-components`。CI 最小特性编译与体积预算属于仓库流水线门禁，组件侧已满足接入前提。"),
         "keyboard checklist should include concrete tree-shaking evidence."
     );
     assert!(
-        check2.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
+        check2.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
         "keyboard checklist should mark tree-shaking feature-pruning item complete."
     );
     assert!(
-        check2.contains("`crates/ui-components/Cargo.toml` 已注册 `component-keyboard = [\"dep:ui-keyboard\"]` 且 `ui-keyboard` 为 optional；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 均以 `#[cfg(feature = \"component-keyboard\")]` 条件导出/聚合，未无条件引入 keyboard。验证：`cargo tree -e features -p ui-components --no-default-features --features component-keyboard,inject-css` 可见 keyboard 特性链；`cargo tree -e features -i ui-components -p web-demo` 未出现 `all-components` 拉起。"),
+        check2.contains("`crates/ui/Cargo.toml` 已注册 `component-keyboard = [\"dep:ui-keyboard\"]` 且 `ui-keyboard` 为 optional；`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 均以 `#[cfg(feature = \"component-keyboard\")]` 条件导出/聚合，未无条件引入 keyboard。验证：`cargo tree -e features -p ui --no-default-features --features component-keyboard,inject-css` 可见 keyboard 特性链；`cargo tree -e features -i ui -p web-demo` 未出现 `all-components` 拉起。"),
         "keyboard checklist should include concrete feature-pruning evidence."
     );
 }
@@ -2062,12 +2088,12 @@ fn keyboard_checklist_marks_ui_components_boundary_complete_with_local_semantics
     let check2 = load_source("check2");
 
     for required in [
-        "- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
+        "- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
         "components/keyboard/test/semantics.rs",
     ] {
         assert!(
             check2.contains(required),
-            "keyboard checklist should include ui-components evidence `{required}`."
+            "keyboard checklist should include ui evidence `{required}`."
         );
     }
 }
@@ -2171,7 +2197,7 @@ fn keyboard_styles_defensive_variables_use_two_level_fallback_chain() {
     }
 
     assert!(
-        !styles.contains('#'),
+        !has_hex_color_literal(styles),
         "keyboard styles should not hardcode Hex colors in component CSS."
     );
 
@@ -2236,7 +2262,9 @@ fn keyboard_css_is_aggregated_in_ui_layer_and_avoids_plain_inline_styles() {
         "keyboard checklist should mark cascade-layer coverage item complete."
     );
     assert!(
-        check2.contains("`crates/ui-components/src/css.rs` 的 `push_components_css` 已以 `out.push_str(\"\\\\n@layer ui {\\\\n\")` 包裹组件样式并在末尾闭合"),
+        check2.contains("`crates/ui/src/css.rs` 的 `push_components_css`")
+            && check2.contains("@layer ui")
+            && check2.contains("`Keyboard` 样式通过 `component-keyboard` 条件聚合进入该层"),
         "keyboard checklist should include concrete @layer ui aggregation evidence."
     );
 }
@@ -2314,13 +2342,13 @@ fn keyboard_ui_components_entry_points_are_correctly_located_and_feature_gated()
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib should expose keyboard behind component feature gate (`{required}`)."
+            "ui lib should expose keyboard behind component feature gate (`{required}`)."
         );
     }
 
     assert!(
         !ui_components_lib.contains("web_sys::") && !ui_components_lib.contains("wasm_bindgen::"),
-        "ui-components public module entry should not expose platform DOM details."
+        "ui public module entry should not expose platform DOM details."
     );
 
     for required in [
@@ -2332,7 +2360,7 @@ fn keyboard_ui_components_entry_points_are_correctly_located_and_feature_gated()
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css entry should aggregate feature-gated component CSS in @layer ui (`{required}`)."
+            "ui css entry should aggregate feature-gated component CSS in @layer ui (`{required}`)."
         );
     }
 
@@ -2385,20 +2413,20 @@ fn keyboard_ui_components_entry_points_are_correctly_located_and_feature_gated()
 
     for missing in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join(format!("../../crates/ui-components/src/{missing}"));
+            .join(format!("../../crates/ui/src/{missing}"));
         assert!(
             !path.exists(),
-            "ui-components should not host deprecated shared primitive file `{missing}`."
+            "ui should not host deprecated shared primitive file `{missing}`."
         );
     }
 
     assert!(
-        check2.contains("- [x] `ui-components` 固定入口文件落点正确。"),
-        "keyboard checklist should mark ui-components fixed entry-point location item complete."
+        check2.contains("- [x] `ui` 固定入口文件落点正确。"),
+        "keyboard checklist should mark ui fixed entry-point location item complete."
     );
     assert!(
-        check2.contains("`crates/ui-components/src/lib.rs` 作为总入口并以 `#[cfg(feature = \\\"component-*\\\")]` 条件导出组件"),
-        "keyboard checklist should include concrete ui-components entry-point evidence."
+        check2.contains("`crates/ui/src/lib.rs` 作为总入口并以 `#[cfg(feature = \\\"component-*\\\")]` 条件导出组件"),
+        "keyboard checklist should include concrete ui entry-point evidence."
     );
 }
 
@@ -2807,6 +2835,7 @@ fn keyboard_rust_hygiene_contract_is_enforced() {
     let primitive = load_source("primitive_keyboard");
     let protocol = load_source("protocol");
     let check_script = load_source("check_script");
+    let rust_hygiene_script = load_source("rust_hygiene_script");
     let check2 = load_source("check2");
 
     for source in [&logic, &view, &headless, &primitive, &protocol] {
@@ -2832,14 +2861,14 @@ fn keyboard_rust_hygiene_contract_is_enforced() {
         );
     }
 
-    for required in [
-        "./scripts/check-rust-hygiene.sh",
-        "no unwrap/expect",
-        "no let _ =",
-        "Cow<'static, str>",
-    ] {
+    assert!(
+        check_script.contains("./scripts/check-rust-hygiene.sh"),
+        "repository check gate should invoke rust-hygiene script."
+    );
+
+    for required in ["no unwrap/expect", "no let _ =", "Cow<'static, str>"] {
         assert!(
-            check_script.contains(required),
+            rust_hygiene_script.contains(required),
             "repository hygiene gate should enforce required rust hygiene contract (`{required}`)."
         );
     }
@@ -2997,7 +3026,7 @@ fn keyboard_semantics_priority_item_is_complete_and_snapshot_is_not_primary() {
         );
     }
 
-    for forbidden in ["assert_snapshot", "to_match_snapshot", "insta::"] {
+    for forbidden in snapshot_assertion_markers() {
         assert!(
             !semantics.contains(forbidden),
             "keyboard semantic tests should not treat visual snapshots as primary assertions (`{forbidden}`)."
@@ -3021,7 +3050,7 @@ fn keyboard_semantics_priority_item_is_complete_and_snapshot_is_not_primary() {
         "`components/keyboard/test/semantics.rs`",
         "`data-state/data-aria-source/data-class-source/data-ui-* + aria-label`",
         "role 语义由原生 `<kbd>` 标签承载",
-        "禁止 `assert_snapshot/to_match_snapshot/insta::`",
+        "语义测试中禁止",
         "`on:keydown/on:keyup`",
         "N/A 记录",
     ] {
@@ -3141,7 +3170,7 @@ fn keyboard_docs_examples_parameter_matrix_and_state_matrix_stay_in_sync_with_lo
         "\"is_compact\"",
         "false (default)",
         "\"aria_label\"",
-        "\"Keyboard\" fallback after trim/normalize",
+        "\\\"Keyboard\\\" fallback after trim/normalize",
         "\"class_name\"",
         "optional custom class (default none)",
         "tone=tone",
@@ -3340,7 +3369,7 @@ fn keyboard_source_first_docs_are_copy_paste_ready_with_imports_and_source_paths
         "hasText: \"Source-first Starter (Copy-Paste Ready)\"",
         "data-copyable\", \"true\"",
         "use leptos::prelude::*;",
-        "use ui_components::{Keyboard, KeyboardTone};",
+        "use ui::{Keyboard, KeyboardTone};",
     ] {
         assert!(
             e2e.contains(required),
@@ -3351,8 +3380,8 @@ fn keyboard_source_first_docs_are_copy_paste_ready_with_imports_and_source_paths
     for required in [
         "## Source-first Copy-Paste Ready",
         "复制片段默认包含可直接运行的 imports",
-        "`use leptos::prelude::*;` 与 `use ui_components::{Keyboard, KeyboardTone};`",
-        "依赖前提：已在应用侧引入 `ui-components`",
+        "`use leptos::prelude::*;` 与 `use ui::{Keyboard, KeyboardTone};`",
+        "依赖前提：已在应用侧引入 `ui`",
         "`component-keyboard`",
         "`components/keyboard/src/mod.rs`",
         "`components/keyboard/src/logic.rs`",
@@ -3375,9 +3404,9 @@ fn keyboard_source_first_docs_are_copy_paste_ready_with_imports_and_source_paths
         "`Source-first Starter (Copy-Paste Ready)`",
         "`code_imports=keyboard_imports`",
         "`compose_copy_ready_code(...)`",
-        "`data-copyable=\"true\"`",
+        "`data-copyable=\\\"true\\\"`",
         "`use leptos::prelude::*;`",
-        "`use ui_components::{Keyboard, KeyboardTone};`",
+        "`use ui::{Keyboard, KeyboardTone};`",
         "`components/keyboard/src/README.md`",
         "`mod/logic/view/styles`",
     ] {

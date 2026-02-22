@@ -131,7 +131,7 @@ mod wasm_debug {
             });
 
             tracing::event!(
-                target: "ui_components::button::state_change",
+                target: "ui::button::state_change",
                 tracing::Level::DEBUG,
                 sequence,
                 timestamp_ms,

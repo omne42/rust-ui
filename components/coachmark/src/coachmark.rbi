@@ -1,9 +1,9 @@
-pub type CoachmarkVariant = ui_components::contextual_help::ContextualHelpVariant;
-pub type CoachmarkAssetVariant = ui_components::asset::AssetVariant;
-pub type OnPress = ui_components::OnPress;
+pub type CoachmarkVariant = ui::contextual_help::ContextualHelpVariant;
+pub type CoachmarkAssetVariant = ui::asset::AssetVariant;
+pub type OnPress = ui::OnPress;
 pub type PopoverPlacement = ui_headless::PopoverPlacement;
 pub type A11yDirection = ui_headless::A11yDirection;
-pub type PopoverMotion = ui_components::popover::PopoverMotion;
+pub type PopoverMotion = ui::popover::PopoverMotion;
 
 pub struct CoachmarkMotion {
     pub popover: PopoverMotion,

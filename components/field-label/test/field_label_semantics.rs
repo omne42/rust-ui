@@ -384,7 +384,7 @@ fn field_label_css_is_aggregated_in_ui_layer_and_view_avoids_inline_style() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css aggregation should keep `{required}` for field-label layer contract."
+            "ui css aggregation should keep `{required}` for field-label layer contract."
         );
     }
 
@@ -414,7 +414,7 @@ fn field_label_ui_components_entry_files_follow_architecture_contract() {
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib entry should keep `{required}` for stable public contract."
+            "ui lib entry should keep `{required}` for stable public contract."
         );
     }
 
@@ -425,7 +425,7 @@ fn field_label_ui_components_entry_files_follow_architecture_contract() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css entry should keep `{required}`."
+            "ui css entry should keep `{required}`."
         );
     }
 
@@ -438,7 +438,7 @@ fn field_label_ui_components_entry_files_follow_architecture_contract() {
     ] {
         assert!(
             root_source.contains(required),
-            "ui-components root entry should keep `{required}`."
+            "ui root entry should keep `{required}`."
         );
     }
 
@@ -455,15 +455,15 @@ fn field_label_ui_components_entry_files_follow_architecture_contract() {
 
     assert!(
         !path_exists("src/overlay_open.rs"),
-        "ui-components should not reintroduce overlay_open.rs; use ui-headless controllable_state."
+        "ui should not reintroduce overlay_open.rs; use ui-headless controllable_state."
     );
     assert!(
         !path_exists("src/presence.rs"),
-        "ui-components should not reintroduce presence.rs; use ui-headless presence."
+        "ui should not reintroduce presence.rs; use ui-headless presence."
     );
     assert!(
         !path_exists("src/a11y.rs"),
-        "ui-components should not reintroduce a11y.rs; use ui-headless a11y helpers."
+        "ui should not reintroduce a11y.rs; use ui-headless a11y helpers."
     );
 }
 
@@ -479,7 +479,7 @@ fn field_label_tree_shaking_feature_contract_is_registered() {
     ] {
         assert!(
             cargo_toml_source.contains(required),
-            "ui-components feature tree should keep `{required}` for field_label tree shaking."
+            "ui feature tree should keep `{required}` for field_label tree shaking."
         );
     }
 
@@ -489,7 +489,7 @@ fn field_label_tree_shaking_feature_contract_is_registered() {
     ] {
         assert!(
             !cargo_toml_source.contains(forbidden),
-            "ui-components should avoid non-gated field_label dependency contract `{forbidden}`."
+            "ui should avoid non-gated field_label dependency contract `{forbidden}`."
         );
     }
 }
@@ -544,9 +544,9 @@ fn field_label_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_con
 
     for needle in [
         "const FIELD_LABEL_DOC_IMPORTS: &str =",
-        "use leptos::prelude::*;\\nuse ui_components::{FieldLabel, FieldLabelTone};",
+        "use leptos::prelude::*;\\nuse ui::{FieldLabel, FieldLabelTone};",
         "code_imports=FIELD_LABEL_DOC_IMPORTS.to_string()",
-        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/field_form/field_label/styles.rs\".to_string()",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui/src/field_form/field_label/styles.rs\".to_string()",
         "FieldLabel has no controllable value axis; parent passes a full snapshot props set each render.",
         "No value/on_change/default_value triad. Controlled/uncontrolled contrast is N/A.",
         "FieldLabel is snapshot-first; streaming stays optional with snapshot fallback.",
@@ -680,7 +680,7 @@ fn field_label_check2_marks_core_sections_complete() {
         "- [x] `status-primitives` 定义",
         "- [x] `ui-headless` 定义",
         "- [x] `ui-theme` 定义",
-        "- [x] `ui-components` 定义",
+        "- [x] `ui` 定义",
         "- [x] API 命名契约统一",
         "- [x] 状态归一化集中",
         "- [x] 存在 A11y 实现、国际化与本地化实现",

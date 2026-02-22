@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{Button, Modal, OnPress};
+use ui::{Button, Modal, OnPress};
 
 #[component]
 pub fn OverlayDemo() -> impl IntoView {

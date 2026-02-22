@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     ButtonMotion, DropZone, DropZoneMotion, DroppedFile, FileTrigger, FileTriggerFile,
     FileTriggerMotion, SegmentedControl, SegmentedControlSize, Switch,
 };
@@ -25,6 +25,10 @@ pub(super) fn file_trigger() -> AnyView {
     let (multiple, set_multiple) = signal(true);
     let (disabled, set_disabled) = signal(false);
     let (custom_motion, set_custom_motion) = signal(false);
+    let (accept_directory, set_accept_directory) = signal(false);
+    let (capture_environment, set_capture_environment) = signal(false);
+    let (lang_zh, set_lang_zh) = signal(false);
+    let (rtl_dir, set_rtl_dir) = signal(false);
 
     let selected_accept: Signal<Option<String>> =
         Signal::derive(move || match accept_index.get().unwrap_or(0) {
@@ -80,6 +84,7 @@ pub(super) fn file_trigger() -> AnyView {
             "});".to_string(),
             "".to_string(),
             "<FileTrigger".to_string(),
+            "  id=\"docs-file-trigger-input\".into()".to_string(),
         ];
 
         if multiple.get() {
@@ -91,6 +96,13 @@ pub(super) fn file_trigger() -> AnyView {
         if let Some(accept) = selected_accept.get() {
             lines.push(format!("  accept=\"{accept}\".into()"));
         }
+        if accept_directory.get() {
+            lines.push("  is_accept_directory=true".to_string());
+            lines.push("  accept_directory=true".to_string());
+        }
+        if capture_environment.get() {
+            lines.push("  capture=\"environment\".into()".to_string());
+        }
         if custom_motion.get() {
             lines.push("  motion=FileTriggerMotion {".to_string());
             lines.push("    trigger: ButtonMotion {".to_string());
@@ -100,6 +112,22 @@ pub(super) fn file_trigger() -> AnyView {
             lines.push("    }".to_string());
             lines.push("  }".to_string());
         }
+        lines.push(format!(
+            "  lang={}.into()",
+            if lang_zh.get() {
+                "\"zh-CN\""
+            } else {
+                "\"en-US\""
+            }
+        ));
+        lines.push(format!(
+            "  dir={}",
+            if rtl_dir.get() {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            }
+        ));
         lines.push("  on_files=on_files".to_string());
         lines.push(">".to_string());
         lines.push("  \"Pick files\"".to_string());
@@ -110,7 +138,7 @@ pub(super) fn file_trigger() -> AnyView {
     let workbench_test_css_source = Signal::derive(move || {
         format!(
             "/* components/file-trigger/src/styles.rs */\n{}",
-            ui_components::file_trigger::styles::CSS
+            ui::file_trigger::styles::CSS
         )
     });
 
@@ -124,17 +152,32 @@ pub(super) fn file_trigger() -> AnyView {
         }
 
         format!(
-            "FileTriggerActualConfig {{\n  accept: \"{}\",\n  multiple: {},\n  disabled: {},\n  motion_source: \"{}\",\n  selected_file_count: {},\n  class: \"{}\",\n}}",
-            selected_accept_label.get(),
-            multiple.get(),
-            disabled.get(),
-            if custom_motion.get() {
-                "custom"
+            "FileTriggerActualConfig {{\n  id: Some(\"docs-file-trigger-input\"),\n  is_disabled: Some({is_disabled}),\n  disabled: Some({disabled}),\n  is_multiple: Some({is_multiple}),\n  multiple: Some({multiple}),\n  accept: {accept:?},\n  is_accept_directory: Some({is_accept_directory}),\n  accept_directory: Some({accept_directory}),\n  capture: {capture},\n  motion: {motion},\n  on_files: Some(\"on_files\"),\n  lang: Some({lang:?}),\n  dir: Some({dir}),\n  selected_file_count: {selected_file_count},\n  class: {class_name:?},\n}}",
+            is_disabled = disabled.get(),
+            disabled = disabled.get(),
+            is_multiple = multiple.get(),
+            multiple = multiple.get(),
+            accept = selected_accept.get().unwrap_or_default(),
+            is_accept_directory = accept_directory.get(),
+            accept_directory = accept_directory.get(),
+            capture = if capture_environment.get() {
+                "Some(\"environment\")"
             } else {
-                "default"
+                "None"
             },
-            files.get().len(),
-            classes.join(" ")
+            motion = if custom_motion.get() {
+                "FileTriggerMotion::custom"
+            } else {
+                "FileTriggerMotion::default"
+            },
+            lang = if lang_zh.get() { "zh-CN" } else { "en-US" },
+            dir = if rtl_dir.get() {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            },
+            selected_file_count = files.get().len(),
+            class_name = classes.join(" "),
         )
     });
 
@@ -211,15 +254,45 @@ pub(super) fn file_trigger() -> AnyView {
                         <Switch checked=custom_motion set_checked=set_custom_motion>
                             "Custom motion"
                         </Switch>
+                        <Switch checked=accept_directory set_checked=set_accept_directory>
+                            "Accept directory"
+                        </Switch>
+                        <Switch checked=capture_environment set_checked=set_capture_environment>
+                            "Capture environment"
+                        </Switch>
+                        <Switch checked=lang_zh set_checked=set_lang_zh>
+                            "lang=zh-CN"
+                        </Switch>
+                        <Switch checked=rtl_dir set_checked=set_rtl_dir>
+                            "dir=rtl"
+                        </Switch>
                     </div>
                 }
             >
                 <div class="docs-stack docs-stack--tight">
                     <FileTrigger
+                        id="docs-file-trigger-input".to_string()
                         accept=selected_accept.get().unwrap_or_default()
                         is_multiple=multiple.get()
                         is_disabled=disabled.get()
+                        is_accept_directory=accept_directory.get()
+                        accept_directory=accept_directory.get()
+                        capture=if capture_environment.get() {
+                            "environment".to_string()
+                        } else {
+                            String::new()
+                        }
                         motion=selected_motion.get()
+                        lang=if lang_zh.get() {
+                            "zh-CN".to_string()
+                        } else {
+                            "en-US".to_string()
+                        }
+                        dir=if rtl_dir.get() {
+                            ui::A11yDirection::Rtl
+                        } else {
+                            ui::A11yDirection::Ltr
+                        }
                         on_files=on_files
                     >
                         "Pick files"
@@ -466,18 +539,23 @@ pub(super) fn drop_zone() -> AnyView {
     let workbench_test_css_source = Signal::derive(move || {
         format!(
             "/* components/drop-zone/src/styles.rs */\n{}",
-            ui_components::drop_zone::styles::CSS
+            ui::drop_zone::styles::CSS
         )
     });
     let workbench_actual_config = Signal::derive(move || {
+        let label = if workbench_custom_motion.get() {
+            "Upload (custom motion)"
+        } else {
+            "Upload"
+        };
         format!(
-            "DropZoneWorkbenchConfig {{\n  disabled: {},\n  motion_source: \"{}\",\n  persist_state: {},\n  dropped_file_count: {},\n}}",
+            "DropZoneWorkbenchConfig {{\n  label: {:?},\n  is_disabled: {},\n  motion: {:?},\n  on_drop_files: \"callback:on_workbench_drop_files\",\n  aria_label: {:?},\n  lang: {:?},\n  dir: {:?},\n  persist_state: {},\n  dropped_file_count: {},\n}}",
+            label,
             workbench_is_disabled.get(),
-            if workbench_custom_motion.get() {
-                "custom"
-            } else {
-                "default"
-            },
+            workbench_motion.get(),
+            "Workbench drop area",
+            "en-US",
+            ui::A11yDirection::Ltr,
             workbench_persist_state.get(),
             workbench_files.get().len(),
         )
@@ -549,8 +627,7 @@ let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
             .to_string()
     });
     let source_first_imports =
-        "use leptos::prelude::*;\nuse ui_components::{DropZone, DropZoneMotion, DroppedFile};"
-            .to_string();
+        "use leptos::prelude::*;\nuse ui::{DropZone, DropZoneMotion, DroppedFile};".to_string();
 
     let code = Signal::derive(move || {
         r#"let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
@@ -688,7 +765,7 @@ let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
                     >
                         <div class="docs-search__label">"Dependency baseline (Cargo.toml)"</div>
                         <code>
-                            "ui-components = { default-features = false, features = [\"component-drop_zone\", \"inject-css\"] }"
+                            "ui = { default-features = false, features = [\"component-drop_zone\", \"inject-css\"] }"
                         </code>
                     </div>
 
@@ -743,6 +820,9 @@ let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
                                 } else {
                                     "Upload".to_string()
                                 }
+                                aria_label="Workbench drop area".to_string()
+                                lang="en-US".to_string()
+                                dir=ui::A11yDirection::Ltr
                                 is_disabled=workbench_is_disabled.get()
                                 motion=workbench_motion.get()
                                 on_drop_files=on_workbench_drop_files
@@ -760,6 +840,52 @@ let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
                         " · persist: "
                         {move || if workbench_persist_state.get() { "on" } else { "off" }}
                     </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Disabled / Motion / Callback)"
+                code_signal=state_matrix_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div data-slot="drop-zone-e2e-state-default-after-workbench">
+                        <DropZone
+                            label="Default".to_string()
+                            aria_label="Default drop area".to_string()
+                            lang="en-US".to_string()
+                            dir=ui::A11yDirection::Ltr
+                        >
+                            <div class="docs-drop-zone">"Default state"</div>
+                        </DropZone>
+                    </div>
+                    <div data-slot="drop-zone-e2e-state-disabled-after-workbench">
+                        <DropZone
+                            label="Disabled".to_string()
+                            aria_label="Disabled drop area".to_string()
+                            lang="en-US".to_string()
+                            dir=ui::A11yDirection::Ltr
+                            is_disabled=true
+                        >
+                            <div class="docs-drop-zone">"Disabled state"</div>
+                        </DropZone>
+                    </div>
+                    <div data-slot="drop-zone-e2e-state-custom-motion-after-workbench">
+                        <DropZone
+                            label="Custom motion".to_string()
+                            aria_label="Custom motion drop area".to_string()
+                            lang="ar".to_string()
+                            dir=ui::A11yDirection::Rtl
+                            motion=DropZoneMotion {
+                                hover_scale: 1.015,
+                                drop_scale: 1.03,
+                                hover_highlight: 0.42,
+                                ..DropZoneMotion::default()
+                            }
+                            on_drop_files=on_drop_files
+                        >
+                            <div class="docs-drop-zone">"Custom motion state"</div>
+                        </DropZone>
+                    </div>
                 </div>
             </Playground>
 

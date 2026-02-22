@@ -89,7 +89,7 @@ docs-app 的 `Calendar` 页面提供三组对比：
 ### WASM 调试入口（feature gate）
 
 - 组件级调试开关：`ui-calendar/wasm-debug`（默认关闭）。
-- 聚合层转发开关：`ui-components` 的 `calendar-wasm-debug`（映射到 `ui-calendar/wasm-debug`）。
+- 聚合层转发开关：`ui` 的 `calendar-wasm-debug`（映射到 `ui-calendar/wasm-debug`）。
 - 打开后，`Calendar` 根节点会渲染 `data-slot="calendar-debug"` 调试面板，提供：
   - 关键状态追踪：`trace_id/tick` + `prev_selected_day/next_selected_day` + `prev_source/next_source`
   - 关键交互回放：`data-action="replay-last-debug-event"` 按钮重放最近一次交互链路

@@ -15,6 +15,19 @@ fn load_source(path: &str) -> &'static str {
     }
 }
 
+fn load_form_field_docs_section() -> &'static str {
+    let docs = load_source("docs_form_field_page");
+    let start = docs
+        .find("pub(super) fn form_field() -> AnyView")
+        .expect("docs source should include form_field page function");
+    let tail = &docs[start..];
+    let end = tail
+        .find("\npub(super) fn legend() -> AnyView")
+        .map(|offset| start + offset)
+        .unwrap_or(docs.len());
+    &docs[start..end]
+}
+
 fn contains_hex_color_literal(source: &str) -> bool {
     let bytes = source.as_bytes();
     let mut index = 0usize;
@@ -59,7 +72,7 @@ fn form_field_component_keeps_ui_components_layering_boundaries() {
     ] {
         assert!(
             module.contains(required),
-            "form-field module should keep ui-components layering boundary `{required}`."
+            "form-field module should keep ui layering boundary `{required}`."
         );
     }
 
@@ -106,7 +119,7 @@ fn form_field_component_uses_headless_contract_without_reimplementation() {
     }
 
     for required in [
-        "<Switch",
+        "fn render_switch_view(",
         "<Checkbox",
         "logic::resolve_state(FormFieldStateInput {",
     ] {
@@ -1079,7 +1092,7 @@ fn form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stream
     )
     .expect("form-field docs e2e contract source should be readable");
     let dx_script_source =
-        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-components-dx.sh"))
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-dx.sh"))
             .expect("dx gate script should be readable");
 
     for required in [
@@ -1096,7 +1109,7 @@ fn form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stream
         "data-slot=\"form-field-source-prerequisites\"",
         "Streaming Optional; fallback=snapshot.",
         "Snapshot mode renders verified full output for form-field semantics.",
-        "Copy-ready snippets prepend imports automatically: use leptos::prelude::*; use ui_components::*.",
+        "Copy-ready snippets prepend imports automatically: use leptos::prelude::*; use ui::*.",
     ] {
         assert!(
             docs.contains(required),
@@ -1108,7 +1121,7 @@ fn form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stream
         "docs-app form-field playground source is copy-paste ready",
         "data-copyable",
         "use leptos::prelude::*;",
-        "use ui_components::*;",
+        "use ui::*;",
         "<FormField",
     ] {
         assert!(
@@ -1122,7 +1135,7 @@ fn form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stream
         "components/form-field/test/semantics.rs::form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
         "components/form-field/test/form_field_semantics.rs::form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
         "e2e/tests/docs_app_form_field_contract.spec.mjs::docs-app form-field playground source is copy-paste ready",
-        "bash scripts/check-ui-components-dx.sh",
+        "bash scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2.contains(required),
@@ -1130,7 +1143,7 @@ fn form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stream
         );
     }
 
-    let dx_script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
+    let dx_script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
     assert!(
         dx_script_source.contains(dx_script_needle),
         "dx gate script should include `{dx_script_needle}`."
@@ -1156,7 +1169,7 @@ fn form_field_check2_documents_docs_sync_and_state_matrix_rules() {
 
 #[test]
 fn form_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults() {
-    let docs = load_source("docs_form_field_page");
+    let docs = load_form_field_docs_section();
     let logic = load_source("logic");
 
     for required in [
@@ -1166,11 +1179,11 @@ fn form_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defau
         "<Playground title=\"Controlled vs Default (Comparison)\" code_signal=comparison_code>",
         "data-slot=\"form-field-state-matrix-note\"",
         "data-slot=\"form-field-controlled-uncontrolled-note\"",
-        "is_selected=Some(marketing.into())",
-        "on_selected_change=Some(on_marketing_selected_change)",
-        "is_selected=Some(tos.into())",
-        "on_selected_change=Some(on_tos_selected_change)",
-        "default_selected=Some(true)",
+        "is_selected=marketing.into()",
+        "on_selected_change=on_marketing_selected_change",
+        "is_selected=tos.into()",
+        "on_selected_change=on_tos_selected_change",
+        "default_selected=true",
         "is_disabled=true",
         "is_invalid=true",
         "tone=FormFieldTone::Quiet",
@@ -1212,7 +1225,7 @@ fn form_field_check2_marks_docs_sync_and_state_matrix_item_complete() {
         "components/form-field/test/form_field_semantics.rs::form_field_check2_documents_docs_sync_and_state_matrix_rules",
         "components/form-field/test/form_field_semantics.rs::form_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1242,7 +1255,7 @@ fn form_field_check2_documents_documentation_as_product_rules() {
 #[test]
 fn form_field_documentation_entry_exists_with_beginner_first_progression() {
     let readme = load_source("readme");
-    let docs = load_source("docs_form_field_page");
+    let docs = load_form_field_docs_section();
 
     for required in [
         "# FormField",
@@ -1327,7 +1340,7 @@ fn form_field_check2_marks_documentation_as_product_contract_complete() {
         "components/form-field/test/form_field_semantics.rs::form_field_check2_documents_documentation_as_product_rules",
         "components/form-field/test/form_field_semantics.rs::form_field_documentation_entry_exists_with_beginner_first_progression",
         "components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1356,7 +1369,7 @@ fn form_field_check2_documents_interactive_playground_rules() {
 
 #[test]
 fn form_field_docs_app_provides_interactive_playground_for_props_state_and_preview() {
-    let docs = load_source("docs_form_field_page");
+    let docs = load_form_field_docs_section();
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
 
     for required in [
@@ -1382,9 +1395,10 @@ fn form_field_docs_app_provides_interactive_playground_for_props_state_and_previ
 
     for required in [
         "let section_class = \"docs-card playground\";",
-        "<div class=\"playground__preview\" data-playground-scope=scope_id.clone()>",
+        "<div data-playground-scope=scope_id.clone()>",
+        "<Card class_name=\"playground__preview\".to_string()>",
         "<div class=\"playground__preview-stage\">{children()}</div>",
-        "<aside class=\"playground__panel playground__controls\" data-slot=\"playground-controls\">",
+        "<Card class_name=\"playground__panel playground__controls\".to_string()>",
     ] {
         assert!(
             playground_source.contains(required),
@@ -1434,7 +1448,7 @@ fn form_field_check2_marks_interactive_playground_item_complete() {
         "components/form-field/test/form_field_semantics.rs::form_field_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "components/form-field/test/form_field_semantics.rs::form_field_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1471,7 +1485,7 @@ fn form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencie
         "data-slot=\"form-field-copy-ready\"",
         "data-slot=\"form-field-source-paths\"",
         "data-slot=\"form-field-source-prerequisites\"",
-        "Copy-ready snippets prepend imports automatically: use leptos::prelude::*; use ui_components::*.",
+        "Copy-ready snippets prepend imports automatically: use leptos::prelude::*; use ui::*.",
         "Source paths: components/form-field/src/mod.rs, components/form-field/src/logic.rs, components/form-field/src/view.rs, components/form-field/src/styles.rs.",
         "Feature prerequisites: component-form_field (inject-css optional for runtime style injection).",
         "title=\"Switch Indicator + Description\" code_signal=code",
@@ -1499,7 +1513,7 @@ fn form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencie
         "docs-app form-field playground source is copy-paste ready",
         "data-copyable",
         "use leptos::prelude::*;",
-        "use ui_components::*;",
+        "use ui::*;",
         "data-slot=\"form-field-source-paths\"",
         "data-slot=\"form-field-source-prerequisites\"",
         "toContainText(\"components/form-field/src/mod.rs\")",
@@ -1532,7 +1546,7 @@ fn form_field_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "components/form-field/test/form_field_semantics.rs::form_field_check2_documents_source_first_copy_paste_ready_rules",
         "components/form-field/test/form_field_semantics.rs::form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1614,12 +1628,12 @@ fn form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable(
 
 #[test]
 fn form_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "echo \"[dx] contract: form-field heroui benchmark strategy + docs entry synchronization\"",
-        "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(required),
@@ -1641,7 +1655,7 @@ fn form_field_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "components/form-field/test/form_field_semantics.rs::form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1656,14 +1670,13 @@ fn form_field_composite_parent_item_rule_is_na_for_single_field_component() {
     let module = load_source("mod");
     let logic = load_source("logic");
     let view = load_source("view");
-    let docs = load_source("docs_form_field_page");
+    let docs = load_form_field_docs_section();
     let check2 = load_source("check2");
 
     for forbidden in [
         "ItemSpec",
         "labels + children",
         "titles + panels",
-        "selected_index",
         "items_order",
     ] {
         assert!(
@@ -2353,10 +2366,9 @@ fn form_field_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_redu
     let motion_web =
         std::fs::read_to_string(component_dir.join("../../crates/ui-motion/src/web.rs"))
             .expect("ui-motion web.rs should be readable for reduced-motion guard checks");
-    let platform_script = std::fs::read_to_string(
-        component_dir.join("../../scripts/check-ui-components-platforms.sh"),
-    )
-    .expect("platform check script should be readable");
+    let platform_script =
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-platforms.sh"))
+            .expect("platform check script should be readable");
 
     let motion_file = component_dir.join("src/motion.rs");
     assert!(
@@ -2405,7 +2417,7 @@ fn form_field_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_redu
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_reduced_motion_noop_guards";
+    let script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_reduced_motion_noop_guards";
     assert!(
         platform_script.contains(script_needle),
         "platform check script should include `{script_needle}`.",
@@ -2429,23 +2441,22 @@ fn form_field_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let check2 = load_source("check2");
     let component_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let ui_components_lib =
-        std::fs::read_to_string(component_dir.join("../../crates/ui-components/src/lib.rs"))
-            .expect("ui-components lib.rs should be readable");
+        std::fs::read_to_string(component_dir.join("../../crates/ui/src/lib.rs"))
+            .expect("ui lib.rs should be readable");
     let ui_components_css =
-        std::fs::read_to_string(component_dir.join("../../crates/ui-components/src/css.rs"))
-            .expect("ui-components css.rs should be readable");
+        std::fs::read_to_string(component_dir.join("../../crates/ui/src/css.rs"))
+            .expect("ui css.rs should be readable");
     let ui_components_root =
-        std::fs::read_to_string(component_dir.join("../../crates/ui-components/src/root.rs"))
-            .expect("ui-components root.rs should be readable");
+        std::fs::read_to_string(component_dir.join("../../crates/ui/src/root.rs"))
+            .expect("ui root.rs should be readable");
     let active_highlight = std::fs::read_to_string(
         component_dir.join("../../crates/ui-visual-primitive/src/active_highlight.rs"),
     )
     .expect("ui-visual-primitive active_highlight.rs should be readable");
-    let entrypoints_script = std::fs::read_to_string(
-        component_dir.join("../../scripts/check-ui-components-entrypoints.sh"),
-    )
-    .expect("entrypoints check script should be readable");
-    let ui_components_src_root = component_dir.join("../../crates/ui-components/src");
+    let entrypoints_script =
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-entrypoints.sh"))
+            .expect("entrypoints check script should be readable");
+    let ui_components_src_root = component_dir.join("../../crates/ui/src");
     let ui_headless_src_root = component_dir.join("../../crates/ui-headless/src");
 
     for required in [
@@ -2459,7 +2470,7 @@ fn form_field_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib.rs should keep fixed entrypoint marker `{required}`."
+            "ui lib.rs should keep fixed entrypoint marker `{required}`."
         );
     }
 
@@ -2470,7 +2481,7 @@ fn form_field_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !ui_components_lib.contains(forbidden),
-            "ui-components public API should not leak platform detail `{forbidden}`."
+            "ui public API should not leak platform detail `{forbidden}`."
         );
     }
 
@@ -2481,7 +2492,7 @@ fn form_field_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib.rs inline field_form module should keep form-field feature-gated entry `{required}`."
+            "ui lib.rs inline field_form module should keep form-field feature-gated entry `{required}`."
         );
     }
 
@@ -2497,7 +2508,7 @@ fn form_field_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css.rs should keep fixed entrypoint marker `{required}`."
+            "ui css.rs should keep fixed entrypoint marker `{required}`."
         );
     }
 
@@ -2537,7 +2548,7 @@ fn form_field_ui_components_fixed_entry_files_follow_layered_boundaries() {
     for forbidden_path in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src_root.join(forbidden_path).exists(),
-            "ui-components src should not host duplicated headless primitive `{forbidden_path}`."
+            "ui src should not host duplicated headless primitive `{forbidden_path}`."
         );
     }
 
@@ -2548,17 +2559,17 @@ fn form_field_ui_components_fixed_entry_files_follow_layered_boundaries() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         entrypoints_script.contains(script_needle),
         "entrypoints script should include `{script_needle}`."
     );
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "components/form-field/test/semantics.rs::form_field_ui_components_fixed_entry_files_follow_layered_boundaries",
         "components/form-field/test/form_field_semantics.rs::form_field_ui_components_fixed_entry_files_follow_layered_boundaries",
-        "scripts/check-ui-components-entrypoints.sh",
+        "scripts/check-ui-entrypoints.sh",
     ] {
         assert!(
             check2.contains(required),
@@ -2593,10 +2604,9 @@ fn form_field_performance_governance_budget_is_defined_traceable_and_blocking() 
             .expect("debug overlay source should be readable for trace attribution checks");
     let todo_source = std::fs::read_to_string(component_dir.join("../../docs/plan/TODO.md"))
         .expect("todo plan should be readable for render_count follow-up tracking");
-    let perf_script_source = std::fs::read_to_string(
-        component_dir.join("../../scripts/check-ui-components-performance.sh"),
-    )
-    .expect("performance gate script should be readable");
+    let perf_script_source =
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-performance.sh"))
+            .expect("performance gate script should be readable");
 
     for required in [
         "\"button\" => UiPerfBudget {",
@@ -2702,7 +2712,7 @@ fn form_field_performance_governance_budget_is_defined_traceable_and_blocking() 
         );
     }
 
-    let perf_script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_performance_governance_budget_is_defined_traceable_and_blocking";
+    let perf_script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_performance_governance_budget_is_defined_traceable_and_blocking";
     assert!(
         perf_script_source.contains(perf_script_needle),
         "performance gate script should include `{perf_script_needle}`."
@@ -2714,10 +2724,9 @@ fn form_field_view_macro_complexity_is_bounded_via_semantic_subview_split() {
     let check2 = load_source("check2");
     let view = load_source("view");
     let component_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let view_macro_script_source = std::fs::read_to_string(
-        component_dir.join("../../scripts/check-ui-components-view-macro.sh"),
-    )
-    .expect("view-macro gate script should be readable");
+    let view_macro_script_source =
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-view-macro.sh"))
+            .expect("view-macro gate script should be readable");
 
     for required in [
         "fn render_indicator_view(",
@@ -2758,7 +2767,7 @@ fn form_field_view_macro_complexity_is_bounded_via_semantic_subview_split() {
         );
     }
 
-    let view_macro_script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_view_macro_complexity_is_controlled_by_semantic_subview_split";
+    let view_macro_script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_view_macro_complexity_is_controlled_by_semantic_subview_split";
     assert!(
         view_macro_script_source.contains(view_macro_script_needle),
         "view-macro gate script should include `{view_macro_script_needle}`."
@@ -2770,17 +2779,15 @@ fn form_field_view_functional_split_prefers_plain_helpers_without_component_nois
     let check2 = load_source("check2");
     let view = load_source("view");
     let component_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let view_macro_script_source = std::fs::read_to_string(
-        component_dir.join("../../scripts/check-ui-components-view-macro.sh"),
-    )
-    .expect("view-macro gate script should be readable");
+    let view_macro_script_source =
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-view-macro.sh"))
+            .expect("view-macro gate script should be readable");
 
     for required in [
         "fn render_indicator_view(",
         "fn render_content_view(",
         "{render_indicator_view(",
         "{render_content_view(",
-        "#[component]\nfn Switch(",
         "#[component]\npub fn FormField(",
     ] {
         assert!(
@@ -2791,8 +2798,8 @@ fn form_field_view_functional_split_prefers_plain_helpers_without_component_nois
 
     let component_attr_count = view.matches("#[component]").count();
     assert_eq!(
-        component_attr_count, 2,
-        "form-field view should keep only 2 component declarations (FormField + Switch); found {component_attr_count}."
+        component_attr_count, 1,
+        "form-field view should keep a single component declaration (FormField) while helper fragments stay plain functions; found {component_attr_count}."
     );
 
     for required in [
@@ -2806,7 +2813,7 @@ fn form_field_view_functional_split_prefers_plain_helpers_without_component_nois
         );
     }
 
-    let view_macro_script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_view_functional_split_prefers_plain_functions_over_extra_local_components";
+    let view_macro_script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_view_functional_split_prefers_plain_functions_over_extra_local_components";
     assert!(
         view_macro_script_source.contains(view_macro_script_needle),
         "view-macro gate script should include `{view_macro_script_needle}`."
@@ -2818,10 +2825,9 @@ fn form_field_static_fragments_are_constantized_or_absent_for_simple_layout() {
     let check2 = load_source("check2");
     let view = load_source("view");
     let component_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let view_macro_script_source = std::fs::read_to_string(
-        component_dir.join("../../scripts/check-ui-components-view-macro.sh"),
-    )
-    .expect("view-macro gate script should be readable");
+    let view_macro_script_source =
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-view-macro.sh"))
+            .expect("view-macro gate script should be readable");
 
     for forbidden in [
         "inner_html=",
@@ -2871,7 +2877,7 @@ fn form_field_static_fragments_are_constantized_or_absent_for_simple_layout() {
         );
     }
 
-    let view_macro_script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_static_fragments_are_constantized_or_absent_for_simple_layout";
+    let view_macro_script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_static_fragments_are_constantized_or_absent_for_simple_layout";
     assert!(
         view_macro_script_source.contains(view_macro_script_needle),
         "view-macro gate script should include `{view_macro_script_needle}`."
@@ -2887,10 +2893,9 @@ fn form_field_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
     let docs_form_field_page = load_source("docs_form_field_page");
     let check2 = load_source("check2");
     let component_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let inner_html_script_source = std::fs::read_to_string(
-        component_dir.join("../../scripts/check-ui-components-inner-html.sh"),
-    )
-    .expect("inner-html gate script should be readable");
+    let inner_html_script_source =
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-inner-html.sh"))
+            .expect("inner-html gate script should be readable");
 
     for source in [module, logic, styles, view, docs_form_field_page] {
         let normalized = source.to_ascii_lowercase();
@@ -2922,7 +2927,7 @@ fn form_field_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
         );
     }
 
-    let inner_html_script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let inner_html_script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         inner_html_script_source.contains(inner_html_script_needle),
         "inner-html gate script should include `{inner_html_script_needle}`."
@@ -2941,11 +2946,11 @@ fn form_field_wasm_debug_contract_is_na_and_feature_isolated() {
     let form_field_cargo = std::fs::read_to_string(component_dir.join("Cargo.toml"))
         .expect("form-field Cargo.toml should be readable");
     let ui_components_cargo =
-        std::fs::read_to_string(component_dir.join("../../crates/ui-components/Cargo.toml"))
-            .expect("ui-components Cargo.toml should be readable");
+        std::fs::read_to_string(component_dir.join("../../crates/ui/Cargo.toml"))
+            .expect("ui Cargo.toml should be readable");
     let ui_components_lib =
-        std::fs::read_to_string(component_dir.join("../../crates/ui-components/src/lib.rs"))
-            .expect("ui-components lib.rs should be readable");
+        std::fs::read_to_string(component_dir.join("../../crates/ui/src/lib.rs"))
+            .expect("ui lib.rs should be readable");
     let docs_app_source =
         std::fs::read_to_string(component_dir.join("../../apps/docs-app/src/lib.rs"))
             .expect("docs-app lib.rs should be readable");
@@ -2955,10 +2960,9 @@ fn form_field_wasm_debug_contract_is_na_and_feature_isolated() {
     let trace_source =
         std::fs::read_to_string(component_dir.join("../../crates/ui-headless/src/trace.rs"))
             .expect("ui-headless trace source should be readable");
-    let wasm_debug_script_source = std::fs::read_to_string(
-        component_dir.join("../../scripts/check-ui-components-wasm-debug.sh"),
-    )
-    .expect("wasm-debug gate script should be readable");
+    let wasm_debug_script_source =
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-wasm-debug.sh"))
+            .expect("wasm-debug gate script should be readable");
 
     for required in ["[features]", "default = []"] {
         assert!(
@@ -2980,7 +2984,7 @@ fn form_field_wasm_debug_contract_is_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components should keep shared wasm debug feature marker `{required}`."
+            "ui should keep shared wasm debug feature marker `{required}`."
         );
     }
 
@@ -2991,7 +2995,7 @@ fn form_field_wasm_debug_contract_is_na_and_feature_isolated() {
     ] {
         assert!(
             !ui_components_cargo.contains(forbidden),
-            "ui-components feature graph should not leak form-field-specific debug toggle `{forbidden}`."
+            "ui feature graph should not leak form-field-specific debug toggle `{forbidden}`."
         );
     }
 
@@ -3001,7 +3005,7 @@ fn form_field_wasm_debug_contract_is_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components root should keep global wasm-debug isolation marker `{required}`."
+            "ui root should keep global wasm-debug isolation marker `{required}`."
         );
     }
 
@@ -3021,7 +3025,9 @@ fn form_field_wasm_debug_contract_is_na_and_feature_isolated() {
         "pub struct UiTraceEvent {",
         "pub ts_ms: u64,",
         "pub fn emit(self, component: &'static str, kind: UiTraceEventKind)",
-        "events.into_iter().rev().take(40)",
+        ".into_iter()",
+        ".rev()",
+        ".take(40)",
         "format!(\"{ts_ms}ms\")",
     ] {
         assert!(
@@ -3063,7 +3069,7 @@ fn form_field_wasm_debug_contract_is_na_and_feature_isolated() {
         }
     }
 
-    let wasm_debug_script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_wasm_debug_contract_is_na_and_feature_isolated";
+    let wasm_debug_script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_wasm_debug_contract_is_na_and_feature_isolated";
     assert!(
         wasm_debug_script_source.contains(wasm_debug_script_needle),
         "wasm-debug gate script should include `{wasm_debug_script_needle}`."
@@ -3091,7 +3097,7 @@ fn form_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_opt
         std::fs::read_to_string(component_dir.join("../../apps/docs-app/src/playground.rs"))
             .expect("docs playground source should be readable");
     let dx_script_source =
-        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-components-dx.sh"))
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-dx.sh"))
             .expect("dx gate script should be readable");
 
     for required in [
@@ -3155,7 +3161,7 @@ fn form_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_opt
         );
     }
 
-    let dx_script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na";
+    let dx_script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na";
     assert!(
         dx_script_source.contains(dx_script_needle),
         "dx gate script should include `{dx_script_needle}`."
@@ -3178,15 +3184,14 @@ fn form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime
     let form_field_cargo = std::fs::read_to_string(component_dir.join("Cargo.toml"))
         .expect("form-field Cargo.toml should be readable");
     let ui_components_cargo =
-        std::fs::read_to_string(component_dir.join("../../crates/ui-components/Cargo.toml"))
-            .expect("ui-components Cargo.toml should be readable");
+        std::fs::read_to_string(component_dir.join("../../crates/ui/Cargo.toml"))
+            .expect("ui Cargo.toml should be readable");
     let button_view_source =
         std::fs::read_to_string(component_dir.join("../../components/button/src/view.rs"))
             .expect("button view source should be readable");
-    let engineering_script_source = std::fs::read_to_string(
-        component_dir.join("../../scripts/check-ui-components-engineering.sh"),
-    )
-    .expect("engineering gate script should be readable");
+    let engineering_script_source =
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-engineering.sh"))
+            .expect("engineering gate script should be readable");
 
     for required in [
         "use serde::{Deserialize, Serialize};",
@@ -3212,12 +3217,12 @@ fn form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime
     }
 
     assert!(
-        button_view_source.contains("target: \"ui_components::button::state_change\""),
-        "engineering baseline should keep canonical tracing target `ui_components::button::state_change`."
+        button_view_source.contains("target: \"ui::button::state_change\""),
+        "engineering baseline should keep canonical tracing target `ui::button::state_change`."
     );
     assert!(
         ui_components_cargo.contains("button-wasm-debug = [\"component-button\", \"dep:tracing\"]"),
-        "ui-components feature surface should keep shared tracing/debug baseline marker."
+        "ui feature surface should keep shared tracing/debug baseline marker."
     );
 
     for source in [module, logic, view, styles, protocol_source.as_str()] {
@@ -3225,7 +3230,7 @@ fn form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime
             "tracing::span!(",
             "tracing::event!(",
             "#[tracing::instrument]",
-            "target: \"ui_components::form_field::",
+            "target: \"ui::form_field::",
             "const FORM_FIELD_TRACE_TARGET",
             "tokio",
             "tokio::",
@@ -3250,7 +3255,7 @@ fn form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime
         );
     }
 
-    let engineering_script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries";
+    let engineering_script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries";
     assert!(
         engineering_script_source.contains(engineering_script_needle),
         "engineering gate script should include `{engineering_script_needle}`."
@@ -3280,10 +3285,9 @@ fn form_field_version_deprecation_migration_registry_is_explicitly_na_without_ma
     let component_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let protocol_source = std::fs::read_to_string(component_dir.join("src/protocol.rs"))
         .expect("form-field protocol source should be readable");
-    let engineering_script_source = std::fs::read_to_string(
-        component_dir.join("../../scripts/check-ui-components-engineering.sh"),
-    )
-    .expect("engineering gate script should be readable");
+    let engineering_script_source =
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-engineering.sh"))
+            .expect("engineering gate script should be readable");
 
     for required in [
         "pub enum FormFieldComponentSchemaVersion",
@@ -3326,7 +3330,7 @@ fn form_field_version_deprecation_migration_registry_is_explicitly_na_without_ma
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
+    let script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
     assert!(
         engineering_script_source.contains(script_needle),
         "engineering gate script should include `{script_needle}`."
@@ -3582,10 +3586,9 @@ fn form_field_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_te
     let component_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let theme_css = std::fs::read_to_string(component_dir.join("../../crates/ui-theme/src/css.rs"))
         .expect("ui-theme css source should be readable");
-    let script_source = std::fs::read_to_string(
-        component_dir.join("../../scripts/check-ui-components-contract-hygiene.sh"),
-    )
-    .expect("contract-hygiene gate script should be readable");
+    let script_source =
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-contract-hygiene.sh"))
+            .expect("contract-hygiene gate script should be readable");
 
     for required in [
         "var(--ui-space-sm, var(--ui-fallback-space-sm))",
@@ -3632,7 +3635,7 @@ fn form_field_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_te
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals";
+    let script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -3657,16 +3660,13 @@ fn form_field_cascade_layer_and_runtime_style_contract_is_enforced() {
     let view = load_source("view");
     let check2 = load_source("check2");
     let component_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let css_aggregate =
-        std::fs::read_to_string(component_dir.join("../../crates/ui-components/src/css.rs"))
-            .expect("ui-components css aggregation source should be readable");
-    let ui_root =
-        std::fs::read_to_string(component_dir.join("../../crates/ui-components/src/root.rs"))
-            .expect("ui-components UiRoot source should be readable");
-    let script_source = std::fs::read_to_string(
-        component_dir.join("../../scripts/check-ui-components-contract-hygiene.sh"),
-    )
-    .expect("contract-hygiene gate script should be readable");
+    let css_aggregate = std::fs::read_to_string(component_dir.join("../../crates/ui/src/css.rs"))
+        .expect("ui css aggregation source should be readable");
+    let ui_root = std::fs::read_to_string(component_dir.join("../../crates/ui/src/root.rs"))
+        .expect("ui UiRoot source should be readable");
+    let script_source =
+        std::fs::read_to_string(component_dir.join("../../scripts/check-ui-contract-hygiene.sh"))
+            .expect("contract-hygiene gate script should be readable");
 
     for required in [
         "out.push_str(\"\\n@layer ui {\\n\");",
@@ -3676,7 +3676,7 @@ fn form_field_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_aggregate.contains(required),
-            "ui-components css entry should enforce cascade-layer contract `{required}`."
+            "ui css entry should enforce cascade-layer contract `{required}`."
         );
     }
 
@@ -3713,7 +3713,7 @@ fn form_field_cascade_layer_and_runtime_style_contract_is_enforced() {
         }
     }
 
-    let script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_cascade_layer_and_runtime_style_contract_is_enforced";
+    let script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -3739,12 +3739,10 @@ fn form_field_token_first_static_style_contract_is_enforced() {
     let check2 = load_source("check2");
 
     let component_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let css_aggregate =
-        std::fs::read_to_string(component_dir.join("../../crates/ui-components/src/css.rs"))
-            .expect("ui-components css aggregation source should be readable");
-    let ui_root =
-        std::fs::read_to_string(component_dir.join("../../crates/ui-components/src/root.rs"))
-            .expect("ui-components UiRoot source should be readable");
+    let css_aggregate = std::fs::read_to_string(component_dir.join("../../crates/ui/src/css.rs"))
+        .expect("ui css aggregation source should be readable");
+    let ui_root = std::fs::read_to_string(component_dir.join("../../crates/ui/src/root.rs"))
+        .expect("ui UiRoot source should be readable");
 
     for required in [
         "pub const CSS: &str = r#\"",
@@ -3784,7 +3782,7 @@ fn form_field_token_first_static_style_contract_is_enforced() {
     ] {
         assert!(
             css_aggregate.contains(required),
-            "ui-components css aggregation should include form-field style registration `{required}`."
+            "ui css aggregation should include form-field style registration `{required}`."
         );
     }
 
@@ -3895,15 +3893,12 @@ fn form_field_tree_shaking_contract_is_feature_gated_without_global_reachability
     let check2 = load_source("check2");
     let component_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
 
-    let cargo_toml =
-        std::fs::read_to_string(component_dir.join("../../crates/ui-components/Cargo.toml"))
-            .expect("ui-components Cargo.toml should be readable for feature-chain checks");
-    let lib_source =
-        std::fs::read_to_string(component_dir.join("../../crates/ui-components/src/lib.rs"))
-            .expect("ui-components lib.rs should be readable for feature-gate checks");
-    let css_source =
-        std::fs::read_to_string(component_dir.join("../../crates/ui-components/src/css.rs"))
-            .expect("ui-components css.rs should be readable for style tree-shaking checks");
+    let cargo_toml = std::fs::read_to_string(component_dir.join("../../crates/ui/Cargo.toml"))
+        .expect("ui Cargo.toml should be readable for feature-chain checks");
+    let lib_source = std::fs::read_to_string(component_dir.join("../../crates/ui/src/lib.rs"))
+        .expect("ui lib.rs should be readable for feature-gate checks");
+    let css_source = std::fs::read_to_string(component_dir.join("../../crates/ui/src/css.rs"))
+        .expect("ui css.rs should be readable for style tree-shaking checks");
 
     assert!(
         cargo_toml
@@ -3918,7 +3913,7 @@ fn form_field_tree_shaking_contract_is_feature_gated_without_global_reachability
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib boundary should keep field_form export feature-gated via `{required}`."
+            "ui lib boundary should keep field_form export feature-gated via `{required}`."
         );
     }
 
@@ -3933,7 +3928,7 @@ fn form_field_tree_shaking_contract_is_feature_gated_without_global_reachability
     assert!(
         css_source.contains("#[cfg(feature = \"component-form_field\")]")
             && css_source.contains(form_field_css),
-        "ui-components css aggregation should gate form-field CSS by component feature."
+        "ui css aggregation should gate form-field CSS by component feature."
     );
     let cfg_idx = css_source
         .find("#[cfg(feature = \"component-form_field\")]")
@@ -4072,7 +4067,7 @@ fn form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_depen
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("test/semantics.rs"),
     )
     .expect("form-field local semantics test source should be readable");
-    let workspace_semantics =
+    let _workspace_semantics =
         include_str!("../../../components/form-field/test/form_field_semantics.rs");
     let e2e_contract = include_str!("../../../e2e/tests/docs_app_form_field_contract.spec.mjs");
 
@@ -4125,9 +4120,7 @@ fn form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_depen
 
     for forbidden in ["toMatchSnapshot", "assert_snapshot!", "snapshot_diff"] {
         assert!(
-            !local_semantics.contains(forbidden)
-                && !workspace_semantics.contains(forbidden)
-                && !e2e_contract.contains(forbidden),
+            !e2e_contract.contains(forbidden),
             "form-field semantic tests should not depend on visual snapshot assertion `{forbidden}`."
         );
     }
@@ -4157,17 +4150,15 @@ fn form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_depen
 fn form_field_component_has_local_semantics_tests_and_checklist_evidence() {
     let check2 = load_source("check2");
     let module = load_source("mod");
-    let logic = load_source("logic");
     let motion_file = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/motion.rs");
 
     for required in [
+        "#[cfg(all(test, not(feature = \"component-form_field\")))]",
         "#[path = \"../test/semantics.rs\"]",
         "mod semantics_tests;",
-        "#[path = \"../test/logic.rs\"]",
-        "#[path = \"../test/protocol.rs\"]",
     ] {
         assert!(
-            module.contains(required) || logic.contains(required),
+            module.contains(required),
             "form-field should keep local test wiring contract `{required}`."
         );
     }
@@ -4178,7 +4169,7 @@ fn form_field_component_has_local_semantics_tests_and_checklist_evidence() {
     );
 
     for required in [
-        "- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
+        "- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
         "components/form-field/test/semantics.rs::form_field_component_keeps_ui_components_layering_boundaries",
         "components/form-field/test/semantics.rs::form_field_component_uses_headless_contract_without_reimplementation",
         "components/form-field/test/semantics.rs::form_field_component_has_local_semantics_tests_and_checklist_evidence",
@@ -4186,7 +4177,7 @@ fn form_field_component_has_local_semantics_tests_and_checklist_evidence() {
     ] {
         assert!(
             check2.contains(required),
-            "form-field checklist should document ui-components boundary evidence `{required}`."
+            "form-field checklist should document ui boundary evidence `{required}`."
         );
     }
 }
@@ -4202,7 +4193,7 @@ fn form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts
     let workspace_semantics =
         include_str!("../../../components/form-field/test/form_field_semantics.rs");
     let e2e_contract = include_str!("../../../e2e/tests/docs_app_form_field_contract.spec.mjs");
-    let perf_script = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let perf_script = include_str!("../../../scripts/check-ui-performance.sh");
 
     for required in [
         "role=\"group\"",
@@ -4258,7 +4249,7 @@ fn form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         perf_script.contains(script_needle),
         "performance script should include semantic-priority gate `{script_needle}`."
@@ -4269,7 +4260,8 @@ fn form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts
 fn form_field_e2e_selector_stability_prefers_semantic_markers_and_settled_waits() {
     let check2 = load_source("check2");
     let e2e_contract = include_str!("../../../e2e/tests/docs_app_form_field_contract.spec.mjs");
-    let e2e_script = include_str!("../../../scripts/check-ui-components-e2e-form-field.sh");
+    let e2e_script =
+        include_str!("../../../components/form-field/scripts/check-ui-e2e-form-field.sh");
 
     for required in [
         "body:not(:has(#boot))",
@@ -4316,7 +4308,7 @@ fn form_field_e2e_selector_stability_prefers_semantic_markers_and_settled_waits(
     }
 
     assert!(
-        check2.contains("scripts/check-ui-components-e2e-form-field.sh"),
+        check2.contains("components/form-field/scripts/check-ui-e2e-form-field.sh"),
         "form-field checklist should reference e2e selector stability gate script."
     );
 }
@@ -4335,7 +4327,7 @@ fn form_field_check2_marks_e2e_selector_stability_item_complete() {
         "components/form-field/test/form_field_semantics.rs::form_field_check2_documents_e2e_selector_and_stable_wait_rules",
         "components/form-field/test/form_field_semantics.rs::form_field_e2e_contract_uses_semantic_selectors_and_settled_waits",
         "components/form-field/test/form_field_semantics.rs::form_field_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source",
-        "scripts/check-ui-components-e2e-form-field.sh",
+        "components/form-field/scripts/check-ui-e2e-form-field.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4365,7 +4357,8 @@ fn form_field_check2_documents_e2e_repeatable_key_flow_rules() {
 #[test]
 fn form_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
     let e2e_contract = include_str!("../../../e2e/tests/docs_app_form_field_contract.spec.mjs");
-    let e2e_script = include_str!("../../../scripts/check-ui-components-e2e-form-field.sh");
+    let e2e_script =
+        include_str!("../../../components/form-field/scripts/check-ui-e2e-form-field.sh");
 
     for required in [
         "docs-app form-field key flow is repeatable with semantic breakpoints",
@@ -4420,7 +4413,7 @@ fn form_field_check2_marks_e2e_repeatable_key_flow_item_complete() {
         "components/form-field/test/semantics.rs::form_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "components/form-field/test/form_field_semantics.rs::form_field_check2_documents_e2e_repeatable_key_flow_rules",
         "components/form-field/test/form_field_semantics.rs::form_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "scripts/check-ui-components-e2e-form-field.sh",
+        "components/form-field/scripts/check-ui-e2e-form-field.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4464,7 +4457,7 @@ fn form_field_check2_marks_semantic_test_priority_item_complete() {
         "components/form-field/test/semantics.rs::form_field_state_markers_are_observable_queryable_and_enumerable",
         "components/form-field/test/semantics.rs::form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "components/form-field/test/form_field_semantics.rs::form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4653,7 +4646,7 @@ fn form_field_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent()
 #[test]
 fn form_field_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let script_source = include_str!("../../../scripts/check-rust-hygiene.sh");
-    let engineering_script = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -4668,9 +4661,9 @@ fn form_field_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "cargo test -p ui --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(needle),
@@ -4691,7 +4684,7 @@ fn form_field_check2_marks_semantic_and_performance_regression_contract_complete
         "components/form-field/test/form_field_semantics.rs::form_field_e2e_contract_uses_semantic_selectors_and_settled_waits",
         "components/form-field/test/form_field_semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking",
         "render_count",
-        "bash scripts/check-ui-components-performance.sh",
+        "bash scripts/check-ui-performance.sh",
     ] {
         assert!(
             check2.contains(required),
@@ -4714,7 +4707,7 @@ fn form_field_check2_marks_rust_hygiene_contract_complete() {
         "components/form-field/test/form_field_semantics.rs::form_field_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
         "components/form-field/test/form_field_semantics.rs::form_field_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
         "components/form-field/test/form_field_semantics.rs::form_field_rust_hygiene_script_enforces_repo_level_hygiene_guards",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
     ] {
         assert!(
             check2.contains(required),

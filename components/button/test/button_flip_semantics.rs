@@ -133,7 +133,7 @@ fn ui_components_fixed_entry_files_follow_contract() {
     for required in ["lib.rs", "css.rs", "root.rs"] {
         assert!(
             src_dir.join(required).exists(),
-            "ui-components fixed entry file should exist: `{required}`."
+            "ui fixed entry file should exist: `{required}`."
         );
     }
     assert!(
@@ -146,7 +146,7 @@ fn ui_components_fixed_entry_files_follow_contract() {
     for forbidden in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !src_dir.join(forbidden).exists(),
-            "ui-components should not introduce forbidden root file `{forbidden}`."
+            "ui should not introduce forbidden root file `{forbidden}`."
         );
     }
 
@@ -157,7 +157,7 @@ fn ui_components_fixed_entry_files_follow_contract() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should include `{needle}`."
+            "ui lib entry should include `{needle}`."
         );
     }
 
@@ -169,7 +169,7 @@ fn ui_components_fixed_entry_files_follow_contract() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css entry should include `{needle}`."
+            "ui css entry should include `{needle}`."
         );
     }
 
@@ -181,7 +181,7 @@ fn ui_components_fixed_entry_files_follow_contract() {
     ] {
         assert!(
             root_source.contains(needle),
-            "ui-components root entry should include `{needle}`."
+            "ui root entry should include `{needle}`."
         );
     }
 }
@@ -256,7 +256,7 @@ fn flip_button_theme_pipeline_is_backed_by_ui_theme_layers() {
     ] {
         assert!(
             ui_root_source.contains(needle),
-            "ui-components UiRoot should consume ui-theme as the single theme variable source `{needle}`.",
+            "ui UiRoot should consume ui-theme as the single theme variable source `{needle}`.",
         );
     }
 
@@ -1409,7 +1409,7 @@ fn flip_button_source_first_docs_are_copy_paste_ready() {
 
     for needle in [
         "data-slot=\"flip-button-copy-ready-hint\"",
-        "dependency: ui-components; source: crates/ui-components/src/button/flip/view.rs.",
+        "dependency: ui; source: crates/ui/src/button/flip/view.rs.",
         "<Playground title=\"Top flip\" code_signal=code>",
         "<Playground title=\"Direction matrix\" code_signal=states_code>",
         "<Playground title=\"Custom Class\" code_signal=custom_code>",
@@ -1423,7 +1423,7 @@ fn flip_button_source_first_docs_are_copy_paste_ready() {
     }
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String {",
         "compose_copy_ready_code(&dynamic_code.get(), &code_imports.get_value())",
     ] {
@@ -1558,7 +1558,7 @@ fn flip_button_wasm_debug_contract_reuses_button_debug_and_keeps_feature_isolate
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components feature contract should keep `{needle}`."
+            "ui feature contract should keep `{needle}`."
         );
     }
 

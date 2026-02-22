@@ -18,7 +18,7 @@
 ## Hello World
 
 ```rust
-use ui_components::IconsUi;
+use ui::IconsUi;
 
 view! { <IconsUi icon="check".to_string() is_decorative=true /> }
 ```
@@ -26,7 +26,7 @@ view! { <IconsUi icon="check".to_string() is_decorative=true /> }
 ## 自定义 Glyph
 
 ```rust
-use ui_components::{IconsUi, IconsetGlyph};
+use ui::{IconsUi, IconsetGlyph};
 
 let glyphs = vec![
     IconsetGlyph::new("ui:rocket", "🚀").with_aria_label("Rocket"),
@@ -47,8 +47,8 @@ view! { <IconsUi icon="rocket".to_string() is_decorative=false glyphs=glyphs /> 
 
 ## Source-first
 
-- 组件源码：`crates/ui-components/src/icon/ui/{mod,logic,view,styles}.rs`
-- 依赖组件：`crates/ui-components/src/icon/set/`
+- 组件源码：`crates/ui/src/icon/ui/{mod,logic,view,styles}.rs`
+- 依赖组件：`crates/ui/src/icon/set/`
 - package feature：`component-icons_ui`（依赖 `component-iconset`，可选叠加 `inject-css`）
 
 ## Docs Playground

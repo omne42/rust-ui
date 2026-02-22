@@ -1,4 +1,4 @@
-//! `ui-layout` — Leptos layout primitives extracted from ui-components.
+//! `ui-layout` — Leptos layout primitives extracted from ui.
 
 #[cfg(any(feature = "component-button", feature = "component-accordion"))]
 macro_rules! wasm_debug_proxy {

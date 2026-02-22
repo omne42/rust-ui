@@ -1,13 +1,13 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     Item, ItemActions, ItemContent, ItemDescription, ItemFooter, ItemGroup, ItemHeader, ItemMedia,
     ItemMediaVariant, ItemSeparator, ItemSize, ItemTitle, ItemVariant, SegmentedControl,
     SegmentedControlSize,
 };
 
-const ITEM_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::{Item, ItemActions, ItemContent, ItemDescription, ItemFooter, ItemGroup, ItemHeader, ItemMedia, ItemMediaVariant, ItemSeparator, ItemSize, ItemTitle, ItemVariant};";
+const ITEM_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui::{Item, ItemActions, ItemContent, ItemDescription, ItemFooter, ItemGroup, ItemHeader, ItemMedia, ItemMediaVariant, ItemSeparator, ItemSize, ItemTitle, ItemVariant};";
 
 pub(super) fn item_primitives() -> AnyView {
     let variant_options = vec![
@@ -131,6 +131,13 @@ pub(super) fn item_primitives() -> AnyView {
         ]
         .join("\n")
     });
+    let basic_actual_config = Signal::derive(move || {
+        format!(
+            "ItemWorkbenchConfig {{\n  variant: {:?},\n  size: {:?},\n}}",
+            variant.get(),
+            size.get(),
+        )
+    });
 
     view! {
         <ComponentPage
@@ -167,6 +174,7 @@ pub(super) fn item_primitives() -> AnyView {
             <Playground
                 title="Media + Content + Actions"
                 code_signal=basic_code
+                test_config_signal=basic_actual_config
                 code_imports=ITEM_DOC_IMPORTS.to_string()
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -330,7 +338,7 @@ pub(super) fn item_primitives() -> AnyView {
                 </p>
                 <p>
                     "Dependency prerequisite: use "
-                    <code>"ui_components::{Item, ItemGroup, ...}"</code>
+                    <code>"ui::{Item, ItemGroup, ...}"</code>
                     " from docs snippet imports (package mode: enable feature "
                     <code>"component-item"</code>
                     ")."

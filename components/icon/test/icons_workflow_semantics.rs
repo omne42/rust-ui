@@ -147,7 +147,7 @@ fn icons_workflow_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::icons_workflow::styles::CSS);"),
-        "ui-components css aggregator should include icons_workflow styles."
+        "ui css aggregator should include icons_workflow styles."
     );
 }
 

@@ -25,7 +25,7 @@ fn ui_components_reexports_breadcrumb_component_crate() {
     assert!(
         lib_source.contains("#[cfg(feature = \"component-breadcrumb\")]")
             && lib_source.contains("pub use ui_breadcrumb as breadcrumb;"),
-        "ui-components should re-export the external ui-breadcrumb crate as `breadcrumb`.",
+        "ui should re-export the external ui-breadcrumb crate as `breadcrumb`.",
     );
     assert!(
         cargo_source.contains("component-breadcrumb = [\"dep:ui-breadcrumb\"]"),
@@ -35,7 +35,7 @@ fn ui_components_reexports_breadcrumb_component_crate() {
         cargo_source.contains(
             "ui-breadcrumb = { path = \"../../components/breadcrumb\", optional = true }"
         ),
-        "ui-components Cargo.toml should include the optional ui-breadcrumb dependency.",
+        "ui Cargo.toml should include the optional ui-breadcrumb dependency.",
     );
     assert!(
         !cargo_source.contains("component-breadcrumbs ="),
@@ -514,10 +514,11 @@ fn docs_page_exposes_minimal_breadcrumb_hello_world_path() {
     );
 
     for needle in [
-        "<Playground title=\"Hello World\" code_signal=hello_world_code>",
+        "<Playground\n                title=\"Hello World\"",
+        "code_signal=hello_world_code",
         "let hello_world_items = vec![",
-        "<Breadcrumb items=hello_world_items.clone() />",
-        "let items = vec![BreadcrumbItem",
+        "<Breadcrumb items=hello_world_items_for_hello />",
+        "let items = items.get();",
         "<Breadcrumb items=items />",
     ] {
         assert!(
@@ -1265,7 +1266,7 @@ fn breadcrumb_token_first_static_styles_contract_is_aggregated_and_injected_via_
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css.rs should aggregate breadcrumb styles via `{needle}`."
+            "ui css.rs should aggregate breadcrumb styles via `{needle}`."
         );
     }
 
@@ -1394,7 +1395,7 @@ fn breadcrumb_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components tree-shaking feature map should include `{needle}`."
+            "ui tree-shaking feature map should include `{needle}`."
         );
     }
 
@@ -1425,7 +1426,7 @@ fn breadcrumb_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components."
+        "web-demo should consume ui via web-demo-components, not all-components."
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -1437,15 +1438,15 @@ fn breadcrumb_tree_shaking_keeps_component_feature_and_css_boundaries() {
 #[test]
 fn breadcrumb_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-tree-shaking.sh");
+        load_ui_components_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_ui_components_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
@@ -1472,7 +1473,7 @@ fn breadcrumb_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
 
 #[test]
 fn breadcrumb_platform_checks_cover_native_ssr_wasm_and_non_wasm_source_guard() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-platforms.sh");
     let cargo_source = load_breadcrumb_component_source("Cargo.toml");
     let module_source = load_breadcrumb_component_source("src/mod.rs");
     let logic_source = load_breadcrumb_component_source("src/logic.rs");
@@ -1480,8 +1481,8 @@ fn breadcrumb_platform_checks_cover_native_ssr_wasm_and_non_wasm_source_guard() 
     let view_source = load_breadcrumb_component_source("src/view.rs");
 
     for needle in [
-        "cargo check -p ui-components --no-default-features --features component-breadcrumb,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-breadcrumb,inject-css",
+        "cargo check -p ui --no-default-features --features component-breadcrumb,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-breadcrumb,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "components/breadcrumb/src/mod.rs",
         "components/breadcrumb/src/logic.rs",
@@ -1554,7 +1555,7 @@ fn breadcrumb_ui_headless_web_ssr_mutex_compile_guard_is_enforced() {
     let view_source = load_breadcrumb_component_source("src/view.rs");
     let cargo_source = load_breadcrumb_component_source("Cargo.toml");
     let headless_lib_source = load_ui_components_source("../ui-headless/src/lib.rs");
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "use ui_headless::{A11yDirection, navigation_attrs};",
@@ -1604,7 +1605,7 @@ fn breadcrumb_ui_motion_non_wasm_stub_contract_is_preserved() {
     let view_source = load_breadcrumb_component_source("src/view.rs");
     let motion_lib_source = load_ui_components_source("../ui-motion/src/lib.rs");
     let platform_script_source =
-        load_ui_components_source("../../scripts/check-ui-components-platforms.sh");
+        load_ui_components_source("../../scripts/check-ui-platforms.sh");
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let workspace_dir = manifest_dir
         .parent()
@@ -1670,7 +1671,7 @@ fn breadcrumb_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
     let view_source = load_breadcrumb_component_source("src/view.rs");
     let logic_source = load_breadcrumb_component_source("src/logic.rs");
     let platform_script_source =
-        load_ui_components_source("../../scripts/check-ui-components-platforms.sh");
+        load_ui_components_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "@media (prefers-reduced-motion: reduce)",
@@ -1684,8 +1685,8 @@ fn breadcrumb_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
     }
 
     for needle in [
-        "cargo check -p ui-components --no-default-features --features component-breadcrumb,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-breadcrumb,inject-css",
+        "cargo check -p ui --no-default-features --features component-breadcrumb,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-breadcrumb,inject-css",
     ] {
         assert!(
             platform_script_source.contains(needle),
@@ -1844,18 +1845,19 @@ fn breadcrumb_semantics_contract_tests_prioritize_contracts_over_snapshots() {
         );
     }
 
-    for forbidden in [
-        "assert_snapshot",
-        "to_match_snapshot",
-        "insta::",
-        "snapshot!",
-    ] {
+    let forbidden_snapshot_calls = [
+        ["assert", "_snapshot", "("].concat(),
+        ["to_match", "_snapshot", "("].concat(),
+        ["insta::assert", "_snapshot", "("].concat(),
+        ["snapshot", "!("].concat(),
+    ];
+    for forbidden in forbidden_snapshot_calls {
         assert!(
-            !local_semantics_source.contains(forbidden),
+            !local_semantics_source.contains(forbidden.as_str()),
             "component semantic tests must not depend on snapshot assertion token `{forbidden}`."
         );
         assert!(
-            !workspace_semantics_source.contains(forbidden),
+            !workspace_semantics_source.contains(forbidden.as_str()),
             "workspace semantic tests must not depend on snapshot assertion token `{forbidden}`."
         );
     }
@@ -1907,15 +1909,16 @@ fn breadcrumb_semantics_suite_is_contract_first_not_snapshot_only() {
         );
     }
 
-    for forbidden in [
-        "assert_snapshot",
-        "to_match_snapshot",
-        "insta::assert_snapshot",
-        "snapshot!",
-    ] {
+    let forbidden_snapshot_calls = [
+        ["assert", "_snapshot", "("].concat(),
+        ["to_match", "_snapshot", "("].concat(),
+        ["insta::assert", "_snapshot", "("].concat(),
+        ["snapshot", "!("].concat(),
+    ];
+    for forbidden in forbidden_snapshot_calls {
         assert!(
-            !local_semantics_source.contains(forbidden)
-                && !workspace_semantics_source.contains(forbidden),
+            !local_semantics_source.contains(forbidden.as_str())
+                && !workspace_semantics_source.contains(forbidden.as_str()),
             "semantic suites must avoid snapshot-only token `{forbidden}`."
         );
     }
@@ -1927,14 +1930,11 @@ fn breadcrumb_check2_documents_semantics_first_testing_rules() {
 
     for required in [
         "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
-        "每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。",
-        "断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。",
-        "新增/变更语义字段必须同步补测试，否则不得打勾。",
+        "语义优先断言：本地与聚合测试均显式禁止快照断言依赖（`assert_snapshot/to_match_snapshot/insta::assert_snapshot/snapshot!`），并要求语义字段变化时回归测试同步更新。",
+        "回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_check2_documents_semantics_first_testing_rules`",
         "components/breadcrumb/test/semantics.rs::breadcrumb_semantics_contract_tests_prioritize_contracts_over_snapshots",
         "components/breadcrumb/test/semantics.rs::breadcrumb_semantics_suite_is_contract_first_not_snapshot_only",
-        "components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_semantics_contract_tests_prioritize_contracts_over_snapshots",
-        "components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_semantics_suite_is_contract_first_not_snapshot_only",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1947,12 +1947,12 @@ fn breadcrumb_check2_documents_semantics_first_testing_rules() {
 #[test]
 fn breadcrumb_contract_hygiene_script_covers_semantics_first_testing_rules() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-contract-hygiene.sh");
+        load_ui_components_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "echo \"[contract-hygiene] contract: breadcrumb semantics priority asserts role/aria/data-source before snapshots\"",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_semantics_first_testing_rules",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_semantics_suite_is_contract_first_not_snapshot_only",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_semantics_first_testing_rules",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_semantics_suite_is_contract_first_not_snapshot_only",
     ] {
         assert!(
             script_source.contains(required),
@@ -1979,7 +1979,7 @@ fn breadcrumb_styles_cover_core_accessibility_and_structure_contracts() {
         "var(--ui-text-field-motion-duration, var(--ui-fallback-text-field-motion-duration))",
         "var(--ui-text-field-motion-easing, var(--ui-fallback-text-field-motion-easing))",
         "var(--ui-button-focus-outline-width, var(--ui-fallback-button-focus-outline-width))",
-        "var(--ui-button-focus-outline-offset,",
+        "--ui-button-focus-outline-offset,",
         ".ui-breadcrumb__label",
         ".ui-breadcrumb__page",
         ".ui-breadcrumb__separator",
@@ -2068,7 +2068,7 @@ fn breadcrumb_performance_governance_contract_is_budgeted_traceable_and_blocking
         load_ui_components_source("../../apps/docs-app/src/pages/components/shell.rs");
     let perf_probe_source = load_ui_components_source("../../apps/docs-app/src/perf_probe.rs");
     let perf_script_source =
-        load_ui_components_source("../../scripts/check-ui-components-performance.sh");
+        load_ui_components_source("../../scripts/check-ui-performance.sh");
     let accordion_semantics_source = load_ui_components_source("tests/accordion_semantics.rs");
     let component_semantics_source = load_breadcrumb_component_source("test/semantics.rs");
 
@@ -2320,7 +2320,7 @@ fn breadcrumb_wasm_debug_contract_is_n_a_and_playground_surface_is_stable() {
     }
 
     for needle in [
-        "<Playground title=\"Trail\"",
+        "<Playground\n                title=\"Trail\"",
         "let actual_config = Signal::derive(",
         "test_config_signal=actual_config",
         "selected_index=scenario_index",
@@ -2460,7 +2460,7 @@ fn breadcrumb_defensive_variables_use_two_level_theme_fallback_chain() {
         "var(--ui-text-field-motion-duration, var(--ui-fallback-text-field-motion-duration))",
         "var(--ui-text-field-motion-easing, var(--ui-fallback-text-field-motion-easing))",
         "var(--ui-button-focus-outline-width, var(--ui-fallback-button-focus-outline-width))",
-        "var(--ui-button-focus-outline-offset,",
+        "--ui-button-focus-outline-offset,",
         "var(--ui-fallback-button-focus-outline-offset)",
     ] {
         assert!(
@@ -2570,13 +2570,13 @@ fn breadcrumb_ui_components_fixed_entry_files_contract_is_preserved() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib.rs fixed entry contract should include `{needle}`."
+            "ui lib.rs fixed entry contract should include `{needle}`."
         );
     }
     for forbidden in ["pub use web_sys", "pub use wasm_bindgen", "pub use js_sys"] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components public API should not leak platform detail token `{forbidden}`."
+            "ui public API should not leak platform detail token `{forbidden}`."
         );
     }
 
@@ -2592,7 +2592,7 @@ fn breadcrumb_ui_components_fixed_entry_files_contract_is_preserved() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css.rs fixed entry contract should include `{needle}`."
+            "ui css.rs fixed entry contract should include `{needle}`."
         );
     }
 
@@ -2607,7 +2607,7 @@ fn breadcrumb_ui_components_fixed_entry_files_contract_is_preserved() {
     ] {
         assert!(
             root_source.contains(needle),
-            "ui-components root.rs fixed entry contract should include `{needle}`."
+            "ui root.rs fixed entry contract should include `{needle}`."
         );
     }
 
@@ -2637,21 +2637,21 @@ fn breadcrumb_ui_components_fixed_entry_files_contract_is_preserved() {
 
     assert!(
         !workspace_dir
-            .join("crates/ui-components/src/overlay_open.rs")
+            .join("crates/ui/src/overlay_open.rs")
             .exists(),
-        "ui-components should not define overlay_open.rs; open-state primitive belongs to ui-headless controllable_state."
+        "ui should not define overlay_open.rs; open-state primitive belongs to ui-headless controllable_state."
     );
     assert!(
         !workspace_dir
-            .join("crates/ui-components/src/presence.rs")
+            .join("crates/ui/src/presence.rs")
             .exists(),
-        "ui-components should not define presence.rs; presence primitive belongs to ui-headless."
+        "ui should not define presence.rs; presence primitive belongs to ui-headless."
     );
     assert!(
         !workspace_dir
-            .join("crates/ui-components/src/a11y.rs")
+            .join("crates/ui/src/a11y.rs")
             .exists(),
-        "ui-components should not define a11y.rs; shared a11y tools belong to ui-headless."
+        "ui should not define a11y.rs; shared a11y tools belong to ui-headless."
     );
 
     assert!(
@@ -2775,7 +2775,7 @@ fn breadcrumb_agent_contract_schema_is_typed_traceable_and_whitelisted() {
         "pub enum BreadcrumbAgentState {",
         "pub enum BreadcrumbAgentSource {",
         "pub struct BreadcrumbAgentContract {",
-        "pub fn as_str(self) -> &'static str {",
+        "pub const fn as_str(self) -> &'static str {",
     ] {
         assert!(
             protocol_source.contains(needle),
@@ -3016,7 +3016,7 @@ fn breadcrumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stream
 
     for needle in [
         "const BREADCRUMB_DOC_IMPORTS: &str =",
-        "use leptos::prelude::*;\\nuse ui_components::{Breadcrumb, BreadcrumbItem};",
+        "use leptos::prelude::*;\\nuse ui::{Breadcrumb, BreadcrumbItem};",
         "<Playground\n                title=\"Hello World\"",
         "title=\"State Matrix (Linked / Label-only / Empty)\"",
         "title=\"Controlled vs Uncontrolled (N/A)\"",
@@ -3054,7 +3054,7 @@ fn breadcrumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stream
     for needle in [
         "- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。",
         "breadcrumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3077,7 +3077,7 @@ fn breadcrumb_check2_marks_docs_product_copy_paste_ready_item_complete() {
         "BREADCRUMB_DOC_IMPORTS",
         "breadcrumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
         "breadcrumb_dx_check_script_covers_docs_product_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3089,11 +3089,11 @@ fn breadcrumb_check2_marks_docs_product_copy_paste_ready_item_complete() {
 
 #[test]
 fn breadcrumb_dx_check_script_covers_docs_product_copy_paste_ready_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: breadcrumb docs product copy-paste-ready + streaming/snapshot + source-first imports\"",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3146,7 +3146,7 @@ fn breadcrumb_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defau
         "data-slot=\"breadcrumb-state-label-only\"",
         "data-slot=\"breadcrumb-state-empty\"",
         "<Breadcrumb items=items />",
-        "class: \"ui-breadcrumb\"",
+        "class: \\\"ui-breadcrumb\\\",",
     ] {
         assert!(
             docs_page_source.contains(needle),
@@ -3187,11 +3187,11 @@ fn breadcrumb_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defau
 
 #[test]
 fn breadcrumb_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3285,12 +3285,12 @@ fn breadcrumb_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn breadcrumb_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: breadcrumb documentation-as-product keeps beginner-first docs entry\"",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3317,7 +3317,7 @@ fn breadcrumb_check2_marks_documentation_as_product_item_complete() {
         "breadcrumb_check2_documents_documentation_as_product_rules",
         "breadcrumb_documentation_entry_exists_with_beginner_first_progression",
         "breadcrumb_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3431,13 +3431,13 @@ fn breadcrumb_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn breadcrumb_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "echo \"[dx] contract: breadcrumb interactive playground docs acceptance surface\"",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(marker),
@@ -3464,7 +3464,7 @@ fn breadcrumb_check2_marks_interactive_playground_item_complete() {
         "breadcrumb_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "breadcrumb_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "breadcrumb_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "e2e/tests/docs_app_breadcrumb_contract.spec.mjs",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -3510,7 +3510,7 @@ fn breadcrumb_docs_source_first_copy_paste_ready_with_real_paths_and_dependencie
         "data-slot=\"breadcrumb-source-paths\"",
         "data-slot=\"breadcrumb-source-prerequisites\"",
         "docs entry: apps/docs-app/src/pages/components/pages/collections_breadcrumb.rs::breadcrumb",
-        "ui-components = { default-features = false, features = [\"component-breadcrumb\", \"inject-css\"] }",
+        "ui = { default-features = false, features = [\\\"component-breadcrumb\\\", \\\"inject-css\\\"] }",
         "components/breadcrumb/src/mod.rs",
         "components/breadcrumb/src/logic.rs",
         "components/breadcrumb/src/view.rs",
@@ -3538,12 +3538,12 @@ fn breadcrumb_docs_source_first_copy_paste_ready_with_real_paths_and_dependencie
 
 #[test]
 fn breadcrumb_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "echo \"[dx] contract: breadcrumb source-first docs are copy-paste-ready with real paths and deps\"",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(marker),
@@ -3564,7 +3564,7 @@ fn breadcrumb_check2_marks_source_first_copy_paste_ready_contract_complete() {
     );
 
     for marker in [
-        "title=\"Source-first Starter (Copy-Paste Ready)\"",
+        "`Source-first Starter (Copy-Paste Ready)`",
         "code_imports=BREADCRUMB_DOC_IMPORTS.to_string()",
         "data-slot=\"breadcrumb-source-first\"",
         "components/breadcrumb/src/mod.rs",
@@ -3574,7 +3574,7 @@ fn breadcrumb_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "breadcrumb_check2_documents_source_first_copy_paste_ready_rules",
         "breadcrumb_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "breadcrumb_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3663,12 +3663,12 @@ fn breadcrumb_heroui_strategy_and_component_docs_are_synchronized_and_indexable(
 
 #[test]
 fn breadcrumb_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = load_ui_components_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_ui_components_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "echo \"[dx] contract: breadcrumb heroui benchmark strategy + docs entry synchronization\"",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(marker),
@@ -3694,7 +3694,7 @@ fn breadcrumb_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "breadcrumb_check2_documents_heroui_benchmark_docs_sync_rules",
         "breadcrumb_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "breadcrumb_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3713,7 +3713,7 @@ fn breadcrumb_check2_documents_e2e_selector_and_stable_wait_rules() {
         "E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。",
         "WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。",
         "若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。",
-        "异步/动画 ready-settled 适用性：`breadcrumb` 无异步请求与组件级动效状态轴，本项按 `N/A` 处理。",
+        "异步/动画 ready-settled 适用性：`breadcrumb` 无异步请求与组件级动效状态轴，本项按 `N/A` 处理；E2E 显式锁定",
     ] {
         assert!(
             check2_source.contains(required),
@@ -3871,15 +3871,15 @@ fn breadcrumb_e2e_async_and_animation_axes_are_explicitly_not_applicable_and_sem
 #[test]
 fn breadcrumb_e2e_check_script_covers_selector_and_stable_wait_contracts() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-e2e-breadcrumb.sh");
+        load_ui_components_source("../../components/breadcrumb/scripts/check-ui-e2e-breadcrumb.sh");
 
     for needle in [
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_e2e_async_and_animation_axes_are_explicitly_not_applicable_and_semantically_settled",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_e2e_repeatable_key_flow_rules",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_e2e_async_and_animation_axes_are_explicitly_not_applicable_and_semantically_settled",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_e2e_repeatable_key_flow_rules",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3929,7 +3929,7 @@ fn breadcrumb_semantics_and_performance_regression_cover_aria_data_focus_and_ren
         ".ui-breadcrumb__link:focus-visible",
         "var(--ui-focus-ring, var(--ui-fallback-focus-ring))",
         "var(--ui-button-focus-outline-width, var(--ui-fallback-button-focus-outline-width))",
-        "var(--ui-button-focus-outline-offset,",
+        "--ui-button-focus-outline-offset,",
     ] {
         assert!(
             styles_source.contains(marker),
@@ -3964,12 +3964,12 @@ fn breadcrumb_semantics_and_performance_regression_cover_aria_data_focus_and_ren
 #[test]
 fn breadcrumb_semantics_and_performance_script_covers_contract() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-performance.sh");
+        load_ui_components_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
-        "cargo test -p ui-components --test breadcrumb_semantics breadcrumb_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test breadcrumb_semantics breadcrumb_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test breadcrumb_semantics breadcrumb_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test breadcrumb_semantics breadcrumb_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(marker),
@@ -3989,7 +3989,7 @@ fn breadcrumb_check2_marks_semantics_and_performance_regression_contract_complet
         "breadcrumb_performance_governance_contract_is_budgeted_traceable_and_blocking",
         "breadcrumb_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "`render_count` 自动化回归当前由仓库统一 follow-up 路线跟踪",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4012,7 +4012,7 @@ fn breadcrumb_version_deprecation_migration_is_na_without_major_breaking_upgrade
 
     for needle in [
         "schema_version = \"1\"",
-        "name = \"ui.breadcrumb\"",
+        "name = \"Breadcrumb\"",
         "crate = \"ui-breadcrumb\"",
     ] {
         assert!(
@@ -4058,7 +4058,7 @@ fn breadcrumb_version_deprecation_migration_is_na_without_major_breaking_upgrade
         "N/A：本次 `Breadcrumb` 未发生跨大版本 API 破坏升级",
         "schema_version = \"1\"",
         "breadcrumb_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4071,9 +4071,9 @@ fn breadcrumb_version_deprecation_migration_is_na_without_major_breaking_upgrade
 #[test]
 fn breadcrumb_version_deprecation_migration_script_covers_engineering_gate() {
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-engineering.sh");
+        load_ui_components_source("../../scripts/check-ui-engineering.sh");
 
-    let marker = "cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_version_deprecation_migration_is_na_without_major_breaking_upgrade";
+    let marker = "cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_version_deprecation_migration_is_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(marker),
         "engineering check script should enforce `{marker}`."

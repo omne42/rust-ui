@@ -1,140 +1,148 @@
+use super::playground_workbench::{bool_word, rust_string_literal};
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{FieldLabel, FieldLabelTone};
+use ui::{FieldLabel, FieldLabelTone};
+use ui_headless::A11yDirection;
 
-const FIELD_LABEL_DOC_IMPORTS: &str =
-    "use leptos::prelude::*;\nuse ui_components::{FieldLabel, FieldLabelTone};";
+const FIELD_LABEL_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui::{FieldLabel, FieldLabelTone};\nuse ui_headless::A11yDirection;";
 
 pub(super) fn field_label() -> AnyView {
-    let hello_code = Signal::derive(move || {
-        r#"<FieldLabel text=\"Email\".into() for_id=\"email\".into() is_required=true />
-<input id=\"email\" type=\"email\" />"#
-            .to_string()
-    });
+    let (tone_index, set_tone_index) = signal(0usize);
+    let (is_required, set_is_required) = signal(true);
+    let (is_disabled, set_is_disabled) = signal(false);
+    let (has_for_id, set_has_for_id) = signal(true);
+    let (custom_indicator, set_custom_indicator) = signal(false);
+    let (custom_aria, set_custom_aria) = signal(false);
+    let (custom_class, set_custom_class) = signal(false);
+    let (rtl, set_rtl) = signal(false);
 
-    let tone_code = Signal::derive(move || {
-        r#"<FieldLabel text=\"Email\".into() for_id=\"email\".into() is_required=true />
-<FieldLabel text=\"Helper\".into() tone=FieldLabelTone::Muted />
-<FieldLabel text=\"Critical\".into() tone=FieldLabelTone::Strong is_required=true />"#
-            .to_string()
-    });
-
-    let custom_code = Signal::derive(move || {
-        r#"<FieldLabel
-  text=\"Assignee\".into()
-  for_id=\"assignee\".into()
-  is_required=true
-  required_indicator=\"(required)\".into()
-  aria_label=\"Assignee field label\".into()
-  class_name=\"docs-field-label-custom\".into()
-/>"#
-        .to_string()
-    });
-
-    let controlled_na_code = Signal::derive(move || {
-        r#"// FieldLabel has no controlled axis (no value/on_change/default_value triad).
-// It always renders from the full snapshot props passed by parent.
-<FieldLabel text=\"Display Name\".into() for_id=\"display-name\".into() is_required=true />"#
-            .to_string()
-    });
-
-    let streaming_snapshot_code = Signal::derive(move || {
-        r#"// Streaming is optional for FieldLabel. Snapshot rendering is always supported.
-<FieldLabel text=\"Reviewer\".into() for_id=\"reviewer\".into() is_required=true />"#
-            .to_string()
-    });
-
-    let (workbench_tone_index, set_workbench_tone_index) = signal(Some(0_usize));
-    let workbench_tone = Signal::derive(move || match workbench_tone_index.get().unwrap_or(0) {
+    let workbench_tone = Signal::derive(move || match tone_index.get() {
         1 => FieldLabelTone::Muted,
         2 => FieldLabelTone::Strong,
         _ => FieldLabelTone::Default,
     });
-    let (workbench_required, set_workbench_required) = signal(true);
-    let (workbench_disabled, set_workbench_disabled) = signal(false);
-    let (workbench_has_for, set_workbench_has_for) = signal(true);
-    let (workbench_custom_indicator, set_workbench_custom_indicator) = signal(false);
-    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
-    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+
+    let workbench_text = Signal::derive(move || {
+        if is_required.get() {
+            "Owner".to_string()
+        } else {
+            "Optional owner".to_string()
+        }
+    });
+    let workbench_for_id = Signal::derive(move || {
+        if has_for_id.get() {
+            "docs-field-label-workbench-input".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_required_indicator = Signal::derive(move || {
+        if custom_indicator.get() {
+            "(required)".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_aria_label = Signal::derive(move || {
+        if custom_aria.get() {
+            "Owner field label".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if custom_class.get() {
+            "docs-field-label-custom".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_lang = Signal::derive(move || {
+        if rtl.get() {
+            "ar".to_string()
+        } else {
+            "en-US".to_string()
+        }
+    });
+    let workbench_dir = Signal::derive(move || {
+        if rtl.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        }
+    });
+
+    let showcase_code = Signal::derive(move || {
+        r#"<FieldLabel
+  text=\"Email\".into()
+  for_id=\"email\".into()
+  is_required=true
+/>
+<input id=\"email\" type=\"email\" />"#
+            .to_string()
+    });
 
     let workbench_code = Signal::derive(move || {
         format!(
-            "<FieldLabel\n  text=\"Workbench\".into()\n  tone=FieldLabelTone::{:?}\n  is_required={}\n  is_disabled={}\n  for_id={}\n  required_indicator={}\n  aria_label={}\n  class_name={}\n/>",
+            "<FieldLabel\n  text={text}\n  for_id={for_id}\n  is_required={}\n  is_disabled={}\n  tone=FieldLabelTone::{:?}\n  required_indicator={required_indicator}\n  aria_label={aria_label}\n  class_name={class_name}\n  lang={lang}\n  dir=ui_headless::A11yDirection::{dir}\n/>",
+            bool_word(is_required.get()),
+            bool_word(is_disabled.get()),
             workbench_tone.get(),
-            workbench_required.get(),
-            workbench_disabled.get(),
-            if workbench_has_for.get() {
-                "\"docs-field-label-workbench\".into()"
-            } else {
-                "\"\".into()"
-            },
-            if workbench_custom_indicator.get() {
-                "\"(required)\".into()"
-            } else {
-                "\"\".into()"
-            },
-            if workbench_custom_aria.get() {
-                "\"Workbench field label\".into()"
-            } else {
-                "\"\".into()"
-            },
-            if workbench_custom_class.get() {
-                "\"docs-field-label-custom\".into()"
-            } else {
-                "\"\".into()"
-            }
+            text = rust_string_literal(&workbench_text.get()),
+            for_id = rust_string_literal(&workbench_for_id.get()),
+            required_indicator = rust_string_literal(&workbench_required_indicator.get()),
+            aria_label = rust_string_literal(&workbench_aria_label.get()),
+            class_name = rust_string_literal(&workbench_class_name.get()),
+            lang = rust_string_literal(&workbench_lang.get()),
+            dir = if rtl.get() { "Rtl" } else { "Ltr" },
         )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<FieldLabel text=\"Email\".into() for_id=\"email\".into() is_required=true />
+<FieldLabel
+  text=\"Disabled reviewer\".into()
+  is_disabled=true
+  tone=FieldLabelTone::Muted
+/>
+<FieldLabel
+  text=\"Critical owner\".into()
+  tone=FieldLabelTone::Strong
+  is_required=true
+  required_indicator=\"(required)\".into()
+  aria_label=\"Critical owner field label\".into()
+/>"#
+        .to_string()
     });
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/field_form/field_label/styles.rs */\n{}",
-            ui_components::field_form::field_label::styles::CSS
+            "/* components/field-label/src/styles.rs */\\n{}",
+            ui::field_form::field_label::styles::CSS
         )
     });
 
     let workbench_actual_config = Signal::derive(move || {
-        let tone = workbench_tone.get();
-        let required = workbench_required.get();
-        let disabled = workbench_disabled.get();
-        let has_for = workbench_has_for.get();
-        let custom_indicator = workbench_custom_indicator.get();
-        let custom_aria = workbench_custom_aria.get();
-        let custom_class = workbench_custom_class.get();
-
-        let mut classes = vec!["ui-field-label".to_string(), tone.class_name().into()];
-        if required {
-            classes.push("ui-field-label--required".to_string());
-        }
-        if disabled {
-            classes.push("ui-field-label--disabled".to_string());
-        }
-        if has_for {
-            classes.push("ui-field-label--for".to_string());
-        }
-        if custom_indicator {
-            classes.push("ui-field-label--indicator-custom".to_string());
-        }
-        if custom_aria {
-            classes.push("ui-field-label--aria-custom".to_string());
-        }
-        if custom_class {
-            classes.push("ui-field-label--custom-class".to_string());
-            classes.push("docs-field-label-custom".to_string());
-        }
-
+        let text = workbench_text.get();
+        let for_id = workbench_for_id.get();
+        let required_indicator = workbench_required_indicator.get();
+        let aria_label = workbench_aria_label.get();
+        let class_name = workbench_class_name.get();
+        let lang = workbench_lang.get();
+        let dir = workbench_dir.get();
         format!(
-            "FieldLabelActualConfig {{\n  tone: {tone:?},\n  required: {required},\n  disabled: {disabled},\n  has_for_id: {has_for},\n  indicator_source: \"{}\",\n  aria_source: \"{}\",\n  class_source: \"{}\",\n  data_state: \"{}\",\n  class: \"{}\",\n}}",
-            if custom_indicator {
-                "custom"
-            } else {
-                "default"
-            },
-            if custom_aria { "custom" } else { "default" },
-            if custom_class { "custom" } else { "default" },
-            if required { "required" } else { "optional" },
-            classes.join(" ")
+            "FieldLabelActualConfig {{\\n  text: {:?},\\n  for_id: {:?},\\n  is_required: {},\\n  is_disabled: {},\\n  tone: {:?},\\n  required_indicator: {:?},\\n  aria_label: {:?},\\n  class_name: {:?},\\n  lang: {:?},\\n  dir: {:?},\\n}}",
+            text,
+            for_id,
+            is_required.get(),
+            is_disabled.get(),
+            workbench_tone.get(),
+            required_indicator,
+            aria_label,
+            class_name,
+            lang,
+            dir,
         )
     });
 
@@ -143,21 +151,21 @@ pub(super) fn field_label() -> AnyView {
             title="FieldLabel"
             slug="field-label"
             group="Forms"
-            description="baseline-compatible field label primitive with centralized tone/required/source-state modeling and stable data contracts."
+            description="Form field label with required/disabled/tone/source-state contracts."
         >
             <Playground
                 title="Hello World (Default API)"
-                code_signal=hello_code
+                code_signal=showcase_code
                 code_imports=FIELD_LABEL_DOC_IMPORTS.to_string()
             >
-                <div class="docs-stack" data-visual-baseline="field-label-default">
+                <div class="docs-stack docs-stack--tight">
                     <FieldLabel
                         text="Email".to_string()
-                        for_id="docs-field-label-hello".to_string()
+                        for_id="docs-field-label-showcase".to_string()
                         is_required=true
                     />
                     <input
-                        id="docs-field-label-hello"
+                        id="docs-field-label-showcase"
                         class="docs-search__input"
                         type="email"
                         placeholder="name@example.com"
@@ -166,247 +174,139 @@ pub(super) fn field_label() -> AnyView {
             </Playground>
 
             <Playground
-                title="Tone + Required"
-                code_signal=tone_code
-                code_imports=FIELD_LABEL_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-stack">
-                    <FieldLabel
-                        text="Email".to_string()
-                        for_id="docs-field-label-email".to_string()
-                        is_required=true
-                    />
-                    <input
-                        id="docs-field-label-email"
-                        class="docs-search__input"
-                        type="email"
-                        placeholder="name@example.com"
-                    />
-
-                    <FieldLabel text="Helper".to_string() tone=FieldLabelTone::Muted />
-                    <FieldLabel
-                        text="Critical".to_string()
-                        tone=FieldLabelTone::Strong
-                        is_required=true
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Custom Indicator + Aria + Class"
-                code_signal=custom_code
-                code_imports=FIELD_LABEL_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-stack">
-                    <FieldLabel
-                        text="Assignee".to_string()
-                        for_id="docs-field-label-assignee".to_string()
-                        is_required=true
-                        required_indicator="(required)".to_string()
-                        aria_label="Assignee field label".to_string()
-                        class_name="docs-field-label-custom".to_string()
-                    />
-                    <input
-                        id="docs-field-label-assignee"
-                        class="docs-search__input"
-                        type="text"
-                        placeholder="Owner"
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A for FieldLabel)"
-                code_signal=controlled_na_code
-                code_imports=FIELD_LABEL_DOC_IMPORTS.to_string()
-                description="FieldLabel has no controllable value axis; parent passes a full snapshot props set each render."
-            >
-                <div class="docs-stack">
-                    <FieldLabel
-                        text="Display Name".to_string()
-                        for_id="docs-field-label-controlled-na".to_string()
-                        is_required=true
-                    />
-                    <input
-                        id="docs-field-label-controlled-na"
-                        class="docs-search__input"
-                        type="text"
-                        placeholder="Jane Doe"
-                    />
-                    <p class="ui-muted">
-                        "No value/on_change/default_value triad. Controlled/uncontrolled contrast is N/A."
-                    </p>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming / Snapshot Contract"
-                code_signal=streaming_snapshot_code
-                code_imports=FIELD_LABEL_DOC_IMPORTS.to_string()
-                description="FieldLabel is snapshot-first; streaming stays optional with snapshot fallback."
-            >
-                <div class="docs-stack">
-                    <FieldLabel
-                        text="Reviewer".to_string()
-                        for_id="docs-field-label-streaming".to_string()
-                        is_required=true
-                    />
-                    <input
-                        id="docs-field-label-streaming"
-                        class="docs-search__input"
-                        type="text"
-                        placeholder="Owner"
-                    />
-                    <p class="ui-muted">
-                        "Agent contract markers: data-ui-streaming=optional data-ui-fallback=snapshot data-ui-output-state=verified"
-                    </p>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Workbench (Display + Config + Code + CSS Test)"
+                title="Workbench (Config + Live Actual Config)"
                 code_signal=workbench_code
                 code_imports=FIELD_LABEL_DOC_IMPORTS.to_string()
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/field_form/field_label/styles.rs".to_string()
+                test_source_path="components/field-label/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
-                description="展示区对比 default/workbench；Config 调 tone/required/disabled/source，Code 与 CSS Test 用于契约检查。"
                 controls=move || view! {
-                    <div class="docs-stack docs-stack--tight" data-slot="field-label-config-controls">
-                        <button
-                            type="button"
-                            data-action="cycle-tone-config"
-                            on:click=move |_| {
-                                set_workbench_tone_index.update(|value| {
-                                    *value = Some((value.unwrap_or(0) + 1) % 3);
-                                });
+                    <div class="docs-stack docs-stack--tight" data-slot="field-label-workbench-controls">
+                        <div class="docs-search__label">"Tone"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || tone_index.get().to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_tone_index.set(value.min(2));
+                                }
                             }
                         >
-                            "Cycle tone"
-                        </button>
-                        <button
-                            type="button"
-                            data-action="toggle-required-config"
-                            on:click=move |_| {
-                                set_workbench_required.update(|value| *value = !*value);
-                            }
-                        >
-                            "Toggle required"
-                        </button>
-                        <button
-                            type="button"
-                            data-action="toggle-disabled-config"
-                            on:click=move |_| {
-                                set_workbench_disabled.update(|value| *value = !*value);
-                            }
-                        >
-                            "Toggle disabled"
-                        </button>
-                        <button
-                            type="button"
-                            data-action="toggle-for-config"
-                            on:click=move |_| {
-                                set_workbench_has_for.update(|value| *value = !*value);
-                            }
-                        >
-                            "Toggle for_id"
-                        </button>
-                        <button
-                            type="button"
-                            data-action="toggle-indicator-config"
-                            on:click=move |_| {
-                                set_workbench_custom_indicator.update(|value| *value = !*value);
-                            }
-                        >
-                            "Toggle custom indicator"
-                        </button>
-                        <button
-                            type="button"
-                            data-action="toggle-aria-config"
-                            on:click=move |_| {
-                                set_workbench_custom_aria.update(|value| *value = !*value);
-                            }
-                        >
-                            "Toggle custom aria"
-                        </button>
-                        <button
-                            type="button"
-                            data-action="toggle-class-config"
-                            on:click=move |_| {
-                                set_workbench_custom_class.update(|value| *value = !*value);
-                            }
-                        >
-                            "Toggle custom class"
-                        </button>
-                        <p class="ui-muted" data-slot="field-label-config-summary">
-                            {move || {
-                                format!(
-                                    "config: tone={:?} required={} disabled={} for={} indicator={} aria={} class={}",
-                                    workbench_tone.get(),
-                                    workbench_required.get(),
-                                    workbench_disabled.get(),
-                                    workbench_has_for.get(),
-                                    if workbench_custom_indicator.get() { "custom" } else { "default" },
-                                    if workbench_custom_aria.get() { "custom" } else { "default" },
-                                    if workbench_custom_class.get() { "custom" } else { "default" },
-                                )
-                            }}
-                        </p>
+                            <option value="0">"Default"</option>
+                            <option value="1">"Muted"</option>
+                            <option value="2">"Strong"</option>
+                        </select>
+
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || is_required.get()
+                                on:change=move |event| set_is_required.set(event_target_checked(&event))
+                            />
+                            <span>"Required"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || is_disabled.get()
+                                on:change=move |event| set_is_disabled.set(event_target_checked(&event))
+                            />
+                            <span>"Disabled"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || has_for_id.get()
+                                on:change=move |event| set_has_for_id.set(event_target_checked(&event))
+                            />
+                            <span>"Bind for/id"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_indicator.get()
+                                on:change=move |event| set_custom_indicator.set(event_target_checked(&event))
+                            />
+                            <span>"Custom required indicator"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_aria.get()
+                                on:change=move |event| set_custom_aria.set(event_target_checked(&event))
+                            />
+                            <span>"Custom aria label"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_class.get()
+                                on:change=move |event| set_custom_class.set(event_target_checked(&event))
+                            />
+                            <span>"Custom class"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || rtl.get()
+                                on:change=move |event| set_rtl.set(event_target_checked(&event))
+                            />
+                            <span>"RTL (lang=ar, dir=rtl)"</span>
+                        </label>
                     </div>
                 }
             >
-                <div class="docs-stack">
-                    <div class="docs-stack docs-stack--tight">
-                        <span class="ui-muted">"default"</span>
-                        <FieldLabel
-                            text="Email".to_string()
-                            for_id="docs-field-label-compare-default".to_string()
-                            is_required=true
-                        />
-                        <input
-                            id="docs-field-label-compare-default"
-                            class="docs-search__input"
-                            type="email"
-                            placeholder="default@example.com"
-                        />
-                    </div>
+                <div class="docs-stack docs-stack--tight">
+                    <FieldLabel
+                        text=workbench_text.get()
+                        for_id=workbench_for_id.get()
+                        is_required=is_required.get()
+                        is_disabled=is_disabled.get()
+                        tone=workbench_tone.get()
+                        required_indicator=workbench_required_indicator.get()
+                        aria_label=workbench_aria_label.get()
+                        class_name=workbench_class_name.get()
+                        lang=workbench_lang.get()
+                        dir=workbench_dir.get()
+                    />
+                    <input
+                        id="docs-field-label-workbench-input"
+                        class="docs-search__input"
+                        type="text"
+                        placeholder="Owner"
+                        disabled=is_disabled.get()
+                    />
+                </div>
+            </Playground>
 
-                    <div class="docs-stack docs-stack--tight">
-                        <span class="ui-muted">"workbench"</span>
-                        <FieldLabel
-                            text="Workbench".to_string()
-                            tone=workbench_tone.get()
-                            is_required=workbench_required.get()
-                            is_disabled=workbench_disabled.get()
-                            for_id=if workbench_has_for.get() {
-                                "docs-field-label-workbench".to_string()
-                            } else {
-                                "".to_string()
-                            }
-                            required_indicator=if workbench_custom_indicator.get() {
-                                "(required)".to_string()
-                            } else {
-                                "".to_string()
-                            }
-                            aria_label=if workbench_custom_aria.get() {
-                                "Workbench field label".to_string()
-                            } else {
-                                "".to_string()
-                            }
-                            class_name=if workbench_custom_class.get() {
-                                "docs-field-label-custom".to_string()
-                            } else {
-                                "".to_string()
-                            }
-                        />
-                        <input
-                            id="docs-field-label-workbench"
-                            class="docs-search__input"
-                            type="text"
-                            placeholder="workbench-owner"
-                            disabled=workbench_disabled.get()
-                        />
-                    </div>
+            <Playground
+                title="State Matrix (Tone / Disabled / Source Comparison)"
+                code_signal=matrix_code
+                code_imports=FIELD_LABEL_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <FieldLabel
+                        text="Email".to_string()
+                        for_id="docs-field-label-matrix-default".to_string()
+                        is_required=true
+                    />
+                    <FieldLabel
+                        text="Disabled reviewer".to_string()
+                        is_disabled=true
+                        tone=FieldLabelTone::Muted
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <FieldLabel
+                        text="Critical owner".to_string()
+                        tone=FieldLabelTone::Strong
+                        is_required=true
+                        required_indicator="(required)".to_string()
+                        aria_label="Critical owner field label".to_string()
+                        class_name="docs-field-label-custom".to_string()
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                    />
                 </div>
             </Playground>
         </ComponentPage>

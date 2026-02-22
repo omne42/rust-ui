@@ -325,7 +325,7 @@ fn tooltip_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::tooltip::styles::CSS);"),
-        "ui-components css aggregator should include tooltip styles."
+        "ui css aggregator should include tooltip styles."
     );
 }
 

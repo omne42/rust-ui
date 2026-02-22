@@ -1,12 +1,12 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     Button, ButtonVariant, Dialog, DialogMotion, DialogSize, OnPress, OverlayMotion,
     SegmentedControl, SegmentedControlSize, Switch,
 };
 
-const DIALOG_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::{Button, ButtonVariant, Dialog, DialogMotion, DialogSize, OverlayMotion};";
+const DIALOG_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui::{Button, ButtonVariant, Dialog, DialogMotion, DialogSize, OverlayMotion};";
 
 pub(super) fn dialog() -> AnyView {
     let (hello_open_raw, set_hello_open_raw) = signal(false);
@@ -236,6 +236,9 @@ let on_exit_complete = Callback::new(move |_| {});
     let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
     let (workbench_open_raw, set_workbench_open_raw) = signal(false);
+    let (workbench_open_change_count, set_workbench_open_change_count) = signal(0_u32);
+    let (workbench_close_count, set_workbench_close_count) = signal(0_u32);
+    let (workbench_exit_count, set_workbench_exit_count) = signal(0_u32);
     let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
     let (workbench_present, set_workbench_present) = signal(workbench_open.get_untracked());
     Effect::new(move |_| {
@@ -244,8 +247,18 @@ let on_exit_complete = Callback::new(move |_| {});
         }
     });
     let open_workbench_dialog: OnPress = Callback::new(move |_| set_workbench_open_raw.set(true));
-    let close_workbench_dialog: OnPress = Callback::new(move |_| set_workbench_open_raw.set(false));
-    let on_workbench_exit_complete = Callback::new(move |_| set_workbench_present.set(false));
+    let close_workbench_dialog: OnPress = Callback::new(move |_| {
+        set_workbench_open_raw.set(false);
+        set_workbench_close_count.update(|count| *count += 1);
+    });
+    let on_workbench_open_change = Callback::new(move |next: bool| {
+        set_workbench_open_raw.set(next);
+        set_workbench_open_change_count.update(|count| *count += 1);
+    });
+    let on_workbench_exit_complete = Callback::new(move |_| {
+        set_workbench_present.set(false);
+        set_workbench_exit_count.update(|count| *count += 1);
+    });
 
     let workbench_code = Signal::derive(move || {
         let size_line = match workbench_size.get() {
@@ -282,7 +295,7 @@ let on_exit_complete = Callback::new(move |_| {});
     let workbench_test_css_source = Signal::derive(move || {
         format!(
             "/* components/dialog/src/styles.rs */\n{}",
-            ui_components::dialog::styles::CSS
+            ui::dialog::styles::CSS
         )
     });
 
@@ -292,9 +305,29 @@ let on_exit_complete = Callback::new(move |_| {});
         let show_close = workbench_show_close.get();
         let custom_motion = workbench_custom_motion.get();
         let custom_class = workbench_custom_class.get();
+        let description = if with_description {
+            Some("Toggle options to validate source markers and aria wiring.")
+        } else {
+            None
+        };
+        let class_name = if custom_class {
+            Some("docs-dialog-workbench")
+        } else {
+            None
+        };
+        let motion = if custom_motion {
+            "DialogMotion::custom"
+        } else {
+            "DialogMotion::default"
+        };
 
         format!(
-            "DialogWorkbenchConfig {{\n  size: {size:?},\n  with_description: {with_description},\n  show_close_button: {show_close},\n  custom_motion: {custom_motion},\n  custom_class: {custom_class},\n}}"
+            "DialogWorkbenchConfig {{\n  is_open: Some({}),\n  open: Some({}),\n  default_open: Some(false),\n  on_open_change: \"count={}\",\n  on_close: \"count={}\",\n  id_base: \"docs-dialog-workbench\",\n  title: \"Workbench dialog\",\n  description: {description:?},\n  footer: \"Some(ViewFn)\",\n  size: {size:?},\n  is_close_button_visible: {show_close},\n  show_close_button: Some({show_close}),\n  close_label: \"Close\",\n  motion: {motion},\n  on_exit_complete: \"count={}\",\n  class_name: {class_name:?},\n  lang: Some(\"en-US\"),\n  dir: Some(A11yDirection::Ltr),\n  with_description: {with_description},\n  custom_motion: {custom_motion},\n  custom_class: {custom_class},\n}}",
+            workbench_open_raw.get(),
+            workbench_open_raw.get(),
+            workbench_open_change_count.get(),
+            workbench_close_count.get(),
+            workbench_exit_count.get(),
         )
     });
 
@@ -414,7 +447,7 @@ let on_exit_complete = Callback::new(move |_| {});
             </Playground>
 
             <Playground
-                title="State Matrix"
+                title="State Scenarios"
                 description="受控/非受控、default_open 与 close-button 可见性的状态矩阵切换。"
                 code_signal=state_matrix_code
                 code_imports=DIALOG_DOC_IMPORTS.to_string()
@@ -772,6 +805,7 @@ let on_exit_complete = Callback::new(move |_| {});
                 <Show when=move || workbench_present.get()>
                     <Dialog
                         open=workbench_open
+                        on_open_change=on_workbench_open_change
                         on_close=close_workbench_dialog
                         id_base="docs-dialog-workbench".to_string()
                         title="Workbench dialog".to_string()
@@ -799,6 +833,8 @@ let on_exit_complete = Callback::new(move |_| {});
                             DialogMotion::default()
                         }
                         on_exit_complete=on_workbench_exit_complete
+                        lang="en-US".to_string()
+                        dir=ui_headless::A11yDirection::Ltr
                         footer=move || view! {
                             <div class="docs-row docs-row--end">
                                 <Button
@@ -970,7 +1006,7 @@ let on_exit_complete = Callback::new(move |_| {});
                 <p class="ui-muted">
                     "Dependency prerequisites: "
                     <code>
-                        "ui-components = { workspace = true, default-features = false, features = [\"component-dialog\", \"inject-css\"] }"
+                        "ui = { workspace = true, default-features = false, features = [\"component-dialog\", \"inject-css\"] }"
                     </code>
                 </p>
                 <ul class="docs-stack docs-stack--tight" attr:data-slot="dialog-source-paths">

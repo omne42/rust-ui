@@ -25,7 +25,7 @@ fn ui_components_reexports_code_component_crate() {
     assert!(
         lib_source.contains("#[cfg(feature = \"component-code\")]")
             && lib_source.contains("pub use ui_code as code;"),
-        "ui-components should re-export the external ui-code crate as `code`.",
+        "ui should re-export the external ui-code crate as `code`.",
     );
     assert!(
         cargo_source.contains("component-code = [\"dep:ui-code\"]"),
@@ -33,7 +33,7 @@ fn ui_components_reexports_code_component_crate() {
     );
     assert!(
         cargo_source.contains("ui-code = { path = \"../../components/code\", optional = true }"),
-        "ui-components Cargo.toml should include the optional ui-code dependency.",
+        "ui Cargo.toml should include the optional ui-code dependency.",
     );
 }
 
@@ -159,15 +159,15 @@ fn code_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "title=\"Variant Matrix\"",
-        "<Code variant=CodeVariant::Inline>\"cargo test -p ui-components\"</Code>",
+        "<Code variant=CodeVariant::Inline>\"cargo test -p ui\"</Code>",
         "<Code variant=CodeVariant::Block>",
         "cargo fmt --all",
-        "cargo clippy -p ui-components -p docs-app --all-targets -- -D warnings",
+        "cargo clippy -p ui -p docs-app --all-targets -- -D warnings",
         "title=\"Custom Class + Block\"",
         "<Code variant=CodeVariant::Inline class_name=\"docs-code-custom\".to_string()>",
         "\"--deny warnings\"",
         "<Code variant=CodeVariant::Block class_name=\"docs-code-custom\".to_string()>",
-        "cargo test -p ui-components --test code_semantics",
+        "cargo test -p ui --test code_semantics",
     ] {
         assert!(
             source.contains(needle),

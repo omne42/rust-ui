@@ -31,7 +31,7 @@ docs-app `close-button` 页面提供多场景对比：
 
 ## css test
 
-- 样式来源：`crates/ui-components/src/button/close_button/styles.rs`
+- 样式来源：`crates/ui/src/button/close_button/styles.rs`
 - 在 docs Playground 中可做 CSS test，验证 size/state/source 标记不漂移。
 
 ## docs-app 入口

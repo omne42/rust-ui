@@ -8,7 +8,7 @@
 ## Hello World
 
 ```rust
-use ui_components::ColorThumb;
+use ui::ColorThumb;
 
 let board_style =
     "position: relative; inline-size: 12rem; block-size: 7rem; border: 1px dashed var(--ui-border);";
@@ -23,7 +23,7 @@ view! {
 ## 常见用法
 
 ```rust
-use ui_components::ColorThumb;
+use ui::ColorThumb;
 
 view! {
     <div style=board_style>

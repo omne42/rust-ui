@@ -302,7 +302,7 @@ fn button_check2_marks_agent_contract_schema_item_complete() {
         "components/button/src/view.rs",
         "button_agent_contract_schema_markers_are_typed_traceable_and_whitelist_rendered",
         "normalize_schema_json_input_enforces_typed_whitelist_boundary",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -645,7 +645,7 @@ fn button_styles_use_defensive_variable_fallback_chain_locally() {
     let styles_source = load_source("src/button/styles.rs");
     let theme_css_source = load_source("../../crates/ui-theme/src/css.rs");
     let check2_source = load_source("../../components/button/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "var(--ui-button-size-m-min-width, var(--ui-button-min-width, var(--ui-component-height-100, var(--ui-fallback-component-height-100))))",
@@ -726,7 +726,7 @@ fn button_styles_use_defensive_variable_fallback_chain_locally() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test button_semantics button_styles_use_defensive_variable_fallback_chain_locally";
+    let script_needle = "cargo test -p ui --test button_semantics button_styles_use_defensive_variable_fallback_chain_locally";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -968,7 +968,7 @@ fn button_cascade_layer_and_runtime_style_contract_is_enforced_locally() {
     let toggle_button_view = load_source("src/button/toggle_button/view.rs");
     let button_motion = load_source("src/button/motion.rs");
     let check2_source = load_source("../../components/button/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "out.push_str(\"\\n@layer ui {\\n\");",
@@ -977,7 +977,7 @@ fn button_cascade_layer_and_runtime_style_contract_is_enforced_locally() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css registry should keep cascade-layer marker `{required}`.",
+            "ui css registry should keep cascade-layer marker `{required}`.",
         );
     }
 
@@ -1029,7 +1029,7 @@ fn button_cascade_layer_and_runtime_style_contract_is_enforced_locally() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test button_semantics button_cascade_layer_and_runtime_style_contract_is_enforced_locally";
+    let script_needle = "cargo test -p ui --test button_semantics button_cascade_layer_and_runtime_style_contract_is_enforced_locally";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -1745,7 +1745,7 @@ fn button_streaming_definition_is_llm_output_only_with_two_modes() {
         "`Streaming`：LLM 还在生成，界面边生成边显示。",
         "`Snapshot`：LLM 全部生成完成后，一次性显示。",
         "button_stays_snapshot_only_and_does_not_mount_stream_contract_fields",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -1763,7 +1763,7 @@ fn button_check2_documents_snapshot_as_default_baseline_capability() {
         "所有组件都应能消费“完整生成结果”并稳定渲染。",
         "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
         "button_snapshot_baseline_consumes_complete_result_and_renders_stably",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -1829,7 +1829,7 @@ fn button_check2_documents_streaming_required_optional_classification_rules() {
         "fallback=snapshot",
         "button_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
         "button_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2970,11 +2970,11 @@ fn button_dx_workbench_supports_optional_state_persistence_and_isolated_canvas()
 
 #[test]
 fn button_dx_check_script_covers_hot_reload_and_workbench_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test button_semantics button_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
+        "cargo test -p ui --test button_semantics button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test button_semantics button_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3169,7 +3169,7 @@ fn button_check2_documents_docs_product_copy_paste_ready_rules() {
         "Controlled vs Uncontrolled (N/A)",
         "button_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
         "button_dx_check_script_covers_docs_product_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "compose_copy_ready_code",
     ] {
         assert!(
@@ -3248,12 +3248,12 @@ fn button_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults(
 
 #[test]
 fn button_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for required in [
         "echo \"[dx] contract: button docs examples + api/state matrix sync with logic API/defaults\"",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(required),
@@ -3280,7 +3280,7 @@ fn button_check2_marks_docs_sync_and_state_matrix_item_complete() {
         "components/button/test/semantics.rs::button_check2_documents_docs_sync_and_state_matrix_rules",
         "components/button/test/semantics.rs::button_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "components/button/test/semantics.rs::button_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3373,12 +3373,12 @@ fn button_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn button_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for required in [
         "echo \"[dx] contract: button documentation-as-product keeps beginner-first docs entry\"",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(required),
@@ -3407,7 +3407,7 @@ fn button_check2_marks_documentation_as_product_item_complete() {
         "button_check2_documents_documentation_as_product_rules",
         "button_documentation_entry_exists_with_beginner_first_progression",
         "button_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3511,13 +3511,13 @@ fn button_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn button_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for required in [
         "echo \"[dx] contract: button interactive playground docs acceptance surface\"",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(required),
@@ -3546,7 +3546,7 @@ fn button_check2_marks_interactive_playground_item_complete() {
         "button_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "button_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "button_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3586,7 +3586,7 @@ fn button_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() 
         "data-slot=\"button-source-first-contract\"",
         "data-slot=\"button-source-paths\"",
         "component-button + inject-css",
-        "components/button/src/view.rs and crates/ui-components/src/button/view.rs.",
+        "components/button/src/view.rs and crates/ui/src/button/view.rs.",
     ] {
         assert!(
             docs_source.contains(required),
@@ -3610,12 +3610,12 @@ fn button_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() 
 
 #[test]
 fn button_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for required in [
         "echo \"[dx] contract: button source-first docs are copy-paste-ready with real paths and deps\"",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(required),
@@ -3641,7 +3641,7 @@ fn button_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "button_check2_documents_source_first_copy_paste_ready_rules",
         "button_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "button_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3653,12 +3653,12 @@ fn button_check2_marks_source_first_copy_paste_ready_contract_complete() {
 
 #[test]
 fn button_dx_check_script_covers_docs_product_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_check2_documents_docs_product_copy_paste_ready_rules",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_dx_check_script_covers_docs_product_copy_paste_ready_contract",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_check2_documents_docs_product_copy_paste_ready_rules",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_dx_check_script_covers_docs_product_copy_paste_ready_contract",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3732,12 +3732,12 @@ fn button_heroui_strategy_doc_sync_tracks_button_params_and_docs_entrypoint() {
 
 #[test]
 fn button_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: button heroui benchmark strategy + docs entry synchronization\"",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3763,7 +3763,7 @@ fn button_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "button_check2_documents_heroui_benchmark_docs_sync_rules",
         "button_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "button_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3890,7 +3890,7 @@ fn button_check2_documents_e2e_selector_stability_rules() {
         "- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。",
         "button_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "button_e2e_key_flow_covers_keyboard_and_code_sync_path",
-        "scripts/check-ui-components-e2e-button.sh",
+        "components/button/scripts/check-ui-e2e-button.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -3930,7 +3930,7 @@ fn button_check2_documents_e2e_selector_stability_rules() {
 #[test]
 fn button_e2e_flow_is_in_repeatable_regression_set() {
     let e2e_source = load_source("../../e2e/tests/docs_app_button_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-button.sh");
+    let script_source = load_source("../../components/button/scripts/check-ui-e2e-button.sh");
 
     for required in [
         "test(\"docs-app button workbench uses semantic selectors with settled loading/disabled states\"",
@@ -3957,9 +3957,9 @@ fn button_e2e_flow_is_in_repeatable_regression_set() {
     }
 
     for required in [
-        "cargo test -p ui-components --test button_semantics button_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test button_semantics button_e2e_key_flow_covers_keyboard_and_code_sync_path",
-        "cargo test -p ui-components --test button_semantics button_e2e_flow_is_in_repeatable_regression_set",
+        "cargo test -p ui --test button_semantics button_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test button_semantics button_e2e_key_flow_covers_keyboard_and_code_sync_path",
+        "cargo test -p ui --test button_semantics button_e2e_flow_is_in_repeatable_regression_set",
     ] {
         assert!(
             script_source.contains(required),
@@ -3977,7 +3977,7 @@ fn button_check2_documents_repeatable_e2e_regression_rules() {
         "button_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "button_e2e_key_flow_covers_keyboard_and_code_sync_path",
         "button_e2e_flow_is_in_repeatable_regression_set",
-        "scripts/check-ui-components-e2e-button.sh",
+        "components/button/scripts/check-ui-e2e-button.sh",
         "overlay 路径在 Button 单组件范围内为 N/A",
     ] {
         assert!(
@@ -4004,7 +4004,7 @@ fn button_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo features should include `{needle}` for tree-shaking boundaries."
+            "ui Cargo features should include `{needle}` for tree-shaking boundaries."
         );
     }
 
@@ -4027,7 +4027,7 @@ fn button_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components."
+        "web-demo should consume ui via web-demo-components, not all-components."
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -4038,14 +4038,14 @@ fn button_tree_shaking_keeps_component_feature_and_css_boundaries() {
 
 #[test]
 fn button_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
@@ -4071,18 +4071,18 @@ fn button_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
 
 #[test]
 fn button_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
 
     for needle in [
         "BUTTON_MIN_FEATURES=\"component-button,inject-css\"",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_tree_shaking_keeps_component_feature_and_css_boundaries",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_tree_shaking_check_script_covers_feature_tree_wasm_and_budget",
-        "cargo test -p ui-components --test button_semantics --no-default-features --features component-button,inject-css button_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "BUTTON_TREE_OUTPUT=\"$(cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$BUTTON_MIN_FEATURES\")\"",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_tree_shaking_keeps_component_feature_and_css_boundaries",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_tree_shaking_check_script_covers_feature_tree_wasm_and_budget",
+        "cargo test -p ui --test button_semantics --no-default-features --features component-button,inject-css button_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "BUTTON_TREE_OUTPUT=\"$(cargo tree -e features -i ui -p ui --no-default-features --features \"$BUTTON_MIN_FEATURES\")\"",
         "feature \"component-button\" (command-line)",
         "feature \"inject-css\" (command-line)",
         "button minimal feature tree should not pull all-components",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$BUTTON_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$BUTTON_MIN_FEATURES\"",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4096,13 +4096,13 @@ fn button_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2_source = load_source("../../components/button/check2.md");
 
     for required in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "component-button",
-        "crates/ui-components/src/lib.rs",
-        "crates/ui-components/src/css.rs",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-button,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "crates/ui/src/lib.rs",
+        "crates/ui/src/css.rs",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-button,inject-css",
+        "cargo tree -e features -i ui -p web-demo",
+        "scripts/check-ui-tree-shaking.sh",
         "button_tree_shaking_keeps_component_feature_and_css_boundaries",
         "button_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
     ] {
@@ -4147,19 +4147,19 @@ fn button_platform_guards_keep_cfg_split_and_non_wasm_web_sys_free() {
 
 #[test]
 fn button_platform_check_script_covers_default_ssr_wasm_compile_paths() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
-        "cargo check -p ui-components",
-        "cargo check -p ui-components --no-default-features --features component-button,inject-css",
+        "cargo check -p ui",
+        "cargo check -p ui --no-default-features --features component-button,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
         "cargo check -p ui-headless --no-default-features --features web,ssr",
         "expected ui-headless web+ssr to fail",
         "mutually exclusive",
-        "crates/ui-components/src/button/view.rs",
-        "crates/ui-components/src/button/motion.rs",
+        "crates/ui/src/button/view.rs",
+        "crates/ui/src/button/motion.rs",
         "cfg(target_arch = \"wasm32\")",
         "cfg(not(target_arch = \"wasm32\"))",
     ] {
@@ -4189,7 +4189,7 @@ fn button_ui_headless_feature_mutex_compile_error_guard_is_present() {
 fn button_ui_motion_non_wasm_stub_contract_is_enforced() {
     let motion_lib_source = load_source("../../crates/ui-motion/src/lib.rs");
     let button_motion_source = load_source("src/button/motion.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "#[cfg(not(target_arch = \"wasm32\"))]",
@@ -4239,7 +4239,7 @@ fn button_reduced_motion_and_ssr_wasm_semantics_contract_is_enforced() {
     let motion_web_source = load_source("../../crates/ui-motion/src/web.rs");
     let view_source = load_source("src/button/view.rs");
     let button_motion_source = load_source("src/button/motion.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "@media (prefers-reduced-motion: reduce)",
@@ -4300,7 +4300,7 @@ fn button_reduced_motion_and_ssr_wasm_semantics_contract_is_enforced() {
 
     assert!(
         platform_script_source
-            .contains("cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css"),
+            .contains("cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css"),
         "platform script should keep wasm compile-only coverage for button component path."
     );
 }
@@ -4458,7 +4458,7 @@ fn button_semantic_test_priority_prefers_data_aria_role_and_source_contracts_ove
     let view_source = load_source("src/button/view.rs");
     let semantics_source = load_source("../../components/button/test/semantics.rs");
     let check2_source = load_source("../../components/button/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for required in [
         "role=aria.attrs.role",
@@ -4495,7 +4495,7 @@ fn button_semantic_test_priority_prefers_data_aria_role_and_source_contracts_ove
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test button_semantics button_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test button_semantics button_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`.",
@@ -4517,14 +4517,14 @@ fn button_semantic_test_priority_prefers_data_aria_role_and_source_contracts_ove
 
 #[test]
 fn button_performance_check_script_covers_budget_and_follow_up_gates() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test button_semantics button_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test button_semantics button_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test button_semantics button_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4542,7 +4542,7 @@ fn button_check2_marks_semantics_and_performance_regression_item_complete() {
         "button_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "button_performance_governance_contract_is_budgeted_traceable_and_blocking",
         "button_semantics_checks_do_not_depend_on_visual_snapshot_assertions",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "docs/plan/TODO.md",
     ] {
         assert!(
@@ -4588,12 +4588,12 @@ fn button_view_macro_complexity_is_split_into_semantic_subrenders() {
 
 #[test]
 fn button_view_macro_check_script_covers_split_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_view_macro_complexity_is_split_into_semantic_subrenders",
-        "cargo test -p ui-components --test button_semantics button_view_functional_split_prefers_plain_functions_over_local_components",
-        "cargo test -p ui-components --test button_semantics button_static_fragments_are_constantized_with_stable_a11y_semantics",
+        "cargo test -p ui --test button_semantics button_view_macro_complexity_is_split_into_semantic_subrenders",
+        "cargo test -p ui --test button_semantics button_view_functional_split_prefers_plain_functions_over_local_components",
+        "cargo test -p ui --test button_semantics button_static_fragments_are_constantized_with_stable_a11y_semantics",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4768,11 +4768,11 @@ fn docs_inner_html_is_restricted_to_trusted_whitelisted_markdown_sources() {
 
 #[test]
 fn button_inner_html_check_script_covers_security_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_inner_html_is_disallowed_in_button_runtime_paths",
-        "cargo test -p ui-components --test button_semantics docs_inner_html_is_restricted_to_trusted_whitelisted_markdown_sources",
+        "cargo test -p ui --test button_semantics button_inner_html_is_disallowed_in_button_runtime_paths",
+        "cargo test -p ui --test button_semantics docs_inner_html_is_restricted_to_trusted_whitelisted_markdown_sources",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4817,7 +4817,7 @@ fn button_wasm_debug_contract_is_feature_gated_and_dev_only() {
         "data-debug-after=after_attr",
         "data-debug-timestamp-ms=format!(\"{:.0}\", event.timestamp_ms)",
         "request_replay.run(event.source)",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
         "debug_store.record(source, before, after);",
     ] {
         assert!(
@@ -4834,11 +4834,11 @@ fn button_wasm_debug_contract_is_feature_gated_and_dev_only() {
 
 #[test]
 fn button_wasm_debug_check_script_covers_feature_and_replay_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
 
     for needle in [
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
-        "cargo test -p ui-components --test button_semantics button_wasm_debug_contract_is_feature_gated_and_dev_only",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
+        "cargo test -p ui --test button_semantics button_wasm_debug_contract_is_feature_gated_and_dev_only",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4888,8 +4888,8 @@ fn button_engineering_contract_uses_consistent_tracing_targets() {
     let spec_source = load_source("src/button/spec.rs");
 
     for needle in [
-        "target: \"ui_components::button::state_change\"",
-        "const BUTTON_SPEC_TRACE_TARGET: &str = \"ui_components::button::spec\";",
+        "target: \"ui::button::state_change\"",
+        "const BUTTON_SPEC_TRACE_TARGET: &str = \"ui::button::spec\";",
         "trace_button_spec_event(",
         "\"button.schema.serialize\"",
         "\"button.schema.deserialize\"",
@@ -4984,13 +4984,13 @@ fn button_version_deprecation_migration_is_na_without_major_breaking_upgrade() {
 
 #[test]
 fn button_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_engineering_contract_uses_serde_schema_and_structured_migration_errors",
-        "cargo test -p ui-components --test button_semantics button_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-        "cargo test -p ui-components --test button_semantics button_engineering_contract_uses_consistent_tracing_targets",
-        "cargo test -p ui-components --test button_semantics button_engineering_contract_avoids_runtime_leaks_in_public_api",
+        "cargo test -p ui --test button_semantics button_engineering_contract_uses_serde_schema_and_structured_migration_errors",
+        "cargo test -p ui --test button_semantics button_version_deprecation_migration_is_na_without_major_breaking_upgrade",
+        "cargo test -p ui --test button_semantics button_engineering_contract_uses_consistent_tracing_targets",
+        "cargo test -p ui --test button_semantics button_engineering_contract_avoids_runtime_leaks_in_public_api",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5020,7 +5020,7 @@ fn ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_l
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep marker `{needle}`."
+            "ui lib entry should keep marker `{needle}`."
         );
     }
 
@@ -5032,7 +5032,7 @@ fn ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_l
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform/internal marker `{forbidden}`."
+            "ui lib entry should not leak platform/internal marker `{forbidden}`."
         );
     }
 }
@@ -5054,7 +5054,7 @@ fn ui_components_css_registry_remains_feature_gated_and_non_global() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css registry should keep feature-gated marker `{needle}`."
+            "ui css registry should keep feature-gated marker `{needle}`."
         );
     }
 }
@@ -5121,7 +5121,7 @@ fn ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_pr
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !path_exists(forbidden),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`."
+            "ui forbidden entrypoint file should not exist: `{forbidden}`."
         );
     }
 
@@ -5157,14 +5157,14 @@ fn ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_pr
 
 #[test]
 fn ui_components_entrypoints_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks",
-        "cargo test -p ui-components --test button_semantics ui_components_css_registry_remains_feature_gated_and_non_global",
-        "cargo test -p ui-components --test button_semantics ui_root_centralizes_theme_injection_and_i18n_context",
-        "cargo test -p ui-components --test button_semantics active_highlight_stays_shared_motion_primitive_without_component_semantics",
-        "cargo test -p ui-components --test button_semantics ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present",
+        "cargo test -p ui --test button_semantics ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks",
+        "cargo test -p ui --test button_semantics ui_components_css_registry_remains_feature_gated_and_non_global",
+        "cargo test -p ui --test button_semantics ui_root_centralizes_theme_injection_and_i18n_context",
+        "cargo test -p ui --test button_semantics active_highlight_stays_shared_motion_primitive_without_component_semantics",
+        "cargo test -p ui --test button_semantics ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5372,7 +5372,7 @@ fn button_context_compression_manifest_and_rbi_projection_are_present_and_curren
     for required in [
         "schema_version = \"1\"",
         "name = \"Button\"",
-        "crate = \"ui-components\"",
+        "crate = \"ui\"",
         "name = \"is_disabled\"",
         "name = \"is_loading\"",
         "name = \"variant\"",
@@ -5447,7 +5447,7 @@ fn button_check2_marks_context_compression_manifest_rbi_item_complete() {
         "components/button/src/Component.toml",
         "components/button/src/button.rbi",
         "button_context_compression_manifest_and_rbi_projection_are_present_and_current",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -5458,15 +5458,15 @@ fn button_check2_marks_context_compression_manifest_rbi_item_complete() {
 
 #[test]
 fn button_component_files_check_script_covers_directory_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_component_directory_has_standard_file_layout",
-        "cargo test -p ui-components --test button_semantics button_mod_rs_keeps_minimal_stable_exports",
-        "cargo test -p ui-components --test button_semantics button_component_file_responsibilities_remain_scoped",
-        "cargo test -p ui-components --test button_semantics button_spec_file_contract_is_scarce_and_has_versioned_regression_coverage",
-        "cargo test -p ui-components --test button_semantics button_hyper_structure_builder_spec_contract_is_available_for_complex_component",
-        "cargo test -p ui-components --test button_semantics button_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "cargo test -p ui --test button_semantics button_component_directory_has_standard_file_layout",
+        "cargo test -p ui --test button_semantics button_mod_rs_keeps_minimal_stable_exports",
+        "cargo test -p ui --test button_semantics button_component_file_responsibilities_remain_scoped",
+        "cargo test -p ui --test button_semantics button_spec_file_contract_is_scarce_and_has_versioned_regression_coverage",
+        "cargo test -p ui --test button_semantics button_hyper_structure_builder_spec_contract_is_available_for_complex_component",
+        "cargo test -p ui --test button_semantics button_context_compression_manifest_and_rbi_projection_are_present_and_current",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5477,16 +5477,16 @@ fn button_component_files_check_script_covers_directory_contract() {
 
 #[test]
 fn button_streaming_check_script_covers_snapshot_only_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_stays_snapshot_only_and_does_not_mount_stream_contract_fields",
-        "cargo test -p ui-components --test button_semantics button_streaming_definition_is_llm_output_only_with_two_modes",
-        "cargo test -p ui-components --test button_semantics button_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test button_semantics button_snapshot_baseline_consumes_complete_result_and_renders_stably",
-        "cargo test -p ui-components --test button_semantics button_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test button_semantics button_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test button_semantics button_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test button_semantics button_stays_snapshot_only_and_does_not_mount_stream_contract_fields",
+        "cargo test -p ui --test button_semantics button_streaming_definition_is_llm_output_only_with_two_modes",
+        "cargo test -p ui --test button_semantics button_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test button_semantics button_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test button_semantics button_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test button_semantics button_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test button_semantics button_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5497,14 +5497,14 @@ fn button_streaming_check_script_covers_snapshot_only_contract() {
 
 #[test]
 fn button_e2e_check_script_covers_selector_and_key_flow_contracts() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-button.sh");
+    let script_source = load_source("../../components/button/scripts/check-ui-e2e-button.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test button_semantics button_e2e_key_flow_covers_keyboard_and_code_sync_path",
-        "cargo test -p ui-components --test button_semantics button_check2_documents_e2e_selector_stability_rules",
-        "cargo test -p ui-components --test button_semantics button_e2e_flow_is_in_repeatable_regression_set",
-        "cargo test -p ui-components --test button_semantics button_check2_documents_repeatable_e2e_regression_rules",
+        "cargo test -p ui --test button_semantics button_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test button_semantics button_e2e_key_flow_covers_keyboard_and_code_sync_path",
+        "cargo test -p ui --test button_semantics button_check2_documents_e2e_selector_stability_rules",
+        "cargo test -p ui --test button_semantics button_e2e_flow_is_in_repeatable_regression_set",
+        "cargo test -p ui --test button_semantics button_check2_documents_repeatable_e2e_regression_rules",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5515,12 +5515,12 @@ fn button_e2e_check_script_covers_selector_and_key_flow_contracts() {
 
 #[test]
 fn button_contract_hygiene_check_script_covers_no_temp_patch_rule() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_contract_consistency_has_no_temporary_patch_markers",
-        "cargo test -p ui-components --test button_semantics button_agent_contract_schema_markers_are_typed_traceable_and_whitelist_rendered",
-        "cargo test -p ui-components --test button_semantics button_check2_marks_agent_contract_schema_item_complete",
+        "cargo test -p ui --test button_semantics button_contract_consistency_has_no_temporary_patch_markers",
+        "cargo test -p ui --test button_semantics button_agent_contract_schema_markers_are_typed_traceable_and_whitelist_rendered",
+        "cargo test -p ui --test button_semantics button_check2_marks_agent_contract_schema_item_complete",
     ] {
         assert!(
             script_source.contains(needle),

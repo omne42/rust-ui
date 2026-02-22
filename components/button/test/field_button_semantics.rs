@@ -673,7 +673,7 @@ fn field_button_docs_source_is_copy_paste_ready_with_imports_and_copy_control() 
     let e2e_source = load_source("../../e2e/tests/docs_app_field_button_contract.spec.mjs");
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String {",
         "compose_copy_ready_code(&dynamic_code.get(), &code_imports.get_value())",
         "<CodeBlock code=resolved_code.get() />",
@@ -687,7 +687,7 @@ fn field_button_docs_source_is_copy_paste_ready_with_imports_and_copy_control() 
     for needle in [
         "docs-app field-button playground source is copy-paste ready",
         "toContainText(\"use leptos::prelude::*;\")",
-        "toContainText(\"use ui_components::*;\")",
+        "toContainText(\"use ui::*;\")",
         "toContainText(\"<FieldButton\")",
         "toHaveAttribute(\"data-copyable\", \"true\")",
         "toHaveAttribute(\"aria-label\", /Copy to clipboard/i)",
@@ -1850,7 +1850,7 @@ fn field_button_wasm_debug_contract_is_feature_gated_and_inherited_from_button()
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components should keep wasm debug feature gating token `{needle}`."
+            "ui should keep wasm debug feature gating token `{needle}`."
         );
     }
     assert!(
@@ -1972,27 +1972,27 @@ fn ui_components_entry_files_keep_expected_boundary_layout() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib.rs should keep entry boundary token `{needle}`."
+            "ui lib.rs should keep entry boundary token `{needle}`."
         );
     }
 
     assert!(
         css_source.contains("pub fn push_components_css(out: &mut String)"),
-        "ui-components css.rs should keep CSS aggregation entrypoint."
+        "ui css.rs should keep CSS aggregation entrypoint."
     );
     assert!(
         root_source.contains("pub fn UiRoot("),
-        "ui-components root.rs should keep UiRoot injection entrypoint."
+        "ui root.rs should keep UiRoot injection entrypoint."
     );
     assert!(
         active_highlight_source.contains("pub const CSS: &str"),
-        "ui-components active_highlight.rs should keep shared highlight style capability."
+        "ui active_highlight.rs should keep shared highlight style capability."
     );
 
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !manifest_dir.join(forbidden).exists(),
-            "ui-components should not define forbidden root-level file `{forbidden}`."
+            "ui should not define forbidden root-level file `{forbidden}`."
         );
     }
 }
@@ -2215,7 +2215,7 @@ fn field_button_stays_as_ui_components_assembly_layer_only() {
     ] {
         assert!(
             field_module_source.contains(needle),
-            "FieldButton should keep ui-components assembly token `{needle}`."
+            "FieldButton should keep ui assembly token `{needle}`."
         );
     }
 

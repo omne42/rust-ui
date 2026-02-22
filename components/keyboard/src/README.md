@@ -87,7 +87,7 @@ Interactive Playground 的 `code_signal` 会按当前配置实时生成 Copy-Pas
 
 Interactive Playground 已接入 scoped CSS 测试面板：
 
-- `test_css_source`: `ui_components::keyboard::styles::CSS`
+- `test_css_source`: `ui::keyboard::styles::CSS`
 - `test_source_path`: `components/keyboard/src/styles.rs`
 - `test_config_signal`: 输出 `KeyboardActualConfig`（含 class 与 marker 期望）
 
@@ -126,8 +126,8 @@ Interactive Playground 已接入 scoped CSS 测试面板：
 ## Source-first Copy-Paste Ready
 
 - docs-app `Playground` 支持一键复制示例代码。
-- 复制片段默认包含可直接运行的 imports（`use leptos::prelude::*;` 与 `use ui_components::{Keyboard, KeyboardTone};`）。
-- 依赖前提：已在应用侧引入 `ui-components`（并按需启用 `component-keyboard` 特性）。
+- 复制片段默认包含可直接运行的 imports（`use leptos::prelude::*;` 与 `use ui::{Keyboard, KeyboardTone};`）。
+- 依赖前提：已在应用侧引入 `ui`（并按需启用 `component-keyboard` 特性）。
 - 真实源码落点：
   - `components/keyboard/src/mod.rs`
   - `components/keyboard/src/logic.rs`

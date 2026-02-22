@@ -1,450 +1,339 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{Button, ButtonVariant, HoverCard, HoverCardMotion, OnPress};
+use ui::{Button, ButtonVariant, HoverCard, HoverCardMotion, Switch};
 
-const HOVER_CARD_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::{Button, ButtonVariant, HoverCard, HoverCardMotion, OnPress};";
+fn bool_word(value: bool) -> &'static str {
+    if value { "true" } else { "false" }
+}
+
+fn rust_string_literal(value: &str) -> String {
+    format!("{value:?}")
+}
 
 pub(super) fn hover_card() -> AnyView {
-    let code = Signal::derive(move || {
-        r##"<HoverCard content=move || view!{ <div>...</div> }>
-  <a href="#">"Hover"</a>
-</HoverCard>"##
+    let hello_code = Signal::derive(move || {
+        r#"<HoverCard content=move || view! { \"Hover card content\" }>
+  <Button variant=ButtonVariant::Secondary>\"Hover trigger\"</Button>
+</HoverCard>"#
             .to_string()
     });
 
-    let hello_world_code = Signal::derive(move || {
-        r##"<HoverCard content=move || view! { "Hello World" }>
-  <Button variant=ButtonVariant::Secondary>"Hover me"</Button>
-</HoverCard>"##
-            .to_string()
+    let (workbench_open_raw, set_workbench_open_raw) = signal(false);
+    let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
+    let (workbench_open_change_count, set_workbench_open_change_count) = signal(0_u32);
+
+    let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
+    let (workbench_disabled_alias, set_workbench_disabled_alias) = signal(false);
+    let (workbench_top_end, set_workbench_top_end) = signal(false);
+    let (workbench_open_delay_ms, set_workbench_open_delay_ms) = signal(180_u64);
+    let (workbench_close_delay_ms, set_workbench_close_delay_ms) = signal(220_u64);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_custom_class_name, set_workbench_custom_class_name) = signal(false);
+    let (workbench_custom_id, set_workbench_custom_id) = signal(true);
+    let (workbench_zh_lang, set_workbench_zh_lang) = signal(false);
+    let (workbench_rtl_dir, set_workbench_rtl_dir) = signal(false);
+
+    let open_workbench = Callback::new(move |_| set_workbench_open_raw.set(true));
+    let close_workbench = Callback::new(move |_| set_workbench_open_raw.set(false));
+    let on_workbench_open_change = Callback::new(move |next: bool| {
+        set_workbench_open_raw.set(next);
+        set_workbench_open_change_count.update(|count| *count += 1);
     });
 
-    let markers_code = Signal::derive(move || {
-        r##"<HoverCard
+    let workbench_motion = Signal::derive(move || {
+        if workbench_custom_motion.get() {
+            HoverCardMotion {
+                initial_scale: 0.95,
+                offset_y_px: 14.0,
+                ..HoverCardMotion::default()
+            }
+        } else {
+            HoverCardMotion::default()
+        }
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let placement = if workbench_top_end.get() {
+            "ui_headless::PopoverPlacement::TopEnd"
+        } else {
+            "ui_headless::PopoverPlacement::BottomStart"
+        };
+        let motion = if workbench_custom_motion.get() {
+            "HoverCardMotion { initial_scale: 0.95, offset_y_px: 14.0, ..HoverCardMotion::default() }"
+        } else {
+            "HoverCardMotion::default()"
+        };
+        let class_name = if workbench_custom_class_name.get() {
+            "docs-hover-card-workbench"
+        } else {
+            ""
+        };
+        let id = if workbench_custom_id.get() {
+            "docs-hover-card-workbench"
+        } else {
+            ""
+        };
+        let lang = if workbench_zh_lang.get() {
+            "zh-CN"
+        } else {
+            "en-US"
+        };
+        let dir = if workbench_rtl_dir.get() {
+            "rtl"
+        } else {
+            "ltr"
+        };
+
+        vec![
+            "<HoverCard".to_string(),
+            "  content=move || view! { \"Workbench content\" }".to_string(),
+            format!("  is_disabled={}", bool_word(workbench_is_disabled.get())),
+            format!("  disabled={}", bool_word(workbench_disabled_alias.get())),
+            format!("  placement={placement}"),
+            "  is_open=Signal::derive(move || open_raw.get())".to_string(),
+            "  open=Signal::derive(move || open_raw.get())".to_string(),
+            "  default_open=false".to_string(),
+            "  on_open_change=Callback::new(move |next| set_open_raw.set(next))".to_string(),
+            format!("  open_delay_ms={}", workbench_open_delay_ms.get()),
+            format!("  close_delay_ms={}", workbench_close_delay_ms.get()),
+            format!("  motion={motion}"),
+            format!(
+                "  class_name={}.to_string()",
+                rust_string_literal(class_name)
+            ),
+            format!("  id={}.to_string()", rust_string_literal(id)),
+            format!("  lang={}.to_string()", rust_string_literal(lang)),
+            format!("  dir={}.to_string()", rust_string_literal(dir)),
+            ">".to_string(),
+            "  <Button variant=ButtonVariant::Secondary>\"Workbench trigger\"</Button>".to_string(),
+            "</HoverCard>".to_string(),
+        ]
+        .join("\n")
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let placement = if workbench_top_end.get() {
+            "PopoverPlacement::TopEnd"
+        } else {
+            "PopoverPlacement::BottomStart"
+        };
+        let motion = if workbench_custom_motion.get() {
+            "HoverCardMotion::custom"
+        } else {
+            "HoverCardMotion::default"
+        };
+        let class_name = if workbench_custom_class_name.get() {
+            Some("docs-hover-card-workbench")
+        } else {
+            None
+        };
+        let id = if workbench_custom_id.get() {
+            Some("docs-hover-card-workbench")
+        } else {
+            None
+        };
+        let lang = if workbench_zh_lang.get() {
+            Some("zh-CN")
+        } else {
+            Some("en-US")
+        };
+        let dir = if workbench_rtl_dir.get() {
+            Some("rtl")
+        } else {
+            Some("ltr")
+        };
+
+        format!(
+            "HoverCardActualConfig {{\n  content: \"Workbench content\",\n  is_disabled: Some({}),\n  disabled: Some({}),\n  placement: {placement},\n  is_open: Some({}),\n  open: Some({}),\n  default_open: Some(false),\n  on_open_change: \"count={}\",\n  open_delay_ms: Some({}),\n  close_delay_ms: Some({}),\n  motion: {motion},\n  class_name: {class_name:?},\n  id: {id:?},\n  lang: {lang:?},\n  dir: {dir:?},\n}}",
+            bool_word(workbench_is_disabled.get()),
+            bool_word(workbench_disabled_alias.get()),
+            bool_word(workbench_open_raw.get()),
+            bool_word(workbench_open_raw.get()),
+            workbench_open_change_count.get(),
+            workbench_open_delay_ms.get(),
+            workbench_close_delay_ms.get(),
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<HoverCard content=move || view! { \"Default\" }>
+  <Button variant=ButtonVariant::Secondary>\"Default\"</Button>
+</HoverCard>
+<HoverCard
+  placement=ui_headless::PopoverPlacement::TopEnd
   open_delay_ms=220
   close_delay_ms=260
-  class_name="docs-hover-card-state".to_string()
-  id="docs-hover-card".to_string()
-  motion=HoverCardMotion {
-    initial_scale: 0.96,
-    offset_y_px: 14.0,
-    ..HoverCardMotion::default()
-  }
-  content=move || view! {
-    <div class="docs-stack docs-stack--tight">
-      <div>"State + source markers"</div>
-      <div class="ui-muted">"Inspect data-delay-source and data-id-source on root/trigger/panel."</div>
-    </div>
-  }
+  content=move || view! { \"TopEnd + delayed\" }
 >
-  <Button variant=ButtonVariant::Secondary>"Inspect markers"</Button>
-</HoverCard>"##.to_string()
-    });
-
-    let state_matrix_code = Signal::derive(move || {
-        r##"<div attr:data-slot="hover-card-state-matrix">
-  <HoverCard content=move || view! { "Default state" }>
-    <Button variant=ButtonVariant::Secondary>"Default"</Button>
-  </HoverCard>
-  <HoverCard open_delay_ms=220 close_delay_ms=260 content=move || view! { "Delayed state" }>
-    <Button variant=ButtonVariant::Secondary>"Delayed"</Button>
-  </HoverCard>
-  <HoverCard is_disabled=true content=move || view! { "Disabled state" }>
-    <Button variant=ButtonVariant::Secondary>"Disabled"</Button>
-  </HoverCard>
-</div>"##
-            .to_string()
-    });
-
-    let (compare_controlled_open_raw, set_compare_controlled_open_raw) = signal(false);
-    let compare_controlled_open: Signal<bool> =
-        Signal::derive(move || compare_controlled_open_raw.get());
-    let on_compare_controlled_open_change: Callback<bool> =
-        Callback::new(move |next| set_compare_controlled_open_raw.set(next));
-    let (compare_uncontrolled_events_raw, set_compare_uncontrolled_events_raw) = signal(0u32);
-    let on_compare_uncontrolled_open_change: Callback<bool> =
-        Callback::new(move |_| set_compare_uncontrolled_events_raw.update(|count| *count += 1));
-
-    let controlled_uncontrolled_code = Signal::derive(move || {
-        r##"let (controlled_open_raw, set_controlled_open_raw) = signal(false);
-let controlled_open: Signal<bool> = Signal::derive(move || controlled_open_raw.get());
-let on_controlled_open_change: Callback<bool> =
-  Callback::new(move |next| set_controlled_open_raw.set(next));
-let on_uncontrolled_open_change: Callback<bool> = Callback::new(move |_| {});
-
-<HoverCard
-  is_open=controlled_open
-  on_open_change=on_controlled_open_change
-  content=move || view! { "Controlled" }
->
-  <Button variant=ButtonVariant::Secondary>"Controlled trigger"</Button>
+  <Button variant=ButtonVariant::Secondary>\"Delayed\"</Button>
 </HoverCard>
 <HoverCard
-  default_open=true
-  on_open_change=on_uncontrolled_open_change
-  content=move || view! { "Uncontrolled" }
+  is_disabled=true
+  disabled=true
+  content=move || view! { \"Disabled\" }
 >
-  <Button variant=ButtonVariant::Secondary>"Uncontrolled trigger"</Button>
-</HoverCard>"##
+  <Button variant=ButtonVariant::Secondary>\"Disabled\"</Button>
+</HoverCard>"#
             .to_string()
     });
-
-    let streaming_snapshot_code = Signal::derive(move || {
-        r##"<div attr:data-slot="hover-card-streaming-snapshot">
-  <div>"requested mode: streaming (optional)"</div>
-  <div>"fallback=snapshot"</div>
-  <div>"requested output status: draft -> verified"</div>
-  <div>"effective component status: data-ui-output-status=verified"</div>
-</div>"##
-            .to_string()
-    });
-
-    let motion_code = Signal::derive(move || {
-        r##"let custom_motion = HoverCardMotion {
-  initial_scale: 0.93,
-  offset_y_px: 18.0,
-  ..HoverCardMotion::default()
-};
-
-<HoverCard
-  motion=custom_motion
-  content=move || view! { "Custom spring + offset motion" }
->
-  <Button variant=ButtonVariant::Secondary>"Custom motion"</Button>
-</HoverCard>
-<HoverCard
-  motion=HoverCardMotion::default()
-  content=move || view! { "Default motion" }
->
-  <Button variant=ButtonVariant::Secondary>"Default motion"</Button>
-</HoverCard>"##
-            .to_string()
-    });
-
-    let (interactive_open_raw, set_interactive_open_raw) = signal(false);
-    let interactive_open: Signal<bool> = Signal::derive(move || interactive_open_raw.get());
-    let open_interactive_hover_card: OnPress =
-        Callback::new(move |_| set_interactive_open_raw.set(true));
-    let close_interactive_hover_card: OnPress =
-        Callback::new(move |_| set_interactive_open_raw.set(false));
-    let on_interactive_open_change: Callback<bool> =
-        Callback::new(move |next| set_interactive_open_raw.set(next));
-
-    let interactive_code = Signal::derive(move || {
-        r##"let (open_raw, set_open_raw) = signal(false);
-let open: Signal<bool> = Signal::derive(move || open_raw.get());
-let on_open_change: Callback<bool> = Callback::new(move |next| set_open_raw.set(next));
-let open_hover_card: OnPress = Callback::new(move |_| set_open_raw.set(true));
-let close_hover_card: OnPress = Callback::new(move |_| set_open_raw.set(false));
-
-<div attr:data-slot="hover-card-e2e-controls">
-  <Button attr:data-slot="hover-card-e2e-open" on_press=open_hover_card>
-    "Open interactive hover card"
-  </Button>
-  <Button attr:data-slot="hover-card-e2e-close" variant=ButtonVariant::Secondary on_press=close_hover_card>
-    "Close interactive hover card"
-  </Button>
-</div>
-
-<div attr:data-slot="hover-card-e2e-canvas">
-  <HoverCard
-    is_open=open
-    on_open_change=on_open_change
-    id="docs-hover-card-interactive".to_string()
-    content=move || view! { "Interactive content" }
-  >
-    <Button attr:data-slot="hover-card-e2e-trigger" variant=ButtonVariant::Secondary>
-      "Interactive trigger"
-    </Button>
-  </HoverCard>
-</div>"##
-            .to_string()
-    });
-
-    let interactive_test_css = Signal::derive(move || {
-        format!(
-            "/* components/hover-card/src/styles.rs */\n{}",
-            ui_components::hover_card::styles::CSS
-        )
-    });
-
-    let interactive_config = Signal::derive(move || {
-        format!(
-            "HoverCardActualConfig {{\n  open: {},\n  mode: \"controlled\",\n  value_source: \"external\",\n  intent_source: \"interaction\",\n}}",
-            interactive_open_raw.get()
-        )
-    });
-
-    let custom_motion = HoverCardMotion {
-        initial_scale: 0.93,
-        offset_y_px: 18.0,
-        ..HoverCardMotion::default()
-    };
 
     view! {
         <ComponentPage
             title="HoverCard"
             slug="hover-card"
             group="Overlays"
-            description="Hover/focus triggered card with open/close delays."
+            description="HoverCard playground with full API workbench and matrix comparison."
         >
-            <Playground title="HoverCard" code_signal=code>
-                <div class="docs-row" data-visual-baseline="hover-card-default-theme">
-                    <HoverCard content=move || view! {
-                        <div class="docs-stack">
-                            <div>"HoverCard content"</div>
-                            <div class="ui-muted">"Moves with placement + spring enter/exit."</div>
+            <Playground title="Hello World (Default HoverCard)" code_signal=hello_code>
+                <div class="docs-row">
+                    <HoverCard content=move || view! { "Hover card content" }>
+                        <Button variant=ButtonVariant::Secondary>"Hover trigger"</Button>
+                    </HoverCard>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="hover-card-workbench-controls">
+                        <Switch checked=workbench_is_disabled set_checked=set_workbench_is_disabled>
+                            "is_disabled"
+                        </Switch>
+                        <Switch checked=workbench_disabled_alias set_checked=set_workbench_disabled_alias>
+                            "disabled alias"
+                        </Switch>
+                        <Switch checked=workbench_top_end set_checked=set_workbench_top_end>
+                            "placement top-end"
+                        </Switch>
+                        <label class="docs-search__label">
+                            "open_delay_ms: " {move || workbench_open_delay_ms.get()}
+                            <input
+                                type="range"
+                                min="0"
+                                max="1000"
+                                step="20"
+                                prop:value=move || workbench_open_delay_ms.get().to_string()
+                                on:input=move |ev| {
+                                    let next = event_target_value(&ev).parse::<u64>().unwrap_or(180);
+                                    set_workbench_open_delay_ms.set(next);
+                                }
+                            />
+                        </label>
+                        <label class="docs-search__label">
+                            "close_delay_ms: " {move || workbench_close_delay_ms.get()}
+                            <input
+                                type="range"
+                                min="0"
+                                max="1000"
+                                step="20"
+                                prop:value=move || workbench_close_delay_ms.get().to_string()
+                                on:input=move |ev| {
+                                    let next = event_target_value(&ev).parse::<u64>().unwrap_or(220);
+                                    set_workbench_close_delay_ms.set(next);
+                                }
+                            />
+                        </label>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>
+                            "custom motion"
+                        </Switch>
+                        <Switch
+                            checked=workbench_custom_class_name
+                            set_checked=set_workbench_custom_class_name
+                        >
+                            "class_name"
+                        </Switch>
+                        <Switch checked=workbench_custom_id set_checked=set_workbench_custom_id>
+                            "id"
+                        </Switch>
+                        <Switch checked=workbench_zh_lang set_checked=set_workbench_zh_lang>
+                            "lang zh-CN"
+                        </Switch>
+                        <Switch checked=workbench_rtl_dir set_checked=set_workbench_rtl_dir>
+                            "dir rtl"
+                        </Switch>
+                        <div class="docs-row docs-row--tight">
+                            <Button variant=ButtonVariant::Secondary on_press=open_workbench>
+                                "Open"
+                            </Button>
+                            <Button variant=ButtonVariant::Secondary on_press=close_workbench>
+                                "Close"
+                            </Button>
                         </div>
-                    }>
-                        <a href="#" class="ui-muted" on:click=move |ev| ev.prevent_default()>
-                            "Hover me"
-                        </a>
-                    </HoverCard>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="hover-card-workbench-feedback">
+                    <span class="ui-muted">
+                        "open: " {move || workbench_open_raw.get()}
+                        " · on_open_change: " {move || workbench_open_change_count.get()}
+                    </span>
                 </div>
+                <HoverCard
+                    content=move || view! { "Workbench content" }
+                    is_disabled=workbench_is_disabled.get()
+                    disabled=workbench_disabled_alias.get()
+                    placement=if workbench_top_end.get() {
+                        ui_headless::PopoverPlacement::TopEnd
+                    } else {
+                        ui_headless::PopoverPlacement::BottomStart
+                    }
+                    is_open=workbench_open
+                    open=workbench_open
+                    default_open=false
+                    on_open_change=on_workbench_open_change
+                    open_delay_ms=workbench_open_delay_ms.get()
+                    close_delay_ms=workbench_close_delay_ms.get()
+                    motion=workbench_motion.get()
+                    class_name=if workbench_custom_class_name.get() {
+                        "docs-hover-card-workbench".to_string()
+                    } else {
+                        String::new()
+                    }
+                    id=if workbench_custom_id.get() {
+                        "docs-hover-card-workbench".to_string()
+                    } else {
+                        String::new()
+                    }
+                    lang=if workbench_zh_lang.get() {
+                        "zh-CN".to_string()
+                    } else {
+                        "en-US".to_string()
+                    }
+                    dir=if workbench_rtl_dir.get() {
+                        "rtl".to_string()
+                    } else {
+                        "ltr".to_string()
+                    }
+                >
+                    <Button variant=ButtonVariant::Secondary>"Workbench trigger"</Button>
+                </HoverCard>
             </Playground>
 
-            <Playground
-                title="Hello World (Minimal Path)"
-                code_signal=hello_world_code
-                code_imports=HOVER_CARD_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-row">
-                    <HoverCard content=move || view! { "Hello World" }>
-                        <Button variant=ButtonVariant::Secondary>"Hover me"</Button>
-                    </HoverCard>
-                </div>
-            </Playground>
-
-            <Playground
-                title="State + Source Markers"
-                description="Inspect root/trigger/panel contracts: data-state/data-open/data-motion-source/data-delay-source/data-id-source."
-                code_signal=markers_code
-                code_imports=HOVER_CARD_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-row">
-                    <HoverCard
-                        open_delay_ms=220
-                        close_delay_ms=260
-                        class_name="docs-hover-card-state".to_string()
-                        id="docs-hover-card".to_string()
-                        motion=HoverCardMotion {
-                            initial_scale: 0.96,
-                            offset_y_px: 14.0,
-                            ..HoverCardMotion::default()
-                        }
-                        content=move || view! {
-                            <div class="docs-stack docs-stack--tight">
-                                <div>"State + source markers"</div>
-                                <div class="ui-muted">
-                                    "Inspect data-delay-source and data-id-source on root/trigger/panel."
-                                </div>
-                            </div>
-                        }
-                    >
-                        <Button variant=ButtonVariant::Secondary>
-                            "Inspect markers"
-                        </Button>
-                    </HoverCard>
-                </div>
-            </Playground>
-
-            <Playground
-                title="State Matrix"
-                description="Default/delayed/disabled branches for semantic matrix regression."
-                code_signal=state_matrix_code
-                code_imports=HOVER_CARD_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-row" attr:data-slot="hover-card-state-matrix">
-                    <HoverCard content=move || view! { "Default state" }>
+            <Playground title="State Matrix (Default / Delayed / Disabled)" code_signal=matrix_code>
+                <div class="docs-row" data-slot="hover-card-state-matrix">
+                    <HoverCard content=move || view! { "Default" }>
                         <Button variant=ButtonVariant::Secondary>"Default"</Button>
                     </HoverCard>
                     <HoverCard
+                        placement=ui_headless::PopoverPlacement::TopEnd
                         open_delay_ms=220
                         close_delay_ms=260
-                        content=move || view! { "Delayed state" }
+                        content=move || view! { "TopEnd + delayed" }
                     >
                         <Button variant=ButtonVariant::Secondary>"Delayed"</Button>
                     </HoverCard>
-                    <HoverCard is_disabled=true content=move || view! { "Disabled state" }>
+                    <HoverCard
+                        is_disabled=true
+                        disabled=true
+                        content=move || view! { "Disabled" }
+                    >
                         <Button variant=ButtonVariant::Secondary>"Disabled"</Button>
                     </HoverCard>
                 </div>
             </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled"
-                code_signal=controlled_uncontrolled_code
-                code_imports=HOVER_CARD_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-row" attr:data-slot="hover-card-controlled-uncontrolled">
-                    <HoverCard
-                        is_open=compare_controlled_open
-                        on_open_change=on_compare_controlled_open_change
-                        content=move || view! { "Controlled content" }
-                    >
-                        <Button variant=ButtonVariant::Secondary>"Controlled trigger"</Button>
-                    </HoverCard>
-                    <HoverCard
-                        default_open=true
-                        on_open_change=on_compare_uncontrolled_open_change
-                        content=move || view! { "Uncontrolled content" }
-                    >
-                        <Button variant=ButtonVariant::Secondary>"Uncontrolled trigger"</Button>
-                    </HoverCard>
-                    <span class="ui-muted">
-                        "controlled open: " {move || compare_controlled_open_raw.get()}
-                    </span>
-                    <span class="ui-muted">
-                        "uncontrolled events: " {move || compare_uncontrolled_events_raw.get()}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming / Snapshot Contract"
-                description="HoverCard is streaming-optional and falls back to snapshot while preserving semantic markers."
-                code_signal=streaming_snapshot_code
-                code_imports=HOVER_CARD_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-stack docs-stack--tight" attr:data-slot="hover-card-streaming-snapshot">
-                    <div>"requested mode: streaming (optional)"</div>
-                    <div>"fallback=snapshot"</div>
-                    <div>"requested output status: draft -> verified"</div>
-                    <div>"effective component status: data-ui-output-status=verified"</div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Custom Motion Contract"
-                code_signal=motion_code
-                code_imports=HOVER_CARD_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-row">
-                    <HoverCard
-                        motion=custom_motion
-                        content=move || view! { "Custom spring + offset motion" }
-                    >
-                        <Button variant=ButtonVariant::Secondary>
-                            "Custom motion"
-                        </Button>
-                    </HoverCard>
-                    <HoverCard
-                        motion=HoverCardMotion::default()
-                        content=move || view! { "Default motion" }
-                    >
-                        <Button variant=ButtonVariant::Secondary>
-                            "Default motion"
-                        </Button>
-                    </HoverCard>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Interactive Playground"
-                description="Display + Config + CSS Test: keep controlled-open context while tuning styles."
-                code_signal=interactive_code
-                code_imports=HOVER_CARD_DOC_IMPORTS.to_string()
-                test_css_source=interactive_test_css
-                test_source_path="components/hover-card/src/styles.rs".to_string()
-                test_config_signal=interactive_config
-            >
-                <div class="docs-row">
-                    <div class="docs-row" attr:data-slot="hover-card-e2e-controls">
-                        <Button attr:data-slot="hover-card-e2e-open" on_press=open_interactive_hover_card>
-                            "Open interactive hover card"
-                        </Button>
-                        <Button
-                            attr:data-slot="hover-card-e2e-close"
-                            variant=ButtonVariant::Secondary
-                            on_press=close_interactive_hover_card
-                        >
-                            "Close interactive hover card"
-                        </Button>
-                        <span class="ui-muted">"open: " {move || interactive_open_raw.get()}</span>
-                    </div>
-
-                    <div class="docs-row" attr:data-slot="hover-card-e2e-canvas">
-                        <HoverCard
-                            is_open=interactive_open
-                            on_open_change=on_interactive_open_change
-                            id="docs-hover-card-interactive".to_string()
-                            content=move || view! {
-                                <div class="docs-stack docs-stack--tight">
-                                    <div>"Interactive content"</div>
-                                    <div class="ui-muted">
-                                        "Inspect root markers in DevTools while keeping context."
-                                    </div>
-                                </div>
-                            }
-                        >
-                            <Button attr:data-slot="hover-card-e2e-trigger" variant=ButtonVariant::Secondary>
-                                "Interactive trigger"
-                            </Button>
-                        </HoverCard>
-                    </div>
-                </div>
-            </Playground>
-
-            <div class="docs-stack docs-stack--tight" attr:data-slot="hover-card-defaults-contract">
-                <h3>"API + Defaults Contract"</h3>
-                <p class="ui-muted">
-                    "Defaults are normalized in "
-                    <code>"components/hover-card/src/logic.rs"</code>
-                    "."
-                </p>
-                <ul class="docs-list docs-list--tight">
-                    <li>
-                        <code>"open_delay_ms"</code>
-                        " default: "
-                        <code>"DEFAULT_OPEN_DELAY_MS (140)"</code>
-                    </li>
-                    <li>
-                        <code>"close_delay_ms"</code>
-                        " default: "
-                        <code>"DEFAULT_CLOSE_DELAY_MS (180)"</code>
-                    </li>
-                    <li>
-                        <code>"is_disabled"</code>
-                        " default: "
-                        <code>"false"</code>
-                        " (via "
-                        <code>"resolve_is_disabled"</code>
-                        ")."
-                    </li>
-                    <li>
-                        <code>"is_open/default_open/on_open_change"</code>
-                        " map to controlled/uncontrolled open-axis."
-                    </li>
-                </ul>
-            </div>
-
-            <div class="docs-stack docs-stack--tight" attr:data-slot="hover-card-source-first">
-                <h3>"Source-first Copy-Paste"</h3>
-                <p class="ui-muted">
-                    "Use "
-                    <code>"Show code"</code>
-                    " to copy runnable snippets with "
-                    <code>"HOVER_CARD_DOC_IMPORTS"</code>
-                    ". Imports are completed by "
-                    <code>"compose_copy_ready_code"</code>
-                    " in playground pipeline."
-                </p>
-                <ul class="docs-list docs-list--tight" attr:data-slot="hover-card-source-paths">
-                    <li><code>"components/hover-card/src/mod.rs"</code></li>
-                    <li><code>"components/hover-card/src/logic.rs"</code></li>
-                    <li><code>"components/hover-card/src/view.rs"</code></li>
-                    <li><code>"components/hover-card/src/styles.rs"</code></li>
-                    <li><code>"components/hover-card/src/motion.rs"</code></li>
-                </ul>
-                <p class="ui-muted">
-                    "Required package features: "
-                    <code>"component-hover_card"</code>
-                    " + "
-                    <code>"inject-css"</code>
-                    "."
-                </p>
-            </div>
         </ComponentPage>
     }
     .into_any()

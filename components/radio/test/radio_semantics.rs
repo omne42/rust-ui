@@ -124,7 +124,7 @@ fn radio_does_not_expose_logic_or_view_modules() {
             && crate_source.contains(
                 "pub use radio::{Radio, RadioGroup, RadioGroupOrientation, RadioMotion};"
             ),
-        "ui-components crate root should re-export ui-radio contracts."
+        "ui crate root should re-export ui-radio contracts."
     );
     assert!(
         cargo_source.contains("component-radio = [\"dep:ui-radio\"]"),
@@ -132,7 +132,7 @@ fn radio_does_not_expose_logic_or_view_modules() {
     );
     assert!(
         cargo_source.contains("ui-radio = { path = \"../../components/radio\", optional = true }"),
-        "ui-components Cargo.toml should include optional ui-radio dependency."
+        "ui Cargo.toml should include optional ui-radio dependency."
     );
 }
 
@@ -962,7 +962,7 @@ fn radio_check2_marks_ui_components_complete() {
     let source = load_source("src/radio/check2.md");
 
     for needle in [
-        "- [x] `ui-components` 定义",
+        "- [x] `ui` 定义",
         "mod.rs / logic.rs / styles.rs / view.rs / motion.rs",
         "use ui_state_primitives::radio",
         "use_radio(RadioOptions {",
@@ -970,7 +970,7 @@ fn radio_check2_marks_ui_components_complete() {
     ] {
         assert!(
             source.contains(needle),
-            "Radio check2 should record ui-components completion evidence; missing `{needle}`."
+            "Radio check2 should record ui completion evidence; missing `{needle}`."
         );
     }
 }

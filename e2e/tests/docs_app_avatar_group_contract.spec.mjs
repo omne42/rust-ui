@@ -191,7 +191,7 @@ test("docs-app avatar-group source-first section exposes copy-ready starter and 
   await expect(copyButton).toBeVisible();
 
   const snippetPre = sourceFirst.locator('[data-slot="snippet-pre"]').first();
-  await expect(snippetPre).toContainText("use ui_components::{AvatarGroup, AvatarGroupItem, AvatarSize};");
+  await expect(snippetPre).toContainText("use ui::{AvatarGroup, AvatarGroupItem, AvatarSize};");
   await expect(snippetPre).toContainText("<AvatarGroup");
 
   await expect(sourceFirst).toContainText("component-avatar-group");

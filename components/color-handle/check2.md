@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -147,7 +147,7 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -161,9 +161,9 @@
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -233,18 +233,18 @@
 ### 5. 样式与动效（Theme & Motion）
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 已满足：`crates/ui-components/src/css.rs` 通过 `push_components_css` 将组件样式聚合进 `@layer ui`；`components/color-handle/src/view.rs` 的运行时 `style` 仅来自 `motion::attach_motion` 输出的 `--ui-color-handle-motion-duration` 自定义属性。
+  - 已满足：`crates/ui/src/css.rs` 通过 `push_components_css` 将组件样式聚合进 `@layer ui`；`components/color-handle/src/view.rs` 的运行时 `style` 仅来自 `motion::attach_motion` 输出的 `--ui-color-handle-motion-duration` 自定义属性。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 已满足：`components/color-handle/src/motion.rs` 以 `ColorHandleMotion + sanitize_motion + attach_motion` 固化组件 motion contract 并输出 CSS 变量；`components/color-handle/src/styles.rs` 新增 `@media (prefers-reduced-motion: reduce)` 将 `--ui-color-handle-motion-duration` 降为 `0ms`；挂载链路不依赖 `web-sys`，SSR/non-wasm 仅字符串变量拼装，行为可预测。
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-  - 已满足：`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 均按 `component-*` 做 feature gate；`crates/ui-components/src/root.rs` 集中注入 base css/theme vars/components css 并 `provide_ui_i18n`；`crates/ui-visual-primitive/src/active_highlight.rs` 承载通用高亮样式与 motion；且 `crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - 已满足：`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 均按 `component-*` 做 feature gate；`crates/ui/src/root.rs` 集中注入 base css/theme vars/components css 并 `provide_ui_i18n`；`crates/ui-visual-primitive/src/active_highlight.rs` 承载通用高亮样式与 motion；且 `crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 均不存在。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -286,15 +286,15 @@
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
   - 已满足（组件范围）：`components/color-handle/src/*.rs` 已清理 `unwrap/expect`、`let _ =` 与 `to_string/to_owned/String::from` 字符串复制热点。
   - 验证说明：`./scripts/check-rust-hygiene.sh` 在当前环境受仓库级前置约束影响未能给出可用通过结果（`check-api-contracts` 基线漂移且 `rg` 缺少 PCRE2）；本次以组件内等价扫描作为本条验收依据。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 已满足：`crates/ui-components/Cargo.toml` 已定义 `component-color_handle = ["component-color_thumb"]`，并纳入 `all-components` 与 `component-domain-color` 特性树。
-  - 已满足：`crates/ui-components/src/lib.rs` 对 `color_handle` 模块导出使用 `#[cfg(feature = "component-color_handle")]` 门控，不会在未启用特性时进入可达路径。
-  - 已满足：`crates/ui-components/src/css.rs` 仅在 `#[cfg(feature = "component-color_handle")]` 下聚合 `crate::color::handle::styles::CSS`，无条件全局聚合被避免。
-  - 验证：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-color_handle,inject-css` 输出仅包含 `component-color_handle -> component-color_thumb -> component-color_swatch` 与 `inject-css`，未出现 `all-components`。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 已满足：`crates/ui/Cargo.toml` 已定义 `component-color_handle = ["component-color_thumb"]`，并纳入 `all-components` 与 `component-domain-color` 特性树。
+  - 已满足：`crates/ui/src/lib.rs` 对 `color_handle` 模块导出使用 `#[cfg(feature = "component-color_handle")]` 门控，不会在未启用特性时进入可达路径。
+  - 已满足：`crates/ui/src/css.rs` 仅在 `#[cfg(feature = "component-color_handle")]` 下聚合 `crate::color::handle::styles::CSS`，无条件全局聚合被避免。
+  - 验证：`cargo tree -e features -i ui -p ui --no-default-features --features component-color_handle,inject-css` 输出仅包含 `component-color_handle -> component-color_thumb -> component-color_swatch` 与 `inject-css`，未出现 `all-components`。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 已满足：`components/color-handle/test/semantics.rs` 新增 `color_handle_semantic_regression_covers_aria_data_and_focus_path`，锁定 `role/aria-label`、`data-state/data-focused/data-aria-source`、`focus` 状态流转（`is_focused -> logic -> view -> thumb`），并显式禁止 snapshot-only 断言依赖。
   - 已满足（等价证据路径）：`components/color-handle/test/semantics.rs` 新增 `color_handle_performance_regression_keeps_render_count_equivalent_evidence`，约束渲染路径为有界 memo（<=3）且无 `effect/watch/spawn_local` 等洪泛触发，并保留 `data-state/data-motion-source` 可归因标记。
-  - render_count 跟踪：断言 `scripts/check-ui-components-performance.sh` 持续执行 `perf_render_count_follow_up_is_tracked_in_plan`，并校验 `docs/plan/TODO.md` 仍保留 `render_count` 自动化补齐任务，符合“当前框架未提供通用精确计数时采用等价证据 + 跟踪闭环”。
+  - render_count 跟踪：断言 `scripts/check-ui-performance.sh` 持续执行 `perf_render_count_follow_up_is_tracked_in_plan`，并校验 `docs/plan/TODO.md` 仍保留 `render_count` 自动化补齐任务，符合“当前框架未提供通用精确计数时采用等价证据 + 跟踪闭环”。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - N/A（当前提交未触发跨大版本破坏升级）：`ColorHandle` 公共导出面与 props 语义未发生破坏性变更，本次仅做语义测试/性能回归与 checklist 收敛；因此无需新增 Schema Registry 弃用窗口，也无需提供 `migrate_v1_to_v2` 迁移层。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
@@ -348,7 +348,7 @@
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-  - 已满足：`e2e/tests/docs_app_color_handle_contract.spec.mjs` 新增 `docs-app color-handle playground source is copy-paste ready`，断言 workbench 代码区存在复制入口（`Show/Hide code` + `data-copyable="true"` + Copy 按钮 `aria-label`），并校验输出代码包含可运行 imports（`use leptos::prelude::*;`、`use ui_components::*;`）与 `<ColorHandle` 片段。
+  - 已满足：`e2e/tests/docs_app_color_handle_contract.spec.mjs` 新增 `docs-app color-handle playground source is copy-paste ready`，断言 workbench 代码区存在复制入口（`Show/Hide code` + `data-copyable="true"` + Copy 按钮 `aria-label`），并校验输出代码包含可运行 imports（`use leptos::prelude::*;`、`use ui::*;`）与 `<ColorHandle` 片段。
   - 已满足：docs 页面 source-first 说明卡 `data-slot="color-handle-copy-ready"` 明确指向 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 与真实源码落点 `components/color-handle/src/view.rs|logic.rs|styles.rs`，满足“复制不报错 + 可追溯实现”。
   - 回归：`components/color-handle/test/semantics.rs` 新增 `color_handle_source_first_docs_are_copy_paste_ready_and_synced`，同时锁定 docs/source/e2e 三侧 token，防止示例与实现漂移。
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
@@ -367,9 +367,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

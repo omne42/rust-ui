@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（N/A：Avatar 当前无状态驱动动效与 `motion.rs` 需求）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -130,8 +130,8 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（Avatar 样式统一在 `styles.rs`，经 `crates/ui-components/src/css.rs` 聚合并由 `UiRoot` 注入；关键视觉值走 `var(--ui-*)`，且无 Utility-First/CSS-in-Rust 反向污染）
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（Avatar 样式统一在 `styles.rs`，经 `crates/ui/src/css.rs` 聚合并由 `UiRoot` 注入；关键视觉值走 `var(--ui-*)`，且无 Utility-First/CSS-in-Rust 反向污染）
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -140,14 +140,14 @@
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui-components` 已注册 `component-avatar` 特性；`lib.rs/css.rs` 均按 feature 条件导出与聚合；`scripts/check-ui-components-tree-shaking.sh` 覆盖最小特性树、反向依赖、wasm 最小编译与体积预算门禁）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui` 已注册 `component-avatar` 特性；`lib.rs/css.rs` 均按 feature 条件导出与聚合；`scripts/check-ui-tree-shaking.sh` 覆盖最小特性树、反向依赖、wasm 最小编译与体积预算门禁）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`logic.rs` 使用 `AvatarSize/AvatarLabelSource/AvatarRenderMode` 等枚举与统一归一；`view.rs` 输出稳定 `data-state/data-image/data-fallback/data-label-source`；`components/avatar/test/*` 与 `components/avatar/test/avatar_semantics.rs` 持续校验契约）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -159,15 +159,15 @@
 - [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：Avatar 非层叠 Overlay 组件，不维护焦点陷阱/恢复栈，源码中无 `NodeRef` 焦点恢复实现）
 - [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：Avatar 未集成 ECharts/Map 等命令式第三方库，不持有外部实例，也未向公共 API 暴露第三方句柄）
 - [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（N/A：Avatar 不生成运行时 ID，无 `now()`/随机 UUID/`IdProvider` 依赖，SSR 与 hydration 不存在随机种子漂移源）
-- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（平台 compile-only 门禁由 `scripts/check.sh` 与 `scripts/check-ui-components-platforms.sh` 固化：native + `ui-headless` ssr + wasm32；Avatar 源码无 `web-sys`/浏览器对象依赖，平台差异由基础层 `cfg/feature` 管理）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（平台 compile-only 门禁由 `scripts/check.sh` 与 `scripts/check-ui-platforms.sh` 固化：native + `ui-headless` ssr + wasm32；Avatar 源码无 `web-sys`/浏览器对象依赖，平台差异由基础层 `cfg/feature` 管理）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（`crates/ui-headless/src/lib.rs` 已声明 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!`；`scripts/check.sh` 与 `scripts/check-ui-components-platforms.sh` 同时覆盖 `ssr`/`web` 编译与 `web+ssr` 必须失败门禁；Avatar 仅消费 headless API，未引入破坏互斥约束的 feature 改动）
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（`crates/ui-headless/src/lib.rs` 已声明 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!`；`scripts/check.sh` 与 `scripts/check-ui-platforms.sh` 同时覆盖 `ssr`/`web` 编译与 `web+ssr` 必须失败门禁；Avatar 仅消费 headless API，未引入破坏互斥约束的 feature 改动）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion` 与 `web::animate` no-op；`crates/ui-motion/tests/non_wasm_stub.rs` 覆盖可预测降级；`scripts/check-ui-components-platforms.sh` 固化 native/wasm compile-only 与 `ui-motion` non-wasm stub 测试；Avatar 当前无 `motion.rs`/动画句柄假设）
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion` 与 `web::animate` no-op；`crates/ui-motion/tests/non_wasm_stub.rs` 覆盖可预测降级；`scripts/check-ui-platforms.sh` 固化 native/wasm compile-only 与 `ui-motion` non-wasm stub 测试；Avatar 当前无 `motion.rs`/动画句柄假设）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
@@ -175,7 +175,7 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（Avatar 为静态展示组件，非高频交互路径，组件级渲染预算按适用范围为 N/A；仓库级预算/阻断门禁由 `scripts/check-ui-components-performance.sh` 与 docs perf probe 契约覆盖（含 Button/Input 预算与 `perf_render_count_follow_up_is_tracked_in_plan` 跟踪），避免“主观感觉变慢”）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（Avatar 为静态展示组件，非高频交互路径，组件级渲染预算按适用范围为 N/A；仓库级预算/阻断门禁由 `scripts/check-ui-performance.sh` 与 docs perf probe 契约覆盖（含 Button/Input 预算与 `perf_render_count_follow_up_is_tracked_in_plan` 跟踪），避免“主观感觉变慢”）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
@@ -213,16 +213,16 @@
 
 ### 5. 样式与动效（Theme & Motion）
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（已将 `components/avatar/src/styles.rs` 的尺寸/半径/前景/背景/边框/行高改为双层变量链；`crates/ui-theme/src/css.rs` 统一输出 `--ui-avatar-size-*`、`--ui-fallback-avatar-size-*`、`--ui-avatar-radius`、`--ui-fallback-avatar-radius`、`--ui-fallback-button-radius-full`；`components/avatar/test/avatar_semantics.rs` 新增 `avatar_styles_use_defensive_variable_fallback_chains` 防回归）
-- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`crates/ui-components/src/css.rs` 通过 `push_components_css` 统一写入 `@layer ui` 并聚合 `component-avatar` 样式；Avatar 运行时无普通内联样式，`components/avatar/test/avatar_semantics.rs` 已约束 `!view_source.contains(\"style=\")` 与 `for forbidden in [\"style=\", \"style:\"]`）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`crates/ui/src/css.rs` 通过 `push_components_css` 统一写入 `@layer ui` 并聚合 `component-avatar` 样式；Avatar 运行时无普通内联样式，`components/avatar/test/avatar_semantics.rs` 已约束 `!view_source.contains(\"style=\")` 与 `for forbidden in [\"style=\", \"style:\"]`）
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（N/A：Avatar 当前无交互态动效语义，组件目录保持无 `motion.rs`；`components/avatar/test/avatar_semantics.rs` 已约束“不引入 `attach_motion`/动画运行时”，并校验 `crates/ui-motion/src/lib.rs` non-wasm `prefers_reduced_motion/animate` stub 合约）
-- [x] `ui-components` 固定入口文件落点正确。（`crates/ui-components/src/lib.rs` 以 `component-*` feature gate 导出公共 API，含 `component-avatar -> pub use ui_avatar as avatar`；`crates/ui-components/src/css.rs` 仅在 `inject-css` 下通过 `push_components_css` 聚合并包裹 `@layer ui`，且提供 `not(feature = \"inject-css\")` 空实现；`crates/ui-components/src/root.rs` 统一注入 base css + theme vars + optional components css，并在同处提供 `UiI18n/IdProvider`；`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载通用高亮样式与 motion driver；`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 不存在，open-state/presence/a11y 共享能力位于 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`）
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。（`crates/ui/src/lib.rs` 以 `component-*` feature gate 导出公共 API，含 `component-avatar -> pub use ui_avatar as avatar`；`crates/ui/src/css.rs` 仅在 `inject-css` 下通过 `push_components_css` 聚合并包裹 `@layer ui`，且提供 `not(feature = \"inject-css\")` 空实现；`crates/ui/src/root.rs` 统一注入 base css + theme vars + optional components css，并在同处提供 `UiI18n/IdProvider`；`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载通用高亮样式与 motion driver；`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 不存在，open-state/presence/a11y 共享能力位于 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`）
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。（`components/avatar/src` 保持 `mod.rs + logic.rs + styles.rs + view.rs` 标准落点；`mod.rs` 仅最小导出，`logic.rs` 仅归一/派生，`styles.rs` 为静态 token-first CSS，`view.rs` 仅结构渲染与 headless 语义挂载；`render.rs` 不存在；`motion.rs` 对 Avatar 按适用范围为 N/A（静态展示组件，无组件级动效契约）；`spec.rs` 按适用范围为 N/A（简单组件，无 schema 固化需求）；对应约束由 `components/avatar/test/avatar_semantics.rs` 的 `avatar_component_files_follow_layered_responsibilities` 与 `avatar_spec_rs_is_reserved_for_complex_schema_components_only` 覆盖）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -254,7 +254,7 @@
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（Avatar 非测试源码已满足：`logic.rs/view.rs/styles.rs/mod.rs` 无 `unwrap/expect` 与 `let _ =`；并移除 `components/avatar/src/view.rs` 的字符串复制热点 `as_ref().to_string()`，改为 `as_ref().into()`。新增回归：`components/avatar/test/semantics.rs::avatar_non_test_sources_follow_rust_hygiene_contract` 与 `components/avatar/test/avatar_semantics.rs::avatar_non_test_sources_follow_rust_hygiene_contract`。注：仓库级脚本在当前环境受外部阻塞（`scripts/check-api-contracts.sh` 权限与 ripgrep PCRE2 能力），不影响 Avatar 组件级结论。）
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（Avatar 已满足：`crates/ui-components/Cargo.toml` 存在 `component-avatar = [\"dep:ui-avatar\"]` 与 `component-avatar_group` 特性；`crates/ui-components/src/lib.rs` 以 `#[cfg(feature = \"component-avatar\")]` 门控模块导出；`crates/ui-components/src/css.rs` 以同名 feature 门控 CSS 聚合。实证命令：`cargo tree -e features -p ui-components --no-default-features --features component-avatar,inject-css` 与 `cargo tree -e features -i ui-components -p web-demo` 输出均未出现 `all-components`。回归守卫：`components/avatar/test/avatar_semantics.rs::avatar_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci`。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（Avatar 已满足：`crates/ui/Cargo.toml` 存在 `component-avatar = [\"dep:ui-avatar\"]` 与 `component-avatar_group` 特性；`crates/ui/src/lib.rs` 以 `#[cfg(feature = \"component-avatar\")]` 门控模块导出；`crates/ui/src/css.rs` 以同名 feature 门控 CSS 聚合。实证命令：`cargo tree -e features -p ui --no-default-features --features component-avatar,inject-css` 与 `cargo tree -e features -i ui -p web-demo` 输出均未出现 `all-components`。回归守卫：`components/avatar/test/avatar_semantics.rs::avatar_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci`。）
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（Avatar 已满足语义回归：`components/avatar/test/semantics.rs` 与 `components/avatar/test/avatar_semantics.rs` 均断言 `aria-label/role` 与关键 `data-*` 标记，并新增“焦点流转显式 N/A（无 `tabindex`/`on:focus`/键盘焦点处理器）”测试；同时现有 `avatar_semantics_suite_prioritizes_contract_assertions_over_snapshots` 约束非快照优先。性能项按适用范围处理：Avatar 非高频/重型交互组件，采用等价静态基线替代 `render_count`，新增回归约束“无 `create_effect/create_memo/RAF/timer` 渲染抖动源 + `Signal::derive` 计数稳定为 2（render_state + agent_contract）”。）
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 Avatar 变更未引入跨大版本破坏升级；公开 API 保持稳定（`components/avatar/src/mod.rs` 仍仅导出 `Avatar` 与 `AvatarSize`，`components/avatar/src/avatar.rbi` 函数签名未变），`components/avatar/src/Component.toml` 仍为 `schema_version = \"1\"`，因此不触发 Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。）
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（Avatar docs 已补齐：`apps/docs-app/src/pages/components/pages/display.rs::avatar()` 新增/对齐 `Hello World`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot` playground，并为各 playground 显式提供 `code_imports` 与 `test_source_path`，确保 copy-ready 代码自动补全 imports。回归已更新：`components/avatar/test/avatar_semantics.rs` 的 `avatar_docs_page_covers_primary_playgrounds`、`avatar_docs_playgrounds_lock_state_matrix_contract_values`、`avatar_docs_expose_hello_world_path_without_state_machine_wiring`。）
@@ -298,9 +298,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

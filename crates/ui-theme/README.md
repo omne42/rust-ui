@@ -13,7 +13,7 @@ It owns:
 - Tokens are an interface: components consume `var(--ui-*)`, not hard-coded colors.
 - Color format uses **OKLCH**, with an **OLED** preset for true-black backgrounds.
 - Theme mapping is centralized: `tokens.rs` defines, `theme.rs` maps, `css.rs` emits.
-- No component CSS here (that lives in `ui-components`).
+- No component CSS here (that lives in `ui`).
 
 ## Usage
 
@@ -26,7 +26,7 @@ let large_s2 = Theme::baseline_two(ThemeColor::Dark, ThemeScale::Large);
 let large_css = large_s2.to_css_variables();
 ```
 
-The demo uses `ui-components::UiRoot`, which injects theme variables + component CSS automatically.
+The demo uses `ui::UiRoot`, which injects theme variables + component CSS automatically.
 
 ## Tests
 

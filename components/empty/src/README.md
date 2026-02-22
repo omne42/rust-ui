@@ -9,7 +9,7 @@ Start with the default path first. No state machine wiring is required.
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{Empty, EmptyHeader, EmptyTitle};
+use ui::{Empty, EmptyHeader, EmptyTitle};
 
 view! {
     <Empty>
@@ -26,7 +26,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyMediaVariant, EmptyTitle};
+use ui::{Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyMediaVariant, EmptyTitle};
 
 view! {
     <Empty>
@@ -43,7 +43,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle};
+use ui::{Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle};
 
 view! {
     <Empty>

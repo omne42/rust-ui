@@ -2,7 +2,7 @@ mod pages;
 mod shell;
 
 use leptos::prelude::*;
-use ui_components::{SegmentedControl, SegmentedControlSize};
+use ui::{SegmentedControl, SegmentedControlSize};
 use ui_layout::{Card, Flex, FlexDirection, FlexGap, Heading, HeadingLevel};
 
 const GROUP_ORDER: &[&str] = &[

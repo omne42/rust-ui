@@ -88,7 +88,7 @@ enum RestorePolicy {
 
 ```bash
 cargo test -p ui-headless
-cargo test -p ui-components
+cargo test -p ui
 cargo check -p docs-app --target wasm32-unknown-unknown
 ```
 

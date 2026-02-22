@@ -13,7 +13,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::Autocomplete;
+use ui::Autocomplete;
 
 view! {
     <Autocomplete
@@ -36,7 +36,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::Autocomplete;
+use ui::Autocomplete;
 
 let (selected, set_selected) = signal(Some(0_usize));
 let (open_raw, set_open_raw) = signal(false);
@@ -71,7 +71,7 @@ view! {
 
 - `ui-state-primitives`：状态不变量与默认值归一（纯 Rust）。
 - `ui-headless`：键盘/焦点/A11y 语义契约。
-- `ui-components`：Leptos 组件装配与语义挂载。
+- `ui`：Leptos 组件装配与语义挂载。
 
 ## Source-first
 

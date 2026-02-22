@@ -34,6 +34,8 @@
 
 建议顺序：先确认默认路径可用，再逐个开启 `is_*` 与标签布局参数。
 
+## Props
+
 ## API (Table)
 
 | Prop | Type | Default |
@@ -76,7 +78,7 @@ Interactive Playground 可调：
 
 ## docs-app CSS Test 区（CSS Test）
 
-- `test_css_source`: `ui_components::form::styles::CSS`
+- `test_css_source`: `ui::form::styles::CSS`
 - `test_source_path`: `components/form/src/styles.rs`
 - `test_config_signal`: `FormActualConfig`
 

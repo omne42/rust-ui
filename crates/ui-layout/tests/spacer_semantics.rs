@@ -1594,7 +1594,7 @@ fn spacer_docs_are_synced_and_copy_paste_ready() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
     let pages_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
-    let code_block_source = load_source("../ui-components/src/code_block/view.rs");
+    let code_block_source = load_source("../ui/src/code_block/view.rs");
     let e2e_toggle_source = load_source("../../e2e/tests/docs_app_playground_code_toggle.spec.mjs");
 
     for needle in [
@@ -1648,11 +1648,11 @@ fn spacer_docs_are_synced_and_copy_paste_ready() {
 
     assert!(
         playground_source.contains(
-            "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";"
+            "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";"
         ) || playground_source.contains(
             "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_layout::*;\";"
         ),
-        "Playground default imports should keep copy-ready root import (`ui_components` global default or `ui_layout` explicit)."
+        "Playground default imports should keep copy-ready root import (`ui` global default or `ui_layout` explicit)."
     );
 
     for needle in [

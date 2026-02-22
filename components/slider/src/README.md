@@ -5,7 +5,7 @@
 ## Hello World
 
 ```rust
-use ui_components::Slider;
+use ui::Slider;
 
 view! { <Slider label="Volume".to_string() default_value=36.0 /> }
 ```
@@ -14,7 +14,7 @@ view! { <Slider label="Volume".to_string() default_value=36.0 /> }
 
 ```rust
 use leptos::prelude::*;
-use ui_components::Slider;
+use ui::Slider;
 
 let (value_raw, set_value_raw) = signal(36.0_f64);
 let value = Signal::derive(move || value_raw.get());

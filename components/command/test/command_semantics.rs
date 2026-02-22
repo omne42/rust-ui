@@ -293,7 +293,7 @@ fn command_docs_state_source_playground_locks_contract_values() {
 
     for needle in [
         "title=\"State + Source Markers\"",
-        "let mut marker_motion = ui_components::CommandMotion::default();",
+        "let mut marker_motion = ui::CommandMotion::default();",
         "marker_motion.spring.stiffness = 240.0",
         "marker_motion.spring.damping = 20.0",
         "id_base=\"docs-command-markers\".to_string()",
@@ -350,7 +350,7 @@ fn command_docs_interactive_playground_exposes_config_code_css_test_sections() {
         "controls=move || view! {",
         "data-slot=\"command-workbench-controls\"",
         "id_base=\"docs-command-workbench-scenario\".to_string()",
-        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/command/styles.rs\".to_string()",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui/src/command/styles.rs\".to_string()",
     ] {
         assert!(
             source.contains(needle),
@@ -401,7 +401,7 @@ fn command_check2_marks_core_sections_complete() {
         "- [x] `ui-headless` 定义",
         "- [x] `ui-motion` 定义",
         "- [x] `ui-theme` 定义",
-        "- [x] `ui-components` 定义",
+        "- [x] `ui` 定义",
         "- [x] API 命名契约统一",
         "- [x] 状态归一化集中",
         "- [x] 存在 A11y 实现、国际化与本地化实现",
@@ -413,7 +413,7 @@ fn command_check2_marks_core_sections_complete() {
         "### 10. Command 本轮验收证据",
         "component-command -> component-active_highlight",
         "component-command_dialog -> component-command + component-modal",
-        "crates/ui-components/src/command_dialog/view.rs",
+        "crates/ui/src/command_dialog/view.rs",
         "components/modal/src/view.rs",
     ] {
         assert!(

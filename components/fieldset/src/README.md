@@ -128,9 +128,9 @@ Workbench 会实时生成 copy-ready 代码。示例：
   error_message="Pick at least one channel".to_string()
   class_name="docs-fieldset-custom".to_string()
   actions=move || view! {
-    <ui_components::Button variant=ui_components::ButtonVariant::Secondary size=ui_components::ButtonSize::Sm>
+    <ui::Button variant=ui::ButtonVariant::Secondary size=ui::ButtonSize::Sm>
       "Manage"
-    </ui_components::Button>
+    </ui::Button>
   }
   legend="Notification channels".to_string()
 >
@@ -143,12 +143,12 @@ Workbench 会实时生成 copy-ready 代码。示例：
 
 - 复制入口：docs-app `Fieldset` 页面任一 Playground 的 `Show code` + copy（由 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补全 imports）。
 - 组件源码：`components/fieldset/src/{mod,logic,view,styles,motion}.rs`
-- 运行时实现：`crates/ui-components/src/field_form/fieldset/{mod,logic,view,styles,motion}.rs`
+- 运行时实现：`crates/ui/src/field_form/fieldset/{mod,logic,view,styles,motion}.rs`
 - package feature：`component-fieldset`（可选叠加 `inject-css`）
 - 依赖基线（`Cargo.toml`）：
 
 ```toml
-ui-components = { default-features = false, features = ["component-fieldset", "inject-css"] }
+ui = { default-features = false, features = ["component-fieldset", "inject-css"] }
 ```
 
 ## 命名兼容与迁移
@@ -160,7 +160,7 @@ ui-components = { default-features = false, features = ["component-fieldset", "i
 
 ## css test
 
-- 面板默认加载：`crates/ui-components/src/field_form/fieldset/styles.rs`
+- 面板默认加载：`crates/ui/src/field_form/fieldset/styles.rs`
 - 支持 scoped CSS 热编辑，验证 `data-orientation/data-tone/data-state/data-*-source` 稳定性。
 
 ## docs-app 入口

@@ -1,6 +1,6 @@
 # 调研笔记（v0）
 
-目标：用 Rust + Leptos 复刻 React Spectrum 的分层思想（Stately / Aria / Spectrum），并落地到本仓库的 `ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components`，通过 Tauri 覆盖 Web、桌面（Win/Mac）与 Android(WebView)。
+目标：用 Rust + Leptos 复刻 React Spectrum 的分层思想（Stately / Aria / Spectrum），并落地到本仓库的 `ui-state-primitives/ui-headless/ui-theme/ui-motion/ui`，通过 Tauri 覆盖 Web、桌面（Win/Mac）与 Android(WebView)。
 
 文档系统入口：`docs/README.md`  
 文档索引：`docs/DOCS_INDEX.md`
@@ -81,7 +81,7 @@
   - `use_button`：组合 `use_press + focusable + aria-*`，并处理非 `<button>` 元素的键盘触发与 `aria-disabled`。
 - ui-theme（设计系统）
   - 以 Spectrum tokens/CSS 为输入，输出 CSS variables（优先）或 Tailwind preset（后续）。
-- ui-components（最终组件）
+- ui（最终组件）
   - Button v0：对接 headless，提供 Spectrum 风格 class/tokens。
 
 ## MVP 建议（避免过早过度工程）
@@ -92,7 +92,7 @@
 
 ## 任务 DAG（v0，摘要）
 
-1. `t1-workspace`：workspace + `ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components` crate 壳 + `apps/tauri-demo`（`cargo check -p ...` 全过）
+1. `t1-workspace`：workspace + `ui-state-primitives/ui-headless/ui-theme/ui-motion/ui` crate 壳 + `apps/tauri-demo`（`cargo check -p ...` 全过）
 2. `t2-headless-interaction`：最小交互系统（Press + FocusVisible）
 3. `t3-theme-tokens`：最小 tokens（颜色/圆角/间距…）
 4. `t4-components-button`：Button v0（组合 t2+t3）

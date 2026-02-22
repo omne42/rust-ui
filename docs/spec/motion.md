@@ -1,13 +1,13 @@
 # Motion 规格（v0）
 
-目标：在不破坏 `ui-state-primitives / ui-headless / ui-components / ui-theme` 分层的前提下，原生提供“高级 motion”（非 CSS transition/animation）。
+目标：在不破坏 `ui-state-primitives / ui-headless / ui / ui-theme` 分层的前提下，原生提供“高级 motion”（非 CSS transition/animation）。
 
 ## 分层约束（必须遵守）
 
 - `ui-state-primitives`：纯状态/状态机；禁止 motion（无 DOM）。
 - `ui-headless`：交互与 A11y；**不做视觉表现**，也不做动画编排（只输出状态/handlers/attrs）。
 - `ui-theme`：tokens（可包含 motion tokens：duration/easing/spring 参数），但不绑定具体实现。
-- `ui-components`：组件实现与“视觉表达”；组件内部可定义 motion contract（例如 `ButtonMotion`），但不要把 motion 逻辑塞进 `ui-headless`。
+- `ui`：组件实现与“视觉表达”；组件内部可定义 motion contract（例如 `ButtonMotion`），但不要把 motion 逻辑塞进 `ui-headless`。
 - `ui-motion`：motion 引擎/后端（Web/未来其它平台），负责把 contract 变成真正的动画执行。
 
 ## v0 现状（已落地）
@@ -18,7 +18,7 @@
     - **Spring runtime**：`ui_motion::spring::SpringAnimator`（rAF 驱动；stiffness/damping/mass/precision）。
     - **Spring presets**：`ui_motion::presets::*`（对齐 bb 的 motion token 风格：fast/soft/slide/flip3d）。
   - `prefers-reduced-motion`：reduce 时跳过/降级到直接 set 目标值。
-- `ui-components`（已迁移的组件）
+- `ui`（已迁移的组件）
   - `Button` / `Checkbox` / `Switch`：hover/tap 等交互反馈默认走 spring（按 bb 的手感参数）。
   - `Overlay` / `Popover`：enter/exit 通过 spring 驱动 `opacity/scale/translate`；通过 `on_exit_complete` 与上层 presence 解耦。
   - `ListBox` / `Menu` / `Select`：active highlight 使用 spring 驱动（类似 HeroUI/Framer 的“跟手高亮”）。

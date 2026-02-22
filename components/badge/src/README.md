@@ -114,7 +114,7 @@ Workbench 会实时生成 copy-ready 代码（含导入自动补齐）。示例�
 
 ```rust
 use leptos::prelude::*;
-use ui_components::*;
+use ui::*;
 ```
 
 源码落点：

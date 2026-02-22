@@ -62,7 +62,7 @@ fn modal_view_uses_logic_and_motion_contract_layers() {
     ] {
         assert!(
             view_source.contains(needle),
-            "Modal view should mount ui-components layer contracts via `{needle}`."
+            "Modal view should mount ui layer contracts via `{needle}`."
         );
     }
 
@@ -720,7 +720,7 @@ fn modal_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over
     let overlay_view_source = load_source("../../components/overlay/src/view.rs");
     let local_semantics_source = load_source("test/semantics.rs");
     let workspace_semantics_source = load_source("../../components/modal/test/modal_semantics.rs");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
         "data-state=root_state.state_attr",
@@ -782,7 +782,7 @@ fn modal_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         perf_script_source.contains(script_needle),
         "performance script should include modal semantic-priority gate `{script_needle}`."
@@ -966,8 +966,8 @@ fn modal_avoids_spec_rs_sprawl_and_keeps_versioned_protocol_contract() {
 fn modal_follows_token_first_static_style_contract_and_css_aggregation_path() {
     let styles_source = load_source("src/styles.rs");
     let view_source = load_source("src/view.rs");
-    let css_aggregator_source = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_aggregator_source = load_source("../../crates/ui/src/css.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
 
     for needle in [
         "pub const CSS: &str",
@@ -990,7 +990,7 @@ fn modal_follows_token_first_static_style_contract_and_css_aggregation_path() {
     ] {
         assert!(
             css_aggregator_source.contains(needle),
-            "ui-components css aggregator should include modal styles via `{needle}`."
+            "ui css aggregator should include modal styles via `{needle}`."
         );
     }
 
@@ -1069,9 +1069,9 @@ fn modal_visual_desire_contract_has_typography_contrast_feedback_and_docs_baseli
 
 #[test]
 fn modal_tree_shaking_contract_is_feature_gated() {
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
     let web_demo_cargo = load_source("../../apps/web-demo/Cargo.toml");
 
     for needle in [
@@ -1081,7 +1081,7 @@ fn modal_tree_shaking_contract_is_feature_gated() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components feature table should keep tree-shaking contract marker `{needle}`."
+            "ui feature table should keep tree-shaking contract marker `{needle}`."
         );
     }
 
@@ -1092,7 +1092,7 @@ fn modal_tree_shaking_contract_is_feature_gated() {
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib export should gate modal module by feature via `{needle}`."
+            "ui lib export should gate modal module by feature via `{needle}`."
         );
     }
 
@@ -1104,14 +1104,14 @@ fn modal_tree_shaking_contract_is_feature_gated() {
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "ui-components css aggregation should stay feature-gated/no-op compatible via `{needle}`."
+            "ui css aggregation should stay feature-gated/no-op compatible via `{needle}`."
         );
     }
 
     assert!(
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("features = [\"inject-css\", \"web-demo-components\"]"),
-        "web-demo should consume ui-components in minimal feature mode."
+        "web-demo should consume ui in minimal feature mode."
     );
     assert!(
         !web_demo_cargo.contains("all-components"),
@@ -1121,20 +1121,20 @@ fn modal_tree_shaking_contract_is_feature_gated() {
 
 #[test]
 fn modal_tree_shaking_script_covers_feature_tree_wasm_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "MODAL_MIN_FEATURES=\"component-modal,inject-css\"",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_tree_shaking_contract_is_feature_gated",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_tree_shaking_script_covers_feature_tree_wasm_and_budget",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_tree_shaking_contract_is_feature_gated",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_tree_shaking_script_covers_feature_tree_wasm_and_budget",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_marks_tree_shaking_feature_pruning_contract_complete",
         "MODAL_TREE_OUTPUT",
         "if grep -q 'all-components' <<<\"$MODAL_TREE_OUTPUT\";",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
@@ -1167,7 +1167,7 @@ fn modal_check2_marks_tree_shaking_feature_pruning_contract_complete() {
         "modal check2 should mark tree-shaking first-class ability item complete.",
     );
     assert!(
-        source.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
+        source.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
         "modal check2 should mark tree-shaking feature-pruning checklist item complete.",
     );
 
@@ -1175,9 +1175,9 @@ fn modal_check2_marks_tree_shaking_feature_pruning_contract_complete() {
         "modal_tree_shaking_contract_is_feature_gated",
         "modal_tree_shaking_script_covers_feature_tree_wasm_and_budget",
         "modal_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-modal,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-modal,inject-css",
+        "cargo tree -e features -i ui -p web-demo",
+        "scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             source.contains(needle),
@@ -1558,7 +1558,7 @@ fn modal_performance_governance_contract_is_budgeted_traceable_and_blocking() {
     let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("check2.md");
     let view_source = load_source("src/view.rs");
@@ -1659,10 +1659,10 @@ fn modal_performance_governance_contract_is_budgeted_traceable_and_blocking() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             perf_script_source.contains(needle),
@@ -1883,9 +1883,9 @@ fn modal_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 
 #[test]
 fn modal_inner_html_check_script_covers_security_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
 
-    let needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(needle),
         "inner-html check script should enforce `{needle}`."
@@ -1894,8 +1894,8 @@ fn modal_inner_html_check_script_covers_security_contract() {
 
 #[test]
 fn modal_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let crate_root_source = load_source("../../crates/ui-components/src/lib.rs");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let crate_root_source = load_source("../../crates/ui/src/lib.rs");
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
@@ -1913,7 +1913,7 @@ fn modal_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep shared wasm-debug marker `{needle}`."
+            "ui Cargo features should keep shared wasm-debug marker `{needle}`."
         );
     }
     assert!(
@@ -1927,7 +1927,7 @@ fn modal_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     ] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components root should keep wasm-debug isolation marker `{needle}`."
+            "ui root should keep wasm-debug isolation marker `{needle}`."
         );
     }
 
@@ -2046,9 +2046,9 @@ fn modal_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
 
 #[test]
 fn modal_wasm_debug_check_script_covers_shared_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
 
-    let needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
+    let needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm-debug check script should enforce `{needle}`."
@@ -2155,11 +2155,11 @@ fn modal_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_opt
 
 #[test]
 fn modal_dx_check_script_covers_hot_reload_and_isolated_canvas_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2175,7 +2175,7 @@ fn modal_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract(
 
     for needle in [
         "const MODAL_DOC_IMPORTS: &str =",
-        "use leptos::prelude::*;\\nuse ui_components::{Modal, OnPress, OverlayMotion};",
+        "use leptos::prelude::*;\\nuse ui::{Modal, OnPress, OverlayMotion};",
         "code_imports=MODAL_DOC_IMPORTS.to_string()",
         "title=\"Hello World (Minimal Path)\"",
         "title=\"State Matrix\"",
@@ -2281,7 +2281,7 @@ fn modal_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults()
         "apps/docs-app/src/pages/components/pages/overlays.rs::modal",
         "modal_check2_documents_docs_sync_and_state_matrix_rules",
         "modal_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2292,12 +2292,12 @@ fn modal_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults()
 
 #[test]
 fn modal_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: modal docs examples + api/state matrix sync with logic API/defaults\"",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2308,9 +2308,9 @@ fn modal_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
 
 #[test]
 fn modal_dx_check_script_covers_docs_product_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
-    let needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract";
+    let needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract";
     assert!(
         script_source.contains(needle),
         "DX check script should enforce `{needle}`.",
@@ -2337,7 +2337,7 @@ fn modal_check2_marks_docs_sync_and_state_matrix_item_complete() {
         "modal_check2_documents_docs_sync_and_state_matrix_rules",
         "modal_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "modal_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2422,12 +2422,12 @@ fn modal_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn modal_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: modal documentation-as-product keeps beginner-first docs entry\"",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2454,7 +2454,7 @@ fn modal_check2_marks_documentation_as_product_item_complete() {
         "modal_check2_documents_documentation_as_product_rules",
         "modal_documentation_entry_exists_with_beginner_first_progression",
         "modal_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2553,13 +2553,13 @@ fn modal_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn modal_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: modal interactive playground docs acceptance surface\"",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2587,7 +2587,7 @@ fn modal_check2_marks_interactive_playground_item_complete() {
         "modal_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "modal_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "modal_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2655,12 +2655,12 @@ fn modal_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() {
 
 #[test]
 fn modal_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: modal source-first docs are copy-paste-ready with real paths and deps\"",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2686,7 +2686,7 @@ fn modal_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "modal_check2_documents_source_first_copy_paste_ready_rules",
         "modal_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "modal_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2705,7 +2705,7 @@ fn modal_check2_documents_kernel_shell_layer_boundary_rules() {
         "- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。",
         "- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。",
         "- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。",
-        "- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
+        "- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2724,8 +2724,8 @@ fn modal_check2_marks_kernel_shell_layer_boundary_items_complete() {
         "modal_motion_non_wasm_noop_stub_contract_is_predictable",
         "styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
         "modal_component_files_keep_layer_responsibilities",
-        "scripts/check-ui-components-component-files.sh",
-        "scripts/check-ui-components-entrypoints.sh",
+        "scripts/check-ui-component-files.sh",
+        "scripts/check-ui-entrypoints.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2736,9 +2736,9 @@ fn modal_check2_marks_kernel_shell_layer_boundary_items_complete() {
 
 #[test]
 fn modal_engineering_script_covers_kernel_shell_layer_boundary_check2_completion() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
-    let needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_marks_kernel_shell_layer_boundary_items_complete";
+    let needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_marks_kernel_shell_layer_boundary_items_complete";
     assert!(
         script_source.contains(needle),
         "engineering check script should enforce `{needle}`."
@@ -2817,12 +2817,12 @@ fn modal_heroui_strategy_and_component_docs_are_synchronized_and_indexable() {
 
 #[test]
 fn modal_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: modal heroui benchmark strategy + docs entry synchronization\"",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2841,7 +2841,7 @@ fn modal_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "modal_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "modal_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2950,7 +2950,7 @@ fn modal_version_deprecation_migration_is_na_without_major_breaking_upgrade() {
         "N/A：本次 `Modal` 未发生跨大版本 API 破坏升级",
         "schema_version = \"1\"",
         "modal_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2962,9 +2962,9 @@ fn modal_version_deprecation_migration_is_na_without_major_breaking_upgrade() {
 
 #[test]
 fn modal_version_deprecation_migration_script_covers_engineering_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
-    let marker = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_version_deprecation_migration_is_na_without_major_breaking_upgrade";
+    let marker = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_version_deprecation_migration_is_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(marker),
         "engineering check script should enforce `{marker}`."
@@ -2973,7 +2973,7 @@ fn modal_version_deprecation_migration_script_covers_engineering_gate() {
 
 #[test]
 fn engineering_contract_keeps_tracing_semantics_unified_without_component_local_events() {
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
     let button_view_source = load_source("../../components/button/src/view.rs");
     let combined = [
         load_source("src/mod.rs"),
@@ -2988,7 +2988,7 @@ fn engineering_contract_keeps_tracing_semantics_unified_without_component_local_
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -3007,7 +3007,7 @@ fn engineering_contract_keeps_tracing_semantics_unified_without_component_local_
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::modal::",
+        "target: \"ui::modal::",
         "const MODAL_TRACE_TARGET",
     ] {
         assert!(
@@ -3060,12 +3060,12 @@ fn engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
 
 #[test]
 fn engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3149,9 +3149,9 @@ fn styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals() {
 
 #[test]
 fn defensive_variables_check_script_covers_style_fallback_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_styles_use_defensive_variable_fallback_chain";
+    let needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -3160,8 +3160,8 @@ fn defensive_variables_check_script_covers_style_fallback_contract() {
 
 #[test]
 fn cascade_layer_and_runtime_style_contract_is_enforced() {
-    let css_entry_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_entry_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let view_source = load_source("src/view.rs");
     let styles_source = load_source("src/styles.rs");
 
@@ -3173,7 +3173,7 @@ fn cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_entry_source.contains(needle),
-            "ui-components css entry should enforce cascade-layer contract `{needle}`."
+            "ui css entry should enforce cascade-layer contract `{needle}`."
         );
     }
 
@@ -3230,9 +3230,9 @@ fn cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn cascade_layer_check_script_covers_modal_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_cascade_layer_and_runtime_style_contract_is_enforced";
+    let needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -3318,9 +3318,9 @@ fn motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop
 
 #[test]
 fn motion_contract_check_script_covers_modal_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop";
+    let needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -3329,12 +3329,12 @@ fn motion_contract_check_script_covers_modal_gate() {
 
 #[test]
 fn modal_ui_components_fixed_entry_files_follow_layered_boundaries() {
-    let ui_components_lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css_source = load_source("../../crates/ui-components/src/css.rs");
-    let ui_components_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let ui_components_lib_source = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css_source = load_source("../../crates/ui/src/css.rs");
+    let ui_components_root_source = load_source("../../crates/ui/src/root.rs");
     let active_highlight_source =
         load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
-    let ui_components_src_dir = component_dir().join("../../crates/ui-components/src");
+    let ui_components_src_dir = component_dir().join("../../crates/ui/src");
     let ui_headless_src_dir = component_dir().join("../../crates/ui-headless/src");
 
     for needle in [
@@ -3346,14 +3346,14 @@ fn modal_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_lib_source.contains(needle),
-            "ui-components lib entry should keep feature-gated modal/root surface via `{needle}`."
+            "ui lib entry should keep feature-gated modal/root surface via `{needle}`."
         );
     }
 
     for forbidden in ["web_sys::", "NodeRef<", "HtmlElement"] {
         assert!(
             !ui_components_lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform details in public surface `{forbidden}`."
+            "ui lib entry should not leak platform details in public surface `{forbidden}`."
         );
     }
 
@@ -3367,7 +3367,7 @@ fn modal_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_css_source.contains(needle),
-            "ui-components css entry should stay feature-gated and no-op safe via `{needle}`."
+            "ui css entry should stay feature-gated and no-op safe via `{needle}`."
         );
     }
 
@@ -3407,7 +3407,7 @@ fn modal_ui_components_fixed_entry_files_follow_layered_boundaries() {
         let path = ui_components_src_dir.join(absent);
         assert!(
             !path.exists(),
-            "ui-components should not add forbidden entrypoint file `{}`.",
+            "ui should not add forbidden entrypoint file `{}`.",
             path.display()
         );
     }
@@ -3424,9 +3424,9 @@ fn modal_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
 #[test]
 fn modal_entrypoints_check_script_covers_fixed_entry_files_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
 
-    let needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         script_source.contains(needle),
         "entrypoints check script should enforce `{needle}`."
@@ -3538,9 +3538,9 @@ fn modal_component_directory_standard_files_follow_contract_and_na_paths() {
 
 #[test]
 fn modal_component_files_check_script_covers_standard_layout_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_component_directory_standard_files_follow_contract_and_na_paths";
+    let needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_component_directory_standard_files_follow_contract_and_na_paths";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`."
@@ -3609,9 +3609,9 @@ fn modal_file_placement_discipline_is_strict_for_component_scope() {
 
 #[test]
 fn modal_file_placement_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_file_placement_discipline_is_strict_for_component_scope";
+    let needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_file_placement_discipline_is_strict_for_component_scope";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`."
@@ -3673,9 +3673,9 @@ fn modal_hyper_structure_builder_spec_is_not_applicable_for_simple_component() {
 
 #[test]
 fn modal_hyper_structure_builder_check_script_covers_na_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
+    let needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`."
@@ -3774,11 +3774,11 @@ fn modal_context_compression_manifest_and_rbi_projection_are_present_and_current
 
 #[test]
 fn modal_component_files_check_script_covers_context_compression_manifest_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     for needle in [
         "echo \"[component-files] contract: modal context-compression manifest + rbi projection\"",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_context_compression_manifest_and_rbi_projection_are_present_and_current",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3801,8 +3801,8 @@ fn modal_check2_marks_context_compression_manifest_and_rbi_contract_complete() {
         "components/modal/src/modal.rbi",
         "modal_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "modal_component_files_check_script_covers_context_compression_manifest_contract",
-        "scripts/check-ui-components-component-files.sh",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "scripts/check-ui-component-files.sh",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3825,7 +3825,7 @@ fn modal_check2_documents_agent_contract_schema_governance_rules() {
         "modal_agent_contract_is_schema_typed_and_machine_readable",
         "modal_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "modal_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -3948,13 +3948,13 @@ fn modal_agent_contract_render_path_is_whitelist_safe_and_script_injection_free(
 
 #[test]
 fn modal_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_agent_contract_schema_governance_rules",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3974,7 +3974,7 @@ fn modal_check2_marks_agent_contract_schema_governance_complete() {
         "modal_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "modal_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
         "modal_contract_hygiene_script_covers_agent_contract_schema_guards",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3991,7 +3991,7 @@ fn modal_check2_documents_streaming_definition_is_llm_output_only_with_two_modes
     let logic_source = load_source("src/logic.rs");
     let mod_source = load_source("src/mod.rs");
     let motion_source = load_source("src/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
     let combined = format!("{view_source}\n{logic_source}\n{mod_source}\n{motion_source}");
 
     for required in [
@@ -4023,7 +4023,7 @@ fn modal_check2_documents_streaming_definition_is_llm_output_only_with_two_modes
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(script_needle),
         "streaming check script should include `{script_needle}`.",
@@ -4032,9 +4032,9 @@ fn modal_check2_documents_streaming_definition_is_llm_output_only_with_two_modes
 
 #[test]
 fn modal_streaming_script_covers_two_mode_definition_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
-    let needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(needle),
         "streaming check script should enforce `{needle}`.",
@@ -4053,7 +4053,7 @@ fn modal_check2_marks_streaming_two_mode_definition_complete() {
     for needle in [
         "modal_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
         "modal_streaming_script_covers_two_mode_definition_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4073,7 +4073,7 @@ fn modal_check2_documents_snapshot_as_default_baseline_capability() {
         "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
         "N/A：`Modal` 不直接渲染 LLM 正文",
         "modal_check2_documents_snapshot_as_default_baseline_capability",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -4087,7 +4087,7 @@ fn modal_snapshot_baseline_consumes_complete_result_and_renders_stably() {
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
         "let open_state = logic::normalize_open_state(logic::ModalOpenStateInput {",
@@ -4143,7 +4143,7 @@ fn modal_snapshot_baseline_consumes_complete_result_and_renders_stably() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_snapshot_baseline_consumes_complete_result_and_renders_stably";
+    let script_needle = "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_snapshot_baseline_consumes_complete_result_and_renders_stably";
     assert!(
         script_source.contains(script_needle),
         "streaming check script should include `{script_needle}`.",
@@ -4152,11 +4152,11 @@ fn modal_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
 #[test]
 fn modal_streaming_script_covers_snapshot_baseline_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4174,7 +4174,7 @@ fn modal_check2_marks_snapshot_baseline_capability_complete() {
         "modal_check2_documents_snapshot_as_default_baseline_capability",
         "modal_snapshot_baseline_consumes_complete_result_and_renders_stably",
         "modal_streaming_script_covers_snapshot_baseline_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4187,7 +4187,7 @@ fn modal_check2_marks_snapshot_baseline_capability_complete() {
 #[test]
 fn modal_check2_documents_streaming_required_optional_classification_rules() {
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
         "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。",
@@ -4205,9 +4205,9 @@ fn modal_check2_documents_streaming_required_optional_classification_rules() {
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -4294,12 +4294,12 @@ fn modal_streaming_validation_retry_resilience_boundaries_stay_outside_component
 
 #[test]
 fn modal_streaming_script_covers_required_optional_classification_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4318,7 +4318,7 @@ fn modal_check2_marks_streaming_required_optional_classification_complete() {
         "modal_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
         "modal_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
         "modal_streaming_script_covers_required_optional_classification_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4384,7 +4384,7 @@ fn modal_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent() {
 #[test]
 fn modal_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let script_source = load_source("../../scripts/check-rust-hygiene.sh");
-    let engineering_script = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = load_source("../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -4399,9 +4399,9 @@ fn modal_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(needle),
@@ -4503,12 +4503,12 @@ fn modal_semantics_and_performance_regression_cover_aria_data_focus_and_render_c
 
 #[test]
 fn modal_semantics_and_performance_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4519,11 +4519,11 @@ fn modal_semantics_and_performance_script_covers_contract() {
 
 #[test]
 fn modal_performance_script_covers_semantic_test_priority_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
         "echo \"[perf] contract: modal semantic test priority\"",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4543,7 +4543,7 @@ fn modal_check2_marks_semantics_and_performance_regression_contract_complete() {
         "modal_performance_governance_contract_is_budgeted_traceable_and_blocking",
         "modal_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "`render_count` 自动化回归仍在仓库统一 follow-up",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4568,7 +4568,7 @@ fn modal_check2_marks_semantic_test_priority_item_complete() {
         "components/modal/test/semantics.rs::modal_semantic_tests_cover_contract_matrix_and_do_not_rely_on_snapshots_only",
         "components/modal/test/semantics.rs::modal_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "components/modal/test/modal_semantics.rs::modal_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4707,13 +4707,13 @@ fn modal_e2e_regression_flow_is_replayable_and_maps_failures_to_semantic_breakpo
 
 #[test]
 fn modal_e2e_check_script_covers_selector_and_settled_wait_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-modal.sh");
+    let script_source = load_source("../../components/modal/scripts/check-ui-e2e-modal.sh");
 
     for marker in [
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_e2e_contract_uses_semantic_selectors_and_stable_waits",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_e2e_contract_covers_ready_and_settled_conditions_for_overlay_dismissal",
-        "cargo test -p ui-components --test modal_semantics --no-default-features --features component-modal,inject-css modal_e2e_regression_flow_is_replayable_and_maps_failures_to_semantic_breakpoints",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_e2e_contract_uses_semantic_selectors_and_stable_waits",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_e2e_contract_covers_ready_and_settled_conditions_for_overlay_dismissal",
+        "cargo test -p ui --test modal_semantics --no-default-features --features component-modal,inject-css modal_e2e_regression_flow_is_replayable_and_maps_failures_to_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4736,7 +4736,7 @@ fn modal_check2_marks_e2e_selector_stability_item_complete() {
         "components/modal/test/semantics.rs::modal_e2e_contract_uses_semantic_selectors_and_stable_waits",
         "components/modal/test/semantics.rs::modal_e2e_contract_covers_ready_and_settled_conditions_for_overlay_dismissal",
         "components/modal/test/modal_semantics.rs::modal_e2e_contract_uses_semantic_selectors_and_stable_waits",
-        "scripts/check-ui-components-e2e-modal.sh",
+        "components/modal/scripts/check-ui-e2e-modal.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4762,7 +4762,7 @@ fn modal_check2_marks_replayable_e2e_critical_flow_item_complete() {
         "await expect(describedModal).toHaveAttribute(\"data-open-mode\", \"controlled\")",
         "await expect(openDescribed).toBeFocused()",
         "modal_e2e_regression_flow_is_replayable_and_maps_failures_to_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-modal.sh",
+        "components/modal/scripts/check-ui-e2e-modal.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(

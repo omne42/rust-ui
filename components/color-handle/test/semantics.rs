@@ -9,7 +9,7 @@ fn load_source(path: &str) -> &'static str {
         "readme" => include_str!("../src/README.md"),
         "check2" => include_str!("../check2.md"),
         "todo_plan" => include_str!("../../../docs/plan/TODO.md"),
-        "perf_script" => include_str!("../../../scripts/check-ui-components-performance.sh"),
+        "perf_script" => include_str!("../../../scripts/check-ui-performance.sh"),
         "docs_forms_color" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages/forms_color.rs")
         }
@@ -44,7 +44,7 @@ fn color_handle_semantics_tests_are_migrated_to_component_directory() {
 
     assert!(
         legacy_semantics.contains("color_handle_"),
-        "legacy ui-components semantics suite should still be readable during migration.",
+        "legacy ui semantics suite should still be readable during migration.",
     );
     assert!(
         local_semantics
@@ -68,7 +68,7 @@ fn color_handle_module_keeps_ui_components_boundaries() {
     ] {
         assert!(
             mod_source.contains(required),
-            "color-handle mod.rs should keep ui-components export boundary `{required}`.",
+            "color-handle mod.rs should keep ui export boundary `{required}`.",
         );
     }
 }
@@ -125,7 +125,7 @@ fn color_handle_public_surface_does_not_expose_dom_platform_types() {
         );
         assert!(
             !mod_source.contains(forbidden),
-            "color-handle ui-components module should not expose `{forbidden}`.",
+            "color-handle ui module should not expose `{forbidden}`.",
         );
     }
 }
@@ -134,8 +134,8 @@ fn color_handle_public_surface_does_not_expose_dom_platform_types() {
 fn color_handle_checklist_marks_ui_components_definition_complete() {
     let check2 = load_source("check2");
     assert!(
-        check2.contains("- [x] `ui-components` 定义"),
-        "color-handle check2 should mark ui-components definition as completed.",
+        check2.contains("- [x] `ui` 定义"),
+        "color-handle check2 should mark ui definition as completed.",
     );
 }
 
@@ -212,7 +212,7 @@ fn color_handle_semantic_regression_covers_aria_data_and_focus_path() {
         "data-aria-source=move || state.get().aria_source_attr",
         "data-ui-action=move || agent_contract.get().action.as_str()",
         "#[prop(optional, into)] is_focused: Option<bool>,",
-        "is_focused=props.get_value().interaction_state.is_focused()",
+        "is_focused=props.interaction_state.is_focused()",
     ] {
         assert!(
             view_source.contains(required),
@@ -414,7 +414,7 @@ fn color_handle_readme_is_beginner_friendly_and_progressive() {
     for required in [
         "## 先用起来（Hello World）",
         "默认路径只需要 `id_base + color`",
-        "use ui_components::ColorHandle;",
+        "use ui::ColorHandle;",
         "<ColorHandle id_base=\"demo-color-handle\"",
         "## 常见用法（先基础，后进阶）",
         "基础状态切换（最常用）",
@@ -583,7 +583,7 @@ fn color_handle_source_first_docs_are_copy_paste_ready_and_synced() {
         "getByRole(\"button\", { name: /Show code|Hide code/ })",
         "toHaveAttribute(\"data-copyable\", \"true\")",
         "toContainText(\"use leptos::prelude::*;\")",
-        "toContainText(\"use ui_components::*;\")",
+        "toContainText(\"use ui::*;\")",
         "toContainText(\"<ColorHandle\")",
         "toHaveAttribute(\"aria-label\", /Copy to clipboard/i)",
     ] {

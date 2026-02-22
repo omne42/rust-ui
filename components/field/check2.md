@@ -36,14 +36,14 @@
   - 本组件落地：新增 `crates/ui-headless/src/field.rs` 与 `crates/ui-headless/src/field_group.rs`，输出类型化 `attrs + handlers + state`；`components/field/src/view.rs` 与 `components/field/src/group/view.rs` 仅做挂载。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
   - 本组件落地：`FieldMotion::default` 改为消费 `ui-theme` motion token，`attach_motion` 改为依赖 `ui-motion` reduced-motion 判定并在 `view.rs` 挂载 CSS 变量，不在组件内实现 spring/keyframe/driver 执行器。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
@@ -51,7 +51,7 @@
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
   - 本组件落地：`Field`/`FieldGroup` 样式字体与间距兜底改为消费 `ui-theme` fallback 变量（如 `--ui-fallback-font-size-150`、`--ui-fallback-line-height-100`、`--ui-fallback-space-2xs`）；`ui-theme` 三轴上下文与 token 映射维持在 `crates/ui-theme/src/theme.rs`/`tokens.rs`/`css.rs`，组件层未重建主题。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -158,11 +158,11 @@
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
   - 本组件落地：N/A-by-design：`Field/FieldGroup` 为简单语义装配组件，不引入 `spec.rs`；组件说明保留在 `components/field/check2.md` 与 `components/field/src/README.md`。当前仅保留最小版本化协议文件 `components/field/src/protocol.rs` 与 `components/field/src/group/protocol.rs`（`V1` + serde 契约），并由 `components/field/test/{protocol.rs,group/protocol.rs}` 覆盖。`components/field/test/semantics.rs` 新增 `field_spec_file_scope_is_restricted_for_simple_component` 回归锁定“无 spec.rs 漂移”。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-  - 本组件落地：token-first 静态样式由 `styles.rs`/`group/styles.rs` 定义，并经 `crates/ui-components/src/css.rs` 在 `inject-css` 路径聚合到 `@layer ui`（含 `out.push_str(crate::field_form::field::styles::CSS)` 与 `out.push_str(crate::field_form::field::group::styles::CSS)`）；`crates/ui-components/src/lib.rs` 通过 `push_components_css` 暴露注入入口。`Field` 运行时仅通过 `motion::attach_motion` 传递 `--ui-field-motion-duration` CSS 变量，`FieldGroup` 无 inline style 业务逻辑。组件源码未引入 Utility-First class 与 CSS-in-Rust 范式。`components/field/test/semantics.rs` 新增 `field_token_first_static_styles_are_aggregated_and_not_polluted_by_utility_or_css_in_rust` 回归锁定。
+  - 本组件落地：token-first 静态样式由 `styles.rs`/`group/styles.rs` 定义，并经 `crates/ui/src/css.rs` 在 `inject-css` 路径聚合到 `@layer ui`（含 `out.push_str(crate::field_form::field::styles::CSS)` 与 `out.push_str(crate::field_form::field::group::styles::CSS)`）；`crates/ui/src/lib.rs` 通过 `push_components_css` 暴露注入入口。`Field` 运行时仅通过 `motion::attach_motion` 传递 `--ui-field-motion-duration` CSS 变量，`FieldGroup` 无 inline style 业务逻辑。组件源码未引入 Utility-First class 与 CSS-in-Rust 范式。`components/field/test/semantics.rs` 新增 `field_token_first_static_styles_are_aggregated_and_not_polluted_by_utility_or_css_in_rust` 回归锁定。
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
@@ -174,11 +174,11 @@
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-  - 本组件落地：`crates/ui-components/Cargo.toml` 已提供 `component-field = ["dep:ui-field"]` 与 `component-field_group = ["component-field", "ui-field/field-group"]` 组件级特性；`crates/ui-components/src/lib.rs` 通过 `#[cfg(any(... component-field ...))] pub mod field_form;`、`#[cfg(all(feature = "web-demo-components", not(feature = "all-components")))] pub use web_demo_components::*;` 与 `#[cfg(feature = "all-components")] pub use all_components::*;` 维持 source/package 可达边界；`crates/ui-components/src/css.rs` 仅在 `#[cfg(feature = "component-field")]` / `#[cfg(feature = "component-field_group")]` 下聚合 field CSS，且 `#[cfg(not(feature = "inject-css"))]` 提供 no-op。命令验证：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-accordion,inject-css` 输出仅包含 `component-accordion` 与 `inject-css` command-line 特性；`cargo tree -e features -i ui-components -p web-demo` 输出包含 `web-demo-components` 且未出现 `all-components`。仓库级最小 wasm 编译与体积预算由 `scripts/check-ui-components-tree-shaking.sh` + `scripts/tree_shaking_budget.env`（`TREE_SHAKING_BASELINE_RLIB_BYTES` / `TREE_SHAKING_MAX_RATIO_PERCENT`）在 `.github/workflows/ci.yml` 的 `Tree Shaking Budget` 步骤执行。回归：`components/field/test/semantics.rs::field_tree_shaking_contract_is_feature_gated_and_budget_guarded`。
+  - 本组件落地：`crates/ui/Cargo.toml` 已提供 `component-field = ["dep:ui-field"]` 与 `component-field_group = ["component-field", "ui-field/field-group"]` 组件级特性；`crates/ui/src/lib.rs` 通过 `#[cfg(any(... component-field ...))] pub mod field_form;`、`#[cfg(all(feature = "web-demo-components", not(feature = "all-components")))] pub use web_demo_components::*;` 与 `#[cfg(feature = "all-components")] pub use all_components::*;` 维持 source/package 可达边界；`crates/ui/src/css.rs` 仅在 `#[cfg(feature = "component-field")]` / `#[cfg(feature = "component-field_group")]` 下聚合 field CSS，且 `#[cfg(not(feature = "inject-css"))]` 提供 no-op。命令验证：`cargo tree -e features -i ui -p ui --no-default-features --features component-accordion,inject-css` 输出仅包含 `component-accordion` 与 `inject-css` command-line 特性；`cargo tree -e features -i ui -p web-demo` 输出包含 `web-demo-components` 且未出现 `all-components`。仓库级最小 wasm 编译与体积预算由 `scripts/check-ui-tree-shaking.sh` + `scripts/tree_shaking_budget.env`（`TREE_SHAKING_BASELINE_RLIB_BYTES` / `TREE_SHAKING_MAX_RATIO_PERCENT`）在 `.github/workflows/ci.yml` 的 `Tree Shaking Budget` 步骤执行。回归：`components/field/test/semantics.rs::field_tree_shaking_contract_is_feature_gated_and_budget_guarded`。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
@@ -192,12 +192,12 @@
 - [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
   - 本组件落地：N/A-by-design：`Field/FieldGroup` 不集成 ECharts/Map 等命令式第三方实例，不提供 `Foreign Zone`/`YieldControl`/`CleanupForeign` 类 escape hatch API；`components/field/src/{mod.rs,view.rs,logic.rs,motion.rs}` 与 `components/field/src/group/{view.rs,logic.rs}` 无第三方实例注入与回流状态机路径。相关职责属于图表/地图类组件或上层业务封装层。回归：`components/field/test/semantics.rs::field_escape_hatch_rule_is_explicitly_na_without_foreign_zone_integration`。
 - [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-  - 本组件落地：`components/field/src/group/view.rs` 在 `id_base` 未显式传入时通过 `ui_headless::use_ui_id_provider().next_prefixed_id(logic::DEFAULT_ID_BASE)` 生成稳定回退 ID，再交由 `logic::resolve_content` 归一，避免依赖时间或随机源；`crates/ui-components/src/root.rs` 通过 `provide_ui_id_provider(id_seed)` 提供确定性种子。回归：`components/field/test/semantics.rs::field_hydration_discontinuity_contract_uses_id_provider_without_time_or_random_sources`。
+  - 本组件落地：`components/field/src/group/view.rs` 在 `id_base` 未显式传入时通过 `ui_headless::use_ui_id_provider().next_prefixed_id(logic::DEFAULT_ID_BASE)` 生成稳定回退 ID，再交由 `logic::resolve_content` 归一，避免依赖时间或随机源；`crates/ui/src/root.rs` 通过 `provide_ui_id_provider(id_seed)` 提供确定性种子。回归：`components/field/test/semantics.rs::field_hydration_discontinuity_contract_uses_id_provider_without_time_or_random_sources`。
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-  - 本组件落地：仓库门禁脚本 `scripts/check.sh` 已固定三路径 compile-only 检查（native：`cargo check -p ui-components --no-default-features --features inject-css,dev-all-components`；ssr：`cargo check -p ui-headless --no-default-features --features ssr`；wasm：`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web` + `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,dev-all-components`）。平台边界通过 `#[cfg(feature = "field-group")]`（`components/field/src/mod.rs`）与 `ui-motion` 的 wasm/non-wasm `cfg` 分支显式管理；`components/field/src/{view.rs,group/view.rs,motion.rs}` 无 `web-sys/wasm_bindgen/js_sys` 浏览器对象引用。回归：`components/field/test/semantics.rs::field_ssr_and_cross_platform_compile_contract_is_explicit_and_non_wasm_safe`。
+  - 本组件落地：仓库门禁脚本 `scripts/check.sh` 已固定三路径 compile-only 检查（native：`cargo check -p ui --no-default-features --features inject-css,dev-all-components`；ssr：`cargo check -p ui-headless --no-default-features --features ssr`；wasm：`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web` + `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,dev-all-components`）。平台边界通过 `#[cfg(feature = "field-group")]`（`components/field/src/mod.rs`）与 `ui-motion` 的 wasm/non-wasm `cfg` 分支显式管理；`components/field/src/{view.rs,group/view.rs,motion.rs}` 无 `web-sys/wasm_bindgen/js_sys` 浏览器对象引用。回归：`components/field/test/semantics.rs::field_ssr_and_cross_platform_compile_contract_is_explicit_and_non_wasm_safe`。
 - [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
@@ -220,7 +220,7 @@
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-  - 本组件落地：`apps/docs-app/src/pages/components/shell.rs` 已为 `field` 与 `field-group` 定义预算（`UiPerfBudget`：mount/update/heap），并继续复用 `button/input` 基线预算；`apps/docs-app/src/perf_probe.rs` + `e2e/tests/docs_app_components_coverage.spec.mjs` 提供可重复、可阻断的性能标记与断言（`data-perf-*` / `data-perf-violation`）。`components/field/src/{view.rs,group/view.rs}` 暴露稳定状态与来源标记（`data-state`、`data-*-source`、`data-motion-source`）以支持归因到状态/样式/动效路径。门禁脚本 `scripts/check-ui-components-performance.sh` 已纳入 `cargo test -p ui-field field_performance_governance_contract_is_budgeted_traceable_and_blocking`，并保留 `button/input` 基线与 `perf_render_count_follow_up_is_tracked_in_plan` 跟踪。当前测试框架尚未覆盖 `field` 精确 `render_count` 自动化，按仓库计划以 `docs/plan/TODO.md` 中 `render_count` 跟踪项作为等价证据并继续推进。回归：`components/field/test/semantics.rs::field_performance_governance_contract_is_budgeted_traceable_and_blocking`。
+  - 本组件落地：`apps/docs-app/src/pages/components/shell.rs` 已为 `field` 与 `field-group` 定义预算（`UiPerfBudget`：mount/update/heap），并继续复用 `button/input` 基线预算；`apps/docs-app/src/perf_probe.rs` + `e2e/tests/docs_app_components_coverage.spec.mjs` 提供可重复、可阻断的性能标记与断言（`data-perf-*` / `data-perf-violation`）。`components/field/src/{view.rs,group/view.rs}` 暴露稳定状态与来源标记（`data-state`、`data-*-source`、`data-motion-source`）以支持归因到状态/样式/动效路径。门禁脚本 `scripts/check-ui-performance.sh` 已纳入 `cargo test -p ui-field field_performance_governance_contract_is_budgeted_traceable_and_blocking`，并保留 `button/input` 基线与 `perf_render_count_follow_up_is_tracked_in_plan` 跟踪。当前测试框架尚未覆盖 `field` 精确 `render_count` 自动化，按仓库计划以 `docs/plan/TODO.md` 中 `render_count` 跟踪项作为等价证据并继续推进。回归：`components/field/test/semantics.rs::field_performance_governance_contract_is_budgeted_traceable_and_blocking`。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
@@ -261,18 +261,18 @@
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
   - 本组件落地：`components/field/src/styles.rs` 与 `components/field/src/group/styles.rs` 已将 `--ui-*` 直接消费统一收敛为双层回退链（如 `--ui-fg/bg/border/accent/danger`、`--ui-space-*`、`--ui-radius-*`、`--ui-border-width`），并通过组件内派生变量复用；样式中已移除 `8rem/14rem`、`1px/2px` 等裸尺寸终值与 Hex 字面量，Fallback 终值由 `ui-theme` 输出的 `--ui-fallback-*` 提供 SSOT。回归：`components/field/test/semantics.rs::field_defensive_variables_use_dual_fallback_chain_without_hex_or_naked_size_literals`。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 本组件落地：`crates/ui-components/src/css.rs::push_components_css` 在 `inject-css` 路径统一以 `@layer ui` 包裹组件样式，并通过 `component-field/component-field_group` 条件聚合 `field::styles::CSS` 与 `field::group::styles::CSS`。`components/field/src/view.rs` 的运行时 `style` 通道仅挂载 `motion::attach_motion` 输出的 `--ui-field-motion-duration` CSS 自定义属性负载，`components/field/src/group/view.rs` 不含 `style=` 运行时内联样式。回归：`components/field/test/semantics.rs::field_cascade_layer_contract_uses_ui_layer_and_css_variable_only_runtime_updates`。
+  - 本组件落地：`crates/ui/src/css.rs::push_components_css` 在 `inject-css` 路径统一以 `@layer ui` 包裹组件样式，并通过 `component-field/component-field_group` 条件聚合 `field::styles::CSS` 与 `field::group::styles::CSS`。`components/field/src/view.rs` 的运行时 `style` 通道仅挂载 `motion::attach_motion` 输出的 `--ui-field-motion-duration` CSS 自定义属性负载，`components/field/src/group/view.rs` 不含 `style=` 运行时内联样式。回归：`components/field/test/semantics.rs::field_cascade_layer_contract_uses_ui_layer_and_css_variable_only_runtime_updates`。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 本组件落地：`components/field/src/motion.rs` 的 `FieldMotion` 已内置 `duration_ms + spring(SpringConfig)` 合同参数，并在 `sanitize_motion` 中统一归一（含 `stiffness/damping/mass/precision`）；`attach_motion` 统一输出 `--ui-field-motion-duration/--ui-field-motion-stiffness/--ui-field-motion-damping/...` CSS 变量并由 `components/field/src/view.rs` 挂载。`attach_motion` 显式遵循 `ui_motion::web::prefers_reduced_motion()`，在 reduced-motion 与 non-wasm 路径安全降级；non-wasm no-op 后端由 `crates/ui-motion/src/lib.rs` 提供。回归：`components/field/test/semantics.rs::field_motion_contract_is_component_scoped_and_respects_reduced_motion_with_non_wasm_noop`、`components/field/test/motion.rs::attach_motion_outputs_css_variable`。
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-  - 本组件落地：已核验 `crates/ui-components/src/lib.rs` 通过 `component-*` feature gate 暴露模块并提供稳定入口 `pub mod root;` + `pub use root::UiRoot;`，`inject-css` 下仅通过 `push_components_css` 包装导出样式注入；`crates/ui-components/src/css.rs` 以 `@layer ui` 聚合并按 `component-field/component-field_group` 条件注入 Field CSS，`not(inject-css)` 走 no-op；`crates/ui-components/src/root.rs` 集中注入 `BASE_CSS + theme vars + components css` 且统一提供 `i18n/id-provider`；`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮能力（`CSS + ActiveHighlightMotion + attach_active_highlight_motion`）不含组件业务语义。`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 当前不存在，相关原语位于 `crates/ui-headless/src/{controllable_state,presence,a11y}.rs`。回归：`components/field/test/semantics.rs::field_ui_components_entry_files_follow_fixed_layered_contract`。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - 本组件落地：已核验 `crates/ui/src/lib.rs` 通过 `component-*` feature gate 暴露模块并提供稳定入口 `pub mod root;` + `pub use root::UiRoot;`，`inject-css` 下仅通过 `push_components_css` 包装导出样式注入；`crates/ui/src/css.rs` 以 `@layer ui` 聚合并按 `component-field/component-field_group` 条件注入 Field CSS，`not(inject-css)` 走 no-op；`crates/ui/src/root.rs` 集中注入 `BASE_CSS + theme vars + components css` 且统一提供 `i18n/id-provider`；`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮能力（`CSS + ActiveHighlightMotion + attach_active_highlight_motion`）不含组件业务语义。`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 当前不存在，相关原语位于 `crates/ui-headless/src/{controllable_state,presence,a11y}.rs`。回归：`components/field/test/semantics.rs::field_ui_components_entry_files_follow_fixed_layered_contract`。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -313,20 +313,20 @@
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
   - 本组件落地：`components/field/src/{logic.rs,group/logic.rs}` 已将字符串热点字段收敛为 `Cow<'static, str>`（`FieldCowStr/FieldGroupCowStr` + `normalize_*_cow`），默认文案与空文本走 borrowed 分支；`components/field/src/{view.rs,group/view.rs}` 对应接入 `StoredValue<Cow<'static, str>>`，其余边界按需显式 `into_owned`。组件非测试源码已清除 `unwrap/expect`、`let _ = ...` 与 `unwrap_or_default`。验证命令：`./scripts/check-rust-hygiene.sh`（仓库级脚本，当前环境因 `rg` 无 PCRE2 与仓库级 baseline drift 阻断，非 `field` 局部回归）；组件级回归：`components/field/test/semantics.rs::field_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_with_cow_string_hotspots`。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 本组件落地：`crates/ui-components/Cargo.toml` 已注册 `component-field = ["dep:ui-field"]` 与 `component-field_group = ["component-field", "ui-field/field-group"]`；`crates/ui-components/src/lib.rs` 通过 `#[cfg(any(... feature = "component-field" ...))] pub mod field_form;` 限定导出；`crates/ui-components/src/css.rs` 仅在 `#[cfg(feature = "component-field")]` / `#[cfg(feature = "component-field_group")]` 下聚合 Field CSS，且 `#[cfg(not(feature = "inject-css"))]` 维持 no-op。
-  - 命令验证：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-field,inject-css` 输出仅含 command-line 特性 `component-field` 与 `inject-css`；`cargo tree -e features -i ui-components -p web-demo | rg "all-components"` 结果为 `NO_ALL_COMPONENTS`。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 本组件落地：`crates/ui/Cargo.toml` 已注册 `component-field = ["dep:ui-field"]` 与 `component-field_group = ["component-field", "ui-field/field-group"]`；`crates/ui/src/lib.rs` 通过 `#[cfg(any(... feature = "component-field" ...))] pub mod field_form;` 限定导出；`crates/ui/src/css.rs` 仅在 `#[cfg(feature = "component-field")]` / `#[cfg(feature = "component-field_group")]` 下聚合 Field CSS，且 `#[cfg(not(feature = "inject-css"))]` 维持 no-op。
+  - 命令验证：`cargo tree -e features -i ui -p ui --no-default-features --features component-field,inject-css` 输出仅含 command-line 特性 `component-field` 与 `inject-css`；`cargo tree -e features -i ui -p web-demo | rg "all-components"` 结果为 `NO_ALL_COMPONENTS`。
   - 回归：`components/field/test/semantics.rs::field_tree_shaking_contract_is_feature_gated_and_budget_guarded`。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 本组件落地：语义回归由 `components/field/test/semantics.rs::field_semantic_contract_tests_cover_matrix_and_do_not_rely_on_visual_snapshots`、`field_state_is_observable_and_source_markers_are_stable_and_enumerable`、`field_a11y_i18n_l10n_contract_is_mounted_and_text_source_is_not_hardcoded_in_view` 覆盖，断言 `aria-* + data-* + 来源标记` 且禁止 snapshot-only。
   - 焦点流转证据：`components/field/src/{styles.rs,group/styles.rs}` 明确保留 `:focus-within` 语义选择器（`ui-field` 与 `ui-field-group`），并由组合回归测试锁定。
-  - 性能与 `render_count`：`components/field/test/semantics.rs::field_performance_governance_contract_is_budgeted_traceable_and_blocking` 绑定 `UiPerfBudget/UiPerfProbe/e2e` 阻断链；当前精确 `render_count` 自动化仍走仓库统一 follow-up（`docs/plan/TODO.md`），本组件通过 `scripts/check-ui-components-performance.sh` 持续强制执行 `field` 性能门禁与 `perf_render_count_follow_up_is_tracked_in_plan`。
+  - 性能与 `render_count`：`components/field/test/semantics.rs::field_performance_governance_contract_is_budgeted_traceable_and_blocking` 绑定 `UiPerfBudget/UiPerfProbe/e2e` 阻断链；当前精确 `render_count` 自动化仍走仓库统一 follow-up（`docs/plan/TODO.md`），本组件通过 `scripts/check-ui-performance.sh` 持续强制执行 `field` 性能门禁与 `perf_render_count_follow_up_is_tracked_in_plan`。
   - 回归：`components/field/test/semantics.rs::field_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - N/A-by-scope：本次 `components/field` 变更未引入跨大版本 API 破坏升级；`components/field/src/mod.rs` 与 `components/field/src/group/mod.rs` 公共导出面保持稳定，无破坏性改名/删除。
   - 版本证据：`components/field/src/Component.toml` 仍为 `schema_version = "1"`；`components/field/src/{protocol.rs,group/protocol.rs}` 仍保持 `FieldComponentSchemaVersion::V1` / `GroupComponentSchemaVersion::V1`，未触发 `v1 -> v2` 迁移窗口。
   - 因此无需登记 Schema Registry 弃用窗口，也无需新增 `migrate_v1_to_v2` 迁移函数。
-  - 回归：`components/field/test/semantics.rs::field_version_deprecation_migration_is_not_required_without_major_breaking_upgrade`。`scripts/check-ui-components-engineering.sh` 已纳入对应门禁命令。
+  - 回归：`components/field/test/semantics.rs::field_version_deprecation_migration_is_not_required_without_major_breaking_upgrade`。`scripts/check-ui-engineering.sh` 已纳入对应门禁命令。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
   - 本组件落地：`apps/docs-app/src/pages/components/pages/forms_extra.rs::field` 已提供 `Hello World (Default API)`、`State Matrix (Required / Invalid / Disabled)`、`Controlled vs Uncontrolled (Stateless Contract)` 与 `Streaming Optional (fallback=snapshot)` Playground，覆盖基础路径、状态矩阵、受控/非受控对照与流式/快照展现。
   - Copy-Paste 保障：`code_imports=field_imports` + `apps/docs-app/src/playground.rs::compose_copy_ready_code` 保障一键复制代码自动补全 imports；`data-slot="field-source-first"` 区块提供 Source-first 路径与复制入口（`docs-field-source-copy`）。
@@ -338,7 +338,7 @@
   - 本组件落地：`components/field/test/semantics.rs` 作为组件本地 `*_semantics.rs`，持续覆盖关键状态轴与动作语义；`field_state_is_observable_and_source_markers_are_stable_and_enumerable`、`field_a11y_i18n_l10n_contract_is_mounted_and_text_source_is_not_hardcoded_in_view`、`field_agent_contract_schema_is_machine_readable_and_whitelisted` 分别锁定 `data-*` / `aria-*` / `role` / 状态来源契约。
   - 快照约束：语义套件显式禁止 snapshot-only 断言（`assert_snapshot!/insta`），并通过 `field_semantic_contract_tests_cover_matrix_and_do_not_rely_on_visual_snapshots` 固化“语义优先”策略。
   - 新增语义字段（含 `data-ui-*` Agent Contract）已同步由本地语义测试覆盖，不允许“只改视图不补测试”。
-  - 回归：`components/field/test/semantics.rs::field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`。门禁：`scripts/check-ui-components-performance.sh` 已纳入对应命令。
+  - 回归：`components/field/test/semantics.rs::field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`。门禁：`scripts/check-ui-performance.sh` 已纳入对应命令。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
@@ -346,7 +346,7 @@
   - 本组件落地：`e2e/tests/docs_app_field_contract.spec.mjs` 新增 `field` 合同用例，选择器仅使用 `data-component/data-slot/data-*` 语义标记（`[data-component="field"]`、`[data-slot="field-state-matrix"]`、`[data-slot="field"][data-required/data-invalid/data-disabled]`），避免文本定位与 DOM 层级猜测。
   - WASM 稳定等待：用例统一采用 `await page.locator("body:not(:has(#boot))").waitFor();` + 语义就绪断言（`[data-ui-stream-mode="snapshot"][data-ui-output-status="verified"]`），未使用固定 sleep。
   - 动效 ready/settled：在 workbench 场景通过 `data-action` 语义控制器驱动状态收敛，并断言 `invalid -> invalid-disabled -> disabled -> required` 及 `data-motion-source=custom`、`--ui-field-motion-duration`，覆盖语义断点而非时间猜测。
-  - 回归：`components/field/test/semantics.rs::field_check2_documents_e2e_selector_and_stable_wait_rules`、`components/field/test/semantics.rs::field_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`components/field/test/semantics.rs::field_e2e_flow_covers_ready_and_settled_semantic_breakpoints`。门禁：`scripts/check-ui-components-e2e-field.sh`。
+  - 回归：`components/field/test/semantics.rs::field_check2_documents_e2e_selector_and_stable_wait_rules`、`components/field/test/semantics.rs::field_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`components/field/test/semantics.rs::field_e2e_flow_covers_ready_and_settled_semantic_breakpoints`。门禁：`components/field/scripts/check-ui-e2e-field.sh`。
 - [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
@@ -354,21 +354,21 @@
   - 本组件落地：`e2e/tests/docs_app_field_contract.spec.mjs` 新增 `docs-app field key flow is repeatable with semantic failure breakpoints`，以 `field` workbench 为验收面，执行可重复键盘流程：`required -> invalid -> invalid-disabled -> disabled -> required`，每一步都由 `data-state/data-invalid/data-disabled` 语义断点定位，不使用页面快照差异判断。
   - 可重复性：流程通过 `runRepeatableFieldKeyboardFlow(...)` 在首轮执行后 `page.reload()` 再次执行，确保同一语义断点序列可稳定复现，失败可直接映射到具体状态断点而非“页面不一致”。
   - 高风险路径：本组件无 overlay 与 async 分支（当前 N/A），优先覆盖 `focus/keyboard` 路径（`toBeFocused` + `keyboard.Space`）并与 settled 断点绑定（`invalid-disabled`、`required`）。
-  - 回归：`components/field/test/semantics.rs::field_check2_documents_e2e_repeatable_key_flow_rules`、`components/field/test/semantics.rs::field_e2e_flow_is_repeatable_and_failure_points_are_semantic`、`components/field/test/semantics.rs::field_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints`。门禁：`scripts/check-ui-components-e2e-field.sh`。
+  - 回归：`components/field/test/semantics.rs::field_check2_documents_e2e_repeatable_key_flow_rules`、`components/field/test/semantics.rs::field_e2e_flow_is_repeatable_and_failure_points_are_semantic`、`components/field/test/semantics.rs::field_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints`。门禁：`components/field/scripts/check-ui-e2e-field.sh`。
 - [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
   - 本组件落地：`apps/docs-app/src/pages/components/pages/forms_extra.rs::field` 已同步 `Hello World (Default API)`、`State Matrix (Required / Invalid / Disabled)`、`Controlled vs Uncontrolled (Stateless Contract)`，并新增 `data-slot="field-api-matrix"` 参数矩阵（`orientation/tone/is_* + legacy aliases/motion`）。
   - 参数矩阵与实现对齐：`components/field/src/view.rs` 公开 props 命名（`orientation/tone/is_required|required/is_disabled|disabled/is_invalid|invalid/motion`）与 docs 同步；`components/field/src/logic.rs` 的布尔默认回落（`None => false`）与 docs 默认值说明一致；离散默认值 `vertical/default` 与 `crates/ui-state-primitives/src/field.rs` 默认枚举一致。
-  - 回归：`components/field/test/semantics.rs::field_check2_documents_docs_sync_and_state_matrix_rules`、`components/field/test/semantics.rs::field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`。门禁：`scripts/check-ui-components-dx.sh`。
+  - 回归：`components/field/test/semantics.rs::field_check2_documents_docs_sync_and_state_matrix_rules`、`components/field/test/semantics.rs::field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`。门禁：`scripts/check-ui-dx.sh`。
 - [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
   - 本组件落地：`components/field/src/README.md` 作为组件文档入口，新增 `## 快速开始（先用起来）`（最小 `Field` 示例 + 常见用法顺序），并保留 `Hello World` 与 `docs-app 入口`，避免“只有源码没有文档”。
   - 新手路径：README 中“默认 API -> 状态开关 -> 进阶参数（orientation/tone/motion/class_name）”顺序明确；`apps/docs-app/src/pages/components/pages/forms_extra.rs::field` 页面保持 `Hello World (Default API)` 在前、`Workbench` 进阶在后，实现“先用起来，再进阶”。
-  - 回归：`components/field/test/semantics.rs::field_check2_documents_documentation_as_product_rules`、`components/field/test/semantics.rs::field_documentation_entry_exists_with_beginner_first_progression`、`components/field/test/semantics.rs::field_dx_check_script_covers_documentation_as_product_contract`。门禁：`scripts/check-ui-components-dx.sh`。
+  - 回归：`components/field/test/semantics.rs::field_check2_documents_documentation_as_product_rules`、`components/field/test/semantics.rs::field_documentation_entry_exists_with_beginner_first_progression`、`components/field/test/semantics.rs::field_dx_check_script_covers_documentation_as_product_contract`。门禁：`scripts/check-ui-dx.sh`。
 - [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
@@ -377,12 +377,12 @@
   - 实时预览回归：`e2e/tests/docs_app_field_contract.spec.mjs` 新增 `docs-app field interactive playground supports realtime props/state preview`，以稳定语义选择器断言 props 调整、状态切换与反馈文本。
   - 可重复复现：同一 e2e 文件通过 `runRepeatableFieldKeyboardFlow(...)` 复用关键交互链路，覆盖 interactive 场景与 reload 后重放，保证验收路径可复现。
   - AI Spec 说明：`Field` 非 AI Spec 组件，本项中的“Spec 输入/预览联动”当前 N/A-by-scope（不阻断基础 Interactive Playground 合同）。
-  - 回归：`components/field/test/semantics.rs::field_check2_documents_interactive_playground_rules`、`components/field/test/semantics.rs::field_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/field/test/semantics.rs::field_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/field/test/semantics.rs::field_dx_check_script_covers_interactive_playground_contract`、`components/field/test/semantics.rs::field_e2e_check_script_covers_interactive_playground_contract`。门禁：`scripts/check-ui-components-dx.sh`、`scripts/check-ui-components-e2e-field.sh`。
+  - 回归：`components/field/test/semantics.rs::field_check2_documents_interactive_playground_rules`、`components/field/test/semantics.rs::field_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/field/test/semantics.rs::field_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/field/test/semantics.rs::field_dx_check_script_covers_interactive_playground_contract`、`components/field/test/semantics.rs::field_e2e_check_script_covers_interactive_playground_contract`。门禁：`scripts/check-ui-dx.sh`、`components/field/scripts/check-ui-e2e-field.sh`。
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - 本组件落地：`apps/docs-app/src/pages/components/pages/forms_extra.rs::field` 提供 `data-slot="field-source-first"` 区块，明确 `Show code + Copy` 一键复制链路（`apps/docs-app/src/playground.rs::compose_copy_ready_code`）与稳定复制入口（`class_name="docs-field-source-copy"`）。
-  - 依赖与源码前提：同区块新增 `data-slot="field-source-first-dependency-baseline"`，给出 `ui-components = { default-features = false, features = ["component-field", "inject-css"] }` 基线；`Snippet(copyable=true)` 指向真实源码落点 `components/field/src/{mod,logic,view,styles,motion}.rs`，避免“复制即报错”。
+  - 依赖与源码前提：同区块新增 `data-slot="field-source-first-dependency-baseline"`，给出 `ui = { default-features = false, features = ["component-field", "inject-css"] }` 基线；`Snippet(copyable=true)` 指向真实源码落点 `components/field/src/{mod,logic,view,styles,motion}.rs`，避免“复制即报错”。
   - 同步防漂移：source-first 文档中的最小代码轴（`orientation/tone/required/invalid/disabled/motion`）与 `components/field/src/view.rs` props、`components/field/src/logic.rs` 归一化函数保持一致。
-  - 回归：`components/field/test/semantics.rs::field_check2_documents_source_first_copy_paste_ready_rules`、`components/field/test/semantics.rs::field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`components/field/test/semantics.rs::field_dx_check_script_covers_source_first_copy_paste_ready_contract`、`components/field/test/semantics.rs::field_check2_marks_source_first_copy_paste_ready_contract_complete`。门禁：`scripts/check-ui-components-dx.sh`。
+  - 回归：`components/field/test/semantics.rs::field_check2_documents_source_first_copy_paste_ready_rules`、`components/field/test/semantics.rs::field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`components/field/test/semantics.rs::field_dx_check_script_covers_source_first_copy_paste_ready_contract`、`components/field/test/semantics.rs::field_check2_marks_source_first_copy_paste_ready_contract_complete`。门禁：`scripts/check-ui-dx.sh`。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
@@ -390,7 +390,7 @@
   - 本组件落地：`docs/spec/heroui-parameter-design-strategy.md` 已新增 `### Field 同步记录（2026-02-20）`，同步参数主轴（`orientation/tone/is_* + required/disabled/invalid` 兼容别名）、默认值归一入口（`components/field/src/logic.rs`）与文档验收面，避免“实现先漂移、文档后补”。
   - 文档入口可索引：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Field", "field", "Forms", forms_extra::field)` 暴露入口；`apps/docs-app/src/pages/components/pages/forms_extra.rs::field` 维持 `slug="field"`；`components/field/src/README.md` 作为等价组件文档入口。
   - 研究文档判定：本轮仅为 Field 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，`docs/research/spectrum-heroui-style-interface-study.md` 当前 N/A（无需新增）。
-  - 回归：`components/field/test/semantics.rs::field_check2_documents_heroui_benchmark_docs_sync_rules`、`components/field/test/semantics.rs::field_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/field/test/semantics.rs::field_dx_check_script_covers_heroui_benchmark_docs_sync_contract`、`components/field/test/semantics.rs::field_check2_marks_heroui_benchmark_docs_sync_contract_complete`。门禁：`scripts/check-ui-components-dx.sh`。
+  - 回归：`components/field/test/semantics.rs::field_check2_documents_heroui_benchmark_docs_sync_rules`、`components/field/test/semantics.rs::field_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/field/test/semantics.rs::field_dx_check_script_covers_heroui_benchmark_docs_sync_contract`、`components/field/test/semantics.rs::field_check2_marks_heroui_benchmark_docs_sync_contract_complete`。门禁：`scripts/check-ui-dx.sh`。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。
@@ -402,9 +402,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

@@ -26,7 +26,7 @@ fn ui_components_reexports_help_text_component_crate() {
         lib_source.contains("pub mod field_form {")
             && lib_source.contains("#[cfg(feature = \"component-help_text\")]")
             && lib_source.contains("pub use ui_help_text as help_text;"),
-        "ui-components field_form module should re-export the external ui-help-text crate as `help_text`.",
+        "ui field_form module should re-export the external ui-help-text crate as `help_text`.",
     );
     assert!(
         cargo_source.contains("component-help_text = [\"dep:ui-help-text\"]"),
@@ -35,7 +35,7 @@ fn ui_components_reexports_help_text_component_crate() {
     assert!(
         cargo_source
             .contains("ui-help-text = { path = \"../../components/help-text\", optional = true }"),
-        "ui-components Cargo.toml should include the optional ui-help-text dependency.",
+        "ui Cargo.toml should include the optional ui-help-text dependency.",
     );
 }
 
@@ -574,7 +574,7 @@ fn help_text_source_first_docs_are_copy_paste_ready_and_traceable() {
         "Snippet",
         "copyable=true",
         "docs-help-text-source-copy",
-        "use ui_components::{HelpText, HelpTextTone};",
+        "use ui::{HelpText, HelpTextTone};",
         "data-slot=\"help-text-source-paths\"",
         "\"components/help-text/src/mod.rs\"",
         "\"components/help-text/src/logic.rs\"",

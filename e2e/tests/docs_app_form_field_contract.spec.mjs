@@ -79,7 +79,7 @@ test("docs-app form-field playground source is copy-paste ready", async ({ page 
 
   const code = playground.locator('[data-slot="code-block-code"]').first();
   await expect(code).toContainText("use leptos::prelude::*;");
-  await expect(code).toContainText("use ui_components::*;");
+  await expect(code).toContainText("use ui::*;");
   await expect(code).toContainText("<FormField");
 
   const copyButton = codeBlock.first().locator('[data-slot="button"]').first();
@@ -87,7 +87,7 @@ test("docs-app form-field playground source is copy-paste ready", async ({ page 
 
   const copyReady = page.locator('[data-slot="form-field-copy-ready"]').first();
   await expect(copyReady).toContainText("use leptos::prelude::*;");
-  await expect(copyReady).toContainText("use ui_components::*;");
+  await expect(copyReady).toContainText("use ui::*;");
 
   const sourcePaths = page.locator('[data-slot="form-field-source-paths"]').first();
   await expect(sourcePaths).toContainText("components/form-field/src/mod.rs");

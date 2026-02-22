@@ -994,7 +994,7 @@ fn code_block_uses_token_first_static_style_pipeline() {
     ] {
         assert!(
             css_aggregate_source.contains(needle),
-            "ui-components css aggregation should include CodeBlock styles via `{needle}`."
+            "ui css aggregation should include CodeBlock styles via `{needle}`."
         );
     }
 
@@ -1120,13 +1120,13 @@ fn code_block_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "title=\"Hello World (Default API)\"",
-        "code=\"cargo check -p ui-components\".to_string()",
+        "code=\"cargo check -p ui\".to_string()",
         "title=\"Header + Copy Motion\"",
         "code=rust_code.to_string()",
         "language=\"rust\".to_string()",
         "label=\"deploy.rs\".to_string()",
         "title=\"Compact + No Copy\"",
-        "code=\"cargo test -p ui-components --test code_block_semantics\".to_string()",
+        "code=\"cargo test -p ui --test code_block_semantics\".to_string()",
         "is_copyable=false",
         "class_name=\"docs-code-block-custom\".to_string()",
     ] {
@@ -1190,7 +1190,7 @@ fn code_block_docs_workbench_supports_dx_state_and_css_hot_reload_contract() {
         "test_css_source=workbench_test_css",
         "test_source_path=\"components/code-block/src/styles.rs\".to_string()",
         "test_config_signal=workbench_actual_config",
-        "ui_components::code_block::styles::CSS",
+        "ui::code_block::styles::CSS",
         "data-slot=\"code-block-workbench-controls\"",
         "id_base=\"docs-code-block-workbench-language\".to_string()",
         "id_base=\"docs-code-block-workbench-output-mode\".to_string()",
@@ -1276,7 +1276,7 @@ fn code_block_source_first_docs_are_copy_paste_ready_and_traceable() {
         "\"inject-css\"",
         "label=\"Copy code starter\".to_string()",
         "copyable=true",
-        "use leptos::prelude::*;\\nuse ui_components::CodeBlock;",
+        "use leptos::prelude::*;\\nuse ui::CodeBlock;",
         "data-slot=\"code-block-source-paths\"",
         "components/code-block/src/mod.rs",
         "components/code-block/src/logic.rs",
@@ -1516,7 +1516,7 @@ fn code_block_engineering_contract_uses_serde_schema_tracing_and_runtime_agnosti
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components feature graph should keep CodeBlock tracing/debug marker `{needle}`."
+            "ui feature graph should keep CodeBlock tracing/debug marker `{needle}`."
         );
     }
 
@@ -1560,7 +1560,7 @@ fn code_block_engineering_contract_uses_serde_schema_tracing_and_runtime_agnosti
 
     for needle in [
         "tracing::event!(",
-        "target: \"ui_components::code_block::state_change\"",
+        "target: \"ui::code_block::state_change\"",
         "tracing::Level::DEBUG",
     ] {
         assert!(
@@ -1605,7 +1605,7 @@ fn code_block_visual_desire_uses_theme_baseline_docs_and_e2e_guards() {
         load_source("../../e2e/tests/docs_app_theme_visual_baseline.spec.mjs");
 
     for needle in [
-        "use ui_components::{Button, ButtonVariant, Input, OnPress, Overlay};",
+        "use ui::{Button, ButtonVariant, Input, OnPress, Overlay};",
         "title=\"ThemeVisualBaseline\"",
         "slug=\"theme-visual-baseline\"",
         "Includes Button/Input/Overlay for visual regression snapshots.",
@@ -1690,7 +1690,7 @@ fn code_block_tree_shaking_contract_stays_feature_gated() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo feature graph should keep code-block tree-shaking marker `{needle}`."
+            "ui Cargo feature graph should keep code-block tree-shaking marker `{needle}`."
         );
     }
 
@@ -1702,7 +1702,7 @@ fn code_block_tree_shaking_contract_stays_feature_gated() {
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib export surface should keep feature-gated marker `{needle}`."
+            "ui lib export surface should keep feature-gated marker `{needle}`."
         );
     }
 
@@ -1720,7 +1720,7 @@ fn code_block_tree_shaking_contract_stays_feature_gated() {
     );
 
     for needle in [
-        "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
+        "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
         "ui-layout = { path = \"../../crates/ui-layout\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
     ] {
         assert!(
@@ -2054,14 +2054,14 @@ fn code_block_ui_components_entry_files_stay_on_expected_layer_boundaries() {
     for required in ["lib.rs", "css.rs", "root.rs"] {
         assert!(
             ui_components_src.join(required).exists(),
-            "ui-components entry file `{required}` should exist."
+            "ui entry file `{required}` should exist."
         );
     }
 
     for forbidden in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src.join(forbidden).exists(),
-            "ui-components should not define `{forbidden}`; it belongs to headless/shared layers."
+            "ui should not define `{forbidden}`; it belongs to headless/shared layers."
         );
     }
 
@@ -2083,14 +2083,14 @@ fn code_block_ui_components_entry_files_stay_on_expected_layer_boundaries() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib.rs should keep entry/export boundary marker `{needle}`."
+            "ui lib.rs should keep entry/export boundary marker `{needle}`."
         );
     }
 
     for forbidden in ["pub mod overlay_open", "pub mod presence", "pub mod a11y"] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib.rs should not expose forbidden shared primitive module `{forbidden}`."
+            "ui lib.rs should not expose forbidden shared primitive module `{forbidden}`."
         );
     }
 
@@ -2101,7 +2101,7 @@ fn code_block_ui_components_entry_files_stay_on_expected_layer_boundaries() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css.rs should keep feature-gated CSS aggregation marker `{needle}`."
+            "ui css.rs should keep feature-gated CSS aggregation marker `{needle}`."
         );
     }
 
@@ -2323,7 +2323,7 @@ fn code_block_wasm_debug_contract_is_feature_gated_and_replayable() {
         ui_components_cargo.contains(
             "code-block-wasm-debug = [\"component-code_block\", \"ui-code-block/wasm-debug\"]"
         ),
-        "ui-components feature graph should expose code-block wasm debug through dedicated opt-in feature."
+        "ui feature graph should expose code-block wasm debug through dedicated opt-in feature."
     );
 
     for needle in [

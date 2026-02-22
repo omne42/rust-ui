@@ -11,7 +11,7 @@
 
 ### 1. 大骨架（架构边界与层职责）
 - [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
-  - 已下沉：`RipplePhase/RippleBoundary/RippleStateInput/RippleState/normalize_optional_text/resolve_phase/resolve_boundary/resolve_state/compose_class_name` 迁入 `crates/ui-state-primitives/src/ripple.rs` 并在 `crates/ui-state-primitives/src/lib.rs` 导出；`crates/ui-components/src/ripple/logic.rs` 仅做 `resolve_render_state` 装配与映射。
+  - 已下沉：`RipplePhase/RippleBoundary/RippleStateInput/RippleState/normalize_optional_text/resolve_phase/resolve_boundary/resolve_state/compose_class_name` 迁入 `crates/ui-state-primitives/src/ripple.rs` 并在 `crates/ui-state-primitives/src/lib.rs` 导出；`crates/ui/src/ripple/logic.rs` 仅做 `resolve_render_state` 装配与映射。
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -36,21 +36,21 @@
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - `crates/ui-visual-primitive/src/ripple.rs` 仅保留通用动效合同映射：`sanitize_motion/source_attr/attach_motion/trigger_ripple(_at)`；执行仍通过 `ui_motion::web::animate`，non-wasm 走 no-op；`reduced-motion` 通过 `ui_motion::web::prefers_reduced_motion()` 直接跳过。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
   - `RippleMotion::default()` 与 `easing()` 统一来自 `ui_theme::default_text_field_motion_tokens()`；`styles.rs` 默认动效变量改为 `var(--ui-text-field-motion-duration, 180ms)`，组件不再散落硬编码时长/曲线常量。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 `is_bounded/motion/class_name` 归一与派生，`view.rs` 仅挂载 `data-* + lang/dir`，`motion.rs` 仅处理动效 attach/trigger；未暴露 `web-sys` 类型到公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
@@ -147,8 +147,8 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 证据：`crates/ui-components/src/ripple/styles.rs` 仅消费 `var(--ui-*)`，`crates/ui-visual-primitive/src/ripple.rs::attach_motion` 仅注入 `--ui-ripple-duration-ms`，`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-ripple")]` 聚合样式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 证据：`crates/ui/src/ripple/styles.rs` 仅消费 `var(--ui-*)`，`crates/ui-visual-primitive/src/ripple.rs::attach_motion` 仅注入 `--ui-ripple-duration-ms`，`crates/ui/src/css.rs` 通过 `#[cfg(feature = "component-ripple")]` 聚合样式。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -161,21 +161,21 @@
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
 - [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
-  - 证据（特性树）：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-ripple,inject-css` 输出仅 `component-ripple` 与 `inject-css`（command-line）。
-  - 证据（反向依赖）：`cargo tree -e features -i ui-components -p web-demo` 路径经 `web-demo-components`，未出现 `all-components`。
-  - 证据（最小特性编译）：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-ripple,inject-css --offline` 通过。
-  - 证据（体积预算）：`cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features component-ripple,inject-css --offline` 后 `libui_components-*.rlib` = `1,031,206` bytes，预算上限 `3,806,222` bytes（`scripts/tree_shaking_budget.env`）内，通过。
+  - 证据（特性树）：`cargo tree -e features -i ui -p ui --no-default-features --features component-ripple,inject-css` 输出仅 `component-ripple` 与 `inject-css`（command-line）。
+  - 证据（反向依赖）：`cargo tree -e features -i ui -p web-demo` 路径经 `web-demo-components`，未出现 `all-components`。
+  - 证据（最小特性编译）：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-ripple,inject-css --offline` 通过。
+  - 证据（体积预算）：`cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features component-ripple,inject-css --offline` 后 `libui_components-*.rlib` = `1,031,206` bytes，预算上限 `3,806,222` bytes（`scripts/tree_shaking_budget.env`）内，通过。
   - 证据：`components/ripple/test/ripple_semantics.rs::ripple_tree_shaking_keeps_component_feature_and_css_boundaries` 锁定 feature gate + CSS 聚合边界 + 脚本/预算文件契约。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
-  - 证据：`ui-state-primitives::ripple::{RipplePhase,RippleBoundary}` 建模互斥状态；`MotionRipple` 输出 `data-state/data-boundary/data-motion-source/data-class-source/data-ui-schema`；`$HOME/.cargo/bin/cargo test -p ui-components --test ripple_semantics --no-default-features --features component-ripple,inject-css --offline` 通过（15/15）。
+  - 证据：`ui-state-primitives::ripple::{RipplePhase,RippleBoundary}` 建模互斥状态；`MotionRipple` 输出 `data-state/data-boundary/data-motion-source/data-class-source/data-ui-schema`；`$HOME/.cargo/bin/cargo test -p ui --test ripple_semantics --no-default-features --features component-ripple,inject-css --offline` 通过（15/15）。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
@@ -184,8 +184,8 @@
 ### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
   - 证据：
-    - `$HOME/.cargo/bin/cargo check -p ui-components --no-default-features --features component-ripple,inject-css --offline`（native）通过。
-    - `$HOME/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-ripple,inject-css --offline`（web/wasm）通过。
+    - `$HOME/.cargo/bin/cargo check -p ui --no-default-features --features component-ripple,inject-css --offline`（native）通过。
+    - `$HOME/.cargo/bin/cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-ripple,inject-css --offline`（web/wasm）通过。
     - `$HOME/.cargo/bin/cargo check -p ui-headless --no-default-features --features ssr --offline`（ssr 分支）通过。
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
@@ -216,7 +216,7 @@
   - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
-  - 证据：`crates/ui-components/src/ripple/view.rs` 仅一个扁平 `span` 结构，关键派生已在 `logic::resolve_render_state` 中完成。
+  - 证据：`crates/ui/src/ripple/view.rs` 仅一个扁平 `span` 结构，关键派生已在 `logic::resolve_render_state` 中完成。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
@@ -231,7 +231,7 @@
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
 - [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
-  - 证据：`rg -n "inner_html" crates/ui-components/src/ripple components/ripple/test/ripple_semantics.rs apps/docs-app/src/pages/components/pages/display.rs` 仅命中 `check2.md` 文档本身，ripple 实现无 `inner_html` 使用。
+  - 证据：`rg -n "inner_html" crates/ui/src/ripple components/ripple/test/ripple_semantics.rs apps/docs-app/src/pages/components/pages/display.rs` 仅命中 `check2.md` 文档本身，ripple 实现无 `inner_html` 使用。
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
@@ -256,17 +256,17 @@
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 文件落点检查（必须提及）
-- [x] `ui-components` 固定入口文件落点正确。
-  - 证据：`crates/ui-components/src/lib.rs` 以 `#[cfg(feature = "component-ripple")] pub mod ripple;` 导出；`crates/ui-components/src/css.rs` 以 feature 条件聚合 ripple CSS；`crates/ui-components/src/root.rs` 统一注入 CSS；`crates/ui-components/src/overlay_open.rs`/`presence.rs`/`a11y.rs` 均不存在。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。
+  - 证据：`crates/ui/src/lib.rs` 以 `#[cfg(feature = "component-ripple")] pub mod ripple;` 导出；`crates/ui/src/css.rs` 以 feature 条件聚合 ripple CSS；`crates/ui/src/root.rs` 统一注入 CSS；`crates/ui/src/overlay_open.rs`/`presence.rs`/`a11y.rs` 均不存在。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。
-  - 证据：`crates/ui-components/src/ripple/` 目录包含并仅包含 `mod.rs`/`logic.rs`/`styles.rs`/`view.rs`/`motion.rs`（无 `render.rs` 与 `spec.rs` 漂移）；职责分工与第 3 节一致。
+  - 证据：`crates/ui/src/ripple/` 目录包含并仅包含 `mod.rs`/`logic.rs`/`styles.rs`/`view.rs`/`motion.rs`（无 `render.rs` 与 `spec.rs` 漂移）；职责分工与第 3 节一致。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -298,7 +298,7 @@
 
 ### 7. 测试与文档（验证闭环）
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
-  - 证据：`$HOME/.cargo/bin/cargo test -p ui-components --test ripple_semantics --no-default-features --features component-ripple,inject-css --offline` 通过（15/15），断言覆盖 `data-*`/`aria-hidden`/`data-ui-schema`/来源标记；未使用视觉快照替代语义断言。
+  - 证据：`$HOME/.cargo/bin/cargo test -p ui --test ripple_semantics --no-default-features --features component-ripple,inject-css --offline` 通过（15/15），断言覆盖 `data-*`/`aria-hidden`/`data-ui-schema`/来源标记；未使用视觉快照替代语义断言。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
@@ -348,10 +348,10 @@
   - 证据：`crates/ui-state-primitives/src/ripple.rs` 仅包含枚举/结构体/纯函数与测试，无 Leptos/DOM/web-sys 依赖。
   - 发现 `ui-state-primitives` 引入 DOM/样式依赖即判架构越层，必须回滚并迁移到正确层。
 - [x] 在 `ui-headless` 写视觉和动画编排。
-  - 证据：ripple 动效与样式均位于 `crates/ui-components/src/ripple/{motion.rs,styles.rs}`；headless 仅提供 `locale_attrs` 等语义工具接入。
+  - 证据：ripple 动效与样式均位于 `crates/ui/src/ripple/{motion.rs,styles.rs}`；headless 仅提供 `locale_attrs` 等语义工具接入。
   - headless 只输出交互/A11y 契约；出现 class/CSS/动效时间线即判职责污染。
 - [x] 在 `view` 层隐藏关键状态决策。
-  - 证据：`crates/ui-components/src/ripple/view.rs` 仅消费 `logic::resolve_render_state(...)` 输出，未重建 phase/boundary/source 判定。
+  - 证据：`crates/ui/src/ripple/view.rs` 仅消费 `logic::resolve_render_state(...)` 输出，未重建 phase/boundary/source 判定。
   - `view.rs` 只消费归一化结果；关键业务分支若散落在 view，必须回收至 `logic.rs`。
 - [x] 新增参数但不纳入统一命名与契约。
   - 证据：公共布尔参数已统一为 `is_bounded`，并由 `ripple_semantics::ripple_api_naming_and_control_contract_are_explicit` 断言命名/半受控禁用契约。
@@ -386,6 +386,6 @@
 - [x] 文档与示例同步更新。
 - [x] 门禁完整通过（fmt/clippy/test/smoke 等）。
   - 证据（fmt）：`$HOME/.cargo/bin/rustfmt --edition 2024 --check components/ripple/test/ripple_semantics.rs` 通过。
-  - 证据（clippy）：`$HOME/.cargo/bin/cargo clippy -p ui-components --no-deps --no-default-features --features component-ripple,inject-css --test ripple_semantics -- -D warnings` 通过。
-  - 证据（test）：`$HOME/.cargo/bin/cargo test -p ui-components --test ripple_semantics --no-default-features --features component-ripple,inject-css --offline` 通过（15/15）。
+  - 证据（clippy）：`$HOME/.cargo/bin/cargo clippy -p ui --no-deps --no-default-features --features component-ripple,inject-css --test ripple_semantics -- -D warnings` 通过。
+  - 证据（test）：`$HOME/.cargo/bin/cargo test -p ui --test ripple_semantics --no-default-features --features component-ripple,inject-css --offline` 通过（15/15）。
   - 证据（smoke + e2e）：手工 smoke（docs-app 启动 + Playwright screenshot）通过，且 `cd e2e && E2E_BASE_URL=http://127.0.0.1:4173 npx playwright test tests/docs_app_ripple_contract.spec.mjs --project=chromium` 通过（3/3）。

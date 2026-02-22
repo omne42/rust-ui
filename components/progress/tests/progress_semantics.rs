@@ -187,7 +187,7 @@ fn progress_docs_playgrounds_lock_state_matrix_contract_values() {
         "aria_label=\"Syncing tasks\".to_string()",
         "value=Signal::derive(|| Some(64.0))",
         "value_label=\"64 complete\".to_string()",
-        "motion=ui_components::ProgressMotion::fast()",
+        "motion=ui::ProgressMotion::fast()",
         "aria_label=\"   \".to_string()",
         "class_name=\"docs-progress-custom\".to_string()",
     ] {

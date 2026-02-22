@@ -73,7 +73,7 @@ fn source_attrs_are_derived_in_logic_layer() {
     assert_eq!(attrs.control_mode_attr, "controlled");
     assert_eq!(attrs.value_source_attr, "external");
     assert_eq!(attrs.value_change_source_attr, "on_value_change");
-    assert_eq!(attrs.default_value_source_attr, "provided");
+    assert_eq!(attrs.default_value_source_attr, "custom");
 
     let attrs = resolve_source_attrs(ColorSliderInputPresence {
         has_external_value: false,
@@ -83,7 +83,7 @@ fn source_attrs_are_derived_in_logic_layer() {
     assert_eq!(attrs.control_mode_attr, "uncontrolled");
     assert_eq!(attrs.value_source_attr, "default_value");
     assert_eq!(attrs.value_change_source_attr, "none");
-    assert_eq!(attrs.default_value_source_attr, "unset");
+    assert_eq!(attrs.default_value_source_attr, "default");
 }
 
 #[test]

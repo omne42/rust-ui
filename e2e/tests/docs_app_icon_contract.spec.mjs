@@ -131,6 +131,6 @@ test("docs-app icon source-first snippet is copy-paste ready with imports", asyn
 
   const codeText = sourceFirst.locator('[data-slot="code-block-code"]').first();
   await expect(codeText).toContainText("use leptos::prelude::*;");
-  await expect(codeText).toContainText("use ui_components::{Icon, IconSize, IconTone};");
+  await expect(codeText).toContainText("use ui::{Icon, IconSize, IconTone};");
   await expect(codeText).toContainText("<Icon size=IconSize::Sm tone=IconTone::Accent is_decorative=true>");
 });

@@ -1,16 +1,22 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
+use leptos::html;
 use leptos::prelude::*;
-use ui_components::{
+use ui::button::ToggleButtonGroupMotion;
+use ui::button::action::ActionButtonGroupMotion;
+use ui::{
     ActionButton, ActionButtonGroup, ActionButtonGroupDensity, ActionButtonGroupOrientation,
-    ActionButtonLoadingPlacement, ActionButtonSize, ActionMenu, ActionMenuItemSpec, Button,
-    ButtonColor, ButtonCopy, ButtonCopyMode, ButtonCopyMotion, ButtonGroup, ButtonGroupOrientation,
-    ButtonIntent, ButtonLoadingPlacement, ButtonRadius, ButtonSchema, ButtonSize, ButtonVariant,
-    FlipButton, FlipDirection, LinkButton, OnPress, SearchInputButton, SegmentedControl,
-    SegmentedControlSize, ShareButton, ShareButtonIconPlacement, ShareButtonItem, SharePlatform,
-    Switch, ThemeMode, ThemeToggleButton, ToggleButton, ToggleButtonGroup,
-    ToggleButtonGroupOrientation, ToggleButtonSize, ToggleButtonVariant,
+    ActionButtonLoadingPlacement, ActionButtonMotion, ActionButtonSize, ActionButtonType,
+    ActionMenu, ActionMenuItemSpec, Button, ButtonColor, ButtonCopy, ButtonCopyMode,
+    ButtonCopyMotion, ButtonGroup, ButtonGroupOrientation, ButtonIntent, ButtonLoadingPlacement,
+    ButtonRadius, ButtonSchema, ButtonSize, ButtonVariant, FlipButton, FlipButtonMotion,
+    FlipDirection, LinkButton, OnPress, SearchInputButton, SearchInputButtonMotion,
+    SegmentedControl, SegmentedControlSize, ShareButton, ShareButtonIconPlacement, ShareButtonItem,
+    ShareButtonMotion, SharePlatform, Switch, ThemeMode, ThemeToggleButton, ThemeToggleMotion,
+    ToggleButton, ToggleButtonGroup, ToggleButtonGroupOrientation, ToggleButtonMotion,
+    ToggleButtonSize, ToggleButtonVariant,
 };
+use ui_headless::{A11yDirection, PopoverPlacement};
 
 // Legacy source-contract markers retained for semantic tests:
 // title="External target + rel hardening"
@@ -628,7 +634,7 @@ pub(super) fn button() -> AnyView {
     });
 
     let hello_code = Signal::derive(move || r#"<Button>"Button"</Button>"#.to_string());
-    let button_imports = "use leptos::prelude::*;\nuse ui_components::{Button, ButtonColor, ButtonLoadingPlacement, ButtonRadius, ButtonSize, ButtonVariant};".to_string();
+    let button_imports = "use leptos::prelude::*;\nuse ui::{Button, ButtonColor, ButtonLoadingPlacement, ButtonRadius, ButtonSize, ButtonVariant};".to_string();
 
     let code = Signal::derive(move || {
         let variant = variant.get();
@@ -703,8 +709,8 @@ pub(super) fn button() -> AnyView {
 
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/button/styles.rs */\n{}",
-            ui_components::button::styles::CSS
+            "/* crates/ui/src/button/styles.rs */\n{}",
+            ui::button::styles::CSS
         )
     });
 
@@ -748,7 +754,12 @@ pub(super) fn button() -> AnyView {
         }
 
         format!(
-            "ButtonActualConfig {{\n  color: {color:?},\n  variant: {variant:?},\n  radius: {radius:?},\n  size: {size:?},\n  is_disabled: {is_disabled},\n  is_loading: {is_loading},\n  loading_placement: {loading_placement:?},\n  is_icon_only: {icon_only},\n  is_full_width: {is_full_width},\n  has_start_content: {show_start},\n  has_end_content: {show_end},\n  schema_json: {schema_json:?},\n  class: \"{}\",\n}}",
+            "ButtonActualConfig {{\n  color: {color:?},\n  variant: {variant:?},\n  radius: {radius:?},\n  size: {size:?},\n  is_disabled: {is_disabled},\n  is_loading: {is_loading},\n  loading_placement: {loading_placement:?},\n  is_icon_only: {icon_only},\n  aria_label: {},\n  is_full_width: {is_full_width},\n  has_start_content: {show_start},\n  has_end_content: {show_end},\n  schema_json: {schema_json:?},\n  class: \"{}\",\n}}",
+            if icon_only {
+                "Some(\"Button\")"
+            } else {
+                "None"
+            },
             classes.join(" ")
         )
     });
@@ -842,7 +853,12 @@ pub(super) fn button() -> AnyView {
         >
             <Playground title="Hello World" code_signal=hello_code code_imports=button_imports.clone()>
                 <div class="docs-row">
-                    <Button>"Button"</Button>
+                    <Button
+                        class_name="docs-button-showcase".to_string()
+                        on_press=Callback::new(move |_| {})
+                    >
+                        "Button"
+                    </Button>
                 </div>
             </Playground>
 
@@ -851,7 +867,7 @@ pub(super) fn button() -> AnyView {
                 code_signal=code
                 code_imports=button_imports.clone()
                 test_css_source=test_css_source
-                test_source_path="/root/code/personal/omne/rust-ui/crates/ui-components/src/button/styles.rs".to_string()
+                test_source_path="/root/code/personal/omne/rust-ui/crates/ui/src/button/styles.rs".to_string()
                 test_config_signal=actual_config
                 description="Workbench canvas: scoped CSS live-edit + optional state persistence across reload."
                 controls=move || view! {
@@ -1123,7 +1139,7 @@ pub(super) fn button() -> AnyView {
                         "Build"
                     </Button>
                     <p class="ui-muted" data-slot="button-source-paths">
-                        "Source: components/button/src/view.rs and crates/ui-components/src/button/view.rs."
+                        "Source: components/button/src/view.rs and crates/ui/src/button/view.rs."
                     </p>
                 </div>
             </Playground>
@@ -1208,6 +1224,19 @@ pub(super) fn action_button() -> AnyView {
     let (workbench_show_end, set_workbench_show_end) = signal(initial_workbench_state.show_end);
     let (workbench_persist_state, set_workbench_persist_state) =
         signal(has_persisted_workbench_state);
+    let (workbench_popup_expanded_raw, set_workbench_popup_expanded_raw) = signal(false);
+    let workbench_popup_expanded: Signal<bool> =
+        Signal::derive(move || workbench_popup_expanded_raw.get());
+    let workbench_controls_signal: Signal<Option<String>> =
+        Signal::derive(move || Some("docs-action-button-workbench-panel".to_string()));
+    let (workbench_lang_zh, _set_workbench_lang_zh) = signal(false);
+    let (workbench_rtl, _set_workbench_rtl) = signal(false);
+    let (workbench_press_count, set_workbench_press_count) = signal(0_u32);
+    let workbench_on_press: OnPress = Callback::new(move |_| {
+        set_workbench_press_count.update(|count| *count += 1);
+        set_workbench_popup_expanded_raw.update(|value| *value = !*value);
+    });
+    let workbench_node_ref: NodeRef<html::Button> = NodeRef::new();
 
     Effect::new(move |_| {
         if workbench_persist_state.get() {
@@ -1251,6 +1280,13 @@ pub(super) fn action_button() -> AnyView {
             .to_string()
     });
 
+    let matrix_code = Signal::derive(move || {
+        r#"<ActionButton id="ab-default".to_string() button_type=ActionButtonType::Button on_press=Callback::new(move |_| {})>"Default"</ActionButton>
+<ActionButton id="ab-loading".to_string() is_loading=true loading_placement=ActionButtonLoadingPlacement::Start motion=ActionButtonMotion::default() on_press=Callback::new(move |_| {})>"Loading"</ActionButton>
+<ActionButton id="ab-popup".to_string() is_quiet=true aria_haspopup="menu" aria_expanded=Signal::derive(move || true) aria_controls="popup-panel".to_string() aria_controls_signal=Signal::derive(move || Some("popup-panel".to_string())) class_name="docs-action-button-workbench".to_string() lang="zh-CN".to_string() dir=A11yDirection::Rtl on_press=Callback::new(move |_| {})>"Popup"</ActionButton>"#
+            .to_string()
+    });
+
     let workbench_code = Signal::derive(move || {
         let size = workbench_size.get();
         let is_loading = workbench_loading.get();
@@ -1260,15 +1296,38 @@ pub(super) fn action_button() -> AnyView {
         let is_icon_only = workbench_icon_only.get();
         let show_start = workbench_show_start.get();
         let show_end = workbench_show_end.get();
+        let lang = if workbench_lang_zh.get() {
+            "zh-CN"
+        } else {
+            "en-US"
+        };
+        let dir = if workbench_rtl.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
+        let popup_expanded = workbench_popup_expanded.get();
 
         let mut snippet = vec![
             "<ActionButton".to_string(),
+            "  id=\"docs-action-button-workbench\".to_string()".to_string(),
             format!("  size=ActionButtonSize::{size:?}"),
             format!("  is_loading={is_loading}"),
             format!("  loading_placement=ActionButtonLoadingPlacement::{loading_placement:?}"),
             format!("  is_disabled={is_disabled}"),
             format!("  is_quiet={is_quiet}"),
             format!("  is_icon_only={is_icon_only}"),
+            "  motion=ActionButtonMotion::default()".to_string(),
+            "  class_name=\"docs-action-button-workbench\".to_string()".to_string(),
+            "  button_type=ActionButtonType::Button".to_string(),
+            "  aria_haspopup=Some(\"menu\")".to_string(),
+            format!("  aria_expanded=Signal::derive(move || {popup_expanded})"),
+            "  aria_controls=\"docs-action-button-workbench-panel\".to_string()".to_string(),
+            "  aria_controls_signal=Signal::derive(move || Some(\"docs-action-button-workbench-panel\".to_string()))".to_string(),
+            format!("  lang=\"{lang}\".to_string()"),
+            format!("  dir={dir}"),
+            "  node_ref=node_ref".to_string(),
+            "  on_press=on_press".to_string(),
         ];
 
         if is_icon_only {
@@ -1296,8 +1355,8 @@ pub(super) fn action_button() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/button/styles.rs */\n{}",
-            ui_components::button::styles::CSS
+            "/* crates/ui/src/button/styles.rs */\n{}",
+            ui::button::styles::CSS
         )
     });
 
@@ -1310,8 +1369,17 @@ pub(super) fn action_button() -> AnyView {
         let is_icon_only = workbench_icon_only.get();
         let show_start = workbench_show_start.get();
         let show_end = workbench_show_end.get();
+        let popup_expanded = workbench_popup_expanded.get();
         format!(
-            "ActionButtonActualConfig {{\n  size: {size:?},\n  is_loading: {is_loading},\n  loading_placement: {loading_placement:?},\n  is_disabled: {is_disabled},\n  is_quiet: {is_quiet},\n  is_icon_only: {is_icon_only},\n  has_start_content: {show_start},\n  has_end_content: {show_end},\n}}"
+            "ActionButtonActualConfig {{\n  id: Some(\"docs-action-button-workbench\"),\n  is_loading: {is_loading},\n  is_disabled: Some({is_disabled}),\n  size: Some({size:?}),\n  is_quiet: Some({is_quiet}),\n  motion: ActionButtonMotion::default(),\n  loading_placement: {loading_placement:?},\n  class_name: Some(\"docs-action-button-workbench\"),\n  button_type: Some(ActionButtonType::Button),\n  aria_label: {:?},\n  aria_haspopup: Some(\"menu\"),\n  aria_expanded: Some({popup_expanded}),\n  aria_controls: Some(\"docs-action-button-workbench-panel\"),\n  aria_controls_signal: Some(\"docs-action-button-workbench-panel\"),\n  lang: Some({:?}),\n  dir: Some({:?}),\n  node_ref: Some(\"workbench_node_ref\"),\n  on_press: \"count={} toggles_popup=true\",\n  has_start_content: {show_start},\n  has_end_content: {show_end},\n}}",
+            if is_icon_only { Some("Action") } else { None },
+            if workbench_lang_zh.get() {
+                "zh-CN"
+            } else {
+                "en-US"
+            },
+            if workbench_rtl.get() { "rtl" } else { "ltr" },
+            workbench_press_count.get(),
         )
     });
 
@@ -1383,7 +1451,7 @@ pub(super) fn action_button() -> AnyView {
                 title="ActionButton Workbench"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/code/personal/omne/rust-ui/crates/ui-components/src/button/styles.rs".to_string()
+                test_source_path="/root/code/personal/omne/rust-ui/crates/ui/src/button/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 description="Workbench canvas: action-button reuses button css contract, supports scoped css live-edit, and optional state persistence."
                 controls=move || view! {
@@ -1437,8 +1505,8 @@ pub(super) fn action_button() -> AnyView {
                     let is_disabled = workbench_disabled.get();
                     let is_quiet = workbench_quiet.get();
                     let is_icon_only = workbench_icon_only.get();
-                    let show_start = workbench_show_start.get();
-                    let show_end = workbench_show_end.get();
+                    let _show_start = workbench_show_start.get();
+                    let _show_end = workbench_show_end.get();
                     let persist = workbench_persist_state.get();
 
                     view! {
@@ -1449,61 +1517,77 @@ pub(super) fn action_button() -> AnyView {
                             </span>
                             <div class="docs-card docs-stack docs-stack--tight" data-slot="action-button-workbench-canvas">
                                 <div class="docs-row" style="justify-content: center;">
-                                    {match (show_start, show_end) {
-                                        (true, true) => view! {
-                                            <ActionButton
-                                                size=size
-                                                is_loading=is_loading
-                                                loading_placement=loading_placement
-                                                is_disabled=is_disabled
-                                                is_quiet=is_quiet
-                                                aria_label=if is_icon_only { "Action".to_string() } else { String::new() }
-                                            >
-                                                {if is_icon_only { "★" } else { "Action" }}
-                                            </ActionButton>
-                                        }.into_any(),
-                                        (true, false) => view! {
-                                            <ActionButton
-                                                size=size
-                                                is_loading=is_loading
-                                                loading_placement=loading_placement
-                                                is_disabled=is_disabled
-                                                is_quiet=is_quiet
-                                                aria_label=if is_icon_only { "Action".to_string() } else { String::new() }
-                                            >
-                                                {if is_icon_only { "★" } else { "Action" }}
-                                            </ActionButton>
-                                        }.into_any(),
-                                        (false, true) => view! {
-                                            <ActionButton
-                                                size=size
-                                                is_loading=is_loading
-                                                loading_placement=loading_placement
-                                                is_disabled=is_disabled
-                                                is_quiet=is_quiet
-                                                aria_label=if is_icon_only { "Action".to_string() } else { String::new() }
-                                            >
-                                                {if is_icon_only { "★" } else { "Action" }}
-                                            </ActionButton>
-                                        }.into_any(),
-                                        (false, false) => view! {
-                                            <ActionButton
-                                                size=size
-                                                is_loading=is_loading
-                                                loading_placement=loading_placement
-                                                is_disabled=is_disabled
-                                                is_quiet=is_quiet
-                                                aria_label=if is_icon_only { "Action".to_string() } else { String::new() }
-                                            >
-                                                {if is_icon_only { "★" } else { "Action" }}
-                                            </ActionButton>
-                                        }.into_any(),
-                                    }}
+                                    <ActionButton
+                                        id="docs-action-button-workbench".to_string()
+                                        size=size
+                                        is_loading=is_loading
+                                        loading_placement=loading_placement
+                                        is_disabled=is_disabled
+                                        is_quiet=is_quiet
+                                        motion=ActionButtonMotion::default()
+                                        class_name="docs-action-button-workbench".to_string()
+                                        button_type=ActionButtonType::Button
+                                        aria_label=if is_icon_only { "Action".to_string() } else { String::new() }
+                                        aria_haspopup="menu"
+                                        aria_expanded=workbench_popup_expanded
+                                        aria_controls="docs-action-button-workbench-panel".to_string()
+                                        aria_controls_signal=workbench_controls_signal
+                                        lang=if workbench_lang_zh.get() { "zh-CN".to_string() } else { "en-US".to_string() }
+                                        dir=if workbench_rtl.get() { A11yDirection::Rtl } else { A11yDirection::Ltr }
+                                        node_ref=workbench_node_ref
+                                        on_press=workbench_on_press
+                                    >
+                                        {if is_icon_only { "★" } else { "Action" }}
+                                    </ActionButton>
+                                </div>
+                                <div id="docs-action-button-workbench-panel" class="ui-muted">
+                                    "popup expanded: " {move || workbench_popup_expanded_raw.get()}
+                                </div>
+                                <div class="ui-muted">
+                                    "workbench on_press count: " {move || workbench_press_count.get()}
                                 </div>
                             </div>
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground title="State Matrix (Default / Loading / Popup)" code_signal=matrix_code>
+                <div class="docs-row">
+                    <ActionButton
+                        id="docs-action-button-matrix-default".to_string()
+                        button_type=ActionButtonType::Button
+                        on_press=on_press
+                    >
+                        "Default"
+                    </ActionButton>
+                    <ActionButton
+                        id="docs-action-button-matrix-loading".to_string()
+                        is_loading=true
+                        loading_placement=ActionButtonLoadingPlacement::Start
+                        motion=ActionButtonMotion::default()
+                        on_press=on_press
+                    >
+                        "Loading"
+                    </ActionButton>
+                    <ActionButton
+                        id="docs-action-button-matrix-popup".to_string()
+                        is_quiet=true
+                        aria_haspopup="menu"
+                        aria_expanded=Signal::derive(move || true)
+                        aria_controls="docs-action-button-matrix-popup-panel".to_string()
+                        aria_controls_signal=Signal::derive(move || {
+                            Some("docs-action-button-matrix-popup-panel".to_string())
+                        })
+                        class_name="docs-action-button-workbench".to_string()
+                        lang="zh-CN".to_string()
+                        dir=A11yDirection::Rtl
+                        node_ref=NodeRef::new()
+                        on_press=on_press
+                    >
+                        "Popup"
+                    </ActionButton>
+                </div>
             </Playground>
         </ComponentPage>
     }
@@ -1511,15 +1595,62 @@ pub(super) fn action_button() -> AnyView {
 }
 
 pub(super) fn action_button_group() -> AnyView {
-    let (press_count, set_press_count) = signal(0_u32);
-    let on_press: OnPress = Callback::new(move |_| {
-        set_press_count.update(|count| *count += 1);
+    let (showcase_count, set_showcase_count) = signal(0_u32);
+    let on_showcase_press: OnPress = Callback::new(move |_| {
+        set_showcase_count.update(|count| *count += 1);
     });
 
-    let code = Signal::derive(move || {
+    let size_options = vec![
+        "xs".to_string(),
+        "s".to_string(),
+        "m".to_string(),
+        "l".to_string(),
+        "xl".to_string(),
+    ];
+    let density_options = vec!["Regular".to_string(), "Compact".to_string()];
+    let orientation_options = vec!["Horizontal".to_string(), "Vertical".to_string()];
+
+    let (workbench_size_index, set_workbench_size_index) = signal(Some(2_usize));
+    let (workbench_density_index, set_workbench_density_index) = signal(Some(0_usize));
+    let (workbench_orientation_index, set_workbench_orientation_index) = signal(Some(0_usize));
+    let (workbench_justified, set_workbench_justified) = signal(false);
+    let (workbench_quiet, set_workbench_quiet) = signal(false);
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_lang_zh, set_workbench_lang_zh) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+    let (workbench_press_count, set_workbench_press_count) = signal(0_u32);
+    let on_workbench_press: OnPress = Callback::new(move |_| {
+        set_workbench_press_count.update(|count| *count += 1);
+    });
+
+    let workbench_size = Signal::derive(move || match workbench_size_index.get().unwrap_or(2) {
+        0 => ActionButtonSize::Xs,
+        1 => ActionButtonSize::S,
+        3 => ActionButtonSize::L,
+        4 => ActionButtonSize::Xl,
+        _ => ActionButtonSize::M,
+    });
+    let workbench_density = Signal::derive(move || {
+        if workbench_density_index.get().unwrap_or(0) == 1 {
+            ActionButtonGroupDensity::Compact
+        } else {
+            ActionButtonGroupDensity::Regular
+        }
+    });
+    let workbench_orientation = Signal::derive(move || {
+        if workbench_orientation_index.get().unwrap_or(0) == 1 {
+            ActionButtonGroupOrientation::Vertical
+        } else {
+            ActionButtonGroupOrientation::Horizontal
+        }
+    });
+
+    let hello_code = Signal::derive(move || {
         r#"<ActionButtonGroup
   size=ActionButtonSize::S
   density=ActionButtonGroupDensity::Compact
+  orientation=ActionButtonGroupOrientation::Horizontal
   is_quiet=true
 >
   <ActionButton on_press=Callback::new(move |_| {})>"One"</ActionButton>
@@ -1529,17 +1660,66 @@ pub(super) fn action_button_group() -> AnyView {
             .to_string()
     });
 
-    let states_code = Signal::derive(move || {
-        r#"<ActionButtonGroup
-  orientation=ActionButtonGroupOrientation::Vertical
-  is_justified=true
-  aria_label="Vertical actions".to_string()
->
-  <ActionButton>"Top"</ActionButton>
-  <ActionButton>"Bottom"</ActionButton>
-</ActionButtonGroup>
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<ActionButtonGroup\n  size={:?}\n  density={:?}\n  orientation={:?}\n  is_justified={}\n  is_quiet={}\n  is_disabled={}\n  motion=ActionButtonGroupMotion::default()\n  aria_label=\"Action group workbench\".to_string()\n  lang={}.to_string()\n  dir={}\n  class_name={}\n>\n  <ActionButton on_press=on_press>\"Primary\"</ActionButton>\n  <ActionButton on_press=on_press>\"Secondary\"</ActionButton>\n  <ActionButton on_press=on_press>\"Danger\"</ActionButton>\n</ActionButtonGroup>",
+            workbench_size.get(),
+            workbench_density.get(),
+            workbench_orientation.get(),
+            workbench_justified.get(),
+            workbench_quiet.get(),
+            workbench_disabled.get(),
+            if workbench_lang_zh.get() {
+                "\"zh-CN\""
+            } else {
+                "\"en-US\""
+            },
+            if workbench_rtl.get() {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            },
+            if workbench_custom_class.get() {
+                "\"docs-action-button-group-workbench\".to_string()"
+            } else {
+                "String::new()"
+            }
+        )
+    });
 
-<ActionButtonGroup is_disabled=true density=ActionButtonGroupDensity::Compact>
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "ActionButtonGroupActualConfig {{\n  size: {:?},\n  density: {:?},\n  orientation: {:?},\n  is_justified: {},\n  is_quiet: {},\n  is_disabled: {},\n  motion: ActionButtonGroupMotion::default(),\n  aria_label: Some(\"Action group workbench\"),\n  lang: Some({:?}),\n  dir: Some({:?}),\n  class_name: {:?},\n}}",
+            workbench_size.get(),
+            workbench_density.get(),
+            workbench_orientation.get(),
+            workbench_justified.get(),
+            workbench_quiet.get(),
+            workbench_disabled.get(),
+            if workbench_lang_zh.get() {
+                "zh-CN"
+            } else {
+                "en-US"
+            },
+            if workbench_rtl.get() { "rtl" } else { "ltr" },
+            if workbench_custom_class.get() {
+                Some("docs-action-button-group-workbench")
+            } else {
+                None
+            },
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<ActionButtonGroup size=ActionButtonSize::M density=ActionButtonGroupDensity::Regular orientation=ActionButtonGroupOrientation::Horizontal aria_label="Default".to_string()>
+  <ActionButton on_press=Callback::new(move |_| {})>"A"</ActionButton>
+  <ActionButton on_press=Callback::new(move |_| {})>"B"</ActionButton>
+</ActionButtonGroup>
+<ActionButtonGroup size=ActionButtonSize::S density=ActionButtonGroupDensity::Compact orientation=ActionButtonGroupOrientation::Vertical is_justified=true is_quiet=true class_name="docs-action-button-group-workbench".to_string() lang="zh-CN".to_string() dir=A11yDirection::Rtl aria_label="Vertical".to_string()>
+  <ActionButton on_press=Callback::new(move |_| {})>"Top"</ActionButton>
+  <ActionButton on_press=Callback::new(move |_| {})>"Bottom"</ActionButton>
+</ActionButtonGroup>
+<ActionButtonGroup size=ActionButtonSize::M is_disabled=true motion=ActionButtonGroupMotion::default() aria_label="Disabled".to_string()>
   <ActionButton>"Disabled"</ActionButton>
   <ActionButton>"Group"</ActionButton>
 </ActionButtonGroup>"#
@@ -1551,54 +1731,143 @@ pub(super) fn action_button_group() -> AnyView {
             title="ActionButtonGroup"
             slug="action-button-group"
             group="Actions"
-            description="Toolbar-style action clusters with baseline state attrs for orientation, density, quiet/filled, and enablement."
+            description="Toolbar-style action clusters with full API workbench coverage."
         >
-            <Playground title="Default + compact" code_signal=code>
+            <Playground title="Hello World (Default + compact)" code_signal=hello_code>
                 <div class="docs-stack">
                     <ActionButtonGroup
                         size=ActionButtonSize::S
                         density=ActionButtonGroupDensity::Compact
                         orientation=ActionButtonGroupOrientation::Horizontal
                         is_quiet=true
+                        aria_label="Quick actions".to_string()
                     >
-                        <ActionButton on_press=on_press>"One"</ActionButton>
-                        <ActionButton on_press=on_press>"Two"</ActionButton>
-                        <ActionButton on_press=on_press>"Three"</ActionButton>
+                        <ActionButton on_press=on_showcase_press>"One"</ActionButton>
+                        <ActionButton on_press=on_showcase_press>"Two"</ActionButton>
+                        <ActionButton on_press=on_showcase_press>"Three"</ActionButton>
                     </ActionButtonGroup>
                     <span class="ui-muted">
                         "pressed: "
-                        {move || press_count.get().to_string()}
+                        {move || showcase_count.get().to_string()}
                     </span>
                 </div>
             </Playground>
 
-            <Playground title="Vertical + justified + disabled" code_signal=states_code>
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <ActionButtonGroup
-                            size=ActionButtonSize::M
-                            orientation=ActionButtonGroupOrientation::Vertical
-                            is_justified=true
-                            aria_label="Vertical actions".to_string()
-                        >
-                            <ActionButton>"Top"</ActionButton>
-                            <ActionButton>"Middle"</ActionButton>
-                            <ActionButton>"Bottom"</ActionButton>
-                        </ActionButtonGroup>
-
-                        <ActionButtonGroup
-                            size=ActionButtonSize::S
-                            density=ActionButtonGroupDensity::Compact
-                            is_disabled=true
-                            aria_label="Disabled actions".to_string()
-                        >
-                            <ActionButton>"Disabled"</ActionButton>
-                            <ActionButton>"Group"</ActionButton>
-                        </ActionButtonGroup>
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="action-button-group-workbench-controls">
+                        <SegmentedControl
+                            id_base="docs-action-button-group-size".to_string()
+                            options=size_options.clone()
+                            selected_index=workbench_size_index
+                            set_selected_index=set_workbench_size_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ActionButtonGroup size".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-action-button-group-density".to_string()
+                            options=density_options.clone()
+                            selected_index=workbench_density_index
+                            set_selected_index=set_workbench_density_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ActionButtonGroup density".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-action-button-group-orientation".to_string()
+                            options=orientation_options.clone()
+                            selected_index=workbench_orientation_index
+                            set_selected_index=set_workbench_orientation_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ActionButtonGroup orientation".to_string()
+                        />
+                        <Switch checked=workbench_justified set_checked=set_workbench_justified>
+                            "is_justified"
+                        </Switch>
+                        <Switch checked=workbench_quiet set_checked=set_workbench_quiet>
+                            "is_quiet"
+                        </Switch>
+                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
+                            "is_disabled"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "class_name"
+                        </Switch>
+                        <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
+                            "lang=zh-CN"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                            "dir=rtl"
+                        </Switch>
                     </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <ActionButtonGroup
+                        size=workbench_size.get()
+                        density=workbench_density.get()
+                        orientation=workbench_orientation.get()
+                        is_justified=workbench_justified.get()
+                        is_quiet=workbench_quiet.get()
+                        is_disabled=workbench_disabled.get()
+                        motion=ActionButtonGroupMotion::default()
+                        aria_label="Action group workbench".to_string()
+                        lang=if workbench_lang_zh.get() { "zh-CN".to_string() } else { "en-US".to_string() }
+                        dir=if workbench_rtl.get() { A11yDirection::Rtl } else { A11yDirection::Ltr }
+                        class_name=if workbench_custom_class.get() {
+                            "docs-action-button-group-workbench".to_string()
+                        } else {
+                            String::new()
+                        }
+                    >
+                        <ActionButton on_press=on_workbench_press>"Primary"</ActionButton>
+                        <ActionButton on_press=on_workbench_press>"Secondary"</ActionButton>
+                        <ActionButton on_press=on_workbench_press>"Danger"</ActionButton>
+                    </ActionButtonGroup>
                     <span class="ui-muted">
-                        "Vertical/compact/disabled/justified are all reflected via stable data-* attrs for baseline-level styling contracts."
+                        "workbench on_press count: "
+                        {move || workbench_press_count.get()}
                     </span>
+                </div>
+            </Playground>
+
+            <Playground title="State Matrix (Horizontal / Vertical / Disabled)" code_signal=matrix_code>
+                <div class="docs-row">
+                    <ActionButtonGroup
+                        size=ActionButtonSize::M
+                        density=ActionButtonGroupDensity::Regular
+                        orientation=ActionButtonGroupOrientation::Horizontal
+                        aria_label="Default group".to_string()
+                    >
+                        <ActionButton>"A"</ActionButton>
+                        <ActionButton>"B"</ActionButton>
+                    </ActionButtonGroup>
+                    <ActionButtonGroup
+                        size=ActionButtonSize::S
+                        density=ActionButtonGroupDensity::Compact
+                        orientation=ActionButtonGroupOrientation::Vertical
+                        is_justified=true
+                        is_quiet=true
+                        motion=ActionButtonGroupMotion::default()
+                        aria_label="Vertical group".to_string()
+                        lang="zh-CN".to_string()
+                        dir=A11yDirection::Rtl
+                        class_name="docs-action-button-group-workbench".to_string()
+                    >
+                        <ActionButton>"Top"</ActionButton>
+                        <ActionButton>"Bottom"</ActionButton>
+                    </ActionButtonGroup>
+                    <ActionButtonGroup
+                        size=ActionButtonSize::M
+                        is_disabled=true
+                        motion=ActionButtonGroupMotion::default()
+                        aria_label="Disabled group".to_string()
+                    >
+                        <ActionButton>"Disabled"</ActionButton>
+                        <ActionButton>"Group"</ActionButton>
+                    </ActionButtonGroup>
                 </div>
             </Playground>
         </ComponentPage>
@@ -1610,27 +1879,40 @@ pub(super) fn button_group() -> AnyView {
     let (left_count, set_left_count) = signal(0_usize);
     let (middle_count, set_middle_count) = signal(0_usize);
     let (right_count, set_right_count) = signal(0_usize);
+    let on_left: OnPress = Callback::new(move |_| set_left_count.update(|count| *count += 1));
+    let on_middle: OnPress = Callback::new(move |_| set_middle_count.update(|count| *count += 1));
+    let on_right: OnPress = Callback::new(move |_| set_right_count.update(|count| *count += 1));
 
-    let on_left: OnPress = Callback::new(move |_| {
-        set_left_count.update(|count| *count += 1);
+    let (workbench_vertical, set_workbench_vertical) = signal(false);
+    let (workbench_attached, set_workbench_attached) = signal(true);
+    let (workbench_custom_label, set_workbench_custom_label) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+    let (workbench_press_count, set_workbench_press_count) = signal(0_usize);
+    let on_workbench_press: OnPress =
+        Callback::new(move |_| set_workbench_press_count.update(|count| *count += 1));
+    let workbench_node_ref = NodeRef::<html::Div>::new();
+
+    let workbench_orientation = Signal::derive(move || {
+        if workbench_vertical.get() {
+            ButtonGroupOrientation::Vertical
+        } else {
+            ButtonGroupOrientation::Horizontal
+        }
     });
-    let on_middle: OnPress = Callback::new(move |_| {
-        set_middle_count.update(|count| *count += 1);
-    });
-    let on_right: OnPress = Callback::new(move |_| {
-        set_right_count.update(|count| *count += 1);
+    let workbench_motion = Signal::derive(move || {
+        if workbench_custom_motion.get() {
+            ui::button::ButtonGroupMotion {
+                enter_scale: 0.96,
+                ..ui::button::ButtonGroupMotion::default()
+            }
+        } else {
+            ui::button::ButtonGroupMotion::default()
+        }
     });
 
-    let (top_count, set_top_count) = signal(0_usize);
-    let (bottom_count, set_bottom_count) = signal(0_usize);
-    let on_top: OnPress = Callback::new(move |_| {
-        set_top_count.update(|count| *count += 1);
-    });
-    let on_bottom: OnPress = Callback::new(move |_| {
-        set_bottom_count.update(|count| *count += 1);
-    });
-
-    let code = Signal::derive(move || {
+    let hello_code = Signal::derive(move || {
         r#"<ButtonGroup is_attached=true>
   <Button variant=ButtonVariant::Secondary>"Left"</Button>
   <Button variant=ButtonVariant::Secondary>"Middle"</Button>
@@ -1638,19 +1920,82 @@ pub(super) fn button_group() -> AnyView {
 </ButtonGroup>"#
             .to_string()
     });
-
-    let states_code = Signal::derive(move || {
-        r#"<ButtonGroup
-  is_attached=false
-  orientation=ButtonGroupOrientation::Vertical
-  aria_label="Document actions".to_string()
->
-  <Button variant=ButtonVariant::Outline>"Top"</Button>
-  <Button variant=ButtonVariant::Outline is_disabled=true>"Disabled"</Button>
-  <Button variant=ButtonVariant::Outline>"Bottom"</Button>
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<ButtonGroup\n  orientation=ButtonGroupOrientation::{:?}\n  is_attached={}\n  motion={}\n  node_ref=NodeRef::<leptos::html::Div>::new()\n  aria_label={}\n  lang={}\n  dir={}\n  class_name={}\n>\n  <Button on_press=on_press>\"Left\"</Button>\n  <Button on_press=on_press>\"Center\"</Button>\n  <Button on_press=on_press>\"Right\"</Button>\n</ButtonGroup>",
+            workbench_orientation.get(),
+            workbench_attached.get(),
+            if workbench_custom_motion.get() {
+                "ButtonGroupMotion { enter_scale: 0.96, ..ButtonGroupMotion::default() }"
+            } else {
+                "ButtonGroupMotion::default()"
+            },
+            if workbench_custom_label.get() {
+                "\"Action buttons\".to_string()"
+            } else {
+                "\"\".to_string()"
+            },
+            if workbench_rtl.get() {
+                "\"ar\".to_string()"
+            } else {
+                "\"en-US\".to_string()"
+            },
+            if workbench_rtl.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
+            if workbench_custom_class.get() {
+                "\"docs-button-group-custom\".to_string()"
+            } else {
+                "\"\".to_string()"
+            }
+        )
+    });
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "ButtonGroupActualConfig {{\n  orientation: {:?},\n  is_attached: {},\n  motion: {},\n  node_ref: \"workbench_node_ref\",\n  aria_label: {:?},\n  lang: {:?},\n  dir: {},\n  class_name: {:?},\n  press_count: {},\n}}",
+            workbench_orientation.get(),
+            workbench_attached.get(),
+            if workbench_custom_motion.get() {
+                "ButtonGroupMotion(custom)"
+            } else {
+                "ButtonGroupMotion::default()"
+            },
+            if workbench_custom_label.get() {
+                Some("Action buttons")
+            } else {
+                None
+            },
+            if workbench_rtl.get() {
+                Some("ar")
+            } else {
+                Some("en-US")
+            },
+            if workbench_rtl.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
+            if workbench_custom_class.get() {
+                Some("docs-button-group-custom")
+            } else {
+                None
+            },
+            workbench_press_count.get(),
+        )
+    });
+    let matrix_code = Signal::derive(move || {
+        r#"<ButtonGroup orientation=ButtonGroupOrientation::Horizontal is_attached=true>
+  <Button>"Left"</Button><Button>"Center"</Button><Button>"Right"</Button>
+</ButtonGroup>
+<ButtonGroup orientation=ButtonGroupOrientation::Vertical is_attached=false aria_label="Doc actions".to_string()>
+  <Button>"Top"</Button><Button>"Middle"</Button><Button>"Bottom"</Button>
 </ButtonGroup>"#
             .to_string()
     });
+    let matrix_node_ref_horizontal = NodeRef::<html::Div>::new();
+    let matrix_node_ref_vertical = NodeRef::<html::Div>::new();
 
     view! {
         <ComponentPage
@@ -1659,7 +2004,7 @@ pub(super) fn button_group() -> AnyView {
             group="Actions"
             description="Groups Buttons with baseline-style root state attrs for orientation, attachment, and accessible labeling."
         >
-            <Playground title="Attached horizontal" code_signal=code>
+            <Playground title="Hello World (Default ButtonGroup)" code_signal=hello_code>
                 <div class="docs-stack">
                     <ButtonGroup is_attached=true orientation=ButtonGroupOrientation::Horizontal>
                         <Button variant=ButtonVariant::Secondary on_press=on_left>
@@ -1684,27 +2029,103 @@ pub(super) fn button_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Vertical + detached" code_signal=states_code>
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <Switch checked=workbench_vertical set_checked=set_workbench_vertical>
+                            "Vertical orientation"
+                        </Switch>
+                        <Switch checked=workbench_attached set_checked=set_workbench_attached>
+                            "is_attached"
+                        </Switch>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>
+                            "Custom motion"
+                        </Switch>
+                        <Switch checked=workbench_custom_label set_checked=set_workbench_custom_label>
+                            "Custom aria_label"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "Custom class_name"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                            "RTL + ar"
+                        </Switch>
+                    </div>
+                }
+            >
                 <div class="docs-stack">
+                    <ButtonGroup
+                        orientation=workbench_orientation.get()
+                        is_attached=workbench_attached.get()
+                        motion=workbench_motion.get()
+                        node_ref=workbench_node_ref
+                        aria_label=if workbench_custom_label.get() {
+                            "Action buttons".to_string()
+                        } else {
+                            String::new()
+                        }
+                        lang=if workbench_rtl.get() {
+                            "ar".to_string()
+                        } else {
+                            "en-US".to_string()
+                        }
+                        dir=if workbench_rtl.get() {
+                            A11yDirection::Rtl
+                        } else {
+                            A11yDirection::Ltr
+                        }
+                        class_name=if workbench_custom_class.get() {
+                            "docs-button-group-custom".to_string()
+                        } else {
+                            String::new()
+                        }
+                    >
+                        <Button variant=ButtonVariant::Secondary on_press=on_workbench_press>
+                            "Left"
+                        </Button>
+                        <Button variant=ButtonVariant::Secondary on_press=on_workbench_press>
+                            "Center"
+                        </Button>
+                        <Button variant=ButtonVariant::Secondary on_press=on_workbench_press>
+                            "Right"
+                        </Button>
+                    </ButtonGroup>
+                    <span class="ui-muted">"workbench presses: " {move || workbench_press_count.get()}</span>
+                </div>
+            </Playground>
+
+            <Playground title="State Matrix (Orientation + Attachment)" code_signal=matrix_code>
+                <div class="docs-stack">
+                    <ButtonGroup
+                        is_attached=true
+                        orientation=ButtonGroupOrientation::Horizontal
+                        motion=ui::button::ButtonGroupMotion::default()
+                        node_ref=matrix_node_ref_horizontal
+                        aria_label="Primary actions".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    >
+                        <Button variant=ButtonVariant::Secondary>"Left"</Button>
+                        <Button variant=ButtonVariant::Secondary>"Middle"</Button>
+                        <Button variant=ButtonVariant::Secondary>"Right"</Button>
+                    </ButtonGroup>
                     <ButtonGroup
                         is_attached=false
                         orientation=ButtonGroupOrientation::Vertical
+                        motion=ui::button::ButtonGroupMotion::default()
+                        node_ref=matrix_node_ref_vertical
                         aria_label="Document actions".to_string()
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                        class_name="docs-button-group-custom".to_string()
                     >
-                        <Button variant=ButtonVariant::Outline on_press=on_top>
-                            "Top"
-                        </Button>
-                        <Button variant=ButtonVariant::Outline is_disabled=true>
-                            "Disabled"
-                        </Button>
-                        <Button variant=ButtonVariant::Outline on_press=on_bottom>
-                            "Bottom"
-                        </Button>
+                        <Button variant=ButtonVariant::Outline>"Top"</Button>
+                        <Button variant=ButtonVariant::Outline is_disabled=true>"Disabled"</Button>
+                        <Button variant=ButtonVariant::Outline>"Bottom"</Button>
                     </ButtonGroup>
-                    <span class="ui-muted">
-                        "top/bottom clicks: "
-                        {move || format!("{}/{}", top_count.get(), bottom_count.get())}
-                    </span>
                 </div>
             </Playground>
         </ComponentPage>
@@ -1783,15 +2204,15 @@ pub(super) fn link_button() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/button/link_button/styles.rs */\n{}",
-            ui_components::link_button::styles::CSS
+            "/* crates/ui/src/button/link_button/styles.rs */\n{}",
+            ui::link_button::styles::CSS
         )
     });
 
     let workbench_actual_config = Signal::derive(move || {
         let rel_value = if sponsored_rel.get() { "sponsored" } else { "" };
         format!(
-            "LinkButtonWorkbenchConfig {{\n  variant: \"{:?}\",\n  size: \"{:?}\",\n  disabled: {},\n  target: \"{}\",\n  rel: \"{}\",\n}}",
+            "LinkButtonWorkbenchConfig {{\n  href: \"https://example.com/docs\",\n  variant: \"{:?}\",\n  size: \"{:?}\",\n  disabled: {},\n  target: \"{}\",\n  rel: \"{}\",\n  aria_label: {},\n  class_name: Some(\"docs-link-button-workbench\"),\n}}",
             variant.get(),
             size.get(),
             disabled.get(),
@@ -1800,8 +2221,20 @@ pub(super) fn link_button() -> AnyView {
             } else {
                 "_self"
             },
-            rel_value
+            rel_value,
+            if open_in_new_tab.get() {
+                "Some(\"Open docs in a new tab\")"
+            } else {
+                "Some(\"Open docs in the same tab\")"
+            },
         )
+    });
+
+    let showcase_code = Signal::derive(move || {
+        r#"<LinkButton href="https://example.com/docs".to_string()>
+  "Open docs"
+</LinkButton>"#
+            .to_string()
     });
 
     let states_code = Signal::derive(move || {
@@ -1840,11 +2273,17 @@ pub(super) fn link_button() -> AnyView {
             group="Actions"
             description="Button styling on anchors with baseline-style disabled semantics and secure rel handling for external targets."
         >
+            <Playground title="Hello World (Default LinkButton)" code_signal=showcase_code>
+                <LinkButton href="https://example.com/docs".to_string()>
+                    "Open docs"
+                </LinkButton>
+            </Playground>
+
             <Playground
                 title="Interactive Playground (Display + Config + Code + CSS Test)"
                 code_signal=code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/button/link_button/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui/src/button/link_button/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -1901,6 +2340,7 @@ pub(super) fn link_button() -> AnyView {
                                             size=size
                                             disabled=disabled
                                             aria_label="Open docs in a new tab".to_string()
+                                            class_name="docs-link-button-workbench".to_string()
                                         >
                                             "Open docs"
                                         </LinkButton>
@@ -1915,6 +2355,7 @@ pub(super) fn link_button() -> AnyView {
                                             size=size
                                             disabled=disabled
                                             aria_label="Open docs in the same tab".to_string()
+                                            class_name="docs-link-button-workbench".to_string()
                                         >
                                             "Open docs"
                                         </LinkButton>
@@ -1936,7 +2377,7 @@ pub(super) fn link_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Variant + size + disabled matrix" code_signal=states_code>
+            <Playground title="State Matrix (Variant + size + disabled)" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <LinkButton href="https://example.com/xs".to_string() size=ButtonSize::Xs>
@@ -1984,6 +2425,89 @@ pub(super) fn link_button() -> AnyView {
     .into_any()
 }
 pub(super) fn toggle_button() -> AnyView {
+    let showcase_node_ref: NodeRef<html::Button> = NodeRef::new();
+    let workbench_node_ref: NodeRef<html::Button> = NodeRef::new();
+
+    let showcase_code = Signal::derive(move || {
+        r#"<ToggleButton
+  default_pressed=true
+  motion=ToggleButtonMotion {
+    hover_scale: 1.06,
+    tap_scale: 0.95,
+    ..ToggleButtonMotion::default()
+  }
+  class_name="docs-toggle-button-custom".to_string()
+  aria_label="Mute notifications".to_string()
+  node_ref=NodeRef::new()
+>
+  "Mute"
+</ToggleButton>"#
+            .to_string()
+    });
+
+    let variant_options = vec![
+        "Default".to_string(),
+        "Accent".to_string(),
+        "Outline".to_string(),
+        "Secondary".to_string(),
+        "Ghost".to_string(),
+        "Destructive".to_string(),
+    ];
+    let size_options = vec![
+        "xs".to_string(),
+        "s".to_string(),
+        "m".to_string(),
+        "l".to_string(),
+        "xl".to_string(),
+    ];
+    let motion_options = vec!["default".to_string(), "custom".to_string()];
+
+    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let (size_index, set_size_index) = signal(Some(2_usize));
+    let (motion_index, set_motion_index) = signal(Some(0_usize));
+    let (disabled, set_disabled) = signal(false);
+    let (default_pressed, set_default_pressed) = signal(false);
+    let (custom_class, set_custom_class) = signal(false);
+    let (custom_aria, set_custom_aria) = signal(true);
+
+    let variant = Signal::derive(move || match variant_index.get().unwrap_or(0) {
+        1 => ToggleButtonVariant::Accent,
+        2 => ToggleButtonVariant::Outline,
+        3 => ToggleButtonVariant::Secondary,
+        4 => ToggleButtonVariant::Ghost,
+        5 => ToggleButtonVariant::Destructive,
+        _ => ToggleButtonVariant::Default,
+    });
+    let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
+        0 => ToggleButtonSize::Xs,
+        1 => ToggleButtonSize::S,
+        2 => ToggleButtonSize::M,
+        3 => ToggleButtonSize::L,
+        _ => ToggleButtonSize::Xl,
+    });
+    let motion = Signal::derive(move || match motion_index.get().unwrap_or(0) {
+        1 => ToggleButtonMotion {
+            hover_scale: 1.06,
+            tap_scale: 0.95,
+            ..ToggleButtonMotion::default()
+        },
+        _ => ToggleButtonMotion::default(),
+    });
+    let class_name = Signal::derive(move || {
+        if custom_class.get() {
+            "docs-toggle-button-custom".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let aria_label = Signal::derive(move || {
+        if custom_aria.get() {
+            "Toggle docs sample".to_string()
+        } else {
+            String::new()
+        }
+    });
+
     let (selected, set_selected) = signal(false);
     let selected_signal: Signal<bool> = Signal::derive(move || selected.get());
     let (last_change, set_last_change) = signal("none".to_string());
@@ -1996,48 +2520,8 @@ pub(super) fn toggle_button() -> AnyView {
         });
     });
 
-    let variant_options = vec![
-        "Default".to_string(),
-        "Accent".to_string(),
-        "Outline".to_string(),
-        "Secondary".to_string(),
-        "Ghost".to_string(),
-        "Destructive".to_string(),
-    ];
-    let (variant_index, set_variant_index) = signal(Some(0_usize));
-    let variant = Signal::derive(move || match variant_index.get().unwrap_or(0) {
-        1 => ToggleButtonVariant::Accent,
-        2 => ToggleButtonVariant::Outline,
-        3 => ToggleButtonVariant::Secondary,
-        4 => ToggleButtonVariant::Ghost,
-        5 => ToggleButtonVariant::Destructive,
-        _ => ToggleButtonVariant::Default,
-    });
-
-    let size_options = vec![
-        "xs".to_string(),
-        "s".to_string(),
-        "m".to_string(),
-        "l".to_string(),
-        "xl".to_string(),
-    ];
-    let (size_index, set_size_index) = signal(Some(2_usize));
-    let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
-        0 => ToggleButtonSize::Xs,
-        1 => ToggleButtonSize::S,
-        2 => ToggleButtonSize::M,
-        3 => ToggleButtonSize::L,
-        _ => ToggleButtonSize::Xl,
-    });
-
-    let (disabled, set_disabled) = signal(false);
-
-    let code = Signal::derive(move || {
-        let variant = variant.get();
-        let size = size.get();
-        let disabled = disabled.get();
-
-        let mut snippet = vec![
+    let workbench_code = Signal::derive(move || {
+        let lines = vec![
             "let (selected, set_selected) = signal(false);".to_string(),
             "let selected_signal: Signal<bool> = Signal::derive(move || selected.get());"
                 .to_string(),
@@ -2045,41 +2529,56 @@ pub(super) fn toggle_button() -> AnyView {
             String::new(),
             "<ToggleButton".to_string(),
             "  is_pressed=selected_signal".to_string(),
+            format!("  default_pressed={}", default_pressed.get()),
+            format!("  is_disabled={}", disabled.get()),
+            format!("  variant=ToggleButtonVariant::{:?}", variant.get()),
+            format!("  size=ToggleButtonSize::{:?}", size.get()),
+            format!("  motion={:?}", motion.get()),
             "  on_pressed_change=on_toggle_change".to_string(),
-        ];
-
-        if variant != ToggleButtonVariant::Default {
-            snippet.push(format!("  variant=ToggleButtonVariant::{variant:?}"));
-        }
-        if size != ToggleButtonSize::M {
-            snippet.push(format!("  size=ToggleButtonSize::{size:?}"));
-        }
-        if disabled {
-            snippet.push("  is_disabled=true".to_string());
-        }
-
-        snippet.extend([
+            format!("  class_name={:?}", class_name.get()),
+            format!("  aria_label={:?}", aria_label.get()),
+            "  node_ref=NodeRef::new()".to_string(),
             ">".to_string(),
             "  \"Toggle\"".to_string(),
             "</ToggleButton>".to_string(),
-        ]);
-
-        snippet.join("\n")
+        ];
+        lines.join("\n")
+    });
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "ToggleButtonWorkbenchConfig {{\n  is_pressed: {},\n  default_pressed: {:?},\n  is_disabled: {},\n  variant: {:?},\n  size: {:?},\n  motion: {:?},\n  on_pressed_change: {:?},\n  class_name: {:?},\n  aria_label: {:?},\n  node_ref: \"bound\",\n}}",
+            selected.get(),
+            Some(default_pressed.get()),
+            disabled.get(),
+            variant.get(),
+            size.get(),
+            motion.get(),
+            last_change.get(),
+            if class_name.get().is_empty() {
+                None::<String>
+            } else {
+                Some(class_name.get())
+            },
+            if aria_label.get().is_empty() {
+                None::<String>
+            } else {
+                Some(aria_label.get())
+            },
+        )
     });
 
     let (notifications, set_notifications) = signal(true);
     let (disabled_selected, set_disabled_selected) = signal(true);
     let (disabled_unselected, set_disabled_unselected) = signal(false);
     let notifications_signal: Signal<bool> = Signal::derive(move || notifications.get());
-    let on_notifications_change = Callback::new(move |next: bool| set_notifications.set(next));
     let disabled_selected_signal: Signal<bool> = Signal::derive(move || disabled_selected.get());
     let disabled_unselected_signal: Signal<bool> =
         Signal::derive(move || disabled_unselected.get());
+    let on_notifications_change = Callback::new(move |next: bool| set_notifications.set(next));
     let on_disabled_selected_change =
         Callback::new(move |next: bool| set_disabled_selected.set(next));
     let on_disabled_unselected_change =
         Callback::new(move |next: bool| set_disabled_unselected.set(next));
-
     let states_code = Signal::derive(move || {
         r#"<ToggleButton
   is_pressed=notifications_signal
@@ -2089,10 +2588,10 @@ pub(super) fn toggle_button() -> AnyView {
 >
   "Notifications"
 </ToggleButton>
-<ToggleButton is_pressed=disabled_selected_signal is_disabled=true>
+<ToggleButton is_pressed=disabled_selected_signal on_pressed_change=on_disabled_selected_change is_disabled=true>
   "Disabled on"
 </ToggleButton>
-<ToggleButton is_pressed=disabled_unselected_signal is_disabled=true>
+<ToggleButton is_pressed=disabled_unselected_signal on_pressed_change=on_disabled_unselected_change is_disabled=true>
   "Disabled off"
 </ToggleButton>"#
             .to_string()
@@ -2106,8 +2605,30 @@ pub(super) fn toggle_button() -> AnyView {
             description="Pressable toggle state with baseline-level spring motion and baseline-style root state attrs."
         >
             <Playground
-                title="Controlled + on_pressed_change"
-                code_signal=code
+                title="Hello World (Default API)"
+                code_signal=showcase_code
+            >
+                <div class="docs-row">
+                    <ToggleButton
+                        default_pressed=true
+                        motion=ToggleButtonMotion {
+                            hover_scale: 1.06,
+                            tap_scale: 0.95,
+                            ..ToggleButtonMotion::default()
+                        }
+                        class_name="docs-toggle-button-custom".to_string()
+                        aria_label="Mute notifications".to_string()
+                        node_ref=showcase_node_ref
+                    >
+                        "Mute"
+                    </ToggleButton>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Workbench (Controlled + on_pressed_change)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
                         <div class="docs-search__label">"Variant"</div>
@@ -2130,7 +2651,22 @@ pub(super) fn toggle_button() -> AnyView {
                             aria_label="ToggleButton size".to_string()
                         />
 
+                        <div class="docs-search__label">"Motion"</div>
+                        <SegmentedControl
+                            id_base="docs-toggle-button-motion".to_string()
+                            options=motion_options.clone()
+                            selected_index=motion_index
+                            set_selected_index=set_motion_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ToggleButton motion".to_string()
+                        />
+
                         <Switch checked=disabled set_checked=set_disabled>"Disabled"</Switch>
+                        <Switch checked=default_pressed set_checked=set_default_pressed>
+                            "Default pressed"
+                        </Switch>
+                        <Switch checked=custom_class set_checked=set_custom_class>"Custom class"</Switch>
+                        <Switch checked=custom_aria set_checked=set_custom_aria>"Custom aria label"</Switch>
                     </div>
                 }
             >
@@ -2144,10 +2680,15 @@ pub(super) fn toggle_button() -> AnyView {
                             <div class="docs-row">
                                 <ToggleButton
                                     is_pressed=selected_signal
+                                    default_pressed=default_pressed.get()
+                                    motion=motion.get()
                                     on_pressed_change=on_toggle_change
                                     variant=variant
                                     size=size
                                     is_disabled=disabled
+                                    class_name=class_name.get()
+                                    aria_label=aria_label.get()
+                                    node_ref=workbench_node_ref
                                 >
                                     "Toggle"
                                 </ToggleButton>
@@ -2162,7 +2703,7 @@ pub(super) fn toggle_button() -> AnyView {
                 }}
             </Playground>
 
-            <Playground title="Variant + size + disabled matrix" code_signal=states_code>
+            <Playground title="State Matrix (Variant + Size + Disabled)" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <ToggleButton
@@ -2201,6 +2742,101 @@ pub(super) fn toggle_button() -> AnyView {
     .into_any()
 }
 pub(super) fn toggle_button_group() -> AnyView {
+    let showcase_code = Signal::derive(move || {
+        r#"<ToggleButtonGroup
+  orientation=ToggleButtonGroupOrientation::Horizontal
+  is_attached=true
+  motion=ToggleButtonGroupMotion { duration_ms: 220.0 }
+  aria_label="Text style".to_string()
+  lang="en-US".to_string()
+  dir=A11yDirection::Ltr
+  class_name="docs-toggle-group-custom".to_string()
+>
+  <ToggleButton default_pressed=true>"Bold"</ToggleButton>
+  <ToggleButton>"Italic"</ToggleButton>
+  <ToggleButton>"Underline"</ToggleButton>
+</ToggleButtonGroup>"#
+            .to_string()
+    });
+
+    let orientation_options = vec!["Horizontal".to_string(), "Vertical".to_string()];
+    let variant_options = vec![
+        "Default".to_string(),
+        "Accent".to_string(),
+        "Outline".to_string(),
+        "Secondary".to_string(),
+        "Ghost".to_string(),
+        "Destructive".to_string(),
+    ];
+    let size_options = vec![
+        "xs".to_string(),
+        "s".to_string(),
+        "m".to_string(),
+        "l".to_string(),
+        "xl".to_string(),
+    ];
+    let motion_options = vec!["default".to_string(), "custom".to_string()];
+    let lang_options = vec!["en-US".to_string(), "zh-CN".to_string()];
+
+    let (orientation_index, set_orientation_index) = signal(Some(0_usize));
+    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let (size_index, set_size_index) = signal(Some(2_usize));
+    let (motion_index, set_motion_index) = signal(Some(0_usize));
+    let (lang_index, set_lang_index) = signal(Some(0_usize));
+    let (attached, set_attached) = signal(false);
+    let (rtl, set_rtl) = signal(false);
+    let (custom_class, set_custom_class) = signal(false);
+    let (custom_aria, set_custom_aria) = signal(true);
+
+    let orientation = Signal::derive(move || match orientation_index.get().unwrap_or(0) {
+        1 => ToggleButtonGroupOrientation::Vertical,
+        _ => ToggleButtonGroupOrientation::Horizontal,
+    });
+    let variant = Signal::derive(move || match variant_index.get().unwrap_or(0) {
+        1 => ToggleButtonVariant::Accent,
+        2 => ToggleButtonVariant::Outline,
+        3 => ToggleButtonVariant::Secondary,
+        4 => ToggleButtonVariant::Ghost,
+        5 => ToggleButtonVariant::Destructive,
+        _ => ToggleButtonVariant::Default,
+    });
+    let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
+        0 => ToggleButtonSize::Xs,
+        1 => ToggleButtonSize::S,
+        2 => ToggleButtonSize::M,
+        3 => ToggleButtonSize::L,
+        _ => ToggleButtonSize::Xl,
+    });
+    let motion = Signal::derive(move || match motion_index.get().unwrap_or(0) {
+        1 => ToggleButtonGroupMotion { duration_ms: 220.0 },
+        _ => ToggleButtonGroupMotion::default(),
+    });
+    let lang = Signal::derive(move || match lang_index.get().unwrap_or(0) {
+        1 => "zh-CN".to_string(),
+        _ => "en-US".to_string(),
+    });
+    let dir = Signal::derive(move || {
+        if rtl.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        }
+    });
+    let class_name = Signal::derive(move || {
+        if custom_class.get() {
+            "docs-toggle-group-custom".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let aria_label = Signal::derive(move || {
+        if custom_aria.get() {
+            "Formatting controls".to_string()
+        } else {
+            String::new()
+        }
+    });
+
     let (a, set_a) = signal(false);
     let (b, set_b) = signal(true);
     let (c, set_c) = signal(false);
@@ -2213,89 +2849,29 @@ pub(super) fn toggle_button_group() -> AnyView {
     let attached_selected_count =
         Signal::derive(move || usize::from(a.get()) + usize::from(b.get()) + usize::from(c.get()));
 
-    let orientation_options = vec!["Horizontal".to_string(), "Vertical".to_string()];
-    let (orientation_index, set_orientation_index) = signal(Some(0_usize));
-    let orientation = Signal::derive(move || match orientation_index.get().unwrap_or(0) {
-        1 => ToggleButtonGroupOrientation::Vertical,
-        _ => ToggleButtonGroupOrientation::Horizontal,
-    });
-
-    let (attached, set_attached) = signal(false);
-
-    let variant_options = vec![
-        "Default".to_string(),
-        "Accent".to_string(),
-        "Outline".to_string(),
-        "Secondary".to_string(),
-        "Ghost".to_string(),
-        "Destructive".to_string(),
-    ];
-    let (variant_index, set_variant_index) = signal(Some(0_usize));
-    let variant = Signal::derive(move || match variant_index.get().unwrap_or(0) {
-        1 => ToggleButtonVariant::Accent,
-        2 => ToggleButtonVariant::Outline,
-        3 => ToggleButtonVariant::Secondary,
-        4 => ToggleButtonVariant::Ghost,
-        5 => ToggleButtonVariant::Destructive,
-        _ => ToggleButtonVariant::Default,
-    });
-
-    let size_options = vec![
-        "xs".to_string(),
-        "s".to_string(),
-        "m".to_string(),
-        "l".to_string(),
-        "xl".to_string(),
-    ];
-    let (size_index, set_size_index) = signal(Some(2_usize));
-    let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
-        0 => ToggleButtonSize::Xs,
-        1 => ToggleButtonSize::S,
-        2 => ToggleButtonSize::M,
-        3 => ToggleButtonSize::L,
-        _ => ToggleButtonSize::Xl,
-    });
-
-    let code = Signal::derive(move || {
-        let orientation = orientation.get();
-        let attached = attached.get();
-        let variant = variant.get();
-        let size = size.get();
-
+    let workbench_code = Signal::derive(move || {
         let mut toggle_props = String::new();
-        if variant != ToggleButtonVariant::Default {
-            toggle_props.push_str(&format!(" variant=ToggleButtonVariant::{variant:?}"));
-        }
-        if size != ToggleButtonSize::M {
-            toggle_props.push_str(&format!(" size=ToggleButtonSize::{size:?}"));
-        }
-
-        let mut snippet = vec![
-            "let (bold, set_bold) = signal(false);".to_string(),
-            "let (italic, set_italic) = signal(true);".to_string(),
-            "let (underline, set_underline) = signal(false);".to_string(),
-            "let bold_signal: Signal<bool> = Signal::derive(move || bold.get());".to_string(),
-            "let italic_signal: Signal<bool> = Signal::derive(move || italic.get());".to_string(),
-            "let underline_signal: Signal<bool> = Signal::derive(move || underline.get());"
-                .to_string(),
-            "let on_bold_change = Callback::new(move |next| set_bold.set(next));".to_string(),
-            "let on_italic_change = Callback::new(move |next| set_italic.set(next));".to_string(),
-            "let on_underline_change = Callback::new(move |next| set_underline.set(next));"
-                .to_string(),
-            String::new(),
-            "<ToggleButtonGroup".to_string(),
-        ];
-
-        if orientation != ToggleButtonGroupOrientation::Horizontal {
-            snippet.push(format!(
-                "  orientation=ToggleButtonGroupOrientation::{orientation:?}"
+        if variant.get() != ToggleButtonVariant::Default {
+            toggle_props.push_str(&format!(
+                " variant=ToggleButtonVariant::{:?}",
+                variant.get()
             ));
         }
-        if attached {
-            snippet.push("  is_attached=true".to_string());
+        if size.get() != ToggleButtonSize::M {
+            toggle_props.push_str(&format!(" size=ToggleButtonSize::{:?}", size.get()));
         }
-
-        snippet.extend([
+        let snippet = vec![
+            "<ToggleButtonGroup".to_string(),
+            format!(
+                "  orientation=ToggleButtonGroupOrientation::{:?}",
+                orientation.get()
+            ),
+            format!("  is_attached={}", attached.get()),
+            format!("  motion={:?}", motion.get()),
+            format!("  aria_label={:?}", aria_label.get()),
+            format!("  lang={:?}", lang.get()),
+            format!("  dir={:?}", dir.get()),
+            format!("  class_name={:?}", class_name.get()),
             ">".to_string(),
             format!(
                 "  <ToggleButton is_pressed=bold_signal on_pressed_change=on_bold_change{toggle_props}>\"Bold\"</ToggleButton>"
@@ -2307,8 +2883,7 @@ pub(super) fn toggle_button_group() -> AnyView {
                 "  <ToggleButton is_pressed=underline_signal on_pressed_change=on_underline_change{toggle_props}>\"Underline\"</ToggleButton>"
             ),
             "</ToggleButtonGroup>".to_string(),
-        ]);
-
+        ];
         snippet.join("\n")
     });
 
@@ -2324,18 +2899,43 @@ pub(super) fn toggle_button_group() -> AnyView {
     let detached_selected_count = Signal::derive(move || {
         usize::from(left.get()) + usize::from(center.get()) + usize::from(right.get())
     });
-
     let states_code = Signal::derive(move || {
         r#"<ToggleButtonGroup
   orientation=ToggleButtonGroupOrientation::Vertical
   is_attached=false
   aria_label="Alignment controls".to_string()
+  lang="en-US".to_string()
+  dir=A11yDirection::Ltr
 >
   <ToggleButton is_pressed=left_signal on_pressed_change=on_left_change>"Left"</ToggleButton>
   <ToggleButton is_pressed=center_signal on_pressed_change=on_center_change>"Center"</ToggleButton>
   <ToggleButton is_pressed=right_signal on_pressed_change=on_right_change>"Right"</ToggleButton>
 </ToggleButtonGroup>"#
             .to_string()
+    });
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "ToggleButtonGroupWorkbenchConfig {{\n  orientation: {:?},\n  is_attached: {},\n  motion: {:?},\n  aria_label: {:?},\n  lang: {:?},\n  dir: {:?},\n  class_name: {:?},\n  pressed: {{ bold: {}, italic: {}, underline: {} }},\n  attached_selected_count: {},\n}}",
+            orientation.get(),
+            attached.get(),
+            motion.get(),
+            if aria_label.get().is_empty() {
+                None::<String>
+            } else {
+                Some(aria_label.get())
+            },
+            Some(lang.get()),
+            Some(dir.get()),
+            if class_name.get().is_empty() {
+                None::<String>
+            } else {
+                Some(class_name.get())
+            },
+            a.get(),
+            b.get(),
+            c.get(),
+            attached_selected_count.get(),
+        )
     });
 
     view! {
@@ -2346,8 +2946,28 @@ pub(super) fn toggle_button_group() -> AnyView {
             description="Layout wrapper with baseline-style root state attrs for orientation, attachment, and accessible labeling."
         >
             <Playground
-                title="Attached horizontal"
-                code_signal=code
+                title="Hello World (Default API)"
+                code_signal=showcase_code
+            >
+                <ToggleButtonGroup
+                    orientation=ToggleButtonGroupOrientation::Horizontal
+                    is_attached=true
+                    motion=ToggleButtonGroupMotion { duration_ms: 220.0 }
+                    aria_label="Text style".to_string()
+                    lang="en-US".to_string()
+                    dir=A11yDirection::Ltr
+                    class_name="docs-toggle-group-custom".to_string()
+                >
+                    <ToggleButton default_pressed=true>"Bold"</ToggleButton>
+                    <ToggleButton>"Italic"</ToggleButton>
+                    <ToggleButton>"Underline"</ToggleButton>
+                </ToggleButtonGroup>
+            </Playground>
+
+            <Playground
+                title="Workbench (Attached + Locale + Motion)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
                         <div class="docs-search__label">"Orientation"</div>
@@ -2380,9 +3000,32 @@ pub(super) fn toggle_button_group() -> AnyView {
                             aria_label="ToggleButtonGroup size".to_string()
                         />
 
+                        <div class="docs-search__label">"Motion"</div>
+                        <SegmentedControl
+                            id_base="docs-toggle-button-group-motion".to_string()
+                            options=motion_options.clone()
+                            selected_index=motion_index
+                            set_selected_index=set_motion_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ToggleButtonGroup motion".to_string()
+                        />
+
+                        <div class="docs-search__label">"Language"</div>
+                        <SegmentedControl
+                            id_base="docs-toggle-button-group-lang".to_string()
+                            options=lang_options.clone()
+                            selected_index=lang_index
+                            set_selected_index=set_lang_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ToggleButtonGroup language".to_string()
+                        />
+
                         <Switch checked=attached set_checked=set_attached>
                             "Attached layout"
                         </Switch>
+                        <Switch checked=rtl set_checked=set_rtl>"RTL direction"</Switch>
+                        <Switch checked=custom_class set_checked=set_custom_class>"Custom class"</Switch>
+                        <Switch checked=custom_aria set_checked=set_custom_aria>"Custom aria label"</Switch>
                     </div>
                 }
             >
@@ -2397,7 +3040,11 @@ pub(super) fn toggle_button_group() -> AnyView {
                             <ToggleButtonGroup
                                 orientation=orientation
                                 is_attached=attached
-                                aria_label="Formatting controls".to_string()
+                                motion=motion.get()
+                                aria_label=aria_label.get()
+                                lang=lang.get()
+                                dir=dir.get()
+                                class_name=class_name.get()
                             >
                                 <ToggleButton
                                     is_pressed=a_signal
@@ -2433,12 +3080,14 @@ pub(super) fn toggle_button_group() -> AnyView {
                 }}
             </Playground>
 
-            <Playground title="Vertical + detached" code_signal=states_code>
+            <Playground title="State Matrix (Orientation + Attachment + Selection)" code_signal=states_code>
                 <div class="docs-stack">
                     <ToggleButtonGroup
                         orientation=ToggleButtonGroupOrientation::Vertical
                         is_attached=false
                         aria_label="Alignment controls".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
                     >
                         <ToggleButton
                             is_pressed=left_signal
@@ -2489,6 +3138,30 @@ pub(super) fn theme_toggle_button() -> AnyView {
     let (disabled, set_disabled) = signal(false);
     let (two_mode_cycle, set_two_mode_cycle) = signal(false);
     let (custom_aria_label, set_custom_aria_label) = signal(false);
+    let (custom_class_name, set_custom_class_name) = signal(false);
+    let (custom_motion, set_custom_motion) = signal(false);
+    let variant_options = vec!["Ghost".to_string(), "Outline".to_string()];
+    let icon_size_options = vec!["IconSm".to_string(), "IconLg".to_string()];
+    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let (size_index, set_size_index) = signal(Some(0_usize));
+    let variant = Signal::derive(move || match variant_index.get().unwrap_or(0) {
+        1 => ButtonVariant::Outline,
+        _ => ButtonVariant::Ghost,
+    });
+    let size = Signal::derive(move || match size_index.get().unwrap_or(0) {
+        1 => ButtonSize::IconLg,
+        _ => ButtonSize::IconSm,
+    });
+    let motion = Signal::derive(move || {
+        if custom_motion.get() {
+            ThemeToggleMotion {
+                rotate_deg: 270.0,
+                ..ThemeToggleMotion::default()
+            }
+        } else {
+            ThemeToggleMotion::default()
+        }
+    });
 
     let code = Signal::derive(move || {
         let mode = match mode_index.get().unwrap_or(0) {
@@ -2499,6 +3172,10 @@ pub(super) fn theme_toggle_button() -> AnyView {
         let disabled = disabled.get();
         let two_mode_cycle = two_mode_cycle.get();
         let custom_aria_label = custom_aria_label.get();
+        let custom_class_name = custom_class_name.get();
+        let variant = variant.get();
+        let size = size.get();
+        let motion = motion.get();
 
         let mut snippet = vec![
             format!("let (mode, set_mode) = signal(ThemeMode::{mode:?});"),
@@ -2506,6 +3183,9 @@ pub(super) fn theme_toggle_button() -> AnyView {
             "<ThemeToggleButton".to_string(),
             "  mode=mode".to_string(),
             "  set_mode=set_mode".to_string(),
+            format!("  variant=ButtonVariant::{variant:?}"),
+            format!("  size=ButtonSize::{size:?}"),
+            format!("  motion={motion:?}"),
         ];
 
         if disabled {
@@ -2517,6 +3197,9 @@ pub(super) fn theme_toggle_button() -> AnyView {
         if custom_aria_label {
             snippet.push("  aria_label=\"Switch UI mode\".into()".to_string());
         }
+        if custom_class_name {
+            snippet.push("  class_name=\"docs-theme-toggle-custom\".into()".to_string());
+        }
 
         snippet.push("/>".to_string());
 
@@ -2525,6 +3208,11 @@ pub(super) fn theme_toggle_button() -> AnyView {
 
     let (custom_mode, set_custom_mode) = signal(ThemeMode::Dark);
     let custom_modes = vec![ThemeMode::Dark, ThemeMode::Light];
+    let showcase_code = Signal::derive(move || {
+        r#"let (mode, set_mode) = signal(ThemeMode::Light);
+<ThemeToggleButton mode=mode set_mode=set_mode />"#
+            .to_string()
+    });
 
     let states_code = Signal::derive(move || {
         r#"let (custom_mode, set_custom_mode) = signal(ThemeMode::Dark);
@@ -2539,6 +3227,30 @@ let (mode, set_mode) = signal(ThemeMode::System);
 <ThemeToggleButton mode=mode set_mode=set_mode is_disabled=true />"#
             .to_string()
     });
+    let workbench_actual_config = Signal::derive(move || {
+        let available_modes = if two_mode_cycle.get() {
+            vec!["Dark", "Light"]
+        } else {
+            vec!["Light", "Dark", "Oled"]
+        };
+        format!(
+            "ThemeToggleButtonWorkbenchConfig {{\n  mode: {:?},\n  set_mode: {:?},\n  is_disabled: {},\n  custom_aria_label: {},\n  two_mode_cycle: {},\n  modes: {:?},\n  variant: {:?},\n  size: {:?},\n  motion: {:?},\n  class_name: {:?},\n}}",
+            mode.get(),
+            "write_signal",
+            disabled.get(),
+            custom_aria_label.get(),
+            two_mode_cycle.get(),
+            available_modes,
+            variant.get(),
+            size.get(),
+            motion.get(),
+            if custom_class_name.get() {
+                "docs-theme-toggle-custom"
+            } else {
+                ""
+            },
+        )
+    });
 
     view! {
         <ComponentPage
@@ -2547,9 +3259,16 @@ let (mode, set_mode) = signal(ThemeMode::System);
             group="Actions"
             description="Icon-only theme toggle with baseline-level spring motion and baseline-style mode state attrs."
         >
+            <Playground title="Hello World (Default API)" code_signal=showcase_code>
+                <div class="docs-row">
+                    <ThemeToggleButton mode=mode set_mode=set_mode />
+                </div>
+            </Playground>
+
             <Playground
                 title="Default cycle"
                 code_signal=code
+                test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
                         <div class="docs-search__label">"Start mode"</div>
@@ -2569,6 +3288,30 @@ let (mode, set_mode) = signal(ThemeMode::System);
                         <Switch checked=custom_aria_label set_checked=set_custom_aria_label>
                             "Custom aria label"
                         </Switch>
+                        <Switch checked=custom_class_name set_checked=set_custom_class_name>
+                            "Custom class"
+                        </Switch>
+                        <Switch checked=custom_motion set_checked=set_custom_motion>
+                            "Custom motion"
+                        </Switch>
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-theme-toggle-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=variant_index
+                            set_selected_index=set_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ThemeToggle variant".to_string()
+                        />
+                        <div class="docs-search__label">"Size"</div>
+                        <SegmentedControl
+                            id_base="docs-theme-toggle-size".to_string()
+                            options=icon_size_options.clone()
+                            selected_index=size_index
+                            set_selected_index=set_size_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ThemeToggle size".to_string()
+                        />
                     </div>
                 }
             >
@@ -2592,6 +3335,14 @@ let (mode, set_mode) = signal(ThemeMode::System);
                                         is_disabled=disabled
                                         modes=modes.clone()
                                         aria_label="Switch UI mode".to_string()
+                                        variant=variant.get()
+                                        size=size.get()
+                                        motion=motion.get()
+                                        class_name=if custom_class_name.get() {
+                                            "docs-theme-toggle-custom".to_string()
+                                        } else {
+                                            String::new()
+                                        }
                                     />
                                 }
                                     .into_any()
@@ -2602,6 +3353,14 @@ let (mode, set_mode) = signal(ThemeMode::System);
                                         set_mode=set_mode
                                         is_disabled=disabled
                                         modes=modes
+                                        variant=variant.get()
+                                        size=size.get()
+                                        motion=motion.get()
+                                        class_name=if custom_class_name.get() {
+                                            "docs-theme-toggle-custom".to_string()
+                                        } else {
+                                            String::new()
+                                        }
                                     />
                                 }
                                     .into_any()
@@ -2612,7 +3371,7 @@ let (mode, set_mode) = signal(ThemeMode::System);
                 }}
             </Playground>
 
-            <Playground title="Custom modes + disabled" code_signal=states_code>
+            <Playground title="State Matrix (Custom Modes + Disabled Comparison)" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <ThemeToggleButton
@@ -2620,6 +3379,13 @@ let (mode, set_mode) = signal(ThemeMode::System);
                             set_mode=set_custom_mode
                             modes=custom_modes.clone()
                             aria_label="Switch UI mode".to_string()
+                            variant=ButtonVariant::Outline
+                            size=ButtonSize::IconLg
+                            motion=ThemeToggleMotion {
+                                rotate_deg: 270.0,
+                                ..ThemeToggleMotion::default()
+                            }
+                            class_name="docs-theme-toggle-custom".to_string()
                         />
                         <span class="ui-muted">
                             "custom mode: " {move || format!("{:?}", custom_mode.get())}
@@ -2690,8 +3456,13 @@ pub(super) fn search_input_button() -> AnyView {
     let (disabled, set_disabled) = signal(initial_workbench_state.is_disabled);
     let (custom_aria_label, set_custom_aria_label) =
         signal(initial_workbench_state.custom_aria_label);
+    let (custom_motion, set_custom_motion) = signal(false);
+    let (custom_class, set_custom_class) = signal(false);
+    let (submit_type, set_submit_type) = signal(false);
+    let (rtl_dir, set_rtl_dir) = signal(false);
     let (persist_workbench_state, set_persist_workbench_state) =
         signal(has_persisted_workbench_state);
+    let workbench_node_ref: NodeRef<html::Button> = NodeRef::new();
 
     Effect::new(move |_| {
         let state = SearchInputButtonWorkbenchState {
@@ -2738,6 +3509,41 @@ pub(super) fn search_input_button() -> AnyView {
         if custom_aria_label {
             snippet.push("  aria_label=\"Open command menu\".into()".to_string());
         }
+        if custom_motion.get() {
+            snippet.push(
+                "  motion=SearchInputButtonMotion { hover_scale: 1.04, tap_scale: 0.96, ..SearchInputButtonMotion::default() }"
+                    .to_string(),
+            );
+        }
+        if custom_class.get() {
+            snippet.push("  class_name=\"docs-search-input-button-custom\".into()".to_string());
+        }
+        snippet.push(format!(
+            "  button_type={}",
+            if submit_type.get() {
+                "Some(ui::button::ButtonType::Submit)"
+            } else {
+                "Some(ui::button::ButtonType::Button)"
+            }
+        ));
+        snippet.push(format!(
+            "  lang={}",
+            if rtl_dir.get() {
+                "\"ar\".to_string()"
+            } else {
+                "\"en-US\".to_string()"
+            }
+        ));
+        snippet.push(format!(
+            "  dir={}",
+            if rtl_dir.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            }
+        ));
+        snippet.push("  node_ref=NodeRef::<leptos::html::Button>::new()".to_string());
+        snippet.push("  on_press=Some(Callback::new(move |_| {}))".to_string());
 
         snippet.push("/>".to_string());
 
@@ -2764,6 +3570,49 @@ pub(super) fn search_input_button() -> AnyView {
 />"#
         .to_string()
     });
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "SearchInputButtonWorkbenchConfig {{\n  placeholder: {:?},\n  compact_placeholder: {:?},\n  meta_key_label: {:?},\n  key_label: {:?},\n  is_disabled: {},\n  motion: {},\n  class_name: {:?},\n  button_type: {},\n  aria_label: {:?},\n  lang: {:?},\n  dir: {},\n  node_ref: \"workbench_node_ref\",\n  on_press: \"increment press_count\",\n  custom_aria_label: {},\n  persist_workbench_state: {},\n  on_press_count: {},\n}}",
+            placeholder.get(),
+            compact_placeholder.get(),
+            meta_key_label.get(),
+            key_label.get(),
+            disabled.get(),
+            if custom_motion.get() {
+                "SearchInputButtonMotion(custom)"
+            } else {
+                "SearchInputButtonMotion::default()"
+            },
+            if custom_class.get() {
+                Some("docs-search-input-button-custom")
+            } else {
+                None
+            },
+            if submit_type.get() {
+                "Some(ButtonType::Submit)"
+            } else {
+                "Some(ButtonType::Button)"
+            },
+            if custom_aria_label.get() {
+                Some("Open command menu")
+            } else {
+                None
+            },
+            if rtl_dir.get() {
+                Some("ar")
+            } else {
+                Some("en-US")
+            },
+            if rtl_dir.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
+            custom_aria_label.get(),
+            persist_workbench_state.get(),
+            press_count.get(),
+        )
+    });
 
     view! {
         <ComponentPage
@@ -2772,9 +3621,17 @@ pub(super) fn search_input_button() -> AnyView {
             group="Actions"
             description="baseline-level spring search trigger button with centralized placeholder/shortcut/aria-label state attrs."
         >
+            <Playground title="Hello World (Default SearchInputButton)" code_signal=code>
+                <div class="docs-row">
+                    <SearchInputButton on_press=on_press />
+                    <span class="ui-muted">"presses: " {move || press_count.get().to_string()}</span>
+                </div>
+            </Playground>
+
             <Playground
-                title="Interactive + shortcut"
+                title="Workbench (All API + Actual Config)"
                 code_signal=code
+                test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
                         <div class="docs-search__label">"Preset"</div>
@@ -2811,6 +3668,16 @@ pub(super) fn search_input_button() -> AnyView {
                         <Switch checked=custom_aria_label set_checked=set_custom_aria_label>
                             "Custom aria label"
                         </Switch>
+                        <Switch checked=custom_motion set_checked=set_custom_motion>
+                            "Custom motion"
+                        </Switch>
+                        <Switch checked=custom_class set_checked=set_custom_class>
+                            "Custom class_name"
+                        </Switch>
+                        <Switch checked=submit_type set_checked=set_submit_type>
+                            "button_type submit"
+                        </Switch>
+                        <Switch checked=rtl_dir set_checked=set_rtl_dir>"RTL + ar"</Switch>
                         <Switch checked=persist_workbench_state set_checked=set_persist_workbench_state>
                             "Persist workbench state"
                         </Switch>
@@ -2828,7 +3695,7 @@ pub(super) fn search_input_button() -> AnyView {
                     view! {
                         <div class="docs-stack">
                             <div class="docs-row">
-                                {if custom_aria_label {
+                    {if custom_aria_label {
                                     view! {
                                         <SearchInputButton
                                             placeholder=placeholder.clone()
@@ -2837,6 +3704,36 @@ pub(super) fn search_input_button() -> AnyView {
                                             key_label=key_label.clone()
                                             aria_label="Open command menu".to_string()
                                             is_disabled=disabled
+                                            motion=if custom_motion.get() {
+                                                SearchInputButtonMotion {
+                                                    hover_scale: 1.04,
+                                                    tap_scale: 0.96,
+                                                    ..SearchInputButtonMotion::default()
+                                                }
+                                            } else {
+                                                SearchInputButtonMotion::default()
+                                            }
+                                            class_name=if custom_class.get() {
+                                                "docs-search-input-button-custom".to_string()
+                                            } else {
+                                                String::new()
+                                            }
+                                            button_type=if submit_type.get() {
+                                                ui::button::ButtonType::Submit
+                                            } else {
+                                                ui::button::ButtonType::Button
+                                            }
+                                            lang=if rtl_dir.get() {
+                                                "ar".to_string()
+                                            } else {
+                                                "en-US".to_string()
+                                            }
+                                            dir=if rtl_dir.get() {
+                                                A11yDirection::Rtl
+                                            } else {
+                                                A11yDirection::Ltr
+                                            }
+                                            node_ref=workbench_node_ref
                                             on_press=on_press
                                         />
                                     }
@@ -2849,6 +3746,36 @@ pub(super) fn search_input_button() -> AnyView {
                                             meta_key_label=meta_key_label
                                             key_label=key_label
                                             is_disabled=disabled
+                                            motion=if custom_motion.get() {
+                                                SearchInputButtonMotion {
+                                                    hover_scale: 1.04,
+                                                    tap_scale: 0.96,
+                                                    ..SearchInputButtonMotion::default()
+                                                }
+                                            } else {
+                                                SearchInputButtonMotion::default()
+                                            }
+                                            class_name=if custom_class.get() {
+                                                "docs-search-input-button-custom".to_string()
+                                            } else {
+                                                String::new()
+                                            }
+                                            button_type=if submit_type.get() {
+                                                ui::button::ButtonType::Submit
+                                            } else {
+                                                ui::button::ButtonType::Button
+                                            }
+                                            lang=if rtl_dir.get() {
+                                                "ar".to_string()
+                                            } else {
+                                                "en-US".to_string()
+                                            }
+                                            dir=if rtl_dir.get() {
+                                                A11yDirection::Rtl
+                                            } else {
+                                                A11yDirection::Ltr
+                                            }
+                                            node_ref=workbench_node_ref
                                             on_press=on_press
                                         />
                                     }
@@ -2861,7 +3788,7 @@ pub(super) fn search_input_button() -> AnyView {
                 }}
             </Playground>
 
-            <Playground title="Placeholder + disabled matrix" code_signal=states_code>
+            <Playground title="State Matrix (Placeholder + Disabled)" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <SearchInputButton placeholder="Find components".to_string() />
@@ -2964,12 +3891,15 @@ pub(super) fn button_copy() -> AnyView {
     let text = Signal::derive(move || match text_index.get().unwrap_or(0) {
         1 => "https://example.com/docs".to_string(),
         2 => "token=sk-demo-123".to_string(),
-        _ => "cargo add ui-components".to_string(),
+        _ => "cargo add ui".to_string(),
     });
 
     let (feedback_scale, set_feedback_scale) = signal(initial_workbench_state.feedback_scale);
     let (feedback_glow, set_feedback_glow) = signal(initial_workbench_state.feedback_glow);
     let (is_disabled, set_is_disabled) = signal(initial_workbench_state.is_disabled);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
     let (workbench_persist_state, set_workbench_persist_state) =
         signal(has_persisted_workbench_state);
 
@@ -2997,8 +3927,8 @@ pub(super) fn button_copy() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/button/copy/styles.rs */\n{}",
-            ui_components::button::copy::styles::CSS
+            "/* crates/ui/src/button/copy/styles.rs */\n{}",
+            ui::button::copy::styles::CSS
         )
     });
 
@@ -3012,17 +3942,36 @@ pub(super) fn button_copy() -> AnyView {
         let text = text.get();
 
         format!(
-            "ButtonCopyWorkbenchConfig {{\n  mode: {mode:?},\n  variant: {variant:?},\n  size: {size:?},\n  is_disabled: {is_disabled},\n  copied_feedback_scale: {copied_feedback_scale:.2},\n  copied_feedback_glow: {copied_feedback_glow:.2},\n  text: \"{text}\",\n}}"
+            "ButtonCopyWorkbenchConfig {{\n  text: \"{text}\",\n  label: \"Copy value\",\n  copied_label: \"Copied!\",\n  aria_label: {:?},\n  is_disabled: {is_disabled},\n  mode: {mode:?},\n  variant: {variant:?},\n  size: {size:?},\n  motion: ButtonCopyMotion {{ copied_feedback_scale: {copied_feedback_scale:.2}, copied_feedback_glow: {copied_feedback_glow:.2}, ..Default::default() }},\n  class_name: {:?},\n  lang: {:?},\n  dir: {},\n  copied_feedback_scale: {copied_feedback_scale:.2},\n  copied_feedback_glow: {copied_feedback_glow:.2},\n}}",
+            if workbench_custom_aria.get() {
+                Some("Copy selected text")
+            } else {
+                None
+            },
+            if workbench_custom_class.get() {
+                Some("docs-button-copy-custom")
+            } else {
+                None
+            },
+            if workbench_rtl.get() {
+                Some("ar")
+            } else {
+                Some("en-US")
+            },
+            if workbench_rtl.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
         )
     });
 
-    let hello_world_code = Signal::derive(move || {
-        r#"<ButtonCopy text="cargo add ui-components".to_string() />"#.to_string()
-    });
+    let hello_world_code =
+        Signal::derive(move || r#"<ButtonCopy text="cargo add ui".to_string() />"#.to_string());
 
     let code = Signal::derive(move || {
         r#"<ButtonCopy
-  text="cargo add ui-components".to_string()
+  text="cargo add ui".to_string()
   label="Copy install command".to_string()
   copied_label="Copied!".to_string()
 />"#
@@ -3037,9 +3986,9 @@ pub(super) fn button_copy() -> AnyView {
     });
 
     let modes_code = Signal::derive(move || {
-        r#"<ButtonCopy text="cargo add ui-components".to_string() mode=ButtonCopyMode::TextOnly />
-<ButtonCopy text="cargo add ui-components".to_string() mode=ButtonCopyMode::IconOnly />
-<ButtonCopy text="cargo add ui-components".to_string() mode=ButtonCopyMode::IconAndText />"#
+        r#"<ButtonCopy text="cargo add ui".to_string() mode=ButtonCopyMode::TextOnly />
+<ButtonCopy text="cargo add ui".to_string() mode=ButtonCopyMode::IconOnly />
+<ButtonCopy text="cargo add ui".to_string() mode=ButtonCopyMode::IconAndText />"#
             .to_string()
     });
 
@@ -3066,7 +4015,7 @@ pub(super) fn button_copy() -> AnyView {
         >
             <Playground title="Hello World" code_signal=hello_world_code>
                 <div class="docs-row">
-                    <ButtonCopy text="cargo add ui-components".to_string() />
+                    <ButtonCopy text="cargo add ui".to_string() />
                 </div>
                 <span class="ui-muted">"Start simple, then move to advanced controls."</span>
             </Playground>
@@ -3074,7 +4023,7 @@ pub(super) fn button_copy() -> AnyView {
             <Playground title="Label + variant" code_signal=code>
                 <div class="docs-row">
                     <ButtonCopy
-                        text="cargo add ui-components".to_string()
+                        text="cargo add ui".to_string()
                         label="Copy install command".to_string()
                         copied_label="Copied!".to_string()
                     />
@@ -3106,15 +4055,15 @@ pub(super) fn button_copy() -> AnyView {
             <Playground title="Mode matrix" code_signal=modes_code>
                 <div class="docs-row">
                     <ButtonCopy
-                        text="cargo add ui-components".to_string()
+                        text="cargo add ui".to_string()
                         mode=ButtonCopyMode::TextOnly
                     />
                     <ButtonCopy
-                        text="cargo add ui-components".to_string()
+                        text="cargo add ui".to_string()
                         mode=ButtonCopyMode::IconOnly
                     />
                     <ButtonCopy
-                        text="cargo add ui-components".to_string()
+                        text="cargo add ui".to_string()
                         mode=ButtonCopyMode::IconAndText
                     />
                 </div>
@@ -3124,7 +4073,7 @@ pub(super) fn button_copy() -> AnyView {
                 title="Workbench (Isolated Canvas + Optional Persist)"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/code/personal/omne/rust-ui/crates/ui-components/src/button/copy/styles.rs".to_string()
+                test_source_path="/root/code/personal/omne/rust-ui/crates/ui/src/button/copy/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 description="Workbench canvas: scoped CSS live-edit + optional state persistence across reload."
                 controls=move || view! {
@@ -3210,6 +4159,13 @@ pub(super) fn button_copy() -> AnyView {
                         />
 
                         <Switch checked=is_disabled set_checked=set_is_disabled>"Disabled"</Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "Custom class_name"
+                        </Switch>
+                        <Switch checked=workbench_custom_aria set_checked=set_workbench_custom_aria>
+                            "Custom aria_label"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>"RTL + ar"</Switch>
                         <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
                             "Persist workbench state"
                         </Switch>
@@ -3242,12 +4198,55 @@ pub(super) fn button_copy() -> AnyView {
                                     motion=motion
                                     label="Copy value".to_string()
                                     copied_label="Copied!".to_string()
+                                    aria_label=if workbench_custom_aria.get() {
+                                        "Copy selected text".to_string()
+                                    } else {
+                                        String::new()
+                                    }
+                                    class_name=if workbench_custom_class.get() {
+                                        "docs-button-copy-custom".to_string()
+                                    } else {
+                                        String::new()
+                                    }
+                                    lang=if workbench_rtl.get() {
+                                        "ar".to_string()
+                                    } else {
+                                        "en-US".to_string()
+                                    }
+                                    dir=if workbench_rtl.get() {
+                                        A11yDirection::Rtl
+                                    } else {
+                                        A11yDirection::Ltr
+                                    }
                                 />
                                 <span class="ui-muted">"text: " {text}</span>
                             </div>
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Mode + Disabled Comparison)"
+                code_signal=modes_code
+            >
+                <div class="docs-row">
+                    <ButtonCopy
+                        text="cargo add ui".to_string()
+                        mode=ButtonCopyMode::TextOnly
+                        motion=ButtonCopyMotion::default()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <ButtonCopy
+                        text="cargo add ui".to_string()
+                        mode=ButtonCopyMode::IconAndText
+                        is_disabled=true
+                        class_name="docs-button-copy-custom".to_string()
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                    />
+                </div>
             </Playground>
         </ComponentPage>
     }
@@ -3324,11 +4323,62 @@ pub(super) fn flip_button() -> AnyView {
                 _ => "Top",
             },
         );
+    let (interactive_custom_motion, set_interactive_custom_motion) = signal(false);
+    let (interactive_custom_class, set_interactive_custom_class) = signal(false);
+    let (interactive_rtl, set_interactive_rtl) = signal(false);
+    let workbench_node_ref = NodeRef::<html::Div>::new();
 
     let interactive_code = Signal::derive(move || {
         let direction = interactive_direction_label.get();
         format!(
-            "<FlipButton\n  from=FlipDirection::{direction}\n  front=move || view! {{ <Button variant=ButtonVariant::Secondary>\"Front\"</Button> }}\n  back=move || view! {{ <Button variant=ButtonVariant::Accent>\"Back\"</Button> }}\n/>"
+            "<FlipButton\n  from=FlipDirection::{direction}\n  motion={}\n  class_name={}\n  lang={}\n  dir={}\n  node_ref=NodeRef::<leptos::html::Div>::new()\n  front=move || view! {{ <Button variant=ButtonVariant::Secondary>\"Front\"</Button> }}\n  back=move || view! {{ <Button variant=ButtonVariant::Accent>\"Back\"</Button> }}\n/>",
+            if interactive_custom_motion.get() {
+                "Some(FlipButtonMotion { spring: ui_motion::spring::SpringConfig { stiffness: 340.0, damping: 22.0, mass: 1.0, ..Default::default() } })"
+            } else {
+                "Some(FlipButtonMotion::default())"
+            },
+            if interactive_custom_class.get() {
+                "\"docs-flip-button-custom\".to_string()"
+            } else {
+                "\"\".to_string()"
+            },
+            if interactive_rtl.get() {
+                "\"ar\".to_string()"
+            } else {
+                "\"en-US\".to_string()"
+            },
+            if interactive_rtl.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            }
+        )
+    });
+    let interactive_actual_config = Signal::derive(move || {
+        format!(
+            "FlipButtonWorkbenchConfig {{\n  from: {:?},\n  motion: {},\n  class_name: {:?},\n  lang: {:?},\n  dir: {},\n  node_ref: \"workbench_node_ref\",\n  front: \"Front\",\n  back: \"Back\",\n  persist_workbench_state: {},\n}}",
+            interactive_direction.get(),
+            if interactive_custom_motion.get() {
+                "Some(FlipButtonMotion(custom))"
+            } else {
+                "Some(FlipButtonMotion::default())"
+            },
+            if interactive_custom_class.get() {
+                Some("docs-flip-button-custom")
+            } else {
+                None
+            },
+            if interactive_rtl.get() {
+                Some("ar")
+            } else {
+                Some("en-US")
+            },
+            if interactive_rtl.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
+            workbench_persist_state.get(),
         )
     });
 
@@ -3346,10 +4396,10 @@ pub(super) fn flip_button() -> AnyView {
                 "Streaming: render while the LLM is still generating. Snapshot: render once output is complete."
             </p>
             <p class="ui-muted" data-slot="flip-button-copy-ready-hint">
-                "Copy-ready snippets prepend imports automatically; dependency: ui-components; source: crates/ui-components/src/button/flip/view.rs."
+                "Copy-ready snippets prepend imports automatically; dependency: ui; source: crates/ui/src/button/flip/view.rs."
             </p>
 
-            <Playground title="Top flip" code_signal=code>
+            <Playground title="Hello World (Default FlipButton)" code_signal=code>
                 <div class="docs-row">
                     <FlipButton
                         from=FlipDirection::Top
@@ -3359,7 +4409,7 @@ pub(super) fn flip_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Direction matrix" code_signal=states_code>
+            <Playground title="Direction Gallery" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <FlipButton
@@ -3395,6 +4445,7 @@ pub(super) fn flip_button() -> AnyView {
             <Playground
                 title="Interactive Playground"
                 code_signal=interactive_code
+                test_config_signal=interactive_actual_config
                 description="Workbench canvas: scoped CSS live-edit + optional state persistence across reload."
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="flip-button-workbench-controls">
@@ -3410,6 +4461,13 @@ pub(super) fn flip_button() -> AnyView {
                         <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
                             "Persist workbench state"
                         </Switch>
+                        <Switch checked=interactive_custom_motion set_checked=set_interactive_custom_motion>
+                            "Custom motion"
+                        </Switch>
+                        <Switch checked=interactive_custom_class set_checked=set_interactive_custom_class>
+                            "Custom class_name"
+                        </Switch>
+                        <Switch checked=interactive_rtl set_checked=set_interactive_rtl>"RTL + ar"</Switch>
                     </div>
                 }
             >
@@ -3430,6 +4488,31 @@ pub(super) fn flip_button() -> AnyView {
                                 <div class="docs-row">
                                     <FlipButton
                                         from=direction
+                                        motion=if interactive_custom_motion.get() {
+                                            let mut motion = FlipButtonMotion::default();
+                                            motion.spring.stiffness = 340.0;
+                                            motion.spring.damping = 22.0;
+                                            motion.spring.mass = 1.0;
+                                            motion
+                                        } else {
+                                            FlipButtonMotion::default()
+                                        }
+                                        class_name=if interactive_custom_class.get() {
+                                            "docs-flip-button-custom".to_string()
+                                        } else {
+                                            String::new()
+                                        }
+                                        lang=if interactive_rtl.get() {
+                                            "ar".to_string()
+                                        } else {
+                                            "en-US".to_string()
+                                        }
+                                        dir=if interactive_rtl.get() {
+                                            A11yDirection::Rtl
+                                        } else {
+                                            A11yDirection::Ltr
+                                        }
+                                        node_ref=workbench_node_ref
                                         front=move || view! { <Button variant=ButtonVariant::Secondary>"Front"</Button> }
                                         back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
                                     />
@@ -3439,54 +4522,180 @@ pub(super) fn flip_button() -> AnyView {
                     }
                 }}
             </Playground>
+
+            <Playground title="State Matrix (Direction Comparison)" code_signal=states_code>
+                <div class="docs-row">
+                    <FlipButton
+                        from=FlipDirection::Top
+                        motion=FlipButtonMotion::default()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                        node_ref=NodeRef::new()
+                        front=move || view! { <Button variant=ButtonVariant::Secondary>"Top"</Button> }
+                        back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
+                    />
+                    <FlipButton
+                        from=FlipDirection::Left
+                        motion=FlipButtonMotion::default()
+                        class_name="docs-flip-button-custom".to_string()
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                        node_ref=NodeRef::new()
+                        front=move || view! { <Button variant=ButtonVariant::Secondary>"Left"</Button> }
+                        back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
+                    />
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn share_button() -> AnyView {
-    let (last, set_last) = signal(None::<SharePlatform>);
-    let on_icon_press = Callback::new(move |platform: SharePlatform| set_last.set(Some(platform)));
-
     let custom_items = vec![
         ShareButtonItem::new(SharePlatform::Github, "Repository"),
         ShareButtonItem::new(SharePlatform::X, "Post"),
-        ShareButtonItem::new(SharePlatform::Facebook, "   "),
+        ShareButtonItem::new(SharePlatform::Facebook, "Facebook"),
     ];
-
     let custom_items_for_matrix = custom_items.clone();
-    let custom_items_for_custom = custom_items.clone();
+    let custom_items_for_workbench = custom_items.clone();
+
+    let (showcase_last, set_showcase_last) = signal(None::<SharePlatform>);
+    let on_showcase_press =
+        Callback::new(move |platform: SharePlatform| set_showcase_last.set(Some(platform)));
+
+    let icon_options = vec![
+        "Suffix".to_string(),
+        "Prefix".to_string(),
+        "None".to_string(),
+    ];
+    let from_options = vec!["Up".to_string(), "Left".to_string(), "Right".to_string()];
+    let size_options = vec![
+        "xs".to_string(),
+        "s".to_string(),
+        "m".to_string(),
+        "l".to_string(),
+        "xl".to_string(),
+    ];
+    let variant_options = vec![
+        "Default".to_string(),
+        "Secondary".to_string(),
+        "Ghost".to_string(),
+        "Outline".to_string(),
+    ];
+    let (workbench_icon_index, set_workbench_icon_index) = signal(Some(0_usize));
+    let (workbench_from_index, set_workbench_from_index) = signal(Some(0_usize));
+    let (workbench_size_index, set_workbench_size_index) = signal(Some(2_usize));
+    let (workbench_variant_index, set_workbench_variant_index) = signal(Some(0_usize));
+    let (workbench_custom_label, set_workbench_custom_label) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_use_items, set_workbench_use_items) = signal(true);
+    let (workbench_lang_zh, set_workbench_lang_zh) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+    let (workbench_press_count, set_workbench_press_count) = signal(0_u32);
+    let (workbench_last, set_workbench_last) = signal(None::<SharePlatform>);
+    let on_workbench_press = Callback::new(move |platform: SharePlatform| {
+        set_workbench_press_count.update(|count| *count += 1);
+        set_workbench_last.set(Some(platform));
+    });
+
+    let workbench_icon = Signal::derive(move || match workbench_icon_index.get().unwrap_or(0) {
+        1 => ShareButtonIconPlacement::Prefix,
+        2 => ShareButtonIconPlacement::None,
+        _ => ShareButtonIconPlacement::Suffix,
+    });
+    let workbench_from = Signal::derive(move || match workbench_from_index.get().unwrap_or(0) {
+        1 => FlipDirection::Left,
+        2 => FlipDirection::Right,
+        _ => FlipDirection::Top,
+    });
+    let workbench_size = Signal::derive(move || match workbench_size_index.get().unwrap_or(2) {
+        0 => ButtonSize::Xs,
+        1 => ButtonSize::S,
+        3 => ButtonSize::L,
+        4 => ButtonSize::Xl,
+        _ => ButtonSize::M,
+    });
+    let workbench_variant =
+        Signal::derive(move || match workbench_variant_index.get().unwrap_or(0) {
+            1 => ButtonVariant::Secondary,
+            2 => ButtonVariant::Ghost,
+            3 => ButtonVariant::Outline,
+            _ => ButtonVariant::Default,
+        });
 
     let hello_code = Signal::derive(move || r#"<ShareButton />"#.to_string());
-
-    let code = Signal::derive(move || {
-        r#"let on_icon_press = Callback::new(|platform: SharePlatform| {
-  logging::log!("pressed: {platform:?}");
-});
-<ShareButton on_icon_press=Some(on_icon_press) />"#
-            .to_string()
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<ShareButton\n  label={}\n  aria_label=\"Share this page\".to_string()\n  icon={:?}\n  from={:?}\n  size={:?}\n  variant={:?}\n  items={}\n  on_icon_press=on_icon_press\n  motion=ShareButtonMotion::default()\n  class_name={}\n  lang={}.to_string()\n  dir={}\n/>",
+            if workbench_custom_label.get() {
+                "\"Share docs\".to_string()"
+            } else {
+                "String::new()"
+            },
+            workbench_icon.get(),
+            workbench_from.get(),
+            workbench_size.get(),
+            workbench_variant.get(),
+            if workbench_use_items.get() {
+                "custom_items.clone()"
+            } else {
+                "Vec::<ShareButtonItem>::new()"
+            },
+            if workbench_custom_class.get() {
+                "\"docs-share-button-custom\".to_string()"
+            } else {
+                "String::new()"
+            },
+            if workbench_lang_zh.get() {
+                "\"zh-CN\""
+            } else {
+                "\"en-US\""
+            },
+            if workbench_rtl.get() {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            },
+        )
     });
-
-    let states_code = Signal::derive(move || {
-        r#"<ShareButton
-  icon=ShareButtonIconPlacement::Prefix
-  from=FlipDirection::Left
-  label="Share now".to_string()
-  items=custom_items_for_matrix.clone()
-/>
-<ShareButton icon=ShareButtonIconPlacement::None label="Iconless".to_string() />"#
-            .to_string()
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "ShareButtonActualConfig {{\n  label: {:?},\n  aria_label: Some(\"Share this page\"),\n  icon: {:?},\n  from: {:?},\n  size: {:?},\n  variant: {:?},\n  items: {:?},\n  on_icon_press: \"count={} last={:?}\",\n  motion: ShareButtonMotion::default(),\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n}}",
+            if workbench_custom_label.get() {
+                Some("Share docs")
+            } else {
+                None
+            },
+            workbench_icon.get(),
+            workbench_from.get(),
+            workbench_size.get(),
+            workbench_variant.get(),
+            if workbench_use_items.get() {
+                vec!["Github", "X", "Facebook"]
+            } else {
+                vec![]
+            },
+            workbench_press_count.get(),
+            workbench_last.get(),
+            if workbench_custom_class.get() {
+                Some("docs-share-button-custom")
+            } else {
+                None
+            },
+            if workbench_lang_zh.get() {
+                "zh-CN"
+            } else {
+                "en-US"
+            },
+            if workbench_rtl.get() { "rtl" } else { "ltr" },
+        )
     });
-
-    let custom_code = Signal::derive(move || {
-        r#"<ShareButton
-  class_name="docs-share-button-custom".to_string()
-  icon=ShareButtonIconPlacement::Prefix
-  from=FlipDirection::Right
-  label="Share docs".to_string()
-  items=custom_items.clone()
-/>"#
-        .to_string()
+    let matrix_code = Signal::derive(move || {
+        r#"<ShareButton label="Default".to_string() size=ButtonSize::M variant=ButtonVariant::Default on_icon_press=Callback::new(move |_| {}) />
+<ShareButton icon=ShareButtonIconPlacement::Prefix from=FlipDirection::Left label="Prefix".to_string() items=custom_items_for_matrix.clone() variant=ButtonVariant::Secondary motion=ShareButtonMotion::default() />
+<ShareButton icon=ShareButtonIconPlacement::None label="Iconless".to_string() class_name="docs-share-button-custom".to_string() aria_label="Share without icon".to_string() lang="zh-CN".to_string() dir=A11yDirection::Rtl />"#
+            .to_string()
     });
 
     view! {
@@ -3494,65 +4703,150 @@ pub(super) fn share_button() -> AnyView {
             title="ShareButton"
             slug="share-button"
             group="Actions"
-            description="Flip-based share surface with centralized item/icon/handler state attrs and baseline-level spring motion."
+            description="Flip-based share surface with full API workbench and callback feedback."
         >
-            <Playground title="Hello World" code_signal=hello_code>
+            <Playground title="Hello World (Default ShareButton)" code_signal=hello_code>
                 <div class="docs-row">
-                    <ShareButton />
-                </div>
-            </Playground>
-
-            <Playground title="Default + callback" code_signal=code>
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <ShareButton on_icon_press=on_icon_press />
-                        <span class="ui-muted">
-                            "last: "
-                            {move || {
-                                last.get()
-                                    .map(|v| format!("{v:?}"))
-                                    .unwrap_or_else(|| "None".to_string())
-                            }}
-                        </span>
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground title="Icon placement + custom items" code_signal=states_code>
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <ShareButton
-                            icon=ShareButtonIconPlacement::Prefix
-                            from=FlipDirection::Left
-                            label="Share now".to_string()
-                            items=custom_items_for_matrix.clone()
-                            on_icon_press=on_icon_press
-                        />
-                        <ShareButton
-                            icon=ShareButtonIconPlacement::None
-                            label="Iconless".to_string()
-                            items=custom_items_for_matrix.clone()
-                        />
-                    </div>
+                    <ShareButton on_icon_press=on_showcase_press />
                     <span class="ui-muted">
-                        "Blank custom item labels fall back to platform defaults; missing handlers stay safe."
+                        "last: "
+                        {move || {
+                            showcase_last
+                                .get()
+                                .map(|platform| format!("{platform:?}"))
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
                     </span>
                 </div>
             </Playground>
 
-            <Playground title="Custom Class + Direction" code_signal=custom_code>
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="share-button-workbench-controls">
+                        <SegmentedControl
+                            id_base="docs-share-button-icon".to_string()
+                            options=icon_options.clone()
+                            selected_index=workbench_icon_index
+                            set_selected_index=set_workbench_icon_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ShareButton icon placement".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-share-button-from".to_string()
+                            options=from_options.clone()
+                            selected_index=workbench_from_index
+                            set_selected_index=set_workbench_from_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ShareButton flip direction".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-share-button-size".to_string()
+                            options=size_options.clone()
+                            selected_index=workbench_size_index
+                            set_selected_index=set_workbench_size_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ShareButton size".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-share-button-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=workbench_variant_index
+                            set_selected_index=set_workbench_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ShareButton variant".to_string()
+                        />
+                        <Switch checked=workbench_custom_label set_checked=set_workbench_custom_label>
+                            "label"
+                        </Switch>
+                        <Switch checked=workbench_use_items set_checked=set_workbench_use_items>
+                            "items"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "class_name"
+                        </Switch>
+                        <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
+                            "lang=zh-CN"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                            "dir=rtl"
+                        </Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack">
+                    <ShareButton
+                        label=if workbench_custom_label.get() {
+                            "Share docs".to_string()
+                        } else {
+                            String::new()
+                        }
+                        aria_label="Share this page".to_string()
+                        icon=workbench_icon.get()
+                        from=workbench_from.get()
+                        size=workbench_size.get()
+                        variant=workbench_variant.get()
+                        items=if workbench_use_items.get() {
+                            custom_items_for_workbench.clone()
+                        } else {
+                            Vec::new()
+                        }
+                        on_icon_press=on_workbench_press
+                        motion=ShareButtonMotion::default()
+                        class_name=if workbench_custom_class.get() {
+                            "docs-share-button-custom".to_string()
+                        } else {
+                            String::new()
+                        }
+                        lang=if workbench_lang_zh.get() {
+                            "zh-CN".to_string()
+                        } else {
+                            "en-US".to_string()
+                        }
+                        dir=if workbench_rtl.get() {
+                            A11yDirection::Rtl
+                        } else {
+                            A11yDirection::Ltr
+                        }
+                    />
+                    <span class="ui-muted">
+                        "on_icon_press count: " {move || workbench_press_count.get()}
+                        " · last: "
+                        {move || {
+                            workbench_last
+                                .get()
+                                .map(|platform| format!("{platform:?}"))
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="State Matrix (Default / Prefix / Iconless)" code_signal=matrix_code>
                 <div class="docs-row">
                     <ShareButton
-                        class_name="docs-share-button-custom".to_string()
-                        icon=ShareButtonIconPlacement::Prefix
-                        from=FlipDirection::Right
-                        label="Share docs".to_string()
-                        items=custom_items_for_custom.clone()
+                        label="Default".to_string()
+                        size=ButtonSize::M
+                        variant=ButtonVariant::Default
+                        on_icon_press=on_showcase_press
                     />
                     <ShareButton
+                        icon=ShareButtonIconPlacement::Prefix
+                        from=FlipDirection::Left
+                        label="Prefix".to_string()
+                        items=custom_items_for_matrix
+                        variant=ButtonVariant::Secondary
+                        motion=ShareButtonMotion::default()
+                    />
+                    <ShareButton
+                        icon=ShareButtonIconPlacement::None
+                        label="Iconless".to_string()
                         class_name="docs-share-button-custom".to_string()
-                        label="Share defaults".to_string()
-                        icon=ShareButtonIconPlacement::Suffix
+                        aria_label="Share without icon".to_string()
+                        lang="zh-CN".to_string()
+                        dir=A11yDirection::Rtl
                     />
                 </div>
             </Playground>
@@ -3664,11 +4958,11 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
   on_open_change=Callback::new(move |next| set_open_raw.set(next))
   aria_label="Workspace actions".to_string()
   class_name="docs-action-menu-custom".to_string()
-  motion=ui_components::ActionMenuMotion {
-    popover: ui_components::PopoverMotion {
+  motion=ui::ActionMenuMotion {
+    popover: ui::PopoverMotion {
       initial_scale: 0.93,
       offset_y_px: 8.0,
-      ..ui_components::PopoverMotion::default()
+      ..ui::PopoverMotion::default()
     },
   }
 />"#
@@ -3698,13 +4992,234 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
         .to_string()
     });
 
-    let marker_motion = ui_components::ActionMenuMotion {
-        popover: ui_components::PopoverMotion {
+    let marker_motion = ui::ActionMenuMotion {
+        popover: ui::PopoverMotion {
             initial_scale: 0.93,
             offset_y_px: 8.0,
-            ..ui_components::PopoverMotion::default()
+            ..ui::PopoverMotion::default()
         },
     };
+    let workbench_action_mode_options = vec!["close".to_string(), "keep-open".to_string()];
+    let workbench_placement_options = vec![
+        "bottom-start".to_string(),
+        "bottom-end".to_string(),
+        "top-start".to_string(),
+    ];
+    let workbench_size_options = vec![
+        "xs".to_string(),
+        "sm".to_string(),
+        "md".to_string(),
+        "lg".to_string(),
+        "xl".to_string(),
+    ];
+    let (workbench_action_mode_index, set_workbench_action_mode_index) = signal(Some(0_usize));
+    let (workbench_placement_index, set_workbench_placement_index) = signal(Some(0_usize));
+    let (workbench_size_index, set_workbench_size_index) = signal(Some(2_usize));
+    let (workbench_is_quiet, set_workbench_is_quiet) = signal(false);
+    let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
+    let (workbench_disable_second, set_workbench_disable_second) = signal(true);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+
+    let (workbench_open_raw, set_workbench_open_raw) = signal(false);
+    let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
+    let workbench_on_open_change =
+        Callback::new(move |next: bool| set_workbench_open_raw.set(next));
+    let (workbench_last_action, set_workbench_last_action) = signal(None::<usize>);
+    let workbench_on_action =
+        Callback::new(move |index: usize| set_workbench_last_action.set(Some(index)));
+
+    let workbench_action_mode = Signal::derive(move || {
+        if workbench_action_mode_index.get().unwrap_or(0) == 1 {
+            ui::action_menu::ActionMenuActionMode::KeepOpenOnAction
+        } else {
+            ui::action_menu::ActionMenuActionMode::CloseOnAction
+        }
+    });
+    let workbench_placement =
+        Signal::derive(move || match workbench_placement_index.get().unwrap_or(0) {
+            1 => PopoverPlacement::BottomEnd,
+            2 => PopoverPlacement::TopStart,
+            _ => PopoverPlacement::BottomStart,
+        });
+    let workbench_size = Signal::derive(move || match workbench_size_index.get().unwrap_or(2) {
+        0 => ActionButtonSize::Xs,
+        1 => ActionButtonSize::Sm,
+        3 => ActionButtonSize::Lg,
+        4 => ActionButtonSize::Xl,
+        _ => ActionButtonSize::M,
+    });
+    let workbench_item_specs = Signal::derive(move || {
+        if workbench_disable_second.get() {
+            vec![
+                ActionMenuItemSpec::action("Open dashboard"),
+                ActionMenuItemSpec::action("Duplicate project").with_disabled(true),
+                ActionMenuItemSpec::action("Archive workspace"),
+            ]
+        } else {
+            vec![
+                ActionMenuItemSpec::action("Open dashboard"),
+                ActionMenuItemSpec::action("Duplicate project"),
+                ActionMenuItemSpec::action("Archive workspace"),
+            ]
+        }
+    });
+    let workbench_items = Signal::derive(move || {
+        vec![
+            "Open dashboard".to_string(),
+            "Duplicate project".to_string(),
+            "Archive workspace".to_string(),
+        ]
+    });
+    let workbench_disabled_indices = Signal::derive(move || {
+        if workbench_disable_second.get() {
+            vec![1_usize]
+        } else {
+            vec![]
+        }
+    });
+    let workbench_item_kinds = Signal::derive(move || {
+        vec![
+            ui::MenuItemKind::Action,
+            ui::MenuItemKind::Action,
+            ui::MenuItemKind::Action,
+        ]
+    });
+    let workbench_motion = Signal::derive(move || {
+        if workbench_custom_motion.get() {
+            ui::ActionMenuMotion {
+                popover: ui::PopoverMotion {
+                    initial_scale: 0.94,
+                    offset_y_px: 10.0,
+                    ..ui::PopoverMotion::default()
+                },
+            }
+        } else {
+            ui::ActionMenuMotion::default()
+        }
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let lines = vec![
+            "let (open_raw, set_open_raw) = signal(false);".to_string(),
+            "let open_sig: Signal<bool> = Signal::derive(move || open_raw.get());".to_string(),
+            "<ActionMenu".to_string(),
+            "  id_base=\"docs-action-menu-workbench\".to_string()".to_string(),
+            "  items=vec![\"Open dashboard\".into(), \"Duplicate project\".into(), \"Archive workspace\".into()]".to_string(),
+            "  on_action=Callback::new(move |index: usize| { logging::log!(\"action={}\", index); })".to_string(),
+            "  item_specs=vec![".to_string(),
+            "    ActionMenuItemSpec::action(\"Open dashboard\"),".to_string(),
+            "    ActionMenuItemSpec::action(\"Duplicate project\"),".to_string(),
+            "    ActionMenuItemSpec::action(\"Archive workspace\"),".to_string(),
+            "  ]".to_string(),
+            "  disabled_state=ui::ActionMenuDisabledState::Enabled".to_string(),
+            format!("  is_disabled={}", workbench_is_disabled.get()),
+            format!("  disabled={}", workbench_is_disabled.get()),
+            format!(
+                "  disabled_indices={}",
+                if workbench_disable_second.get() {
+                    "vec![1]"
+                } else {
+                    "vec![]"
+                }
+            ),
+            "  item_kinds=vec![ui::MenuItemKind::Action, ui::MenuItemKind::Action, ui::MenuItemKind::Action]".to_string(),
+            format!(
+                "  action_mode=ui::action_menu::ActionMenuActionMode::{}",
+                if workbench_action_mode.get()
+                    == ui::action_menu::ActionMenuActionMode::KeepOpenOnAction
+                {
+                    "KeepOpenOnAction"
+                } else {
+                    "CloseOnAction"
+                }
+            ),
+            format!(
+                "  is_close_on_action={}",
+                workbench_action_mode.get().is_close_on_action()
+            ),
+            format!(
+                "  close_on_action={}",
+                workbench_action_mode.get().is_close_on_action()
+            ),
+            format!("  placement=ui::PopoverPlacement::{:?}", workbench_placement.get()),
+            "  is_open=open_sig".to_string(),
+            "  open=open_sig".to_string(),
+            "  default_open=false".to_string(),
+            "  on_open_change=Callback::new(move |next| set_open_raw.set(next))".to_string(),
+            format!("  size=ActionButtonSize::{:?}", workbench_size.get()),
+            format!("  is_quiet={}", workbench_is_quiet.get()),
+            "  aria_label=\"Workspace actions\".to_string()".to_string(),
+            "  lang=\"en\".to_string()".to_string(),
+            "  dir=ui::A11yDirection::Ltr".to_string(),
+            if workbench_custom_motion.get() {
+                "  motion=ui::ActionMenuMotion { popover: ui::PopoverMotion { initial_scale: 0.94, offset_y_px: 10.0, ..ui::PopoverMotion::default() } }".to_string()
+            } else {
+                "  motion=ui::ActionMenuMotion::default()".to_string()
+            },
+            if workbench_custom_class.get() {
+                "  class_name=\"docs-action-menu-workbench\".to_string()".to_string()
+            } else {
+                "  class_name=\"\".to_string()".to_string()
+            },
+            "/>".to_string(),
+        ];
+        lines.join("\n")
+    });
+    let workbench_config = Signal::derive(move || {
+        format!(
+            "ActionMenuWorkbenchConfig {{\n  id_base: \"docs-action-menu-workbench\",\n  items: [\"Open dashboard\", \"Duplicate project\", \"Archive workspace\"],\n  on_action: Some(\"Callback<usize>\"),\n  item_specs: [\"action\", \"action\", \"action\"],\n  disabled_state: Some(\"Enabled\"),\n  is_disabled: Some({}),\n  disabled: Some({}),\n  disabled_indices: {},\n  item_kinds: [\"action\", \"action\", \"action\"],\n  action_mode: Some(\"{}\"),\n  is_close_on_action: Some({}),\n  close_on_action: Some({}),\n  placement: \"{:?}\",\n  is_open: Some({}),\n  open: Some({}),\n  default_open: Some(false),\n  on_open_change: Some(\"Callback<bool>\"),\n  size: \"{:?}\",\n  is_quiet: {},\n  aria_label: Some(\"Workspace actions\"),\n  lang: {},\n  dir: {},\n  motion: {},\n  class_name: {},\n  last_action: {:?},\n}}",
+            workbench_is_disabled.get(),
+            workbench_is_disabled.get(),
+            if workbench_disable_second.get() {
+                "vec![1]"
+            } else {
+                "vec![]"
+            },
+            if workbench_action_mode.get()
+                == ui::action_menu::ActionMenuActionMode::KeepOpenOnAction
+            {
+                "KeepOpenOnAction"
+            } else {
+                "CloseOnAction"
+            },
+            workbench_action_mode.get().is_close_on_action(),
+            workbench_action_mode.get().is_close_on_action(),
+            workbench_placement.get(),
+            workbench_open_raw.get(),
+            workbench_open_raw.get(),
+            workbench_size.get(),
+            workbench_is_quiet.get(),
+            if workbench_rtl.get() {
+                "Some(\"ar\")"
+            } else {
+                "Some(\"en\")"
+            },
+            if workbench_rtl.get() {
+                "Some(\"rtl\")"
+            } else {
+                "Some(\"ltr\")"
+            },
+            if workbench_custom_motion.get() {
+                "ActionMenuMotion::custom"
+            } else {
+                "ActionMenuMotion::default"
+            },
+            if workbench_custom_class.get() {
+                "Some(\"docs-action-menu-workbench\")"
+            } else {
+                "None"
+            },
+            workbench_last_action.get(),
+        )
+    });
+    let matrix_code = Signal::derive(move || {
+        r#"<ActionMenu id_base="m1".to_string() item_specs=vec![ActionMenuItemSpec::action("A")] on_action=Callback::new(|_| {}) />
+<ActionMenu id_base="m2".to_string() item_specs=vec![ActionMenuItemSpec::action("A"), ActionMenuItemSpec::action("B").with_disabled(true)] on_action=Callback::new(|_| {}) is_disabled=Some(false) disabled_indices=vec![1] />
+<ActionMenu id_base="m3".to_string() item_specs=vec![ActionMenuItemSpec::action("A")] on_action=Callback::new(|_| {}) action_mode=ui::action_menu::ActionMenuActionMode::KeepOpenOnAction />"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -3720,6 +5235,90 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
                         item_specs=vec![ActionMenuItemSpec::action("Profile")]
                         on_action=on_hello_action
                     />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Workbench (Display + Config + Code)"
+                code_signal=workbench_code
+                test_config_signal=workbench_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="action-menu-workbench-controls">
+                        <div class="docs-search__label">"Action mode"</div>
+                        <SegmentedControl
+                            id_base="docs-action-menu-workbench-mode".to_string()
+                            options=workbench_action_mode_options.clone()
+                            selected_index=workbench_action_mode_index
+                            set_selected_index=set_workbench_action_mode_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ActionMenu action mode".to_string()
+                        />
+                        <div class="docs-search__label">"Placement"</div>
+                        <SegmentedControl
+                            id_base="docs-action-menu-workbench-placement".to_string()
+                            options=workbench_placement_options.clone()
+                            selected_index=workbench_placement_index
+                            set_selected_index=set_workbench_placement_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ActionMenu placement".to_string()
+                        />
+                        <div class="docs-search__label">"Trigger size"</div>
+                        <SegmentedControl
+                            id_base="docs-action-menu-workbench-size".to_string()
+                            options=workbench_size_options.clone()
+                            selected_index=workbench_size_index
+                            set_selected_index=set_workbench_size_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ActionMenu trigger size".to_string()
+                        />
+                        <Switch checked=workbench_is_quiet set_checked=set_workbench_is_quiet>"Quiet trigger"</Switch>
+                        <Switch checked=workbench_is_disabled set_checked=set_workbench_is_disabled>"Disable menu"</Switch>
+                        <Switch checked=workbench_disable_second set_checked=set_workbench_disable_second>"Disable second item"</Switch>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>"Custom motion"</Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>"Custom class"</Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>"RTL"</Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="action-menu-workbench-preview">
+                    <ActionMenu
+                        id_base="docs-action-menu-workbench".to_string()
+                        items=workbench_items.get()
+                        on_action=workbench_on_action
+                        item_specs=workbench_item_specs.get()
+                        disabled_state=if workbench_is_disabled.get() {
+                            ui::action_menu::ActionMenuDisabledState::Disabled
+                        } else {
+                            ui::action_menu::ActionMenuDisabledState::Enabled
+                        }
+                        is_disabled=workbench_is_disabled.get()
+                        disabled=workbench_is_disabled.get()
+                        disabled_indices=workbench_disabled_indices.get()
+                        item_kinds=workbench_item_kinds.get()
+                        action_mode=workbench_action_mode.get()
+                        is_close_on_action=workbench_action_mode.get().is_close_on_action()
+                        close_on_action=workbench_action_mode.get().is_close_on_action()
+                        placement=workbench_placement.get()
+                        is_open=workbench_open
+                        open=workbench_open
+                        default_open=false
+                        on_open_change=workbench_on_open_change
+                        size=workbench_size.get()
+                        is_quiet=workbench_is_quiet.get()
+                        aria_label="Workspace actions".to_string()
+                        lang=if workbench_rtl.get() { "ar".to_string() } else { "en".to_string() }
+                        dir=if workbench_rtl.get() { A11yDirection::Rtl } else { A11yDirection::Ltr }
+                        motion=workbench_motion.get()
+                        class_name=if workbench_custom_class.get() {
+                            "docs-action-menu-workbench".to_string()
+                        } else {
+                            String::new()
+                        }
+                    />
+                    <span class="ui-muted">
+                        "open: " {move || workbench_open_raw.get().to_string()}
+                        " · last action: " {move || workbench_last_action.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                    </span>
                 </div>
             </Playground>
 
@@ -3805,6 +5404,40 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
                     <ActionMenu
                         id_base="docs-action-menu-empty".to_string()
                         item_specs=empty_items
+                        on_action=on_action
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Default / Disabled Item / Keep Open)"
+                code_signal=matrix_code
+            >
+                <div class="docs-row">
+                    <ActionMenu
+                        id_base="docs-action-menu-matrix-default".to_string()
+                        item_specs=vec![
+                            ActionMenuItemSpec::action("Open dashboard"),
+                            ActionMenuItemSpec::action("Duplicate project"),
+                        ]
+                        on_action=on_action
+                    />
+                    <ActionMenu
+                        id_base="docs-action-menu-matrix-disabled-item".to_string()
+                        item_specs=vec![
+                            ActionMenuItemSpec::action("Open dashboard"),
+                            ActionMenuItemSpec::action("Duplicate project").with_disabled(true),
+                        ]
+                        disabled_indices=vec![1]
+                        on_action=on_action
+                    />
+                    <ActionMenu
+                        id_base="docs-action-menu-matrix-keep-open".to_string()
+                        item_specs=vec![
+                            ActionMenuItemSpec::action("Open dashboard"),
+                            ActionMenuItemSpec::action("Archive workspace"),
+                        ]
+                        action_mode=ui::action_menu::ActionMenuActionMode::KeepOpenOnAction
                         on_action=on_action
                     />
                 </div>

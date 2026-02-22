@@ -1040,12 +1040,12 @@ fn thumbnail_wasm_debug_capability_stays_feature_isolated_and_non_polluting() {
     let crate_root_source = load_source("src/lib.rs");
     let view_source = load_source("../../components/thumbnail/src/view.rs");
     let mod_source = load_source("../../components/thumbnail/src/mod.rs");
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
 
     for needle in ["macro_rules! wasm_debug_proxy"] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components should keep wasm debug capability isolated via `{needle}`."
+            "ui should keep wasm debug capability isolated via `{needle}`."
         );
     }
 
@@ -1055,7 +1055,7 @@ fn thumbnail_wasm_debug_capability_stays_feature_isolated_and_non_polluting() {
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
+            "ui Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
         );
     }
 
@@ -1082,8 +1082,8 @@ fn thumbnail_wasm_debug_capability_stays_feature_isolated_and_non_polluting() {
     }
 
     for needle in [
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
-        "cargo test -p ui-components --test button_semantics button_wasm_debug_contract_is_feature_gated_and_dev_only",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
+        "cargo test -p ui --test button_semantics button_wasm_debug_contract_is_feature_gated_and_dev_only",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1229,15 +1229,15 @@ fn thumbnail_dx_workbench_uses_interactive_playground_and_marks_persist_state_as
 
 #[test]
 fn thumbnail_dx_check_script_covers_hot_reload_and_workbench_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "[dx] contract: playground css hot-reload path",
-        "cargo test -p ui-components --test button_semantics button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test button_semantics button_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
-        "cargo test -p ui-components --test button_copy_semantics button_copy_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
-        "cargo test -p ui-components --test action_button_semantics action_button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test action_button_semantics action_button_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
+        "cargo test -p ui --test button_semantics button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test button_semantics button_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
+        "cargo test -p ui --test button_copy_semantics button_copy_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
+        "cargo test -p ui --test action_button_semantics action_button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test action_button_semantics action_button_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1330,7 +1330,7 @@ fn thumbnail_engineering_contract_reuses_global_trace_semantics_without_local_dr
     }
 
     for forbidden in [
-        "target: \"ui_components::thumbnail",
+        "target: \"ui::thumbnail",
         "trace.emit(",
         "UiTraceEventKind::",
         "span!(",
@@ -1344,17 +1344,17 @@ fn thumbnail_engineering_contract_reuses_global_trace_semantics_without_local_dr
 
 #[test]
 fn thumbnail_engineering_check_script_covers_unified_serde_tracing_runtime_baseline() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
         "[engineering] contract: serde schema + structured migration errors",
-        "cargo test -p ui-components --test button_semantics button_engineering_contract_uses_serde_schema_and_structured_migration_errors",
+        "cargo test -p ui --test button_semantics button_engineering_contract_uses_serde_schema_and_structured_migration_errors",
         "[engineering] contract: tracing target semantics",
-        "cargo test -p ui-components --test button_semantics button_engineering_contract_uses_consistent_tracing_targets",
+        "cargo test -p ui --test button_semantics button_engineering_contract_uses_consistent_tracing_targets",
         "[engineering] contract: runtime boundary leakage",
-        "cargo test -p ui-components --test button_semantics button_engineering_contract_avoids_runtime_leaks_in_public_api",
-        "cargo test -p ui-components --test button_copy_semantics button_copy_engineering_contract_reuses_button_tracing_and_avoids_runtime_leaks",
-        "cargo test -p ui-components --test action_button_semantics action_button_engineering_contract_reuses_button_tracing_and_avoids_runtime_leaks",
+        "cargo test -p ui --test button_semantics button_engineering_contract_avoids_runtime_leaks_in_public_api",
+        "cargo test -p ui --test button_copy_semantics button_copy_engineering_contract_reuses_button_tracing_and_avoids_runtime_leaks",
+        "cargo test -p ui --test action_button_semantics action_button_engineering_contract_reuses_button_tracing_and_avoids_runtime_leaks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1382,7 +1382,7 @@ fn thumbnail_ui_components_entry_files_keep_feature_gated_public_surface_and_no_
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep marker `{needle}`."
+            "ui lib entry should keep marker `{needle}`."
         );
     }
 
@@ -1394,7 +1394,7 @@ fn thumbnail_ui_components_entry_files_keep_feature_gated_public_surface_and_no_
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform/internal marker `{forbidden}`."
+            "ui lib entry should not leak platform/internal marker `{forbidden}`."
         );
     }
 }
@@ -1416,7 +1416,7 @@ fn thumbnail_ui_components_css_registry_remains_feature_gated_and_non_global() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css registry should keep feature-gated marker `{needle}`."
+            "ui css registry should keep feature-gated marker `{needle}`."
         );
     }
 }
@@ -1484,7 +1484,7 @@ fn thumbnail_ui_components_forbidden_entrypoint_files_are_absent_and_headless_pa
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !path_exists(forbidden),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`."
+            "ui forbidden entrypoint file should not exist: `{forbidden}`."
         );
     }
 
@@ -1520,14 +1520,14 @@ fn thumbnail_ui_components_forbidden_entrypoint_files_are_absent_and_headless_pa
 
 #[test]
 fn thumbnail_ui_components_entrypoints_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks",
-        "cargo test -p ui-components --test button_semantics ui_components_css_registry_remains_feature_gated_and_non_global",
-        "cargo test -p ui-components --test button_semantics ui_root_centralizes_theme_injection_and_i18n_context",
-        "cargo test -p ui-components --test button_semantics active_highlight_stays_shared_motion_primitive_without_component_semantics",
-        "cargo test -p ui-components --test button_semantics ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present",
+        "cargo test -p ui --test button_semantics ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks",
+        "cargo test -p ui --test button_semantics ui_components_css_registry_remains_feature_gated_and_non_global",
+        "cargo test -p ui --test button_semantics ui_root_centralizes_theme_injection_and_i18n_context",
+        "cargo test -p ui --test button_semantics active_highlight_stays_shared_motion_primitive_without_component_semantics",
+        "cargo test -p ui --test button_semantics ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1583,15 +1583,15 @@ fn thumbnail_motion_covers_wasm_and_non_wasm_contract_paths() {
 
 #[test]
 fn thumbnail_platform_compile_script_covers_default_ssr_wasm_paths() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "[platform] compile-only: default native path",
-        "cargo check -p ui-components",
+        "cargo check -p ui",
         "[platform] compile-only: ssr native path",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "[platform] compile-only: web wasm path",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1617,7 +1617,7 @@ fn thumbnail_ui_headless_web_ssr_mutex_is_compile_error_guarded() {
 
 #[test]
 fn thumbnail_platform_script_enforces_ui_headless_web_ssr_mutex() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "[platform] compile guard: ui-headless web+ssr must fail",
@@ -1705,7 +1705,7 @@ fn thumbnail_ui_motion_non_wasm_stub_contract_is_explicit_and_predictable() {
 
 #[test]
 fn thumbnail_platform_script_covers_ui_motion_native_wasm_and_stub_paths() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "echo \"[platform] compile-only: ui-motion native path\"",
@@ -2413,7 +2413,7 @@ fn thumbnail_docs_source_is_copy_paste_ready_with_imports_and_copy_control() {
     }
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String {",
         "compose_copy_ready_code(&dynamic_code.get(), &code_imports.get_value())",
         ".map(|snippet| compose_copy_ready_code(&snippet, &code_imports.get_value()))",
@@ -2437,7 +2437,7 @@ fn thumbnail_docs_source_is_copy_paste_ready_with_imports_and_copy_control() {
     }
 
     for needle in [
-        "use ui_components::{Thumbnail, ThumbnailMotion, ThumbnailSize};",
+        "use ui::{Thumbnail, ThumbnailMotion, ThumbnailSize};",
         "let hello_world_code = Signal::derive(move || {",
         "let size_code = Signal::derive(move || {",
         "let state_code = Signal::derive(move || {",
@@ -2875,7 +2875,7 @@ fn thumbnail_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo features should include `{needle}` for tree-shaking boundaries."
+            "ui Cargo features should include `{needle}` for tree-shaking boundaries."
         );
     }
 
@@ -2900,7 +2900,7 @@ fn thumbnail_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components."
+        "web-demo should consume ui via web-demo-components, not all-components."
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -2911,15 +2911,15 @@ fn thumbnail_tree_shaking_keeps_component_feature_and_css_boundaries() {
 
 #[test]
 fn thumbnail_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
@@ -2966,7 +2966,7 @@ fn default_theme_visual_baseline_docs_contract_exists() {
         "slug=\"theme-visual-baseline\"",
         "Default theme visual baseline",
         "Includes Button/Input/Overlay for visual regression snapshots.",
-        "use ui_components::{Button, ButtonVariant, Input, OnPress, Overlay};",
+        "use ui::{Button, ButtonVariant, Input, OnPress, Overlay};",
         "data-slot=\"theme-visual-baseline-button\"",
         "data-slot=\"theme-visual-baseline-input\"",
         "data-slot=\"theme-visual-baseline-overlay\"",
@@ -3117,12 +3117,12 @@ fn thumbnail_performance_governance_contract_is_budgeted_traceable_and_blocking(
 
 #[test]
 fn thumbnail_performance_check_script_keeps_budget_and_follow_up_gates() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),

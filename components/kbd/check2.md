@@ -36,21 +36,21 @@
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - N/A（kbd）：`kbd` 为静态按键标签展示组件，不承载 open/close、enter/exit、active/inactive 等动效状态轴；当前无需 `motion.rs`，也无 spring/keyframe/driver 自实现，保持无动效实现即为最小正确解。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
   - 已核验（kbd）：组件仅在 `styles.rs` 消费 `var(--ui-*)` 变量（如 `--ui-space-*`、`--ui-bg-*`、`--ui-fg-*`），`logic/view` 未重建主题上下文、未定义平行私有 token 体系。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - 已核验（kbd）：`logic.rs` 仅做输入归一与状态映射（消费 `ui-state-primitives::kbd`），`view.rs` 仅做结构与语义标记挂载，`styles.rs` 仅做 token-first 静态样式；`motion.rs` 在本组件按 N/A；语义回归位于 `components/kbd/test/semantics.rs`，旧入口 `components/kbd/test/kbd_semantics.rs` 已桥接到本地测试。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
@@ -160,10 +160,10 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 已核验（kbd）：样式仅定义在 `components/kbd/src/styles.rs::CSS`，并由 `crates/ui-components/src/css.rs` 在 `component-kbd` feature 下聚合；`UiRoot` 通过 `inject_components_css` 路径统一注入（`crate::css::push_components_css`）。
+  - 已核验（kbd）：样式仅定义在 `components/kbd/src/styles.rs::CSS`，并由 `crates/ui/src/css.rs` 在 `component-kbd` feature 下聚合；`UiRoot` 通过 `inject_components_css` 路径统一注入（`crate::css::push_components_css`）。
   - 视觉值来源符合 token-first：颜色/间距/圆角/阴影分别使用 `var(--ui-bg-*)`/`var(--ui-space-*)`/`var(--ui-radius-*)`/`var(--ui-shadow-*)`，未引入组件私有 token 体系。
   - 运行时未写业务 inline style（`view.rs` 无 `style=` 注入）；组件实现未依赖 Utility-First 或 CSS-in-Rust 作为默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -175,17 +175,17 @@
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
 - [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
-  - 已核验（kbd）：`crates/ui-components/Cargo.toml` 存在 `component-kbd = [\"dep:ui-kbd\"]`；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 对 `kbd` 导出/样式聚合均受 `#[cfg(feature = \"component-kbd\")]` 门控，不存在对 `kbd` 的无条件导出与无条件 CSS 注入。
-  - 反向依赖核验：`apps/web-demo/Cargo.toml` 对 `ui-components` 使用 `default-features = false` 且仅开启 `inject-css,web-demo-components`；`cargo tree -e features -i ui-components -p web-demo` 输出链路显示 `web-demo-components`，未出现 `all-components` 被隐式拉起。
-  - 最小特性核验：`cargo tree -e features -p ui-components --no-default-features --features component-kbd,inject-css` 可解析到 `ui-kbd` 特性链，满足组件级裁剪入口。
+- 已核验（kbd）：`crates/ui/Cargo.toml` 存在 `component-kbd = ["dep:ui-kbd"]`；`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 对 `kbd` 导出/样式聚合均受 `#[cfg(feature = "component-kbd")]` 门控，不存在对 `kbd` 的无条件导出与无条件 CSS 注入。
+  - 反向依赖核验：`apps/web-demo/Cargo.toml` 对 `ui` 使用 `default-features = false` 且仅开启 `inject-css,web-demo-components`；`cargo tree -e features -i ui -p web-demo` 输出链路显示 `web-demo-components`，未出现 `all-components` 被隐式拉起。
+  - 最小特性核验：`cargo tree -e features -p ui --no-default-features --features component-kbd,inject-css` 可解析到 `ui-kbd` 特性链，满足组件级裁剪入口。
   - N/A（kbd，仓库级治理）：CI“最小特性 wasm 编译任务”与“产物体积预算阈值”属于仓库级流水线策略，本条在单组件任务中记录约束并升级到仓库级执行，不在 `kbd` 局部伪造通过。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 已核验（kbd）：离散状态轴由 `ui-state-primitives::kbd::KbdSize`（`enum`）与 `KbdState` 建模；组件公开输入使用 `Option<KbdSize>`（非字符串协议），避免布尔爆炸与自由组合。
@@ -248,7 +248,7 @@
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
   - 已核验（kbd）：`kbd` 为静态展示组件（无异步、无动效 attach、无交互状态更新环路），关键路径为 mount-only；`logic.rs` 单次归一输出 `KbdViewModel`，`view.rs` 稳定输出语义标记，性能回归可归因于状态/渲染/样式路径。
-  - 共享预算与阻断链路：`scripts/check-ui-components-performance.sh` 已纳入 `button_performance_governance_contract_is_budgeted_traceable_and_blocking`、`input_performance_governance_contract_is_budgeted_traceable_and_blocking`、`docs_perf_probe_budgets_are_wired_for_component_pages`、`perf_render_count_follow_up_is_tracked_in_plan`；`e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言 `data-perf-budget-*` 并阻断 `data-perf-violation=true`。
+  - 共享预算与阻断链路：`scripts/check-ui-performance.sh` 已纳入 `button_performance_governance_contract_is_budgeted_traceable_and_blocking`、`input_performance_governance_contract_is_budgeted_traceable_and_blocking`、`docs_perf_probe_budgets_are_wired_for_component_pages`、`perf_render_count_follow_up_is_tracked_in_plan`；`e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言 `data-perf-budget-*` 并阻断 `data-perf-violation=true`。
   - render_count 跟进状态：`docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”；在精确计数能力补齐前，采用 docs perf probe + e2e + 语义契约测试作为等价证据链。
   - N/A（kbd，组件级）：`Button`、`Input` 初始化渲染预算为 `1` 属于跨组件基线；`kbd` 当前无更新路径，不在本组件伪造同构交互预算。若后续引入可更新交互，必须补齐本组件 `render_count` 自动化预算并接入阻断脚本。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
@@ -295,7 +295,7 @@
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
 - [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
-  - N/A（kbd，热重载机制归属）：是否“无需重编 wasm”由 `apps/*` 开发工具链（Trunk/Leptos dev server）决定，不是 `kbd` 组件内可实现逻辑；组件侧已满足前提条件：样式集中在 `components/kbd/src/styles.rs`，通过 `UiRoot -> ui-components::css` 注入，未把样式逻辑写入运行时内联计算。
+  - N/A（kbd，热重载机制归属）：是否“无需重编 wasm”由 `apps/*` 开发工具链（Trunk/Leptos dev server）决定，不是 `kbd` 组件内可实现逻辑；组件侧已满足前提条件：样式集中在 `components/kbd/src/styles.rs`，通过 `UiRoot -> ui::css` 注入，未把样式逻辑写入运行时内联计算。
   - 已核验（Workbench 隔离画布）：`apps/docs-app/src/pages/components/pages/display.rs::kbd()` 提供独立 `Playground` 与 `Workbench (Display + Config + Code + CSS Test)`，并暴露 `data-slot="kbd-workbench-controls"` 控制区用于隔离演练。
   - 已核验（上下文保持与可选状态保留）：workbench 使用本地 signals（`workbench_size_key/workbench_keys/workbench_label/workbench_custom_class`）维持当前调试上下文，允许在不重置页面的情况下连续比对配置与渲染结果。
   - 回归约束：若后续引入复杂交互状态，必须在 docs workbench 提供可选状态保留开关（默认关闭）并保持不进入组件公共 API。
@@ -318,7 +318,7 @@
   - 已核验（kbd）：样式中不存在 Hex 颜色与 `12px/16px/20px/24px` 等裸终值；Fallback 终值统一经 `ui-theme` 输出的 `--ui-fallback-*` 变量承接。
   - 回归约束：新增样式 token 必须遵循 `var(--ui-*, var(--ui-fallback-*))`，禁止回退到组件私有常量终值。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 已核验（聚合层）：`crates/ui-components/src/css.rs::push_components_css` 使用 `out.push_str("\n@layer ui {\n")` 统一包裹组件样式并以 `out.push_str("\n}\n")` 收束；`component-kbd` feature 下通过 `out.push_str(crate::kbd::styles::CSS);` 注入同一层级。
+  - 已核验（聚合层）：`crates/ui/src/css.rs::push_components_css` 使用 `out.push_str("\n@layer ui {\n")` 统一包裹组件样式并以 `out.push_str("\n}\n")` 收束；`component-kbd` feature 下通过 `out.push_str(crate::kbd::styles::CSS);` 注入同一层级。
   - 已核验（运行时样式边界）：`components/kbd/src/view.rs` 不含 `style=`/`style:top`/`style:left` 等普通内联样式写法；组件状态渲染仅依赖 class 与 `data-*` 语义标记。
   - N/A（kbd，运行时数值注入）：`kbd` 为静态展示组件，当前无运行时布局/几何数值写入需求，因此不存在 `style:--x` 动态变量注入路径。
   - 回归约束：若后续引入运行时动态样式，仅允许 `style:--ui-*` 自定义变量注入，禁止 `style="top: ..."` 等普通内联样式进入组件实现。
@@ -327,19 +327,19 @@
   - 已核验（实现边界）：`components/kbd/src/{mod,logic,view,styles}.rs` 不含 `attach_motion`、`stiffness`、`damping`、`ui_motion::` 调用；动效执行器未渗入组件层。
   - 依赖保障：`crates/ui-motion/src/lib.rs` 在 non-wasm 路径提供 `prefers_reduced_motion() -> true` 与 `animate(...)` no-op，满足 SSR/tooling 可编译与可预测降级。
   - 回归约束：若后续为 `kbd` 引入动效语义，必须新增 `motion.rs` 承载 `stiffness/damping` 合同并通过 `attach_motion` 挂载，同时保持 `prefers-reduced-motion` 与 non-wasm no-op 降级路径。
-- [x] `ui-components` 固定入口文件落点正确。
-  - 已核验（`lib.rs` 入口与导出面）：`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-kbd")] pub use ui_kbd as kbd;` 暴露 `kbd` 模块，并统一导出 `pub use root::UiRoot;`；组件模块受 `component-*` feature gate 约束。
-  - 已核验（`css.rs` 聚合入口）：`crates/ui-components/src/css.rs::push_components_css` 负责组件 CSS 聚合，`component-kbd` 下通过 `out.push_str(crate::kbd::styles::CSS);` 注入；聚合包裹在 `@layer ui`，未走无条件全量注入路径。
-  - 已核验（`root.rs` 注入职责）：`crates/ui-components/src/root.rs::UiRoot` 集中注入 `base css + theme vars + (optional) components css`，并通过 `provide_ui_i18n(i18n)` 提供全局 i18n 上下文，主题与注入策略未分散到组件层。
+- [x] `ui` 固定入口文件落点正确。
+  - 已核验（`lib.rs` 入口与导出面）：`crates/ui/src/lib.rs` 通过 `#[cfg(feature = "component-kbd")] pub use ui_kbd as kbd;` 暴露 `kbd` 模块，并统一导出 `pub use root::UiRoot;`；组件模块受 `component-*` feature gate 约束。
+  - 已核验（`css.rs` 聚合入口）：`crates/ui/src/css.rs::push_components_css` 负责组件 CSS 聚合，`component-kbd` 下通过 `out.push_str(crate::kbd::styles::CSS);` 注入；聚合包裹在 `@layer ui`，未走无条件全量注入路径。
+  - 已核验（`root.rs` 注入职责）：`crates/ui/src/root.rs::UiRoot` 集中注入 `base css + theme vars + (optional) components css`，并通过 `provide_ui_i18n(i18n)` 提供全局 i18n 上下文，主题与注入策略未分散到组件层。
   - 已核验（`active_highlight.rs` 落点）：`crates/ui-visual-primitive/src/active_highlight.rs` 提供共享高亮样式与 motion driver（`ActiveHighlightMotion` / `attach_active_highlight_motion`），不承载 `kbd` 业务语义。
-  - 已核验（禁止文件不存在）：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在；对应原语固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+  - 已核验（禁止文件不存在）：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 均不存在；对应原语固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。
   - 已核验（kbd）：`components/kbd/src` 存在 `mod.rs`、`logic.rs`、`styles.rs`、`view.rs`；不存在 `render.rs` 漂移文件。
   - 已核验（`mod.rs` 导出边界）：仅保留 `pub use logic::KbdSize;` 与 `pub use view::Kbd;` 最小对外面；未暴露 `logic/view` 内部实现模块为公共 API。
@@ -410,11 +410,11 @@
   - 已核验（字符串热点）：`components/kbd/src/logic.rs::compose_class_name` 已引入 `std::borrow::Cow<'static, str>` 管理静态 class token（`ui-kbd`/`ui-kbd--custom-class`/state class），仅在外部 `class_name` 场景使用 `Cow::Owned`，避免无谓字符串复制。
   - 已执行：`./scripts/check-rust-hygiene.sh`；当前环境 `rg` 构建不支持 PCRE2（输出 `PCRE2 is not available in this build of ripgrep`），且脚本报告大量仓库级历史问题；未发现 `kbd` 组件新增 `unwrap/expect/let _ =` 回归。
   - 回归约束：后续新增非测试代码禁止引入 `unwrap/expect` 与裸 `let _ = ...`，字符串拼装路径继续优先 `Cow<'static, str>`。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 已核验（特性树注册）：`crates/ui-components/Cargo.toml` 存在 `component-kbd = ["dep:ui-kbd"]`，`kbd` 已进入组件特性树而非无条件可达。
-  - 已核验（`lib.rs` 门控）：`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-kbd")] pub use ui_kbd as kbd;` 条件导出，未无条件拉起 `kbd` 模块。
-  - 已核验（`css.rs` 门控）：`crates/ui-components/src/css.rs` 在 `#[cfg(feature = "component-kbd")]` 下才执行 `out.push_str(crate::kbd::styles::CSS);`，不存在无条件聚合 `kbd` 样式。
-  - 已核验（反向依赖）：`apps/web-demo/Cargo.toml` 对 `ui-components` 使用 `default-features = false`，避免默认 `all-components` 全量拉起。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 已核验（特性树注册）：`crates/ui/Cargo.toml` 存在 `component-kbd = ["dep:ui-kbd"]`，`kbd` 已进入组件特性树而非无条件可达。
+  - 已核验（`lib.rs` 门控）：`crates/ui/src/lib.rs` 通过 `#[cfg(feature = "component-kbd")] pub use ui_kbd as kbd;` 条件导出，未无条件拉起 `kbd` 模块。
+  - 已核验（`css.rs` 门控）：`crates/ui/src/css.rs` 在 `#[cfg(feature = "component-kbd")]` 下才执行 `out.push_str(crate::kbd::styles::CSS);`，不存在无条件聚合 `kbd` 样式。
+  - 已核验（反向依赖）：`apps/web-demo/Cargo.toml` 对 `ui` 使用 `default-features = false`，避免默认 `all-components` 全量拉起。
   - 回归约束：后续新增导出/样式聚合路径必须保持 feature 门控，禁止在 `lib.rs/css.rs` 引入无条件全局依赖。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 已核验（语义断言覆盖）：`components/kbd/test/semantics.rs` 覆盖 `data-*` 语义标记（`kbd_state_markers_are_observable_queryable_and_enumerable`）、A11y 契约（`kbd_a11y_i18n_l10n_contract_is_present_without_hardcoded_copy`）与“非快照替代”约束（`kbd_semantics_contract_tests_exist_and_do_not_depend_on_visual_snapshots`）。
@@ -477,7 +477,7 @@
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - 已核验（一键复制 + 直接运行）：`apps/docs-app/src/pages/components/pages/display.rs::kbd()` 提供 `Source-first Starter (Copy-Paste Ready)`，并设置 `code_imports=kbd_imports`；复制链路由 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐缺失 imports。
   - 已核验（真实源码落点 + 依赖前提）：`display.rs::kbd()` 新增 `data-slot="kbd-source-first"` 区块，明确 `component-kbd` / `UiRoot + inject-css` 前提，并列出 `components/kbd/src/{mod,logic,view,styles}.rs` 源码路径，避免“复制即报错/无样式”。
-  - 已核验（文档与实现同步）：`source_first_code`、`kbd_imports` 与 `Snippet(label=\"Copy Kbd starter\")` 共用当前 `Kbd` API（`size/keys/class_name`）示例，减少示例漂移风险。
+- 已核验（文档与实现同步）：`source_first_code`、`kbd_imports` 与 `Snippet(label="Copy Kbd starter")` 共用当前 `Kbd` API（`size/keys/class_name`）示例，减少示例漂移风险。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
@@ -497,9 +497,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

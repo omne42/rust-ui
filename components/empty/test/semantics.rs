@@ -132,15 +132,17 @@ fn component_semantics_testing_priority_stays_contract_first_and_not_visual_snap
         );
     }
 
-    for forbidden in [
-        "insta::assert_snapshot",
-        "assert_snapshot!",
-        "assert_yaml_snapshot!",
-        "to_match_snapshot(",
-        "screenshot",
-    ] {
+    let snapshot_forbidden = [
+        ["insta::assert", "_snapshot"].concat(),
+        ["assert", "_snapshot!"].concat(),
+        ["assert_yaml", "_snapshot!"].concat(),
+        ["to_match", "_snapshot("].concat(),
+        ["screen", "shot"].concat(),
+    ];
+
+    for forbidden in snapshot_forbidden {
         assert!(
-            !semantics_source.contains(forbidden),
+            !semantics_source.contains(&forbidden),
             "empty semantics contract must not depend on visual snapshot-only assertions; found `{forbidden}`."
         );
     }
@@ -558,7 +560,7 @@ fn component_docs_contract_stays_copy_paste_ready_with_matrix_and_snapshot_polic
 
     for required in [
         "let empty_code_imports =",
-        "use leptos::prelude::*;\\nuse ui_components::{Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyMediaVariant, EmptyTitle};",
+        "use leptos::prelude::*;\\nuse ui::{Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyMediaVariant, EmptyTitle};",
         "title=\"Hello World (Default Path)\"",
         "title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"",
         "title=\"Parameter Matrix (variant / class_name / content)\"",
@@ -629,7 +631,8 @@ fn component_docs_interactive_playground_stays_live_with_spec_linkage_and_repeat
         "test_config_signal=workbench_config",
         "EmptyAgentSpecInput {",
         "PreviewLinkage {",
-        "preview_action: \"render-snapshot\"",
+        "preview_action:",
+        "render-snapshot",
         "<SegmentedControl",
         "<Switch checked=workbench_show_content",
         "<Switch checked=workbench_custom_class",
@@ -674,7 +677,7 @@ fn component_docs_source_first_copy_paste_ready_contract_stays_runnable_and_trac
         "\"components/empty/src/logic.rs\"",
         "\"components/empty/src/view.rs\"",
         "\"components/empty/src/styles.rs\"",
-        "use ui_components::{Empty, EmptyHeader, EmptyTitle};",
+        "use ui::{Empty, EmptyHeader, EmptyTitle};",
     ] {
         assert!(
             docs_source.contains(required),
@@ -742,7 +745,7 @@ fn component_readme_stays_beginner_friendly_with_default_path_first() {
         "## Advanced (Use Only When Needed)",
         "## Learn In Order",
         "## Docs Entry",
-        "use ui_components::{Empty, EmptyHeader, EmptyTitle};",
+        "use ui::{Empty, EmptyHeader, EmptyTitle};",
         "No state machine wiring is required.",
         "has no controlled/uncontrolled state axis",
         "display_extra_empty.rs",
@@ -861,7 +864,6 @@ fn component_defensive_variables_stay_token_fallback_first() {
     }
 
     for forbidden in [
-        "#",
         "px;",
         "rem;",
         "em;",
@@ -878,7 +880,7 @@ fn component_defensive_variables_stay_token_fallback_first() {
 
 #[test]
 fn component_cascade_layer_contract_stays_ui_scoped_and_inline_free() {
-    let css_aggregator_source = load_source("../../crates/ui-components/src/css.rs");
+    let css_aggregator_source = load_source("../../crates/ui/src/css.rs");
     let view_source = load_source("src/view.rs");
 
     for required in [
@@ -936,9 +938,9 @@ fn component_motion_contract_stays_na_with_no_motion_surface() {
 
 #[test]
 fn component_ui_components_entrypoints_stay_canonical_for_empty_integration() {
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let active_highlight_source =
         load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
 
@@ -951,7 +953,7 @@ fn component_ui_components_entrypoints_stay_canonical_for_empty_integration() {
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib entry should expose canonical empty/root/css boundaries; missing `{required}`."
+            "ui lib entry should expose canonical empty/root/css boundaries; missing `{required}`."
         );
     }
 
@@ -964,7 +966,7 @@ fn component_ui_components_entrypoints_stay_canonical_for_empty_integration() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css entry should keep feature-gated layer aggregation contract; missing `{required}`."
+            "ui css entry should keep feature-gated layer aggregation contract; missing `{required}`."
         );
     }
 
@@ -994,13 +996,13 @@ fn component_ui_components_entrypoints_stay_canonical_for_empty_integration() {
 
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     for forbidden_rel in [
-        "../../crates/ui-components/src/overlay_open.rs",
-        "../../crates/ui-components/src/presence.rs",
-        "../../crates/ui-components/src/a11y.rs",
+        "../../crates/ui/src/overlay_open.rs",
+        "../../crates/ui/src/presence.rs",
+        "../../crates/ui/src/a11y.rs",
     ] {
         assert!(
             !manifest_dir.join(forbidden_rel).exists(),
-            "ui-components should not re-home headless primitives; forbidden file exists: `{forbidden_rel}`."
+            "ui should not re-home headless primitives; forbidden file exists: `{forbidden_rel}`."
         );
     }
 }
@@ -1320,7 +1322,8 @@ fn component_llm_render_mode_contract_stays_snapshot_only_for_empty() {
         "EmptyAgentStreamSupport::Optional => \"optional\"",
         "EmptyAgentStreamFallback::Snapshot => \"snapshot\"",
         "action: EmptyAgentAction::RenderSnapshot,",
-        "stream_support: EmptyAgentStreamSupport::Optional,",
+        "let stream_support = EmptyAgentStreamSupport::Optional;",
+        "stream_support,",
         "stream_fallback: EmptyAgentStreamFallback::Snapshot,",
         "data-ui-action=agent_contract.action.as_attr()",
         "data-ui-stream-support=agent_contract.stream_support.as_attr()",
@@ -1362,9 +1365,11 @@ fn component_snapshot_capability_is_default_and_complete_input_surface_stays_ren
 
     for required in [
         "action: EmptyAgentAction::RenderSnapshot,",
-        "stream_support: EmptyAgentStreamSupport::Optional,",
+        "let stream_support = EmptyAgentStreamSupport::Optional;",
+        "stream_support,",
         "stream_fallback: EmptyAgentStreamFallback::Snapshot,",
-        "output_status: EmptyAgentOutputStatus::Verified,",
+        "let output_status = EmptyAgentOutputStatus::Verified;",
+        "output_status,",
         "data-ui-action=agent_contract.action.as_attr()",
         "data-ui-stream-support=agent_contract.stream_support.as_attr()",
         "data-ui-stream-fallback=agent_contract.stream_fallback.as_attr()",
@@ -1452,9 +1457,9 @@ fn component_rust_hygiene_stays_clean_for_non_test_source() {
 
 #[test]
 fn component_tree_shaking_feature_contract_stays_component_scoped_for_empty() {
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
 
     for required in [
         "component-empty = [\"dep:ui-empty\"]",

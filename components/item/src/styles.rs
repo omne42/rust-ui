@@ -1,4 +1,4 @@
-pub const CSS: &str = r#"
+pub const CSS: &str = r"
 .ui-item-group {
   min-inline-size: var(--ui-item-min-inline-size, var(--ui-fallback-min-inline-size-none));
 }
@@ -6,4 +6,4 @@ pub const CSS: &str = r#"
 .ui-item {
   min-inline-size: var(--ui-item-min-inline-size, var(--ui-fallback-min-inline-size-none));
 }
-"#;
+";

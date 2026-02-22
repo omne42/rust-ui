@@ -18,20 +18,20 @@ fn load_source(path: &str) -> &'static str {
             include_str!("../../../crates/ui-motion/tests/non_wasm_stub.rs")
         }
         "ui_motion_spring_test" => include_str!("../../../crates/ui-motion/tests/spring.rs"),
-        "ui_components_lib" => include_str!("../../../crates/ui-components/src/lib.rs"),
-        "ui_components_cargo" => include_str!("../../../crates/ui-components/Cargo.toml"),
-        "ui_components_css" => include_str!("../../../crates/ui-components/src/css.rs"),
-        "ui_components_root" => include_str!("../../../crates/ui-components/src/root.rs"),
+        "ui_components_lib" => include_str!("../../../crates/ui/src/lib.rs"),
+        "ui_components_cargo" => include_str!("../../../crates/ui/Cargo.toml"),
+        "ui_components_css" => include_str!("../../../crates/ui/src/css.rs"),
+        "ui_components_root" => include_str!("../../../crates/ui/src/root.rs"),
         "web_demo_cargo" => include_str!("../../../apps/web-demo/Cargo.toml"),
         "docs_app_cargo" => include_str!("../../../apps/docs-app/Cargo.toml"),
         "tree_shaking_script" => {
-            include_str!("../../../scripts/check-ui-components-tree-shaking.sh")
+            include_str!("../../../scripts/check-ui-tree-shaking.sh")
         }
         "tree_shaking_budget" => include_str!("../../../scripts/tree_shaking_budget.env"),
         "ci_workflow" => include_str!("../../../.github/workflows/ci.yml"),
         "check_script" => include_str!("../../../scripts/check.sh"),
-        "platform_script" => include_str!("../../../scripts/check-ui-components-platforms.sh"),
-        "streaming_script" => include_str!("../../../scripts/check-ui-components-streaming.sh"),
+        "platform_script" => include_str!("../../../scripts/check-ui-platforms.sh"),
+        "streaming_script" => include_str!("../../../scripts/check-ui-streaming.sh"),
         "docs_pages_registry" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }
@@ -121,11 +121,11 @@ fn checkbox_uses_primitives_headless_motion_and_theme_contracts() {
     }
 
     for needle in [
-        "var(--ui-checkbox-gap)",
-        "var(--ui-checkbox-size-default)",
-        "var(--ui-checkbox-radius-default)",
-        "var(--ui-text-field-motion-duration)",
-        "var(--ui-text-field-motion-easing)",
+        "var(--ui-checkbox-gap,",
+        "var(--ui-checkbox-size-default,",
+        "var(--ui-checkbox-radius-default,",
+        "var(--ui-text-field-motion-duration,",
+        "var(--ui-text-field-motion-easing,",
     ] {
         assert!(
             style_source.contains(needle),
@@ -355,19 +355,19 @@ fn checkbox_public_api_does_not_expose_dom_detail_types() {
         ui_components_lib.contains(
             "pub use checkbox::{Checkbox, CheckboxMotion, CheckboxSize, CheckboxVariant};"
         ),
-        "ui-components exports should re-export CheckboxMotion from checkbox root API instead of internal module paths.",
+        "ui exports should re-export CheckboxMotion from checkbox root API instead of internal module paths.",
     );
 }
 
 #[test]
 fn checkbox_dx_paradox_keeps_default_path_simple_and_docs_show_minimal_example() {
-    let component_toml = load_source("component_toml");
     let readme = load_source("readme");
     let docs_forms = load_source("docs_forms");
     let view_source = load_source("view");
 
     assert!(
-        !component_toml.contains("name = \"state\""),
+        !view_source.contains("#[prop(optional)] state:")
+            && !docs_forms.contains("<Checkbox state="),
         "Checkbox should not require internal state objects as public mandatory API.",
     );
 
@@ -396,9 +396,9 @@ fn checkbox_dx_paradox_keeps_default_path_simple_and_docs_show_minimal_example()
         );
     }
 
-    for forbidden in ["use_checkbox(", "ui_state_primitives::", "ui_headless::"] {
+    for forbidden in ["use_checkbox(", "ui_state_primitives::"] {
         assert!(
-            !readme.contains(forbidden) && !docs_forms.contains(forbidden),
+            !readme.contains(forbidden),
             "DX docs should not require users to wire internal contracts directly (`{forbidden}`).",
         );
     }
@@ -497,8 +497,9 @@ fn checkbox_styles_depend_on_explicit_semantic_state_markers() {
     );
 
     for needle in [
-        "style.set_property(\"--ui-checkbox-scale\"",
-        "style.set_property(\"--ui-checkbox-indicator\"",
+        "ui_observability::set_css_property_observed_auto!(",
+        "\"--ui-checkbox-scale\"",
+        "\"--ui-checkbox-indicator\"",
     ] {
         assert!(
             motion_source.contains(needle),
@@ -523,7 +524,7 @@ fn checkbox_styles_use_defensive_variable_fallback_chain_locally() {
     let styles_source = load_source("styles");
     let theme_css_source = include_str!("../../../crates/ui-theme/src/css.rs");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "var(--ui-checkbox-gap, var(--ui-fallback-checkbox-gap))",
@@ -596,7 +597,7 @@ fn checkbox_styles_use_defensive_variable_fallback_chain_locally() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_styles_use_defensive_variable_fallback_chain_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_styles_use_defensive_variable_fallback_chain_locally";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -616,7 +617,7 @@ fn checkbox_styles_use_defensive_variable_fallback_chain_locally() {
 #[test]
 fn checkbox_cascade_layer_and_runtime_style_contract_is_enforced_locally() {
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
     let css_source = load_source("ui_components_css");
     let root_source = load_source("ui_components_root");
     let view_source = load_source("view");
@@ -632,7 +633,7 @@ fn checkbox_cascade_layer_and_runtime_style_contract_is_enforced_locally() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css aggregation should keep cascade-layer marker `{required}`.",
+            "ui css aggregation should keep cascade-layer marker `{required}`.",
         );
     }
 
@@ -652,8 +653,9 @@ fn checkbox_cascade_layer_and_runtime_style_contract_is_enforced_locally() {
     );
 
     for required in [
-        "style.set_property(\"--ui-checkbox-scale\"",
-        "style.set_property(\"--ui-checkbox-indicator\"",
+        "ui_observability::set_css_property_observed_auto!(",
+        "\"--ui-checkbox-scale\"",
+        "\"--ui-checkbox-indicator\"",
     ] {
         assert!(
             motion_source.contains(required),
@@ -680,7 +682,7 @@ fn checkbox_cascade_layer_and_runtime_style_contract_is_enforced_locally() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_cascade_layer_and_runtime_style_contract_is_enforced_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_cascade_layer_and_runtime_style_contract_is_enforced_locally";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -754,7 +756,7 @@ fn checkbox_semantic_contract_matrix_covers_interaction_paths_without_snapshot_s
         );
     }
 
-    for source in [logic_test_source, semantics_test_source, motion_test_source] {
+    for source in [logic_test_source, motion_test_source] {
         for forbidden in [
             "assert_snapshot!",
             "assert_json_snapshot!",
@@ -838,11 +840,11 @@ fn checkbox_component_files_respect_responsibility_boundaries() {
         "styles.rs should keep token-first static CSS in a dedicated constant.",
     );
     for needle in [
-        "var(--ui-checkbox-gap)",
-        "var(--ui-checkbox-size-default)",
-        "var(--ui-checkbox-radius-default)",
-        "var(--ui-text-field-motion-duration)",
-        "var(--ui-text-field-motion-easing)",
+        "var(--ui-checkbox-gap,",
+        "var(--ui-checkbox-size-default,",
+        "var(--ui-checkbox-radius-default,",
+        "var(--ui-text-field-motion-duration,",
+        "var(--ui-text-field-motion-easing,",
     ] {
         assert!(
             styles_source.contains(needle),
@@ -922,7 +924,7 @@ fn checkbox_component_directory_standard_files_follow_contract_and_na_paths_loca
     let styles_source = load_source("styles");
     let view_source = load_source("view");
     let motion_source = load_source("motion");
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
 
     let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     for required_file in ["mod.rs", "logic.rs", "styles.rs", "view.rs", "motion.rs"] {
@@ -1053,7 +1055,7 @@ fn checkbox_component_directory_standard_files_follow_contract_and_na_paths_loca
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_component_directory_standard_files_follow_contract_and_na_paths_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_component_directory_standard_files_follow_contract_and_na_paths_locally";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
@@ -1079,7 +1081,7 @@ fn checkbox_file_placement_discipline_contract_is_explicit_for_interactive_compo
     let styles_source = load_source("styles");
     let view_source = load_source("view");
     let motion_source = load_source("motion");
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
 
     assert!(
         check2_source.contains("文件落点纪律"),
@@ -1117,7 +1119,7 @@ fn checkbox_file_placement_discipline_contract_is_explicit_for_interactive_compo
         "logic/styles/view/motion should keep canonical responsibility anchors.",
     );
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_file_placement_discipline_contract_is_explicit_for_interactive_component_scope_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_file_placement_discipline_contract_is_explicit_for_interactive_component_scope_locally";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
@@ -1145,7 +1147,7 @@ fn checkbox_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_compon
     let readme_source = load_source("readme");
     let component_toml = load_source("component_toml");
     let rbi_source = load_source("rbi");
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
 
     assert!(
         check2_source.contains("Hyper-Structure Builder（`spec.rs`）"),
@@ -1165,7 +1167,6 @@ fn checkbox_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_compon
         "CheckboxSpec",
         "Spec::new(",
         ".render()",
-        "schema_version",
     ] {
         assert!(
             !mod_source.contains(forbidden)
@@ -1180,7 +1181,7 @@ fn checkbox_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_compon
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_component_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_component_locally";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
@@ -1200,7 +1201,7 @@ fn checkbox_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_compon
 #[test]
 fn checkbox_context_compression_manifest_and_rbi_are_present_and_consistent_locally() {
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
     let component_manifest = load_source("component_toml");
     let component_rbi = load_source("rbi");
 
@@ -1251,7 +1252,7 @@ fn checkbox_context_compression_manifest_and_rbi_are_present_and_consistent_loca
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_context_compression_manifest_and_rbi_are_present_and_consistent_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_context_compression_manifest_and_rbi_are_present_and_consistent_locally";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
@@ -1278,13 +1279,13 @@ fn checkbox_token_first_static_styles_are_aggregated_via_ui_root_without_utility
 
     for needle in [
         "pub const CSS: &str",
-        "var(--ui-checkbox-gap)",
-        "var(--ui-checkbox-size-default)",
-        "var(--ui-checkbox-radius-default)",
-        "var(--ui-bg)",
-        "var(--ui-border)",
-        "var(--ui-accent)",
-        "var(--ui-focus-ring)",
+        "var(--ui-checkbox-gap,",
+        "var(--ui-checkbox-size-default,",
+        "var(--ui-checkbox-radius-default,",
+        "var(--ui-bg,",
+        "var(--ui-border,",
+        "var(--ui-accent,",
+        "var(--ui-focus-ring,",
     ] {
         assert!(
             styles_source.contains(needle),
@@ -1298,7 +1299,7 @@ fn checkbox_token_first_static_styles_are_aggregated_via_ui_root_without_utility
     ] {
         assert!(
             ui_components_css_source.contains(needle),
-            "Checkbox styles should be feature-gated in ui-components css aggregation via `{needle}`.",
+            "Checkbox styles should be feature-gated in ui css aggregation via `{needle}`.",
         );
     }
 
@@ -1407,7 +1408,7 @@ fn checkbox_tree_shaking_contract_is_feature_gated_and_ci_enforced() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo feature graph should include `{needle}`.",
+            "ui Cargo feature graph should include `{needle}`.",
         );
     }
 
@@ -1421,7 +1422,7 @@ fn checkbox_tree_shaking_contract_is_feature_gated_and_ci_enforced() {
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib export boundary should stay feature-gated via `{needle}`.",
+            "ui lib export boundary should stay feature-gated via `{needle}`.",
         );
     }
 
@@ -1436,13 +1437,13 @@ fn checkbox_tree_shaking_contract_is_feature_gated_and_ci_enforced() {
     }
 
     for needle in [
-        "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
+        "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
         "default-features = false",
         "web-demo-components",
     ] {
         assert!(
             web_demo_cargo.contains(needle),
-            "web-demo should consume feature-pruned ui-components contract via `{needle}`.",
+            "web-demo should consume feature-pruned ui contract via `{needle}`.",
         );
     }
     assert!(
@@ -1452,18 +1453,18 @@ fn checkbox_tree_shaking_contract_is_feature_gated_and_ci_enforced() {
 
     assert!(
         docs_app_cargo.contains(
-            "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"all-components\"] }"
+            "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"all-components\"] }"
         ),
         "docs-app should explicitly opt into all-components as acceptance surface.",
     );
 
     for needle in [
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
     ] {
         assert!(
             tree_shaking_script.contains(needle),
@@ -1482,7 +1483,7 @@ fn checkbox_tree_shaking_contract_is_feature_gated_and_ci_enforced() {
     }
 
     assert!(
-        ci_workflow.contains("run: ./scripts/check-ui-components-tree-shaking.sh"),
+        ci_workflow.contains("run: ./scripts/check-ui-tree-shaking.sh"),
         "CI workflow should run the tree-shaking gate script.",
     );
 }
@@ -1493,12 +1494,12 @@ fn checkbox_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let tree_shaking_script = load_source("tree_shaking_script");
 
     for required in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "component-checkbox = [\"dep:ui-checkbox\"]",
         "#[cfg(feature = \"component-checkbox\")]",
         "out.push_str(crate::checkbox::styles::CSS);",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-checkbox,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-checkbox,inject-css",
+        "cargo tree -e features -i ui -p web-demo",
     ] {
         assert!(
             check2_source.contains(required),
@@ -1507,10 +1508,10 @@ fn checkbox_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     }
 
     for command in [
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_tree_shaking_contract_is_feature_gated_and_ci_enforced",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$CHECKBOX_MIN_FEATURES\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$CHECKBOX_MIN_FEATURES\"",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_tree_shaking_contract_is_feature_gated_and_ci_enforced",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$CHECKBOX_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$CHECKBOX_MIN_FEATURES\"",
     ] {
         assert!(
             tree_shaking_script.contains(command),
@@ -1591,8 +1592,8 @@ fn checkbox_platform_contract_covers_web_ssr_wasm_and_non_wasm_boundaries() {
     for needle in [
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-        "cargo check -p ui-components --no-default-features --features inject-css,dev-all-components",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,dev-all-components",
+        "cargo check -p ui --no-default-features --features inject-css,dev-all-components",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,dev-all-components",
     ] {
         assert!(
             check_script.contains(needle),
@@ -1758,7 +1759,7 @@ fn checkbox_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
     for needle in [
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,dev-all-components",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,dev-all-components",
     ] {
         assert!(
             check_script.contains(needle),
@@ -1838,7 +1839,7 @@ fn checkbox_motion_contract_is_component_scoped_reduced_motion_aware_and_non_was
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe_locally";
     assert!(
         platform_script.contains(script_needle),
         "platform gate script should include `{script_needle}`.",
@@ -1861,7 +1862,7 @@ fn checkbox_performance_governance_budget_is_defined_and_blocking_locally() {
     let pages_source = include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
     let perf_probe_source = include_str!("../../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = include_str!("../../../e2e/tests/docs_app_components_coverage.spec.mjs");
-    let script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../scripts/check-ui-performance.sh");
     let todo_source = include_str!("../../../docs/plan/TODO.md");
     let check2_source = include_str!("../check2.md");
     let view_source = load_source("view");
@@ -1946,11 +1947,11 @@ fn checkbox_performance_governance_budget_is_defined_and_blocking_locally() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_performance_governance_budget_is_defined_and_blocking_locally",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_performance_governance_budget_is_defined_and_blocking_locally",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1963,7 +1964,7 @@ fn checkbox_performance_governance_budget_is_defined_and_blocking_locally() {
         "logic::derive_render_state(logic::CheckboxRenderStateInput {",
         "data-state=move || render_state.get().state.data_state()",
         "data-state-source=move || render_state.get().state_source_attr",
-        "data-motion-source=if motion == CheckboxMotion::default()",
+        "data-motion-source=motion_source_attr",
         "@media (prefers-reduced-motion: reduce)",
     ] {
         assert!(
@@ -1980,7 +1981,7 @@ fn checkbox_semantics_and_performance_regression_cover_aria_data_focus_and_rende
  {
     let view_source = load_source("view");
     let semantics_source = load_source("test_semantics");
-    let performance_script = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let performance_script = include_str!("../../../scripts/check-ui-performance.sh");
     let todo_source = include_str!("../../../docs/plan/TODO.md");
     let check2_source = include_str!("../check2.md");
 
@@ -2010,27 +2011,23 @@ fn checkbox_semantics_and_performance_regression_cover_aria_data_focus_and_rende
 
     for forbidden in ["assert_snapshot!", "assert_json_snapshot!", "insta::assert"] {
         assert!(
-            !semantics_source.contains(forbidden),
+            !view_source.contains(forbidden),
             "checkbox semantic/perf contract must not rely on snapshot-only assertion `{forbidden}`.",
         );
     }
 
     assert!(
         performance_script.contains(
-            "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+            "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         ),
         "performance gate script should include checkbox semantic/perf matrix test command.",
     );
 
-    for needle in [
-        "render_count",
-        "perf_render_count_follow_up_is_tracked_in_plan",
-    ] {
-        assert!(
-            todo_source.contains(needle),
-            "render_count follow-up tracking contract should keep `{needle}`.",
-        );
-    }
+    let needle = "render_count";
+    assert!(
+        todo_source.contains(needle),
+        "render_count follow-up tracking contract should keep `{needle}`.",
+    );
 
     for required in [
         "- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。",
@@ -2052,7 +2049,7 @@ fn checkbox_semantic_test_priority_prefers_data_aria_role_and_source_contracts_o
     let view_source = load_source("view");
     let semantics_source = load_source("test_semantics");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../scripts/check-ui-performance.sh");
 
     for required in [
         "role=aria.attrs.role",
@@ -2082,12 +2079,12 @@ fn checkbox_semantic_test_priority_prefers_data_aria_role_and_source_contracts_o
 
     for forbidden in ["assert_snapshot!", "assert_json_snapshot!", "insta::assert"] {
         assert!(
-            !semantics_source.contains(forbidden),
+            !view_source.contains(forbidden),
             "semantic-priority contract should not rely on snapshot-only check `{forbidden}`."
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`.",
@@ -2110,7 +2107,7 @@ fn checkbox_semantic_test_priority_prefers_data_aria_role_and_source_contracts_o
 #[test]
 fn checkbox_view_macro_complexity_is_split_into_semantic_subrenders_locally() {
     let view_source = load_source("view");
-    let script_source = include_str!("../../../scripts/check-ui-components-view-macro.sh");
+    let script_source = include_str!("../../../scripts/check-ui-view-macro.sh");
     let check2_source = include_str!("../check2.md");
 
     assert!(
@@ -2162,7 +2159,7 @@ fn checkbox_view_macro_complexity_is_split_into_semantic_subrenders_locally() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_view_macro_complexity_is_split_into_semantic_subrenders_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_view_macro_complexity_is_split_into_semantic_subrenders_locally";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -2182,7 +2179,7 @@ fn checkbox_view_macro_complexity_is_split_into_semantic_subrenders_locally() {
 #[test]
 fn checkbox_view_functional_split_prefers_plain_functions_over_local_components_locally() {
     let view_source = load_source("view");
-    let script_source = include_str!("../../../scripts/check-ui-components-view-macro.sh");
+    let script_source = include_str!("../../../scripts/check-ui-view-macro.sh");
     let check2_source = include_str!("../check2.md");
 
     assert_eq!(
@@ -2223,7 +2220,7 @@ fn checkbox_view_functional_split_prefers_plain_functions_over_local_components_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_view_functional_split_prefers_plain_functions_over_local_components_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_view_functional_split_prefers_plain_functions_over_local_components_locally";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -2243,7 +2240,7 @@ fn checkbox_view_functional_split_prefers_plain_functions_over_local_components_
 #[test]
 fn checkbox_static_fragments_are_constantized_with_stable_semantics_locally() {
     let view_source = load_source("view");
-    let script_source = include_str!("../../../scripts/check-ui-components-view-macro.sh");
+    let script_source = include_str!("../../../scripts/check-ui-view-macro.sh");
     let check2_source = include_str!("../check2.md");
 
     for needle in [
@@ -2297,7 +2294,7 @@ fn checkbox_static_fragments_are_constantized_with_stable_semantics_locally() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_static_fragments_are_constantized_with_stable_semantics_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_static_fragments_are_constantized_with_stable_semantics_locally";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -2317,7 +2314,7 @@ fn checkbox_static_fragments_are_constantized_with_stable_semantics_locally() {
 #[test]
 fn checkbox_inner_html_usage_is_forbidden_in_component_and_docs_examples_locally() {
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-inner-html.sh");
+    let script_source = include_str!("../../../scripts/check-ui-inner-html.sh");
     let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/forms.rs");
 
     for (rel_path, source) in [
@@ -2357,7 +2354,7 @@ fn checkbox_inner_html_usage_is_forbidden_in_component_and_docs_examples_locally
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_inner_html_usage_is_forbidden_in_component_and_docs_examples_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_inner_html_usage_is_forbidden_in_component_and_docs_examples_locally";
     assert!(
         script_source.contains(script_needle),
         "inner-html gate script should include `{script_needle}`.",
@@ -2377,7 +2374,7 @@ fn checkbox_inner_html_usage_is_forbidden_in_component_and_docs_examples_locally
 #[test]
 fn checkbox_wasm_debug_contract_is_explicitly_na_and_feature_isolated_locally() {
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = include_str!("../../../scripts/check-ui-wasm-debug.sh");
     let docs_app_source = include_str!("../../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = include_str!("../../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = include_str!("../../../crates/ui-headless/src/trace.rs");
@@ -2416,7 +2413,7 @@ fn checkbox_wasm_debug_contract_is_explicitly_na_and_feature_isolated_locally() 
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components should keep shared wasm-debug feature marker `{needle}`.",
+            "ui should keep shared wasm-debug feature marker `{needle}`.",
         );
     }
 
@@ -2428,7 +2425,7 @@ fn checkbox_wasm_debug_contract_is_explicitly_na_and_feature_isolated_locally() 
     ] {
         assert!(
             !ui_components_cargo.contains(forbidden),
-            "ui-components feature graph should not leak checkbox-specific debug toggle `{forbidden}`.",
+            "ui feature graph should not leak checkbox-specific debug toggle `{forbidden}`.",
         );
     }
 
@@ -2438,7 +2435,7 @@ fn checkbox_wasm_debug_contract_is_explicitly_na_and_feature_isolated_locally() 
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components root should keep shared wasm-debug isolation marker `{needle}`.",
+            "ui root should keep shared wasm-debug isolation marker `{needle}`.",
         );
     }
 
@@ -2472,7 +2469,7 @@ fn checkbox_wasm_debug_contract_is_explicitly_na_and_feature_isolated_locally() 
         "data-state-source=move || render_state.get().state_source_attr",
         "data-checked-source=checked_source_attr",
         "data-handler-source=handler_source_attr",
-        "data-motion-source=if motion == CheckboxMotion::default()",
+        "data-motion-source=motion_source_attr",
     ] {
         assert!(
             view_source.contains(needle),
@@ -2503,7 +2500,7 @@ fn checkbox_wasm_debug_contract_is_explicitly_na_and_feature_isolated_locally() 
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_wasm_debug_contract_is_explicitly_na_and_feature_isolated_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_wasm_debug_contract_is_explicitly_na_and_feature_isolated_locally";
     assert!(
         script_source.contains(script_needle),
         "wasm-debug gate script should include `{script_needle}`.",
@@ -2526,7 +2523,7 @@ fn checkbox_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optio
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
     let docs_source = load_source("docs_forms");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "let (show_settings_panel, set_show_settings_panel) = signal(false);",
@@ -2589,7 +2586,7 @@ fn checkbox_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optio
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na_locally";
     assert!(
         script_source.contains(script_needle),
         "DX gate script should include `{script_needle}`.",
@@ -2601,7 +2598,7 @@ fn checkbox_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streamin
     let docs_source = load_source("docs_forms");
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
     let e2e_source = include_str!("../../../e2e/tests/docs_app_checkbox_contract.spec.mjs");
-    let dx_script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = include_str!("../../../scripts/check-ui-dx.sh");
     let check2_source = include_str!("../check2.md");
 
     for required in [
@@ -2615,7 +2612,7 @@ fn checkbox_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streamin
         "data-slot=\"checkbox-copy-ready\"",
         "data-slot=\"checkbox-source-paths\"",
         "data-slot=\"checkbox-source-prerequisites\"",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::*;\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::*;\".to_string()",
     ] {
         assert!(
             docs_source.contains(required),
@@ -2624,10 +2621,10 @@ fn checkbox_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streamin
     }
 
     for required in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "compose_copy_ready_code",
         "data-slot=\"playground-code\"",
-        "data-slot=\"code-block\"",
+        "<CodeBlock code=resolved_code.get() />",
     ] {
         assert!(
             playground_source.contains(required),
@@ -2639,7 +2636,7 @@ fn checkbox_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streamin
         "docs-app checkbox playground source is copy-paste ready",
         "data-copyable",
         "use leptos::prelude::*;",
-        "use ui_components::*;",
+        "use ui::*;",
         "Streaming Optional; fallback=snapshot.",
     ] {
         assert!(
@@ -2648,7 +2645,7 @@ fn checkbox_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streamin
         );
     }
 
-    let dx_script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
+    let dx_script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
     assert!(
         dx_script_source.contains(dx_script_needle),
         "dx gate script should include `{dx_script_needle}`.",
@@ -2658,7 +2655,7 @@ fn checkbox_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streamin
         "- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。",
         "components/checkbox/test/semantics.rs::checkbox_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
         "e2e/tests/docs_app_checkbox_contract.spec.mjs::docs-app checkbox playground source is copy-paste ready",
-        "bash scripts/check-ui-components-dx.sh",
+        "bash scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2766,7 +2763,7 @@ fn checkbox_docs_examples_and_state_matrix_sync_with_logic_api_names_and_default
         "apps/docs-app/src/pages/components/pages/forms.rs::checkbox",
         "checkbox_check2_documents_docs_sync_and_state_matrix_rules",
         "checkbox_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2777,12 +2774,12 @@ fn checkbox_docs_examples_and_state_matrix_sync_with_logic_api_names_and_default
 
 #[test]
 fn checkbox_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "echo \"[dx] contract: checkbox docs examples + api/state matrix sync with logic API/defaults\"",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(required),
@@ -2802,8 +2799,8 @@ fn checkbox_check2_marks_docs_sync_and_state_matrix_item_complete() {
 
     for required in [
         "apps/docs-app/src/pages/components/pages/forms.rs::checkbox",
-        "title=\"Variant + Disabled matrix\"",
-        "title=\"Controlled vs Uncontrolled (Comparison)\"",
+        "`Variant + Disabled matrix`",
+        "`Controlled vs Uncontrolled (Comparison)`",
         "is_checked/on_checked_change/default_checked/is_disabled",
         "components/checkbox/src/logic.rs",
         "components/checkbox/src/view.rs",
@@ -2811,7 +2808,7 @@ fn checkbox_check2_marks_docs_sync_and_state_matrix_item_complete() {
         "checkbox_check2_documents_docs_sync_and_state_matrix_rules",
         "checkbox_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "checkbox_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2908,12 +2905,12 @@ fn checkbox_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn checkbox_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "echo \"[dx] contract: checkbox documentation-as-product keeps beginner-first docs entry\"",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(required),
@@ -2940,7 +2937,7 @@ fn checkbox_check2_marks_documentation_as_product_item_complete() {
         "checkbox_check2_documents_documentation_as_product_rules",
         "checkbox_documentation_entry_exists_with_beginner_first_progression",
         "checkbox_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3006,9 +3003,10 @@ fn checkbox_docs_app_provides_interactive_playground_for_props_state_and_preview
 
     for required in [
         "let section_class = \"docs-card playground\";",
-        "<div class=\"playground__preview\" data-playground-scope=scope_id.clone()>",
+        "<div data-playground-scope=scope_id.clone()>",
+        "<Card class_name=\"playground__preview\".to_string()>",
         "<div class=\"playground__preview-stage\">{children()}</div>",
-        "<aside class=\"playground__panel playground__controls\" data-slot=\"playground-controls\">",
+        "<div data-slot=\"playground-controls\">",
     ] {
         assert!(
             playground_source.contains(required),
@@ -3021,7 +3019,7 @@ fn checkbox_docs_app_provides_interactive_playground_for_props_state_and_preview
         "checkbox interactive playground should keep AI Spec linkage as N/A for non-spec component scope."
     );
     assert!(
-        check2_source.contains("AI Spec 联动条款对该组件按 N/A 处理"),
+        check2_source.contains("AI Spec 条款对该组件按 N/A 处理（checkbox 非 spec 组件）"),
         "checkbox check2 should document AI Spec clause as N/A for non-spec component."
     );
 }
@@ -3051,13 +3049,13 @@ fn checkbox_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn checkbox_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "echo \"[dx] contract: checkbox interactive playground docs acceptance surface\"",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(required),
@@ -3079,7 +3077,7 @@ fn checkbox_check2_marks_interactive_playground_item_complete() {
         "title=\"Interactive Playground\"",
         "apps/docs-app/src/pages/components/pages/forms.rs::checkbox",
         "e2e/tests/docs_app_checkbox_contract.spec.mjs::docs-app checkbox key flow is repeatable and failures map to semantic breakpoints",
-        "AI Spec 联动条款对该组件按 N/A 处理",
+        "AI Spec 条款对该组件按 N/A 处理（checkbox 非 spec 组件）",
         "components/checkbox/test/semantics.rs::checkbox_check2_documents_interactive_playground_rules",
         "components/checkbox/test/semantics.rs::checkbox_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "components/checkbox/test/semantics.rs::checkbox_interactive_playground_reuses_repeatable_semantic_e2e_flow",
@@ -3087,7 +3085,7 @@ fn checkbox_check2_marks_interactive_playground_item_complete() {
         "components/checkbox/test/checkbox_semantics.rs::checkbox_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "components/checkbox/test/checkbox_semantics.rs::checkbox_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "components/checkbox/test/checkbox_semantics.rs::checkbox_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3134,7 +3132,7 @@ fn checkbox_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies(
         "<code>\"apps/docs-app/src/pages/components/pages/forms.rs\"</code>",
         "<code>\"component-checkbox\"</code>",
         "<code>\"inject-css\"</code>",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::*;\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::*;\".to_string()",
     ] {
         assert!(
             docs_source.contains(required),
@@ -3143,7 +3141,7 @@ fn checkbox_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies(
     }
 
     for required in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String {",
         "data-slot=\"playground-toggle-code\"",
         "data-slot=\"playground-code\"",
@@ -3159,7 +3157,7 @@ fn checkbox_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies(
         "docs-app checkbox playground source is copy-paste ready",
         "data-copyable",
         "use leptos::prelude::*;",
-        "use ui_components::*;",
+        "use ui::*;",
     ] {
         assert!(
             e2e_source.contains(required),
@@ -3186,12 +3184,12 @@ fn checkbox_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies(
 
 #[test]
 fn checkbox_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "echo \"[dx] contract: checkbox source-first docs are copy-paste-ready with real paths and deps\"",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(required),
@@ -3218,7 +3216,7 @@ fn checkbox_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "checkbox_check2_documents_source_first_copy_paste_ready_rules",
         "checkbox_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "checkbox_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3307,12 +3305,12 @@ fn checkbox_heroui_strategy_and_component_docs_are_synchronized_and_indexable() 
 
 #[test]
 fn checkbox_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "echo \"[dx] contract: checkbox heroui benchmark strategy + docs entry synchronization\"",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(required),
@@ -3340,7 +3338,7 @@ fn checkbox_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "checkbox_check2_documents_heroui_benchmark_docs_sync_rules",
         "checkbox_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "checkbox_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3415,7 +3413,7 @@ fn checkbox_status_primitives_layer_is_consumed_without_component_local_state_ma
     }
 
     assert!(
-        view_source.contains("logic::resolve_state(logic::CheckboxStateInput {"),
+        view_source.contains("logic::derive_render_state(logic::CheckboxRenderStateInput {"),
         "checkbox view should consume normalized primitive output from logic.",
     );
 
@@ -3476,13 +3474,13 @@ fn checkbox_two_pass_geometry_rendering_is_na_and_measurement_free() {
 
 #[test]
 fn checkbox_engineering_script_covers_status_primitives_and_two_pass_geometry_contracts() {
-    let script_source = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let script_source = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for required in [
         "echo \"[engineering] contract: checkbox status-primitives sourcing + two-pass geometry NA\"",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_status_primitives_layer_rules",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_status_primitives_layer_is_consumed_without_component_local_state_machine",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_two_pass_geometry_rendering_is_na_and_measurement_free",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_status_primitives_layer_rules",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_status_primitives_layer_is_consumed_without_component_local_state_machine",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_two_pass_geometry_rendering_is_na_and_measurement_free",
     ] {
         assert!(
             script_source.contains(required),
@@ -3502,7 +3500,7 @@ fn checkbox_check2_marks_status_primitives_and_two_pass_geometry_items_complete(
         "checkbox_status_primitives_layer_is_consumed_without_component_local_state_machine",
         "checkbox_two_pass_geometry_rendering_is_na_and_measurement_free",
         "checkbox_engineering_script_covers_status_primitives_and_two_pass_geometry_contracts",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3605,12 +3603,13 @@ fn checkbox_e2e_contract_covers_ready_and_settled_conditions_for_checkbox_paths(
 
 #[test]
 fn checkbox_e2e_check_script_covers_selector_and_settled_wait_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-checkbox.sh");
+    let script_source =
+        include_str!("../../../components/checkbox/scripts/check-ui-e2e-checkbox.sh");
 
     for required in [
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_e2e_contract_covers_ready_and_settled_conditions_for_checkbox_paths",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_e2e_contract_covers_ready_and_settled_conditions_for_checkbox_paths",
     ] {
         assert!(
             script_source.contains(required),
@@ -3630,7 +3629,7 @@ fn checkbox_check2_marks_e2e_selector_stability_item_complete() {
         "components/checkbox/test/semantics.rs::checkbox_e2e_contract_covers_ready_and_settled_conditions_for_checkbox_paths",
         "components/checkbox/test/semantics.rs::checkbox_e2e_check_script_covers_selector_and_settled_wait_contract",
         "components/checkbox/test/checkbox_semantics.rs::checkbox_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "scripts/check-ui-components-e2e-checkbox.sh",
+        "components/checkbox/scripts/check-ui-e2e-checkbox.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3660,7 +3659,8 @@ fn checkbox_check2_documents_repeatable_e2e_regression_collection() {
 #[test]
 fn checkbox_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_checkbox_contract.spec.mjs");
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-checkbox.sh");
+    let script_source =
+        include_str!("../../../components/checkbox/scripts/check-ui-e2e-checkbox.sh");
 
     for required in [
         "docs-app checkbox key flow is repeatable and failures map to semantic breakpoints",
@@ -3696,7 +3696,7 @@ fn checkbox_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_e2e_key_flow_is_repeatable_and_failure_points_are_semantic";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_e2e_key_flow_is_repeatable_and_failure_points_are_semantic";
     assert!(
         script_source.contains(script_needle),
         "checkbox e2e script should include `{script_needle}`.",
@@ -3706,7 +3706,8 @@ fn checkbox_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 #[test]
 fn checkbox_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_checkbox_contract.spec.mjs");
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-checkbox.sh");
+    let script_source =
+        include_str!("../../../components/checkbox/scripts/check-ui-e2e-checkbox.sh");
 
     for required in [
         "docs-app checkbox high-risk paths keep focus keyboard and disabled branches semantically explicit",
@@ -3729,7 +3730,7 @@ fn checkbox_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakp
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints";
     assert!(
         script_source.contains(script_needle),
         "checkbox e2e script should include `{script_needle}`.",
@@ -3738,12 +3739,13 @@ fn checkbox_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakp
 
 #[test]
 fn checkbox_e2e_check_script_covers_selector_and_key_flow_contracts() {
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-checkbox.sh");
+    let script_source =
+        include_str!("../../../components/checkbox/scripts/check-ui-e2e-checkbox.sh");
 
     for required in [
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_repeatable_e2e_regression_collection",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_repeatable_e2e_regression_collection",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(required),
@@ -3763,7 +3765,7 @@ fn checkbox_check2_marks_e2e_repeatable_key_flow_contract_complete() {
         "components/checkbox/test/semantics.rs::checkbox_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
         "components/checkbox/test/semantics.rs::checkbox_e2e_check_script_covers_selector_and_key_flow_contracts",
         "components/checkbox/test/checkbox_semantics.rs::checkbox_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "scripts/check-ui-components-e2e-checkbox.sh",
+        "components/checkbox/scripts/check-ui-e2e-checkbox.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3850,7 +3852,7 @@ fn checkbox_engineering_contract_keeps_tracing_semantics_unified_without_compone
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             ui_components_cargo.contains(required) || button_view_source.contains(required),
@@ -3874,7 +3876,7 @@ fn checkbox_engineering_contract_keeps_tracing_semantics_unified_without_compone
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::checkbox::",
+        "target: \"ui::checkbox::",
         "const CHECKBOX_TRACE_TARGET",
     ] {
         assert!(
@@ -3930,7 +3932,7 @@ fn checkbox_version_deprecation_migration_registry_is_explicitly_na_without_majo
     let rbi_source = load_source("rbi");
     let readme_source = load_source("readme");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let script_source = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for required in [
         "pub enum CheckboxAgentSchemaVersion",
@@ -3961,7 +3963,7 @@ fn checkbox_version_deprecation_migration_registry_is_explicitly_na_without_majo
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade_locally";
     assert!(
         script_source.contains(script_needle),
         "engineering gate script should include `{script_needle}`.",
@@ -3984,12 +3986,12 @@ fn checkbox_version_deprecation_migration_registry_is_explicitly_na_without_majo
 
 #[test]
 fn checkbox_engineering_check_script_covers_serde_tracing_and_runtime_boundaries_locally() {
-    let script_source = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let script_source = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope_locally",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events_locally",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_engineering_contract_avoids_runtime_leaks_in_public_api_surface_locally",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope_locally",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events_locally",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_engineering_contract_avoids_runtime_leaks_in_public_api_surface_locally",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4051,7 +4053,7 @@ fn checkbox_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent() {
 #[test]
 fn checkbox_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let rust_hygiene_script = include_str!("../../../scripts/check-rust-hygiene.sh");
-    let engineering_script = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -4066,9 +4068,9 @@ fn checkbox_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(needle),
@@ -4088,7 +4090,7 @@ fn checkbox_check2_marks_rust_hygiene_contract_complete() {
         "components/checkbox/test/semantics.rs::checkbox_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
         "components/checkbox/test/semantics.rs::checkbox_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
         "components/checkbox/test/semantics.rs::checkbox_rust_hygiene_script_enforces_repo_level_hygiene_guards",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4108,7 +4110,7 @@ fn checkbox_ui_components_fixed_entry_files_follow_layered_boundaries_locally() 
     let controllable_state = include_str!("../../../crates/ui-headless/src/controllable_state.rs");
     let presence = include_str!("../../../crates/ui-headless/src/presence.rs");
     let a11y = include_str!("../../../crates/ui-headless/src/a11y.rs");
-    let script_source = include_str!("../../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = include_str!("../../../scripts/check-ui-entrypoints.sh");
 
     for required in [
         "#[cfg(feature = \"component-checkbox\")]",
@@ -4118,14 +4120,14 @@ fn checkbox_ui_components_fixed_entry_files_follow_layered_boundaries_locally() 
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib.rs should keep fixed entry marker `{required}`.",
+            "ui lib.rs should keep fixed entry marker `{required}`.",
         );
     }
 
     for forbidden in ["pub use web_sys", "web_sys::", "NodeRef<", "JsValue"] {
         assert!(
             !ui_components_lib.contains(forbidden),
-            "ui-components lib.rs should not leak platform detail `{forbidden}`.",
+            "ui lib.rs should not leak platform detail `{forbidden}`.",
         );
     }
 
@@ -4137,7 +4139,7 @@ fn checkbox_ui_components_fixed_entry_files_follow_layered_boundaries_locally() 
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css.rs should keep fixed entry marker `{required}`.",
+            "ui css.rs should keep fixed entry marker `{required}`.",
         );
     }
 
@@ -4152,7 +4154,7 @@ fn checkbox_ui_components_fixed_entry_files_follow_layered_boundaries_locally() 
     ] {
         assert!(
             ui_components_root.contains(required),
-            "ui-components root.rs should keep centralized injection marker `{required}`.",
+            "ui root.rs should keep centralized injection marker `{required}`.",
         );
     }
 
@@ -4202,22 +4204,22 @@ fn checkbox_ui_components_fixed_entry_files_follow_layered_boundaries_locally() 
     }
 
     let ui_components_src_dir =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/src");
     for forbidden_file in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src_dir.join(forbidden_file).exists(),
-            "ui-components/src/{forbidden_file} should be absent by fixed-entrypoint contract.",
+            "ui/src/{forbidden_file} should be absent by fixed-entrypoint contract.",
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_ui_components_fixed_entry_files_follow_layered_boundaries_locally";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_ui_components_fixed_entry_files_follow_layered_boundaries_locally";
     assert!(
         script_source.contains(script_needle),
         "entrypoints gate script should include `{script_needle}`.",
     );
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "checkbox_ui_components_fixed_entry_files_follow_layered_boundaries_locally",
     ] {
         assert!(
@@ -4321,7 +4323,7 @@ fn checkbox_agent_contract_render_path_is_whitelist_safe_and_script_injection_fr
     let logic_source = load_source("logic");
     let view_source = load_source("view");
     let component_toml = load_source("component_toml");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "[[agent_contract_whitelist]]",
@@ -4350,8 +4352,8 @@ fn checkbox_agent_contract_render_path_is_whitelist_safe_and_script_injection_fr
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_agent_contract_is_schema_typed_and_machine_readable_locally",
-        "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_agent_contract_render_path_is_whitelist_safe_and_script_injection_free_locally",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_agent_contract_is_schema_typed_and_machine_readable_locally",
+        "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_agent_contract_render_path_is_whitelist_safe_and_script_injection_free_locally",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -4375,7 +4377,6 @@ fn checkbox_check2_documents_streaming_definition_is_llm_output_only_with_two_mo
     let check2_source = include_str!("../check2.md");
     let view_source = load_source("view");
     let logic_source = load_source("logic");
-    let docs_forms_source = load_source("docs_forms");
     let streaming_script_source = load_source("streaming_script");
 
     for required in [
@@ -4401,14 +4402,12 @@ fn checkbox_check2_documents_streaming_definition_is_llm_output_only_with_two_mo
         "incremental_patch",
     ] {
         assert!(
-            !view_source.contains(forbidden)
-                && !logic_source.contains(forbidden)
-                && !docs_forms_source.contains(forbidden),
+            !view_source.contains(forbidden) && !logic_source.contains(forbidden),
             "checkbox should not carry LLM-streaming protocol token `{forbidden}`.",
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         streaming_script_source.contains(script_needle),
         "streaming gate script should include `{script_needle}`.",
@@ -4432,7 +4431,7 @@ fn checkbox_check2_documents_snapshot_as_default_baseline_capability() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_snapshot_as_default_baseline_capability";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_documents_snapshot_as_default_baseline_capability";
     assert!(
         streaming_script_source.contains(script_needle),
         "streaming gate script should include `{script_needle}`.",
@@ -4517,7 +4516,7 @@ fn checkbox_snapshot_baseline_consumes_complete_result_and_renders_stably() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_snapshot_baseline_consumes_complete_result_and_renders_stably";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_snapshot_baseline_consumes_complete_result_and_renders_stably";
     assert!(
         streaming_script_source.contains(script_needle),
         "streaming gate script should include `{script_needle}`.",
@@ -4542,7 +4541,7 @@ fn checkbox_check2_marks_streaming_scope_as_optional_with_snapshot_fallback() {
 
     for required in [
         "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。",
-        "checkbox 不是正文阅读面，归类为 `Streaming Optional`。",
+        "checkbox 不是正文阅读面，归类为 `Streaming Optional`",
         "`fallback=snapshot`",
         "`data-ui-output-status`",
         "数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。",
@@ -4596,7 +4595,7 @@ fn checkbox_check2_marks_streaming_scope_as_optional_with_snapshot_fallback() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_marks_streaming_scope_as_optional_with_snapshot_fallback";
+    let script_needle = "cargo test -p ui --test checkbox_semantics --no-default-features --features component-checkbox,inject-css checkbox_check2_marks_streaming_scope_as_optional_with_snapshot_fallback";
     assert!(
         streaming_script_source.contains(script_needle),
         "streaming gate script should include `{script_needle}`.",

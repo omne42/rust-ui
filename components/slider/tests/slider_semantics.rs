@@ -20,13 +20,13 @@ fn load_source(rel_path: &str) -> String {
     let path = if let Some(suffix) = rel_path.strip_prefix("src/slider/") {
         manifest_dir.join("src").join(suffix)
     } else if let Some(suffix) = rel_path.strip_prefix("src/") {
-        workspace_dir.join("crates/ui-components/src").join(suffix)
+        workspace_dir.join("crates/ui/src").join(suffix)
     } else if rel_path == "src/lib.rs" {
-        workspace_dir.join("crates/ui-components/src/lib.rs")
+        workspace_dir.join("crates/ui/src/lib.rs")
     } else if rel_path == "src/css.rs" {
-        workspace_dir.join("crates/ui-components/src/css.rs")
+        workspace_dir.join("crates/ui/src/css.rs")
     } else if rel_path == "Cargo.toml" {
-        workspace_dir.join("crates/ui-components/Cargo.toml")
+        workspace_dir.join("crates/ui/Cargo.toml")
     } else if let Some(suffix) = rel_path.strip_prefix("../ui-state-primitives/") {
         workspace_dir
             .join("crates/ui-state-primitives")
@@ -170,7 +170,7 @@ fn slider_view_mounts_headless_contract_without_state_machine_reimplementation()
 #[test]
 fn slider_view_macro_complexity_is_split_into_semantic_subrenders() {
     let view_source = load_source("src/slider/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     assert!(
         view_source.contains("view! {"),
@@ -215,7 +215,7 @@ fn slider_view_macro_complexity_is_split_into_semantic_subrenders() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_view_macro_complexity_is_split_into_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_view_macro_complexity_is_split_into_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`."
@@ -225,7 +225,7 @@ fn slider_view_macro_complexity_is_split_into_semantic_subrenders() {
 #[test]
 fn slider_view_functional_split_prefers_plain_functions_over_local_components() {
     let view_source = load_source("src/slider/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     assert_eq!(
         view_source.matches("#[component]").count(),
@@ -254,7 +254,7 @@ fn slider_view_functional_split_prefers_plain_functions_over_local_components() 
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_view_functional_split_prefers_plain_functions_over_local_components";
+    let script_needle = "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_view_functional_split_prefers_plain_functions_over_local_components";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`."
@@ -264,7 +264,7 @@ fn slider_view_functional_split_prefers_plain_functions_over_local_components() 
 #[test]
 fn slider_static_fragments_are_constantized_with_stable_semantics() {
     let view_source = load_source("src/slider/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("src/slider/check2.md");
 
     for needle in [
@@ -309,7 +309,7 @@ fn slider_static_fragments_are_constantized_with_stable_semantics() {
         "Static track slot token should be centralized once via constant definition."
     );
 
-    let script_needle = "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_static_fragments_are_constantized_with_stable_semantics";
+    let script_needle = "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_static_fragments_are_constantized_with_stable_semantics";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`."
@@ -477,7 +477,7 @@ fn slider_docs_include_hello_world_and_controlled_matrix() {
         "default_value=36.0",
         "on_value_change=on_value_change",
         "use leptos::prelude::*;",
-        "use ui_components::Slider;",
+        "use ui::Slider;",
     ] {
         assert!(
             source.contains(needle),
@@ -571,7 +571,7 @@ fn slider_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring
 
     for needle in [
         "use leptos::prelude::*;",
-        "use ui_components::Slider;",
+        "use ui::Slider;",
         "title=\"Hello World (Uncontrolled)\"",
         "default_value=36.0",
         "<Slider",
@@ -690,11 +690,11 @@ fn slider_docs_examples_sync_with_logic_api_names_and_state_matrix() {
 
 #[test]
 fn slider_contract_hygiene_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_examples_sync_with_logic_api_names_and_state_matrix",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_examples_sync_with_logic_api_names_and_state_matrix",
     ] {
         assert!(
             script_source.contains(needle),
@@ -705,13 +705,13 @@ fn slider_contract_hygiene_script_covers_docs_sync_and_state_matrix_contract() {
 
 #[test]
 fn slider_contract_hygiene_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_entry_exists_as_readme_or_equivalent_docs_app_page",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_are_beginner_friendly_with_default_then_advanced_path",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_entry_exists_as_readme_or_equivalent_docs_app_page",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_are_beginner_friendly_with_default_then_advanced_path",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring",
     ] {
         assert!(
             script_source.contains(needle),
@@ -814,11 +814,11 @@ fn slider_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
 
 #[test]
 fn slider_contract_hygiene_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_are_copy_paste_ready_with_imports_copy_button_and_sync",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_are_copy_paste_ready_with_imports_copy_button_and_sync",
     ] {
         assert!(
             script_source.contains(needle),
@@ -904,11 +904,11 @@ fn slider_check2_marks_heroui_strategy_and_component_docs_sync_complete() {
 
 #[test]
 fn slider_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_marks_heroui_strategy_and_component_docs_sync_complete",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_marks_heroui_strategy_and_component_docs_sync_complete",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1136,14 +1136,14 @@ fn slider_forbidden_antipatterns_avoid_temporary_patch_drift_and_keep_primitives
 
 #[test]
 fn slider_contract_hygiene_script_covers_forbidden_antipattern_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_explicit_forbidden_antipattern_rules",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_keep_state_primitives_dom_free_and_headless_visual_free",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_keep_key_state_decisions_out_of_view",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_block_parallel_array_api_and_platform_type_leaks",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_avoid_temporary_patch_drift_and_keep_primitives_sunk",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_explicit_forbidden_antipattern_rules",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_keep_state_primitives_dom_free_and_headless_visual_free",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_keep_key_state_decisions_out_of_view",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_block_parallel_array_api_and_platform_type_leaks",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_avoid_temporary_patch_drift_and_keep_primitives_sunk",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1207,12 +1207,12 @@ fn slider_final_merge_gate_marks_full_repo_gate_as_component_scoped_na() {
 
 #[test]
 fn slider_contract_hygiene_script_covers_final_merge_gate_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_final_merge_gate_rules",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_capabilities_are_backed_by_contract_checks",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_marks_full_repo_gate_as_component_scoped_na",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_final_merge_gate_rules",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_capabilities_are_backed_by_contract_checks",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_marks_full_repo_gate_as_component_scoped_na",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1399,12 +1399,12 @@ fn slider_component_file_responsibilities_remain_scoped() {
 
 #[test]
 fn slider_component_files_check_script_covers_directory_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_component_directory_has_standard_file_layout_and_no_spec_file",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_mod_rs_keeps_minimal_stable_exports",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_component_file_responsibilities_remain_scoped",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_component_directory_has_standard_file_layout_and_no_spec_file",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_mod_rs_keeps_minimal_stable_exports",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_component_file_responsibilities_remain_scoped",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1523,7 +1523,7 @@ fn slider_non_wasm_component_files_stay_browser_object_free() {
 
 #[test]
 fn slider_inner_html_usage_is_forbidden_in_component_and_docs() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
 
     for rel in [
         "src/slider/view.rs",
@@ -1537,7 +1537,7 @@ fn slider_inner_html_usage_is_forbidden_in_component_and_docs() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_inner_html_usage_is_forbidden_in_component_and_docs";
+    let script_needle = "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_inner_html_usage_is_forbidden_in_component_and_docs";
     assert!(
         script_source.contains(script_needle),
         "inner-html gate script should include `{script_needle}`."
@@ -1561,7 +1561,7 @@ fn slider_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     let needle = "macro_rules! wasm_debug_proxy";
     assert!(
         crate_root_source.contains(needle),
-        "ui-components should keep wasm debug capability isolated via `{needle}`."
+        "ui should keep wasm debug capability isolated via `{needle}`."
     );
 
     for needle in [
@@ -1570,7 +1570,7 @@ fn slider_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
+            "ui Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
         );
     }
 
@@ -1698,9 +1698,9 @@ fn slider_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
 
 #[test]
 fn slider_wasm_debug_check_script_covers_shared_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
 
-    let needle = "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
+    let needle = "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm-debug check script should enforce `{needle}`."
@@ -1775,6 +1775,16 @@ fn slider_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_op
         );
     }
 
+    let slider_section_start = docs_source
+        .find("pub(super) fn slider() -> AnyView")
+        .expect("forms_extra docs should define slider page entry.");
+    let slider_section_end = docs_source[slider_section_start..]
+        .find("#[cfg(any())]")
+        .map(|offset| slider_section_start + offset)
+        .or_else(|| docs_source.find("pub(super) fn calendar() -> AnyView"))
+        .expect("forms_extra docs should delimit slider page section.");
+    let slider_docs_source = &docs_source[slider_section_start..slider_section_end];
+
     for forbidden in [
         "SLIDER_WORKBENCH_STORAGE_KEY",
         "load_slider_workbench_state(",
@@ -1783,7 +1793,7 @@ fn slider_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_op
         "Persist workbench state",
     ] {
         assert!(
-            !docs_source.contains(forbidden),
+            !slider_docs_source.contains(forbidden),
             "Slider keeps optional persisted workbench state as N/A for current scope; `{forbidden}` should remain absent."
         );
     }
@@ -1803,11 +1813,11 @@ fn slider_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_op
 
 #[test]
 fn slider_dx_check_script_covers_hot_reload_and_isolated_canvas_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1889,7 +1899,7 @@ fn slider_engineering_contract_keeps_tracing_semantics_unified_without_component
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -1906,7 +1916,7 @@ fn slider_engineering_contract_keeps_tracing_semantics_unified_without_component
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::slider::",
+        "target: \"ui::slider::",
         "const SLIDER_TRACE_TARGET",
     ] {
         assert!(
@@ -1957,12 +1967,12 @@ fn slider_engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
 
 #[test]
 fn slider_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1976,18 +1986,18 @@ fn slider_check2_documents_ui_components_entrypoint_rules() {
     let checklist_source = load_source("src/slider/check2.md");
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
-        "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
-        "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
-        "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
+        "- [x] `ui` 固定入口文件落点正确。",
+        "`crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
+        "`crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
+        "`crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
         "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
-        "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
-        "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
-        "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
+        "`crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
+        "`crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
+        "`crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
     ] {
         assert!(
             checklist_source.contains(required),
-            "Slider checklist should keep ui-components entrypoint governance rule `{required}`."
+            "Slider checklist should keep ui entrypoint governance rule `{required}`."
         );
     }
 }
@@ -2008,7 +2018,7 @@ fn slider_ui_components_entry_files_keep_feature_gated_public_surface_and_no_pla
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep marker `{needle}`."
+            "ui lib entry should keep marker `{needle}`."
         );
     }
 
@@ -2020,7 +2030,7 @@ fn slider_ui_components_entry_files_keep_feature_gated_public_surface_and_no_pla
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform/internal marker `{forbidden}`."
+            "ui lib entry should not leak platform/internal marker `{forbidden}`."
         );
     }
 }
@@ -2042,7 +2052,7 @@ fn slider_ui_components_css_registry_remains_feature_gated_and_non_global() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css registry should keep feature-gated marker `{needle}`."
+            "ui css registry should keep feature-gated marker `{needle}`."
         );
     }
 }
@@ -2108,7 +2118,7 @@ fn slider_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !path_exists(forbidden),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`."
+            "ui forbidden entrypoint file should not exist: `{forbidden}`."
         );
     }
 
@@ -2144,14 +2154,14 @@ fn slider_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths
 
 #[test]
 fn slider_entrypoints_check_script_covers_fixed_entrypoint_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_components_css_registry_remains_feature_gated_and_non_global",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_root_centralizes_theme_injection_and_i18n_context",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_active_highlight_stays_shared_motion_primitive_without_component_semantics",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_components_css_registry_remains_feature_gated_and_non_global",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_root_centralizes_theme_injection_and_i18n_context",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_active_highlight_stays_shared_motion_primitive_without_component_semantics",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2287,13 +2297,13 @@ fn slider_agent_contract_render_path_is_whitelist_safe_and_script_injection_free
 
 #[test]
 fn slider_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_agent_contract_schema_governance_rules",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2401,12 +2411,12 @@ fn slider_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks()
 
 #[test]
 fn slider_contract_hygiene_script_covers_semantics_first_testing_rules() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_semantics_first_testing_rules",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantics_suite_is_contract_first_not_snapshot_only",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_semantics_first_testing_rules",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantics_suite_is_contract_first_not_snapshot_only",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2586,15 +2596,15 @@ fn slider_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoi
 
 #[test]
 fn slider_e2e_check_script_covers_selector_and_settled_wait_contracts() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-slider.sh");
+    let script_source = load_source("../../components/slider/scripts/check-ui-e2e-slider.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_e2e_repeatable_key_flow_rules",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_e2e_repeatable_key_flow_rules",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2682,7 +2692,7 @@ fn slider_performance_governance_budget_is_defined_and_blocking() {
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("src/slider/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/slider/view.rs");
 
     for needle in [
@@ -2759,9 +2769,9 @@ fn slider_performance_governance_budget_is_defined_and_blocking() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_performance_governance_budget_is_defined_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_performance_governance_budget_is_defined_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2816,8 +2826,8 @@ fn slider_check2_documents_streaming_definition_is_llm_output_only_with_two_mode
 
 #[test]
 fn slider_streaming_check_script_covers_two_mode_definition_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
-    let needle = "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
+    let needle = "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(needle),
         "streaming check script should enforce `{needle}`."
@@ -2906,11 +2916,11 @@ fn slider_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
 #[test]
 fn slider_streaming_check_script_covers_snapshot_baseline_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2993,12 +3003,12 @@ fn slider_streaming_validation_retry_resilience_boundaries_stay_outside_componen
 
 #[test]
 fn slider_streaming_check_script_covers_streaming_responsibility_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3022,10 +3032,10 @@ fn slider_check2_documents_async_semantics_as_na_for_sync_only_component_scope()
 fn slider_check2_records_tree_shaking_gate_results() {
     let source = load_source("src/slider/check2.md");
     for needle in [
-        "cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features component-accordion,inject-css",
+        "cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features component-accordion,inject-css",
         "BUDGET_OK",
     ] {
         assert!(

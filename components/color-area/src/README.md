@@ -110,7 +110,7 @@
 - Display：工作台主样例 + 两个固定对照样例（中心态、禁用态）并排展示，便于差异对比。
 - Config：通过 `SegmentedControl` / `Switch` 调整 `grid_size`、`step`、`preview_color`、默认坐标、disabled、自定义轴标签、自定义 class。
 - Code：实时生成可复制代码片段（与当前工作台配置一致）。
-- CSS Test：加载 `crates/ui-components/src/color/area/styles.rs`，在 Playground 内做作用域化样式测试。
+- CSS Test：加载 `crates/ui/src/color/area/styles.rs`，在 Playground 内做作用域化样式测试。
 
 对比场景（至少三种）：
 - 可调主样例（受工作台配置驱动）
@@ -120,10 +120,10 @@
 ## Source-first Copy-Paste Ready
 
 - 真实源码落点：
-  - `crates/ui-components/src/color/area/mod.rs`
-  - `crates/ui-components/src/color/area/logic.rs`
-  - `crates/ui-components/src/color/area/view.rs`
-  - `crates/ui-components/src/color/area/styles.rs`
-  - `crates/ui-components/src/color/area/motion.rs`
+  - `crates/ui/src/color/area/mod.rs`
+  - `crates/ui/src/color/area/logic.rs`
+  - `crates/ui/src/color/area/view.rs`
+  - `crates/ui/src/color/area/styles.rs`
+  - `crates/ui/src/color/area/motion.rs`
 - 状态原语：`crates/ui-state-primitives/src/color_area.rs`
 - 交互语义：`crates/ui-headless/src/color_area.rs`

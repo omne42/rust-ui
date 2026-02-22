@@ -33,20 +33,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -129,7 +129,7 @@ Slider 无远程请求与异步状态，异步交互语义项为 `N/A`（仅同�
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -143,9 +143,9 @@ Slider 无远程请求与异步状态，异步交互语义项为 `N/A`（仅同�
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -207,14 +207,14 @@ Slider 无远程请求与异步状态，异步交互语义项为 `N/A`（仅同�
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 文件落点检查（必须提及）
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -316,14 +316,14 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
 ### 10. 本轮逐项核验记录（2026-02-18）
 1. 状态原语下沉：`crates/ui-state-primitives/src/slider.rs` 已承载纯状态归一化与派生，组件层改为消费。
 2. headless 契约：`crates/ui-headless/src/slider.rs` 提供类型化 `attrs + handlers + state`，含 `lang/dir`。
-3. 组件装配边界：`crates/ui-components/src/slider/{logic,view,styles,motion}.rs` 职责拆分完成；`view.rs` 不再重写状态机规则。
+3. 组件装配边界：`crates/ui/src/slider/{logic,view,styles,motion}.rs` 职责拆分完成；`view.rs` 不再重写状态机规则。
 4. 文档与示例：`apps/docs-app/src/pages/components/pages/forms_extra.rs` 已补 `Hello World (Uncontrolled)` 与受控示例，代码片段含必要 imports。
 5. 语义测试：`components/*/test/*slider_semantics.rs` 覆盖命名契约、状态来源标记、Agent contract、平台与文档约束。
-6. 类型化状态轴补强：`crates/ui-components/src/slider/logic.rs` 新增 `SliderUiAction` + `resolve_ui_action`，`view.rs` 改为 `data-ui-action=...as_attr()`，避免 view 层字符串协议漂移。
+6. 类型化状态轴补强：`crates/ui/src/slider/logic.rs` 新增 `SliderUiAction` + `resolve_ui_action`，`view.rs` 改为 `data-ui-action=...as_attr()`，避免 view 层字符串协议漂移。
 7. E2E：`e2e/tests/docs_app_slider_contract.spec.mjs` 已覆盖稳定语义选择器、键盘关键流程、Copy-Paste 代码块路径；2026-02-18 复跑命令 `cd e2e && E2E_BASE_URL=http://127.0.0.1:8080 npx playwright test tests/docs_app_slider_contract.spec.mjs --project=chromium`，`3 passed`。
 8. 平台编译证据：
-   - `cargo check -p ui-components --no-default-features --features component-slider,inject-css`
-   - `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-slider,inject-css`
+   - `cargo check -p ui --no-default-features --features component-slider,inject-css`
+   - `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-slider,inject-css`
    - `cargo check -p ui-headless --no-default-features --features ssr`
    - `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`
    - `cargo check -p ui-headless --no-default-features --features web,ssr`（预期失败，`compile_error!` 互斥保护生效）
@@ -331,117 +331,117 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - `cargo clippy -p ui-state-primitives -- -D warnings`
    - `cargo clippy -p ui-headless --no-default-features --features web -- -D warnings`
    - `cargo clippy -p ui-theme --tests -- -D warnings`
-   - `cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`
+   - `cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`
    - `cargo test -p ui-state-primitives slider`
    - `cargo test -p ui-headless --lib slider`
    - `cargo test -p ui-theme --test token_scale_baseline`
-   - `cargo test -p ui-components --no-default-features --features component-slider,inject-css --test slider_semantics`
+   - `cargo test -p ui --no-default-features --features component-slider,inject-css --test slider_semantics`
 10. Tree Shaking 逐项核验（按门禁命令）：
-   - 特性树：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css` 与反查确认 `feature "component-accordion"`、`feature "inject-css"` 均为 command-line 输入，且 `all-components` 未出现。
-   - 反向依赖：`cargo tree -e features -i ui-components -p web-demo` 显示 `web-demo-components` 存在，`all-components` 未出现。
-   - 最小特性 wasm 编译：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css` 通过。
-   - 体积预算：`cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features component-accordion,inject-css` 产物 `libui_components-9f3f8b5a94d3acdb.rlib` 大小 `3,326,332` bytes，预算上限 `3,806,222` bytes（`3044978 * 125%`），结果 `BUDGET_OK`。
+   - 特性树：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css` 与反查确认 `feature "component-accordion"`、`feature "inject-css"` 均为 command-line 输入，且 `all-components` 未出现。
+   - 反向依赖：`cargo tree -e features -i ui -p web-demo` 显示 `web-demo-components` 存在，`all-components` 未出现。
+   - 最小特性 wasm 编译：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css` 通过。
+   - 体积预算：`cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features component-accordion,inject-css` 产物 `libui_components-9f3f8b5a94d3acdb.rlib` 大小 `3,326,332` bytes，预算上限 `3,806,222` bytes（`3044978 * 125%`），结果 `BUDGET_OK`。
 11. 工具链与复核方式：本轮全链路命令使用 `~/.cargo/bin/cargo` 执行，含 `test/clippy/check/tree/e2e`；`ui-headless` 的 `web+ssr` 互斥校验返回 `exit=101` 且包含 `mutually exclusive`，符合预期保护。
 12. 类型系统 + 机器可读语义闭环：`slider` 的 `data-ui-action` 从 view 层字符串分支下沉为 `logic.rs` 的 `SliderUiAction` + `resolve_ui_action`；`components/*/test/*slider_semantics.rs::slider_type_system_and_machine_readable_markers_form_a_closed_contract` 新增回归，确保类型化状态轴、归一化能力与 `data-*` 标记同步演进。
 13. SSR 与跨平台条目复核（2026-02-18）：
-   - compile-only 三路径：`cargo check -p ui-components`（默认本地）、`cargo check -p ui-components --no-default-features --features component-slider,inject-css`（native 最小特性）、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-slider,inject-css`（web wasm）均通过；默认本地路径存在他人组件告警但未阻断编译。
+   - compile-only 三路径：`cargo check -p ui`（默认本地）、`cargo check -p ui --no-default-features --features component-slider,inject-css`（native 最小特性）、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-slider,inject-css`（web wasm）均通过；默认本地路径存在他人组件告警但未阻断编译。
    - 平台能力路径：`cargo check -p ui-headless --no-default-features --features ssr` 与 `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web` 均通过。
-   - 显式 `cfg/feature` 证据：`crates/ui-components/src/slider/motion.rs` 存在 `#[cfg(target_arch = "wasm32")]` 与 `#[cfg(not(target_arch = "wasm32"))]` 双分支，避免运行时偶然行为。
-   - non-wasm 浏览器对象约束：`crates/ui-components/src/slider/{mod,logic,styles,view}.rs` 检索 `web_sys|js_sys|wasm_bindgen` 均为空；语义回归 `slider_non_wasm_component_files_stay_browser_object_free` 与 `slider_platform_guards_cover_wasm_and_non_wasm_motion_paths` 复跑通过。
+   - 显式 `cfg/feature` 证据：`crates/ui/src/slider/motion.rs` 存在 `#[cfg(target_arch = "wasm32")]` 与 `#[cfg(not(target_arch = "wasm32"))]` 双分支，避免运行时偶然行为。
+   - non-wasm 浏览器对象约束：`crates/ui/src/slider/{mod,logic,styles,view}.rs` 检索 `web_sys|js_sys|wasm_bindgen` 均为空；语义回归 `slider_non_wasm_component_files_stay_browser_object_free` 与 `slider_platform_guards_cover_wasm_and_non_wasm_motion_paths` 复跑通过。
 14. `ui-headless` web/ssr 互斥条目复核（2026-02-18）：
    - 守卫存在性：`crates/ui-headless/src/lib.rs` 含 `#[cfg(all(feature = "web", feature = "ssr"))]` + `compile_error!(...)`；语义回归 `ui_headless_web_ssr_mutex_guard_is_present` 通过。
    - 路径编译：`cargo check -p ui-headless --no-default-features --features ssr` 与 `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web` 均通过。
    - 互斥失效探针：`cargo check -p ui-headless --no-default-features --features web,ssr` 返回 `exit=101`，日志包含 `mutually exclusive`，验证“同时启用 web+ssr 不可编译”契约未回归。
-   - 组件接入回归：`cargo check -p ui-components --no-default-features --features component-slider,inject-css` 与 `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-slider,inject-css` 均通过，确认 slider 接入未破坏该互斥约束。
+   - 组件接入回归：`cargo check -p ui --no-default-features --features component-slider,inject-css` 与 `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-slider,inject-css` 均通过，确认 slider 接入未破坏该互斥约束。
 15. `ui-motion` 非 wasm no-op/stub 条目复核（2026-02-18）：
    - motion 层契约：`crates/ui-motion/src/lib.rs` 存在 `#[cfg(not(target_arch = "wasm32"))] pub mod web`，`prefers_reduced_motion() -> true` 与 `animate(...)` no-op stub；`cargo test -p ui-motion --test non_wasm_stub` 结果 `2 passed`。
-   - 组件调用降级：`crates/ui-components/src/slider/motion.rs` 存在 `#[cfg(not(target_arch = "wasm32"))] pub fn attach_motion(...) {}`，不依赖动画句柄，不触发 panic，行为可预测。
+   - 组件调用降级：`crates/ui/src/slider/motion.rs` 存在 `#[cfg(not(target_arch = "wasm32"))] pub fn attach_motion(...) {}`，不依赖动画句柄，不触发 panic，行为可预测。
    - toolchain 可编译：`cargo check -p ui-motion`（native）与 `cargo check -p ui-motion --target wasm32-unknown-unknown`（wasm）均通过；`slider` 侧依赖路径编译不受阻断。
    - 防回归：`components/*/test/*slider_semantics.rs::ui_motion_non_wasm_stub_contract_is_present_and_predictable` 新增并纳入语义契约测试。
 16. 组件 `reduced-motion / SSR / wasm` 分支复核（2026-02-18）：
-   - reduced-motion 降级：`crates/ui-components/src/slider/motion.rs` 在 wasm 路径使用 `if !motion.enabled || ui_motion::web::prefers_reduced_motion()`，降级为直接写入 `--ui-slider-visual-percent`，跳过 spring 驱动。
-   - SSR/hydration 稳定：`crates/ui-components/src/slider/view.rs` 不含 `target_arch`/`#[cfg(...)]` 平台分叉，语义挂载统一走 `data-state/data-ui-*`；避免首帧语义错位。
-   - wasm 增强不分裂语义：wasm 仅在 `motion.rs` 内增强动画执行，`view.rs` 语义契约保持一致；`cargo check -p ui-components --no-default-features --features component-slider,inject-css` 与 wasm 同特性编译均通过。
+   - reduced-motion 降级：`crates/ui/src/slider/motion.rs` 在 wasm 路径使用 `if !motion.enabled || ui_motion::web::prefers_reduced_motion()`，降级为直接写入 `--ui-slider-visual-percent`，跳过 spring 驱动。
+   - SSR/hydration 稳定：`crates/ui/src/slider/view.rs` 不含 `target_arch`/`#[cfg(...)]` 平台分叉，语义挂载统一走 `data-state/data-ui-*`；避免首帧语义错位。
+   - wasm 增强不分裂语义：wasm 仅在 `motion.rs` 内增强动画执行，`view.rs` 语义契约保持一致；`cargo check -p ui --no-default-features --features component-slider,inject-css` 与 wasm 同特性编译均通过。
    - 防回归：`components/*/test/*slider_semantics.rs::slider_reduced_motion_ssr_wasm_paths_keep_semantics_stable` 新增并通过。
 17. 性能治理条目复核（2026-02-18）：
    - 预算定义：`apps/docs-app/src/pages/components/shell.rs` 为 `slider` 新增 `UiPerfBudget { max_mount_ms: 30.0, max_update_ms: Some(10.0), max_heap_kb: Some(512.0) }`，并保持 `button/input` 基线与默认 `mount_only(120.0)` 回退。
    - 可检测/可阻断：`components/*/test/*slider_semantics.rs::slider_performance_governance_budget_is_defined_and_blocking` 新增；断言预算来源、`UiPerfProbe` 的 `data-perf-*` 违规标记、docs coverage E2E 的阻断断言以及脚本接线。
-   - 脚本接线：`scripts/check-ui-components-performance.sh` 新增 `slider` 阻断项：`cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_performance_governance_budget_is_defined_and_blocking`。
+   - 脚本接线：`scripts/check-ui-performance.sh` 新增 `slider` 阻断项：`cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_performance_governance_budget_is_defined_and_blocking`。
    - 可归因证据：`slider/view.rs` 关键状态标记（`data-state/data-value/data-value-percent/data-ui-action/data-ui-source`）用于将回归归因到状态/渲染/样式/动效路径。
-   - `render_count` 现状：当前框架仍以 `mount-only + perf probe` 作为等价证据，`docs/plan/TODO.md` 持续保留 `render_count` 自动化补齐任务；该任务由 `scripts/check-ui-components-performance.sh` 的 follow-up gate 约束不丢失。
+   - `render_count` 现状：当前框架仍以 `mount-only + perf probe` 作为等价证据，`docs/plan/TODO.md` 持续保留 `render_count` 自动化补齐任务；该任务由 `scripts/check-ui-performance.sh` 的 follow-up gate 约束不丢失。
 18. 本次复跑门禁（2026-02-18，`~/.cargo/bin/cargo`）：
    - `~/.cargo/bin/cargo fmt --all -- --check`：通过。
-   - `~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
-   - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`29 passed`）。
-   - `~/.cargo/bin/cargo check -p ui-components --no-default-features --features component-slider,inject-css`：通过。
-   - `~/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-slider,inject-css`：通过。
+   - `~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+   - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`29 passed`）。
+   - `~/.cargo/bin/cargo check -p ui --no-default-features --features component-slider,inject-css`：通过。
+   - `~/.cargo/bin/cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-slider,inject-css`：通过。
    - `~/.cargo/bin/cargo check -p ui-headless --no-default-features --features ssr` 与 `~/.cargo/bin/cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`：通过。
    - `~/.cargo/bin/cargo check -p ui-headless --no-default-features --features web,ssr`：预期失败（`compile_error!` + `mutually exclusive`），互斥契约有效。
    - `~/.cargo/bin/cargo test -p ui-motion --test non_wasm_stub`：通过（`2 passed`）。
 19. `view!` 宏复杂度条目复核（2026-02-18）：
-   - 代码拆分：`crates/ui-components/src/slider/view.rs` 将原单块渲染拆分为 `render_label` / `render_input` / `render_track` / `render_control` 四个语义子块，`Slider` 保留单一组件边界并仅做装配。
+   - 代码拆分：`crates/ui/src/slider/view.rs` 将原单块渲染拆分为 `render_label` / `render_input` / `render_track` / `render_control` 四个语义子块，`Slider` 保留单一组件边界并仅做装配。
    - 复杂度门禁：`components/*/test/*slider_semantics.rs` 新增
      `slider_view_macro_complexity_is_split_into_semantic_subrenders` 与
      `slider_view_functional_split_prefers_plain_functions_over_local_components`，断言 `view!` 分块数量、函数式拆分、无局部 `#[component]` 噪音。
-   - 脚本接线：`scripts/check-ui-components-view-macro.sh` 新增 slider 两条阻断命令，纳入统一 view-macro 合并门禁。
+   - 脚本接线：`scripts/check-ui-view-macro.sh` 新增 slider 两条阻断命令，纳入统一 view-macro 合并门禁。
    - 实跑结果：
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`31 passed`，含新增 2 条）。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`31 passed`，含新增 2 条）。
      - `~/.cargo/bin/cargo fmt --all -- --check`：通过。
-     - `~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
 20. 函数式拆分优先条目复核（2026-02-18）：
-   - 函数化落地：`crates/ui-components/src/slider/view.rs` 保持单一 `#[component] pub fn Slider(...)`，局部片段使用普通函数 `render_label` / `render_input` / `render_track` / `render_control` 返回 `impl IntoView`，未引入局部 `#[component]`。
+   - 函数化落地：`crates/ui/src/slider/view.rs` 保持单一 `#[component] pub fn Slider(...)`，局部片段使用普通函数 `render_label` / `render_input` / `render_track` / `render_control` 返回 `impl IntoView`，未引入局部 `#[component]`。
    - 语义稳定性：拆分后关键语义标记仍集中在根节点（`data-state` / `data-control-mode` / `data-value-*` / `data-ui-*`），未因子函数拆分造成契约漂移。
    - 精确回归：
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_view_functional_split_prefers_plain_functions_over_local_components -- --exact`：通过。
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_view_macro_complexity_is_split_into_semantic_subrenders -- --exact`：通过。
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_view_mounts_headless_contract_without_state_machine_reimplementation -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_view_functional_split_prefers_plain_functions_over_local_components -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_view_macro_complexity_is_split_into_semantic_subrenders -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_view_mounts_headless_contract_without_state_machine_reimplementation -- --exact`：通过。
 21. 静态片段常量化条目复核（2026-02-18）：
-   - 常量化落地：`crates/ui-components/src/slider/view.rs` 将可静态化 token 统一收敛到常量（`SLOT_*` / `CLASS_*` / `BOOL_TRUE` / `INPUT_TYPE_RANGE`），`render_track` 等静态片段仅消费这些常量，不在多个 `view!` 分散硬编码。
+   - 常量化落地：`crates/ui/src/slider/view.rs` 将可静态化 token 统一收敛到常量（`SLOT_*` / `CLASS_*` / `BOOL_TRUE` / `INPUT_TYPE_RANGE`），`render_track` 等静态片段仅消费这些常量，不在多个 `view!` 分散硬编码。
    - 语义保持：`render_track` 仍挂载 `aria-hidden=BOOL_TRUE`；输入元素继续保留 `role=slider` 与 `aria-label` 等无障碍语义，常量化未削弱可访问契约。
    - 阻断测试与脚本：
      - `components/*/test/*slider_semantics.rs::slider_static_fragments_are_constantized_with_stable_semantics` 新增并断言常量集中、静态片段挂载及脚本接线。
-     - `scripts/check-ui-components-view-macro.sh` 新增 slider 静态片段门禁命令。
+     - `scripts/check-ui-view-macro.sh` 新增 slider 静态片段门禁命令。
    - 精确回归：
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_static_fragments_are_constantized_with_stable_semantics -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_static_fragments_are_constantized_with_stable_semantics -- --exact`：通过。
 22. `inner_html` 使用约束条目复核（2026-02-18）：
    - 组件与文档禁用：`components/*/test/*slider_semantics.rs::slider_inner_html_usage_is_forbidden_in_component_and_docs` 断言 `src/slider/view.rs`、`apps/docs-app/.../forms_extra.rs`、`src/slider/README.md` 均不包含 `inner_html`。
-   - 门禁接线：`scripts/check-ui-components-inner-html.sh` 新增 slider 阻断命令：
-     `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_inner_html_usage_is_forbidden_in_component_and_docs`。
+   - 门禁接线：`scripts/check-ui-inner-html.sh` 新增 slider 阻断命令：
+     `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_inner_html_usage_is_forbidden_in_component_and_docs`。
    - 精确回归：
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_inner_html_usage_is_forbidden_in_component_and_docs -- --exact`：通过。
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`32 passed`）。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_inner_html_usage_is_forbidden_in_component_and_docs -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`32 passed`）。
    - 质量门禁（负责范围）：
-     - `~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
-     - `~/.cargo/bin/rustfmt --check crates/ui-components/src/slider/view.rs components/*/test/*slider_semantics.rs`：通过。
+     - `~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `~/.cargo/bin/rustfmt --check crates/ui/src/slider/view.rs components/*/test/*slider_semantics.rs`：通过。
      - `~/.cargo/bin/cargo fmt --all -- --check`：被并行开发中的非 slider 文件格式漂移阻塞（本轮未改动这些文件，按“不要动别人改过的东西”保持不触碰）。
 23. WASM 调试要求条目复核（2026-02-18）：
    - 调试能力隔离：`components/*/test/*slider_semantics.rs::slider_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated` 新增并锁定：
-     - `ui-components` 仅保留共享 wasm debug 能力入口（`wasm_debug_proxy` + wasm-only `observability`）。
+     - `ui` 仅保留共享 wasm debug 能力入口（`wasm_debug_proxy` + wasm-only `observability`）。
      - Cargo 特性继续使用仓库级 opt-in（`button-wasm-debug`/`accordion-wasm-debug`），且 `slider` 不引入私有 `slider-wasm-debug` 特性。
      - `all-components` 生产路径不携带 wasm debug 特性。
    - 可追踪与可回放：
      - 关键状态来源通过 `slider/view.rs` 的稳定 `data-*` 来源标记持续暴露（`data-control-mode/data-value-source/data-value-change-source/data-ui-action/data-ui-source`）。
      - 关键交互最小可复现链路由 `e2e/tests/docs_app_slider_contract.spec.mjs` 的键盘流程覆盖（`focus -> ArrowRight -> data-value/data-ui-source` 断言）。
      - 开发态可视化入口与时间线来自 docs-app 全局 `UiDebugOverlay + provide_ui_trace(debug_assertions)` 与 `ui-headless::UiTraceEvent { ts_ms, ... }`。
-   - 门禁接线：`scripts/check-ui-components-wasm-debug.sh` 新增 slider 阻断命令：
-     `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。
+   - 门禁接线：`scripts/check-ui-wasm-debug.sh` 新增 slider 阻断命令：
+     `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。
    - 精确回归：
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated -- --exact`：通过。
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_wasm_debug_check_script_covers_shared_contract -- --exact`：通过。
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`34 passed`）。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_wasm_debug_check_script_covers_shared_contract -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`34 passed`）。
 24. DX 要求条目复核（2026-02-18）：
    - 热重载路径：`components/*/test/*slider_semantics.rs::slider_dx_playground_supports_css_hot_reload_without_wasm_rebuild` 新增并锁定 docs Playground 的 `Show test` + scoped css 注入链路（`compose_scoped_css`），确保常见样式调试不依赖 wasm 全量重编。
    - 上下文保持与隔离画布：`slider_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na` 新增并断言：
      - docs Playground 使用隔离预览画布（`data-playground-scope`）；
      - slider 示例保持受控值与来源上下文可见（`value + last on_value_change`）；
      - 当前范围下“可选状态保留”标记为 N/A（不引入组件私有持久化存储污染）。
-   - 门禁接线：`scripts/check-ui-components-dx.sh` 新增 slider 两条阻断命令：
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_playground_supports_css_hot_reload_without_wasm_rebuild`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na`
+   - 门禁接线：`scripts/check-ui-dx.sh` 新增 slider 两条阻断命令：
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_playground_supports_css_hot_reload_without_wasm_rebuild`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na`
    - 精确回归：
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_playground_supports_css_hot_reload_without_wasm_rebuild -- --exact`：通过。
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na -- --exact`：通过。
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_check_script_covers_hot_reload_and_isolated_canvas_contract -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_playground_supports_css_hot_reload_without_wasm_rebuild -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_check_script_covers_hot_reload_and_isolated_canvas_contract -- --exact`：通过。
 25. 工程能力统一条目复核（2026-02-18）：
    - serde/spec 边界：`components/*/test/*slider_semantics.rs` 新增
      `slider_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope`，锁定 `slider` 作为简单组件不引入 `spec.rs`、不引入 `serde/serde_json` 迁移依赖，且 `check2` 治理条目文本完整。
@@ -449,14 +449,14 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
      `slider_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`，锁定 tracing 统一基线（仓库级 `button/accordion` wasm-debug 语义），禁止 slider 私有 tracing target/事件宏漂移。
    - runtime 边界：新增
      `slider_engineering_contract_avoids_runtime_leaks_in_public_api_surface`，锁定公开实现不泄露 `tokio/async-std/smol/runtime::Handle` 等运行时细节。
-   - 门禁接线：`scripts/check-ui-components-engineering.sh` 新增 slider 三条阻断命令。
+   - 门禁接线：`scripts/check-ui-engineering.sh` 新增 slider 三条阻断命令。
    - 精确回归：
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope -- --exact`：通过。
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events -- --exact`：通过。
-   - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_contract_avoids_runtime_leaks_in_public_api_surface -- --exact`：通过。
-   - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_check_script_covers_serde_tracing_and_runtime_boundaries -- --exact`：通过。
-   - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`41 passed`）。
-26. `ui-components` 固定入口文件落点条目复核（2026-02-18）：
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events -- --exact`：通过。
+   - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_contract_avoids_runtime_leaks_in_public_api_surface -- --exact`：通过。
+   - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_engineering_check_script_covers_serde_tracing_and_runtime_boundaries -- --exact`：通过。
+   - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`41 passed`）。
+26. `ui` 固定入口文件落点条目复核（2026-02-18）：
    - 入口契约语义测试新增并接线：
      - `slider_ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks`（`lib.rs` 总入口 + feature gate + 无平台泄漏）。
      - `slider_ui_components_css_registry_remains_feature_gated_and_non_global`（`css.rs` 按 feature 聚合，禁止全量无条件注入）。
@@ -464,194 +464,194 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
      - `slider_active_highlight_stays_shared_motion_primitive_without_component_semantics`（`active_highlight.rs` 保持共享动效原语边界）。
      - `slider_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present`（`overlay_open.rs/presence.rs/a11y.rs` 缺失，headless canonical 文件存在）。
      - `slider_entrypoints_check_script_covers_fixed_entrypoint_contract`（脚本门禁覆盖 slider 条目）。
-   - 脚本门禁接线：`scripts/check-ui-components-entrypoints.sh` 已新增 slider 五条阻断命令，对应上述入口契约测试。
+   - 脚本门禁接线：`scripts/check-ui-entrypoints.sh` 已新增 slider 五条阻断命令，对应上述入口契约测试。
    - 精确回归（`~/.cargo/bin/cargo`）：
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks -- --exact`：通过。
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_components_css_registry_remains_feature_gated_and_non_global -- --exact`：通过。
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_root_centralizes_theme_injection_and_i18n_context -- --exact`：通过。
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_active_highlight_stays_shared_motion_primitive_without_component_semantics -- --exact`：通过。
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present -- --exact`：通过。
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_entrypoints_check_script_covers_fixed_entrypoint_contract -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_components_css_registry_remains_feature_gated_and_non_global -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_root_centralizes_theme_injection_and_i18n_context -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_active_highlight_stays_shared_motion_primitive_without_component_semantics -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present -- --exact`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_entrypoints_check_script_covers_fixed_entrypoint_contract -- --exact`：通过。
    - 套件复跑：
-     - `~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`48 passed`）。
-     - `~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`48 passed`）。
+     - `~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
 27. 组件目录标准文件落点条目复核（2026-02-18）：
    - 目录与职责契约回归新增：
      - `slider_check2_documents_component_directory_rules`：锁定 `check2.md` 中该条治理文本与 6 个子项。
      - `slider_mod_rs_keeps_minimal_stable_exports`：锁定 `mod.rs` 最小导出面（保留 `motion/styles` 公共边界，禁止 `logic/view` 过度导出与 `render.rs` 漂移）。
      - `slider_component_file_responsibilities_remain_scoped`：锁定 `logic/styles/view/motion` 分工边界（`logic` 不含视图/语义/CSS，`styles` 仅静态 token-first，`view` 仅结构渲染+headless 挂载，`motion` 仅动效契约映射；`spec.rs`/`render.rs` 不存在）。
-     - `slider_component_files_check_script_covers_directory_contract`：锁定 `scripts/check-ui-components-component-files.sh` 已接入 slider 三条阻断命令。
+     - `slider_component_files_check_script_covers_directory_contract`：锁定 `scripts/check-ui-component-files.sh` 已接入 slider 三条阻断命令。
    - 脚本接线：
-     - `scripts/check-ui-components-component-files.sh` 新增：
-       - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_component_directory_has_standard_file_layout_and_no_spec_file`
-       - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_mod_rs_keeps_minimal_stable_exports`
-       - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_component_file_responsibilities_remain_scoped`
+     - `scripts/check-ui-component-files.sh` 新增：
+       - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_component_directory_has_standard_file_layout_and_no_spec_file`
+       - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_mod_rs_keeps_minimal_stable_exports`
+       - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_component_file_responsibilities_remain_scoped`
    - 精确回归（避免并行锁，使用独立 `CARGO_TARGET_DIR`）：
-     - `CARGO_TARGET_DIR=target-slider-component-files ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_component_directory_rules -- --exact`：通过。
-     - `CARGO_TARGET_DIR=target-slider-component-files ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_mod_rs_keeps_minimal_stable_exports -- --exact`：通过。
-     - `CARGO_TARGET_DIR=target-slider-component-files ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_component_file_responsibilities_remain_scoped -- --exact`：通过。
-     - `CARGO_TARGET_DIR=target-slider-component-files ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_component_files_check_script_covers_directory_contract -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-component-files ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_component_directory_rules -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-component-files ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_mod_rs_keeps_minimal_stable_exports -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-component-files ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_component_file_responsibilities_remain_scoped -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-component-files ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_component_files_check_script_covers_directory_contract -- --exact`：通过。
    - 套件与门禁：
-     - `CARGO_TARGET_DIR=target-slider-component-files ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`52 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-component-files ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-component-files ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`52 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-component-files ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
 28. Agent Contract（Schema 化）条目复核（2026-02-18）：
    - 治理文本与契约测试新增：
      - `slider_check2_documents_agent_contract_schema_governance_rules`：锁定 `check2.md` 中 Agent Contract 5 条治理规则。
      - `slider_agent_contract_is_schema_typed_and_machine_readable`：锁定 `logic.rs` 中类型化 schema 字段（`SliderAgentSchema/Stream*/OutputStatus/Intent/UiAction`）与 `view.rs` 的稳定 `data-*` 挂载（`schema/intent/action/source/state`）。
      - `slider_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`：锁定 Agent 字段来自类型 `.as_attr()`，禁止 `format!` 拼接和自由字符串协议。
      - `slider_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`：锁定渲染链路无 `<script` / `javascript:` / `inner_html` 等注入入口。
-     - `slider_contract_hygiene_script_covers_agent_contract_schema_guards`：锁定 `scripts/check-ui-components-contract-hygiene.sh` 已接入 slider Agent Contract 门禁命令。
+     - `slider_contract_hygiene_script_covers_agent_contract_schema_guards`：锁定 `scripts/check-ui-contract-hygiene.sh` 已接入 slider Agent Contract 门禁命令。
    - 脚本接线：
-     - `scripts/check-ui-components-contract-hygiene.sh` 新增：
-       - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_agent_contract_schema_governance_rules`
-       - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_is_schema_typed_and_machine_readable`
-       - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`
-       - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`
+     - `scripts/check-ui-contract-hygiene.sh` 新增：
+       - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_agent_contract_schema_governance_rules`
+       - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_is_schema_typed_and_machine_readable`
+       - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`
+       - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`
    - 精确回归（使用独立 `CARGO_TARGET_DIR` 避免并行锁）：
-     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_agent_contract_schema_governance_rules -- --exact`：通过。
-     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_is_schema_typed_and_machine_readable -- --exact`：通过。
-     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing -- --exact`：通过。
-     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_render_path_is_whitelist_safe_and_script_injection_free -- --exact`：通过。
-     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_agent_contract_schema_guards -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_agent_contract_schema_governance_rules -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_is_schema_typed_and_machine_readable -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_render_path_is_whitelist_safe_and_script_injection_free -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_agent_contract_schema_guards -- --exact`：通过。
    - 套件与门禁：
-     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`57 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`57 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-agent-contract ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
 29. 流式两模式定义条目复核（2026-02-18）：
    - 契约新增：
      - `slider_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`：锁定 `check2.md` 的两模式定义（`Streaming` + `Snapshot`）文本。
-     - `slider_streaming_check_script_covers_two_mode_definition_contract`：锁定 `scripts/check-ui-components-streaming.sh` 已接入 slider 对应门禁命令。
+     - `slider_streaming_check_script_covers_two_mode_definition_contract`：锁定 `scripts/check-ui-streaming.sh` 已接入 slider 对应门禁命令。
    - 脚本接线：
-     - `scripts/check-ui-components-streaming.sh` 新增：
-       - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`
+     - `scripts/check-ui-streaming.sh` 新增：
+       - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`
    - 精确回归（使用独立 `CARGO_TARGET_DIR`）：
-     - `CARGO_TARGET_DIR=target-slider-streaming ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_streaming_definition_is_llm_output_only_with_two_modes -- --exact`：通过。
-     - `CARGO_TARGET_DIR=target-slider-streaming ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_check_script_covers_two_mode_definition_contract -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-streaming ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_streaming_definition_is_llm_output_only_with_two_modes -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-streaming ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_check_script_covers_two_mode_definition_contract -- --exact`：通过。
    - 套件与门禁：
-     - `CARGO_TARGET_DIR=target-slider-streaming ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`59 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-streaming ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-streaming ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`59 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-streaming ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
 30. Snapshot 基础能力条目复核（2026-02-18）：
    - 契约新增：
      - `slider_check2_documents_snapshot_as_default_baseline_capability`：锁定 `check2.md` 中 Snapshot 基础能力三条治理文本。
      - `slider_snapshot_baseline_consumes_complete_result_and_renders_stably`：锁定 slider 在完整配置输入下的稳定渲染能力（受控/非受控输入、归一化状态、`data-*` 语义标记、docs 示例矩阵）。
-     - `slider_streaming_check_script_covers_snapshot_baseline_contract`：锁定 `scripts/check-ui-components-streaming.sh` 已接入 slider snapshot 基线门禁命令。
+     - `slider_streaming_check_script_covers_snapshot_baseline_contract`：锁定 `scripts/check-ui-streaming.sh` 已接入 slider snapshot 基线门禁命令。
    - 脚本接线：
-     - `scripts/check-ui-components-streaming.sh` 新增：
-       - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_snapshot_as_default_baseline_capability`
-       - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_snapshot_baseline_consumes_complete_result_and_renders_stably`
+     - `scripts/check-ui-streaming.sh` 新增：
+       - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_snapshot_as_default_baseline_capability`
+       - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_snapshot_baseline_consumes_complete_result_and_renders_stably`
    - 精确回归（使用独立 `CARGO_TARGET_DIR`）：
-     - `CARGO_TARGET_DIR=target-slider-snapshot ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_snapshot_as_default_baseline_capability -- --exact`：通过。
-     - `CARGO_TARGET_DIR=target-slider-snapshot ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_snapshot_baseline_consumes_complete_result_and_renders_stably -- --exact`：通过。
-     - `CARGO_TARGET_DIR=target-slider-snapshot ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_check_script_covers_snapshot_baseline_contract -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-snapshot ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_snapshot_as_default_baseline_capability -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-snapshot ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_snapshot_baseline_consumes_complete_result_and_renders_stably -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-snapshot ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_check_script_covers_snapshot_baseline_contract -- --exact`：通过。
    - 套件与门禁：
-     - `CARGO_TARGET_DIR=target-slider-snapshot ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`62 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-snapshot ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-snapshot ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`62 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-snapshot ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
 31. Streaming Required/Optional 职责判定条目复核（2026-02-18）：
    - 契约新增：
      - `slider_check2_documents_streaming_required_optional_classification_rules`：锁定 `check2.md` 中 Streaming Required/Optional 判定与职责边界文本。
      - `slider_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`：锁定 optional-streaming 场景下 `role/aria/data-*` 连续可读（含 `data-ui-output-status`）。
      - `slider_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`：锁定重试/断线恢复/校验策略不下沉到组件层。
-     - `slider_streaming_check_script_covers_streaming_responsibility_contract`：锁定 `scripts/check-ui-components-streaming.sh` 已接入 slider streaming 职责门禁命令。
+     - `slider_streaming_check_script_covers_streaming_responsibility_contract`：锁定 `scripts/check-ui-streaming.sh` 已接入 slider streaming 职责门禁命令。
    - 脚本接线：
-     - `scripts/check-ui-components-streaming.sh` 新增：
-       - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_streaming_required_optional_classification_rules`
-       - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`
-       - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`
+     - `scripts/check-ui-streaming.sh` 新增：
+       - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_streaming_required_optional_classification_rules`
+       - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`
+       - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`
    - 精确回归（使用独立 `CARGO_TARGET_DIR`）：
-     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_streaming_required_optional_classification_rules -- --exact`：通过。
-     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous -- --exact`：通过。
-     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer -- --exact`：通过。
-     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_check_script_covers_streaming_responsibility_contract -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_streaming_required_optional_classification_rules -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer -- --exact`：通过。
+     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_streaming_check_script_covers_streaming_responsibility_contract -- --exact`：通过。
    - 套件与门禁：
-     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`66 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`66 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
 32. Slider 负责范围最终复核（2026-02-18）：
    - 目标：确认第 31 项落盘后无漂移，且 `check2` 仍保持“逐项真实核验”状态。
    - 实跑命令（统一 `~/.cargo/bin`）：
-     - `~/.cargo/bin/rustfmt --check crates/ui-components/src/slider/logic.rs crates/ui-components/src/slider/mod.rs crates/ui-components/src/slider/motion.rs crates/ui-components/src/slider/styles.rs crates/ui-components/src/slider/view.rs components/*/test/*slider_semantics.rs`：初次发现 `logic.rs/view.rs` 导入排序漂移；执行 `~/.cargo/bin/rustfmt crates/ui-components/src/slider/logic.rs crates/ui-components/src/slider/view.rs` 后复跑通过。
-     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`66 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
-     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
-   - 结论：`crates/ui-components/src/slider/check2.md` 当前无未勾选项，`slider` 负责范围内的 format/test/clippy 复核完成且为最新通过状态。
+     - `~/.cargo/bin/rustfmt --check crates/ui/src/slider/logic.rs crates/ui/src/slider/mod.rs crates/ui/src/slider/motion.rs crates/ui/src/slider/styles.rs crates/ui/src/slider/view.rs components/*/test/*slider_semantics.rs`：初次发现 `logic.rs/view.rs` 导入排序漂移；执行 `~/.cargo/bin/rustfmt crates/ui/src/slider/logic.rs crates/ui/src/slider/view.rs` 后复跑通过。
+     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`66 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
+   - 结论：`crates/ui/src/slider/check2.md` 当前无未勾选项，`slider` 负责范围内的 format/test/clippy 复核完成且为最新通过状态。
 33. 语义测试优先条目复核（2026-02-18）：
    - 契约新增（`components/*/test/*slider_semantics.rs`）：
      - `slider_check2_documents_semantics_first_testing_rules`：锁定 `check2.md` 中“语义测试优先”四条治理文本（`data-*`/`aria-*`/`role`/状态来源、`*_semantics.rs` 覆盖、契约优先断言、语义字段变更必须补测）。
      - `slider_semantics_suite_is_contract_first_not_snapshot_only`：锁定 slider 语义测试集以语义契约断言为主，并显式禁止 `assert_snapshot` / `insta::` / `to_match_snapshot` 作为主路径。
      - `slider_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks`：锁定 `view.rs` 关键语义标记（`role`/`aria-*`/`data-*`/状态来源/Agent 字段）与语义测试用例同步演进。
-     - `slider_contract_hygiene_script_covers_semantics_first_testing_rules`：锁定 `scripts/check-ui-components-contract-hygiene.sh` 已接入上述三条阻断命令。
-   - 脚本接线（`scripts/check-ui-components-contract-hygiene.sh`）：
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_semantics_first_testing_rules`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantics_suite_is_contract_first_not_snapshot_only`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks`
+     - `slider_contract_hygiene_script_covers_semantics_first_testing_rules`：锁定 `scripts/check-ui-contract-hygiene.sh` 已接入上述三条阻断命令。
+   - 脚本接线（`scripts/check-ui-contract-hygiene.sh`）：
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_semantics_first_testing_rules`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantics_suite_is_contract_first_not_snapshot_only`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks`
    - 精确回归（`~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_semantics_first_testing_rules -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantics_suite_is_contract_first_not_snapshot_only -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_semantics_first_testing_rules -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_semantics_first_testing_rules -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantics_suite_is_contract_first_not_snapshot_only -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_semantics_first_testing_rules -- --exact`：通过（`1 passed`）。
    - 套件与门禁：
-     - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`70 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`70 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
 34. E2E 选择器稳定条目复核（2026-02-18）：
    - 契约新增（`components/*/test/*slider_semantics.rs`）：
      - `slider_check2_documents_e2e_selector_and_stable_wait_rules`：锁定 `check2.md` 中“E2E 选择器稳定”四条治理文本。
      - `slider_e2e_selector_contract_uses_semantic_markers_and_stable_waits`：锁定 `e2e/tests/docs_app_slider_contract.spec.mjs` 使用 `data-*` 语义选择器与语义就绪等待（`body:not(:has(#boot))` + `toHaveAttribute(...)`），并禁止 `section.playground` / `xpath=` / 文本定位 / 固定 sleep。
      - `slider_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints`：锁定动画路径的 ready/settled 断点（`data-ui-action`、`data-value`、`data-value-percent`、`data-ui-source`、`not.toHaveAttribute(\"data-pressed\", \"true\")`）以及 disabled 分支语义断点。
-     - `slider_e2e_check_script_covers_selector_and_settled_wait_contracts`：锁定 `scripts/check-ui-components-e2e-slider.sh` 对上述三条契约测试的阻断接线。
+     - `slider_e2e_check_script_covers_selector_and_settled_wait_contracts`：锁定 `components/slider/scripts/check-ui-e2e-slider.sh` 对上述三条契约测试的阻断接线。
    - E2E 测试实现（`e2e/tests/docs_app_slider_contract.spec.mjs`）：
      - 新增 `CONTROLLED_SLIDER_ROOT` 语义选择器：`[data-component=\"slider\"] [data-slot=\"slider\"][data-control-mode=\"controlled\"][data-max=\"100\"]`。
      - 去除脆弱定位：不再使用 `section.playground` 与 `xpath` 祖先回溯。
      - 去除固定等待：不使用 `waitForTimeout`/`sleep`，改为语义状态等待与断言。
    - E2E 门禁脚本：
-     - 新增 `scripts/check-ui-components-e2e-slider.sh`（可执行），接入三条契约测试命令。
+     - 新增 `components/slider/scripts/check-ui-e2e-slider.sh`（可执行），接入三条契约测试命令。
    - 精确回归（`~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_e2e_selector_and_stable_wait_rules -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_selector_contract_uses_semantic_markers_and_stable_waits -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_check_script_covers_selector_and_settled_wait_contracts -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_e2e_selector_and_stable_wait_rules -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_selector_contract_uses_semantic_markers_and_stable_waits -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_check_script_covers_selector_and_settled_wait_contracts -- --exact`：通过（`1 passed`）。
    - 套件与门禁：
-     - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`73 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`73 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
      - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
-     - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=target-slider-e2e-selectors scripts/check-ui-components-e2e-slider.sh`：通过（3 条 E2E 契约阻断测试全绿）。
+     - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=target-slider-e2e-selectors components/slider/scripts/check-ui-e2e-slider.sh`：通过（3 条 E2E 契约阻断测试全绿）。
 35. 关键流程可重复回归条目复核（2026-02-18）：
    - 契约新增（`components/*/test/*slider_semantics.rs`）：
      - `slider_check2_documents_e2e_repeatable_key_flow_rules`：锁定 `check2.md` 中“关键流程纳入可重复回归集合”四条治理文本。
      - `slider_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`：锁定 `e2e/tests/docs_app_slider_contract.spec.mjs` 至少一条可重复关键流程（交互后 `reload` 再交互）并将失败定位到具体语义断点（`data-value` / `data-ui-action` / `data-ui-source` / `data-ui-output-status`）。
      - `slider_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints`：锁定高风险路径覆盖（`focus + keyboard + animation settled`）与语义断点（`data-focused` / `data-focus-visible` / `data-value-percent` / `data-ui-action`），并禁止固定延时等待。
-     - `slider_e2e_check_script_covers_selector_and_settled_wait_contracts`：锁定 `scripts/check-ui-components-e2e-slider.sh` 已接入本条新增三条契约测试命令。
+     - `slider_e2e_check_script_covers_selector_and_settled_wait_contracts`：锁定 `components/slider/scripts/check-ui-e2e-slider.sh` 已接入本条新增三条契约测试命令。
    - E2E 测试实现（`e2e/tests/docs_app_slider_contract.spec.mjs`）：
      - 新增用例：`docs-app slider key flow is repeatable and failures map to semantic breakpoints`。
      - 关键流程：`goto -> focus -> ArrowRight -> 语义断点断言 -> reload -> 复现同链路`，确保回归可重复且可定位。
-   - E2E 门禁脚本接线（`scripts/check-ui-components-e2e-slider.sh`）：
+   - E2E 门禁脚本接线（`components/slider/scripts/check-ui-e2e-slider.sh`）：
      - 新增三条阻断命令：
        - `slider_check2_documents_e2e_repeatable_key_flow_rules`
        - `slider_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`
        - `slider_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints`
    - 精确回归（`~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_e2e_repeatable_key_flow_rules -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_key_flow_is_repeatable_and_failure_points_are_semantic -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_check_script_covers_selector_and_settled_wait_contracts -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_e2e_repeatable_key_flow_rules -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_key_flow_is_repeatable_and_failure_points_are_semantic -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_e2e_check_script_covers_selector_and_settled_wait_contracts -- --exact`：通过（`1 passed`）。
    - 套件与门禁：
-     - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`76 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`76 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
      - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
-     - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=target-slider-repeatable-e2e scripts/check-ui-components-e2e-slider.sh`：通过（新增 repeatable-flow + high-risk 阻断链路全绿）。
+     - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=target-slider-repeatable-e2e components/slider/scripts/check-ui-e2e-slider.sh`：通过（新增 repeatable-flow + high-risk 阻断链路全绿）。
 36. docs-app 文档/示例/参数矩阵/状态矩阵同步条目复核（2026-02-18）：
    - 契约新增（`components/*/test/*slider_semantics.rs`）：
      - `slider_check2_documents_docs_sync_and_state_matrix_rules`：锁定 `check2.md` 中 docs 同步治理四条文本。
      - `slider_docs_playgrounds_lock_state_matrix_contract_values`：锁定 `forms_extra::slider()` 示例矩阵覆盖（至少包含受控/非受控/disabled，并含关键参数组合）。
      - `slider_docs_examples_sync_with_logic_api_names_and_state_matrix`：锁定 docs API 名称与默认值语义与 `view.rs/logic.rs` 对齐（`value/default_value/on_value_change/is_disabled/min/max/step` 与默认值归一化路径）。
-     - `slider_contract_hygiene_script_covers_docs_sync_and_state_matrix_contract`：锁定 `scripts/check-ui-components-contract-hygiene.sh` 已接入本条 docs 同步阻断命令。
-   - 脚本接线（`scripts/check-ui-components-contract-hygiene.sh`）：
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_docs_sync_and_state_matrix_rules`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_examples_sync_with_logic_api_names_and_state_matrix`
+     - `slider_contract_hygiene_script_covers_docs_sync_and_state_matrix_contract`：锁定 `scripts/check-ui-contract-hygiene.sh` 已接入本条 docs 同步阻断命令。
+   - 脚本接线（`scripts/check-ui-contract-hygiene.sh`）：
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_docs_sync_and_state_matrix_rules`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_examples_sync_with_logic_api_names_and_state_matrix`
    - 精确回归（`~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `CARGO_TARGET_DIR=target-slider-docs-sync ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_docs_sync_and_state_matrix_rules -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-docs-sync ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_examples_sync_with_logic_api_names_and_state_matrix -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-docs-sync ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_docs_sync_and_state_matrix_contract -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-sync ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_docs_sync_and_state_matrix_rules -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-sync ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_examples_sync_with_logic_api_names_and_state_matrix -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-sync ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_docs_sync_and_state_matrix_contract -- --exact`：通过（`1 passed`）。
    - 套件与门禁：
-     - `CARGO_TARGET_DIR=target-slider-docs-sync ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`80 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-docs-sync ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-docs-sync ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`80 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-sync ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
      - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
 37. 组件文档新手友好（Documentation as Product）条目复核（2026-02-18）：
    - 契约新增（`components/*/test/*slider_semantics.rs`）：
@@ -659,30 +659,30 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
      - `slider_docs_entry_exists_as_readme_or_equivalent_docs_app_page`：锁定 `README` 或等价 docs-app 入口存在，并可索引到 `forms_extra::slider()`。
      - `slider_docs_are_beginner_friendly_with_default_then_advanced_path`：锁定 docs 与 README 的“先默认后进阶”路径顺序（Hello World -> Controlled -> Advanced）。
      - `slider_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring`：锁定 Hello World 零门槛示例（必要 imports + `<Slider ...>`）且不要求用户接线底层分层能力（不出现 `ui_state_primitives/ui_headless` 等架构细节）。
-     - `slider_contract_hygiene_script_covers_documentation_as_product_contract`：锁定 `scripts/check-ui-components-contract-hygiene.sh` 已接入本条四个阻断命令。
-   - 脚本接线（`scripts/check-ui-components-contract-hygiene.sh`）：
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_documentation_as_product_rules`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_entry_exists_as_readme_or_equivalent_docs_app_page`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_are_beginner_friendly_with_default_then_advanced_path`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring`
+     - `slider_contract_hygiene_script_covers_documentation_as_product_contract`：锁定 `scripts/check-ui-contract-hygiene.sh` 已接入本条四个阻断命令。
+   - 脚本接线（`scripts/check-ui-contract-hygiene.sh`）：
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_documentation_as_product_rules`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_entry_exists_as_readme_or_equivalent_docs_app_page`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_are_beginner_friendly_with_default_then_advanced_path`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring`
    - 精确回归（`~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_documentation_as_product_rules -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_entry_exists_as_readme_or_equivalent_docs_app_page -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_are_beginner_friendly_with_default_then_advanced_path -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_documentation_as_product_contract -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_documentation_as_product_rules -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_entry_exists_as_readme_or_equivalent_docs_app_page -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_are_beginner_friendly_with_default_then_advanced_path -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_documentation_as_product_contract -- --exact`：通过（`1 passed`）。
    - 套件与门禁：
-     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`85 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`85 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
      - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
 38. Slider 历史任务终检复核（2026-02-18）：
    - 目标：确认“逐项单独真实检查 + 修复后通过”状态在当前 `slider` 负责范围持续成立，不受并行改动干扰。
    - 实跑命令（统一 `~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `~/.cargo/bin/rustfmt --check crates/ui-components/src/slider/mod.rs crates/ui-components/src/slider/logic.rs crates/ui-components/src/slider/view.rs crates/ui-components/src/slider/styles.rs crates/ui-components/src/slider/motion.rs components/*/test/*slider_semantics.rs`：初次发现 `logic.rs/view.rs` 导入排序漂移；执行 `~/.cargo/bin/rustfmt crates/ui-components/src/slider/logic.rs crates/ui-components/src/slider/view.rs` 后复跑通过。
-     - `CARGO_TARGET_DIR=target-slider-final-audit ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-final-audit ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`85 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-final-audit ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
-     - `rg -n "^- \\[ \\]" crates/ui-components/src/slider/check2.md`：无输出（无未勾选项）。
+     - `~/.cargo/bin/rustfmt --check crates/ui/src/slider/mod.rs crates/ui/src/slider/logic.rs crates/ui/src/slider/view.rs crates/ui/src/slider/styles.rs crates/ui/src/slider/motion.rs components/*/test/*slider_semantics.rs`：初次发现 `logic.rs/view.rs` 导入排序漂移；执行 `~/.cargo/bin/rustfmt crates/ui/src/slider/logic.rs crates/ui/src/slider/view.rs` 后复跑通过。
+     - `CARGO_TARGET_DIR=target-slider-final-audit ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-final-audit ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`85 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-final-audit ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `rg -n "^- \\[ \\]" crates/ui/src/slider/check2.md`：无输出（无未勾选项）。
    - 结论：`slider` 在 `check2.md` 中的历史条目保持“逐条可追溯、逐条可检测、逐条已通过”状态，当前负责范围门禁持续为绿色。
 39. Source-first 文档 Copy-Paste Ready 条目复核（2026-02-18）：
    - 契约与实现补齐：
@@ -690,18 +690,18 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
        - `Snippet(copyable=true)` 最小可用片段（含 imports）；
        - 源码落点列表（`mod/logic/view/styles/motion`）；
        - feature 前提（`component-slider` + `inject-css`）。
-     - `crates/ui-components/src/slider/README.md` 新增 `Source-first / Copy-Paste Ready` 入口、源码与 feature 前提说明。
+     - `crates/ui/src/slider/README.md` 新增 `Source-first / Copy-Paste Ready` 入口、源码与 feature 前提说明。
    - 契约测试新增（`components/*/test/*slider_semantics.rs`）：
      - `slider_check2_documents_source_first_copy_paste_ready_rules`
      - `slider_docs_are_copy_paste_ready_with_imports_copy_button_and_sync`
      - `slider_contract_hygiene_script_covers_source_first_copy_paste_ready_contract`
-   - 脚本接线（`scripts/check-ui-components-contract-hygiene.sh`）：
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_source_first_copy_paste_ready_rules`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_are_copy_paste_ready_with_imports_copy_button_and_sync`
+   - 脚本接线（`scripts/check-ui-contract-hygiene.sh`）：
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_source_first_copy_paste_ready_rules`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_are_copy_paste_ready_with_imports_copy_button_and_sync`
    - 精确回归（`~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_source_first_copy_paste_ready_rules -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_are_copy_paste_ready_with_imports_copy_button_and_sync -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_source_first_copy_paste_ready_contract -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_source_first_copy_paste_ready_rules -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_are_copy_paste_ready_with_imports_copy_button_and_sync -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_source_first_copy_paste_ready_contract -- --exact`：通过（`1 passed`）。
 40. HeroUI 对标文档与组件文档同步条目复核（2026-02-18）：
    - 同步补齐：
      - `docs/spec/heroui-parameter-design-strategy.md` 的 `### Slider 同步记录（2026-02-18）` 更新 Source-first 描述，明确 `slider-source-first` 区块、源码落点与 feature 前提。
@@ -709,16 +709,16 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
      - `slider_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes`
      - `slider_check2_marks_heroui_strategy_and_component_docs_sync_complete`
      - `slider_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract`
-   - 脚本接线（`scripts/check-ui-components-contract-hygiene.sh`）：
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_marks_heroui_strategy_and_component_docs_sync_complete`
+   - 脚本接线（`scripts/check-ui-contract-hygiene.sh`）：
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_marks_heroui_strategy_and_component_docs_sync_complete`
    - 精确回归（`~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_marks_heroui_strategy_and_component_docs_sync_complete -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_marks_heroui_strategy_and_component_docs_sync_complete -- --exact`：通过（`1 passed`）。
    - 套件与门禁：
-     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`91 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`91 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
 41. 明确禁止反模式条目复核（2026-02-18）：
    - 契约测试新增（`components/*/test/*slider_semantics.rs`）：
      - `slider_check2_documents_explicit_forbidden_antipattern_rules`：锁定 `check2.md` 第 8 节八条反模式治理文本。
@@ -727,22 +727,22 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
      - `slider_forbidden_antipatterns_block_parallel_array_api_and_platform_type_leaks`：锁定无并行数组式 API 与无 `web_sys/js_sys` 泄露。
      - `slider_forbidden_antipatterns_avoid_temporary_patch_drift_and_keep_primitives_sunk`：锁定无临时补丁漂移，并持续消费 `ui-state-primitives/ui-headless` 下沉原语。
      - `slider_contract_hygiene_script_covers_forbidden_antipattern_contract`：锁定脚本门禁已覆盖上述反模式阻断命令。
-   - 脚本接线（`scripts/check-ui-components-contract-hygiene.sh`）：
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_explicit_forbidden_antipattern_rules`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_keep_state_primitives_dom_free_and_headless_visual_free`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_keep_key_state_decisions_out_of_view`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_block_parallel_array_api_and_platform_type_leaks`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_avoid_temporary_patch_drift_and_keep_primitives_sunk`
+   - 脚本接线（`scripts/check-ui-contract-hygiene.sh`）：
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_explicit_forbidden_antipattern_rules`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_keep_state_primitives_dom_free_and_headless_visual_free`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_keep_key_state_decisions_out_of_view`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_block_parallel_array_api_and_platform_type_leaks`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_avoid_temporary_patch_drift_and_keep_primitives_sunk`
    - 精确回归（`~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_explicit_forbidden_antipattern_rules -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_keep_state_primitives_dom_free_and_headless_visual_free -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_keep_key_state_decisions_out_of_view -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_block_parallel_array_api_and_platform_type_leaks -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_avoid_temporary_patch_drift_and_keep_primitives_sunk -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_forbidden_antipattern_contract -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_explicit_forbidden_antipattern_rules -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_keep_state_primitives_dom_free_and_headless_visual_free -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_keep_key_state_decisions_out_of_view -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_block_parallel_array_api_and_platform_type_leaks -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_avoid_temporary_patch_drift_and_keep_primitives_sunk -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_forbidden_antipattern_contract -- --exact`：通过（`1 passed`）。
    - 套件与门禁：
-     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`97 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`97 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
      - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
 42. 合并门禁（最终裁决）条目复核（2026-02-18）：
    - 契约测试新增（`components/*/test/*slider_semantics.rs`）：
@@ -750,67 +750,67 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
      - `slider_final_merge_gate_capabilities_are_backed_by_contract_checks`：聚合调用既有契约测试，覆盖架构/行为/A11y/语义标记/命名/状态归一/分层/文档同步。
      - `slider_final_merge_gate_marks_full_repo_gate_as_component_scoped_na`：锁定“门禁完整通过”按 slider 负责范围执行，仓库级 smoke 为 `N/A` 的说明。
      - `slider_contract_hygiene_script_covers_final_merge_gate_contract`：锁定脚本已接入本条阻断命令。
-   - 脚本接线（`scripts/check-ui-components-contract-hygiene.sh`）：
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_final_merge_gate_rules`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_capabilities_are_backed_by_contract_checks`
-     - `cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_marks_full_repo_gate_as_component_scoped_na`
+   - 脚本接线（`scripts/check-ui-contract-hygiene.sh`）：
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_final_merge_gate_rules`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_capabilities_are_backed_by_contract_checks`
+     - `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_marks_full_repo_gate_as_component_scoped_na`
    - 精确回归（`~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `CARGO_TARGET_DIR=target-slider-merge-gate ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_final_merge_gate_rules -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-merge-gate ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_capabilities_are_backed_by_contract_checks -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-merge-gate ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_marks_full_repo_gate_as_component_scoped_na -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-merge-gate ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_final_merge_gate_contract -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-merge-gate ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_final_merge_gate_rules -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-merge-gate ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_capabilities_are_backed_by_contract_checks -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-merge-gate ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_marks_full_repo_gate_as_component_scoped_na -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-merge-gate ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_contract_hygiene_script_covers_final_merge_gate_contract -- --exact`：通过（`1 passed`）。
    - 套件与门禁：
-     - `CARGO_TARGET_DIR=target-slider-merge-gate ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-merge-gate ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-merge-gate ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-merge-gate ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
 43. 历史任务完成性终验（2026-02-18）：
    - 目标：确认 `check2.md` 全部 checklist 在 slider 负责范围内均已逐条落为“可检测契约”，并完成最新一轮真实复核。
    - 实跑命令（统一 `~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `rg -n "^- \\[ \\]" crates/ui-components/src/slider/check2.md`：无输出（无未勾选项）。
+     - `rg -n "^- \\[ \\]" crates/ui/src/slider/check2.md`：无输出（无未勾选项）。
      - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
-     - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
    - 结论：当前 slider 历史任务条目已处于“逐条可追溯、逐条可检测、逐条可复现通过”状态；若后续任一契约回归，将由 `slider_semantics` 与脚本门禁直接阻断。
 44. 历史任务完成性复核（第二次独立复跑，2026-02-18）：
    - 目标：对“历史任务全部完成 + checklist 逐条真实 check”要求进行独立二次复跑，避免一次性偶然通过。
    - 实跑命令（统一 `~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `rg -n "^- \\[ \\]" crates/ui-components/src/slider/check2.md`：无输出（无未勾选项）。
+     - `rg -n "^- \\[ \\]" crates/ui/src/slider/check2.md`：无输出（无未勾选项）。
      - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
-     - `CARGO_TARGET_DIR=target-slider-history-final2 ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-history-final2 ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
    - 结论：slider 负责范围内的历史条目保持“逐条已验收、逐条可阻断、逐条可复现通过”状态，当前无需继续补修。
 45. 历史任务完成性复核（第三次独立复跑，2026-02-18）：
    - 目标：在多人并行改动背景下，再次确认 slider 负责范围内的历史任务仍保持“逐条真实检查 + 可复现通过”。
    - 实跑命令（统一 `~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `rg -n "^- \\[ \\]" crates/ui-components/src/slider/check2.md`：无输出（无未勾选项）。
+     - `rg -n "^- \\[ \\]" crates/ui/src/slider/check2.md`：无输出（无未勾选项）。
      - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
-     - `CARGO_TARGET_DIR=target-slider-history-final3 ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-history-final3 ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
-     - `CARGO_TARGET_DIR=target-slider-history-final3 ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - `CARGO_TARGET_DIR=target-slider-history-final3 ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-history-final3 ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
+     - `CARGO_TARGET_DIR=target-slider-history-final3 ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
    - 结论：slider 负责范围的历史 checklist 仍为全勾选且门禁可重复通过，当前无需新增补修项。
 46. 历史任务完成性复核（第四次独立复跑：逐条单测串行验证，2026-02-18）：
    - 目标：按“一个一个依次单独真实 check”要求，对 `slider_semantics` 中全部契约测试进行 `--exact` 串行逐条执行，并确认无遗漏、无回归。
    - 实跑命令（统一 `~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `rg -n "^- \\[ \\]" crates/ui-components/src/slider/check2.md`：无输出（无未勾选项）。
+     - `rg -n "^- \\[ \\]" crates/ui/src/slider/check2.md`：无输出（无未勾选项）。
      - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
      - 逐条串行命令：
-       - `CARGO_TARGET_DIR=target-slider-history-seq ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css -- --list | awk '/: test$/{print $1}'` 获取测试名集合（`total_checks=101`）。
-       - 对每个测试名执行：`CARGO_TARGET_DIR=target-slider-history-seq ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css <test_name> -- --exact`（串行逐条）。
+       - `CARGO_TARGET_DIR=target-slider-history-seq ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css -- --list | awk '/: test$/{print $1}'` 获取测试名集合（`total_checks=101`）。
+       - 对每个测试名执行：`CARGO_TARGET_DIR=target-slider-history-seq ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css <test_name> -- --exact`（串行逐条）。
        - 汇总输出：`passed_exact=101`（逐条 `--exact` 全通过）。
-     - 套件回归：`CARGO_TARGET_DIR=target-slider-history-seq ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
-     - 静态门禁：`CARGO_TARGET_DIR=target-slider-history-seq ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
-   - 复核锚点：`CARGO_TARGET_DIR=target-slider-history-seq ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
+     - 套件回归：`CARGO_TARGET_DIR=target-slider-history-seq ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
+     - 静态门禁：`CARGO_TARGET_DIR=target-slider-history-seq ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+   - 复核锚点：`CARGO_TARGET_DIR=target-slider-history-seq ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
    - 结论：`slider` 负责范围已满足“逐条单独真实 check + 修复后可检测通过”的历史任务完成标准；当前无需继续补修。
 47. 历史任务完成性复核（第五次独立复跑：逐条单测串行验证复验，2026-02-18）：
    - 目标：再次独立验证“每条 checklist 对应契约测试可逐条单独执行并通过”，降低一次性偶然通过风险。
    - 实跑命令（统一 `~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `rg -n "^- \\[ \\]" crates/ui-components/src/slider/check2.md`：无输出（无未勾选项）。
+     - `rg -n "^- \\[ \\]" crates/ui/src/slider/check2.md`：无输出（无未勾选项）。
      - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
      - 逐条串行命令：
-       - `CARGO_TARGET_DIR=target-slider-history-seq2 ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css -- --list | awk '/: test$/{print $1}'` 获取测试名集合（`total_checks=101`）。
-       - 对每个测试名执行：`CARGO_TARGET_DIR=target-slider-history-seq2 ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css <test_name> -- --exact`（串行逐条）。
+       - `CARGO_TARGET_DIR=target-slider-history-seq2 ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css -- --list | awk '/: test$/{print $1}'` 获取测试名集合（`total_checks=101`）。
+       - 对每个测试名执行：`CARGO_TARGET_DIR=target-slider-history-seq2 ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css <test_name> -- --exact`（串行逐条）。
        - 汇总输出：`passed_exact=101`；本轮时间戳：`2026-02-18T09:55:14Z`。
-     - 套件回归：`CARGO_TARGET_DIR=target-slider-history-seq2 ~/.cargo/bin/cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
-     - 静态门禁：`CARGO_TARGET_DIR=target-slider-history-seq2 ~/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
+     - 套件回归：`CARGO_TARGET_DIR=target-slider-history-seq2 ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
+     - 静态门禁：`CARGO_TARGET_DIR=target-slider-history-seq2 ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
    - 结论：`slider` 范围“逐条单独真实 check + 套件与静态门禁通过”继续成立，当前无需新增修复。

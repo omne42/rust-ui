@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{Tabs, TabsKeyboardActivation};
+use ui::{Tabs, TabsKeyboardActivation};
 
 #[component]
 pub fn TabsDemo() -> impl IntoView {

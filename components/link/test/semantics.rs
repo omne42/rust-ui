@@ -283,12 +283,17 @@ fn link_dx_paradox_keeps_default_api_and_hello_world_docs() {
         "#[prop()] state:",
         "#[prop(optional)] state:",
         "#[prop(optional, into)] state:",
-        "state=state",
-        "state=link_state",
     ] {
         assert!(
             !view_source.contains(forbidden),
             "link should not require internal state wiring via `{forbidden}`.",
+        );
+    }
+
+    for forbidden in ["state=state", "state=link_state"] {
+        assert!(
+            !docs_source.contains(forbidden),
+            "link docs should not require internal state wiring via `{forbidden}`.",
         );
     }
 
@@ -860,8 +865,8 @@ fn link_avoids_spec_rs_for_simple_component_surface() {
 fn link_token_first_static_styles_are_aggregated_via_uiroot_contract() {
     let styles_source = load_source("src/styles.rs");
     let view_source = load_source("src/view.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
 
     for needle in [
         "pub const CSS: &str = r#\"",
@@ -890,7 +895,7 @@ fn link_token_first_static_styles_are_aggregated_via_uiroot_contract() {
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "link component css should be aggregated through ui-components css pipeline `{needle}`.",
+            "link component css should be aggregated through ui css pipeline `{needle}`.",
         );
     }
 
@@ -924,9 +929,9 @@ fn link_token_first_static_styles_are_aggregated_via_uiroot_contract() {
 
 #[test]
 fn link_tree_shaking_contract_is_feature_gated_in_ui_components() {
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
 
     for needle in [
         "component-link = [\"dep:ui-link\"]",
@@ -945,7 +950,7 @@ fn link_tree_shaking_contract_is_feature_gated_in_ui_components() {
 
     assert!(
         !ui_components_cargo.contains("default = [\"all-components\"]"),
-        "ui-components default feature should not force full registry without inject-css baseline.",
+        "ui default feature should not force full registry without inject-css baseline.",
     );
 }
 
@@ -1079,7 +1084,7 @@ fn link_has_no_hydration_discontinuity_and_relies_on_deterministic_id_provider_p
     let mod_source = load_source("src/mod.rs");
     let logic_source = load_source("src/logic.rs");
     let view_source = load_source("src/view.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
 
     for forbidden in [
         "now(",

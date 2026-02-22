@@ -71,7 +71,7 @@ test("docs-app form playground code panel remains copy-ready via semantic select
 
   const code = playground.locator('[data-slot="code-block-code"]').first();
   await expect(code).toContainText("use leptos::prelude::*;");
-  await expect(code).toContainText("use ui_components::*;");
+  await expect(code).toContainText("use ui::*;");
   await expect(code).toContainText("<Form>");
   await expect(code).toContainText("id=\"docs-form-hello\"");
 });

@@ -13,11 +13,11 @@ fn resolve_path(rel_path: &str) -> std::path::PathBuf {
             .join("components/autocomplete/src")
             .join(suffix)
     } else if rel_path == "src/lib.rs" {
-        workspace_dir.join("crates/ui-components/src/lib.rs")
+        workspace_dir.join("crates/ui/src/lib.rs")
     } else if rel_path == "src/css.rs" {
-        workspace_dir.join("crates/ui-components/src/css.rs")
+        workspace_dir.join("crates/ui/src/css.rs")
     } else if rel_path == "Cargo.toml" {
-        workspace_dir.join("crates/ui-components/Cargo.toml")
+        workspace_dir.join("crates/ui/Cargo.toml")
     } else if let Some(suffix) = rel_path.strip_prefix("../ui-state-primitives/") {
         workspace_dir
             .join("crates/ui-state-primitives")
@@ -880,9 +880,9 @@ fn autocomplete_styles_use_defensive_variable_fallback_chain() {
 
 #[test]
 fn autocomplete_defensive_variables_check_script_covers_style_fallback_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_styles_use_defensive_variable_fallback_chain";
+    let needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -901,7 +901,7 @@ fn autocomplete_check2_marks_defensive_variables_contract_complete() {
     for needle in [
         "autocomplete_styles_use_defensive_variable_fallback_chain",
         "autocomplete_defensive_variables_check_script_covers_style_fallback_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "components/autocomplete/src/styles.rs",
         "crates/ui-theme/src/css.rs",
     ] {
@@ -926,7 +926,7 @@ fn autocomplete_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_entry_source.contains(needle),
-            "ui-components css entry should enforce cascade-layer contract `{needle}`."
+            "ui css entry should enforce cascade-layer contract `{needle}`."
         );
     }
 
@@ -995,9 +995,9 @@ fn autocomplete_cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn autocomplete_cascade_layer_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_cascade_layer_and_runtime_style_contract_is_enforced";
+    let needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -1016,9 +1016,9 @@ fn autocomplete_check2_marks_cascade_layer_contract_complete() {
     for needle in [
         "autocomplete_cascade_layer_and_runtime_style_contract_is_enforced",
         "autocomplete_cascade_layer_check_script_covers_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "scripts/check-ui-contract-hygiene.sh",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "components/autocomplete/src/view.rs",
     ] {
         assert!(
@@ -1235,7 +1235,7 @@ fn autocomplete_token_first_style_contract_is_aggregated_and_ui_root_injected() 
 
     assert!(
         css_source.contains("out.push_str(crate::autocomplete::styles::CSS);"),
-        "ui-components css aggregator should include autocomplete styles CSS constant."
+        "ui css aggregator should include autocomplete styles CSS constant."
     );
 
     for needle in [
@@ -1502,7 +1502,7 @@ fn autocomplete_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stre
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
     let check2_source = load_source("../../components/autocomplete/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "pub(super) fn autocomplete() -> AnyView {",
@@ -1528,7 +1528,7 @@ fn autocomplete_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stre
         "label=\"Copy starter\".to_string()",
         "copyable=true",
         "class_name=\"docs-autocomplete-source-copy\".to_string()",
-        "use leptos::prelude::*;\\nuse ui_components::Autocomplete;",
+        "use leptos::prelude::*;\\nuse ui::Autocomplete;",
         "data-slot=\"autocomplete-source-paths\"",
         "data-slot=\"autocomplete-source-prerequisites\"",
         "<code>\"component-autocomplete\"</code>",
@@ -1541,7 +1541,7 @@ fn autocomplete_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stre
     }
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String",
         "let missing_imports = missing_import_lines(&raw, &imports);",
         "return compose_copy_ready_code(&dynamic_code.get(), &code_imports.get_value());",
@@ -1553,7 +1553,7 @@ fn autocomplete_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stre
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
+    let script_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
     assert!(
         script_source.contains(script_needle),
         "dx check script should enforce `{script_needle}`."
@@ -1565,7 +1565,7 @@ fn autocomplete_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stre
         "autocomplete_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
         "apps/docs-app/src/pages/components/pages/collections.rs",
         "apps/docs-app/src/playground.rs::compose_copy_ready_code",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -1666,7 +1666,7 @@ fn autocomplete_docs_examples_and_state_matrix_sync_with_logic_api_names_and_def
         "apps/docs-app/src/pages/components/pages/collections.rs::autocomplete",
         "autocomplete_check2_documents_docs_sync_and_state_matrix_rules",
         "autocomplete_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -1677,12 +1677,12 @@ fn autocomplete_docs_examples_and_state_matrix_sync_with_logic_api_names_and_def
 
 #[test]
 fn autocomplete_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: autocomplete docs examples + api/state matrix sync with logic API/defaults\"",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1711,7 +1711,7 @@ fn autocomplete_check2_marks_docs_sync_and_state_matrix_item_complete() {
         "autocomplete_check2_documents_docs_sync_and_state_matrix_rules",
         "autocomplete_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "autocomplete_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1729,7 +1729,7 @@ fn autocomplete_check2_documents_documentation_as_product_rules() {
         "- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。",
         "已形成新手优先路径：`Hello World` 零门槛示例 + `常见用法`（默认 API）在前，`受控 open 示例`（进阶控制）在后",
         "`apps/docs-app/src/pages/components/pages.rs` 继续保留 `component_doc!(\"Autocomplete\", \"autocomplete\", \"Collections\", collections::autocomplete)` 文档入口",
-        "验证记录：`bash -n scripts/check-ui-components-dx.sh` 通过",
+        "验证记录：`bash -n scripts/check-ui-dx.sh` 通过",
     ] {
         assert!(
             check2_source.contains(required),
@@ -1793,12 +1793,12 @@ fn autocomplete_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn autocomplete_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: autocomplete documentation-as-product keeps beginner-first docs entry\"",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1822,7 +1822,7 @@ fn autocomplete_check2_marks_documentation_as_product_item_complete() {
         "autocomplete_check2_documents_documentation_as_product_rules",
         "autocomplete_documentation_entry_exists_with_beginner_first_progression",
         "autocomplete_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1931,13 +1931,13 @@ fn autocomplete_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn autocomplete_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "echo \"[dx] contract: autocomplete interactive playground docs acceptance surface\"",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(marker),
@@ -1965,7 +1965,7 @@ fn autocomplete_check2_marks_interactive_playground_item_complete() {
         "autocomplete_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "autocomplete_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "autocomplete_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "e2e/tests/docs_app_autocomplete_contract.spec.mjs",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -2008,7 +2008,7 @@ fn autocomplete_docs_source_first_copy_paste_ready_with_real_paths_and_dependenc
         "copyable=true",
         "class_name=\"docs-autocomplete-source-copy\".to_string()",
         "code_imports=autocomplete_code_imports.clone()",
-        "use leptos::prelude::*;\\nuse ui_components::Autocomplete;",
+        "use leptos::prelude::*;\\nuse ui::Autocomplete;",
         "data-slot=\"autocomplete-source-paths\"",
         "components/autocomplete/src/mod.rs",
         "components/autocomplete/src/logic.rs",
@@ -2041,12 +2041,12 @@ fn autocomplete_docs_source_first_copy_paste_ready_with_real_paths_and_dependenc
 
 #[test]
 fn autocomplete_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "echo \"[dx] contract: autocomplete source-first docs are copy-paste-ready with real paths and deps\"",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(marker),
@@ -2078,7 +2078,7 @@ fn autocomplete_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "autocomplete_check2_documents_source_first_copy_paste_ready_rules",
         "autocomplete_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "autocomplete_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2518,8 +2518,8 @@ fn autocomplete_component_directory_standard_files_follow_contract_and_na_spec()
 
 #[test]
 fn autocomplete_component_directory_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_component_directory_standard_files_follow_contract_and_na_spec";
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_component_directory_standard_files_follow_contract_and_na_spec";
     assert!(
         script_source.contains(needle),
         "component-files script should cover autocomplete directory contract `{needle}`."
@@ -2545,7 +2545,7 @@ fn autocomplete_check2_marks_component_directory_standard_files_contract_complet
         "components/autocomplete/src/motion.rs",
         "components/autocomplete/src/spec.rs",
         "components/autocomplete/src/render.rs",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2616,8 +2616,8 @@ fn autocomplete_file_placement_discipline_is_strict_for_component_scope() {
 
 #[test]
 fn autocomplete_file_placement_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_file_placement_discipline_is_strict_for_component_scope";
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_file_placement_discipline_is_strict_for_component_scope";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`."
@@ -2649,8 +2649,8 @@ fn autocomplete_check2_marks_file_placement_discipline_contract_complete() {
             "components/autocomplete/test/autocomplete_semantics.rs::autocomplete_file_placement_discipline_is_strict_for_component_scope",
             "components/autocomplete/test/autocomplete_semantics.rs::autocomplete_file_placement_check_script_covers_contract",
             "components/autocomplete/test/autocomplete_semantics.rs::autocomplete_check2_marks_file_placement_discipline_contract_complete",
-            "scripts/check-ui-components-component-files.sh",
-            "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_file_placement_discipline_is_strict_for_component_scope",
+            "scripts/check-ui-component-files.sh",
+            "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_file_placement_discipline_is_strict_for_component_scope",
         ] {
             assert!(
                 source.contains(needle),
@@ -2702,8 +2702,8 @@ fn autocomplete_hyper_structure_builder_spec_is_not_applicable_for_simple_compon
 
 #[test]
 fn autocomplete_hyper_structure_builder_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`."
@@ -2730,8 +2730,8 @@ fn autocomplete_check2_marks_hyper_structure_builder_item_complete() {
             "components/autocomplete/test/autocomplete_semantics.rs::{autocomplete_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
             "autocomplete_hyper_structure_builder_check_script_covers_contract",
             "autocomplete_check2_marks_hyper_structure_builder_item_complete",
-            "scripts/check-ui-components-component-files.sh",
-            "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
+            "scripts/check-ui-component-files.sh",
+            "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
         ] {
             assert!(
                 source.contains(needle),
@@ -2831,9 +2831,9 @@ fn autocomplete_context_compression_manifest_and_rbi_projection_are_present_and_
 
 #[test]
 fn autocomplete_component_files_check_script_covers_context_compression_manifest_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`.",
@@ -2855,8 +2855,8 @@ fn autocomplete_check2_marks_context_compression_manifest_and_rbi_contract_compl
         "context_compression_manifest_and_rbi_projection_are_present_and_current",
         "autocomplete_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "component_files_check_script_covers_context_compression_manifest_contract",
-        "scripts/check-ui-components-component-files.sh",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "scripts/check-ui-component-files.sh",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_context_compression_manifest_and_rbi_projection_are_present_and_current",
     ] {
         assert!(
             source.contains(needle),
@@ -2871,7 +2871,7 @@ fn autocomplete_tree_shaking_feature_gates_are_explicit() {
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
     let tree_shaking_script_source =
-        load_source("../../scripts/check-ui-components-tree-shaking.sh");
+        load_source("../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
@@ -2888,12 +2888,12 @@ fn autocomplete_tree_shaking_feature_gates_are_explicit() {
     }
 
     for needle in [
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
     ] {
@@ -2908,19 +2908,19 @@ fn autocomplete_tree_shaking_feature_gates_are_explicit() {
 #[test]
 fn autocomplete_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
     let tree_shaking_script_source =
-        load_source("../../scripts/check-ui-components-tree-shaking.sh");
+        load_source("../../scripts/check-ui-tree-shaking.sh");
 
     for needle in [
         "AUTOCOMPLETE_MIN_FEATURES=\"component-autocomplete,inject-css\"",
         "autocomplete_tree_shaking_feature_gates_are_explicit",
         "autocomplete_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "autocomplete_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "AUTOCOMPLETE_TREE_OUTPUT=\"$(cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$AUTOCOMPLETE_MIN_FEATURES\")\"",
+        "AUTOCOMPLETE_TREE_OUTPUT=\"$(cargo tree -e features -i ui -p ui --no-default-features --features \"$AUTOCOMPLETE_MIN_FEATURES\")\"",
         "missing command-line feature: component-autocomplete",
         "missing command-line feature: inject-css for autocomplete minimal tree",
         "autocomplete minimal feature tree should not pull all-components",
         "[tree-shaking] autocomplete minimal wasm check",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$AUTOCOMPLETE_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$AUTOCOMPLETE_MIN_FEATURES\"",
     ] {
         assert!(
             tree_shaking_script_source.contains(needle),
@@ -2934,7 +2934,7 @@ fn autocomplete_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2_source = load_source("src/autocomplete/check2.md");
 
     assert!(
-        check2_source.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
+        check2_source.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
         "autocomplete check2 should mark tree-shaking feature-pruning item complete."
     );
 
@@ -2947,10 +2947,10 @@ fn autocomplete_check2_marks_tree_shaking_feature_pruning_contract_complete() {
         "autocomplete_tree_shaking_feature_gates_are_explicit",
         "autocomplete_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "autocomplete_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "scripts/check-ui-components-tree-shaking.sh",
-        "cargo tree -e features -p ui-components --no-default-features --features component-autocomplete,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-autocomplete,inject-css",
+        "scripts/check-ui-tree-shaking.sh",
+        "cargo tree -e features -p ui --no-default-features --features component-autocomplete,inject-css",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-autocomplete,inject-css",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2997,7 +2997,7 @@ fn autocomplete_platform_contract_preserves_headless_mutex_and_motion_stub_refer
 
 #[test]
 fn autocomplete_platform_cross_target_compile_only_contract_is_explicit_and_non_wasm_safe() {
-    let platform_script = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script = load_source("../../scripts/check-ui-platforms.sh");
     let headless_lib = load_source("../ui-headless/src/lib.rs");
     let module_source = load_source("src/autocomplete/mod.rs");
     let logic_source = load_source("src/autocomplete/logic.rs");
@@ -3008,15 +3008,15 @@ fn autocomplete_platform_cross_target_compile_only_contract_is_explicit_and_non_
 
     for needle in [
         "[platform] compile-only: default native path",
-        "cargo check -p ui-components",
+        "cargo check -p ui",
         "[platform] compile-only: ssr native path",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "[platform] compile-only: web wasm path (ui-headless)",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
         "[platform] compile-only: autocomplete native path",
-        "cargo check -p ui-components --no-default-features --features component-autocomplete,inject-css",
+        "cargo check -p ui --no-default-features --features component-autocomplete,inject-css",
         "[platform] compile-only: autocomplete wasm path",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-autocomplete,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-autocomplete,inject-css",
         "[platform] source guard: non-wasm autocomplete files must not reference web_sys",
         "components/autocomplete/src/view.rs",
     ] {
@@ -3063,7 +3063,7 @@ fn autocomplete_platform_cross_target_compile_only_contract_is_explicit_and_non_
 
 #[test]
 fn autocomplete_headless_web_ssr_mutex_contract_is_enforced_by_compile_error_and_platform_probe() {
-    let platform_script = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script = load_source("../../scripts/check-ui-platforms.sh");
     let headless_lib = load_source("../ui-headless/src/lib.rs");
     let check2_source = load_source("src/autocomplete/check2.md");
 
@@ -3106,7 +3106,7 @@ fn autocomplete_headless_web_ssr_mutex_contract_is_enforced_by_compile_error_and
 
 #[test]
 fn autocomplete_ui_motion_non_wasm_stub_contract_is_explicit_and_predictable() {
-    let platform_script = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script = load_source("../../scripts/check-ui-platforms.sh");
     let ui_motion_lib = load_source("../ui-motion/src/lib.rs");
     let ui_motion_non_wasm_stub_test = load_source("../ui-motion/tests/non_wasm_stub.rs");
     let autocomplete_motion = load_source("src/autocomplete/motion.rs");
@@ -3185,7 +3185,7 @@ fn autocomplete_ui_motion_non_wasm_stub_contract_is_explicit_and_predictable() {
 
 #[test]
 fn autocomplete_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
-    let platform_script = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script = load_source("../../scripts/check-ui-platforms.sh");
     let ui_motion_spring = load_source("../ui-motion/src/spring.rs");
     let autocomplete_motion = load_source("src/autocomplete/motion.rs");
     let autocomplete_view = load_source("src/autocomplete/view.rs");
@@ -3230,7 +3230,7 @@ fn autocomplete_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
 
     for needle in [
         "echo \"[platform] autocomplete reduced-motion/ssr/wasm contract\"",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
     ] {
         assert!(
             platform_script.contains(needle),
@@ -3253,7 +3253,7 @@ fn autocomplete_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
 #[test]
 fn autocomplete_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop() {
     let contract_hygiene_script =
-        load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+        load_source("../../scripts/check-ui-contract-hygiene.sh");
     let autocomplete_motion = load_source("src/autocomplete/motion.rs");
     let autocomplete_view = load_source("src/autocomplete/view.rs");
     let ui_motion_spring = load_source("../ui-motion/src/spring.rs");
@@ -3317,7 +3317,7 @@ fn autocomplete_motion_contract_is_builtin_and_attached_with_reduced_motion_and_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop";
+    let script_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop";
     assert!(
         contract_hygiene_script.contains(script_needle),
         "contract-hygiene check script should enforce `{script_needle}`."
@@ -3336,7 +3336,7 @@ fn autocomplete_check2_marks_motion_contractualization_complete() {
     for needle in [
         "motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
         "autocomplete_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "components/autocomplete/src/motion.rs",
         "crates/ui-motion/src/spring.rs",
     ] {
@@ -3367,7 +3367,7 @@ fn autocomplete_ui_components_fixed_entry_files_are_correctly_located_and_scoped
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib entry should keep `{needle}`."
+            "ui lib entry should keep `{needle}`."
         );
     }
 
@@ -3378,7 +3378,7 @@ fn autocomplete_ui_components_fixed_entry_files_are_correctly_located_and_scoped
     ] {
         assert!(
             !ui_components_lib.contains(forbidden),
-            "ui-components lib entry should not expose platform detail `{forbidden}`."
+            "ui lib entry should not expose platform detail `{forbidden}`."
         );
     }
 
@@ -3392,7 +3392,7 @@ fn autocomplete_ui_components_fixed_entry_files_are_correctly_located_and_scoped
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "ui-components css entry should keep `{needle}`."
+            "ui css entry should keep `{needle}`."
         );
     }
 
@@ -3441,7 +3441,7 @@ fn autocomplete_ui_components_fixed_entry_files_are_correctly_located_and_scoped
         let path = resolve_path(absent);
         assert!(
             !path.exists(),
-            "ui-components fixed-entry contract forbids `{}`.",
+            "ui fixed-entry contract forbids `{}`.",
             path.display()
         );
     }
@@ -3478,8 +3478,8 @@ fn autocomplete_ui_components_fixed_entry_files_are_correctly_located_and_scoped
 
 #[test]
 fn autocomplete_ui_components_fixed_entry_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
-    let needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_ui_components_fixed_entry_files_are_correctly_located_and_scoped";
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
+    let needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_ui_components_fixed_entry_files_are_correctly_located_and_scoped";
     assert!(
         script_source.contains(needle),
         "contract-hygiene script should cover fixed-entry file contract `{needle}`."
@@ -3491,25 +3491,25 @@ fn autocomplete_check2_marks_ui_components_fixed_entry_files_contract_complete()
     let check2_source = load_source("src/autocomplete/check2.md");
 
     assert!(
-        check2_source.contains("- [x] `ui-components` 固定入口文件落点正确。"),
-        "autocomplete check2 should mark ui-components fixed-entry file item complete."
+        check2_source.contains("- [x] `ui` 固定入口文件落点正确。"),
+        "autocomplete check2 should mark ui fixed-entry file item complete."
     );
 
     for needle in [
         "ui_components_fixed_entry_files_are_correctly_located_and_scoped",
         "autocomplete_ui_components_fixed_entry_files_are_correctly_located_and_scoped",
         "autocomplete_ui_components_fixed_entry_check_script_covers_contract",
-        "crates/ui-components/src/lib.rs",
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "crates/ui/src/lib.rs",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "crates/ui-visual-primitive/src/active_highlight.rs",
         "crates/ui-headless/src/controllable_state.rs",
         "crates/ui-headless/src/presence.rs",
         "crates/ui-headless/src/a11y.rs",
-        "crates/ui-components/src/overlay_open.rs",
-        "crates/ui-components/src/presence.rs",
-        "crates/ui-components/src/a11y.rs",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "crates/ui/src/overlay_open.rs",
+        "crates/ui/src/presence.rs",
+        "crates/ui/src/a11y.rs",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3521,7 +3521,7 @@ fn autocomplete_check2_marks_ui_components_fixed_entry_files_contract_complete()
 #[test]
 fn autocomplete_view_macro_complexity_is_split_into_semantic_subrenders() {
     let view_source = load_source("src/autocomplete/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("src/autocomplete/check2.md");
 
     for needle in [
@@ -3556,7 +3556,7 @@ fn autocomplete_view_macro_complexity_is_split_into_semantic_subrenders() {
         "Autocomplete view macro complexity regression: expected <= 5 `view!` blocks, found {view_macro_count}.",
     );
 
-    let script_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_view_macro_complexity_is_split_into_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_view_macro_complexity_is_split_into_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -3577,7 +3577,7 @@ fn autocomplete_view_macro_complexity_is_split_into_semantic_subrenders() {
 #[test]
 fn autocomplete_view_functional_split_prefers_plain_functions_over_local_components() {
     let view_source = load_source("src/autocomplete/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("src/autocomplete/check2.md");
 
     for needle in [
@@ -3610,7 +3610,7 @@ fn autocomplete_view_functional_split_prefers_plain_functions_over_local_compone
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_view_functional_split_prefers_plain_functions_over_local_components";
+    let script_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_view_functional_split_prefers_plain_functions_over_local_components";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -3631,7 +3631,7 @@ fn autocomplete_view_functional_split_prefers_plain_functions_over_local_compone
 #[test]
 fn autocomplete_static_fragments_are_constantized_or_absent_for_simple_combobox_layout() {
     let view_source = load_source("src/autocomplete/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("src/autocomplete/check2.md");
 
     for needle in [
@@ -3660,7 +3660,7 @@ fn autocomplete_static_fragments_are_constantized_or_absent_for_simple_combobox_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_static_fragments_are_constantized_or_absent_for_simple_combobox_layout";
+    let script_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_static_fragments_are_constantized_or_absent_for_simple_combobox_layout";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -3687,7 +3687,7 @@ fn autocomplete_performance_governance_budget_is_defined_and_blocking() {
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("src/autocomplete/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/autocomplete/view.rs");
 
     for needle in [
@@ -3798,7 +3798,7 @@ fn autocomplete_performance_governance_budget_is_defined_and_blocking() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_performance_governance_budget_is_defined_and_blocking";
+    let script_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_performance_governance_budget_is_defined_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`.",
@@ -3810,7 +3810,7 @@ fn autocomplete_semantics_and_performance_regression_cover_aria_data_focus_and_r
  {
     let view_source = load_source("src/autocomplete/view.rs");
     let check2_source = load_source("src/autocomplete/check2.md");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let semantics_source = load_source("tests/autocomplete_semantics.rs");
 
@@ -3835,7 +3835,7 @@ fn autocomplete_semantics_and_performance_regression_cover_aria_data_focus_and_r
         );
     }
 
-    let perf_gate_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_performance_governance_budget_is_defined_and_blocking";
+    let perf_gate_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_performance_governance_budget_is_defined_and_blocking";
     assert!(
         perf_script_source.contains(perf_gate_needle),
         "performance gate script should include `{perf_gate_needle}`."
@@ -3880,7 +3880,7 @@ fn autocomplete_semantic_test_priority_prefers_data_aria_role_and_source_contrac
     let view_source = load_source("src/autocomplete/view.rs");
     let local_semantics_source = load_source("../../components/autocomplete/test/semantics.rs");
     let semantics_source = load_source("tests/autocomplete_semantics.rs");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
     let check2_source = load_source("src/autocomplete/check2.md");
 
     for needle in [
@@ -3940,7 +3940,7 @@ fn autocomplete_semantic_test_priority_prefers_data_aria_role_and_source_contrac
         "semantic-priority contract should avoid snapshot-only assertion calls in workspace semantics suite."
     );
 
-    let script_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         perf_script_source.contains(script_needle),
         "performance gate script should include semantic-priority command `{script_needle}`."
@@ -3953,7 +3953,7 @@ fn autocomplete_semantic_test_priority_prefers_data_aria_role_and_source_contrac
         "semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "autocomplete_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -4154,7 +4154,7 @@ fn autocomplete_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
     let motion_source = load_source("src/autocomplete/motion.rs");
     let readme_source = load_source("src/autocomplete/README.md");
     let check2_source = load_source("src/autocomplete/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
     let combined =
         format!("{module_source}\n{logic_source}\n{styles_source}\n{view_source}\n{motion_source}");
 
@@ -4187,7 +4187,7 @@ fn autocomplete_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let script_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(script_needle),
         "inner-html gate script should include `{script_needle}`.",
@@ -4216,7 +4216,7 @@ fn autocomplete_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolat
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_autocomplete_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
     let check2_source = load_source("src/autocomplete/check2.md");
 
     assert!(
@@ -4309,7 +4309,7 @@ fn autocomplete_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolat
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
+    let script_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
     assert!(
         script_source.contains(script_needle),
         "wasm-debug gate script should include `{script_needle}`.",
@@ -4358,7 +4358,7 @@ fn autocomplete_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
         "test_config_signal=workbench_actual_config",
         "data-slot=\"autocomplete-workbench\"",
         "data-slot=\"autocomplete-workbench-canvas\"",
-        "ui_components::autocomplete::styles::CSS",
+        "ui::autocomplete::styles::CSS",
     ] {
         assert!(
             docs_source.contains(needle),
@@ -4370,7 +4370,7 @@ fn autocomplete_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
 #[test]
 fn autocomplete_dx_workbench_supports_optional_state_persistence_and_isolated_canvas() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
     let check2_source = load_source("src/autocomplete/check2.md");
 
     for needle in [
@@ -4405,8 +4405,8 @@ fn autocomplete_dx_workbench_supports_optional_state_persistence_and_isolated_ca
     }
 
     for needle in [
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4511,7 +4511,7 @@ fn autocomplete_engineering_contract_keeps_tracing_semantics_unified_without_com
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::autocomplete::",
+        "target: \"ui::autocomplete::",
         "const AUTOCOMPLETE_TRACE_TARGET",
     ] {
         assert!(
@@ -4559,12 +4559,12 @@ fn autocomplete_engineering_contract_avoids_runtime_leaks_in_public_api_surface(
 
 #[test]
 fn autocomplete_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4577,7 +4577,7 @@ fn autocomplete_engineering_check_script_covers_serde_tracing_and_runtime_bounda
 fn autocomplete_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade()
  {
     let check2_source = load_source("../../components/autocomplete/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
     let protocol_source = load_source("src/autocomplete/protocol.rs");
     let component_manifest = load_source("../../components/autocomplete/src/Component.toml");
     let rbi_source = load_source("../../components/autocomplete/src/autocomplete.rbi");
@@ -4638,7 +4638,7 @@ fn autocomplete_version_deprecation_migration_registry_is_explicitly_na_without_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
+    let script_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(script_needle),
         "engineering check script should enforce `{script_needle}`.",
@@ -4653,7 +4653,7 @@ fn autocomplete_version_deprecation_migration_registry_is_explicitly_na_without_
         "AutocompleteAgentSchemaVersion::V1",
         "version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
         "autocomplete_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -4747,13 +4747,13 @@ fn autocomplete_e2e_key_flow_is_repeatable_with_semantic_breakpoints() {
 
 #[test]
 fn autocomplete_e2e_check_script_covers_selector_and_settled_wait_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-autocomplete.sh");
+    let script_source = load_source("../../components/autocomplete/scripts/check-ui-e2e-autocomplete.sh");
 
     for needle in [
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_e2e_contract_covers_ready_and_settled_semantic_breakpoints",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_e2e_key_flow_is_repeatable_with_semantic_breakpoints",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_e2e_contract_covers_ready_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_e2e_key_flow_is_repeatable_with_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4805,12 +4805,12 @@ fn autocomplete_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_br
 
 #[test]
 fn autocomplete_e2e_check_script_covers_repeatable_flow_and_high_risk_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-autocomplete.sh");
+    let script_source = load_source("../../components/autocomplete/scripts/check-ui-e2e-autocomplete.sh");
 
     for needle in [
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_e2e_repeatable_key_flow_rules",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_e2e_key_flow_is_repeatable_with_semantic_breakpoints",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_e2e_repeatable_key_flow_rules",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_e2e_key_flow_is_repeatable_with_semantic_breakpoints",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4884,12 +4884,12 @@ fn autocomplete_heroui_strategy_and_component_docs_are_synchronized_and_indexabl
 
 #[test]
 fn autocomplete_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "echo \"[dx] contract: autocomplete heroui benchmark strategy + docs entry synchronization\"",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4915,7 +4915,7 @@ fn autocomplete_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "autocomplete_check2_documents_heroui_benchmark_docs_sync_rules",
         "autocomplete_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "autocomplete_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4928,7 +4928,7 @@ fn autocomplete_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
 #[test]
 fn autocomplete_check2_documents_agent_contract_schema_governance_rules() {
     let check2_source = load_source("src/autocomplete/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。",
@@ -4939,7 +4939,7 @@ fn autocomplete_check2_documents_agent_contract_schema_governance_rules() {
         "autocomplete_agent_contract_is_schema_typed_and_machine_readable",
         "autocomplete_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "autocomplete_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4948,9 +4948,9 @@ fn autocomplete_check2_documents_agent_contract_schema_governance_rules() {
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -5108,7 +5108,7 @@ fn autocomplete_streaming_term_is_limited_to_llm_output_render_modes() {
     let logic_source = load_source("src/autocomplete/logic.rs");
     let view_source = load_source("src/autocomplete/view.rs");
     let component_manifest = load_source("src/autocomplete/Component.toml");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
         "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。",
@@ -5116,7 +5116,7 @@ fn autocomplete_streaming_term_is_limited_to_llm_output_render_modes() {
         "`Snapshot`：LLM 全部生成完成后，一次性显示。",
         "streaming_term_is_limited_to_llm_output_render_modes",
         "autocomplete_streaming_term_is_limited_to_llm_output_render_modes",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -5162,7 +5162,7 @@ fn autocomplete_streaming_term_is_limited_to_llm_output_render_modes() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_streaming_term_is_limited_to_llm_output_render_modes";
+    let script_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_streaming_term_is_limited_to_llm_output_render_modes";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene script should include `{script_needle}`."
@@ -5175,7 +5175,7 @@ fn autocomplete_snapshot_is_foundational_and_complete_config_renders_stably() {
     let logic_source = load_source("src/autocomplete/logic.rs");
     let view_source = load_source("src/autocomplete/view.rs");
     let component_manifest = load_source("src/autocomplete/Component.toml");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
         "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。",
@@ -5183,7 +5183,7 @@ fn autocomplete_snapshot_is_foundational_and_complete_config_renders_stably() {
         "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
         "snapshot_is_foundational_and_complete_config_renders_stably",
         "autocomplete_snapshot_is_foundational_and_complete_config_renders_stably",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -5251,7 +5251,7 @@ fn autocomplete_snapshot_is_foundational_and_complete_config_renders_stably() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_snapshot_is_foundational_and_complete_config_renders_stably";
+    let script_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_snapshot_is_foundational_and_complete_config_renders_stably";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene script should include `{script_needle}`."
@@ -5265,7 +5265,7 @@ fn autocomplete_streaming_requirement_is_optional_with_snapshot_fallback_and_exp
     let view_source = load_source("src/autocomplete/view.rs");
     let component_manifest = load_source("src/autocomplete/Component.toml");
     let readme_source = load_source("src/autocomplete/README.md");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
         "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。",
@@ -5275,7 +5275,7 @@ fn autocomplete_streaming_requirement_is_optional_with_snapshot_fallback_and_exp
         "数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。",
         "streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status",
         "autocomplete_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -5330,7 +5330,7 @@ fn autocomplete_streaming_requirement_is_optional_with_snapshot_fallback_and_exp
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status";
+    let script_needle = "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene script should include `{script_needle}`."
@@ -5433,7 +5433,7 @@ fn autocomplete_check2_marks_rust_hygiene_item_complete_with_component_scope() {
         "string_clone_hotspots_converge_to_cow_static_str_for_class_tokens",
         "autocomplete_rust_hygiene_forbids_unwrap_expect_and_let_result_swallowing_in_non_test_sources",
         "autocomplete_string_clone_hotspots_converge_to_cow_static_str_for_class_tokens",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "`./scripts/check-rust-hygiene.sh`",
     ] {
         assert!(
@@ -5445,11 +5445,11 @@ fn autocomplete_check2_marks_rust_hygiene_item_complete_with_component_scope() {
 
 #[test]
 fn autocomplete_contract_hygiene_script_covers_rust_hygiene_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
     for needle in [
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_rust_hygiene_forbids_unwrap_expect_and_let_result_swallowing_in_non_test_sources",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_string_clone_hotspots_converge_to_cow_static_str_for_class_tokens",
-        "cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_marks_rust_hygiene_item_complete_with_component_scope",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_rust_hygiene_forbids_unwrap_expect_and_let_result_swallowing_in_non_test_sources",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_string_clone_hotspots_converge_to_cow_static_str_for_class_tokens",
+        "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_check2_marks_rust_hygiene_item_complete_with_component_scope",
     ] {
         assert!(
             script_source.contains(needle),

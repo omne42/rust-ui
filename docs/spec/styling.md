@@ -3,7 +3,7 @@
 目标：在 **可发布（crate 用户零配置可用）** 与 **开发体验（快速微调样式）** 之间取得平衡，并保证分层与可维护性。
 
 > TL;DR
-> - 发布默认：组件 CSS 仍由 `ui-components` 统一注入（开箱即用）。
+> - 发布默认：组件 CSS 仍由 `ui` 统一注入（开箱即用）。
 > - 覆盖策略：组件 CSS 注入在 `@layer ui`；应用侧样式（不分 layer，或放在更高优先级 layer）可直接覆盖，避免 `!important`/高 specificity。
 > - 开发体验：不要在开发阶段频繁改 `styles.rs`；用应用侧热更新 CSS 覆盖来迭代，收敛后再回填到 `styles.rs`。
 > - 体积策略：组件 CSS 注入应与组件 feature 同步裁剪（见 `docs/spec/tree_shaking.md`）。
@@ -42,7 +42,7 @@
 
 **组件检查硬规则（必须执行）**：
 
-- Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+- Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
 - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
 - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步本文件；组件不得引入平行私有 token 命名体系。
 - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*`。
@@ -55,14 +55,14 @@
 当前仓库的样式来源分三层：
 
 1. **Theme tokens → CSS variables**：`ui-theme` 生成 `--ui-*`，由 `<UiRoot>` 注入（支持运行时切换主题）。
-2. **组件样式（ui-components）**：每个组件的 `styles.rs` 产出 `pub const CSS: &str`，经 `ui-components/src/css.rs` 聚合，由 `<UiRoot>` 注入。
+2. **组件样式（ui）**：每个组件的 `styles.rs` 产出 `pub const CSS: &str`，经 `ui/src/css.rs` 聚合，由 `<UiRoot>` 注入。
 3. **应用布局（apps/*）**：页面布局/排版（grid/flex/响应式）由应用侧 CSS 决定（例如 `apps/web-demo/app.css`）。
 
 这种设计对 crate 用户友好（只加依赖、用 `<UiRoot>` 即可），但对开发者有一个明显痛点：**改 `styles.rs` 必须重新编译（尤其 wasm）**，微调成本高。
 
 ## 关键困难（为什么“不直接改成静态资源”）
 
-把 `ui-components` 的 CSS 变成静态资源（`*.css`）确实能带来更快的样式迭代，但会引入发布与集成成本：
+把 `ui` 的 CSS 变成静态资源（`*.css`）确实能带来更快的样式迭代，但会引入发布与集成成本：
 
 - **对外部项目不透明**：使用者必须知道要额外引入某个 CSS 文件（Trunk/Vite/Webpack/Tauri/路径/顺序等）。
 - **打包与版本同步**：CSS 文件与 crate 版本需要强绑定，否则容易出现“升级依赖但没升级样式文件”的错配。
@@ -82,7 +82,7 @@
 - 开发时微调样式需要重新编译（尤其 wasm）。
 - 应用侧想覆盖组件样式：应通过 layer 规则实现（推荐不分 layer 的覆盖样式），不要依赖 `!important`/高 specificity。
 
-### 方案 B：组件 CSS 纯静态资源（`ui-components.css`）
+### 方案 B：组件 CSS 纯静态资源（`ui.css`）
 
 优点：
 - CSS 可以热更新；微调快。
@@ -101,17 +101,17 @@
 ### 1) 发布默认：保持注入（不强制静态资源）
 
 - `ui-theme`：继续由 `<UiRoot>` 注入主题变量（运行时切换主题必需）。
-- `ui-components`：组件 CSS 继续由 `<UiRoot>` 注入（crate 用户零配置可用）。
-- 当启用组件级 feature 后，`ui-components/src/css.rs` 必须按 feature 条件聚合，仅注入启用组件的 CSS。
+- `ui`：组件 CSS 继续由 `<UiRoot>` 注入（crate 用户零配置可用）。
+- 当启用组件级 feature 后，`ui/src/css.rs` 必须按 feature 条件聚合，仅注入启用组件的 CSS。
 
 **可选：关闭组件 CSS 注入（高级用法）**
 
-有些应用希望完全自己管理 CSS（静态文件 / PostCSS / Tailwind / 多入口打包等），这时可以关闭 `ui-components` 的内置 CSS 注入。
+有些应用希望完全自己管理 CSS（静态文件 / PostCSS / Tailwind / 多入口打包等），这时可以关闭 `ui` 的内置 CSS 注入。
 
-`ui-components` 默认启用 `inject-css` feature；禁用默认 feature 后，`<UiRoot>` 仍会注入 theme variables + base，但**不会**再注入组件 CSS：
+`ui` 默认启用 `inject-css` feature；禁用默认 feature 后，`<UiRoot>` 仍会注入 theme variables + base，但**不会**再注入组件 CSS：
 
 ```toml
-ui-components = { path = "...", default-features = false }
+ui = { path = "...", default-features = false }
 ```
 
 ### 2) 开发时：用应用侧 CSS 覆盖进行热更新迭代
@@ -126,7 +126,7 @@ ui-components = { path = "...", default-features = false }
 
 ### 3) 让覆盖更干净：CSS Cascade Layers（已采用）
 
-为避免 `!important`/高 specificity，`ui-components` 注入的组件 CSS **默认包在** `@layer ui { ... }`：
+为避免 `!important`/高 specificity，`ui` 注入的组件 CSS **默认包在** `@layer ui { ... }`：
 
 - 组件 CSS 在 `@layer ui` 中（低优先级层）。
 - 应用侧 overrides 推荐 **不放进任何 `@layer`**（未分层样式），即可自然覆盖 `@layer ui`（即使加载顺序更早）。
@@ -146,7 +146,7 @@ ui-components = { path = "...", default-features = false }
 ## Rules (Required)
 
 - **Inline CSS is forbidden in components:**
-  - `ui-components` must not use inline style for normal CSS properties.
+  - `ui` must not use inline style for normal CSS properties.
   - Do not bind normal CSS properties via `style:<prop>=...`.
   - Style switching must use `class`/`data-*` + `styles.rs`.
 - **Runtime values must use CSS variables (custom properties) only:**
@@ -160,14 +160,14 @@ ui-components = { path = "...", default-features = false }
 > 该部分与 `docs/RULES_ZH.md` 保持一致；这里给出更具体的落地约束与建议。
 
 - **组件禁止 inline CSS**：
-  - `ui-components` 中禁止写“普通属性”的 inline style（`top/left/padding/background/...`）。
+  - `ui` 中禁止写“普通属性”的 inline style（`top/left/padding/background/...`）。
   - 允许传递运行时数值时使用 custom properties（`--*`）：
     - 推荐：`style:--x=...`（如果语法可用）
     - 允许：`style=...` 但内容必须 **只包含** `--*` 变量赋值（禁止普通属性）
   - 禁止使用 `style:<prop>=...` 绑定普通 CSS 属性（`padding/background/position/...` 等）。
 - **组件样式必须集中**：
   - 所有样式 selector/声明必须位于组件的 `styles.rs`（`pub const CSS: &str`）。
-  - `ui-components/src/css.rs` 负责聚合，最终由 `<UiRoot>` 统一注入。
+  - `ui/src/css.rs` 负责聚合，最终由 `<UiRoot>` 统一注入。
   - 聚合必须具备组件级条件拼接能力；禁止无条件拼接全量组件 CSS。
 - **状态表达优先 class/data-attrs**：
   - 离散状态（hover/pressed/selected/disabled/open 等）用 `class:` 或 `data-*`，由 `styles.rs` 控制样式。
@@ -178,7 +178,7 @@ ui-components = { path = "...", default-features = false }
 ## 迁移与验收建议（落地路线）
 
 - 迁移顺序建议：`Overlay/Popover`（定位/portal）→ `ListBox/Menu/Select`（高频交互状态）→ 其它组件。
-- 快速排查违规：在仓库中搜索 `style=` 与 `style:`（目标：`ui-components` 里不存在普通 inline style）。
+- 快速排查违规：在仓库中搜索 `style=` 与 `style:`（目标：`ui` 里不存在普通 inline style）。
 - 统一收敛：当 overrides 稳定后，把规则回填 `styles.rs`，删除 `dev-overrides.css` 中对应内容，避免长期分叉。
 
 补充（与 Tree Shaking 协同）：

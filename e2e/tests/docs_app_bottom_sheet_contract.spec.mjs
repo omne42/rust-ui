@@ -27,6 +27,21 @@ async function closeAllSheetPanels(page) {
   await expect(sheetPanels).toHaveCount(0);
 }
 
+async function dismissSheetPanelsBestEffort(page) {
+  const sheetPanels = page.locator('[data-slot="sheet-panel"][role="dialog"]');
+  for (const _ of [1, 2, 3, 4, 5, 6, 7, 8]) {
+    if ((await sheetPanels.count()) === 0) {
+      return;
+    }
+    const backdrops = page.locator('[data-slot="sheet-backdrop"]');
+    if ((await backdrops.count()) > 0) {
+      await backdrops.last().click({ force: true });
+    } else {
+      await page.keyboard.press("Escape");
+    }
+  }
+}
+
 async function expectBottomSheetReady(page, panel, bottomSheetRoot) {
   const sheetRoot = sheetForPanel(page, panel);
   await expect(sheetRoot).toHaveAttribute("data-state", "open");
@@ -196,4 +211,65 @@ test("docs-app bottom-sheet high-risk paths keep overlay focus keyboard and sett
   const backdrop = motionSheet.locator('[data-slot="sheet-backdrop"]').first();
   await backdrop.click();
   await expectBottomSheetSettledClosed(motionPanel, motionRoot, motionSheet);
+});
+
+test("docs-app bottom-sheet interactive playground keeps config/code in sync with workbench controls", async ({
+  page,
+}) => {
+  await page.goto("/#/components/bottom-sheet");
+  await waitForWasmReady(page);
+  await dismissSheetPanelsBestEffort(page);
+
+  const docsRoot = page.locator('[data-component="bottom-sheet"]').first();
+  const playground = docsRoot
+    .locator('section.playground:has([data-slot="bottom-sheet-workbench"])')
+    .first();
+  await expect(playground).toBeVisible();
+
+  await playground.locator('[data-slot="playground-toggle-settings"]').first().click({ force: true });
+  const controls = playground
+    .locator('[data-slot="playground-controls"] [data-slot="bottom-sheet-workbench-controls"]')
+    .first();
+  await expect(controls).toBeVisible();
+
+  await controls.locator('[data-slot="segmented-control-option"][data-index="2"]').first().click();
+  await controls.locator('label:has-text("Show footer actions") input[type="checkbox"]').first().click();
+  await controls.locator('label:has-text("Detached mode") input[type="checkbox"]').first().click();
+  await controls.locator('label:has-text("Show close button") input[type="checkbox"]').first().click();
+  await controls.locator('label:has-text("Custom motion") input[type="checkbox"]').first().click();
+
+  await playground.locator('[data-slot="bottom-sheet-workbench-open"]').first().click();
+  const workbenchPanel = page
+    .locator(
+      '[data-slot="sheet-panel"][role="dialog"][aria-labelledby="docs-bottom-sheet-workbench-title"]',
+    )
+    .first();
+  const workbenchRoot = workbenchPanel.locator('[data-slot="bottom-sheet"]').first();
+  const workbenchSheet = await expectBottomSheetReady(page, workbenchPanel, workbenchRoot);
+
+  await expect(workbenchRoot).toHaveAttribute("data-description", "present");
+  await expect(workbenchRoot).toHaveAttribute("data-footer", "absent");
+  await expect(workbenchRoot).toHaveAttribute("data-detached", "true");
+  await expect(workbenchRoot).toHaveAttribute("data-close-button", "hidden");
+  await expect(workbenchRoot).toHaveAttribute("data-motion-source", "custom");
+
+  await workbenchPanel.press("Escape");
+  await expectBottomSheetSettledClosed(workbenchPanel, workbenchRoot, workbenchSheet);
+
+  await playground.locator('[data-slot="playground-toggle-code"]').first().click();
+  const codeBlock = playground
+    .locator('[data-slot="playground-code"] [data-slot="code-block-code"]')
+    .first();
+  await expect(codeBlock).toContainText('title="Install update".to_string()');
+  await expect(codeBlock).toContainText("is_detached=true");
+  await expect(codeBlock).toContainText("is_close_button_visible=false");
+  await expect(codeBlock).toContainText("motion=BottomSheetMotion");
+  await expect(codeBlock).not.toContainText("footer=move ||");
+
+  await playground.locator('[data-slot="playground-toggle-test"]').first().click();
+  const testPanel = playground.locator('[data-slot="playground-test"]').first();
+  await expect(testPanel).toContainText("Actual config");
+  await expect(testPanel).toContainText("show_footer: false");
+  await expect(testPanel).toContainText("is_detached: true");
+  await expect(testPanel).toContainText("custom_motion: true");
 });

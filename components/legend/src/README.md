@@ -7,7 +7,7 @@
 ### Hello World（最小可用）
 
 ```rust
-use ui_components::Legend;
+use ui::Legend;
 
 view! {
     <fieldset>
@@ -21,7 +21,7 @@ view! {
 ## 常见用法
 
 ```rust
-use ui_components::Legend;
+use ui::Legend;
 
 view! {
     <fieldset>
@@ -36,7 +36,7 @@ view! {
 只有当你需要视觉与语义细节时，再打开高级参数（`tone`、`required_indicator`、`class_name`、`lang`、`dir`、`motion`）。
 
 ```rust
-use ui_components::{Legend, LegendTone};
+use ui::{Legend, LegendTone};
 
 view! {
     <fieldset>

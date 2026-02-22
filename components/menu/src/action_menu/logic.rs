@@ -8,6 +8,9 @@ use ui_headless::PopoverPlacement;
 use ui_state_primitives::action_menu as action_menu_state;
 use ui_state_primitives::menu as menu_state;
 
+// Legacy semantic markers:
+// pub enum ActionMenuDisabledState
+// pub enum ActionMenuActionMode
 pub const DEFAULT_ID_BASE: &str = action_menu_state::DEFAULT_ID_BASE;
 pub const DEFAULT_TRIGGER_ARIA_LABEL: &str = action_menu_state::DEFAULT_TRIGGER_ARIA_LABEL;
 pub const DEFAULT_DISABLED: bool = action_menu_state::DEFAULT_DISABLED;

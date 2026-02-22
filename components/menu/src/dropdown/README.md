@@ -65,7 +65,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::Dropdown;
+use ui::Dropdown;
 
 let on_action = Callback::new(move |_: usize| {});
 
@@ -84,7 +84,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::Dropdown;
+use ui::Dropdown;
 
 let (open_raw, set_open_raw) = signal(false);
 let open = Signal::derive(move || open_raw.get());
@@ -117,7 +117,7 @@ view! {
 对应入口：
 
 - `Interactive Playground`：`apps/docs-app/src/pages/components/pages/collections_extra.rs`
-- `test_css_source` 来源：`crates/ui-components/src/menu/dropdown/styles.rs`
+- `test_css_source` 来源：`crates/ui/src/menu/dropdown/styles.rs`
 
 ## 多场景对比展示
 
@@ -157,5 +157,5 @@ view! {
 
 ## Source-first
 
-- 组件源码：`crates/ui-components/src/menu/dropdown/{mod,logic,view,styles,motion}.rs`
+- 组件源码：`crates/ui/src/menu/dropdown/{mod,logic,view,styles,motion}.rs`
 - 状态原语：`crates/ui-state-primitives/src/dropdown.rs`

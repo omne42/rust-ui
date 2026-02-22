@@ -72,6 +72,8 @@ pub fn MenuItem(
 
     let index_text = index;
     let selection_indicator = logic::resolve_selection_indicator(kind);
+    let always_uncontrolled = Some("true");
+    let never_marker: Option<&'static str> = None;
 
     let indicator_text = move || selection_indicator.marker(state.get().is_checked);
 
@@ -91,6 +93,8 @@ pub fn MenuItem(
             data-checkable=move || state.get().is_checkable.then_some("true")
             data-checked=move || state.get().is_checked.then_some("true")
             data-unchecked=move || (!state.get().is_checked && state.get().is_checkable).then_some("true")
+            data-controlled=never_marker
+            data-uncontrolled=always_uncontrolled
             data-focused=move || state.get().is_focused.then_some("true")
             data-disabled=move || state.get().is_disabled.then_some("true")
             data-has-submenu=move || state.get().has_submenu.then_some("true")

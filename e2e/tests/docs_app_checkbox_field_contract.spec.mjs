@@ -147,7 +147,7 @@ test("docs-app checkbox-field playground source is copy-paste ready", async ({ p
 
   const code = playground.locator('[data-slot="code-block-code"]').first();
   await expect(code).toContainText("use leptos::prelude::*;");
-  await expect(code).toContainText("use ui_components::*;");
+  await expect(code).toContainText("use ui::*;");
   await expect(code).toContainText("<CheckboxField");
 
   const copyButton = codeBlock.first().locator('[data-slot="button"]').first();
@@ -155,7 +155,7 @@ test("docs-app checkbox-field playground source is copy-paste ready", async ({ p
 
   const copyReady = page.locator('[data-slot="checkbox-field-copy-ready"]').first();
   await expect(copyReady).toContainText("use leptos::prelude::*;");
-  await expect(copyReady).toContainText("use ui_components::*;");
+  await expect(copyReady).toContainText("use ui::*;");
 
   const sourcePaths = page.locator('[data-slot="checkbox-field-source-paths"]').first();
   await expect(sourcePaths).toContainText("components/checkbox-field/src/mod.rs");

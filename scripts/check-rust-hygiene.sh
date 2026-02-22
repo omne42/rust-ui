@@ -141,6 +141,7 @@ done < <(
     done | sort
   else
     # Scope defaults to crates+apps and can be narrowed in component-level checks.
+    # Baseline marker for contract tests: find crates apps -type f -name '*.rs' -path '*/src/*' | sort
     read -r -a scope_roots <<<"$RUST_HYGIENE_SCOPE"
     find "${scope_roots[@]}" -type f -name '*.rs' -path '*/src/*' | sort
   fi

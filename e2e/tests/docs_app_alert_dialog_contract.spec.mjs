@@ -199,3 +199,62 @@ test("docs-app alert-dialog high-risk paths cover overlay focus keyboard and set
   await overlayPanel.press("Escape");
   await expectAlertDialogSettledClosed(overlayPanel, alertDialog, overlayRoot);
 });
+
+test("docs-app alert-dialog interactive playground keeps config/code in sync with workbench controls", async ({
+  page,
+}) => {
+  await page.goto("/#/components/alert-dialog");
+  await waitForWasmReady(page);
+
+  const docsRoot = page.locator('[data-component="alert-dialog"]').first();
+  const playground = docsRoot
+    .locator('section.playground:has([data-slot="alert-dialog-workbench"])')
+    .first();
+  await expect(playground).toBeVisible();
+
+  await playground.locator('[data-slot="playground-toggle-settings"]').first().click();
+  const controls = playground
+    .locator('[data-slot="playground-controls"] [data-slot="alert-dialog-workbench-controls"]')
+    .first();
+  await expect(controls).toBeVisible();
+
+  await controls.locator('[data-slot="segmented-control-option"][data-index="1"]').first().click();
+  await controls.locator('label:has-text("Enable secondary action") input[type="checkbox"]').first().click();
+  await controls.locator('label:has-text("Disable confirm") input[type="checkbox"]').first().click();
+  await controls.locator('label:has-text("Disable secondary") input[type="checkbox"]').first().click();
+  await controls.locator('label:has-text("Auto-focus secondary") input[type="checkbox"]').first().click();
+  await controls.locator('label:has-text("Custom motion") input[type="checkbox"]').first().click();
+
+  await playground.locator('[data-slot="alert-dialog-workbench-open"]').first().click();
+  const overlayPanel = page
+    .locator(
+      '[data-slot="overlay-panel"][role="alertdialog"][aria-labelledby="docs-alert-workbench-title"]',
+    )
+    .first();
+  const alertDialog = overlayPanel.locator('[data-slot="alert-dialog"]').first();
+  const overlayRoot = await expectAlertDialogReady(page, overlayPanel, alertDialog);
+
+  await expect(alertDialog).toHaveAttribute("data-motion-source", "custom");
+  await expect(alertDialog).toHaveAttribute("data-auto-focus", "secondary");
+  await expect(alertDialog).toHaveAttribute("data-confirm-disabled", "true");
+  await expect(alertDialog).toHaveAttribute("data-secondary", "shown");
+  await expect(alertDialog).toHaveAttribute("data-secondary-disabled", "true");
+
+  await overlayPanel.press("Escape");
+  await expectAlertDialogSettledClosed(overlayPanel, alertDialog, overlayRoot);
+
+  await playground.locator('[data-slot="playground-toggle-code"]').first().click();
+  const codeBlock = playground
+    .locator('[data-slot="playground-code"] [data-slot="code-block-code"]')
+    .first();
+  await expect(codeBlock).toContainText("variant=AlertDialogVariant::Warning");
+  await expect(codeBlock).toContainText("confirm_disabled=true");
+  await expect(codeBlock).toContainText("secondary_disabled=true");
+
+  await playground.locator('[data-slot="playground-toggle-test"]').first().click();
+  const testPanel = playground.locator('[data-slot="playground-test"]').first();
+  await expect(testPanel).toContainText("Actual config");
+  await expect(testPanel).toContainText("variant: Warning");
+  await expect(testPanel).toContainText("show_secondary: true");
+  await expect(testPanel).toContainText("custom_motion: true");
+});

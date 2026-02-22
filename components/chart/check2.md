@@ -39,7 +39,7 @@
   - 回归证据：`crates/ui-headless/src/test/chart.rs` 覆盖键盘/指针/焦点与 aria label；`components/chart/test/chart_semantics.rs` 覆盖契约消费；`e2e/tests/docs_app_chart_contract.spec.mjs` 覆盖 docs 关键交互流程。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
@@ -49,7 +49,7 @@
   - 平台降级证据：`crates/ui-motion/src/lib.rs` 提供 non-wasm `web` no-op stub；`crates/ui-visual-primitive/src/active_highlight.rs` 的 non-wasm `attach_active_highlight_motion` 为 no-op；`components/chart/src/motion.rs` non-wasm 分支仅 `black_box(sanitize_motion(...))`。
   - 回归证据：`components/chart/test/motion.rs` 覆盖 `sanitize_motion` 合同与非法参数回退；`crates/ui-visual-primitive/src/test/active_highlight.rs` 覆盖共享动效驱动行为；`crates/ui-motion/tests/non_wasm_stub.rs` 覆盖 non-wasm stub 可预测性。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
@@ -59,7 +59,7 @@
   - Chart 证据：`components/chart/src/styles.rs` 仅消费 `ui-theme` 输出变量（如 `--ui-accent/--ui-border/--ui-bg-muted/--ui-fg-muted/--ui-radius-*` 与 `--ui-fallback-*`），不再使用未定义私有 token 名。
   - 主题轴证据：`crates/ui-theme/src/theme.rs` 定义 `ThemeContext { system, color, scale }` 并在 `Theme::to_css_variables()` 导出；组件 `view.rs` 不重建主题，仅消费变量化样式。
   - 回归证据：`crates/ui-theme/tests/token_scale_baseline.rs` 覆盖 token 基线与三轴变量输出；`components/chart/test/chart_semantics.rs` 的 `chart_styles_consume_ui_theme_variables_without_private_theme_forks` 覆盖组件侧消费契约。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -211,12 +211,12 @@
   - 文档落点证据：组件说明保留在 `components/chart/check2.md` 与 `components/chart/src/README.md`，符合“简单组件说明留在 checklist/组件文档”的约束。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 的 `chart_does_not_introduce_spec_rs_without_stable_schema_contract_need` 锁定该纪律。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
   - Chart 样式证据：`components/chart/src/styles.rs` 仅暴露 `pub const CSS` 静态样式，视觉值统一消费 `var(--ui-*)`（如 `--ui-border/--ui-accent/--ui-radius-md/--ui-fg-muted`），无组件私有 token 体系。
-  - 聚合注入证据：`crates/ui-components/src/css.rs` 通过 `out.push_str(crate::chart::styles::CSS);` 聚合 chart 样式；`crates/ui-components/src/root.rs` 通过 `inject_components_css -> crate::css::push_components_css(&mut out)` 在 `UiRoot` 统一注入。
+  - 聚合注入证据：`crates/ui/src/css.rs` 通过 `out.push_str(crate::chart::styles::CSS);` 聚合 chart 样式；`crates/ui/src/root.rs` 通过 `inject_components_css -> crate::css::push_components_css(&mut out)` 在 `UiRoot` 统一注入。
   - 运行时边界证据：`components/chart/src/view.rs` 未注入业务 `style=` 内联样式；动态视觉仅通过语义标记 + 预定义 CSS 变量消费路径落地。
   - 范式边界证据：`components/chart/src/view.rs` 与 `components/chart/src/styles.rs` 不使用 Utility-First 类名模式（如 `class="flex/grid/p-/m-"`）与 CSS-in-Rust 构造（如 `styled(`/`css!(`）。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 的 `chart_token_first_styles_are_aggregated_via_ui_root_without_utility_or_css_in_rust_defaults` 锁定该契约。
@@ -235,16 +235,16 @@
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-  - package 特性证据：`crates/ui-components/Cargo.toml` 保持 `component-chart = ["dep:ui-chart"]`，组件级特性可独立启用。
-  - 导出与样式聚合证据：`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-chart")] pub use ui_chart as chart;` 条件导出；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-chart")] out.push_str(crate::chart::styles::CSS);` 条件聚合样式。
+  - package 特性证据：`crates/ui/Cargo.toml` 保持 `component-chart = ["dep:ui-chart"]`，组件级特性可独立启用。
+  - 导出与样式聚合证据：`crates/ui/src/lib.rs` 通过 `#[cfg(feature = "component-chart")] pub use ui_chart as chart;` 条件导出；`crates/ui/src/css.rs` 通过 `#[cfg(feature = "component-chart")] out.push_str(crate::chart::styles::CSS);` 条件聚合样式。
   - source 模式证据：`components/chart/src/mod.rs` 不依赖全量中央注册表（无 `ComponentRegistry/register_component`），组件源码可直接按需引入。
-  - 特性树命令实测证据：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-chart,inject-css` 输出仅 `component-chart` 与 `inject-css` 命令行特性，无 `all-components`。
-  - 反向依赖命令实测证据：`cargo tree -e features -i ui-components -p web-demo` 显示 `web-demo-components` 特性束且未出现 `all-components`，未发生隐式全量拉起。
-  - CI 预算链路证据：`.github/workflows/ci.yml` 包含 `Tree Shaking Budget` 步骤并执行 `./scripts/check-ui-components-tree-shaking.sh`；脚本内含最小特性 wasm check + release build 与体积预算比较，预算参数由 `scripts/tree_shaking_budget.env`（`TREE_SHAKING_BASELINE_RLIB_BYTES/TREE_SHAKING_MAX_RATIO_PERCENT`）提供。
+  - 特性树命令实测证据：`cargo tree -e features -i ui -p ui --no-default-features --features component-chart,inject-css` 输出仅 `component-chart` 与 `inject-css` 命令行特性，无 `all-components`。
+  - 反向依赖命令实测证据：`cargo tree -e features -i ui -p web-demo` 显示 `web-demo-components` 特性束且未出现 `all-components`，未发生隐式全量拉起。
+  - CI 预算链路证据：`.github/workflows/ci.yml` 包含 `Tree Shaking Budget` 步骤并执行 `./scripts/check-ui-tree-shaking.sh`；脚本内含最小特性 wasm check + release build 与体积预算比较，预算参数由 `scripts/tree_shaking_budget.env`（`TREE_SHAKING_BASELINE_RLIB_BYTES/TREE_SHAKING_MAX_RATIO_PERCENT`）提供。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 的 `chart_tree_shaking_contract_keeps_component_feature_gates_and_budget_ci_pipeline` 锁定该契约。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -270,23 +270,23 @@
 - [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
   - 确定性 ID 注入证据：`components/chart/src/view.rs` 通过 `use_ui_id_provider().map(|id_provider| id_provider.next_prefixed_id(logic::DEFAULT_ID_BASE))` 生成默认 `id_base`，并交给 `logic::resolve_id_base` 统一归一。
   - 边界证据：`components/chart/src/logic.rs` 新增 `resolve_id_base(id_base, generated_id_base)`；默认路径仅消费 `UiRoot` 注入的 seed，不读取 `now/random/uuid`。
-  - Provider 供给证据：`crates/ui-components/src/root.rs` 通过 `provide_ui_id_provider(id_seed);` 注入确定性种子；`crates/ui-headless/src/id_provider.rs` 提供 `UiIdProvider` 与 `next_prefixed_id`。
+  - Provider 供给证据：`crates/ui/src/root.rs` 通过 `provide_ui_id_provider(id_seed);` 注入确定性种子；`crates/ui-headless/src/id_provider.rs` 提供 `UiIdProvider` 与 `next_prefixed_id`。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 的 `chart_hydration_discontinuity_uses_deterministic_id_provider_seed_for_generated_ids` 锁定该契约。
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-  - compile-only 证据：`scripts/check-ui-components-platforms.sh` 已包含 `cargo check -p ui-components`（默认本地构建）、`cargo check -p ui-headless --no-default-features --features ssr`（ssr native）、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-chart,inject-css`（chart wasm）与对应 chart native 最小特性编译。
+  - compile-only 证据：`scripts/check-ui-platforms.sh` 已包含 `cargo check -p ui`（默认本地构建）、`cargo check -p ui-headless --no-default-features --features ssr`（ssr native）、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-chart,inject-css`（chart wasm）与对应 chart native 最小特性编译。
   - `cfg` 分支证据：`components/chart/src/motion.rs` 显式区分 `#[cfg(target_arch = "wasm32")]` 与 `#[cfg(not(target_arch = "wasm32"))]`，non-wasm 路径使用 no-op `black_box(sanitize_motion(...))`。
-  - non-wasm 源码守卫证据：`scripts/check-ui-components-platforms.sh` 新增 chart 文件组（`mod.rs/logic.rs/styles.rs/view.rs/motion.rs`）`web_sys` 扫描，阻断浏览器 API 污染。
+  - non-wasm 源码守卫证据：`scripts/check-ui-platforms.sh` 新增 chart 文件组（`mod.rs/logic.rs/styles.rs/view.rs/motion.rs`）`web_sys` 扫描，阻断浏览器 API 污染。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 的 `chart_platform_contract_covers_default_ssr_wasm_compile_paths_and_non_wasm_source_guards` 锁定该契约。
 - [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
   - 互斥保护证据：`crates/ui-headless/src/lib.rs` 含 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!("features \`web\` and \`ssr\` are mutually exclusive; enable exactly one")`。
-  - 双路径编译证据：`scripts/check-ui-components-platforms.sh` 保持 `ui-headless` 的 `ssr` native compile-only 与 `web` wasm compile-only，并包含 chart 的 `component-chart,inject-css` native/wasm 编译检查。
-  - 互斥失败门禁证据：`scripts/check-ui-components-platforms.sh` 对 `cargo check -p ui-headless --no-default-features --features web,ssr` 执行“必须失败”断言，并校验错误包含 `mutually exclusive`。
+  - 双路径编译证据：`scripts/check-ui-platforms.sh` 保持 `ui-headless` 的 `ssr` native compile-only 与 `web` wasm compile-only，并包含 chart 的 `component-chart,inject-css` native/wasm 编译检查。
+  - 互斥失败门禁证据：`scripts/check-ui-platforms.sh` 对 `cargo check -p ui-headless --no-default-features --features web,ssr` 执行“必须失败”断言，并校验错误包含 `mutually exclusive`。
   - 组件接入证据：`components/chart/src/view.rs` 持续通过 `use ui_headless::{...}` 消费 headless 合约，未绕过 feature 互斥边界。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 的 `chart_ui_headless_web_ssr_feature_mutex_is_compile_error_guarded` 锁定该契约。
 - [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
@@ -295,7 +295,7 @@
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
   - no-op/stub 证据：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(...)` 空实现，并含 `non_wasm_web_backend_is_predictable_noop` 单测。
   - 组件降级证据：`components/chart/src/motion.rs` 在 non-wasm 分支将 `attach_motion` 降级为 `std::hint::black_box(sanitize_motion(motion));`，不依赖浏览器动画句柄且不触发 panic。
-  - 门禁证据：`scripts/check-ui-components-platforms.sh` 包含 `cargo check -p ui-motion`（native）、`cargo check -p ui-motion --target wasm32-unknown-unknown`（wasm）与 `cargo test -p ui-motion --test non_wasm_stub`（stub 回归）。
+  - 门禁证据：`scripts/check-ui-platforms.sh` 包含 `cargo check -p ui-motion`（native）、`cargo check -p ui-motion --target wasm32-unknown-unknown`（wasm）与 `cargo test -p ui-motion --test non_wasm_stub`（stub 回归）。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 的 `chart_ui_motion_non_wasm_stub_contract_keeps_ssr_and_tooling_paths_compilable` 锁定该契约。
 - [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
@@ -304,7 +304,7 @@
   - reduced-motion 证据：`crates/ui-motion/src/spring.rs` 在 `SpringAnimator::set_target` 中通过 `if crate::web::prefers_reduced_motion()` 走“立即收敛”路径；`crates/ui-motion/src/web.rs` 在 wasm backend 的 `animate` 中同样先判断 `prefers_reduced_motion()`。
   - SSR/wasm 分支证据：`components/chart/src/motion.rs` 与 `crates/ui-visual-primitive/src/active_highlight.rs` 均显式区分 `#[cfg(target_arch = "wasm32")]` / `#[cfg(not(target_arch = "wasm32"))]`；non-wasm 走 no-op 降级。
   - hydration 语义一致证据：`components/chart/src/view.rs` 不按 `target_arch` 分裂语义输出，关键 `role/aria/data-*` 标记在单一路径挂载，避免首帧语义错位。
-  - 门禁证据：`scripts/check-ui-components-platforms.sh` 新增 `chart_reduced_motion_ssr_wasm_branches_keep_semantics_consistent` 测试执行，确保该契约持续回归。
+  - 门禁证据：`scripts/check-ui-platforms.sh` 新增 `chart_reduced_motion_ssr_wasm_branches_keep_semantics_consistent` 测试执行，确保该契约持续回归。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 的 `chart_reduced_motion_ssr_wasm_branches_keep_semantics_consistent` 锁定该契约。
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
@@ -316,7 +316,7 @@
   - 预算证据：`apps/docs-app/src/pages/components/shell.rs` 为 `chart` 配置显式预算（`max_mount_ms: 34.0`、`max_update_ms: Some(12.0)`、`max_heap_kb: Some(640.0)`），不再走默认 mount-only 兜底。
   - 可检测/可阻断证据：`apps/docs-app/src/perf_probe.rs` 输出 `data-perf-*` 与 `data-perf-violation`；`e2e/tests/docs_app_components_coverage.spec.mjs` 对预算属性做断言并阻断 violation。
   - 可归因证据：`components/chart/src/view.rs` 暴露 `data-active-value-source`、`data-active-interaction-source`、`data-class-source`、`data-motion-source`、`data-custom-motion` 标记，区分状态/样式/动效路径来源。
-  - 脚本门禁证据：`scripts/check-ui-components-performance.sh` 新增 `chart_performance_governance_contract_is_budgeted_traceable_and_blocking` 执行命令，确保回归可阻断。
+  - 脚本门禁证据：`scripts/check-ui-performance.sh` 新增 `chart_performance_governance_contract_is_budgeted_traceable_and_blocking` 执行命令，确保回归可阻断。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增 `chart_performance_governance_contract_is_budgeted_traceable_and_blocking`。
   - `render_count` 跟进证据：`docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”任务，作为当前框架下的等价证据与后续自动化补齐计划。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
@@ -325,7 +325,7 @@
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
   - 拆分证据：`components/chart/src/view.rs` 新增 `render_chart_plot` 与 `render_chart_legend`，主组件 `Chart` 通过 `let plot = ...; let legend = ...;` 组合，避免把 plot/legend/item 全部塞进单一超长 `view!` 块。
   - 稳定边界证据：`components/chart/src/view.rs` 仍保持单一 `#[component] pub fn Chart(...)` 公开边界，局部片段采用普通 Rust 函数返回 `impl IntoView`，不引入额外局部组件噪音。
-  - 门禁证据：`scripts/check-ui-components-view-macro.sh` 新增 `chart_view_macro_complexity_is_split_into_semantic_subrenders` 执行命令，回归失败可阻断。
+  - 门禁证据：`scripts/check-ui-view-macro.sh` 新增 `chart_view_macro_complexity_is_split_into_semantic_subrenders` 执行命令，回归失败可阻断。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增同名测试，锁定语义分块与宏复杂度上限契约。
 - [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
@@ -334,7 +334,7 @@
   - 拆分证据：`components/chart/src/view.rs` 将 plot/legend 片段保持为普通函数 `render_chart_plot`、`render_chart_legend`（返回 `impl IntoView`），主入口仍是单一 `#[component] pub fn Chart(...)`。
   - 反组件化证据：局部片段未升级为额外 `#[component]`，`view.rs` 仅保留一个组件边界，避免抽象噪音。
   - 语义稳定证据：拆分后继续保留稳定标记 `data-slot=\"chart\"`、`data-slot=\"chart-plot\"`、`data-slot=\"chart-legend\"`、`data-slot=\"chart-legend-item\"`，测试选择器不漂移。
-  - 门禁证据：`scripts/check-ui-components-view-macro.sh` 新增 `chart_view_functional_split_prefers_plain_functions_over_local_components` 执行命令。
+  - 门禁证据：`scripts/check-ui-view-macro.sh` 新增 `chart_view_functional_split_prefers_plain_functions_over_local_components` 执行命令。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增同名测试锁定该契约。
 - [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
   - 可判定为纯静态的片段应避免重复动态构造。
@@ -343,7 +343,7 @@
   - 常量化证据：`components/chart/src/view.rs` 将纯静态 plot 片段收敛到常量与模板函数：`CHART_PLOT_VIEWBOX`、`CHART_GRID_LINE_CLASS`、`CHART_GRID_LINES` 与 `render_chart_grid_lines()`，避免在主 `view!` 内重复硬编码 4 条网格线。
   - 语义与可访问性证据：常量化后仍保持 `role=\"img\"`、`aria-label=move || semantics.get().attrs.aria_label`、`data-slot=\"chart-plot\"`、`data-slot=\"chart-grid\"`，未破坏语义契约。
   - 变更路径证据：静态网格坐标统一集中在 `CHART_GRID_LINES` 常量，后续只需在单一常量处维护，不再散落在多个 `view!` 片段。
-  - 门禁证据：`scripts/check-ui-components-view-macro.sh` 新增 `chart_static_fragments_are_constantized_with_stable_semantics` 执行命令。
+  - 门禁证据：`scripts/check-ui-view-macro.sh` 新增 `chart_static_fragments_are_constantized_with_stable_semantics` 执行命令。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增同名测试锁定静态片段常量化与语义稳定契约。
 - [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
@@ -351,17 +351,17 @@
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
   - N/A 适用边界（Chart）：`components/chart/src/{mod.rs,logic.rs,styles.rs,motion.rs,view.rs}` 与 `apps/docs-app/src/pages/components/pages/display_extra.rs` 不使用 `inner_html`，组件与 docs 示例不存在 HTML 注入入口。
   - 共享白名单证据：`apps/docs-app/src/pages/components/shell.rs` 的 `inner_html=html` 仅用于 README 渲染，来源是 `include_str!` 静态常量白名单；`component_readme_markdown` 未包含 `chart`，chart 页面不会走该路径。
-  - 门禁证据：`scripts/check-ui-components-inner-html.sh` 新增 `chart_inner_html_usage_is_explicitly_na_and_guarded` 执行命令，回归失败可阻断。
+  - 门禁证据：`scripts/check-ui-inner-html.sh` 新增 `chart_inner_html_usage_is_explicitly_na_and_guarded` 执行命令，回归失败可阻断。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增同名测试，锁定 N/A 边界与共享白名单约束。
 - [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-  - feature 隔离证据：`crates/ui-components/Cargo.toml` 仅保留共享 `button-wasm-debug` 特性（`component-button + tracing`），`all-components` 不引入该调试特性；chart 未新增 `chart-wasm-debug` 公共特性，避免污染产物与 API 面。
+  - feature 隔离证据：`crates/ui/Cargo.toml` 仅保留共享 `button-wasm-debug` 特性（`component-button + tracing`），`all-components` 不引入该调试特性；chart 未新增 `chart-wasm-debug` 公共特性，避免污染产物与 API 面。
   - 开发可视化入口证据：`apps/docs-app/src/lib.rs` 在 `debug_assertions` 下通过 `provide_ui_trace(debug_overlay_enabled)` 与 `<debug_overlay::UiDebugOverlay enabled=true />` 挂载全局调试入口。
   - 可追踪与可回放证据：`components/button/src/view.rs` 提供共享回放标记 `data-debug-source/data-debug-before/data-debug-after/data-debug-timestamp-ms` 与 `request_replay.run(...)`；`crates/ui-headless/src/trace.rs` + `apps/docs-app/src/debug_overlay.rs` 提供时间线事件记录与可视回放能力。
   - chart 交互链路证据：`components/chart/src/view.rs` 输出 `data-active-index/data-active-value-source/data-active-interaction-source/data-motion-source`，并通过 `on:pointerenter/on:click/on:keydown -> apply_headless_action` 保持最小可复现交互序列；组件内未引入私有 debug runtime。
-  - 门禁证据：`scripts/check-ui-components-wasm-debug.sh` 新增 `chart_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated` 执行命令。
+  - 门禁证据：`scripts/check-ui-wasm-debug.sh` 新增 `chart_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated` 执行命令。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增同名测试与 `chart_wasm_debug_check_script_covers_shared_contract`，锁定 wasm-debug 契约与脚本覆盖。
 - [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
@@ -372,16 +372,16 @@
   - 上下文保持与可选状态保留证据：chart workbench 新增 `CHART_WORKBENCH_STORAGE_KEY`、`load/save/clear_chart_workbench_state` 与 `Persist workbench state` 开关；开启后通过 `Effect` 持久化当前配置，关闭即清理，避免强制持久化污染调试上下文。
   - 隔离画布证据：chart workbench 明确 `data-slot="chart-workbench"` 与 `data-slot="chart-workbench-canvas"`，将演练区域与页面其他示例隔离。
   - 平台安全证据：状态保留实现按 `#[cfg(target_arch = "wasm32")]` / `#[cfg(not(target_arch = "wasm32"))]` 双分支降级，非 wasm 路径安全 no-op。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增 `chart_dx_playground_supports_css_hot_reload_without_wasm_rebuild` 与 `chart_dx_workbench_supports_optional_state_persistence_and_isolated_canvas` 执行命令。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增 `chart_dx_playground_supports_css_hot_reload_without_wasm_rebuild` 与 `chart_dx_workbench_supports_optional_state_persistence_and_isolated_canvas` 执行命令。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增同名 DX 测试与脚本覆盖测试，锁定热重载/可选持久化/隔离画布契约。
 - [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
-  - serde/spec 边界证据：chart 不引入 `spec.rs`，且 `crates/ui-components/Cargo.toml` 的 `component-chart = ["dep:ui-chart"]` 未拉入 `serde/serde_json`；`components/chart/src/{mod.rs,logic.rs,view.rs,styles.rs,motion.rs}` 不包含 schema 迁移与序列化实现，按简单组件范围标注 N/A。
-  - tracing 语义证据：仓库 tracing 基线仍由共享路径统一（如 `button-wasm-debug` 与 `ui_components::button::state_change`）；chart 未新增 `chart-wasm-debug` 或 `ui_components::chart::*` 本地 tracing target，避免语义漂移。
+  - serde/spec 边界证据：chart 不引入 `spec.rs`，且 `crates/ui/Cargo.toml` 的 `component-chart = ["dep:ui-chart"]` 未拉入 `serde/serde_json`；`components/chart/src/{mod.rs,logic.rs,view.rs,styles.rs,motion.rs}` 不包含 schema 迁移与序列化实现，按简单组件范围标注 N/A。
+  - tracing 语义证据：仓库 tracing 基线仍由共享路径统一（如 `button-wasm-debug` 与 `ui::button::state_change`）；chart 未新增 `chart-wasm-debug` 或 `ui::chart::*` 本地 tracing target，避免语义漂移。
   - runtime 边界证据：chart 组件层不暴露 `tokio/async-std/smol/runtime::Handle` 等运行时细节；公共导出面仅 `Chart/ChartKind/ChartPoint/ChartMotion`。
-  - 门禁证据：`scripts/check-ui-components-engineering.sh` 新增 chart 三条执行命令：`chart_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope`、`chart_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`、`chart_engineering_contract_avoids_runtime_leaks_in_public_api_surface`。
+  - 门禁证据：`scripts/check-ui-engineering.sh` 新增 chart 三条执行命令：`chart_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope`、`chart_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`、`chart_engineering_contract_avoids_runtime_leaks_in_public_api_surface`。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增同名工程能力测试与脚本覆盖测试，锁定 serde/tracing/runtime 三类边界契约。
 
 ### 5. 样式与动效（Theme & Motion）
@@ -389,29 +389,29 @@
   - 双层回退链证据：`components/chart/src/styles.rs` 统一通过 `var(--ui-*, var(--ui-fallback-*))` 消费颜色/间距/圆角/尺寸/动效参数（如 `--ui-space-*`、`--ui-radius-*`、`--ui-component-height-100`、`--ui-checkbox-group-motion-*`）。
   - SSOT 终值证据：`crates/ui-theme/src/css.rs` 提供 chart 所依赖的 fallback 终值（`--ui-fallback-space-*`、`--ui-fallback-radius-*`、`--ui-fallback-component-height-100`、`--ui-fallback-border-width`、`--ui-fallback-accent`、`--ui-fallback-checkbox-group-motion-*`）。
   - 裸终值清理证据：chart 样式已移除 `0.75rem/0.5rem/14rem/160ms` 等裸尺寸终值与颜色终值硬编码，改为 token + fallback 组合链。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `chart_styles_use_defensive_variable_fallback_chain` 执行命令。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `chart_styles_use_defensive_variable_fallback_chain` 执行命令。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增 `chart_styles_use_defensive_variable_fallback_chain`、`chart_defensive_variables_check_script_covers_style_fallback_contract`、`chart_check2_marks_defensive_variables_contract_complete`。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - `@layer ui` 聚合证据：`crates/ui-components/src/css.rs` 通过 `out.push_str("\n@layer ui {\n")` 包裹组件样式，并在 `#[cfg(feature = "component-chart")]` 下聚合 `out.push_str(crate::chart::styles::CSS);`。
+  - `@layer ui` 聚合证据：`crates/ui/src/css.rs` 通过 `out.push_str("\n@layer ui {\n")` 包裹组件样式，并在 `#[cfg(feature = "component-chart")]` 下聚合 `out.push_str(crate::chart::styles::CSS);`。
   - 运行时样式证据：`components/chart/src/view.rs` 不包含 `style="top/left/width/height"` 或 `style:top/style:left` 等普通内联样式写法；若后续引入 `style:*`，语义测试要求仅允许 `style:--*` CSS 变量通道。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `chart_cascade_layer_and_runtime_style_contract_is_enforced` 执行命令。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `chart_cascade_layer_and_runtime_style_contract_is_enforced` 执行命令。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增 `chart_cascade_layer_and_runtime_style_contract_is_enforced`、`chart_cascade_layer_check_script_covers_contract`、`chart_check2_marks_cascade_layer_contract_complete`。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 组件合同证据：`components/chart/src/motion.rs` 通过 `ChartMotion` + `sanitize_motion` + `attach_motion` 固化动效接口，`sanitize_motion` 统一走 `ui_motion::spring::sanitize_config(..., ui_motion::presets::spring_slide())`，将 `stiffness/damping` 等参数约束在组件合同内。
   - 挂载证据：`components/chart/src/view.rs` 先执行 `let motion = motion::sanitize_motion(motion);`，再调用 `motion::attach_motion(...)`，保持“合同归一 -> attach”单一路径。
   - reduced-motion 与 non-wasm 证据：`crates/ui-motion/src/spring.rs` 保持 `prefers_reduced_motion` 快速收敛分支；`components/chart/src/motion.rs` 同时具备 wasm/non-wasm `cfg` 分支，non-wasm 路径以 `std::hint::black_box(sanitize_motion(motion));` 安全 no-op 降级。
-  - 门禁证据：`scripts/check-ui-components-platforms.sh` 新增 `chart_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe` 执行命令。
+  - 门禁证据：`scripts/check-ui-platforms.sh` 新增 `chart_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe` 执行命令。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增 `chart_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`、`chart_motion_contract_platform_script_covers_guard`、`chart_check2_marks_motion_contract_complete`；`components/chart/test/motion.rs` 覆盖合同保真与非法参数回退。
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
   - 边界证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增 `chart_ui_components_fixed_entry_files_follow_layered_boundaries`，断言 `lib.rs/css.rs/root.rs` 的 feature gate 与集中注入契约、`active_highlight.rs` 共享原语边界、`overlay_open.rs/presence.rs/a11y.rs` 缺失约束及 `ui-headless` 规范落点存在性。
-  - 门禁证据：`scripts/check-ui-components-entrypoints.sh` 新增 `chart_ui_components_fixed_entry_files_follow_layered_boundaries` 执行命令，纳入 entrypoints gate。
+  - 门禁证据：`scripts/check-ui-entrypoints.sh` 新增 `chart_ui_components_fixed_entry_files_follow_layered_boundaries` 执行命令，纳入 entrypoints gate。
   - 回归证据：语义测试新增 `chart_entrypoints_check_script_covers_fixed_entrypoint_contract` 与 `chart_check2_marks_ui_components_fixed_entry_files_contract_complete`，锁定脚本覆盖与 checklist 状态。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
@@ -421,25 +421,25 @@
   - `<component>/motion.rs`：`XxxMotion + attach_motion`；交互组件必须有；只做语义到 motion contract 的映射与挂载。
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
   - 结构边界证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 的 `chart_component_file_responsibilities_stay_layered_and_non_overlapping` 明确断言 `mod/logic/styles/view/motion` 分层职责，并校验 `src/render.rs`、`src/spec.rs` 不应出现在 chart 目录。
-  - 门禁证据：`scripts/check-ui-components-component-files.sh` 新增 `chart_component_file_responsibilities_stay_layered_and_non_overlapping` 执行命令，纳入 component-files gate。
+  - 门禁证据：`scripts/check-ui-component-files.sh` 新增 `chart_component_file_responsibilities_stay_layered_and_non_overlapping` 执行命令，纳入 component-files gate。
   - 回归证据：语义测试新增 `chart_component_files_check_script_covers_responsibility_contract` 与 `chart_check2_marks_component_file_responsibility_contract_complete`，锁定脚本覆盖与 checklist 状态。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
 - [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
   - 文件落点证据：`components/chart/src/` 当前仅包含 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs/protocol.rs`；其中前五项满足组件分层主文件契约，`protocol.rs` 为仓库协议文件；`render.rs/spec.rs` 不存在。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增 `chart_file_placement_discipline_is_strict_for_struct_first_scope`，锁定目录文件集合与 `render.rs/spec.rs` 禁入约束。
-  - 门禁证据：`scripts/check-ui-components-component-files.sh` 新增 `chart_file_placement_discipline_is_strict_for_struct_first_scope` 执行命令，并由语义测试 `chart_component_files_check_script_covers_file_placement_discipline` 与 `chart_check2_marks_file_placement_discipline_contract_complete` 锁定脚本覆盖与 checklist 状态。
+  - 门禁证据：`scripts/check-ui-component-files.sh` 新增 `chart_file_placement_discipline_is_strict_for_struct_first_scope` 执行命令，并由语义测试 `chart_component_files_check_script_covers_file_placement_discipline` 与 `chart_check2_marks_file_placement_discipline_contract_complete` 锁定脚本覆盖与 checklist 状态。
 - [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
   - N/A 适用性结论：chart 当前不属于“复杂组件（稳定外部 schema/版本化 spec 契约）”范围，不引入 `spec.rs` 与 `ChartSpec::new()...render()` 建造者链。
   - 结构证据：`components/chart/src/` 无 `spec.rs`，`components/chart/src/mod.rs` 未出现 `mod spec;` / `pub use spec::` 导出。
   - 文档落点证据：组件说明保持在 `components/chart/src/README.md`，不以 `spec.rs` 代替文档。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增 `chart_hyper_structure_builder_spec_is_not_applicable_for_simple_component`，并新增 `chart_component_files_check_script_covers_hyper_structure_builder_spec_na` 与 `chart_check2_marks_hyper_structure_builder_spec_na_complete` 锁定脚本覆盖和 checklist 状态。
-  - 门禁证据：`scripts/check-ui-components-component-files.sh` 新增 `chart_hyper_structure_builder_spec_is_not_applicable_for_simple_component` 执行命令。
+  - 门禁证据：`scripts/check-ui-component-files.sh` 新增 `chart_hyper_structure_builder_spec_is_not_applicable_for_simple_component` 执行命令。
 - [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
   - 文件落点证据：新增 `components/chart/Component.toml` 与 `components/chart/Component.rbi`，并与 `src/mod.rs/src/logic.rs/src/styles.rs/src/view.rs/src/motion.rs/src/protocol.rs` 同步映射。
   - 合同内容证据：Manifest 显式声明 `context_compression_manifest=true`、`rbi_signature_projection=true`、`kind=\"snapshot\"` 与 `streaming=false`；RBI 声明 `signature Chart(...) -> impl IntoView`、`streaming_policy fallback=\"snapshot\"` 与关键语义标记集合。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增 `chart_context_compression_manifest_and_rbi_projection_are_present_and_current`，并新增 `chart_component_files_check_script_covers_context_compression_manifest_and_rbi` 与 `chart_check2_marks_context_compression_manifest_and_rbi_contract_complete` 锁定脚本覆盖和 checklist 状态。
-  - 门禁证据：`scripts/check-ui-components-component-files.sh` 新增 `chart_context_compression_manifest_and_rbi_projection_are_present_and_current` 执行命令。
+  - 门禁证据：`scripts/check-ui-component-files.sh` 新增 `chart_context_compression_manifest_and_rbi_projection_are_present_and_current` 执行命令。
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
@@ -450,21 +450,21 @@
   - 可追溯证据：`resolve_agent_contract` 输入显式绑定 `state + active_value_source + interaction_source + motion_source`，字段可追溯到 `intent/action/state/source` 四轴。
   - 白名单边界证据：`components/chart/Component.toml` 新增 `[agent_contract_whitelist]`，`allowed` 仅包含 `logic::normalize_input_boundary/derive_state_from_boundary/resolve_agent_contract`、`use_chart`、`motion::attach_motion`，并 `blocked = [\"inner_html\", \"<script\", \"javascript:\", \"eval(\"]`。
   - 回归证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 新增 `chart_check2_documents_agent_contract_schema_governance_rules`、`chart_agent_contract_is_schema_typed_and_machine_readable`、`chart_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`、`chart_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增上述四条 chart 语义契约测试命令，纳入 contract-hygiene gate。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增上述四条 chart 语义契约测试命令，纳入 contract-hygiene gate。
 - [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
   - N/A：`Chart` 不是 LLM 正文渲染组件，定义仅用于与上层 LLM 输出协议对齐。
   - 契约证据：`components/chart/src/view.rs` 暴露 `data-ui-stream-support/data-ui-stream-fallback/data-ui-stream-mode`，其中 `data-ui-stream-mode="snapshot"`，确保非正文组件以快照模式稳定对齐上层输出协议。
   - 回归证据：`components/chart/test/semantics.rs::chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes_locally`、`components/chart/test/semantics.rs::chart_streaming_script_covers_two_mode_definition_contract_locally`、`components/chart/test/semantics.rs::chart_check2_marks_streaming_two_mode_definition_complete_locally`、`components/chart/test/chart_semantics.rs::chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`、`components/chart/test/chart_semantics.rs::chart_streaming_script_covers_two_mode_definition_contract`、`components/chart/test/chart_semantics.rs::chart_check2_marks_streaming_two_mode_definition_complete`。
-  - 门禁证据：`scripts/check-ui-components-streaming.sh` 新增 `cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`。
+  - 门禁证据：`scripts/check-ui-streaming.sh` 新增 `cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`。
 - [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
   - N/A：`Chart` 不直接渲染 LLM 正文；组件侧能力定义为“消费完整配置并一次性稳定渲染”。
   - 契约证据：`components/chart/src/view.rs` 在同一渲染路径挂载 `data-state/data-active-index/data-active-value-source/data-active-interaction-source` 与 `data-ui-stream-fallback/data-ui-stream-mode="snapshot"`，确保以完整快照结果驱动稳定语义输出。
   - 回归证据：`components/chart/test/semantics.rs::chart_check2_documents_snapshot_as_default_baseline_capability_locally`、`components/chart/test/semantics.rs::chart_snapshot_baseline_consumes_complete_result_and_renders_stably_locally`、`components/chart/test/semantics.rs::chart_streaming_script_covers_snapshot_baseline_contract_locally`、`components/chart/test/semantics.rs::chart_check2_marks_snapshot_baseline_capability_complete_locally`、`components/chart/test/chart_semantics.rs::chart_check2_documents_snapshot_as_default_baseline_capability`、`components/chart/test/chart_semantics.rs::chart_snapshot_baseline_consumes_complete_result_and_renders_stably`、`components/chart/test/chart_semantics.rs::chart_streaming_script_covers_snapshot_baseline_contract`、`components/chart/test/chart_semantics.rs::chart_check2_marks_snapshot_baseline_capability_complete`。
-  - 门禁证据：`scripts/check-ui-components-streaming.sh` 新增 `cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_snapshot_as_default_baseline_capability` 与 `cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_snapshot_baseline_consumes_complete_result_and_renders_stably`。
+  - 门禁证据：`scripts/check-ui-streaming.sh` 新增 `cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_snapshot_as_default_baseline_capability` 与 `cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_snapshot_baseline_consumes_complete_result_and_renders_stably`。
 - [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
@@ -474,31 +474,31 @@
   - 契约证据：`components/chart/src/view.rs` 在同一路径持续输出 `role/aria-label/data-state/data-source` 与 `data-ui-stream-support/data-ui-stream-fallback/data-ui-stream-mode/data-ui-output-status`，保证 Optional 场景下语义连续可读；`components/chart/src/logic.rs` 固定 `stream_support=Optional`、`stream_fallback=Snapshot`、`output_status=Verified`。
   - 边界证据：`components/chart/src/{logic,view,mod,motion}.rs` 不承载重试/恢复/断线治理逻辑（`retry/reconnect/backoff/resume_stream/validate_stream` 由上层负责），组件仅负责稳定渲染。
   - 回归证据：`components/chart/test/semantics.rs::chart_check2_documents_streaming_required_optional_classification_rules_locally`、`components/chart/test/semantics.rs::chart_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous_locally`、`components/chart/test/semantics.rs::chart_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer_locally`、`components/chart/test/semantics.rs::chart_streaming_script_covers_required_optional_classification_contract_locally`、`components/chart/test/semantics.rs::chart_check2_marks_streaming_required_optional_classification_complete_locally`、`components/chart/test/chart_semantics.rs::chart_check2_documents_streaming_required_optional_classification_rules`、`components/chart/test/chart_semantics.rs::chart_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/chart/test/chart_semantics.rs::chart_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`、`components/chart/test/chart_semantics.rs::chart_streaming_script_covers_required_optional_classification_contract`、`components/chart/test/chart_semantics.rs::chart_check2_marks_streaming_required_optional_classification_complete`。
-  - 门禁证据：`scripts/check-ui-components-streaming.sh` 新增 `cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_streaming_required_optional_classification_rules`、`cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`。
+  - 门禁证据：`scripts/check-ui-streaming.sh` 新增 `cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_streaming_required_optional_classification_rules`、`cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`。
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
   - 组件范围验证证据：执行 `RUST_HYGIENE_SCOPE="components/chart" ./scripts/check-rust-hygiene.sh`；在移除 `components/chart/src/view.rs` 的 `common.chart_aria_label.to_string()` 热点后，chart 目录通过 hygiene 规则（`unwrap/expect`、`let _ =`、字符串 clone churn）。
   - 代码证据：`components/chart/src/{mod,logic,styles,view,motion}.rs` 不含 `unwrap/expect/unwrap_err` 与 `let _ =`；`components/chart/src/view.rs` 使用 `common.chart_aria_label.as_ref().into()` 取代 `to_string()`，避免被字符串热点规则命中。
   - 回归证据：`components/chart/test/semantics.rs::chart_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/chart/test/semantics.rs::chart_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/chart/test/semantics.rs::chart_rust_hygiene_script_enforces_repo_level_hygiene_guards`、`components/chart/test/semantics.rs::chart_check2_marks_rust_hygiene_contract_complete`、`components/chart/test/chart_semantics.rs::chart_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/chart/test/chart_semantics.rs::chart_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/chart/test/chart_semantics.rs::chart_rust_hygiene_script_enforces_repo_level_hygiene_guards`、`components/chart/test/chart_semantics.rs::chart_check2_marks_rust_hygiene_contract_complete`。
-  - 门禁证据：`scripts/check-ui-components-engineering.sh` 新增 `chart_rust_hygiene_*` 三条命令并纳入 engineering gate。
-  - 环境说明：尝试执行 `cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources` 时仍受当前环境 `Invalid cross-device link (os error 18)` 阻断。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 代码证据：`crates/ui-components/Cargo.toml` 保持 `component-chart = ["dep:ui-chart"]`；`crates/ui-components/src/lib.rs` 保持 `#[cfg(feature = "component-chart")] pub use ui_chart as chart;`；`crates/ui-components/src/css.rs` 保持 `#[cfg(feature = "component-chart")] out.push_str(crate::chart::styles::CSS);`。
+  - 门禁证据：`scripts/check-ui-engineering.sh` 新增 `chart_rust_hygiene_*` 三条命令并纳入 engineering gate。
+  - 环境说明：尝试执行 `cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources` 时仍受当前环境 `Invalid cross-device link (os error 18)` 阻断。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 代码证据：`crates/ui/Cargo.toml` 保持 `component-chart = ["dep:ui-chart"]`；`crates/ui/src/lib.rs` 保持 `#[cfg(feature = "component-chart")] pub use ui_chart as chart;`；`crates/ui/src/css.rs` 保持 `#[cfg(feature = "component-chart")] out.push_str(crate::chart::styles::CSS);`。
   - 回归证据：`components/chart/test/semantics.rs::chart_tree_shaking_contract_keeps_component_feature_gates_and_budget_ci_pipeline`、`components/chart/test/semantics.rs::chart_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget_locally`、`components/chart/test/semantics.rs::chart_check2_marks_tree_shaking_feature_pruning_contract_complete_locally`、`components/chart/test/chart_semantics.rs::chart_tree_shaking_contract_stays_feature_gated_in_package_and_demo_modes`、`components/chart/test/chart_semantics.rs::chart_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget`、`components/chart/test/chart_semantics.rs::chart_check2_marks_tree_shaking_feature_pruning_contract_complete`。
-  - 门禁证据：`scripts/check-ui-components-tree-shaking.sh` 新增 chart 专项命令（含 `cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-chart,inject-css`、`cargo tree -e features -i ui-components -p web-demo`、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features "$CHART_MIN_FEATURES"`），并执行 chart 三条语义测试命令。
+  - 门禁证据：`scripts/check-ui-tree-shaking.sh` 新增 chart 专项命令（含 `cargo tree -e features -i ui -p ui --no-default-features --features component-chart,inject-css`、`cargo tree -e features -i ui -p web-demo`、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features "$CHART_MIN_FEATURES"`），并执行 chart 三条语义测试命令。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-  - 已满足：语义矩阵由 `chart_semantic_contract_matrix_covers_state_interaction_and_platform_paths_without_snapshot_reliance` 锁定 `role/aria/data-*` 与 `on:focus/on:pointerenter/on:click/on:keydown` 焦点与交互路径；性能预算与阻断由 `chart_performance_governance_contract_is_budgeted_traceable_and_blocking` 锁定；本次补充联合回归 `components/chart/test/semantics.rs::chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement_locally` 与 `components/chart/test/chart_semantics.rs::chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`，并在 `scripts/check-ui-components-performance.sh` 新增对应门禁命令。`render_count` 自动化回归仍在仓库统一 follow-up（`docs/plan/TODO.md`），当前以可重复 perf-probe 等价证据过渡。当前环境执行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断。
+  - 已满足：语义矩阵由 `chart_semantic_contract_matrix_covers_state_interaction_and_platform_paths_without_snapshot_reliance` 锁定 `role/aria/data-*` 与 `on:focus/on:pointerenter/on:click/on:keydown` 焦点与交互路径；性能预算与阻断由 `chart_performance_governance_contract_is_budgeted_traceable_and_blocking` 锁定；本次补充联合回归 `components/chart/test/semantics.rs::chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement_locally` 与 `components/chart/test/chart_semantics.rs::chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`，并在 `scripts/check-ui-performance.sh` 新增对应门禁命令。`render_count` 自动化回归仍在仓库统一 follow-up（`docs/plan/TODO.md`），当前以可重复 perf-probe 等价证据过渡。当前环境执行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - N/A：本次 `Chart` 变更未引入跨大版本 API 破坏升级；当前版本契约保持 `v1`（`components/chart/src/protocol.rs` 保持 `ChartComponentSchemaVersion::V1`，`components/chart/Component.toml` 保持 `schema = "ui.chart.agent-contract/v1"`，`components/chart/Component.rbi` 保持 `agent_contract_schema "ui.chart.agent-contract/v1"`），因此不触发 Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。
   - 回归证据：`components/chart/test/semantics.rs::chart_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade_locally`、`components/chart/test/semantics.rs::chart_version_deprecation_migration_script_covers_engineering_gate_locally`、`components/chart/test/chart_semantics.rs::chart_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`、`components/chart/test/chart_semantics.rs::chart_version_deprecation_migration_script_covers_engineering_gate`。
-  - 门禁证据：`scripts/check-ui-components-engineering.sh` 新增 `cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`。
+  - 门禁证据：`scripts/check-ui-engineering.sh` 新增 `cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`。
   - 环境说明：当前环境执行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
   - docs 结构证据：`apps/docs-app/src/pages/components/pages/display_extra.rs::chart()` 新增并显式保留 `Hello World / Comparison Matrix / Controlled vs Uncontrolled Contrast / Streaming / Snapshot Contract / Source-first Starter (Copy-Paste Ready)` 六类 Playground，且统一通过 `code_imports=chart_imports.clone()` 输出 copy-ready imports。
   - Source-first 证据：同页新增 `data-slot="chart-source-first"`、`data-slot="chart-copy-ready-hint"`、`data-slot="chart-source-paths"`，并声明 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 注入 imports；源码落点固定到 `components/chart/src/{mod,logic,view,styles,motion}.rs`，依赖基线明确 `component-chart + inject-css + UiRoot`。
   - 回归证据：`components/chart/test/semantics.rs::chart_docs_product_copy_paste_ready_contract_is_documented_and_scripted_locally`、`components/chart/test/chart_semantics.rs::chart_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`components/chart/test/chart_semantics.rs::chart_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync`、`components/chart/test/chart_semantics.rs::chart_check2_documents_docs_product_copy_paste_ready_rules`、`components/chart/test/chart_semantics.rs::chart_check2_marks_docs_product_copy_paste_ready_contract_complete`。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增 `chart_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`chart_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync`、`chart_check2_documents_docs_product_copy_paste_ready_rules`、`chart_dx_check_script_covers_docs_product_copy_paste_ready_contract`。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增 `chart_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`chart_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync`、`chart_check2_documents_docs_product_copy_paste_ready_rules`、`chart_dx_check_script_covers_docs_product_copy_paste_ready_contract`。
   - 环境说明：当前环境执行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
@@ -506,7 +506,7 @@
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
   - 覆盖证据：`components/chart/test/semantics.rs` 与 `components/chart/test/chart_semantics.rs` 持续存在并覆盖交互语义；新增 `components/chart/test/semantics.rs::chart_semantics_priority_contract_is_documented_and_scripted_locally` 与 `components/chart/test/chart_semantics.rs::chart_semantics_tests_prioritize_data_aria_role_and_state_source_over_visual_snapshot`，锁定 `role / aria-* / data-state / data-controlled / data-active-value-source / data-active-interaction-source / data-ui-source` 及键盘焦点路径断言。
   - 非快照证据：`chart_semantic_contract_matrix_covers_state_interaction_and_platform_paths_without_snapshot_reliance` 在本地与聚合语义测试中持续校验“语义测试不依赖视觉快照 token”。
-  - 门禁证据：`scripts/check-ui-components-performance.sh` 新增 `chart_check2_documents_semantics_tests_priority_rules` 执行命令，并由 `components/chart/test/chart_semantics.rs::chart_semantics_priority_script_covers_contract`、`components/chart/test/chart_semantics.rs::chart_check2_documents_semantics_tests_priority_rules`、`components/chart/test/chart_semantics.rs::chart_check2_marks_semantics_tests_priority_contract_complete` 锁定脚本覆盖与 checklist 状态。
+  - 门禁证据：`scripts/check-ui-performance.sh` 新增 `chart_check2_documents_semantics_tests_priority_rules` 执行命令，并由 `components/chart/test/chart_semantics.rs::chart_semantics_priority_script_covers_contract`、`components/chart/test/chart_semantics.rs::chart_check2_documents_semantics_tests_priority_rules`、`components/chart/test/chart_semantics.rs::chart_check2_marks_semantics_tests_priority_contract_complete` 锁定脚本覆盖与 checklist 状态。
   - 环境说明：当前环境执行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
@@ -516,7 +516,7 @@
   - docs 锚点证据：`apps/docs-app/src/pages/components/pages/display_extra.rs::chart()` 新增 `data-slot="chart-e2e-controlled-line"`、`data-slot="chart-e2e-state-disabled"`、`data-slot="chart-workbench-toggle-lang"`，与既有 `data-slot="chart-workbench-canvas"` 组成稳定 E2E 语义锚点。
   - 稳定等待与收敛证据：E2E 用例固定使用 `await page.locator("body:not(:has(#boot))").waitFor();` 与 `toHaveAttribute("data-state", "ready")` 作为 wasm 就绪等待，且显式断言 `data-active-interaction-source=keyboard/pointer` 与 `data-ui-state=ready` 覆盖 ready/settled 收敛条件。
   - 回归证据：`components/chart/test/semantics.rs::chart_check2_documents_e2e_selector_and_stable_wait_rules_locally`、`components/chart/test/semantics.rs::chart_e2e_selector_contract_uses_semantic_markers_and_stable_waits_locally`、`components/chart/test/semantics.rs::chart_e2e_contract_covers_ready_and_settled_conditions_for_chart_interaction_locally`、`components/chart/test/semantics.rs::chart_check2_marks_e2e_selector_stability_item_complete_locally`、`components/chart/test/chart_semantics.rs::chart_check2_documents_e2e_selector_and_stable_wait_rules`、`components/chart/test/chart_semantics.rs::chart_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`components/chart/test/chart_semantics.rs::chart_e2e_contract_covers_ready_and_settled_conditions_for_chart_interaction`、`components/chart/test/chart_semantics.rs::chart_check2_marks_e2e_selector_stability_item_complete`。
-  - 门禁证据：新增 `scripts/check-ui-components-e2e-chart.sh`，包含 `chart_check2_documents_e2e_selector_and_stable_wait_rules`、`chart_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`chart_e2e_contract_covers_ready_and_settled_conditions_for_chart_interaction` 三条命令。
+  - 门禁证据：新增 `components/chart/scripts/check-ui-e2e-chart.sh`，包含 `chart_check2_documents_e2e_selector_and_stable_wait_rules`、`chart_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`chart_e2e_contract_covers_ready_and_settled_conditions_for_chart_interaction` 三条命令。
   - 环境说明：当前环境执行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断。
 - [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
@@ -525,7 +525,7 @@
   - 关键流程证据：`e2e/tests/docs_app_chart_contract.spec.mjs` 新增 `docs-app chart key flow is repeatable with semantic breakpoints`，通过 `for (const cycle of [1, 2])` 重放“键盘切换图例 -> disabled 开关 -> 状态恢复”，并断言 `data-active-index`、`data-active-interaction-source`、`data-disabled`、`data-state` 语义断点。
   - 语义锚点证据：`apps/docs-app/src/pages/components/pages/display_extra.rs` 为 workbench disabled 开关补充 `data-slot=\"chart-workbench-toggle-disabled\"`，E2E 不依赖文本或脆弱 DOM 层级。
   - 本地/聚合回归证据：`components/chart/test/semantics.rs::chart_check2_documents_e2e_repeatable_key_flow_rules_locally`、`components/chart/test/semantics.rs::chart_e2e_key_flow_is_repeatable_and_failure_points_are_semantic_locally`、`components/chart/test/semantics.rs::chart_check2_marks_e2e_repeatable_key_flow_item_complete_locally`、`components/chart/test/chart_semantics.rs::chart_check2_documents_e2e_repeatable_key_flow_rules`、`components/chart/test/chart_semantics.rs::chart_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/chart/test/chart_semantics.rs::chart_check2_marks_e2e_repeatable_key_flow_item_complete`。
-  - 门禁证据：`scripts/check-ui-components-e2e-chart.sh` 新增 `chart_check2_documents_e2e_repeatable_key_flow_rules` 与 `chart_e2e_key_flow_is_repeatable_and_failure_points_are_semantic` 命令，纳入 chart E2E 契约脚本。
+  - 门禁证据：`components/chart/scripts/check-ui-e2e-chart.sh` 新增 `chart_check2_documents_e2e_repeatable_key_flow_rules` 与 `chart_e2e_key_flow_is_repeatable_and_failure_points_are_semantic` 命令，纳入 chart E2E 契约脚本。
   - 环境说明：当前环境执行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断。
 - [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
@@ -534,7 +534,7 @@
   - docs 同步证据：`apps/docs-app/src/pages/components/pages/display_extra.rs::chart()` 维持 `Hello World`、`Comparison Matrix (Bar / Line / Disabled / Empty)`、`Controlled vs Uncontrolled Contrast`，并新增 `data-slot="chart-parameter-matrix"` 与 `data-slot="chart-state-matrix-summary"`（明确 `size/variant` 对 `Chart` 为 N/A）。
   - API/默认值一致性证据：参数矩阵与 `components/chart/src/view.rs` 公共 props（`kind/default_active_index/is_disabled/is_show_grid/id_base/aria_label`）对齐；默认值与 `components/chart/src/logic.rs` + `crates/ui-state-primitives/src/chart.rs` 对齐（`ChartKind::Bar`、`default_active_index=0(clamped)`、`is_disabled=false`、`is_show_grid=true`、`DEFAULT_ID_BASE="ui-chart"`、`DEFAULT_ARIA_LABEL="Chart"`）。
   - 本地/聚合回归证据：`components/chart/test/semantics.rs::chart_check2_documents_docs_sync_and_state_matrix_rules_locally`、`components/chart/test/semantics.rs::chart_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults_locally`、`components/chart/test/semantics.rs::chart_check2_marks_docs_sync_and_state_matrix_contract_complete_locally`、`components/chart/test/chart_semantics.rs::chart_check2_documents_docs_sync_and_state_matrix_rules`、`components/chart/test/chart_semantics.rs::chart_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`components/chart/test/chart_semantics.rs::chart_check2_marks_docs_sync_and_state_matrix_contract_complete`。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增 `chart_check2_documents_docs_sync_and_state_matrix_rules` 与 `chart_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults` 命令；脚本覆盖由 `components/chart/test/chart_semantics.rs::chart_dx_check_script_covers_docs_sync_and_state_matrix_contract` 固化。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增 `chart_check2_documents_docs_sync_and_state_matrix_rules` 与 `chart_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults` 命令；脚本覆盖由 `components/chart/test/chart_semantics.rs::chart_dx_check_script_covers_docs_sync_and_state_matrix_contract` 固化。
   - 环境说明：当前环境执行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断。
 - [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
@@ -543,7 +543,7 @@
   - 文档入口证据：`components/chart/src/README.md` 存在并提供 `## Hello World（最小可用）`、`## 常见用法`、`## 再进阶（受控 + 语义 + 动效）`；`apps/docs-app/src/pages/components/pages/display_extra.rs::chart()` 保持 docs-app 可访问入口。
   - 新手优先证据：`README` 明确“先传 `points` 即可运行，后续再按需开启受控、动作、动效等高级参数”；docs-app 中 `title="Hello World"` 位于 `title="Controlled vs Uncontrolled Contrast"` 之前，保持“先上手后进阶”顺序。
   - 本地/聚合回归证据：`components/chart/test/semantics.rs::chart_check2_documents_documentation_as_product_rules_locally`、`components/chart/test/semantics.rs::chart_documentation_entry_exists_with_beginner_first_progression_locally`、`components/chart/test/semantics.rs::chart_check2_marks_documentation_as_product_contract_complete_locally`、`components/chart/test/chart_semantics.rs::chart_check2_documents_documentation_as_product_rules`、`components/chart/test/chart_semantics.rs::chart_documentation_entry_exists_with_beginner_first_progression`、`components/chart/test/chart_semantics.rs::chart_check2_marks_documentation_as_product_contract_complete`。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增 `chart_check2_documents_documentation_as_product_rules`、`chart_documentation_entry_exists_with_beginner_first_progression` 与 `chart_dx_check_script_covers_documentation_as_product_contract` 命令。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增 `chart_check2_documents_documentation_as_product_rules`、`chart_documentation_entry_exists_with_beginner_first_progression` 与 `chart_dx_check_script_covers_documentation_as_product_contract` 命令。
   - 环境说明：当前环境执行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断。
 - [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
@@ -553,7 +553,7 @@
   - 可重复关键流程证据：复用 `e2e/tests/docs_app_chart_contract.spec.mjs` 中 `docs-app chart key flow is repeatable with semantic breakpoints`（`for (const cycle of [1, 2])`）验证键盘导航与 disabled 切换的可重复回放。
   - AI Spec 适用性：N/A。`Chart` 非 AI Spec 输入渲染组件，不存在独立 Spec 输入到预览输出链路；当前 Interactive Playground 已覆盖 props/state 联动与关键交互回放验收面。
   - 本地/聚合回归证据：`components/chart/test/semantics.rs::chart_check2_documents_interactive_playground_rules_locally`、`components/chart/test/semantics.rs::chart_docs_app_provides_interactive_playground_for_props_state_and_preview_locally`、`components/chart/test/semantics.rs::chart_interactive_playground_reuses_repeatable_semantic_e2e_flow_locally`、`components/chart/test/semantics.rs::chart_check2_marks_interactive_playground_contract_complete_locally`、`components/chart/test/chart_semantics.rs::chart_check2_documents_interactive_playground_rules`、`components/chart/test/chart_semantics.rs::chart_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/chart/test/chart_semantics.rs::chart_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/chart/test/chart_semantics.rs::chart_check2_marks_interactive_playground_contract_complete`。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增 `chart_check2_documents_interactive_playground_rules`、`chart_docs_app_provides_interactive_playground_for_props_state_and_preview`、`chart_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`chart_dx_check_script_covers_interactive_playground_contract` 命令。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增 `chart_check2_documents_interactive_playground_rules`、`chart_docs_app_provides_interactive_playground_for_props_state_and_preview`、`chart_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`chart_dx_check_script_covers_interactive_playground_contract` 命令。
   - 环境说明：当前环境执行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断。
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
@@ -563,7 +563,7 @@
   - 一键复制证据：`apps/docs-app/src/playground.rs::compose_copy_ready_code` 负责注入 imports；`components/code-block/src/view.rs` 持续提供复制按钮（`ui-code-block__copy-button` + `copy_to_clipboard_aria_label`）。
   - 真实落点/依赖证据：source-first 区块明确源码路径 `components/chart/src/{mod,logic,view,styles,motion}.rs` 与依赖基线 `component-chart + inject-css + UiRoot`，避免复制后缺依赖。
   - 本地/聚合回归证据：`components/chart/test/semantics.rs::chart_check2_documents_source_first_copy_paste_ready_rules_locally`、`components/chart/test/semantics.rs::chart_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies_locally`、`components/chart/test/semantics.rs::chart_check2_marks_source_first_copy_paste_ready_contract_complete_locally`、`components/chart/test/chart_semantics.rs::chart_check2_documents_source_first_copy_paste_ready_rules`、`components/chart/test/chart_semantics.rs::chart_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`components/chart/test/chart_semantics.rs::chart_check2_marks_source_first_copy_paste_ready_contract_complete`。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增 `chart_check2_documents_source_first_copy_paste_ready_rules`、`chart_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`chart_dx_check_script_covers_source_first_copy_paste_ready_contract` 命令。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增 `chart_check2_documents_source_first_copy_paste_ready_rules`、`chart_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`chart_dx_check_script_covers_source_first_copy_paste_ready_contract` 命令。
   - 环境说明：当前环境执行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断。
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
@@ -573,7 +573,7 @@
   - 研究文档判定：本轮仅为 `Chart` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
   - 入口可索引证据：`apps/docs-app/src/pages/components/pages.rs` 维持 `component_doc!("Chart", "chart", "Display", display_extra::chart)`；`apps/docs-app/src/pages/components/pages/display_extra.rs::chart()` 维持 `title="Chart"` 与 `slug="chart"`；`components/chart/src/README.md` 保留等价文档入口。
   - 本地/聚合回归证据：`components/chart/test/semantics.rs::chart_check2_documents_heroui_benchmark_docs_sync_rules_locally`、`components/chart/test/semantics.rs::chart_heroui_strategy_and_component_docs_are_synchronized_and_indexable_locally`、`components/chart/test/semantics.rs::chart_dx_check_script_covers_heroui_benchmark_docs_sync_contract_locally`、`components/chart/test/semantics.rs::chart_check2_marks_heroui_benchmark_docs_sync_contract_complete_locally`、`components/chart/test/chart_semantics.rs::chart_check2_documents_heroui_benchmark_docs_sync_rules`、`components/chart/test/chart_semantics.rs::chart_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/chart/test/chart_semantics.rs::chart_dx_check_script_covers_heroui_benchmark_docs_sync_contract`、`components/chart/test/chart_semantics.rs::chart_check2_marks_heroui_benchmark_docs_sync_contract_complete`。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增 `chart_check2_documents_heroui_benchmark_docs_sync_rules`、`chart_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`chart_dx_check_script_covers_heroui_benchmark_docs_sync_contract` 命令。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增 `chart_check2_documents_heroui_benchmark_docs_sync_rules`、`chart_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`chart_dx_check_script_covers_heroui_benchmark_docs_sync_contract` 命令。
   - 环境说明：当前环境执行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断。
 
 ### 8. 合并前门禁死命令（最终执行）
@@ -583,9 +583,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

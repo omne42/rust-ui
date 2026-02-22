@@ -116,7 +116,7 @@ This migration gate currently focuses on migrated source-first components:
 23. Token-first style system:
 - `styles.rs` must consume `var(--ui-*)` tokens and avoid private token namespaces
 - utility-first/CSS-in-Rust markers are forbidden in component-library source as default paradigm
-- CSS registry/injection must stay centralized in `crates/ui-components/src/css.rs` and `UiRoot`
+- CSS registry/injection must stay centralized in `crates/ui/src/css.rs` and `UiRoot`
 
 24. Visual baseline quality:
 - docs-app must keep a baseline page for default theme quality

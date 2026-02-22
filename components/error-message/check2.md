@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -150,7 +150,7 @@
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
 - [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
-  - 已满足：`mod.rs` 仅做最小导出与测试模块挂载；feature gate 在上层 `ui-components` crate 管理，此组件子 crate 内 N/A。
+  - 已满足：`mod.rs` 仅做最小导出与测试模块挂载；feature gate 在上层 `ui` crate 管理，此组件子 crate 内 N/A。
   - `logic.rs` 仅做 primitive re-export 与 class 组合，不含 DOM 操作/视图渲染/样式分支。
   - `styles.rs` 仅含 token-first 静态 CSS（`var(--ui-*)`），无业务文案与平台逻辑。
   - `view.rs` 仅做 Leptos 结构渲染 + `ui-headless` 语义挂载，状态归一调用集中在 `logic::resolve_model`。
@@ -168,11 +168,11 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 已满足：样式规则集中在 `components/error-message/src/styles.rs`，并由 `crates/ui-components/src/css.rs` 按 feature 聚合（`component-error_message`）后经 `UiRoot` 注入。
+  - 已满足：样式规则集中在 `components/error-message/src/styles.rs`，并由 `crates/ui/src/css.rs` 按 feature 聚合（`component-error_message`）后经 `UiRoot` 注入。
   - 视觉值来自 `var(--ui-*)`（字号/行高/颜色/动效变量等）；未引入组件私有 token 命名体系。
   - 运行时样式仅注入必要 CSS 变量（`--ui-error-message-transition-ms`），未把业务样式逻辑塞入 inline style。
   - 组件实现未使用 Utility-First 或 CSS-in-Rust 作为默认范式；应用层样式策略未反向污染组件契约。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -185,18 +185,18 @@
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
 - [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
-  - 已满足（package/source）：`crates/ui-components/Cargo.toml` 提供 `component-error_message`；`components/error-message` 作为独立源码 crate 可按需直接引入，不依赖全量注册表。
-  - 已满足（条件导出/聚合）：`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 对 `error_message` 均使用 `#[cfg(feature = "component-error_message")]`，未启用时不会进入编译与 CSS 聚合路径。
-  - 已满足（最小特性树）：实测 `cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-error_message,inject-css` 仅出现命令行特性 `component-error_message` 与 `inject-css`，未出现 `all-components`。
-  - 已满足（反向依赖）：实测 `cargo tree -e features -i ui-components -p web-demo` 仅由 `web-demo-components` 拉起演示集，不含 `all-components` 隐式全量拉起。
-  - 已满足（CI 最小特性 + 体积预算）：`.github/workflows/ci.yml` 执行 `./scripts/check-ui-components-tree-shaking.sh`；脚本包含 `--no-default-features` wasm 最小特性编译、release 构建与 `scripts/tree_shaking_budget.env` 阈值阻断（`TREE_SHAKING_BASELINE_RLIB_BYTES` + `TREE_SHAKING_MAX_RATIO_PERCENT`）。
+  - 已满足（package/source）：`crates/ui/Cargo.toml` 提供 `component-error_message`；`components/error-message` 作为独立源码 crate 可按需直接引入，不依赖全量注册表。
+  - 已满足（条件导出/聚合）：`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 对 `error_message` 均使用 `#[cfg(feature = "component-error_message")]`，未启用时不会进入编译与 CSS 聚合路径。
+  - 已满足（最小特性树）：实测 `cargo tree -e features -i ui -p ui --no-default-features --features component-error_message,inject-css` 仅出现命令行特性 `component-error_message` 与 `inject-css`，未出现 `all-components`。
+  - 已满足（反向依赖）：实测 `cargo tree -e features -i ui -p web-demo` 仅由 `web-demo-components` 拉起演示集，不含 `all-components` 隐式全量拉起。
+  - 已满足（CI 最小特性 + 体积预算）：`.github/workflows/ci.yml` 执行 `./scripts/check-ui-tree-shaking.sh`；脚本包含 `--no-default-features` wasm 最小特性编译、release 构建与 `scripts/tree_shaking_budget.env` 阈值阻断（`TREE_SHAKING_BASELINE_RLIB_BYTES` + `TREE_SHAKING_MAX_RATIO_PERCENT`）。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 已满足（类型约束）：`crates/ui-state-primitives/src/error_message.rs` 以 `ErrorMessageTone`、`ErrorMessageElement`、`ErrorMessageStatus` 三个 `enum` 建模离散输入与状态轴，避免字符串协议与布尔爆炸。
@@ -220,7 +220,7 @@
   - N/A（`error-message` 不生成动态 ID、无 hydration 期 ID 对齐需求；`components/error-message/src/view.rs` 仅渲染语义属性与文本，不含 `id/use_id/create_unique_id` 链路）。
   - N/A（`components/error-message/src/{logic,motion}.rs` 与 `crates/{ui-state-primitives,ui-headless}/src/error_message.rs` 未使用 `now()/random/uuid` 等非确定性初始化来源，不存在 SSR/客户端时序裂缝触发点）。
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
-  - 已满足（compile-only 证据命令）：`cargo check -p ui-components --no-default-features --features component-error_message,inject-css`（默认 native）、`cargo check -p ui-headless --no-default-features --features ssr`（ssr native）、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-error_message,inject-css`（web wasm32）；命令已记录于 `components/error-message/src/check2.md`。
+  - 已满足（compile-only 证据命令）：`cargo check -p ui --no-default-features --features component-error_message,inject-css`（默认 native）、`cargo check -p ui-headless --no-default-features --features ssr`（ssr native）、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-error_message,inject-css`（web wasm32）；命令已记录于 `components/error-message/src/check2.md`。
   - 已满足（平台分支显式管理）：`crates/ui-motion/src/lib.rs` 通过 `#[cfg(target_arch = "wasm32")]`/`#[cfg(not(target_arch = "wasm32"))]` 明确分支 `web` 后端；`crates/ui-headless/src/lib.rs` 对 web/ssr feature 互斥有 `compile_error!` 保护。
   - 已满足（non-wasm 禁止浏览器对象）：`components/error-message/src/*`、`crates/ui-state-primitives/src/error_message.rs`、`crates/ui-headless/src/error_message.rs` 未引用 `web-sys/js-sys/wasm-bindgen`；浏览器对象访问集中在 `crates/ui-motion/src/web.rs` 且仅 wasm 分支可达。
   - 本地验证备注：当前容器执行上述 `cargo check` 命令会触发环境级 `Invalid cross-device link (os error 18)`；按仓库门禁脚本与已记录命令作为可追溯证据，最终阻断以 CI 为准。
@@ -230,7 +230,7 @@
 - [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
   - 已满足（互斥保护存在）：`crates/ui-headless/src/lib.rs` 顶层包含 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)`，明确禁止 `web+ssr` 同时启用。
   - 已满足（组件依赖不破坏约束）：`components/error-message/src/view.rs` 通过 `use ui_headless::{A11yDirection, ErrorMessageOptions, use_error_message};` 消费 headless 契约，未引入绕过 feature 互斥的并行实现。
-  - 已满足（双路径可编译与互斥失败验证入口）：`scripts/check.sh` 覆盖 `ui-headless` 的 `ssr`（native）与 `web`（wasm32）compile-only；`scripts/check-ui-components-platforms.sh` 包含 `--features web,ssr` 必须失败且错误文本需匹配 `mutually exclusive` 的守卫。
+  - 已满足（双路径可编译与互斥失败验证入口）：`scripts/check.sh` 覆盖 `ui-headless` 的 `ssr`（native）与 `web`（wasm32）compile-only；`scripts/check-ui-platforms.sh` 包含 `--features web,ssr` 必须失败且错误文本需匹配 `mutually exclusive` 的守卫。
   - 本地验证备注：当前容器执行 `cargo check` 受环境级 `Invalid cross-device link (os error 18)` 影响；该项以源码守卫与仓库脚本门禁为可追溯证据，最终阻断以 CI 为准。
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
@@ -239,7 +239,7 @@
   - 已满足（non-wasm stub 存在）：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(...)` no-op，实现 SSR/tooling 可编译降级。
   - 已满足（组件调用安全降级）：`components/error-message/src/motion.rs` 仅通过 `ui_motion::web::prefers_reduced_motion()` 计算过渡参数，不依赖动画句柄存在，也未直接调用 `web_sys`。
   - 已满足（行为可预测）：`crates/ui-motion/src/lib.rs` 与 `crates/ui-motion/src/test/lib.rs` 均包含 `non_wasm_web_backend_is_predictable_noop`，验证 non-wasm 分支固定 reduced/no-op 语义。
-  - 已满足（toolchain 门禁入口）：`scripts/check-ui-components-platforms.sh` 覆盖 `cargo check -p ui-motion` 与 `cargo check -p ui-motion --target wasm32-unknown-unknown`，并执行 `cargo test -p ui-motion --test non_wasm_stub`。
+  - 已满足（toolchain 门禁入口）：`scripts/check-ui-platforms.sh` 覆盖 `cargo check -p ui-motion` 与 `cargo check -p ui-motion --target wasm32-unknown-unknown`，并执行 `cargo test -p ui-motion --test non_wasm_stub`。
   - 本地验证备注：当前容器 `cargo check` 受环境级 `Invalid cross-device link (os error 18)` 影响；本条以源码与脚本门禁链路作为可追溯证据，最终阻断以 CI 为准。
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
@@ -267,7 +267,7 @@
   - 已满足（结构扁平）：`components/error-message/src/view.rs` 以 `match element` 切分为 `Span/Paragraph/Div` 三个语义分支；每个 `view!` 仅渲染单个根节点 + 文本内容，不存在 header/body/item 级深层嵌套。
   - 已满足（语义分块）：状态归一与来源判定已前置到 `logic::resolve_model(...)`，A11y 契约由 `use_error_message(...)` 提供，`view!` 仅负责挂载，避免把状态机规则塞入宏体。
   - 已满足（重复片段风险可控）：当前重复仅限三种元素标签的属性挂载（`span/p/div`），非递归模板/非深层重复子树；该叶子组件无列表/slot 展开路径，不会形成宏展开级联。
-  - 已满足（体积回归守卫）：组件仍受 `scripts/check-ui-components-tree-shaking.sh` 的最小特性 wasm 构建与预算门禁约束；若后续出现编译时间或产物异常增长，优先回查 `view.rs` 宏展开体量。
+  - 已满足（体积回归守卫）：组件仍受 `scripts/check-ui-tree-shaking.sh` 的最小特性 wasm 构建与预算门禁约束；若后续出现编译时间或产物异常增长，优先回查 `view.rs` 宏展开体量。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
@@ -323,27 +323,27 @@
   - 已满足（SSOT 终值来源）：组件侧移除了 `12px/16px/140ms/ease` 等本地终值，fallback 统一指向 `ui-theme` 生成的 `--ui-fallback-*` 变量（见 `crates/ui-theme/src/css.rs`）。
   - 已满足（回归约束）：新增 `components/error-message/test/semantics.rs::error_message_styles_use_defensive_variable_fallback_chain`，并同步更新 `components/error-message/test/error_message_semantics.rs`，锁定防御性变量链路并阻断终值回归。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 已满足（`@layer ui` 聚合）：`crates/ui-components/src/css.rs::push_components_css` 统一以 `out.push_str(\"\\n@layer ui {\\n\")` 包裹组件样式，并在 `component-error_message` feature 下聚合 `crate::error_message::styles::CSS`。
+  - 已满足（`@layer ui` 聚合）：`crates/ui/src/css.rs::push_components_css` 统一以 `out.push_str(\"\\n@layer ui {\\n\")` 包裹组件样式，并在 `component-error_message` feature 下聚合 `crate::error_message::styles::CSS`。
   - 已满足（运行时仅 CSS 变量）：`components/error-message/src/view.rs` 的 `style` 来源固定为 `attach_motion(None, motion)`；`components/error-message/src/motion.rs` 仅写入 `--ui-error-message-transition-ms` 自定义属性，不注入 `top/left/width/...` 等普通布局样式。
   - 已满足（回归约束）：`components/error-message/test/motion.rs::attach_motion_exposes_css_variable` 新增禁止普通内联样式断言（`top/left/right/bottom/width/height`），阻断未来回归。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 已满足（组件合同化）：`components/error-message/src/motion.rs` 定义 `ErrorMessageMotion { transition_ms }` 作为组件内置 motion contract，并在 `attach_motion` 中统一挂载 `--ui-error-message-transition-ms`；`sanitize_motion` 负责边界钳制与默认值归一。
   - N/A（`stiffness/damping`）：`error-message` 为轻量文本反馈组件，当前采用时长型 contract（`transition_ms`）而非 spring 物理参数；未自实现 driver/keyframe/spring 执行器，符合“组件层只映射 contract”边界。
   - 已满足（reduced-motion）：`resolve_effective_transition_ms(..., prefers_reduced_motion)` 在 reduced-motion 下强制返回 `MIN_TRANSITION_MS`，`attach_motion` 通过 `ui_motion::web::prefers_reduced_motion()` 应用该降级策略；`components/error-message/test/motion.rs` 已覆盖。
-  - 已满足（non-wasm/SSR 安全降级）：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = \"wasm32\"))]` 提供 `prefers_reduced_motion() -> true` 与 `animate(...)` no-op stub；`crates/ui-motion/tests/non_wasm_stub.rs` 与 `scripts/check-ui-components-platforms.sh` 提供回归守卫。
-- [x] `ui-components` 固定入口文件落点正确。
-  - 已满足（`lib.rs` 入口与导出面）：`crates/ui-components/src/lib.rs` 作为总模块入口，组件导出受 `component-*` feature gate 约束（如 `component-error_message`），并统一导出 `UiRoot` 与 `push_components_css` 包装函数。
-  - 已满足（`css.rs` 条件聚合）：`crates/ui-components/src/css.rs` 提供 `push_components_css`，在 `inject-css`/`component-*` 条件下聚合样式，`component-error_message` 仅在对应 feature 启用时注入。
-  - 已满足（`root.rs` 集中注入与上下文）：`crates/ui-components/src/root.rs::UiRoot` 统一注入 base css + theme vars + optional components css，并提供全局 i18n/IdProvider 上下文注入。
+  - 已满足（non-wasm/SSR 安全降级）：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = \"wasm32\"))]` 提供 `prefers_reduced_motion() -> true` 与 `animate(...)` no-op stub；`crates/ui-motion/tests/non_wasm_stub.rs` 与 `scripts/check-ui-platforms.sh` 提供回归守卫。
+- [x] `ui` 固定入口文件落点正确。
+  - 已满足（`lib.rs` 入口与导出面）：`crates/ui/src/lib.rs` 作为总模块入口，组件导出受 `component-*` feature gate 约束（如 `component-error_message`），并统一导出 `UiRoot` 与 `push_components_css` 包装函数。
+  - 已满足（`css.rs` 条件聚合）：`crates/ui/src/css.rs` 提供 `push_components_css`，在 `inject-css`/`component-*` 条件下聚合样式，`component-error_message` 仅在对应 feature 启用时注入。
+  - 已满足（`root.rs` 集中注入与上下文）：`crates/ui/src/root.rs::UiRoot` 统一注入 base css + theme vars + optional components css，并提供全局 i18n/IdProvider 上下文注入。
   - 已满足（共享高亮能力落点）：`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载通用高亮样式与 motion driver，不承载具体组件业务语义。
-  - 已满足（禁止文件不存在）：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 当前均不存在，open/presence/a11y 原语维持在 `ui-headless`。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+  - 已满足（禁止文件不存在）：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 当前均不存在，open/presence/a11y 原语维持在 `ui-headless`。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。
   - 已满足（`mod.rs` 最小导出）：`components/error-message/src/mod.rs` 仅维护 `logic/motion/styles/view` 模块边界与必要 `pub use`，未引入过度导出。
   - 已满足（`logic.rs` 职责边界）：`components/error-message/src/logic.rs` 仅做 props/state 归一化能力 re-export 与 class 组合，不含 DOM 操作与可下沉原语重写。
@@ -408,12 +408,12 @@
   - 已满足（无 `unwrap/expect/let _ =`）：组件相关非测试代码范围 `components/error-message/src`、`crates/ui-headless/src/error_message.rs`、`crates/ui-state-primitives/src/error_message.rs` 经等价扫描零命中。
   - 已满足（字符串复制热点收敛）：`components/error-message/src/logic.rs` 的 class token 组装改为 `Cow<'static, str>`，移除静态 token 的 `String` 分配路径。
   - 验证说明：仓库脚本 `./scripts/check-rust-hygiene.sh` 在当前环境被 `./scripts/check-api-contracts.sh` 执行权限与 `rg --pcre2` 能力缺失阻断；已执行组件范围等价命令完成本项校验：`rg -n '\\.(unwrap|unwrap_err|expect)\\s*\\(|^[[:space:]]*let[[:space:]]+_[[:space:]]*=|(\\.to_owned\\(\\)|String::from\\()' components/error-message/src crates/ui-headless/src/error_message.rs crates/ui-state-primitives/src/error_message.rs`（结果 `HYGIENE_SCAN_OK`）。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 已满足（特性树注册）：`crates/ui-components/Cargo.toml` 定义 `component-error_message = ["dep:ui-error-message"]`，且 `ui-error-message` 依赖为 `optional = true`，未启用时不进入编译链接路径。
-  - 已满足（`lib.rs` 条件导出）：`crates/ui-components/src/lib.rs` 仅在 `#[cfg(feature = "component-error_message")]` 下导出 `pub use ui_error_message as error_message;`，不存在无条件暴露。
-  - 已满足（`css.rs` 条件聚合）：`crates/ui-components/src/css.rs` 仅在 `#[cfg(feature = "component-error_message")]` 下注入 `crate::error_message::styles::CSS`，未启用时不聚合该组件样式。
-  - 已满足（最小特性树证据）：`cargo tree -e features -p ui-components --no-default-features --features component-error_message,inject-css` 输出仅显示 `ui-components feature "component-error_message"` 对应 `ui-error-message` 依赖链。
-  - 已满足（反向依赖证据）：`cargo tree -e features -i ui-components -p web-demo` 显示 `component-error_message` 由 `web-demo-components` 显式拉起，不存在“无条件全量组件注册表”路径。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 已满足（特性树注册）：`crates/ui/Cargo.toml` 定义 `component-error_message = ["dep:ui-error-message"]`，且 `ui-error-message` 依赖为 `optional = true`，未启用时不进入编译链接路径。
+  - 已满足（`lib.rs` 条件导出）：`crates/ui/src/lib.rs` 仅在 `#[cfg(feature = "component-error_message")]` 下导出 `pub use ui_error_message as error_message;`，不存在无条件暴露。
+  - 已满足（`css.rs` 条件聚合）：`crates/ui/src/css.rs` 仅在 `#[cfg(feature = "component-error_message")]` 下注入 `crate::error_message::styles::CSS`，未启用时不聚合该组件样式。
+  - 已满足（最小特性树证据）：`cargo tree -e features -p ui --no-default-features --features component-error_message,inject-css` 输出仅显示 `ui feature "component-error_message"` 对应 `ui-error-message` 依赖链。
+  - 已满足（反向依赖证据）：`cargo tree -e features -i ui -p web-demo` 显示 `component-error_message` 由 `web-demo-components` 显式拉起，不存在“无条件全量组件注册表”路径。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 已满足（语义契约断言，不依赖快照）：`components/error-message/test/semantics.rs` 新增 `error_message_semantics_tests_cover_aria_and_data_contracts`，显式断言 `role/aria-live/aria-label/aria-disabled` 与关键 `data-*`（`data-state/data-message-source/data-ui-state/data-output-status`）挂载。
   - 已满足（焦点流转 N/A 且可验证）：`error-message` 为非交互 live-region 叶子组件；`components/error-message/test/semantics.rs` 新增 `error_message_is_non_interactive_leaf_without_focus_or_high_frequency_loops`，断言 `view.rs` 不包含 `tabindex`、`on:focus/on:keydown` 等焦点/键盘处理入口。
@@ -474,7 +474,7 @@
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
-  - 已满足（一键复制 + 可运行 imports）：`apps/docs-app/src/pages/components/pages/forms_extra.rs` 提供 `data-slot="error-message-source-first"` 与 `Snippet(copyable=true)`，并给出含 `use leptos::prelude::*; use ui_components::*;` 的最小可运行片段；Playground 复制链路通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐缺失 imports。
+  - 已满足（一键复制 + 可运行 imports）：`apps/docs-app/src/pages/components/pages/forms_extra.rs` 提供 `data-slot="error-message-source-first"` 与 `Snippet(copyable=true)`，并给出含 `use leptos::prelude::*; use ui::*;` 的最小可运行片段；Playground 复制链路通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐缺失 imports。
   - 已满足（真实源码落点与依赖前提）：source-first 区块显式列出 `components/error-message/src/{mod,logic,view,styles,motion}.rs`，并标注 `component-error_message`、`inject-css` 两项前置特性，避免“复制即报错”。
   - 已满足（文档与实现同步防漂移）：`components/error-message/test/error_message_semantics.rs` 对 `data-slot="error-message-source-first"`、`compose_copy_ready_code`、`error-message-source-paths`、`error-message-source-prerequisites` 设有断言；`e2e/tests/docs_app_error_message_contract.spec.mjs` 断言 playground code block `data-copyable=true`，回归可定位。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
@@ -495,9 +495,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

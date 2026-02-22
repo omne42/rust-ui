@@ -267,15 +267,15 @@ Async interaction:
 
 - Component styles are defined in `components/file-trigger/src/styles.rs` as static CSS constants.
 - Aggregation/injection path is feature-gated and centralized:
-  - `crates/ui-components/src/css.rs` appends `crate::file_trigger::styles::CSS` under `component-file_trigger`
-  - `crates/ui-components/src/root.rs` calls `crate::css::push_components_css(...)` when `inject_components_css=true`
+  - `crates/ui/src/css.rs` appends `crate::file_trigger::styles::CSS` under `component-file_trigger`
+  - `crates/ui/src/root.rs` calls `crate::css::push_components_css(...)` when `inject_components_css=true`
 - Spacing/color-related visual semantics consume `var(--ui-*)` tokens (e.g. `var(--ui-space-sm)`), with no parallel private token system.
 - Utility-First and CSS-in-Rust are not used as the component default styling mechanism.
 
 ## Tree Shaking
 
-- Package mode: `component-file_trigger` gates module exposure in `crates/ui-components/src/lib.rs`.
-- Style gating: `crates/ui-components/src/css.rs` appends `file_trigger::styles::CSS` only when `component-file_trigger` (and `inject-css`) is enabled.
+- Package mode: `component-file_trigger` gates module exposure in `crates/ui/src/lib.rs`.
+- Style gating: `crates/ui/src/css.rs` appends `file_trigger::styles::CSS` only when `component-file_trigger` (and `inject-css`) is enabled.
 - Source mode: direct source-path module inclusion (`#[path = "../../../components/file-trigger/src/mod.rs"]`) keeps usage naturally component-scoped.
 - Repository-level CI budget thresholds (artifact size caps) are governed outside this component folder.
 
@@ -323,7 +323,7 @@ Async interaction:
 ## Defensive Variables and Layering
 
 - `styles.rs` uses token variables with fallback chains (`var(--ui-*, var(--ui-fallback-*))`) for spacing/opacity/sr-only sizing.
-- Component CSS is aggregated into `@layer ui` via `crates/ui-components/src/css.rs`.
+- Component CSS is aggregated into `@layer ui` via `crates/ui/src/css.rs`.
 - Runtime style mutation is limited to semantic/custom-property channels; no raw inline layout styles are emitted from `view.rs`.
 
 ## Motion Contract
@@ -333,8 +333,8 @@ Async interaction:
 
 ## Entry and File Layout
 
-- `ui-components` integration remains feature-gated in `crates/ui-components/src/lib.rs` and `crates/ui-components/src/css.rs`; `root.rs` remains the unified injection/i18n root.
-- Disallowed shared files (`overlay_open.rs`, `presence.rs`, `a11y.rs`) are not introduced in `crates/ui-components/src` by this component.
+- `ui` integration remains feature-gated in `crates/ui/src/lib.rs` and `crates/ui/src/css.rs`; `root.rs` remains the unified injection/i18n root.
+- Disallowed shared files (`overlay_open.rs`, `presence.rs`, `a11y.rs`) are not introduced in `crates/ui/src` by this component.
 - Component directory keeps canonical files: `mod.rs`, `logic.rs`, `styles.rs`, `view.rs`, `motion.rs`; no `render.rs`.
 - `spec.rs` is intentionally absent for this simple component surface.
 

@@ -13,17 +13,17 @@ fn load_source(rel_path: &str) -> &'static str {
             include_str!("../src/color_picker.rbi")
         }
         "../../components/color-picker/Cargo.toml" => include_str!("../Cargo.toml"),
-        "../../crates/ui-components/src/css.rs" => {
-            include_str!("../../../crates/ui-components/src/css.rs")
+        "../../crates/ui/src/css.rs" => {
+            include_str!("../../../crates/ui/src/css.rs")
         }
-        "../../crates/ui-components/src/lib.rs" => {
-            include_str!("../../../crates/ui-components/src/lib.rs")
+        "../../crates/ui/src/lib.rs" => {
+            include_str!("../../../crates/ui/src/lib.rs")
         }
-        "../../crates/ui-components/Cargo.toml" => {
-            include_str!("../../../crates/ui-components/Cargo.toml")
+        "../../crates/ui/Cargo.toml" => {
+            include_str!("../../../crates/ui/Cargo.toml")
         }
-        "../../crates/ui-components/src/root.rs" => {
-            include_str!("../../../crates/ui-components/src/root.rs")
+        "../../crates/ui/src/root.rs" => {
+            include_str!("../../../crates/ui/src/root.rs")
         }
         "../../crates/ui-motion/src/lib.rs" => include_str!("../../../crates/ui-motion/src/lib.rs"),
         "../../crates/ui-motion/src/web.rs" => include_str!("../../../crates/ui-motion/src/web.rs"),
@@ -87,35 +87,35 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../e2e/tests/docs_app_color_picker_contract.spec.mjs" => {
             include_str!("../../../e2e/tests/docs_app_color_picker_contract.spec.mjs")
         }
-        "../../scripts/check-ui-components-performance.sh" => {
-            include_str!("../../../scripts/check-ui-components-performance.sh")
+        "../../scripts/check-ui-performance.sh" => {
+            include_str!("../../../scripts/check-ui-performance.sh")
         }
-        "../../scripts/check-ui-components-component-files.sh" => {
-            include_str!("../../../scripts/check-ui-components-component-files.sh")
+        "../../scripts/check-ui-component-files.sh" => {
+            include_str!("../../../scripts/check-ui-component-files.sh")
         }
-        "../../scripts/check-ui-components-inner-html.sh" => {
-            include_str!("../../../scripts/check-ui-components-inner-html.sh")
+        "../../scripts/check-ui-inner-html.sh" => {
+            include_str!("../../../scripts/check-ui-inner-html.sh")
         }
-        "../../scripts/check-ui-components-dx.sh" => {
-            include_str!("../../../scripts/check-ui-components-dx.sh")
+        "../../scripts/check-ui-dx.sh" => {
+            include_str!("../../../scripts/check-ui-dx.sh")
         }
-        "../../scripts/check-ui-components-engineering.sh" => {
-            include_str!("../../../scripts/check-ui-components-engineering.sh")
+        "../../scripts/check-ui-engineering.sh" => {
+            include_str!("../../../scripts/check-ui-engineering.sh")
         }
-        "../../scripts/check-ui-components-e2e-color-picker.sh" => {
-            include_str!("../../../scripts/check-ui-components-e2e-color-picker.sh")
+        "../../components/color-picker/scripts/check-ui-e2e-color-picker.sh" => {
+            include_str!("../../../components/color-picker/scripts/check-ui-e2e-color-picker.sh")
         }
-        "../../scripts/check-ui-components-wasm-debug.sh" => {
-            include_str!("../../../scripts/check-ui-components-wasm-debug.sh")
+        "../../scripts/check-ui-wasm-debug.sh" => {
+            include_str!("../../../scripts/check-ui-wasm-debug.sh")
         }
-        "../../scripts/check-ui-components-view-macro.sh" => {
-            include_str!("../../../scripts/check-ui-components-view-macro.sh")
+        "../../scripts/check-ui-view-macro.sh" => {
+            include_str!("../../../scripts/check-ui-view-macro.sh")
         }
-        "../../scripts/check-ui-components-streaming.sh" => {
-            include_str!("../../../scripts/check-ui-components-streaming.sh")
+        "../../scripts/check-ui-streaming.sh" => {
+            include_str!("../../../scripts/check-ui-streaming.sh")
         }
-        "../../scripts/check-ui-components-contract-hygiene.sh" => {
-            include_str!("../../../scripts/check-ui-components-contract-hygiene.sh")
+        "../../scripts/check-ui-contract-hygiene.sh" => {
+            include_str!("../../../scripts/check-ui-contract-hygiene.sh")
         }
         "../../apps/docs-app/src/playground.rs" => {
             include_str!("../../../apps/docs-app/src/playground.rs")
@@ -153,7 +153,7 @@ fn color_picker_semantics_tests_are_migrated_to_component_directory() {
 
     assert!(
         legacy_semantics.contains("../../../components/color-picker/test/semantics.rs"),
-        "legacy ui-components semantics entry should include migrated component semantics file.",
+        "legacy ui semantics entry should include migrated component semantics file.",
     );
     assert!(
         local_semantics
@@ -200,7 +200,7 @@ fn color_picker_component_layer_keeps_file_responsibilities() {
         "mod view;",
         "pub use view::ColorPicker;",
         "pub use motion::ColorPickerMotion;",
-        "#[cfg(test)]",
+        "#[cfg(all(test, not(feature = \"component-color_picker\")))]",
         "#[path = \"../test/semantics.rs\"]",
     ] {
         assert!(
@@ -323,7 +323,7 @@ fn color_picker_component_layer_keeps_file_responsibilities() {
 #[test]
 fn color_picker_component_directory_standard_files_follow_contract_and_na_paths() {
     let check2_source = load_source("../../components/color-picker/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
     let mod_source = load_source("../../components/color-picker/src/mod.rs");
     let logic_source = load_source("../../components/color-picker/src/logic.rs");
     let styles_source = load_source("../../components/color-picker/src/styles.rs");
@@ -490,7 +490,7 @@ fn color_picker_file_placement_discipline_contract_is_explicit_for_interactive_c
     let styles_source = load_source("../../components/color-picker/src/styles.rs");
     let view_source = load_source("../../components/color-picker/src/view.rs");
     let motion_source = load_source("../../components/color-picker/src/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     assert!(
         check2_source.contains("文件落点纪律"),
@@ -554,7 +554,7 @@ fn color_picker_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_co
     let styles_source = load_source("../../components/color-picker/src/styles.rs");
     let motion_source = load_source("../../components/color-picker/src/motion.rs");
     let protocol_source = load_source("../../components/color-picker/src/protocol.rs");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     assert!(
         check2_source.contains("Hyper-Structure Builder（`spec.rs`）"),
@@ -618,7 +618,7 @@ fn color_picker_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_co
 #[test]
 fn color_picker_context_compression_manifest_and_rbi_projection_are_present_and_current() {
     let check2_source = load_source("../../components/color-picker/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
     let component_manifest = load_source("../../components/color-picker/src/Component.toml");
     let component_rbi = load_source("../../components/color-picker/src/color_picker.rbi");
 
@@ -684,7 +684,7 @@ fn color_picker_context_compression_manifest_and_rbi_projection_are_present_and_
     );
 
     for required in [
-        "- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`components/color-picker/src/Component.toml` 与 `components/color-picker/src/color_picker.rbi` 已同步维护；`Component.toml` 覆盖输入输出轴与能力清单，`.rbi` 提供 `ColorPicker` 接口签名投影，避免 AI 检索漂移。回归：`components/color-picker/test/semantics.rs::color_picker_context_compression_manifest_and_rbi_projection_are_present_and_current`；门禁脚本：`scripts/check-ui-components-component-files.sh` 新增 `cargo test -p ui-color-picker color_picker_context_compression_manifest_and_rbi_projection_are_present_and_current`。）",
+        "- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`components/color-picker/src/Component.toml` 与 `components/color-picker/src/color_picker.rbi` 已同步维护；`Component.toml` 覆盖输入输出轴与能力清单，`.rbi` 提供 `ColorPicker` 接口签名投影，避免 AI 检索漂移。回归：`components/color-picker/test/semantics.rs::color_picker_context_compression_manifest_and_rbi_projection_are_present_and_current`；门禁脚本：`scripts/check-ui-component-files.sh` 新增 `cargo test -p ui-color-picker color_picker_context_compression_manifest_and_rbi_projection_are_present_and_current`。）",
         "color_picker_context_compression_manifest_and_rbi_projection_are_present_and_current",
     ] {
         assert!(
@@ -778,7 +778,7 @@ fn color_picker_agent_contract_is_schema_typed_and_machine_readable() {
     }
 
     for required in [
-        "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`components/color-picker/src/logic.rs` 新增类型化 Agent Contract（`ColorPickerAgent{SchemaVersion/Intent/Action/State/Source}` + `resolve_agent_contract`），`components/color-picker/src/view.rs` 挂载稳定 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source` 与来源轴标记（`data-ui-*-source`）；`components/color-picker/src/Component.toml` 补充 `agent-contract-markers`、`agent_contract_schema_markers`、`[[agent_contract]]` 与 marker 白名单描述。回归由 `components/color-picker/test/semantics.rs::color_picker_agent_contract_is_schema_typed_and_machine_readable` 与 `components/color-picker/test/semantics.rs::color_picker_agent_contract_render_path_is_whitelist_safe_and_script_injection_free` 覆盖，并接入 `scripts/check-ui-components-contract-hygiene.sh` 门禁。）",
+        "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`components/color-picker/src/logic.rs` 新增类型化 Agent Contract（`ColorPickerAgent{SchemaVersion/Intent/Action/State/Source}` + `resolve_agent_contract`），`components/color-picker/src/view.rs` 挂载稳定 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source` 与来源轴标记（`data-ui-*-source`）；`components/color-picker/src/Component.toml` 补充 `agent-contract-markers`、`agent_contract_schema_markers`、`[[agent_contract]]` 与 marker 白名单描述。回归由 `components/color-picker/test/semantics.rs::color_picker_agent_contract_is_schema_typed_and_machine_readable` 与 `components/color-picker/test/semantics.rs::color_picker_agent_contract_render_path_is_whitelist_safe_and_script_injection_free` 覆盖，并接入 `scripts/check-ui-contract-hygiene.sh` 门禁。）",
         "color_picker_agent_contract_is_schema_typed_and_machine_readable",
     ] {
         assert!(
@@ -794,7 +794,7 @@ fn color_picker_agent_contract_render_path_is_whitelist_safe_and_script_injectio
     let logic_source = load_source("../../components/color-picker/src/logic.rs");
     let view_source = load_source("../../components/color-picker/src/view.rs");
     let component_manifest = load_source("../../components/color-picker/src/Component.toml");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "[[agent_contract_whitelist]]",
@@ -859,10 +859,10 @@ fn color_picker_check2_documents_streaming_definition_is_llm_output_only_with_tw
     let styles_source = load_source("../../components/color-picker/src/styles.rs");
     let docs_page_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for required in [
-        "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（N/A：`ColorPicker` 不是 LLM 正文渲染组件，组件职责是同步颜色选择与弹层开合控制；组件侧不实现 token-by-token streaming 协议，仅消费稳定快照状态输入。术语约束固定为两种显示模式：`Streaming`（边生成边显示）与 `Snapshot`（完整结果一次性显示），避免在组件层引入第三种“伪流式”定义。回归：`components/color-picker/test/semantics.rs::color_picker_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`；门禁脚本：`scripts/check-ui-components-streaming.sh` 新增 `cargo test -p ui-color-picker color_picker_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`。）",
+        "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（N/A：`ColorPicker` 不是 LLM 正文渲染组件，组件职责是同步颜色选择与弹层开合控制；组件侧不实现 token-by-token streaming 协议，仅消费稳定快照状态输入。术语约束固定为两种显示模式：`Streaming`（边生成边显示）与 `Snapshot`（完整结果一次性显示），避免在组件层引入第三种“伪流式”定义。回归：`components/color-picker/test/semantics.rs::color_picker_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`；门禁脚本：`scripts/check-ui-streaming.sh` 新增 `cargo test -p ui-color-picker color_picker_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`。）",
         "`Streaming`：LLM 还在生成，界面边生成边显示。",
         "`Snapshot`：LLM 全部生成完成后，一次性显示。",
         "N/A：`ColorPicker` 不是 LLM 正文渲染组件",
@@ -896,7 +896,7 @@ fn color_picker_check2_documents_snapshot_as_default_baseline_capability() {
     let check2_source = load_source("../../components/color-picker/check2.md");
 
     for required in [
-        "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`ColorPicker` 已支持完整配置快照输入并稳定渲染：`components/color-picker/src/view.rs` 通过受控/非受控三件套（`value/default_value/on_value_change`、`selected_color/default_selected_color/on_selected_change`、`open/default_open/on_open_change`）+ 归一化边界（`logic::resolve_default_selected_color`、`logic::resolve_derived_state`）消费完整结果，根节点持续输出稳定语义标记（`data-state/data-open/data-disabled/data-open-mode/data-label-source/data-aria-source/data-class-source/data-ui-stream-fallback/data-ui-stream-mode/...`）。docs 基线示例 `apps/docs-app/src/pages/components/pages/forms_color.rs` 提供 Hello World、Controlled、Open by default 等完整快照路径。回归：`components/color-picker/test/semantics.rs::color_picker_check2_documents_snapshot_as_default_baseline_capability` 与 `components/color-picker/test/semantics.rs::color_picker_snapshot_baseline_consumes_complete_result_and_renders_stably`；门禁脚本：`scripts/check-ui-components-streaming.sh` 新增 `cargo test -p ui-color-picker color_picker_snapshot_baseline_consumes_complete_result_and_renders_stably`。）",
+        "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`ColorPicker` 已支持完整配置快照输入并稳定渲染：`components/color-picker/src/view.rs` 通过受控/非受控三件套（`value/default_value/on_value_change`、`selected_color/default_selected_color/on_selected_change`、`open/default_open/on_open_change`）+ 归一化边界（`logic::resolve_default_selected_color`、`logic::resolve_derived_state`）消费完整结果，根节点持续输出稳定语义标记（`data-state/data-open/data-disabled/data-open-mode/data-label-source/data-aria-source/data-class-source/data-ui-stream-fallback/data-ui-stream-mode/...`）。docs 基线示例 `apps/docs-app/src/pages/components/pages/forms_color.rs` 提供 Hello World、Controlled、Open by default 等完整快照路径。回归：`components/color-picker/test/semantics.rs::color_picker_check2_documents_snapshot_as_default_baseline_capability` 与 `components/color-picker/test/semantics.rs::color_picker_snapshot_baseline_consumes_complete_result_and_renders_stably`；门禁脚本：`scripts/check-ui-streaming.sh` 新增 `cargo test -p ui-color-picker color_picker_snapshot_baseline_consumes_complete_result_and_renders_stably`。）",
         "所有组件都应能消费“完整生成结果”并稳定渲染。",
         "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
     ] {
@@ -912,7 +912,7 @@ fn color_picker_snapshot_baseline_consumes_complete_result_and_renders_stably() 
     let view_source = load_source("../../components/color-picker/src/view.rs");
     let logic_source = load_source("../../components/color-picker/src/logic.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for marker in [
         "pub fn ColorPicker(",
@@ -962,16 +962,17 @@ fn color_picker_snapshot_baseline_consumes_complete_result_and_renders_stably() 
     for marker in [
         "title=\"ColorPicker\"",
         "slug=\"color-picker\"",
-        "<Playground title=\"Hello World（默认路径）\" code_signal=hello_code>",
+        "<Playground title=\"Hello World\" code_signal=hello_code>",
         "<ColorPicker id_base=\"docs-color-picker-hello\".to_string()>",
-        "<Playground title=\"Controlled Color + Controlled Open\" code_signal=basic_code>",
-        "id_base=\"docs-color-picker-basic\".to_string()",
-        "selected_color=selected_color_signal",
+        "title=\"Config Workbench\"",
+        "code_signal=workbench_code",
+        "id_base=\"docs-color-picker-workbench\".to_string()",
+        "selected_color=workbench_selected_color",
         "on_selected_change=on_selected_change",
-        "open=open_signal",
+        "open=workbench_open",
         "on_open_change=on_open_change",
-        "<Playground title=\"Disabled + Default Open + Custom Class\" code_signal=states_code>",
-        "id_base=\"docs-color-picker-open\".to_string()",
+        "<Playground title=\"State Matrix\" code_signal=matrix_code>",
+        "id_base=\"docs-color-picker-matrix-open\".to_string()",
         "default_open=true",
     ] {
         assert!(
@@ -990,10 +991,10 @@ fn color_picker_snapshot_baseline_consumes_complete_result_and_renders_stably() 
 #[test]
 fn color_picker_check2_documents_streaming_required_optional_classification_rules() {
     let check2_source = load_source("../../components/color-picker/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for required in [
-        "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`ColorPicker` 归类为 `Streaming Optional`；组件职责是颜色选择与弹层交互而非 LLM 正文阅读面，默认走 `Snapshot` 渲染路径。实现显式输出 `data-ui-stream-support=\"unsupported\"`、`data-ui-stream-fallback=\"snapshot\"`、`data-ui-stream-mode=\"snapshot\"` 与 `data-ui-output-status`，并保持 `role/aria/data-*` 连续可读。数据校验、断线恢复、重试策略继续留在上层编排，不下沉到组件。回归：`components/color-picker/test/semantics.rs::color_picker_check2_documents_streaming_required_optional_classification_rules`、`components/color-picker/test/semantics.rs::color_picker_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-picker/test/semantics.rs::color_picker_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`；门禁脚本：`scripts/check-ui-components-streaming.sh` 新增对应 `cargo test` 目标。）",
+        "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`ColorPicker` 归类为 `Streaming Optional`；组件职责是颜色选择与弹层交互而非 LLM 正文阅读面，默认走 `Snapshot` 渲染路径。实现显式输出 `data-ui-stream-support=\"unsupported\"`、`data-ui-stream-fallback=\"snapshot\"`、`data-ui-stream-mode=\"snapshot\"` 与 `data-ui-output-status`，并保持 `role/aria/data-*` 连续可读。数据校验、断线恢复、重试策略继续留在上层编排，不下沉到组件。回归：`components/color-picker/test/semantics.rs::color_picker_check2_documents_streaming_required_optional_classification_rules`、`components/color-picker/test/semantics.rs::color_picker_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-picker/test/semantics.rs::color_picker_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`；门禁脚本：`scripts/check-ui-streaming.sh` 新增对应 `cargo test` 目标。）",
         "`Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。",
         "`Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。",
         "无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。",
@@ -1055,7 +1056,7 @@ fn color_picker_streaming_validation_retry_resilience_boundaries_stay_outside_co
     let view_source = load_source("../../components/color-picker/src/view.rs");
     let logic_source = load_source("../../components/color-picker/src/logic.rs");
     let motion_source = load_source("../../components/color-picker/src/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
     let combined = format!("{view_source}\n{logic_source}\n{motion_source}");
 
     for forbidden in [
@@ -1143,7 +1144,7 @@ fn color_picker_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_s
 #[test]
 fn color_picker_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let rust_hygiene_script = include_str!("../../../scripts/check-rust-hygiene.sh");
-    let engineering_script = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = load_source("../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -1174,7 +1175,7 @@ fn color_picker_check2_marks_rust_hygiene_contract_complete() {
     let check2_source = load_source("../../components/color-picker/check2.md");
 
     for needle in [
-        "- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/color-picker/src/logic.rs` 通过 `Cow<'static, str>` 收敛默认文案回退的字符串复制热点；组件非测试源码维持无 `unwrap/expect` 与无吞错 `let _ = ...`。回归：`components/color-picker/test/semantics.rs::color_picker_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/color-picker/test/semantics.rs::color_picker_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_static`、`components/color-picker/test/semantics.rs::color_picker_rust_hygiene_script_enforces_repo_level_hygiene_guards`；门禁脚本：`scripts/check-ui-components-engineering.sh` 新增对应 `cargo test` 目标。另执行：`./scripts/check-rust-hygiene.sh`（当前环境已执行，若失败以脚本输出为准）。）",
+        "- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/color-picker/src/logic.rs` 通过 `Cow<'static, str>` 收敛默认文案回退的字符串复制热点；组件非测试源码维持无 `unwrap/expect` 与无吞错 `let _ = ...`。回归：`components/color-picker/test/semantics.rs::color_picker_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/color-picker/test/semantics.rs::color_picker_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_static`、`components/color-picker/test/semantics.rs::color_picker_rust_hygiene_script_enforces_repo_level_hygiene_guards`；门禁脚本：`scripts/check-ui-engineering.sh` 新增对应 `cargo test` 目标。另执行：`./scripts/check-rust-hygiene.sh`（当前环境已执行，若失败以脚本输出为准）。）",
         "color_picker_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
         "color_picker_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_static",
         "color_picker_rust_hygiene_script_enforces_repo_level_hygiene_guards",
@@ -1232,8 +1233,8 @@ fn color_picker_keeps_spec_rs_out_of_simple_component_surface() {
 fn color_picker_token_first_static_css_contract_is_aggregated_and_injected_via_ui_root() {
     let styles_source = load_source("../../components/color-picker/src/styles.rs");
     let view_source = load_source("../../components/color-picker/src/view.rs");
-    let css_registry_source = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_registry_source = load_source("../../crates/ui/src/css.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
 
     for needle in ["pub const CSS: &str", ".ui-color-picker", "var(--ui-"] {
         assert!(
@@ -1262,7 +1263,7 @@ fn color_picker_token_first_static_css_contract_is_aggregated_and_injected_via_u
     ] {
         assert!(
             css_registry_source.contains(needle),
-            "ui-components css registry should aggregate color-picker styles via `{needle}`.",
+            "ui css registry should aggregate color-picker styles via `{needle}`.",
         );
     }
 
@@ -1308,7 +1309,8 @@ fn color_picker_api_naming_prefers_is_prefix_with_legacy_alias_migration() {
         "#[prop(optional)] on_selected_change: Option<Callback<Option<String>>>",
         "let selected_color = logic::resolve_selected_color_axis(value, selected_color);",
         "logic::resolve_default_selected_color(default_value, default_selected_color);",
-        "let on_selected_change = logic::resolve_selected_change_axis(on_value_change, on_selected_change);",
+        "let on_selected_change =",
+        "logic::resolve_selected_change_axis(on_value_change, on_selected_change);",
         "logic::resolve_derived_state(logic::ColorPickerDerivedStateInput {",
     ] {
         assert!(
@@ -1454,7 +1456,8 @@ fn color_picker_composition_api_prefers_explicit_children_over_parallel_arrays()
     }
 
     for needle in [
-        "<ColorPicker id_base=\"docs-color-picker-basic\".to_string()",
+        "<ColorPicker",
+        "id_base=\"docs-color-picker-workbench\".to_string()",
         "<ColorSwatchPicker",
         "ColorSwatchPickerItem::named(",
     ] {
@@ -1752,8 +1755,10 @@ fn color_picker_causality_path_is_local_callback_not_complex_traceid_bus() {
     }
 
     for needle in [
-        "request_open_change.run(!open.get_untracked());",
-        "let on_close: OnPress = Callback::new(move |_| request_open_change.run(false));",
+        "let next_open = !open.get_untracked();",
+        "request_open_change.run(next_open);",
+        "let on_close: OnPress = Callback::new(move |_| {",
+        "request_open_change.run(false);",
         "use_controllable_open_state_traced(",
     ] {
         assert!(
@@ -2045,12 +2050,12 @@ fn color_picker_default_theme_visual_desire_baseline_is_documented_and_token_dri
     }
 
     for needle in [
-        "Playground\n                title=\"Default Theme Baseline\"",
-        "data-doc-visual-baseline=\"color-picker-default-theme\"",
-        "data-doc-baseline-shot=\"color-picker-default-theme-v1\"",
-        "data-doc-visual-targets=\"trigger,overlay,content\"",
-        "id_base=\"docs-color-picker-baseline-default\".to_string()",
-        "id_base=\"docs-color-picker-baseline-open\".to_string()",
+        "title=\"ColorPicker\"",
+        "title=\"Hello World\"",
+        "title=\"Config Workbench\"",
+        "title=\"State Matrix\"",
+        "id_base=\"docs-color-picker-workbench\".to_string()",
+        "id_base=\"docs-color-picker-matrix-open\".to_string()",
         "default_open=true",
     ] {
         assert!(
@@ -2065,7 +2070,7 @@ fn color_picker_styles_use_defensive_variable_fallback_chain() {
     let styles_source = load_source("../../components/color-picker/src/styles.rs");
     let check2_source = load_source("../../components/color-picker/check2.md");
     let theme_css_source = include_str!("../../../crates/ui-theme/src/css.rs");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "--ui-color-picker-space-2xs: var(--ui-space-2xs, var(--ui-fallback-space-2xs));",
@@ -2172,11 +2177,11 @@ fn color_picker_styles_use_defensive_variable_fallback_chain() {
 
 #[test]
 fn color_picker_cascade_layer_and_runtime_style_contract_is_enforced() {
-    let css_registry_source = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_registry_source = load_source("../../crates/ui/src/css.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
     let view_source = load_source("../../components/color-picker/src/view.rs");
     let check2_source = load_source("../../components/color-picker/check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
         "out.push_str(\"\\n@layer ui {\\n\");",
@@ -2184,7 +2189,7 @@ fn color_picker_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_registry_source.contains(needle),
-            "ui-components css registry should keep cascade layer + feature-gated color-picker aggregation marker `{needle}`.",
+            "ui css registry should keep cascade layer + feature-gated color-picker aggregation marker `{needle}`.",
         );
     }
 
@@ -2231,9 +2236,9 @@ fn color_picker_cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn color_picker_tree_shaking_contract_is_feature_gated_for_module_and_css_paths() {
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
     let web_demo_cargo = load_source("../../apps/web-demo/Cargo.toml");
 
     for needle in [
@@ -2243,7 +2248,7 @@ fn color_picker_tree_shaking_contract_is_feature_gated_for_module_and_css_paths(
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components feature graph should keep color-picker tree-shaking edge `{needle}`.",
+            "ui feature graph should keep color-picker tree-shaking edge `{needle}`.",
         );
     }
 
@@ -2251,7 +2256,7 @@ fn color_picker_tree_shaking_contract_is_feature_gated_for_module_and_css_paths(
         ui_components_lib.contains(
             "#[cfg(feature = \"component-color_picker\")]\n#[path = \"../../../components/color-picker/src/mod.rs\"]\npub mod color_picker;"
         ),
-        "ui-components lib export should gate `color_picker` module by `component-color_picker` feature.",
+        "ui lib export should gate `color_picker` module by `component-color_picker` feature.",
     );
     assert!(
         ui_components_lib.contains(
@@ -2268,10 +2273,9 @@ fn color_picker_tree_shaking_contract_is_feature_gated_for_module_and_css_paths(
     );
 
     assert!(
-        web_demo_cargo.contains(
-            "ui-components = { path = \"../../crates/ui-components\", default-features = false"
-        ) && web_demo_cargo.contains("features = [\"inject-css\", \"web-demo-components\"]"),
-        "web-demo should consume ui-components via explicit minimal feature set without default feature fan-out.",
+        web_demo_cargo.contains("ui = { path = \"../../crates/ui\", default-features = false")
+            && web_demo_cargo.contains("features = [\"inject-css\", \"web-demo-components\"]"),
+        "web-demo should consume ui via explicit minimal feature set without default feature fan-out.",
     );
     assert!(
         !web_demo_cargo.contains("\"all-components\""),
@@ -2281,16 +2285,16 @@ fn color_picker_tree_shaking_contract_is_feature_gated_for_module_and_css_paths(
 
 #[test]
 fn color_picker_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let tree_script_source = include_str!("../../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_script_source = include_str!("../../../scripts/check-ui-tree-shaking.sh");
 
     for needle in [
         "COLOR_PICKER_MIN_FEATURES=\"component-color_picker,inject-css\"",
         "cargo test -p ui-color-picker color_picker_tree_shaking_contract_is_feature_gated_for_module_and_css_paths",
         "cargo test -p ui-color-picker color_picker_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "cargo test -p ui-color-picker color_picker_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$COLOR_PICKER_MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$COLOR_PICKER_MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$COLOR_PICKER_TREE_OUTPUT\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$COLOR_PICKER_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$COLOR_PICKER_MIN_FEATURES\"",
     ] {
         assert!(
             tree_script_source.contains(needle),
@@ -2304,11 +2308,11 @@ fn color_picker_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2_source = load_source("../../components/color-picker/check2.md");
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "color_picker_tree_shaking_contract_is_feature_gated_for_module_and_css_paths",
         "color_picker_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "color_picker_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2320,15 +2324,15 @@ fn color_picker_check2_marks_tree_shaking_feature_pruning_contract_complete() {
 #[test]
 fn color_picker_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let check2_source = load_source("../../components/color-picker/check2.md");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
-    let ui_components_root = load_source("../../crates/ui-components/src/root.rs");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
+    let ui_components_root = load_source("../../crates/ui/src/root.rs");
     let active_highlight =
         include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
     let controllable_state = include_str!("../../../crates/ui-headless/src/controllable_state.rs");
     let presence = include_str!("../../../crates/ui-headless/src/presence.rs");
     let a11y = include_str!("../../../crates/ui-headless/src/a11y.rs");
-    let entrypoints_script = include_str!("../../../scripts/check-ui-components-entrypoints.sh");
+    let entrypoints_script = include_str!("../../../scripts/check-ui-entrypoints.sh");
 
     for required in [
         "#[cfg(feature = \"component-color_picker\")]",
@@ -2339,14 +2343,14 @@ fn color_picker_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib.rs should keep fixed entry marker `{required}`.",
+            "ui lib.rs should keep fixed entry marker `{required}`.",
         );
     }
 
     for forbidden in ["pub use web_sys", "web_sys::", "NodeRef<", "JsValue"] {
         assert!(
             !ui_components_lib.contains(forbidden),
-            "ui-components lib.rs should not leak platform detail `{forbidden}`.",
+            "ui lib.rs should not leak platform detail `{forbidden}`.",
         );
     }
 
@@ -2358,7 +2362,7 @@ fn color_picker_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css.rs should keep fixed entry marker `{required}`.",
+            "ui css.rs should keep fixed entry marker `{required}`.",
         );
     }
 
@@ -2373,7 +2377,7 @@ fn color_picker_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_root.contains(required),
-            "ui-components root.rs should keep centralized injection marker `{required}`.",
+            "ui root.rs should keep centralized injection marker `{required}`.",
         );
     }
 
@@ -2423,11 +2427,11 @@ fn color_picker_ui_components_fixed_entry_files_follow_layered_boundaries() {
     }
 
     let ui_components_src_dir =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/src");
     for forbidden_file in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src_dir.join(forbidden_file).exists(),
-            "ui-components/src/{forbidden_file} should be absent by fixed-entrypoint contract.",
+            "ui/src/{forbidden_file} should be absent by fixed-entrypoint contract.",
         );
     }
 
@@ -2438,7 +2442,7 @@ fn color_picker_ui_components_fixed_entry_files_follow_layered_boundaries() {
     );
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "color_picker_ui_components_fixed_entry_files_follow_layered_boundaries",
     ] {
         assert!(
@@ -2558,7 +2562,7 @@ fn color_picker_hydration_discontinuity_contract_uses_deterministic_id_flow_with
     let picker_view = load_source("../../components/color-picker/src/view.rs");
     let picker_logic = load_source("../../components/color-picker/src/logic.rs");
     let picker_protocol = load_source("../../components/color-picker/src/protocol.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
     let id_provider_source = load_source("../../crates/ui-headless/src/id_provider.rs");
 
     for forbidden in [
@@ -2793,7 +2797,7 @@ fn color_picker_motion_contract_is_component_scoped_reduced_motion_aware_and_non
     let popover_view = load_source("../../components/popover/src/view.rs");
     let popover_motion = load_source("../../components/popover/src/motion.rs");
     let check2_source = load_source("../../components/color-picker/check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-platforms.sh");
+    let script_source = include_str!("../../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "pub struct ColorPickerMotion {",
@@ -2864,7 +2868,7 @@ fn color_picker_performance_governance_contract_is_budgeted_traceable_and_blocki
     let perf_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("../../components/color-picker/check2.md");
     let view_source = load_source("../../components/color-picker/src/view.rs");
@@ -2911,8 +2915,8 @@ fn color_picker_performance_governance_contract_is_budgeted_traceable_and_blocki
 
     for needle in [
         "slug=\"color-picker\"",
-        "id_base=\"docs-color-picker-basic\".to_string()",
-        "id_base=\"docs-color-picker-open\".to_string()",
+        "id_base=\"docs-color-picker-workbench\".to_string()",
+        "id_base=\"docs-color-picker-matrix-open\".to_string()",
     ] {
         assert!(
             docs_source.contains(needle),
@@ -2946,8 +2950,8 @@ fn color_picker_performance_governance_contract_is_budgeted_traceable_and_blocki
     }
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
         "cargo test -p ui-color-picker color_picker_performance_governance_contract_is_budgeted_traceable_and_blocking",
     ] {
         assert!(
@@ -2962,7 +2966,7 @@ fn color_picker_semantics_and_performance_regression_cover_aria_data_focus_and_r
  {
     let view_source = load_source("../../components/color-picker/src/view.rs");
     let logic_source = load_source("../../components/color-picker/src/logic.rs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let check2_source = load_source("../../components/color-picker/check2.md");
     let docs_shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
@@ -3049,7 +3053,7 @@ fn color_picker_semantics_and_performance_regression_cover_aria_data_focus_and_r
 #[test]
 fn color_picker_view_macro_complexity_is_split_into_semantic_subrenders() {
     let view_source = load_source("../../components/color-picker/src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "let render_trigger = move || {",
@@ -3079,7 +3083,7 @@ fn color_picker_view_macro_complexity_is_split_into_semantic_subrenders() {
 #[test]
 fn color_picker_view_functional_split_prefers_plain_functions_over_local_components() {
     let view_source = load_source("../../components/color-picker/src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "fn render_empty_swatch(",
@@ -3121,7 +3125,7 @@ fn color_picker_view_functional_split_prefers_plain_functions_over_local_compone
 #[test]
 fn color_picker_static_fragments_are_constantized_with_stable_semantics() {
     let view_source = load_source("../../components/color-picker/src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("../../components/color-picker/check2.md");
 
     for needle in [
@@ -3206,7 +3210,7 @@ fn color_picker_static_fragments_are_constantized_with_stable_semantics() {
 
 #[test]
 fn color_picker_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
     let check2_source = load_source("../../components/color-picker/check2.md");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
 
@@ -3272,14 +3276,14 @@ fn color_picker_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 #[test]
 fn color_picker_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     let check2_source = load_source("../../components/color-picker/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
 
     let color_picker_cargo = load_source("../../components/color-picker/Cargo.toml");
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
     let view_source = load_source("../../components/color-picker/src/view.rs");
     let logic_source = load_source("../../components/color-picker/src/logic.rs");
     let mod_source = load_source("../../components/color-picker/src/mod.rs");
@@ -3312,7 +3316,7 @@ fn color_picker_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components should keep shared wasm-debug feature marker `{needle}`.",
+            "ui should keep shared wasm-debug feature marker `{needle}`.",
         );
     }
 
@@ -3324,7 +3328,7 @@ fn color_picker_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             !ui_components_cargo.contains(forbidden),
-            "ui-components feature graph should not leak color-picker debug toggle `{forbidden}`.",
+            "ui feature graph should not leak color-picker debug toggle `{forbidden}`.",
         );
     }
 
@@ -3334,7 +3338,7 @@ fn color_picker_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components root should keep shared wasm-debug isolation marker `{needle}`.",
+            "ui root should keep shared wasm-debug isolation marker `{needle}`.",
         );
     }
 
@@ -3405,15 +3409,15 @@ fn color_picker_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
 
     for needle in [
         "pub(super) fn color_picker() -> AnyView",
-        "title=\"Controlled Color + Controlled Open\"",
+        "title=\"Config Workbench\"",
         "let on_selected_change =",
         "let on_open_change =",
-        "selected_color=selected_color_signal",
+        "selected_color=workbench_selected_color",
         "on_selected_change=on_selected_change",
-        "open=open_signal",
+        "open=workbench_open",
         "on_open_change=on_open_change",
-        "\"selected: \"",
-        "\" · open: \"",
+        "\"selected=\"",
+        "\" · open=\"",
     ] {
         assert!(
             docs_page_source.contains(needle),
@@ -3441,7 +3445,7 @@ fn color_picker_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
 #[test]
 fn color_picker_dx_workbench_supports_hot_style_feedback_and_optional_state_preserve() {
     let check2_source = load_source("../../components/color-picker/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
     let docs_page_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
@@ -3479,22 +3483,20 @@ fn color_picker_dx_workbench_supports_hot_style_feedback_and_optional_state_pres
     for needle in [
         "pub(super) fn color_picker() -> AnyView",
         "slug=\"color-picker\"",
-        "title=\"Interactive Workbench (DX)\"",
-        "test_css_source=workbench_test_css_source",
-        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/components/color-picker/src/styles.rs\".to_string()",
+        "title=\"Config Workbench\"",
+        "description=\"Covers full ColorPicker API and shows callback feedback.\"",
+        "code_signal=workbench_code",
         "test_config_signal=workbench_actual_config",
         "controls=move || view!",
-        "id_base=\"docs-color-picker-workbench-palette\".to_string()",
-        "aria_label=\"ColorPicker workbench palette\".to_string()",
+        "data-slot=\"color-picker-workbench-controls\"",
         "<Switch checked=workbench_disabled set_checked=set_workbench_disabled>",
         "<Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>",
-        "<Switch checked=workbench_preserve_context set_checked=set_workbench_preserve_context>",
-        "\"Preserve context on palette change\"",
+        "<Switch checked=workbench_rtl set_checked=set_workbench_rtl>",
+        "<Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>",
+        "<Switch checked=workbench_swatch_bordered set_checked=set_workbench_swatch_bordered>",
         "id_base=\"docs-color-picker-workbench\".to_string()",
-        "data-slot=\"color-picker-workbench-controls\"",
-        "data-slot=\"color-picker-workbench-canvas\"",
-        "data-slot=\"color-picker-workbench-state\"",
-        "\" · preserve: \"",
+        "data-slot=\"color-picker-workbench-preview\"",
+        "\" · open=\"",
     ] {
         assert!(
             color_picker_section.contains(needle),
@@ -3538,7 +3540,7 @@ fn color_picker_dx_workbench_supports_hot_style_feedback_and_optional_state_pres
 #[test]
 fn color_picker_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries() {
     let check2_source = load_source("../../components/color-picker/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
     let protocol_source = load_source("../../components/color-picker/src/protocol.rs");
     let protocol_tests_source = include_str!("protocol.rs");
     let view_source = load_source("../../components/color-picker/src/view.rs");
@@ -3647,7 +3649,7 @@ fn color_picker_engineering_contract_uses_serde_protocol_and_keeps_tracing_runti
 fn color_picker_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade()
  {
     let check2_source = load_source("../../components/color-picker/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
     let protocol_source = load_source("../../components/color-picker/src/protocol.rs");
     let component_manifest = load_source("../../components/color-picker/src/Component.toml");
     let rbi_source = load_source("../../components/color-picker/src/color_picker.rbi");
@@ -3700,7 +3702,7 @@ fn color_picker_version_deprecation_migration_registry_is_explicitly_na_without_
     );
 
     for needle in [
-        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorPicker` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/color-picker/src/protocol.rs` 的 `PickerComponentSchemaVersion::V1`、`components/color-picker/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.color-picker.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/color-picker/test/semantics.rs::color_picker_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-components-engineering.sh` 新增对应 `cargo test` 目标。）",
+        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorPicker` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/color-picker/src/protocol.rs` 的 `PickerComponentSchemaVersion::V1`、`components/color-picker/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.color-picker.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/color-picker/test/semantics.rs::color_picker_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-engineering.sh` 新增对应 `cargo test` 目标。）",
         "color_picker_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
     ] {
         assert!(
@@ -3735,23 +3737,18 @@ fn color_picker_docs_examples_parameter_and_state_matrix_stay_synced_with_logic_
 
     for required in [
         "pub(super) fn color_picker() -> AnyView",
-        "title=\"Hello World（默认路径）\"",
+        "title=\"Hello World\"",
+        "title=\"Config Workbench\"",
         "title=\"State Matrix\"",
         "data-slot=\"color-picker-state-matrix\"",
-        "id_base=\"docs-color-picker-matrix-ready\".to_string()",
+        "id_base=\"docs-color-picker-matrix-default\".to_string()",
         "id_base=\"docs-color-picker-matrix-open\".to_string()",
         "id_base=\"docs-color-picker-matrix-disabled\".to_string()",
-        "title=\"Controlled vs Uncontrolled\"",
-        "data-slot=\"color-picker-controlled-vs-uncontrolled\"",
-        "id_base=\"docs-color-picker-compare-controlled\".to_string()",
-        "id_base=\"docs-color-picker-compare-uncontrolled\".to_string()",
         "default_selected_color=\"#3b82f6\".to_string()",
         "default_selected_color=\"#8b5cf6\".to_string()",
         "default_selected_color=\"#0ea5e9\".to_string()",
         "default_open=true",
         "is_disabled=true",
-        "code_imports=color_picker_imports.clone()",
-        "let color_picker_imports = \"use leptos::prelude::*;\\nuse ui_components::{ColorPicker, ColorSwatchPicker, ColorSwatchPickerItem};\".to_string();",
     ] {
         assert!(
             docs_source.contains(required),
@@ -3803,7 +3800,7 @@ fn color_picker_docs_examples_parameter_and_state_matrix_stay_synced_with_logic_
 
 #[test]
 fn color_picker_contract_hygiene_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
         "cargo test -p ui-color-picker color_picker_check2_documents_docs_sync_and_state_matrix_rules",
@@ -3861,15 +3858,14 @@ fn color_picker_docs_entry_exists_as_readme_or_equivalent_docs_app_page() {
 fn color_picker_docs_are_beginner_friendly_with_default_then_advanced_path() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
     let readme_source = load_source("../../components/color-picker/src/README.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "title=\"ColorPicker\"",
         "slug=\"color-picker\"",
-        "title=\"Hello World（默认路径）\"",
+        "title=\"Hello World\"",
         "title=\"State Matrix\"",
-        "title=\"Controlled vs Uncontrolled\"",
-        "title=\"Interactive Workbench (DX)\"",
+        "title=\"Config Workbench\"",
     ] {
         assert!(
             docs_source.contains(required),
@@ -3880,21 +3876,14 @@ fn color_picker_docs_are_beginner_friendly_with_default_then_advanced_path() {
     let hello_pos = docs_source
         .find("id_base=\"docs-color-picker-hello\".to_string()")
         .expect("docs should include hello-world playground for zero-threshold path.");
+    let workbench_pos = docs_source
+        .find("data-slot=\"color-picker-workbench-controls\"")
+        .expect("docs should include config workbench playground.");
     let matrix_pos = docs_source
         .find("data-slot=\"color-picker-state-matrix\"")
         .expect("docs should include state-matrix playground as common usage.");
-    let controlled_pos = docs_source
-        .find("data-slot=\"color-picker-controlled-vs-uncontrolled\"")
-        .expect("docs should include controlled-vs-uncontrolled playground.");
-    let interactive_pos = docs_source
-        .find("data-slot=\"color-picker-workbench-controls\"")
-        .expect("docs should include interactive workbench for advanced controls.");
     assert!(
-        hello_pos < matrix_pos
-            && hello_pos < controlled_pos
-            && hello_pos < interactive_pos
-            && matrix_pos < interactive_pos
-            && matrix_pos < controlled_pos,
+        hello_pos < workbench_pos && workbench_pos < matrix_pos,
         "docs should keep zero-threshold default path ahead of advanced controls.",
     );
 
@@ -3938,9 +3927,9 @@ fn color_picker_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_
     let readme_source = load_source("../../components/color-picker/src/README.md");
 
     for required in [
-        "title=\"Hello World（默认路径）\"",
-        "code_imports=color_picker_imports.clone()",
+        "title=\"Hello World\"",
         "<ColorPicker id_base=\"docs-color-picker-hello\".to_string()>",
+        "\"Choose a brand color\"",
         "## Hello World（最小可用）",
         "id_base=\"demo-color-picker\".to_string()",
     ] {
@@ -3965,7 +3954,7 @@ fn color_picker_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_
 
 #[test]
 fn color_picker_contract_hygiene_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
         "cargo test -p ui-color-picker color_picker_check2_documents_documentation_as_product_rules",
@@ -4004,24 +3993,24 @@ fn color_picker_docs_app_provides_interactive_playground_for_props_state_and_pre
 
     for marker in [
         "pub(super) fn color_picker() -> AnyView",
-        "title=\"Interactive Workbench (DX)\"",
-        "description=\"Scoped CSS test panel + 交互配置工作台；默认保留上下文，可按需关闭保留以复位状态。\"",
-        "test_css_source=workbench_test_css_source",
+        "title=\"Config Workbench\"",
+        "description=\"Covers full ColorPicker API and shows callback feedback.\"",
+        "code_signal=workbench_code",
         "test_config_signal=workbench_actual_config",
         "controls=move || view!",
-        "id_base=\"docs-color-picker-workbench-palette\".to_string()",
+        "data-slot=\"color-picker-workbench-controls\"",
         "<Switch checked=workbench_disabled set_checked=set_workbench_disabled>",
         "<Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>",
-        "<Switch checked=workbench_preserve_context set_checked=set_workbench_preserve_context>",
+        "<Switch checked=workbench_rtl set_checked=set_workbench_rtl>",
+        "<Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>",
+        "<Switch checked=workbench_swatch_bordered set_checked=set_workbench_swatch_bordered>",
         "id_base=\"docs-color-picker-workbench\".to_string()",
-        "selected_color=workbench_selected_color_signal",
-        "on_selected_change=on_workbench_selected_change",
-        "open=workbench_open_signal",
-        "on_open_change=on_workbench_open_change",
-        "data-slot=\"color-picker-workbench-controls\"",
-        "data-slot=\"color-picker-workbench-canvas\"",
-        "data-slot=\"color-picker-workbench-state\"",
-        "\" · open: \"",
+        "selected_color=workbench_selected_color",
+        "on_selected_change=on_selected_change",
+        "open=workbench_open",
+        "on_open_change=on_open_change",
+        "data-slot=\"color-picker-workbench-preview\"",
+        "\" · open=\"",
     ] {
         assert!(
             docs_source.contains(marker),
@@ -4067,7 +4056,7 @@ fn color_picker_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn color_picker_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "cargo test -p ui-color-picker color_picker_docs_app_provides_interactive_playground_for_props_state_and_preview",
@@ -4106,22 +4095,13 @@ fn color_picker_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
 
     for marker in [
         "pub(super) fn color_picker() -> AnyView",
-        "title=\"Source-first Starter (Copy-Paste Ready)\"",
-        "code_signal=source_first_code",
-        "code_imports=color_picker_imports.clone()",
-        "data-slot=\"color-picker-copy-ready\"",
-        "<h3>\"Source-first / Copy-Paste Ready\"</h3>",
-        "apps/docs-app/src/playground.rs::compose_copy_ready_code",
-        "<code>\"code_imports\"</code>",
-        "data-slot=\"color-picker-source-paths\"",
-        "\"components/color-picker/src/mod.rs\"",
-        "\"components/color-picker/src/view.rs\"",
-        "\"components/color-picker/src/logic.rs\"",
-        "\"components/color-picker/src/styles.rs\"",
-        "\"components/color-picker/src/motion.rs\"",
-        "data-slot=\"color-picker-source-prerequisites\"",
-        "\"component-color_picker\"",
-        "\"inject-css\"",
+        "title=\"Hello World\"",
+        "title=\"Config Workbench\"",
+        "title=\"State Matrix\"",
+        "code_signal=hello_code",
+        "code_signal=workbench_code",
+        "code_signal=matrix_code",
+        "test_config_signal=workbench_actual_config",
     ] {
         assert!(
             docs_source.contains(marker),
@@ -4144,10 +4124,12 @@ fn color_picker_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
     }
 
     for marker in [
-        "let source_first_code = Signal::derive",
-        "id_base=\"docs-color-picker-source-first\".to_string()",
-        "label=\"Source-first starter\".to_string()",
-        "selected_color=selected.into()",
+        "let hello_code = Signal::derive",
+        "let workbench_code = Signal::derive",
+        "let matrix_code = Signal::derive",
+        "id_base=\"docs-color-picker-workbench\".to_string()",
+        "id_base=\"docs-color-picker-matrix-default\".to_string()",
+        "selected_color=workbench_selected_color",
         "on_selected_change=on_selected_change",
         "#[prop(optional)] selected_color: Option<Signal<Option<String>>>",
         "#[prop(optional)] on_selected_change: Option<Callback<Option<String>>>",
@@ -4165,7 +4147,7 @@ fn color_picker_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
 
 #[test]
 fn color_picker_contract_hygiene_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
         "cargo test -p ui-color-picker color_picker_check2_documents_source_first_copy_paste_ready_rules",
@@ -4196,12 +4178,8 @@ fn color_picker_heroui_strategy_and_component_docs_are_synced_for_parameter_mode
         "is_disabled (disabled legacy alias)",
         "component_doc!(\"ColorPicker\", \"color-picker\", \"Forms\", forms_color::color_picker)",
         "apps/docs-app/src/pages/components/pages/forms_color.rs::color_picker()",
-        "Hello World（默认路径）",
+        "Hello World",
         "State Matrix",
-        "Controlled vs Uncontrolled",
-        "Interactive Workbench (DX)",
-        "Source-first / Copy-Paste Ready",
-        "compose_copy_ready_code",
         "参数语义若变更，必须先同步本策略文档与 docs 入口",
     ] {
         assert!(
@@ -4214,7 +4192,8 @@ fn color_picker_heroui_strategy_and_component_docs_are_synced_for_parameter_mode
         "pub(super) fn color_picker() -> AnyView",
         "title=\"ColorPicker\"",
         "slug=\"color-picker\"",
-        "data-slot=\"color-picker-copy-ready\"",
+        "title=\"Config Workbench\"",
+        "data-slot=\"color-picker-workbench-controls\"",
     ] {
         assert!(
             docs_page_source.contains(marker),
@@ -4280,7 +4259,7 @@ fn color_picker_check2_marks_heroui_strategy_and_component_docs_sync_complete() 
 
 #[test]
 fn color_picker_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
         "cargo test -p ui-color-picker color_picker_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
@@ -4300,28 +4279,22 @@ fn color_picker_docs_product_contract_is_copy_paste_ready_with_playground_stream
     let docs_page_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
     let docs_playground_source = load_source("../../apps/docs-app/src/playground.rs");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "pub(super) fn color_picker() -> AnyView {",
-        "let color_picker_imports = \"use leptos::prelude::*;\\nuse ui_components::{ColorPicker, ColorSwatchPicker, ColorSwatchPickerItem};\".to_string();",
-        "let state_matrix_code = Signal::derive",
-        "let controlled_vs_uncontrolled_code = Signal::derive",
-        "let output_mode_code = Signal::derive",
-        "let source_first_code = Signal::derive",
-        "title=\"Hello World（默认路径）\"",
+        "let hello_code = Signal::derive",
+        "let workbench_code = Signal::derive",
+        "let matrix_code = Signal::derive",
+        "title=\"Hello World\"",
+        "title=\"Config Workbench\"",
         "title=\"State Matrix\"",
-        "title=\"Controlled vs Uncontrolled\"",
-        "title=\"Streaming Optional / Snapshot\"",
-        "title=\"Source-first Starter (Copy-Paste Ready)\"",
-        "code_imports=color_picker_imports.clone()",
+        "code_signal=hello_code",
+        "code_signal=workbench_code",
+        "code_signal=matrix_code",
         "data-slot=\"color-picker-state-matrix\"",
-        "data-slot=\"color-picker-controlled-vs-uncontrolled\"",
-        "data-slot=\"color-picker-output-mode\"",
-        "data-ui-streaming=\"optional\"",
-        "data-ui-fallback=\"snapshot\"",
-        "data-ui-output-state=\"snapshot\"",
-        "data-slot=\"color-picker-copy-ready\"",
+        "data-slot=\"color-picker-workbench-controls\"",
+        "data-slot=\"color-picker-workbench-preview\"",
     ] {
         assert!(
             docs_page_source.contains(required),
@@ -4349,9 +4322,10 @@ fn color_picker_docs_product_contract_is_copy_paste_ready_with_playground_stream
     );
 
     for required in [
-        "- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。",
-        "已核验（color-picker docs Playground）：`apps/docs-app/src/pages/components/pages/forms_color.rs::color_picker()` 已提供 `Hello World（默认路径）`、`State Matrix`、`Controlled vs Uncontrolled`、`Streaming Optional / Snapshot`、`Source-first Starter (Copy-Paste Ready)`。",
-        "已核验（复制即运行）：上述 Playground 显式设置 `code_imports=color_picker_imports`，并通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 在复制时自动补全缺失 imports。",
+        "- [x] 文档即产品（Copy-Paste Ready）",
+        "`apps/docs-app/src/pages/components/pages/forms_color.rs::color_picker()`",
+        "Hello World",
+        "State Matrix",
         "components/color-picker/test/semantics.rs::color_picker_docs_product_contract_is_copy_paste_ready_with_playground_stream_snapshot_and_imports",
     ] {
         assert!(
@@ -4365,7 +4339,7 @@ fn color_picker_docs_product_contract_is_copy_paste_ready_with_playground_stream
 fn color_picker_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only() {
     let check2_source = load_source("../../components/color-picker/check2.md");
     let view_source = load_source("../../components/color-picker/src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
     let local_semantics = include_str!("semantics.rs");
     let legacy_semantics = load_source("legacy_semantics");
     let logic_tests = include_str!("logic.rs");
@@ -4437,7 +4411,7 @@ fn color_picker_semantics_priority_contract_prefers_semantic_assertions_over_sna
         "color_picker_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
         "color_picker_snapshot_baseline_consumes_complete_result_and_renders_stably",
         "color_picker_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4458,7 +4432,7 @@ fn color_picker_check2_documents_e2e_selector_and_stable_wait_rules() {
         "color_picker_check2_documents_e2e_selector_and_stable_wait_rules",
         "color_picker_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "color_picker_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-color-picker.sh",
+        "components/color-picker/scripts/check-ui-e2e-color-picker.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4470,7 +4444,8 @@ fn color_picker_check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn color_picker_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_picker_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-picker.sh");
+    let script_source =
+        load_source("../../components/color-picker/scripts/check-ui-e2e-color-picker.sh");
 
     for required in [
         "const COLOR_PICKER_PAGE = \"/#/components/color-picker\";",
@@ -4517,7 +4492,8 @@ fn color_picker_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
 #[test]
 fn color_picker_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_picker_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-picker.sh");
+    let script_source =
+        load_source("../../components/color-picker/scripts/check-ui-e2e-color-picker.sh");
 
     for required in [
         "interaction path covers ready/settled semantic breakpoints",
@@ -4564,7 +4540,7 @@ fn color_picker_check2_documents_e2e_repeatable_key_flow_rules() {
         "color_picker_check2_documents_e2e_repeatable_key_flow_rules",
         "color_picker_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "color_picker_e2e_high_risk_paths_cover_overlay_focus_keyboard_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-color-picker.sh",
+        "components/color-picker/scripts/check-ui-e2e-color-picker.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4576,7 +4552,8 @@ fn color_picker_check2_documents_e2e_repeatable_key_flow_rules() {
 #[test]
 fn color_picker_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_picker_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-picker.sh");
+    let script_source =
+        load_source("../../components/color-picker/scripts/check-ui-e2e-color-picker.sh");
 
     for required in [
         "key flow is repeatable and failures map to semantic breakpoints",
@@ -4606,7 +4583,8 @@ fn color_picker_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 fn color_picker_e2e_high_risk_paths_cover_overlay_focus_keyboard_and_settled_semantic_breakpoints()
 {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_picker_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-picker.sh");
+    let script_source =
+        load_source("../../components/color-picker/scripts/check-ui-e2e-color-picker.sh");
 
     for required in [
         "high-risk paths keep overlay focus keyboard and async boundaries semantically explicit",

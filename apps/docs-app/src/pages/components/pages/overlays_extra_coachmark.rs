@@ -1,12 +1,14 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     Button, ButtonVariant, Coachmark, CoachmarkAssetVariant, CoachmarkVariant, OnPress, Snippet,
 };
 
-const COACHMARK_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::{Coachmark, CoachmarkAssetVariant, CoachmarkVariant};";
-const COACHMARK_CONTROLLED_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::{Button, ButtonVariant, Coachmark, CoachmarkAssetVariant};";
+const COACHMARK_DOC_IMPORTS: &str =
+    "use leptos::prelude::*;\nuse ui::{Coachmark, CoachmarkAssetVariant, CoachmarkVariant};";
+const COACHMARK_CONTROLLED_IMPORTS: &str =
+    "use leptos::prelude::*;\nuse ui::{Button, ButtonVariant, Coachmark, CoachmarkAssetVariant};";
 
 pub(super) fn coachmark() -> AnyView {
     let (last_action, set_last_action) = signal("none".to_string());
@@ -160,41 +162,61 @@ pub(super) fn coachmark() -> AnyView {
     let workbench_test_css_source = Signal::derive(move || {
         format!(
             "/* components/coachmark/src/styles.rs */\n{}",
-            ui_components::coachmark::styles::CSS
+            ui::coachmark::styles::CSS
         )
     });
 
     let workbench_actual_config = Signal::derive(move || {
         let variant = if workbench_info_variant.get() {
-            CoachmarkVariant::Info
+            "Info"
         } else {
-            CoachmarkVariant::Help
+            "Help"
         };
-        let asset_source = if workbench_use_image.get() {
-            "image"
+        let current_step = if workbench_show_steps.get() {
+            "Some(2)"
         } else {
-            "variant"
+            "None"
         };
-        let cta_mode = if workbench_dual_cta.get() {
-            "dual"
+        let total_steps = if workbench_show_steps.get() {
+            "Some(5)"
         } else {
-            "single"
+            "None"
         };
-        let steps = if workbench_show_steps.get() {
-            "present"
+        let primary_cta = if workbench_dual_cta.get() {
+            "Some(\"Next\")"
         } else {
-            "absent"
+            "Some(\"Got it\")"
         };
-        let class_source = if workbench_use_custom_class.get() {
-            "custom"
+        let secondary_cta = if workbench_dual_cta.get() {
+            "Some(\"Back\")"
         } else {
-            "default"
+            "None"
         };
-
+        let on_secondary = if workbench_dual_cta.get() {
+            "Some(\"OnPress\")"
+        } else {
+            "None"
+        };
+        let asset_variant = if workbench_use_image.get() {
+            "None"
+        } else {
+            "Some(Folder)"
+        };
+        let asset_src = if workbench_use_image.get() {
+            "Some(\"https://picsum.photos/420/260\")"
+        } else {
+            "None"
+        };
+        let class_name = if workbench_use_custom_class.get() {
+            "Some(\"docs-coachmark-state\")"
+        } else {
+            "None"
+        };
         format!(
-            "CoachmarkWorkbenchConfig {{\n  variant: {variant:?},\n  open: {},\n  is_disabled: {},\n  steps: \"{steps}\",\n  cta: \"{cta_mode}\",\n  asset_source: \"{asset_source}\",\n  class_source: \"{class_source}\",\n}}",
-            workbench_open_raw.get(),
+            "CoachmarkWorkbenchConfig {{\n  variant: {variant},\n  aria_label: Some(\"Coachmark workbench\"),\n  is_disabled: Some({}),\n  disabled: Some({}),\n  placement: BottomStart,\n  motion: CoachmarkMotion::default,\n  open: Some({}),\n  default_open: Some(false),\n  on_open_change: Some(\"Callback<bool>\"),\n  title: Some(\"Workbench coachmark\"),\n  class_name: {class_name},\n  current_step: {current_step},\n  total_steps: {total_steps},\n  primary_cta: {primary_cta},\n  secondary_cta: {secondary_cta},\n  on_primary: Some(\"OnPress\"),\n  on_secondary: {on_secondary},\n  shortcut_key: Some(\"K\"),\n  modifier_keys: [\"⌘\"],\n  asset_variant: {asset_variant},\n  asset_label: Some(\"Tour folder\"),\n  asset_src: {asset_src},\n  asset_alt: Some(\"Coachmark image\"),\n  lang: Some(\"en\"),\n  dir: Some(A11yDirection::Ltr),\n  actions: Some(\"ViewFn\"),\n}}",
             workbench_disabled.get(),
+            workbench_disabled.get(),
+            workbench_open_raw.get(),
         )
     });
 
@@ -318,7 +340,7 @@ pub(super) fn coachmark() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix"
+                title="Variant Gallery"
                 description="Display matrix for common states to compare variant intent, asset source, and disabled behavior side by side."
                 code_signal=state_matrix_code
                 code_imports=COACHMARK_DOC_IMPORTS.to_string()
@@ -526,16 +548,32 @@ pub(super) fn coachmark() -> AnyView {
                                 <Coachmark
                                     variant=variant
                                     title="Workbench coachmark".to_string()
+                                    aria_label="Coachmark workbench".to_string()
                                     open=workbench_open
+                                    default_open=false
                                     on_open_change=on_workbench_open_change
                                     is_disabled=is_disabled
+                                    disabled=is_disabled
+                                    placement=ui_headless::PopoverPlacement::BottomStart
+                                    motion=Default::default()
                                     current_step=current_step
                                     total_steps=total_steps
                                     primary_cta=primary_cta
                                     secondary_cta=secondary_cta
+                                    on_primary=on_primary
+                                    on_secondary=on_secondary
+                                    shortcut_key="K".to_string()
+                                    modifier_keys=vec!["⌘".to_string()]
                                     asset_variant=CoachmarkAssetVariant::Folder
+                                    asset_label="Tour folder".to_string()
                                     asset_src=asset_src
+                                    asset_alt="Coachmark image".to_string()
+                                    lang="en".to_string()
+                                    dir=ui_headless::A11yDirection::Ltr
                                     class_name=class_name
+                                    actions=move || {
+                                        view! { <Button variant=ButtonVariant::Secondary>"Restart"</Button> }
+                                    }
                                 >
                                     <div class="docs-stack docs-stack--tight">
                                         <div>"Inspect display/config/code/css-test panels together."</div>
@@ -547,6 +585,44 @@ pub(super) fn coachmark() -> AnyView {
                     }}
                 </Playground>
             </div>
+
+            <Playground
+                title="State Matrix"
+                description="Compare Help, Info, and Disabled states after workbench controls."
+                code_signal=state_matrix_code
+                code_imports=COACHMARK_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" attr:data-slot="coachmark-state-matrix-after-workbench">
+                    <Coachmark
+                        title="Help state".to_string()
+                        default_open=true
+                        current_step=1
+                        total_steps=3
+                        primary_cta="Next".to_string()
+                        asset_variant=CoachmarkAssetVariant::Folder
+                    >
+                        <div>"Help intent with built-in asset."</div>
+                    </Coachmark>
+                    <Coachmark
+                        variant=CoachmarkVariant::Info
+                        title="Info state".to_string()
+                        default_open=true
+                        primary_cta="Understood".to_string()
+                        asset_src="https://picsum.photos/420/260".to_string()
+                        asset_alt="Info preview".to_string()
+                    >
+                        <div>"Info intent with external image."</div>
+                    </Coachmark>
+                    <Coachmark
+                        title="Disabled state".to_string()
+                        default_open=true
+                        is_disabled=true
+                        secondary_cta="Dismiss".to_string()
+                    >
+                        <div>"Disabled state for regression checks."</div>
+                    </Coachmark>
+                </div>
+            </Playground>
 
             <section class="docs-card docs-prose" attr:data-slot="coachmark-interactive-spec-linkage">
                 <h3>"AI Spec Input -> Preview Output Linkage"</h3>
@@ -592,7 +668,7 @@ pub(super) fn coachmark() -> AnyView {
                     </li>
                 </ul>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::{Coachmark, CoachmarkAssetVariant};\n\n<Coachmark title=\"Welcome\".to_string() default_open=true asset_variant=CoachmarkAssetVariant::Folder>\n  <div>Tour copy</div>\n</Coachmark>".to_string()
+                    text="use leptos::prelude::*;\nuse ui::{Coachmark, CoachmarkAssetVariant};\n\n<Coachmark title=\"Welcome\".to_string() default_open=true asset_variant=CoachmarkAssetVariant::Folder>\n  <div>Tour copy</div>\n</Coachmark>".to_string()
                     label="Copy coachmark starter".to_string()
                     copyable=true
                     class_name="docs-coachmark-source-copy".to_string()

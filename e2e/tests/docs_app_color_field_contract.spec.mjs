@@ -97,7 +97,7 @@ test("docs-app color-field playground source is copy-paste ready", async ({ page
 
   const code = playground.locator('[data-slot="code-block-code"]').first();
   await expect(code).toContainText("use leptos::prelude::*;");
-  await expect(code).toContainText("use ui_components::*;");
+  await expect(code).toContainText("use ui::*;");
   await expect(code).toContainText("<ColorField");
 
   const copyButton = codeBlock.first().locator('[data-slot="button"]').first();

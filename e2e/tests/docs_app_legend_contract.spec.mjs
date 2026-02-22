@@ -106,7 +106,7 @@ test("docs-app legend source-first snippets are copy-paste ready and traceable",
 
   const code = playground.locator('[data-slot="code-block-code"]').first();
   await expect(code).toContainText("use leptos::prelude::*;");
-  await expect(code).toContainText("use ui_components::*;");
+  await expect(code).toContainText("use ui::*;");
   await expect(code).toContainText("<Legend");
   await expect(code).toContainText("text=\"Notification settings\"");
 

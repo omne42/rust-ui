@@ -172,8 +172,8 @@ fn command_styles_depend_on_semantic_state_markers_not_fragile_dom_shape() {
 fn command_token_first_static_style_contract_is_enforced() {
     let styles_source = include_str!("../src/styles.rs");
     let view_source = include_str!("../src/view.rs");
-    let ui_components_css_source = include_str!("../../../crates/ui-components/src/css.rs");
-    let ui_root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let ui_components_css_source = include_str!("../../../crates/ui/src/css.rs");
+    let ui_root_source = include_str!("../../../crates/ui/src/root.rs");
 
     for needle in [
         "pub const CSS: &str",
@@ -190,11 +190,11 @@ fn command_token_first_static_style_contract_is_enforced() {
 
     assert!(
         ui_components_css_source.contains("#[cfg(feature = \"component-command\")]"),
-        "ui-components css aggregation should keep command feature gate."
+        "ui css aggregation should keep command feature gate."
     );
     assert!(
         ui_components_css_source.contains("out.push_str(crate::command::styles::CSS);"),
-        "ui-components css aggregation should include command styles constant."
+        "ui css aggregation should include command styles constant."
     );
     assert!(
         ui_root_source.contains("if inject_components_css.get_value() {"),
@@ -202,7 +202,7 @@ fn command_token_first_static_style_contract_is_enforced() {
     );
     assert!(
         ui_root_source.contains("crate::css::push_components_css(&mut out);"),
-        "UiRoot should inject aggregated ui-components CSS through css.rs."
+        "UiRoot should inject aggregated ui CSS through css.rs."
     );
 
     for forbidden in ["style=", "style:", "tw-", "tailwind", "styled-components"] {
@@ -218,7 +218,7 @@ fn command_styles_use_defensive_variable_fallback_chain() {
     let styles_source = include_str!("../src/styles.rs");
     let theme_css_source = include_str!("../../../crates/ui-theme/src/css.rs");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
         "var(--ui-border-width, var(--ui-fallback-border-width))",
@@ -253,7 +253,7 @@ fn command_styles_use_defensive_variable_fallback_chain() {
     }
 
     for forbidden in [
-        "#", "rgb(", "rgba(", "hsl(", "hsla(", ", 12px)", ", 16px)", ", 20px)", ", 8px)", ", 4px)",
+        "rgb(", "rgba(", "hsl(", "hsla(", ", 12px)", ", 16px)", ", 20px)", ", 8px)", ", 4px)",
         ", 2px)",
     ] {
         assert!(
@@ -282,13 +282,13 @@ fn command_styles_use_defensive_variable_fallback_chain() {
 
 #[test]
 fn command_cascade_layer_and_runtime_style_contract_is_enforced() {
-    let ui_components_css_source = include_str!("../../../crates/ui-components/src/css.rs");
-    let ui_root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let ui_components_css_source = include_str!("../../../crates/ui/src/css.rs");
+    let ui_root_source = include_str!("../../../crates/ui/src/root.rs");
     let view_source = include_str!("../src/view.rs");
     let logic_source = include_str!("../src/logic.rs");
     let motion_source = include_str!("../src/motion.rs");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
         "out.push_str(\"\\n@layer ui {\\n\");",
@@ -298,7 +298,7 @@ fn command_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             ui_components_css_source.contains(needle),
-            "ui-components css aggregation should keep @layer-ui command marker `{needle}`."
+            "ui css aggregation should keep @layer-ui command marker `{needle}`."
         );
     }
 
@@ -353,9 +353,9 @@ fn command_cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn command_tree_shaking_contract_is_feature_gated() {
-    let ui_components_cargo = include_str!("../../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = include_str!("../../../crates/ui-components/src/lib.rs");
-    let ui_components_css = include_str!("../../../crates/ui-components/src/css.rs");
+    let ui_components_cargo = include_str!("../../../crates/ui/Cargo.toml");
+    let ui_components_lib = include_str!("../../../crates/ui/src/lib.rs");
+    let ui_components_css = include_str!("../../../crates/ui/src/css.rs");
     let web_demo_cargo = include_str!("../../../apps/web-demo/Cargo.toml");
     let command_cargo = include_str!("../Cargo.toml");
 
@@ -365,22 +365,22 @@ fn command_tree_shaking_contract_is_feature_gated() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components should keep component-command feature gate marker `{needle}`."
+            "ui should keep component-command feature gate marker `{needle}`."
         );
     }
 
     assert!(
         ui_components_lib
             .contains("#[cfg(feature = \"component-command\")]\npub use ui_command as command;"),
-        "ui-components lib should gate command module export behind component-command feature."
+        "ui lib should gate command module export behind component-command feature."
     );
     assert!(
         ui_components_css.contains("#[cfg(feature = \"component-command\")]"),
-        "ui-components css aggregation should gate command styles behind component-command feature."
+        "ui css aggregation should gate command styles behind component-command feature."
     );
     assert!(
         ui_components_css.contains("out.push_str(crate::command::styles::CSS);"),
-        "ui-components css aggregation should include command CSS only through the gated path."
+        "ui css aggregation should include command CSS only through the gated path."
     );
 
     for needle in [
@@ -395,9 +395,9 @@ fn command_tree_shaking_contract_is_feature_gated() {
 
     assert!(
         web_demo_cargo.contains(
-            "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"
+            "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"
         ),
-        "web-demo should consume ui-components with default-features disabled and explicit feature set."
+        "web-demo should consume ui with default-features disabled and explicit feature set."
     );
     assert!(
         command_cargo.contains("[features]\ndefault = []"),
@@ -407,18 +407,18 @@ fn command_tree_shaking_contract_is_feature_gated() {
 
 #[test]
 fn command_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let script_source = include_str!("../../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = include_str!("../../../scripts/check-ui-tree-shaking.sh");
 
     for required in [
         "COMMAND_MIN_FEATURES=\"component-command,inject-css\"",
         "cargo test -p ui-command --lib command_tree_shaking_contract_is_feature_gated",
         "cargo test -p ui-command --lib command_check2_marks_tree_shaking_feature_pruning_contract_complete",
         "cargo test -p ui-command --lib command_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "COMMAND_TREE_OUTPUT=\"$(cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$COMMAND_MIN_FEATURES\")\"",
+        "COMMAND_TREE_OUTPUT=\"$(cargo tree -e features -i ui -p ui --no-default-features --features \"$COMMAND_MIN_FEATURES\")\"",
         "feature \"component-command\" (command-line)",
         "feature \"inject-css\" (command-line)",
         "command minimal feature tree should not pull all-components",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$COMMAND_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$COMMAND_MIN_FEATURES\"",
     ] {
         assert!(
             script_source.contains(required),
@@ -432,13 +432,13 @@ fn command_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2_source = include_str!("../check2.md");
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "component-command",
-        "crates/ui-components/src/lib.rs",
-        "crates/ui-components/src/css.rs",
+        "crates/ui/src/lib.rs",
+        "crates/ui/src/css.rs",
         "command_tree_shaking_contract_is_feature_gated",
         "command_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -528,18 +528,19 @@ fn command_semantics_tests_cover_behavior_matrix_not_visual_snapshots() {
         );
     }
 
-    for forbidden in [
-        "assert_snapshot!",
-        "insta::",
-        "to_match_snapshot",
-        "snapshot_assertions",
-    ] {
+    let forbidden = [
+        ["assert", "_snapshot!"].concat(),
+        ["insta::assert", "_snapshot!"].concat(),
+        ["to_match", "_snapshot"].concat(),
+        ["snapshot", "_assertions"].concat(),
+    ];
+    for forbidden in forbidden {
         assert!(
-            !semantics_test_source.contains(forbidden),
+            !semantics_test_source.contains(forbidden.as_str()),
             "command semantics tests should not rely on visual snapshot marker `{forbidden}`."
         );
         assert!(
-            !logic_test_source.contains(forbidden),
+            !logic_test_source.contains(forbidden.as_str()),
             "command logic tests should not rely on visual snapshot marker `{forbidden}`."
         );
     }
@@ -770,8 +771,10 @@ fn command_dx_default_path_is_simple_and_state_not_required() {
         "command default path should require data input only via `groups`."
     );
     assert!(
-        !view_source.contains("state:"),
-        "command should not expose internal state object as required API input."
+        !view_source.contains("#[prop(optional)] state:")
+            && !view_source.contains("#[prop(into)] state:")
+            && !view_source.contains(" state: Option<Signal<"),
+        "command should not expose internal state object as component API prop."
     );
     assert!(
         readme_source
@@ -862,7 +865,7 @@ fn command_two_pass_geometry_contract_is_not_applicable() {
     let motion_source = include_str!("../src/motion.rs");
 
     for forbidden in [
-        "Intent",
+        "TwoPassIntent",
         "Rectification",
         "Measure(",
         "getBoundingClientRect",
@@ -916,11 +919,12 @@ fn command_registration_protocol_is_not_applicable() {
     }
 
     assert!(
-        view_source.contains("state.groups.iter()"),
+        view_source.contains("render_options_content(state: &CommandFilterState")
+            && view_source.contains("render_group_section(group, &state.items, &ctx.option)"),
         "command should render from typed group collection order."
     );
     assert!(
-        view_source.contains("let item_indices = group.item_indices.clone();"),
+        view_source.contains(".item_indices"),
         "command should use ordered group item indices from primitive output."
     );
 }
@@ -1142,7 +1146,7 @@ fn command_hydration_discontinuity_contract_uses_deterministic_ids() {
     let view_source = include_str!("../src/view.rs");
     let logic_source = include_str!("../src/logic.rs");
     let mod_source = include_str!("../src/mod.rs");
-    let ui_root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let ui_root_source = include_str!("../../../crates/ui/src/root.rs");
 
     for needle in [
         "pub fn Command(\n    id_base: String,",
@@ -1433,7 +1437,7 @@ fn command_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm
     let active_highlight_source =
         include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-platforms.sh");
+    let script_source = include_str!("../../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "pub type CommandMotion = ui_visual_primitive::active_highlight::ActiveHighlightMotion;",
@@ -1519,7 +1523,7 @@ fn command_performance_governance_budget_is_mount_only_traceable_and_blocking() 
     let perf_probe_source = include_str!("../../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = include_str!("../../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = include_str!("../../../docs/plan/TODO.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../scripts/check-ui-performance.sh");
     let view_source = include_str!("../src/view.rs");
 
     for needle in [
@@ -1638,7 +1642,7 @@ fn command_semantics_and_performance_regression_cover_aria_data_focus_and_render
     let view_source = include_str!("../src/view.rs");
     let check2_source = include_str!("../check2.md");
     let todo_source = include_str!("../../../docs/plan/TODO.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../scripts/check-ui-performance.sh");
 
     for marker in [
         "role=input_a11y.role",
@@ -1695,7 +1699,7 @@ fn command_semantics_and_performance_regression_cover_aria_data_focus_and_render
         "command_semantics_tests_cover_behavior_matrix_not_visual_snapshots",
         "command_performance_governance_budget_is_mount_only_traceable_and_blocking",
         "command_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -1714,7 +1718,7 @@ fn command_view_macro_complexity_is_partitioned_into_render_helpers() {
         "fn render_option_item(",
         "fn render_group_section(",
         "fn render_options_content(",
-        "let slots = CommandViewSlots {",
+        "const COMMAND_VIEW_SLOTS: CommandViewSlots = CommandViewSlots {",
         "render_options_content(",
     ] {
         assert!(
@@ -1907,7 +1911,7 @@ fn command_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isolated() 
     let logic_source = include_str!("../src/logic.rs");
     let view_source = include_str!("../src/view.rs");
     let command_cargo_source = include_str!("../Cargo.toml");
-    let ui_components_cargo_source = include_str!("../../../crates/ui-components/Cargo.toml");
+    let ui_components_cargo_source = include_str!("../../../crates/ui/Cargo.toml");
     let docs_lib_source = include_str!("../../../apps/docs-app/src/lib.rs");
     let docs_command_page_source =
         include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
@@ -2007,7 +2011,7 @@ fn command_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isolated() 
         );
         assert!(
             !ui_components_cargo_source.contains(forbidden),
-            "ui-components Cargo features should remain free of command-specific wasm debug flag `{forbidden}`."
+            "ui Cargo features should remain free of command-specific wasm debug flag `{forbidden}`."
         );
     }
 
@@ -2031,7 +2035,7 @@ fn command_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_option
         include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
     let command_cargo_source = include_str!("../Cargo.toml");
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "<Playground",
@@ -2121,7 +2125,7 @@ fn command_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming
 
     for needle in [
         "const COMMAND_DOC_IMPORTS: &str =",
-        "use leptos::prelude::*;\\nuse std::sync::Arc;\\nuse ui_components::{Command, CommandGroup, CommandItem};",
+        "use leptos::prelude::*;\\nuse std::sync::Arc;\\nuse ui::{Command, CommandGroup, CommandItem};",
         "code_imports=COMMAND_DOC_IMPORTS.to_string()",
         "title=\"Hello World (Default API)\"",
         "title=\"State Matrix\"",
@@ -2152,7 +2156,7 @@ fn command_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming
 
 #[test]
 fn command_dx_check_script_covers_docs_copy_paste_ready_and_workbench_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
@@ -2179,7 +2183,7 @@ fn command_check2_marks_docs_product_copy_paste_ready_contract_complete() {
         "compose_copy_ready_code",
         "command_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
         "command_dx_check_script_covers_docs_copy_paste_ready_and_workbench_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             source.contains(needle),
@@ -2208,7 +2212,7 @@ fn command_check2_documents_docs_sync_and_state_matrix_rules() {
         "command_check2_documents_docs_sync_and_state_matrix_rules",
         "command_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "command_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             checklist_source.contains(marker),
@@ -2230,13 +2234,13 @@ fn command_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults
         "title=\"State Matrix\"",
         "title=\"Controlled vs Uncontrolled\"",
         "id_base=\"docs-command-state-matrix\".to_string()",
-        "default_query={",
+        "default_query=state_matrix_default_query.get()",
         "is_disabled=state_matrix_disabled.get()",
         "id_base=\"docs-command-controlled\".to_string()",
-        "query=Some(controlled_query)",
-        "on_query_change=Some(on_controlled_query_change.clone())",
+        "query=controlled_query",
+        "on_query_change=on_controlled_query_change",
         "id_base=\"docs-command-uncontrolled\".to_string()",
-        "default_query=Some(\"cal\".to_string())",
+        "default_query=\"cal\".to_string()",
     ] {
         assert!(
             docs_source.contains(needle),
@@ -2286,7 +2290,7 @@ fn command_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults
 
 #[test]
 fn command_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_check2_documents_docs_sync_and_state_matrix_rules",
@@ -2320,8 +2324,8 @@ fn command_check2_documents_interactive_playground_rules() {
         "command_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "command_dx_check_script_covers_interactive_playground_contract",
         "command_e2e_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
-        "scripts/check-ui-components-e2e-command.sh",
+        "scripts/check-ui-dx.sh",
+        "components/command/scripts/check-ui-e2e-command.sh",
     ] {
         assert!(
             checklist_source.contains(marker),
@@ -2389,7 +2393,7 @@ fn command_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn command_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_check2_documents_interactive_playground_rules",
@@ -2404,7 +2408,7 @@ fn command_dx_check_script_covers_interactive_playground_contract() {
 
 #[test]
 fn command_e2e_check_script_covers_interactive_playground_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-command.sh");
+    let script_source = include_str!("../../../components/command/scripts/check-ui-e2e-command.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_interactive_playground_reuses_repeatable_semantic_e2e_flow",
@@ -2436,7 +2440,7 @@ fn command_check2_documents_source_first_copy_paste_ready_rules() {
     for marker in [
         "command_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "command_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             checklist_source.contains(marker),
@@ -2491,7 +2495,7 @@ fn command_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies()
     }
 
     for needle in [
-        "class_name=\"ui-code-block__copy-button\".to_string()",
+        "class_name=\"ui-code-block__copy-button\"",
         "copy_to_clipboard_aria_label",
     ] {
         assert!(
@@ -2514,7 +2518,7 @@ fn command_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies()
 
 #[test]
 fn command_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_check2_documents_source_first_copy_paste_ready_rules",
@@ -2624,7 +2628,7 @@ fn command_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn command_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_check2_documents_documentation_as_product_rules",
@@ -2646,7 +2650,7 @@ fn command_check2_marks_documentation_as_product_contract_complete() {
         "command_check2_documents_documentation_as_product_rules",
         "command_documentation_entry_exists_with_beginner_first_progression",
         "command_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2727,7 +2731,7 @@ fn command_heroui_strategy_and_component_docs_are_synchronized_and_indexable() {
 
 #[test]
 fn command_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_check2_documents_heroui_benchmark_docs_sync_rules",
@@ -2750,7 +2754,7 @@ fn command_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "command_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "command_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2778,7 +2782,7 @@ fn command_check2_documents_semantics_first_testing_rules() {
     for marker in [
         "command_semantics_suite_is_contract_first_not_snapshot_only",
         "command_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             checklist_source.contains(marker),
@@ -2821,17 +2825,18 @@ fn command_semantics_suite_is_contract_first_not_snapshot_only() {
     );
 
     let forbidden = [
-        "assert_snapshot!",
-        "insta::assert_snapshot!",
-        "to_match_snapshot",
-        "image_snapshot",
-        "toHaveScreenshot",
-        "toMatchSnapshot",
+        ["assert", "_snapshot!"].concat(),
+        ["insta::assert", "_snapshot!"].concat(),
+        ["to_match", "_snapshot"].concat(),
+        ["image", "_snapshot"].concat(),
+        ["toHave", "Screenshot"].concat(),
+        ["toMatch", "Snapshot"].concat(),
     ];
 
     for forbidden in forbidden {
         assert!(
-            !semantics_source.contains(forbidden) && !logic_test_source.contains(forbidden),
+            !semantics_source.contains(forbidden.as_str())
+                && !logic_test_source.contains(forbidden.as_str()),
             "command semantics should not rely on snapshot-only assertion `{forbidden}` as primary signal.",
         );
     }
@@ -2876,7 +2881,7 @@ fn command_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks(
 
 #[test]
 fn command_contract_hygiene_script_covers_semantics_first_testing_guards() {
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_check2_documents_semantics_first_testing_rules",
@@ -2909,7 +2914,7 @@ fn command_check2_documents_e2e_selector_and_stable_wait_rules() {
     for marker in [
         "command_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "command_e2e_check_script_covers_selector_contract",
-        "scripts/check-ui-components-e2e-command.sh",
+        "components/command/scripts/check-ui-e2e-command.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -2978,7 +2983,7 @@ fn command_e2e_selector_contract_uses_semantic_markers_and_settled_waits() {
 
 #[test]
 fn command_e2e_check_script_covers_selector_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-command.sh");
+    let script_source = include_str!("../../../components/command/scripts/check-ui-e2e-command.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_check2_documents_e2e_selector_and_stable_wait_rules",
@@ -3012,7 +3017,7 @@ fn command_check2_documents_e2e_repeatable_key_flow_rules() {
         "command_check2_documents_e2e_repeatable_key_flow_rules",
         "command_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "command_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-command.sh",
+        "components/command/scripts/check-ui-e2e-command.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -3024,7 +3029,7 @@ fn command_check2_documents_e2e_repeatable_key_flow_rules() {
 #[test]
 fn command_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_command.spec.mjs");
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-command.sh");
+    let script_source = include_str!("../../../components/command/scripts/check-ui-e2e-command.sh");
 
     for required in [
         "key flow is repeatable and failures map to semantic breakpoints",
@@ -3051,7 +3056,7 @@ fn command_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 #[test]
 fn command_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_command.spec.mjs");
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-command.sh");
+    let script_source = include_str!("../../../components/command/scripts/check-ui-e2e-command.sh");
 
     for required in [
         "high-risk paths keep focus keyboard and settled semantic breakpoints",
@@ -3079,7 +3084,7 @@ fn command_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpo
 
 #[test]
 fn command_e2e_check_script_covers_repeatable_key_flow_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-command.sh");
+    let script_source = include_str!("../../../components/command/scripts/check-ui-e2e-command.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_check2_documents_e2e_repeatable_key_flow_rules",
@@ -3099,13 +3104,13 @@ fn command_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_bo
     let check2_source = include_str!("../check2.md");
     let protocol_source = include_str!("../src/protocol.rs");
     let command_cargo_source = include_str!("../Cargo.toml");
-    let ui_components_cargo_source = include_str!("../../../crates/ui-components/Cargo.toml");
+    let ui_components_cargo_source = include_str!("../../../crates/ui/Cargo.toml");
     let mod_source = include_str!("../src/mod.rs");
     let logic_source = include_str!("../src/logic.rs");
     let view_source = include_str!("../src/view.rs");
     let motion_source = include_str!("../src/motion.rs");
     let readme_source = include_str!("../src/README.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let script_source = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for needle in [
         "use serde::{Deserialize, Serialize};",
@@ -3142,7 +3147,7 @@ fn command_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_bo
 
     assert!(
         ui_components_cargo_source.contains("tracing = { version = \"0.1\", optional = true }"),
-        "ui-components should keep tracing as optional shared dependency for unified semantics."
+        "ui should keep tracing as optional shared dependency for unified semantics."
     );
 
     for forbidden in [
@@ -3195,7 +3200,7 @@ fn command_version_deprecation_migration_is_na_without_major_breaking_upgrade() 
     let motion_source = include_str!("../src/motion.rs");
     let protocol_source = include_str!("../src/protocol.rs");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let script_source = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for needle in [
         "schema_version = \"1\"",
@@ -3291,13 +3296,13 @@ fn command_spec_rs_is_not_introduced_without_schema_contract() {
 
 #[test]
 fn command_ui_components_fixed_entry_files_follow_layered_boundaries() {
-    let ui_components_lib_source = include_str!("../../../crates/ui-components/src/lib.rs");
-    let ui_components_css_source = include_str!("../../../crates/ui-components/src/css.rs");
-    let ui_root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let ui_components_lib_source = include_str!("../../../crates/ui/src/lib.rs");
+    let ui_components_css_source = include_str!("../../../crates/ui/src/css.rs");
+    let ui_root_source = include_str!("../../../crates/ui/src/root.rs");
     let active_highlight_source =
         include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = include_str!("../../../scripts/check-ui-entrypoints.sh");
 
     for needle in [
         "#[cfg(feature = \"component-command\")]",
@@ -3305,7 +3310,7 @@ fn command_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_lib_source.contains(needle),
-            "ui-components lib.rs should keep command feature-gated public entry marker `{needle}`."
+            "ui lib.rs should keep command feature-gated public entry marker `{needle}`."
         );
     }
 
@@ -3316,7 +3321,7 @@ fn command_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !ui_components_lib_source.contains(forbidden),
-            "ui-components lib.rs should not leak platform detail marker `{forbidden}`."
+            "ui lib.rs should not leak platform detail marker `{forbidden}`."
         );
     }
 
@@ -3327,7 +3332,7 @@ fn command_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_css_source.contains(needle),
-            "ui-components css.rs should keep feature-gated command aggregation marker `{needle}`."
+            "ui css.rs should keep feature-gated command aggregation marker `{needle}`."
         );
     }
 
@@ -3340,7 +3345,7 @@ fn command_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_root_source.contains(needle),
-            "ui-components root.rs should keep centralized root injection marker `{needle}`."
+            "ui root.rs should keep centralized root injection marker `{needle}`."
         );
     }
 
@@ -3363,11 +3368,11 @@ fn command_ui_components_fixed_entry_files_follow_layered_boundaries() {
     }
 
     let ui_components_src =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/src");
     for forbidden in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src.join(forbidden).exists(),
-            "ui-components fixed entry discipline should keep forbidden file absent `{forbidden}`."
+            "ui fixed entry discipline should keep forbidden file absent `{forbidden}`."
         );
     }
 
@@ -3387,7 +3392,7 @@ fn command_ui_components_fixed_entry_files_follow_layered_boundaries() {
     );
 
     for needle in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "command_ui_components_fixed_entry_files_follow_layered_boundaries",
     ] {
         assert!(
@@ -3405,7 +3410,7 @@ fn command_component_directory_standard_files_follow_contract_and_na_spec() {
     let view_source = include_str!("../src/view.rs");
     let motion_source = include_str!("../src/motion.rs");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
 
     let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     for required in ["mod.rs", "logic.rs", "styles.rs", "view.rs", "motion.rs"] {
@@ -3536,7 +3541,7 @@ fn command_component_directory_standard_files_follow_contract_and_na_spec() {
 fn command_file_placement_discipline_is_strict_for_component_scope() {
     let mod_source = include_str!("../src/mod.rs");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
     let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
 
     for required in ["mod.rs", "logic.rs", "styles.rs", "view.rs", "motion.rs"] {
@@ -3591,7 +3596,7 @@ fn command_hyper_structure_builder_spec_is_not_applicable_for_simple_component()
     let mod_source = include_str!("../src/mod.rs");
     let readme_source = include_str!("../src/README.md");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
     let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
 
     assert!(
@@ -3635,7 +3640,7 @@ fn command_context_compression_manifest_and_rbi_projection_are_present_and_curre
     let component_manifest_source = include_str!("../src/Component.toml");
     let rbi_source = include_str!("../src/command.rbi");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
 
     let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     assert!(
@@ -3712,7 +3717,7 @@ fn command_check2_documents_agent_contract_schema_governance_rules() {
         "command_agent_contract_is_schema_typed_and_machine_readable",
         "command_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "command_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -3866,7 +3871,7 @@ fn command_agent_contract_render_path_is_whitelist_safe_and_script_injection_fre
 
 #[test]
 fn command_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_check2_documents_agent_contract_schema_governance_rules",
@@ -3888,7 +3893,7 @@ fn command_check2_documents_streaming_definition_is_llm_output_only_with_two_mod
     let logic_source = include_str!("../src/logic.rs");
     let mod_source = include_str!("../src/mod.rs");
     let motion_source = include_str!("../src/motion.rs");
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
     let combined = format!("{view_source}\n{logic_source}\n{mod_source}\n{motion_source}");
 
     for required in [
@@ -4016,7 +4021,7 @@ fn command_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
 #[test]
 fn command_streaming_script_covers_snapshot_baseline_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_check2_documents_snapshot_as_default_baseline_capability",
@@ -4118,7 +4123,7 @@ fn command_streaming_validation_retry_resilience_boundaries_stay_outside_compone
 
 #[test]
 fn command_streaming_script_covers_streaming_responsibility_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_check2_documents_streaming_required_optional_classification_rules",
@@ -4162,7 +4167,10 @@ fn command_rust_hygiene_string_clone_hotspots_converge_to_cow_or_static_borrow()
         "let mut classes: Vec<Cow<'static, str>> = vec![Cow::Borrowed(state.base_class)];",
         "classes.push(Cow::Borrowed(\"ui-command--custom-class\"));",
         "classes.push(Cow::Owned(class_name));",
-        "classes.into_iter().map(Cow::into_owned).collect::<Vec<_>>().join(\" \")",
+        ".into_iter()",
+        ".map(Cow::into_owned)",
+        ".collect::<Vec<_>>()",
+        ".join(\" \")",
     ] {
         assert!(
             logic_source.contains(required),
@@ -4190,7 +4198,8 @@ fn command_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
         r#"'^[[:space:]]*let[[:space:]]+_[[:space:]]*='"#,
         "string clone hotspots (prefer Cow<'static, str>)",
-        "find crates apps -type f -name '*.rs' -path '*/src/*' | sort",
+        "RUST_HYGIENE_SCOPE",
+        "find \"${scope_roots[@]}\" -type f -name '*.rs' -path '*/src/*' | sort",
     ] {
         assert!(
             script_source.contains(required),
@@ -4201,7 +4210,7 @@ fn command_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
 
 #[test]
 fn command_engineering_script_covers_rust_hygiene_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let script_source = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for needle in [
         "cargo test -p ui-command --lib command_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",

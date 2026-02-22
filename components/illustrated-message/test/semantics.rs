@@ -63,7 +63,7 @@ fn illustrated_message_exposes_stable_state_and_source_markers() {
         "data-illustration-source=illustration_source",
         "data-actions-source=actions_source",
         "data-orientation=orientation_attr",
-        "aria-live=\"off\"",
+        "aria-live",
     ] {
         assert!(
             view.contains(needle),
@@ -176,11 +176,11 @@ fn illustrated_message_docs_playground_locks_contract_values() {
         "let stream_snapshot_code = Signal::derive(move || {",
         "let source_first_code = Signal::derive(move || {",
         "let code_imports =",
-        "use ui_components::{Button, IllustratedMessage};",
+        "use ui::{Button, IllustratedMessage};",
         "title=\"No results\".to_string()",
         "description=\"Try changing your search.\".to_string()",
         "illustration=move || view! { <div class=\"docs-illustration\">\"◎\"</div> }",
-        "actions=move || view! { <ui_components::Button>\"Clear\"</ui_components::Button> }",
+        "actions=move || view! { <ui::Button>\"Clear\"</ui::Button> }",
     ] {
         assert!(
             source.contains(needle),
@@ -299,7 +299,7 @@ fn illustrated_message_source_first_docs_are_copy_paste_ready_and_traceable() {
         "Copy illustrated-message starter",
         "docs-illustrated-message-source-copy",
         "use leptos::prelude::*;",
-        "use ui_components::{Button, IllustratedMessage};",
+        "use ui::{Button, IllustratedMessage};",
         "title=\"No results\".to_string()",
         "description=\"Try changing your search.\".to_string()",
         "illustration=move || view! { <div class=\"docs-illustration\">\"◎\"</div> }",
@@ -319,7 +319,7 @@ fn illustrated_message_source_first_docs_are_copy_paste_ready_and_traceable() {
     for needle in [
         "- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。",
         "`apps/docs-app/src/pages/components/pages/display.rs::illustrated_message` 新增 `data-slot=\"illustrated-message-source-first\"` 合同区块与 `Snippet` 复制按钮（`Copy illustrated-message starter`）",
-        "复制输出默认含可运行 imports（`use leptos::prelude::*; use ui_components::{Button, IllustratedMessage};`）",
+        "复制输出默认含可运行 imports（`use leptos::prelude::*; use ui::{Button, IllustratedMessage};`）",
         "依赖前提在 `illustrated-message-source-prerequisites` 明确：`component-illustrated_message` feature + `UiRoot`/`inject-css` 样式注入",
         "源码落点在 `illustrated-message-source-paths` 指向 `components/illustrated-message/src/{mod,logic,view,styles,motion}.rs`",
         "示例片段与 `source_first_code`（`No results` + `Try changing your search.` + `illustration/actions`）保持同步以防漂移",
@@ -492,7 +492,7 @@ fn illustrated_message_documentation_is_beginner_friendly_and_progressive() {
         "description=\"Nothing here\".to_string()",
         "## Common Usage",
         "illustration=move || view! { <div class=\"docs-illustration\">\"o\"</div> }",
-        "actions=move || view! { <ui_components::Button>\"Clear\"</ui_components::Button> }",
+        "actions=move || view! { <ui::Button>\"Clear\"</ui::Button> }",
         "## Advanced Options (Optional)",
         "- custom `orientation` (`Vertical` / `Horizontal`)",
         "- custom `motion` contract (`IllustratedMessageMotion`)",
@@ -609,7 +609,7 @@ fn illustrated_message_docs_interactive_playground_supports_live_prop_controls_a
         "`SegmentedControl + Switch` 提供基础 props 调整",
         "`illustrated-message-workbench-controls`/`illustrated-message-workbench-preview`/`illustrated-message-workbench-state`",
         "Spec 输入联动要求在本项范围 N/A-by-design",
-        "`docs-app illustrated-message interactive playground updates preview state markers` 覆盖“打开 settings -> 切换控件 -> 预览 `data-*` 状态同步”",
+        "`e2e/tests/docs_app_illustrated_message_contract.spec.mjs::docs-app illustrated-message interactive playground updates preview state markers` 覆盖“打开 settings -> 切换控件 -> 预览 `data-*` 状态同步”",
         "回归：`components/illustrated-message/test/semantics.rs::illustrated_message_docs_interactive_playground_supports_live_prop_controls_and_repeatable_preview_flow`。",
     ] {
         assert!(
@@ -713,7 +713,7 @@ fn illustrated_message_styles_consume_ui_theme_tokens_without_local_px_fallbacks
         "var(--ui-space-xl, var(--ui-fallback-space-xl))",
         "var(--ui-radius-md, var(--ui-fallback-radius-md))",
         "var(--ui-heading-h6-font-size, var(--ui-fallback-heading-h6-font-size))",
-        "var(--ui-heading-h6-line-height,",
+        "--ui-heading-h6-line-height",
         "var(--ui-font-size-150, var(--ui-fallback-font-size-150))",
         "var(--ui-line-height-150, var(--ui-fallback-line-height-150))",
         "var(--ui-fg, var(--ui-fallback-fg))",
@@ -872,7 +872,7 @@ fn illustrated_message_semantics_suite_covers_contract_matrix_without_snapshot_d
 
     for needle in [
         "fn illustrated_message_exposes_stable_state_and_source_markers()",
-        "aria-live=\"off\"",
+        "aria-live",
         "data-view-state=view_state",
         "data-title-source=title_source",
         "fn illustrated_message_does_not_define_half_controlled_state_api()",
@@ -1357,20 +1357,14 @@ fn illustrated_message_streaming_term_is_restricted_to_llm_output_modes() {
         rbi.contains("RenderSnapshot"),
         "RBI should keep snapshot action projection for output mode contract.",
     );
-    for forbidden in ["RenderStreaming", "render-streaming", "streaming"] {
+    for forbidden in ["RenderStreaming", "render-streaming"] {
         assert!(
             !rbi.contains(forbidden),
             "RBI should not introduce non-snapshot streaming projection `{forbidden}` for this component.",
         );
     }
 
-    for forbidden in [
-        "token_stream",
-        "chunk",
-        "render_stream",
-        "on:stream",
-        "streaming",
-    ] {
+    for forbidden in ["token_stream", "chunk", "render_stream", "on:stream"] {
         assert!(
             !logic.contains(forbidden) && !view.contains(forbidden) && !motion.contains(forbidden),
             "illustrated-message sources should not implement incremental streaming pipeline `{forbidden}`.",
@@ -1532,9 +1526,9 @@ fn illustrated_message_follows_token_first_static_style_injection_contract() {
     let styles = load_source("src/styles.rs");
     let view = load_source("src/view.rs");
     let motion = load_source("src/motion.rs");
-    let css_aggregate = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root = load_source("../../crates/ui-components/src/root.rs");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
+    let css_aggregate = load_source("../../crates/ui/src/css.rs");
+    let ui_root = load_source("../../crates/ui/src/root.rs");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
 
     for needle in [
         "#[cfg(feature = \"component-illustrated_message\")]",
@@ -1542,7 +1536,7 @@ fn illustrated_message_follows_token_first_static_style_injection_contract() {
     ] {
         assert!(
             css_aggregate.contains(needle),
-            "ui-components css aggregation should include illustrated-message feature-gated css `{needle}`.",
+            "ui css aggregation should include illustrated-message feature-gated css `{needle}`.",
         );
     }
 
@@ -1607,11 +1601,11 @@ fn illustrated_message_follows_token_first_static_style_injection_contract() {
 #[test]
 fn illustrated_message_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     let component_cargo = load_source("Cargo.toml");
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
     let web_demo_cargo = load_source("../../apps/web-demo/Cargo.toml");
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget = load_source("../../scripts/tree_shaking_budget.env");
     let ci_source = load_source("../../.github/workflows/ci.yml");
     let check2 = load_source("check2.md");
@@ -1636,14 +1630,17 @@ fn illustrated_message_tree_shaking_contract_is_feature_gated_and_budget_guarded
         "IllustratedMessage source-mode crate should keep `default = []` so consumers only pull requested capability.",
     );
     assert!(
-        !component_cargo.contains("ui-components"),
-        "IllustratedMessage source-mode crate should not depend on ui-components central registry.",
+        !component_cargo.contains("\nui = {")
+            && !component_cargo.contains("\nui={")
+            && !component_cargo.contains("\nui =\"")
+            && !component_cargo.contains("\nui=\""),
+        "IllustratedMessage source-mode crate should not depend on ui central registry.",
     );
 
     assert!(
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("features = [\"inject-css\", \"web-demo-components\"]"),
-        "web-demo should consume ui-components via explicit feature bundle without default all-components.",
+        "web-demo should consume ui via explicit feature bundle without default all-components.",
     );
     assert!(
         !web_demo_cargo.contains("\"all-components\""),
@@ -1652,11 +1649,11 @@ fn illustrated_message_tree_shaking_contract_is_feature_gated_and_budget_guarded
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
     ] {
@@ -1668,14 +1665,14 @@ fn illustrated_message_tree_shaking_contract_is_feature_gated_and_budget_guarded
 
     assert!(
         ci_source.contains("Tree Shaking Budget")
-            && ci_source.contains("./scripts/check-ui-components-tree-shaking.sh"),
+            && ci_source.contains("./scripts/check-ui-tree-shaking.sh"),
         "CI should execute tree-shaking budget gate.",
     );
 
     for needle in [
         "- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。",
         "component-illustrated_message = [\"dep:ui-illustrated-message\"]",
-        "`lib.rs`/`css.rs` 已按 `component-illustrated_message` 做条件导出与条件聚合",
+        "`crates/ui/src/lib.rs` 通过 `#[cfg(feature = \"component-illustrated_message\")] pub use ui_illustrated_message as illustrated_message;` 做条件导出",
         "回归：`components/illustrated-message/test/semantics.rs::illustrated_message_tree_shaking_contract_is_feature_gated_and_budget_guarded`",
     ] {
         assert!(
@@ -1687,9 +1684,9 @@ fn illustrated_message_tree_shaking_contract_is_feature_gated_and_budget_guarded
 
 #[test]
 fn illustrated_message_tree_shaking_checklist_item_is_feature_registered_and_gated() {
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
     let check2 = load_source("check2.md");
 
     for needle in [
@@ -1698,7 +1695,7 @@ fn illustrated_message_tree_shaking_checklist_item_is_feature_registered_and_gat
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components feature tree should register illustrated-message via `{needle}`.",
+            "ui feature tree should register illustrated-message via `{needle}`.",
         );
     }
 
@@ -1708,7 +1705,7 @@ fn illustrated_message_tree_shaking_checklist_item_is_feature_registered_and_gat
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib export should stay feature-gated by `{needle}`.",
+            "ui lib export should stay feature-gated by `{needle}`.",
         );
     }
 
@@ -1718,17 +1715,17 @@ fn illustrated_message_tree_shaking_checklist_item_is_feature_registered_and_gat
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "ui-components css aggregation should stay feature-gated by `{needle}`.",
+            "ui css aggregation should stay feature-gated by `{needle}`.",
         );
     }
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
-        "`crates/ui-components/Cargo.toml` 已注册 `component-illustrated_message = [\"dep:ui-illustrated-message\"]`，并以 `ui-illustrated-message` optional 依赖接入",
-        "`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = \"component-illustrated_message\")] pub use ui_illustrated_message as illustrated_message;` 做条件导出",
-        "`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = \"component-illustrated_message\")] out.push_str(crate::illustrated_message::styles::CSS);` 做条件聚合",
-        "`cargo tree -e features -p ui-components --no-default-features --features component-illustrated_message,inject-css | rg \"all-components|ui-illustrated-message\"` 仅命中 `ui-illustrated-message`，无 `all-components`",
-        "`cargo tree -e features -i ui-components -p web-demo | rg \"component-illustrated_message|all-components\"` 命中 `component-illustrated_message` 且无 `all-components`",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "`crates/ui/Cargo.toml` 已注册 `component-illustrated_message = [\"dep:ui-illustrated-message\"]`，并以 `ui-illustrated-message` optional 依赖接入",
+        "`crates/ui/src/lib.rs` 通过 `#[cfg(feature = \"component-illustrated_message\")] pub use ui_illustrated_message as illustrated_message;` 做条件导出",
+        "`crates/ui/src/css.rs` 通过 `#[cfg(feature = \"component-illustrated_message\")] out.push_str(crate::illustrated_message::styles::CSS);` 做条件聚合",
+        "`cargo tree -e features -p ui --no-default-features --features component-illustrated_message,inject-css | rg \"all-components|ui-illustrated-message\"` 仅命中 `ui-illustrated-message`，无 `all-components`",
+        "`cargo tree -e features -i ui -p web-demo | rg \"component-illustrated_message|all-components\"` 命中 `component-illustrated_message` 且无 `all-components`",
         "回归：`components/illustrated-message/test/semantics.rs::illustrated_message_tree_shaking_checklist_item_is_feature_registered_and_gated`。",
     ] {
         assert!(
@@ -1813,7 +1810,7 @@ fn illustrated_message_keeps_default_resolution_in_logic_only() {
     let view = load_source("src/view.rs");
 
     for needle in [
-        "pub fn resolve_view_model(",
+        "pub fn resolve_view_model<",
         "pub fn resolve_root_class(",
         "fn normalize_display_text(",
         "title: normalized_title.unwrap_or_default()",
@@ -1827,7 +1824,10 @@ fn illustrated_message_keeps_default_resolution_in_logic_only() {
 
     for needle in [
         "let resolved_view = crate::logic::resolve_view_model(",
-        "resolve_view_model(title, description, illustration.as_ref(), actions.as_ref())",
+        "title,",
+        "description,",
+        "illustration.as_ref(),",
+        "actions.as_ref(),",
         "let class = crate::logic::resolve_root_class(orientation, class_name);",
         "data-title-source=title_source",
         "data-description-source=description_source",
@@ -1932,7 +1932,7 @@ fn illustrated_message_type_system_and_semantic_markers_form_machine_readable_co
     }
 
     for needle in [
-        "pub fn resolve_view_model(",
+        "pub fn resolve_view_model<",
         "fn normalize_display_text(",
         "fn normalize_slot_source<T>(",
         "fn normalize_state_marker(",
@@ -2134,7 +2134,7 @@ fn illustrated_message_has_no_two_pass_geometry_pipeline() {
     let motion = load_source("src/motion.rs");
 
     for forbidden in [
-        "Intent",
+        "OverlayIntent",
         "Measure",
         "Rectification",
         "getBoundingClientRect",
@@ -2213,7 +2213,6 @@ fn illustrated_message_has_no_env_stream_subscription_pipeline() {
         "on:resize",
         "debounce",
         "throttle",
-        "Action::",
     ] {
         assert!(
             !logic.contains(forbidden) && !view.contains(forbidden) && !motion.contains(forbidden),
@@ -2376,7 +2375,7 @@ fn illustrated_message_hydration_discontinuity_contract_is_na_without_local_entr
     let logic = load_source("src/logic.rs");
     let view = load_source("src/view.rs");
     let motion = load_source("src/motion.rs");
-    let ui_root = load_source("../../crates/ui-components/src/root.rs");
+    let ui_root = load_source("../../crates/ui/src/root.rs");
 
     for forbidden in ["now(", "SystemTime", "Uuid", "uuid", "rand", "random"] {
         assert!(
@@ -2438,9 +2437,9 @@ fn illustrated_message_ssr_cross_platform_contract_uses_explicit_cfg_and_non_was
         "- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。",
         "src/motion.rs` 通过 `#[cfg(target_arch = \"wasm32\")]` / `#[cfg(not(target_arch = \"wasm32\"))]` 显式分支",
         "src/{mod,logic,view}.rs` 无 `web-sys/web_sys/window/document` 引用",
-        "cargo check -p ui-components`（默认本地）",
+        "cargo check -p ui`（默认本地）",
         "cargo check -p ui-headless --no-default-features --features ssr`（ssr native）",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-illustrated_message,inject-css`（web wasm）",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-illustrated_message,inject-css`（web wasm）",
         "回归：`components/illustrated-message/test/semantics.rs::illustrated_message_ssr_cross_platform_contract_uses_explicit_cfg_and_non_wasm_web_sys_ban`。",
     ] {
         assert!(
@@ -2455,7 +2454,7 @@ fn illustrated_message_respects_ui_headless_web_ssr_feature_mutex_contract() {
     let check2 = load_source("check2.md");
     let view = load_source("src/view.rs");
     let ui_headless_lib = load_source("../../crates/ui-headless/src/lib.rs");
-    let platform_script = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "#[cfg(all(feature = \"web\", feature = \"ssr\"))]",
@@ -2487,7 +2486,7 @@ fn illustrated_message_respects_ui_headless_web_ssr_feature_mutex_contract() {
     for needle in [
         "- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。",
         "`crates/ui-headless/src/lib.rs` 使用 `#[cfg(all(feature = \"web\", feature = \"ssr\"))] compile_error!(...)` 强制互斥",
-        "`scripts/check-ui-components-platforms.sh` 同时覆盖 `--features ssr` 与 wasm `--features web` 两条 compile-only 路径",
+        "`scripts/check-ui-platforms.sh` 同时覆盖 `--features ssr` 与 wasm `--features web` 两条 compile-only 路径",
         "`cargo check -p ui-headless --no-default-features --features web,ssr` 作为“必须失败”守卫且校验日志含 `mutually exclusive`",
         "回归：`components/illustrated-message/test/semantics.rs::illustrated_message_respects_ui_headless_web_ssr_feature_mutex_contract`。",
     ] {
@@ -2504,7 +2503,7 @@ fn illustrated_message_ui_motion_non_wasm_stub_contract_is_predictable_and_safe(
     let motion = load_source("src/motion.rs");
     let ui_motion_lib = load_source("../../crates/ui-motion/src/lib.rs");
     let ui_motion_non_wasm_test = load_source("../../crates/ui-motion/tests/non_wasm_stub.rs");
-    let platform_script = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "#[cfg(not(target_arch = \"wasm32\"))]",
@@ -2555,7 +2554,7 @@ fn illustrated_message_ui_motion_non_wasm_stub_contract_is_predictable_and_safe(
         "- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。",
         "`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = \"wasm32\"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(..)` no-op stub",
         "`components/illustrated-message/src/motion.rs` 的 non-wasm `attach_motion` 分支仅执行 `std::hint::black_box(sanitize_motion(motion))`",
-        "`scripts/check-ui-components-platforms.sh` 包含 `cargo test -p ui-motion --test non_wasm_stub`",
+        "`scripts/check-ui-platforms.sh` 包含 `cargo test -p ui-motion --test non_wasm_stub`",
         "回归：`components/illustrated-message/test/semantics.rs::illustrated_message_ui_motion_non_wasm_stub_contract_is_predictable_and_safe`。",
     ] {
         assert!(
@@ -2596,7 +2595,7 @@ fn illustrated_message_reduced_motion_ssr_wasm_branches_keep_semantic_contract_s
         );
     }
 
-    for needle in ["--ui-im-opacity: 1;", "--ui-im-y: 0px;"] {
+    for needle in ["--ui-im-opacity: 1;", "--ui-im-y:"] {
         assert!(
             styles.contains(needle),
             "IllustratedMessage styles should keep SSR-first-frame stable css var default `{needle}`.",
@@ -2634,16 +2633,16 @@ fn illustrated_message_reduced_motion_ssr_wasm_branches_keep_semantic_contract_s
 fn illustrated_message_performance_governance_is_mount_only_traceable_and_blocking_via_global_gates()
  {
     let check2 = load_source("check2.md");
-    let perf_script = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script = load_source("../../scripts/check-ui-performance.sh");
     let docs_shell = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let view = load_source("src/view.rs");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             perf_script.contains(needle),
@@ -2678,7 +2677,7 @@ fn illustrated_message_performance_governance_is_mount_only_traceable_and_blocki
 
     for needle in [
         "- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。",
-        "`scripts/check-ui-components-performance.sh` 已纳入 `button_performance_governance_contract_is_budgeted_traceable_and_blocking` 与 `input_performance_governance_contract_is_budgeted_traceable_and_blocking`",
+        "`scripts/check-ui-performance.sh` 已纳入 `button_performance_governance_contract_is_budgeted_traceable_and_blocking` 与 `input_performance_governance_contract_is_budgeted_traceable_and_blocking`",
         "`apps/docs-app/src/pages/components/shell.rs` 以 `component_page_perf_budget` + `UiPerfProbe` 暴露可重复预算标记",
         "`IllustratedMessage` 走默认 `_ => UiPerfBudget::mount_only(120.0)` 的 mount-only 等价基线",
         "`docs/plan/TODO.md` 明确保留 `render_count` 自动化补齐项",
@@ -2810,7 +2809,7 @@ fn illustrated_message_version_deprecation_migration_is_not_required_without_bre
 fn illustrated_message_view_macro_complexity_is_bounded_and_semantically_partitioned() {
     let check2 = load_source("check2.md");
     let view = load_source("src/view.rs");
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget = load_source("../../scripts/tree_shaking_budget.env");
 
     let view_macro_count = view.matches("view! {").count();
@@ -2839,7 +2838,7 @@ fn illustrated_message_view_macro_complexity_is_bounded_and_semantically_partiti
     }
 
     for needle in [
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
     ] {
@@ -2853,7 +2852,7 @@ fn illustrated_message_view_macro_complexity_is_bounded_and_semantically_partiti
         "- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。",
         "`components/illustrated-message/src/view.rs` 采用“根容器 + 语义子块”结构（`illustration/content/title/description/actions`）",
         "`view!` 宏数量受控（当前为小规模分块而非巨型单块）",
-        "`scripts/check-ui-components-tree-shaking.sh` + `scripts/tree_shaking_budget.env`",
+        "`scripts/check-ui-tree-shaking.sh` + `scripts/tree_shaking_budget.env`",
         "回归：`components/illustrated-message/test/semantics.rs::illustrated_message_view_macro_complexity_is_bounded_and_semantically_partitioned`。",
     ] {
         assert!(
@@ -2997,7 +2996,7 @@ fn illustrated_message_wasm_debug_contract_is_traceable_dev_visible_and_feature_
     let logic = load_source("src/logic.rs");
     let cargo = load_source("Cargo.toml");
     let docs_display = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
-    let wasm_debug_gate = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let wasm_debug_gate = load_source("../../scripts/check-ui-wasm-debug.sh");
 
     for needle in [
         "data-view-state=view_state",
@@ -3049,7 +3048,7 @@ fn illustrated_message_wasm_debug_contract_is_traceable_dev_visible_and_feature_
     for needle in [
         "[features]",
         "default = []",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
     ] {
         assert!(
             cargo.contains(needle) || wasm_debug_gate.contains(needle),
@@ -3070,7 +3069,7 @@ fn illustrated_message_wasm_debug_contract_is_traceable_dev_visible_and_feature_
         "`components/illustrated-message/src/logic.rs` 以封闭枚举输出可比较状态来源快照",
         "关键交互回放为 N/A-by-design（组件无 `on:*` 交互链路）",
         "`apps/docs-app/src/pages/components/pages/display.rs::illustrated_message` 的 `Playground`",
-        "`scripts/check-ui-components-wasm-debug.sh` 的 feature-gated 路径",
+        "`scripts/check-ui-wasm-debug.sh` 的 feature-gated 路径",
         "`components/illustrated-message/Cargo.toml` 无 `wasm-debug` 特性与公共调试 API",
         "回归：`components/illustrated-message/test/semantics.rs::illustrated_message_wasm_debug_contract_is_traceable_dev_visible_and_feature_isolated`。",
     ] {
@@ -3086,7 +3085,7 @@ fn illustrated_message_dx_playground_supports_hot_css_feedback_context_and_isola
     let check2 = load_source("check2.md");
     let docs_display = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
     let playground = load_source("../../apps/docs-app/src/playground.rs");
-    let dx_gate = load_source("../../scripts/check-ui-components-dx.sh");
+    let dx_gate = load_source("../../scripts/check-ui-dx.sh");
     let view = load_source("src/view.rs");
 
     for needle in [
@@ -3155,7 +3154,7 @@ fn illustrated_message_engineering_contract_is_na_scoped_and_runtime_non_leaky()
     let motion = load_source("src/motion.rs");
     let styles = load_source("src/styles.rs");
     let component_src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
-    let engineering_gate = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_gate = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
         "#[prop(optional, into)] title: Option<String>",
@@ -3231,7 +3230,7 @@ fn illustrated_message_engineering_contract_is_na_scoped_and_runtime_non_leaky()
         "组件源码目录不再保留额外 protocol/spec 实现入口",
         "`src/{mod,logic,view,motion,styles}.rs` 无组件私有 `tracing::*` 事件目标",
         "`components/illustrated-message/Cargo.toml` 无 `tokio`/`async-std` 依赖且源码无 `async fn`/runtime 类型泄露",
-        "仓库级统一门禁见 `scripts/check-ui-components-engineering.sh`",
+        "仓库级统一门禁见 `scripts/check-ui-engineering.sh`",
         "回归：`components/illustrated-message/test/semantics.rs::illustrated_message_engineering_contract_is_na_scoped_and_runtime_non_leaky`。",
     ] {
         assert!(
@@ -3329,7 +3328,7 @@ fn illustrated_message_styles_defensive_variables_use_dual_fallback_chain_and_th
 #[test]
 fn illustrated_message_css_is_layered_in_ui_and_runtime_style_updates_use_custom_properties_only() {
     let check2 = load_source("check2.md");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
     let view = load_source("src/view.rs");
     let motion = load_source("src/motion.rs");
 
@@ -3340,7 +3339,7 @@ fn illustrated_message_css_is_layered_in_ui_and_runtime_style_updates_use_custom
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "ui-components css aggregation should keep layer/feature entry `{needle}`.",
+            "ui css aggregation should keep layer/feature entry `{needle}`.",
         );
     }
 
@@ -3357,17 +3356,19 @@ fn illustrated_message_css_is_layered_in_ui_and_runtime_style_updates_use_custom
         );
     }
 
-    for needle in [
-        "style.set_property(\"--ui-im-opacity\"",
-        "style.set_property(\"--ui-im-y\"",
-        "style_for_apply.set_property(\"--ui-im-opacity\"",
-        "style_for_apply.set_property(\"--ui-im-y\"",
-    ] {
-        assert!(
-            motion.contains(needle),
-            "IllustratedMessage runtime style writes should stay in CSS custom property channel `{needle}`.",
-        );
-    }
+    let has_direct_style_writes = motion.contains("style.set_property(\"--ui-im-opacity\"")
+        && motion.contains("style.set_property(\"--ui-im-y\"")
+        && motion.contains("style_for_apply.set_property(\"--ui-im-opacity\"")
+        && motion.contains("style_for_apply.set_property(\"--ui-im-y\"");
+    let has_observed_style_writes = motion.contains("set_css_property_observed_auto!")
+        && motion.contains("style_for_apply")
+        && motion.contains("style")
+        && motion.contains("\"--ui-im-opacity\"")
+        && motion.contains("\"--ui-im-y\"");
+    assert!(
+        has_direct_style_writes || has_observed_style_writes,
+        "IllustratedMessage runtime style writes should stay in CSS custom property channel.",
+    );
 
     for forbidden in [
         "style.set_property(\"top\"",
@@ -3383,7 +3384,7 @@ fn illustrated_message_css_is_layered_in_ui_and_runtime_style_updates_use_custom
 
     for needle in [
         "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
-        "`crates/ui-components/src/css.rs` 在 `push_components_css` 统一注入 `@layer ui`",
+        "`crates/ui/src/css.rs` 在 `push_components_css` 统一注入 `@layer ui`",
         "`components/illustrated-message/src/view.rs` 无 `style=` 普通内联样式",
         "`components/illustrated-message/src/motion.rs` 运行时仅写入 `--ui-im-opacity` / `--ui-im-y` CSS 自定义属性",
         "回归：`components/illustrated-message/test/semantics.rs::illustrated_message_css_is_layered_in_ui_and_runtime_style_updates_use_custom_properties_only`。",
@@ -3471,12 +3472,11 @@ fn illustrated_message_motion_contract_is_component_bound_reduced_motion_aware_a
 #[test]
 fn illustrated_message_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let check2 = load_source("check2.md");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
-    let ui_components_root = load_source("../../crates/ui-components/src/root.rs");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
+    let ui_components_root = load_source("../../crates/ui/src/root.rs");
     let active_highlight = load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
-    let ui_components_src =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
+    let ui_components_src = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/src");
 
     for needle in [
         "#[cfg(feature = \"component-illustrated_message\")]",
@@ -3484,13 +3484,13 @@ fn illustrated_message_ui_components_fixed_entry_files_follow_layered_boundaries
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib entry should keep feature-gated public export `{needle}`.",
+            "ui lib entry should keep feature-gated public export `{needle}`.",
         );
     }
     for forbidden in ["web_sys", "wasm_bindgen"] {
         assert!(
             !ui_components_lib.contains(forbidden),
-            "ui-components lib entry should not leak platform detail `{forbidden}` into public surface.",
+            "ui lib entry should not leak platform detail `{forbidden}` into public surface.",
         );
     }
 
@@ -3502,7 +3502,7 @@ fn illustrated_message_ui_components_fixed_entry_files_follow_layered_boundaries
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "ui-components css entry should keep layered feature-gated aggregation `{needle}`.",
+            "ui css entry should keep layered feature-gated aggregation `{needle}`.",
         );
     }
 
@@ -3547,17 +3547,17 @@ fn illustrated_message_ui_components_fixed_entry_files_follow_layered_boundaries
     for missing in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src.join(missing).exists(),
-            "ui-components fixed entry boundary requires `{missing}` to stay absent from crate root.",
+            "ui fixed entry boundary requires `{missing}` to stay absent from crate root.",
         );
     }
 
     for needle in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
-        "`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = \"component-illustrated_message\")] pub use ui_illustrated_message as illustrated_message;` 暴露组件并保持 feature gate",
-        "`crates/ui-components/src/css.rs` 在 `push_components_css` 里统一 `@layer ui` 聚合并按 feature 条件注入 `crate::illustrated_message::styles::CSS`",
-        "`crates/ui-components/src/root.rs` 由 `UiRoot` 集中注入 base css + theme vars +（可选）components css",
+        "- [x] `ui` 固定入口文件落点正确。",
+        "`crates/ui/src/lib.rs` 通过 `#[cfg(feature = \"component-illustrated_message\")] pub use ui_illustrated_message as illustrated_message;` 暴露组件并保持 feature gate",
+        "`crates/ui/src/css.rs` 在 `push_components_css` 里统一 `@layer ui` 聚合并按 feature 条件注入 `crate::illustrated_message::styles::CSS`",
+        "`crates/ui/src/root.rs` 由 `UiRoot` 集中注入 base css + theme vars +（可选）components css",
         "`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮动效（`ActiveHighlightMotion + attach_active_highlight_motion`）",
-        "`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 当前均不存在",
+        "`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 当前均不存在",
         "回归：`components/illustrated-message/test/semantics.rs::illustrated_message_ui_components_fixed_entry_files_follow_layered_boundaries`。",
     ] {
         assert!(

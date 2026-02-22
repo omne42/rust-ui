@@ -281,7 +281,7 @@ fn fieldset_docs_page_covers_primary_playgrounds() {
         "<Playground title=\"Legend + Description\" code_signal=default_code>",
         "<Playground title=\"Horizontal + Invalid + Actions\" code_signal=invalid_code>",
         "title=\"Fieldset Workbench (Display + Config + Code + CSS Test)\"",
-        "test_source_path=\"crates/ui-components/src/field_form/fieldset/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui/src/field_form/fieldset/styles.rs\".to_string()",
         "test_config_signal=workbench_actual_config",
         "orientation=FieldsetOrientation::Horizontal",
         "tone=FieldsetTone::Muted",
@@ -314,8 +314,8 @@ fn fieldset_docs_playgrounds_lock_state_matrix_contract_values() {
         "is_invalid=true",
         "error_message=\"Pick at least one channel\".to_string()",
         "class_name=\"docs-fieldset-custom\".to_string()",
-        "variant=ui_components::ButtonVariant::Secondary",
-        "size=ui_components::ButtonSize::Sm",
+        "variant=ui::ButtonVariant::Secondary",
+        "size=ui::ButtonSize::Sm",
         "\"Manage channels\"",
         "data-slot=\"fieldset-workbench-controls\"",
         "data-slot=\"fieldset-workbench-compare\"",
@@ -358,7 +358,7 @@ fn fieldset_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streamin
     }
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String {",
         "code_imports",
         "CodeBlock",
@@ -376,7 +376,7 @@ fn fieldset_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streamin
         "h2:has-text(\"Controlled vs Uncontrolled (Snapshot Contrast)\")",
         "h2:has-text(\"Streaming Optional (fallback=snapshot)\")",
         "toContainText(\"use leptos::prelude::*;\")",
-        "toContainText(\"use ui_components::*;\")",
+        "toContainText(\"use ui::*;\")",
         "toContainText(\"<Fieldset\")",
     ] {
         assert!(
@@ -389,7 +389,7 @@ fn fieldset_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streamin
         for needle in [
             "- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。",
             "fieldset_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
         ] {
             assert!(
                 source.contains(needle),
@@ -416,7 +416,7 @@ fn fieldset_check2_marks_docs_product_copy_paste_ready_item_complete() {
             "DEFAULT_PLAYGROUND_IMPORTS",
             "fieldset_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
             "fieldset_dx_check_script_covers_docs_product_copy_paste_ready_contract",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -508,7 +508,7 @@ fn fieldset_docs_examples_and_state_matrix_sync_with_logic_api_names_and_default
     for needle in [
         "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
         "fieldset_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "forms_extra.rs::fieldset",
         "FieldsetActualConfig",
     ] {
@@ -521,12 +521,12 @@ fn fieldset_docs_examples_and_state_matrix_sync_with_logic_api_names_and_default
 
 #[test]
 fn fieldset_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: fieldset docs examples + api/state matrix sync with logic API/defaults\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -555,7 +555,7 @@ fn fieldset_check2_marks_docs_sync_and_state_matrix_item_complete() {
             "fieldset_check2_documents_docs_sync_and_state_matrix_rules",
             "fieldset_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
             "fieldset_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -663,11 +663,11 @@ fn fieldset_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn fieldset_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(needle),
@@ -693,7 +693,7 @@ fn fieldset_check2_marks_documentation_as_product_contract_complete() {
             "fieldset_check2_documents_documentation_as_product_rules",
             "fieldset_documentation_entry_exists_with_beginner_first_progression",
             "fieldset_dx_check_script_covers_documentation_as_product_contract",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -789,11 +789,11 @@ fn fieldset_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn fieldset_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(needle),
@@ -821,7 +821,7 @@ fn fieldset_check2_marks_interactive_playground_item_complete() {
             "fieldset_docs_app_provides_interactive_playground_for_props_state_and_preview",
             "fieldset_interactive_playground_reuses_repeatable_semantic_e2e_flow",
             "fieldset_dx_check_script_covers_interactive_playground_contract",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -872,7 +872,7 @@ fn fieldset_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies(
         "components/fieldset/src/view.rs",
         "components/fieldset/src/styles.rs",
         "components/fieldset/src/motion.rs",
-        "crates/ui-components/src/field_form/fieldset/{mod,logic,view,styles,motion}.rs",
+        "crates/ui/src/field_form/fieldset/{mod,logic,view,styles,motion}.rs",
         "features = [\"component-fieldset\", \"inject-css\"]",
         "apps/docs-app/src/pages/components/pages/forms_extra.rs::fieldset",
     ] {
@@ -897,9 +897,9 @@ fn fieldset_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies(
     for needle in [
         "## Source-first",
         "components/fieldset/src/{mod,logic,view,styles,motion}.rs",
-        "crates/ui-components/src/field_form/fieldset/{mod,logic,view,styles,motion}.rs",
+        "crates/ui/src/field_form/fieldset/{mod,logic,view,styles,motion}.rs",
         "package feature：`component-fieldset`（可选叠加 `inject-css`）",
-        "ui-components = { default-features = false, features = [\"component-fieldset\", \"inject-css\"] }",
+        "ui = { default-features = false, features = [\"component-fieldset\", \"inject-css\"] }",
     ] {
         assert!(
             readme_source.contains(needle),
@@ -923,12 +923,12 @@ fn fieldset_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies(
 
 #[test]
 fn fieldset_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: fieldset source-first docs are copy-paste-ready with real paths and deps\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(needle),
@@ -954,7 +954,7 @@ fn fieldset_check2_marks_source_first_copy_paste_ready_contract_complete() {
             "fieldset_check2_documents_source_first_copy_paste_ready_rules",
             "fieldset_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
             "fieldset_dx_check_script_covers_source_first_copy_paste_ready_contract",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -1040,11 +1040,11 @@ fn fieldset_heroui_strategy_and_component_docs_are_synchronized_and_indexable() 
 
 #[test]
 fn fieldset_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1065,7 +1065,7 @@ fn fieldset_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
             "fieldset_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
             "fieldset_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
             "docs/spec/heroui-parameter-design-strategy.md",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -1525,7 +1525,7 @@ fn fieldset_token_first_static_style_contract_is_enforced() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css aggregation should include `{needle}` for fieldset."
+            "ui css aggregation should include `{needle}` for fieldset."
         );
     }
 
@@ -1595,7 +1595,7 @@ fn fieldset_visual_desire_reuses_theme_visual_baseline_and_form_quality_contract
         "slug=\"fieldset\"",
         "title=\"Legend + Description\"",
         "title=\"Horizontal + Invalid + Actions\"",
-        "variant=ui_components::ButtonVariant::Secondary",
+        "variant=ui::ButtonVariant::Secondary",
     ] {
         assert!(
             fieldset_docs_source.contains(needle),
@@ -1672,7 +1672,7 @@ fn fieldset_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components tree-shaking feature map should include `{needle}`."
+            "ui tree-shaking feature map should include `{needle}`."
         );
     }
 
@@ -1708,7 +1708,7 @@ fn fieldset_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components."
+        "web-demo should consume ui via web-demo-components, not all-components."
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -1719,15 +1719,15 @@ fn fieldset_tree_shaking_keeps_component_feature_and_css_boundaries() {
 
 #[test]
 fn fieldset_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
@@ -1764,9 +1764,9 @@ fn fieldset_check2_marks_tree_shaking_contract_complete() {
     for needle in [
         "fieldset_tree_shaking_keeps_component_feature_and_css_boundaries",
         "fieldset_tree_shaking_check_script_covers_feature_tree_wasm_and_budget",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-fieldset,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "bash ./scripts/check-ui-components-tree-shaking.sh",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-fieldset,inject-css",
+        "cargo tree -e features -i ui -p web-demo",
+        "bash ./scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             source.contains(needle),
@@ -1777,19 +1777,19 @@ fn fieldset_check2_marks_tree_shaking_contract_complete() {
 
 #[test]
 fn fieldset_tree_shaking_script_enforces_component_minimal_feature_tree() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
 
     for needle in [
         "FIELDSET_MIN_FEATURES=\"component-fieldset,inject-css\"",
         "echo \"[tree-shaking] fieldset feature registration + gated aggregation contract\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_tree_shaking_keeps_component_feature_and_css_boundaries",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_tree_shaking_keeps_component_feature_and_css_boundaries",
         "echo \"[tree-shaking] fieldset minimal feature tree\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$FIELDSET_MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$FIELDSET_MIN_FEATURES\"",
         "if ! grep -q 'feature \"component-fieldset\" (command-line)' <<<\"$FIELDSET_TREE_OUTPUT\";",
         "if ! grep -q 'feature \"inject-css\" (command-line)' <<<\"$FIELDSET_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$FIELDSET_TREE_OUTPUT\";",
         "echo \"[tree-shaking] fieldset minimal wasm check\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$FIELDSET_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$FIELDSET_MIN_FEATURES\"",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1805,7 +1805,7 @@ fn fieldset_check2_marks_tree_shaking_feature_pruning_contract_complete() {
         load_source("../../components/fieldset/check2.md"),
     ] {
         assert!(
-            source.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
+            source.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
             "fieldset check2 should mark tree-shaking feature-pruning checklist item complete."
         );
 
@@ -1815,9 +1815,9 @@ fn fieldset_check2_marks_tree_shaking_feature_pruning_contract_complete() {
             "out.push_str(crate::field_form::fieldset::styles::CSS);",
             "fieldset_tree_shaking_keeps_component_feature_and_css_boundaries",
             "fieldset_tree_shaking_script_enforces_component_minimal_feature_tree",
-            "scripts/check-ui-components-tree-shaking.sh",
+            "scripts/check-ui-tree-shaking.sh",
             "FIELDSET_MIN_FEATURES=\"component-fieldset,inject-css\"",
-            "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$FIELDSET_MIN_FEATURES\"",
+            "cargo tree -e features -i ui -p ui --no-default-features --features \"$FIELDSET_MIN_FEATURES\"",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -2124,7 +2124,7 @@ fn fieldset_semantic_test_priority_prefers_data_aria_role_and_source_contracts_o
     let local_semantics_source = load_source("../../components/fieldset/test/semantics.rs");
     let semantics_source = load_source("tests/fieldset_semantics.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_fieldset_contract.spec.mjs");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for needle in [
         "aria-label=move || a11y.get().aria_label.clone()",
@@ -2181,7 +2181,7 @@ fn fieldset_semantic_test_priority_prefers_data_aria_role_and_source_contracts_o
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         perf_script_source.contains(script_needle),
         "performance script should include semantic-priority gate `{script_needle}`."
@@ -2190,11 +2190,11 @@ fn fieldset_semantic_test_priority_prefers_data_aria_role_and_source_contracts_o
 
 #[test]
 fn fieldset_performance_script_covers_semantic_test_priority_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for needle in [
         "echo \"[perf] contract: fieldset semantic test priority\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2221,7 +2221,7 @@ fn fieldset_check2_marks_semantic_test_priority_item_complete() {
             "fieldset_semantics_matrix_prefers_contract_assertions_over_visual_snapshots",
             "fieldset_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
             "fieldset_performance_script_covers_semantic_test_priority_contract",
-            "scripts/check-ui-components-performance.sh",
+            "scripts/check-ui-performance.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -2478,11 +2478,11 @@ fn fieldset_e2e_selector_contract_uses_semantic_markers_and_settled_waits() {
 
 #[test]
 fn fieldset_e2e_check_script_covers_selector_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-fieldset.sh");
+    let script_source = load_source("../../components/fieldset/scripts/check-ui-e2e-fieldset.sh");
 
     for needle in [
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2507,7 +2507,7 @@ fn fieldset_check2_marks_e2e_selector_stability_item_complete() {
             "body:not(:has(#boot))",
             "fieldset_check2_documents_e2e_selector_and_stable_wait_rules",
             "fieldset_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-            "scripts/check-ui-components-e2e-fieldset.sh",
+            "components/fieldset/scripts/check-ui-e2e-fieldset.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -2572,11 +2572,11 @@ fn fieldset_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 
 #[test]
 fn fieldset_e2e_check_script_covers_selector_and_key_flow_contracts() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-fieldset.sh");
+    let script_source = load_source("../../components/fieldset/scripts/check-ui-e2e-fieldset.sh");
 
     for needle in [
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2601,7 +2601,7 @@ fn fieldset_check2_marks_e2e_repeatable_key_flow_item_complete() {
             "docs-app fieldset key flow is repeatable with semantic breakpoints",
             "fieldset_check2_documents_e2e_repeatable_key_flow_rules",
             "fieldset_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-            "scripts/check-ui-components-e2e-fieldset.sh",
+            "components/fieldset/scripts/check-ui-e2e-fieldset.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -2649,7 +2649,7 @@ fn fieldset_hydration_discontinuity_contract_is_explicitly_na_without_time_or_ra
         }
     }
 
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     for required in [
         "#[prop(optional, default = 1)] id_seed: u64",
         "provide_ui_id_provider(id_seed);",
@@ -2698,10 +2698,10 @@ fn fieldset_check2_marks_hydration_discontinuity_item_complete_as_na() {
 
 #[test]
 fn fieldset_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_clean() {
-    let ui_components_manifest = load_source("../../crates/ui-components/Cargo.toml");
+    let ui_components_manifest = load_source("../../crates/ui/Cargo.toml");
     assert!(
         ui_components_manifest.contains("component-fieldset = [\"dep:ui-fieldset\"]"),
-        "ui-components feature graph should keep explicit component-fieldset gating."
+        "ui feature graph should keep explicit component-fieldset gating."
     );
 
     let ui_motion_source = load_source("../../crates/ui-motion/src/lib.rs");
@@ -2744,14 +2744,14 @@ fn fieldset_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_cle
 
 #[test]
 fn fieldset_platform_check_script_covers_native_ssr_wasm_paths_and_source_guards() {
-    let source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let source = load_source("../../scripts/check-ui-platforms.sh");
 
     for required in [
         "echo \"[platform] compile-only: fieldset native path\"",
-        "cargo check -p ui-components --no-default-features --features component-fieldset,inject-css",
+        "cargo check -p ui --no-default-features --features component-fieldset,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "echo \"[platform] compile-only: fieldset wasm path\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-fieldset,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-fieldset,inject-css",
         "echo \"[platform] source guard: non-wasm fieldset files must not reference web_sys\"",
         "components/fieldset/src/view.rs",
         "components/fieldset/src/motion.rs",
@@ -2775,9 +2775,9 @@ fn fieldset_check2_marks_ssr_cross_platform_item_complete() {
     );
 
     for required in [
-        "cargo check -p ui-components --no-default-features --features component-fieldset,inject-css",
+        "cargo check -p ui --no-default-features --features component-fieldset,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-fieldset,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-fieldset,inject-css",
         "fieldset_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_clean",
         "fieldset_platform_check_script_covers_native_ssr_wasm_paths_and_source_guards",
     ] {
@@ -2817,7 +2817,7 @@ fn fieldset_ui_headless_web_ssr_feature_mutex_contract_is_enforced() {
 
 #[test]
 fn fieldset_platform_script_covers_ui_headless_web_ssr_mutex_checks() {
-    let source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let source = load_source("../../scripts/check-ui-platforms.sh");
     for required in [
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
@@ -2907,7 +2907,7 @@ fn fieldset_motion_module_degrades_safely_without_animation_handle_assumption() 
 
 #[test]
 fn fieldset_platform_script_covers_ui_motion_non_wasm_stub_checks() {
-    let source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let source = load_source("../../scripts/check-ui-platforms.sh");
     for required in [
         "echo \"[platform] compile-only: ui-motion native path\"",
         "cargo check -p ui-motion",
@@ -3017,12 +3017,12 @@ fn fieldset_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
 
 #[test]
 fn fieldset_platform_script_covers_reduced_motion_ssr_wasm_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
     for required in [
         "cargo check -p ui-headless --no-default-features --features ssr",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-fieldset,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-fieldset,inject-css",
         "echo \"[platform] fieldset reduced-motion/ssr/wasm contract\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
     ] {
         assert!(
             script_source.contains(required),
@@ -3041,7 +3041,7 @@ fn fieldset_check2_marks_reduced_motion_ssr_wasm_item_complete() {
     for required in [
         "fieldset_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
         "fieldset_platform_script_covers_reduced_motion_ssr_wasm_contract",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
     ] {
         assert!(
             source.contains(required),
@@ -3060,7 +3060,7 @@ fn fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking()
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("src/field_form/fieldset/check2.md");
     let root_check2_source = load_source("../../components/fieldset/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/field_form/fieldset/view.rs");
     let motion_source = load_source("src/field_form/fieldset/motion.rs");
 
@@ -3197,11 +3197,11 @@ fn fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking()
     }
 
     for needle in [
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3212,13 +3212,13 @@ fn fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking()
 
 #[test]
 fn fieldset_performance_check_script_covers_budget_and_follow_up_gates() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     for needle in [
         "echo \"[perf] contract: fieldset performance governance\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3240,8 +3240,8 @@ fn fieldset_check2_marks_performance_governance_item_complete() {
         for required in [
             "fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking",
             "fieldset_performance_check_script_covers_budget_and_follow_up_gates",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking",
-            "scripts/check-ui-components-performance.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking",
+            "scripts/check-ui-performance.sh",
             "render_count",
             "等价证据",
         ] {
@@ -3261,7 +3261,7 @@ fn fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_rende
     let e2e_source = load_source("../../e2e/tests/docs_app_fieldset_contract.spec.mjs");
     let check2_source = load_source("../../components/fieldset/check2.md");
     let check2_source_src = load_source("src/field_form/fieldset/check2.md");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
     let semantics_source = load_source("tests/fieldset_semantics.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
 
@@ -3339,13 +3339,13 @@ fn fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_rende
         );
     }
 
-    let perf_gate_needle = "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking";
+    let perf_gate_needle = "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking";
     assert!(
         perf_script_source.contains(perf_gate_needle),
         "performance gate script should include `{perf_gate_needle}`."
     );
 
-    let matrix_gate_needle = "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement";
+    let matrix_gate_needle = "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement";
     assert!(
         perf_script_source.contains(matrix_gate_needle),
         "performance gate script should include `{matrix_gate_needle}`."
@@ -3366,7 +3366,7 @@ fn fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_rende
             "- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。",
             "fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
             "fieldset_performance_script_covers_semantics_and_performance_regression_matrix",
-            "scripts/check-ui-components-performance.sh",
+            "scripts/check-ui-performance.sh",
             "`render_count` 自动化回归仍在仓库统一 follow-up",
         ] {
             assert!(
@@ -3379,11 +3379,11 @@ fn fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_rende
 
 #[test]
 fn fieldset_performance_script_covers_semantics_and_performance_regression_matrix() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for needle in [
         "echo \"[perf] contract: fieldset semantics/perf matrix\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3407,7 +3407,7 @@ fn fieldset_check2_marks_semantics_and_performance_regression_item_complete() {
             "fieldset_performance_script_covers_semantics_and_performance_regression_matrix",
             "fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking",
             "fieldset_has_no_focus_stack_overlay_restore_contract",
-            "scripts/check-ui-components-performance.sh",
+            "scripts/check-ui-performance.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -3502,7 +3502,7 @@ fn fieldset_check2_marks_version_deprecation_migration_item_complete() {
             "N/A：本次 `Fieldset` 未发生跨大版本 API 破坏升级",
             "schema_version = \"1\"",
             "fieldset_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-            "scripts/check-ui-components-engineering.sh",
+            "scripts/check-ui-engineering.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -3563,10 +3563,10 @@ fn fieldset_view_macro_complexity_is_split_into_semantic_subblocks() {
 
 #[test]
 fn fieldset_view_macro_check_script_covers_complexity_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     for needle in [
         "echo \"[view-macro] contract: fieldset view macro split\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_view_macro_complexity_is_split_into_semantic_subblocks",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_view_macro_complexity_is_split_into_semantic_subblocks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3589,8 +3589,8 @@ fn fieldset_check2_marks_view_macro_complexity_item_complete() {
             "render_legend_block/render_actions_block/render_message_block",
             "fieldset_view_macro_complexity_is_split_into_semantic_subblocks",
             "fieldset_view_macro_check_script_covers_complexity_gate",
-            "scripts/check-ui-components-view-macro.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_view_macro_complexity_is_split_into_semantic_subblocks",
+            "scripts/check-ui-view-macro.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_view_macro_complexity_is_split_into_semantic_subblocks",
         ] {
             assert!(
                 source.contains(required),
@@ -3653,10 +3653,10 @@ fn fieldset_view_functional_split_prefers_plain_functions_over_local_components(
 
 #[test]
 fn fieldset_view_macro_check_script_covers_functional_split_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     for needle in [
         "echo \"[view-macro] contract: fieldset function-first split\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_view_functional_split_prefers_plain_functions_over_local_components",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_view_functional_split_prefers_plain_functions_over_local_components",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3679,8 +3679,8 @@ fn fieldset_check2_marks_functional_split_item_complete() {
             "render_legend_block/render_actions_block/render_message_block",
             "fieldset_view_functional_split_prefers_plain_functions_over_local_components",
             "fieldset_view_macro_check_script_covers_functional_split_gate",
-            "scripts/check-ui-components-view-macro.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_view_functional_split_prefers_plain_functions_over_local_components",
+            "scripts/check-ui-view-macro.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_view_functional_split_prefers_plain_functions_over_local_components",
         ] {
             assert!(
                 source.contains(required),
@@ -3751,10 +3751,10 @@ fn fieldset_static_fragments_are_constantized_or_absent_for_simple_layout() {
 
 #[test]
 fn fieldset_view_macro_check_script_covers_static_fragment_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     for needle in [
         "echo \"[view-macro] contract: fieldset static fragment constantization\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_static_fragments_are_constantized_or_absent_for_simple_layout",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_static_fragments_are_constantized_or_absent_for_simple_layout",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3778,8 +3778,8 @@ fn fieldset_check2_marks_static_fragment_item_complete() {
             "FIELDSET_REQUIRED_INDICATOR_TEXT",
             "fieldset_static_fragments_are_constantized_or_absent_for_simple_layout",
             "fieldset_view_macro_check_script_covers_static_fragment_gate",
-            "scripts/check-ui-components-view-macro.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_static_fragments_are_constantized_or_absent_for_simple_layout",
+            "scripts/check-ui-view-macro.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_static_fragments_are_constantized_or_absent_for_simple_layout",
         ] {
             assert!(
                 source.contains(required),
@@ -3852,8 +3852,8 @@ fn fieldset_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 
 #[test]
 fn fieldset_inner_html_check_script_covers_security_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
-    let needle = "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
+    let needle = "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(needle),
         "inner-html check script should enforce `{needle}`."
@@ -3873,8 +3873,8 @@ fn fieldset_check2_marks_inner_html_item_complete() {
         for required in [
             "fieldset_inner_html_usage_is_forbidden_in_component_and_docs_examples",
             "fieldset_inner_html_check_script_covers_security_contract",
-            "scripts/check-ui-components-inner-html.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_inner_html_usage_is_forbidden_in_component_and_docs_examples",
+            "scripts/check-ui-inner-html.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_inner_html_usage_is_forbidden_in_component_and_docs_examples",
         ] {
             assert!(
                 source.contains(required),
@@ -3993,8 +3993,8 @@ fn fieldset_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_is
 
 #[test]
 fn fieldset_wasm_debug_check_script_covers_shared_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
-    let needle = "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_isolated";
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
+    let needle = "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm-debug check script should enforce `{needle}`."
@@ -4014,8 +4014,8 @@ fn fieldset_check2_marks_wasm_debug_item_complete() {
         for required in [
             "fieldset_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_isolated",
             "fieldset_wasm_debug_check_script_covers_shared_contract",
-            "scripts/check-ui-components-wasm-debug.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_isolated",
+            "scripts/check-ui-wasm-debug.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_isolated",
         ] {
             assert!(
                 source.contains(required),
@@ -4053,7 +4053,7 @@ fn fieldset_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
         "<Playground title=\"Legend + Description\" code_signal=default_code>",
         "<Playground title=\"Horizontal + Invalid + Actions\" code_signal=invalid_code>",
         "title=\"Fieldset Workbench (Display + Config + Code + CSS Test)\"",
-        "test_source_path=\"crates/ui-components/src/field_form/fieldset/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui/src/field_form/fieldset/styles.rs\".to_string()",
     ] {
         assert!(
             docs_source.contains(needle),
@@ -4129,11 +4129,11 @@ fn fieldset_dx_workbench_keeps_context_and_isolated_canvas_with_optional_persist
 
 #[test]
 fn fieldset_dx_check_script_covers_hot_reload_and_workbench_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_dx_workbench_keeps_context_and_isolated_canvas_with_optional_persist_na",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_dx_workbench_keeps_context_and_isolated_canvas_with_optional_persist_na",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4144,11 +4144,11 @@ fn fieldset_dx_check_script_covers_hot_reload_and_workbench_contract() {
 
 #[test]
 fn fieldset_dx_check_script_covers_docs_product_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: fieldset docs product copy-paste-ready + streaming/snapshot contract\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4173,7 +4173,7 @@ fn fieldset_check2_marks_dx_contract_complete() {
             "compose_scoped_css",
             "Fieldset Workbench (Display + Config + Code + CSS Test)",
             "optional persisted workbench state as N/A",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
             "fieldset_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
             "fieldset_dx_workbench_keeps_context_and_isolated_canvas_with_optional_persist_na",
             "fieldset_dx_check_script_covers_hot_reload_and_workbench_contract",
@@ -4242,7 +4242,7 @@ fn fieldset_engineering_contract_keeps_tracing_semantics_unified_without_compone
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -4265,7 +4265,7 @@ fn fieldset_engineering_contract_keeps_tracing_semantics_unified_without_compone
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::fieldset::",
+        "target: \"ui::fieldset::",
         "const FIELDSET_TRACE_TARGET",
     ] {
         assert!(
@@ -4322,13 +4322,13 @@ fn fieldset_engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
 
 #[test]
 fn fieldset_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_version_deprecation_migration_is_na_without_major_breaking_upgrade",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4353,8 +4353,8 @@ fn fieldset_check2_marks_engineering_contract_complete() {
             "FieldsetComponentSchemaVersion",
             "FieldsetComponentSpec",
             "button-wasm-debug",
-            "target: \"ui_components::button::state_change\"",
-            "scripts/check-ui-components-engineering.sh",
+            "target: \"ui::button::state_change\"",
+            "scripts/check-ui-engineering.sh",
             "fieldset_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
             "fieldset_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
             "fieldset_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
@@ -4421,8 +4421,8 @@ fn fieldset_styles_use_defensive_variable_fallback_chain() {
 
 #[test]
 fn fieldset_defensive_variables_check_script_covers_style_fallback_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
-    let needle = "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_styles_use_defensive_variable_fallback_chain";
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
+    let needle = "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_styles_use_defensive_variable_fallback_chain";
 
     assert!(
         script_source.contains(needle),
@@ -4446,8 +4446,8 @@ fn fieldset_check2_marks_defensive_variables_contract_complete() {
             "crates/ui-theme/src/css.rs",
             "fieldset_styles_use_defensive_variable_fallback_chain",
             "fieldset_defensive_variables_check_script_covers_style_fallback_contract",
-            "scripts/check-ui-components-contract-hygiene.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_styles_use_defensive_variable_fallback_chain",
+            "scripts/check-ui-contract-hygiene.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_styles_use_defensive_variable_fallback_chain",
         ] {
             assert!(
                 source.contains(needle),
@@ -4472,7 +4472,7 @@ fn fieldset_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_entry_source.contains(needle),
-            "ui-components css entry should enforce cascade-layer contract `{needle}`."
+            "ui css entry should enforce cascade-layer contract `{needle}`."
         );
     }
 
@@ -4530,8 +4530,8 @@ fn fieldset_cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn fieldset_cascade_layer_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
-    let needle = "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_cascade_layer_and_runtime_style_contract_is_enforced";
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
+    let needle = "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_cascade_layer_and_runtime_style_contract_is_enforced";
 
     assert!(
         script_source.contains(needle),
@@ -4553,9 +4553,9 @@ fn fieldset_check2_marks_cascade_layer_contract_complete() {
         for needle in [
             "fieldset_cascade_layer_and_runtime_style_contract_is_enforced",
             "fieldset_cascade_layer_check_script_covers_contract",
-            "scripts/check-ui-components-contract-hygiene.sh",
-            "crates/ui-components/src/css.rs",
-            "crates/ui-components/src/root.rs",
+            "scripts/check-ui-contract-hygiene.sh",
+            "crates/ui/src/css.rs",
+            "crates/ui/src/root.rs",
             "components/fieldset/src/view.rs",
         ] {
             assert!(
@@ -4624,10 +4624,10 @@ fn fieldset_motion_contract_is_component_scoped_reduced_motion_aware_and_non_was
 
 #[test]
 fn fieldset_platform_script_covers_motion_contractualization() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
     for needle in [
         "echo \"[platform] fieldset motion contractualization (component contract + reduced-motion + non-wasm no-op)\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4653,8 +4653,8 @@ fn fieldset_check2_marks_motion_contractualization_complete() {
             "damping",
             "fieldset_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
             "fieldset_platform_script_covers_motion_contractualization",
-            "scripts/check-ui-components-platforms.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
+            "scripts/check-ui-platforms.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
         ] {
             assert!(
                 source.contains(needle),
@@ -4679,7 +4679,7 @@ fn fieldset_ui_components_fixed_entry_files_follow_layered_boundaries() {
     for required in ["feature = \"component-fieldset\"", "pub mod field_form {"] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib entry should keep feature-gated public surface marker `{required}`."
+            "ui lib entry should keep feature-gated public surface marker `{required}`."
         );
     }
 
@@ -4690,7 +4690,7 @@ fn fieldset_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css entry should keep feature-gated aggregation marker `{required}`."
+            "ui css entry should keep feature-gated aggregation marker `{required}`."
         );
     }
 
@@ -4739,21 +4739,21 @@ fn fieldset_ui_components_fixed_entry_files_follow_layered_boundaries() {
         let leaked = lib_source.contains(forbidden) || active_highlight_source.contains(forbidden);
         assert!(
             !leaked,
-            "ui-components fixed entry boundary should reject platform/component semantic leak `{forbidden}`."
+            "ui fixed entry boundary should reject platform/component semantic leak `{forbidden}`."
         );
     }
 
     assert!(
         !path_exists("src/overlay_open.rs"),
-        "ui-components should not carry legacy entry `src/overlay_open.rs`."
+        "ui should not carry legacy entry `src/overlay_open.rs`."
     );
     assert!(
         !path_exists("src/presence.rs"),
-        "ui-components should not carry legacy entry `src/presence.rs`."
+        "ui should not carry legacy entry `src/presence.rs`."
     );
     assert!(
         !path_exists("src/a11y.rs"),
-        "ui-components should not carry legacy entry `src/a11y.rs`."
+        "ui should not carry legacy entry `src/a11y.rs`."
     );
 
     assert!(
@@ -4780,10 +4780,10 @@ fn fieldset_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
 #[test]
 fn fieldset_entrypoints_script_covers_fixed_entry_file_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
     for needle in [
         "echo \"[entrypoints] contract: fieldset fixed entry files and forbidden file guards\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_ui_components_fixed_entry_files_follow_layered_boundaries",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_ui_components_fixed_entry_files_follow_layered_boundaries",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4799,22 +4799,22 @@ fn fieldset_check2_marks_ui_components_fixed_entry_files_item_complete() {
         load_source("../../components/fieldset/check2.md"),
     ] {
         assert!(
-            source.contains("- [x] `ui-components` 固定入口文件落点正确。"),
-            "fieldset check2 should mark ui-components fixed-entry item complete."
+            source.contains("- [x] `ui` 固定入口文件落点正确。"),
+            "fieldset check2 should mark ui fixed-entry item complete."
         );
 
         for needle in [
-            "crates/ui-components/src/lib.rs",
-            "crates/ui-components/src/css.rs",
-            "crates/ui-components/src/root.rs",
+            "crates/ui/src/lib.rs",
+            "crates/ui/src/css.rs",
+            "crates/ui/src/root.rs",
             "crates/ui-visual-primitive/src/active_highlight.rs",
-            "crates/ui-components/src/overlay_open.rs",
-            "crates/ui-components/src/presence.rs",
-            "crates/ui-components/src/a11y.rs",
+            "crates/ui/src/overlay_open.rs",
+            "crates/ui/src/presence.rs",
+            "crates/ui/src/a11y.rs",
             "fieldset_ui_components_fixed_entry_files_follow_layered_boundaries",
             "fieldset_entrypoints_script_covers_fixed_entry_file_boundaries",
-            "scripts/check-ui-components-entrypoints.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_ui_components_fixed_entry_files_follow_layered_boundaries",
+            "scripts/check-ui-entrypoints.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_ui_components_fixed_entry_files_follow_layered_boundaries",
         ] {
             assert!(
                 source.contains(needle),
@@ -4953,10 +4953,10 @@ fn fieldset_component_directory_standard_files_follow_contract_and_na_paths() {
 
 #[test]
 fn fieldset_component_files_script_covers_standard_file_layout_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
     for needle in [
         "echo \"[component-files] contract: fieldset standard file layout + scoped responsibilities\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_component_directory_standard_files_follow_contract_and_na_paths",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_component_directory_standard_files_follow_contract_and_na_paths",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4985,8 +4985,8 @@ fn fieldset_check2_marks_component_directory_layout_item_complete() {
             "components/fieldset/src/render.rs",
             "fieldset_component_directory_standard_files_follow_contract_and_na_paths",
             "fieldset_component_files_script_covers_standard_file_layout_contract",
-            "scripts/check-ui-components-component-files.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_component_directory_standard_files_follow_contract_and_na_paths",
+            "scripts/check-ui-component-files.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_component_directory_standard_files_follow_contract_and_na_paths",
         ] {
             assert!(
                 source.contains(needle),
@@ -5114,10 +5114,10 @@ fn fieldset_file_placement_discipline_is_strict_for_component_scope() {
 
 #[test]
 fn fieldset_component_files_script_covers_file_placement_discipline_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
     for needle in [
         "echo \"[component-files] contract: fieldset file-placement discipline in AI struct-first section\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_file_placement_discipline_is_strict_for_component_scope",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_file_placement_discipline_is_strict_for_component_scope",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5146,8 +5146,8 @@ fn fieldset_check2_marks_file_placement_discipline_item_complete() {
             "components/fieldset/src/render.rs",
             "fieldset_file_placement_discipline_is_strict_for_component_scope",
             "fieldset_component_files_script_covers_file_placement_discipline_contract",
-            "scripts/check-ui-components-component-files.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_file_placement_discipline_is_strict_for_component_scope",
+            "scripts/check-ui-component-files.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_file_placement_discipline_is_strict_for_component_scope",
         ] {
             assert!(
                 source.contains(needle),
@@ -5192,10 +5192,10 @@ fn fieldset_hyper_structure_builder_spec_is_not_applicable_for_simple_component(
 
 #[test]
 fn fieldset_component_files_script_covers_hyper_structure_builder_na_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
     for needle in [
         "echo \"[component-files] contract: fieldset hyper-structure builder spec contract is explicitly N/A\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5219,8 +5219,8 @@ fn fieldset_check2_marks_hyper_structure_builder_item_complete() {
             "components/fieldset/src/spec.rs",
             "fieldset_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
             "fieldset_component_files_script_covers_hyper_structure_builder_na_contract",
-            "scripts/check-ui-components-component-files.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
+            "scripts/check-ui-component-files.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
         ] {
             assert!(
                 source.contains(needle),
@@ -5295,10 +5295,10 @@ fn fieldset_context_compression_manifest_and_rbi_projection_are_present_and_curr
 
 #[test]
 fn fieldset_component_files_script_covers_context_compression_manifest_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
     for needle in [
         "echo \"[component-files] contract: fieldset context-compression manifest + rbi projection\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_context_compression_manifest_and_rbi_projection_are_present_and_current",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5323,8 +5323,8 @@ fn fieldset_check2_marks_context_compression_manifest_and_rbi_contract_complete(
             "components/fieldset/src/fieldset.rbi",
             "fieldset_context_compression_manifest_and_rbi_projection_are_present_and_current",
             "fieldset_component_files_script_covers_context_compression_manifest_contract",
-            "scripts/check-ui-components-component-files.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_context_compression_manifest_and_rbi_projection_are_present_and_current",
+            "scripts/check-ui-component-files.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_context_compression_manifest_and_rbi_projection_are_present_and_current",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -5509,13 +5509,13 @@ fn fieldset_agent_contract_render_path_is_whitelist_safe_and_script_injection_fr
 
 #[test]
 fn fieldset_contract_hygiene_script_covers_agent_contract_schema_governance() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
     for needle in [
         "echo \"[contract-hygiene] contract: fieldset agent-contract schema-like markers + whitelist-safe render path\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_agent_contract_schema_governance_rules",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5548,7 +5548,7 @@ fn fieldset_check2_documents_agent_contract_schema_governance_rules() {
             "fieldset_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
             "fieldset_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
             "fieldset_contract_hygiene_script_covers_agent_contract_schema_governance",
-            "scripts/check-ui-components-contract-hygiene.sh",
+            "scripts/check-ui-contract-hygiene.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -5590,10 +5590,10 @@ fn fieldset_streaming_definition_is_llm_output_only_with_two_modes() {
 
 #[test]
 fn fieldset_streaming_script_covers_two_mode_definition_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
     for needle in [
         "echo \"[streaming] contract: fieldset checklist pins two-mode streaming definition (LLM-only scope)\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_definition_is_llm_output_only_with_two_modes",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_definition_is_llm_output_only_with_two_modes",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5624,8 +5624,8 @@ fn fieldset_check2_marks_streaming_definition_item_complete() {
             "stream_mode_attr: \"snapshot\"",
             "fieldset_streaming_definition_is_llm_output_only_with_two_modes",
             "fieldset_streaming_script_covers_two_mode_definition_contract",
-            "scripts/check-ui-components-streaming.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_definition_is_llm_output_only_with_two_modes",
+            "scripts/check-ui-streaming.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_definition_is_llm_output_only_with_two_modes",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -5692,10 +5692,10 @@ fn fieldset_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
 #[test]
 fn fieldset_streaming_script_covers_snapshot_baseline_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
     for needle in [
         "echo \"[streaming] contract: fieldset snapshot baseline stays default capability\"",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5725,8 +5725,8 @@ fn fieldset_check2_marks_snapshot_baseline_item_complete() {
             "data-ui-stream-mode",
             "fieldset_snapshot_baseline_consumes_complete_result_and_renders_stably",
             "fieldset_streaming_script_covers_snapshot_baseline_contract",
-            "scripts/check-ui-components-streaming.sh",
-            "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_snapshot_baseline_consumes_complete_result_and_renders_stably",
+            "scripts/check-ui-streaming.sh",
+            "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_snapshot_baseline_consumes_complete_result_and_renders_stably",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -5741,7 +5741,7 @@ fn fieldset_check2_marks_snapshot_baseline_item_complete() {
 fn fieldset_check2_documents_streaming_required_optional_classification_rules() {
     let checklist_source = load_source("src/field_form/fieldset/check2.md");
     let checklist_source_root = load_source("../../components/fieldset/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for source in [checklist_source, checklist_source_root] {
         for required in [
@@ -5760,9 +5760,9 @@ fn fieldset_check2_documents_streaming_required_optional_classification_rules() 
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -5831,12 +5831,12 @@ fn fieldset_streaming_validation_retry_resilience_boundaries_stay_outside_compon
 
 #[test]
 fn fieldset_streaming_script_covers_streaming_responsibility_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5900,7 +5900,7 @@ fn fieldset_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent() {
 #[test]
 fn fieldset_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let script_source = load_source("../../scripts/check-rust-hygiene.sh");
-    let engineering_script = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = load_source("../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -5915,9 +5915,9 @@ fn fieldset_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "cargo test -p ui-components --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(needle),
@@ -5939,7 +5939,7 @@ fn fieldset_check2_marks_rust_hygiene_contract_complete() {
             "fieldset_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
             "fieldset_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
             "fieldset_rust_hygiene_script_enforces_repo_level_hygiene_guards",
-            "scripts/check-ui-components-engineering.sh",
+            "scripts/check-ui-engineering.sh",
         ] {
             assert!(
                 source.contains(needle),

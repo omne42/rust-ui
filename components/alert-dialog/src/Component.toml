@@ -175,9 +175,9 @@ name = "ui-motion"
 kind = "overlay-motion-contract"
 
 [[dependencies]]
-name = "ui-components/overlay"
+name = "ui/overlay"
 kind = "overlay-shell"
 
 [[dependencies]]
-name = "ui-components/button"
+name = "ui/button"
 kind = "action-button-rendering"

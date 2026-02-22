@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{Pagination, Tag, TagGroup, TagSize, TagVariant};
+use ui::{Pagination, Tag, TagGroup, TagSize, TagVariant};
 
 #[component]
 pub fn PaginationDemo() -> impl IntoView {

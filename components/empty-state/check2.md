@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -130,8 +130,8 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`empty-state` 样式规则集中在 `styles.rs` 且视觉值来自 `var(--ui-*)`；`crates/ui-components/src/css.rs` 通过 `component-empty_state` feature 聚合 `crate::empty_state::styles::CSS`，并由 `UiRoot` 在 `inject_components_css` 分支统一注入；`view.rs` 无 inline 业务样式，运行时仅在 `motion.rs` 写入必要 CSS 变量 `--ui-empty-state-enter`。）
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`empty-state` 样式规则集中在 `styles.rs` 且视觉值来自 `var(--ui-*)`；`crates/ui/src/css.rs` 通过 `component-empty_state` feature 聚合 `crate::empty_state::styles::CSS`，并由 `UiRoot` 在 `inject_components_css` 分支统一注入；`view.rs` 无 inline 业务样式，运行时仅在 `motion.rs` 写入必要 CSS 变量 `--ui-empty-state-enter`。）
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -140,14 +140,14 @@
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui-components` 已通过 `component-empty_state` feature 进行可选依赖与条件导出（`lib.rs`）及样式聚合（`css.rs`）；`web-demo` 使用 `web-demo-components` 而非 `all-components`。对应回归锁定在 `components/empty-state/test/semantics.rs::empty_state_tree_shaking_feature_gates_are_wired`。清单中 CI 体积预算与最小特性任务属仓库级门禁，本单组件检查记录为 N/A（需在仓库 CI 层统一执行）。）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui` 已通过 `component-empty_state` feature 进行可选依赖与条件导出（`lib.rs`）及样式聚合（`css.rs`）；`web-demo` 使用 `web-demo-components` 而非 `all-components`。对应回归锁定在 `components/empty-state/test/semantics.rs::empty_state_tree_shaking_feature_gates_are_wired`。清单中 CI 体积预算与最小特性任务属仓库级门禁，本单组件检查记录为 N/A（需在仓库 CI 层统一执行）。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`EmptyState` 离散输入 `tone/align` 使用枚举类型，状态归一与无效组合收敛集中在 `logic.rs::resolve_defaults/resolve_render_state`，对外通过稳定 `data-state` 与 `data-*-source` 语义标记暴露机器可读状态；契约由 `components/empty-state/test/semantics.rs::empty_state_type_system_and_semantic_markers_form_machine_readable_contract` 及相关语义测试直接定位回归点。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -175,7 +175,7 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（N/A：`EmptyState` 为展示型非交互组件，不存在“关键更新路径”与复杂交互内存曲线；本组件采用 mount-only 预算等价证据而非交互 `render_count` 计数。仓库级 `UiPerfProbe` 与 docs/e2e 已提供可重复阈值阻断（`data-perf-*` + `data-perf-violation`），`component_page_perf_budget` 对未显式登记组件回落到 `UiPerfBudget::mount_only(120.0)`。基础组件 `Button/Input` 的预算与治理门禁仍由既有测试覆盖；本组件新增 `components/empty-state/test/empty_state_semantics.rs::empty_state_performance_governance_contract_is_mount_only_traceable_and_blocking`，并接入 `scripts/check-ui-components-performance.sh` 形成阻断门禁。`render_count` 自动化仍按仓库 TODO 跟踪（Button/Input/Accordion），作为后续补齐项。）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（N/A：`EmptyState` 为展示型非交互组件，不存在“关键更新路径”与复杂交互内存曲线；本组件采用 mount-only 预算等价证据而非交互 `render_count` 计数。仓库级 `UiPerfProbe` 与 docs/e2e 已提供可重复阈值阻断（`data-perf-*` + `data-perf-violation`），`component_page_perf_budget` 对未显式登记组件回落到 `UiPerfBudget::mount_only(120.0)`。基础组件 `Button/Input` 的预算与治理门禁仍由既有测试覆盖；本组件新增 `components/empty-state/test/empty_state_semantics.rs::empty_state_performance_governance_contract_is_mount_only_traceable_and_blocking`，并接入 `scripts/check-ui-performance.sh` 形成阻断门禁。`render_count` 自动化仍按仓库 TODO 跟踪（Button/Input/Accordion），作为后续补齐项。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
@@ -213,16 +213,16 @@
 
 ### 5. 样式与动效（Theme & Motion）
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（`empty-state/styles.rs` 已将核心 token 消费统一为双层回退链（如 `space/radius/bg/fg/accent/border/component-height/typography`），并移除组件内裸尺寸终值写法（如 `1px` 直写边框与 `46ch`）。Fallback SSOT 由 `crates/ui-theme/src/css.rs` 统一输出 `--ui-fallback-*`。契约由 `components/empty-state/test/semantics.rs::empty_state_styles_use_defensive_variable_fallback_chain` 锁定。）
-- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`ui-components/src/css.rs` 已在 `push_components_css` 中以 `@layer ui` 包裹组件样式并按 `component-empty_state` feature 聚合 `empty_state::styles::CSS`；`UiRoot` 通过 `inject_components_css` 路径统一注入。`empty-state` 组件侧无 `style=`/`style:`/`attr:style` 普通内联样式，运行时仅在 `motion.rs` 通过 `set_property(\"--ui-empty-state-enter\", ...)` 写入 CSS 自定义属性。契约由 `components/empty-state/test/semantics.rs::empty_state_cascade_layer_and_runtime_style_contract_is_enforced` 锁定。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`ui/src/css.rs` 已在 `push_components_css` 中以 `@layer ui` 包裹组件样式并按 `component-empty_state` feature 聚合 `empty_state::styles::CSS`；`UiRoot` 通过 `inject_components_css` 路径统一注入。`empty-state` 组件侧无 `style=`/`style:`/`attr:style` 普通内联样式，运行时仅在 `motion.rs` 通过 `set_property(\"--ui-empty-state-enter\", ...)` 写入 CSS 自定义属性。契约由 `components/empty-state/test/semantics.rs::empty_state_cascade_layer_and_runtime_style_contract_is_enforced` 锁定。）
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（`empty-state/motion.rs` 已内置组件 spring contract：`EMPTY_STATE_SPRING_STIFFNESS/DAMPING/MASS/PRECISION` + `empty_state_spring_contract()`，并在 wasm 路径通过 `SpringAnimator::new(..., empty_state_spring_contract(), ...)` 挂载；同时保持 `if !motion.animate_in || ui_motion::web::prefers_reduced_motion() { return; }` 降级分支与 non-wasm `attach_motion` no-op（`black_box(sanitize_motion(motion))`）。契约由 `components/empty-state/test/semantics.rs::empty_state_motion_contract_is_parameterized_and_attached_via_ui_motion` 锁定。）
-- [x] `ui-components` 固定入口文件落点正确。（已验证 `crates/ui-components/src/lib.rs` 作为总入口并通过 `component-*` gate 导出组件（含 `component-empty_state`），`crates/ui-components/src/css.rs` 由 `push_components_css` 按 feature 条件聚合样式，`crates/ui-components/src/root.rs` 在 `UiRoot` 统一注入 base css + theme vars + 可选 components css 且提供 `provide_ui_i18n/provide_ui_id_provider` 全局上下文；`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载通用高亮动效能力。并确认 `crates/ui-components/src/overlay_open.rs`、`presence.rs`、`a11y.rs` 不存在，相关原语落在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。回归由 `components/empty-state/test/semantics.rs::empty_state_ui_components_fixed_entry_points_are_wired` 锁定。）
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。（已验证 `crates/ui/src/lib.rs` 作为总入口并通过 `component-*` gate 导出组件（含 `component-empty_state`），`crates/ui/src/css.rs` 由 `push_components_css` 按 feature 条件聚合样式，`crates/ui/src/root.rs` 在 `UiRoot` 统一注入 base css + theme vars + 可选 components css 且提供 `provide_ui_i18n/provide_ui_id_provider` 全局上下文；`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载通用高亮动效能力。并确认 `crates/ui/src/overlay_open.rs`、`presence.rs`、`a11y.rs` 不存在，相关原语落在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。回归由 `components/empty-state/test/semantics.rs::empty_state_ui_components_fixed_entry_points_are_wired` 锁定。）
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。（`components/empty-state/src` 目录保持 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 标准集合，且不存在 `render.rs`；`mod.rs` 维持最小稳定导出面并避免导出内部装配细节；`logic.rs` 仅做 props 归一/状态派生/来源标记并消费 `ui-state-primitives`；`styles.rs` 为静态 token CSS（`var(--ui-*)`）；`view.rs` 仅做 Leptos 结构渲染与 headless 语义挂载；`motion.rs` 仅做 `EmptyStateMotion + attach_motion` 语义到 motion contract 映射；`spec.rs` 未新增（简单组件 N/A）。回归由 `components/empty-state/test/semantics.rs::empty_state_component_directory_standard_file_layout_is_enforced`、`::empty_state_component_files_keep_responsibility_boundaries`、`::empty_state_keeps_spec_rs_out_for_simple_component_scope` 锁定。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -254,7 +254,7 @@
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`empty-state` 非测试源码（`mod.rs/logic.rs/styles.rs/view.rs/motion.rs`）已清理为无 `unwrap/expect`、无 `let _ = ...`、无 `String::from/.to_owned` 克隆热点；默认文案存储收敛到 `logic.rs::EmptyStateStrings` 的 `Cow<'static, str>`（并同步到 `empty_state.rbi`）。已执行 `./scripts/check-rust-hygiene.sh`，当前环境因 `rg` 缺少 PCRE2 与仓库级 `api-contract baseline drift` 报错提前失败（非本组件代码引入），组件级契约由 `components/empty-state/test/semantics.rs::empty_state_rust_hygiene_contract_is_enforced` 锁定。）
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`ui-components` 已为 `empty-state` 建立组件级特性链：`crates/ui-components/Cargo.toml` 存在 `component-empty_state = ["dep:ui-empty-state"]` 且 `ui-empty-state` 为可选依赖；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-empty_state")] pub use ui_empty_state as empty_state;` 做条件导出；`crates/ui-components/src/css.rs` 通过同名 feature 条件聚合 `empty_state::styles::CSS`，不存在无条件拉入路径。`apps/web-demo/Cargo.toml` 对 `ui-components` 使用 `default-features = false` + `features = ["inject-css", "web-demo-components"]`，避免隐式拉起 `all-components`。回归由 `components/empty-state/test/semantics.rs::empty_state_tree_shaking_feature_gates_are_wired` 锁定。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`ui` 已为 `empty-state` 建立组件级特性链：`crates/ui/Cargo.toml` 存在 `component-empty_state = ["dep:ui-empty-state"]` 且 `ui-empty-state` 为可选依赖；`crates/ui/src/lib.rs` 通过 `#[cfg(feature = "component-empty_state")] pub use ui_empty_state as empty_state;` 做条件导出；`crates/ui/src/css.rs` 通过同名 feature 条件聚合 `empty_state::styles::CSS`，不存在无条件拉入路径。`apps/web-demo/Cargo.toml` 对 `ui` 使用 `default-features = false` + `features = ["inject-css", "web-demo-components"]`，避免隐式拉起 `all-components`。回归由 `components/empty-state/test/semantics.rs::empty_state_tree_shaking_feature_gates_are_wired` 锁定。）
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（`EmptyState` 的语义回归已覆盖 `aria-*` 与 `data-*`：`components/empty-state/test/semantics.rs::empty_state_has_a11y_i18n_l10n_contract_entry_points`、`::empty_state_exposes_stable_observable_and_source_markers`、`::empty_state_agent_contract_schema_is_typed_and_mounted`；焦点流转对本组件为 N/A（非交互展示组件），由 `::empty_state_non_interactive_matrix_axes_are_explicitly_not_applicable` 与 `::empty_state_has_no_focus_stack_overlay_restore_protocol` 锁定。性能侧采用 mount-only 等价证据并纳入阻断脚本：`components/empty-state/test/semantics.rs::empty_state_performance_governance_is_mount_only_traceable_and_blocking` 与 `components/empty-state/test/empty_state_semantics.rs::empty_state_performance_governance_contract_is_mount_only_traceable_and_blocking`。`render_count` 自动化按仓库计划对高频/重型组件（Button/Input/Accordion）执行，本组件维持 mount-only 基线。）
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `EmptyState` 变更未引入跨大版本 API 破坏升级；组件协议仍为 `v1`（`components/empty-state/src/Component.toml` 保持 `schema_version = "1"`），公开签名维持兼容（`components/empty-state/src/empty_state.rbi` 的 `pub fn EmptyState(...)` 未发生破坏性迁移）。当前无需新增 Schema Registry 弃用窗口与 `migrate_v1_to_v2` 纯函数迁移层。回归由 `components/empty-state/test/semantics.rs::empty_state_version_deprecation_migration_is_na_without_major_breaking_upgrade` 锁定。）
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/display_extra.rs` 已补齐 `Hello World (Default Path)`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Source-first Starter (Copy-Paste Ready)`，并通过 `code_imports=empty_state_imports` 保障复制代码自动补全 imports；回归由 `components/empty-state/test/semantics.rs::empty_state_docs_are_copy_paste_ready_with_state_matrix_and_mode_sections` 与 `components/empty-state/test/empty_state_semantics.rs::empty_state_docs_page_covers_primary_playgrounds` 锁定。）
@@ -282,7 +282,7 @@
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/display_extra.rs::empty_state()` 保留 `Source-first Starter (Copy-Paste Ready)`，并新增 `data-slot="empty-state-source-first-contract"` 区块，明确 `Show code -> CodeBlock copy` 路径、`compose_copy_ready_code` 自动补全 imports 机制、真实源码落点（`components/empty-state/src/{mod,logic,view,styles,motion}.rs`）与依赖前提（`ui-components` 需启用 `component-empty_state, inject-css` 且挂载 `UiRoot`）。回归由 `components/empty-state/test/semantics.rs::empty_state_source_first_docs_keep_copy_button_and_real_source_dependency_hints` 与 `components/empty-state/test/empty_state_semantics.rs::empty_state_docs_source_first_contract_points_to_copy_ready_runtime_and_real_paths` 锁定。）
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/display_extra.rs::empty_state()` 保留 `Source-first Starter (Copy-Paste Ready)`，并新增 `data-slot="empty-state-source-first-contract"` 区块，明确 `Show code -> CodeBlock copy` 路径、`compose_copy_ready_code` 自动补全 imports 机制、真实源码落点（`components/empty-state/src/{mod,logic,view,styles,motion}.rs`）与依赖前提（`ui` 需启用 `component-empty_state, inject-css` 且挂载 `UiRoot`）。回归由 `components/empty-state/test/semantics.rs::empty_state_source_first_docs_keep_copy_button_and_real_source_dependency_hints` 与 `components/empty-state/test/empty_state_semantics.rs::empty_state_docs_source_first_contract_points_to_copy_ready_runtime_and_real_paths` 锁定。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
@@ -298,9 +298,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

@@ -96,3 +96,71 @@ test("docs-app: accordion interaction + keyboard roving", async ({ page }) => {
   await page.keyboard.press("ArrowDown");
   await expect(singleTrigger0).toBeFocused();
 });
+
+test("docs-app: accordion workbench exposes settings + code + actual-config linkage", async ({
+  page,
+}) => {
+  await page.goto("/#/components/accordion");
+  await page.locator("body:not(:has(#boot))").waitFor();
+
+  const playground = page
+    .locator('section.playground:has([data-slot="accordion-workbench"])')
+    .first();
+  await expect(playground).toBeVisible();
+
+  await playground.locator('[data-slot="playground-toggle-settings"]').first().click();
+  const controls = playground
+    .locator('[data-slot="playground-controls"] [data-slot="accordion-workbench-controls"]')
+    .first();
+  await expect(controls).toBeVisible();
+
+  const workbenchAccordion = playground
+    .locator('[data-slot="accordion-workbench-canvas"] [data-slot="accordion"]')
+    .first();
+  await expect(workbenchAccordion).toHaveAttribute("data-selection-mode", "multiple");
+  const summary = playground.locator('[data-slot="accordion-workbench-summary"]').first();
+  const configPreview = playground
+    .locator('[data-slot="accordion-workbench-config-preview"]')
+    .first();
+  await expect(summary).toContainText("mode: multiple");
+  await expect(configPreview).toContainText('selection_mode: "multiple"');
+
+  await controls.locator('label:has-text("Multiple mode") input[type="checkbox"]').first().click();
+  await expect(workbenchAccordion).toHaveAttribute("data-selection-mode", "single");
+  await expect(workbenchAccordion).toHaveAttribute("data-disallow-empty-selection", "true");
+  await expect(summary).toContainText("mode: single");
+  await expect(configPreview).toContainText('selection_mode: "single"');
+
+  await controls.locator('label:has-text("Disable item #1") input[type="checkbox"]').first().click();
+  const trigger1 = workbenchAccordion.locator('[data-slot="accordion-trigger"][data-index="1"]').first();
+  await expect(trigger1).toBeDisabled();
+  await expect(summary).toContainText("disable_second: true");
+  await expect(configPreview).toContainText('label: "Security", is_disabled: true');
+
+  await playground.locator('[data-slot="playground-toggle-code"]').first().click();
+  const codeBlock = playground
+    .locator('[data-slot="playground-code"] [data-slot="code-block-code"]')
+    .first();
+  await expect(codeBlock).toContainText("selection_mode=AccordionSelectionMode::Single");
+  await expect(codeBlock).toContainText("is_disabled=true");
+  const persistToggle = controls
+    .locator('label:has-text("Persist open state") input[type="checkbox"]')
+    .first();
+  if (await persistToggle.isChecked()) {
+    await persistToggle.click();
+  }
+  await expect(codeBlock).toContainText("// persist disabled; use current runtime snapshot");
+  await expect(codeBlock).toContainText("let (open, set_open) = signal(open_set([0]));");
+  const trigger2 = workbenchAccordion
+    .locator('[data-slot="accordion-trigger"][data-index="2"]')
+    .first();
+  await trigger2.click();
+  await expect(codeBlock).toContainText("let (open, set_open) = signal(open_set([2]));");
+
+  await playground.locator('[data-slot="playground-toggle-test"]').first().click();
+  const testPanel = playground.locator('[data-slot="playground-test"]').first();
+  await expect(testPanel).toBeVisible();
+  await expect(testPanel).toContainText("Actual config");
+  await expect(testPanel).toContainText('selection_mode: "single"');
+  await expect(testPanel).toContainText('label: "Security", is_disabled: true');
+});

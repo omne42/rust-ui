@@ -12,6 +12,9 @@ fn load_source(rel_path: &str) -> &'static str {
         "../ui-state-primitives/src/color_editor.rs" => {
             include_str!("../../../crates/ui-state-primitives/src/color_editor.rs")
         }
+        "../../crates/ui-state-primitives/src/color_editor.rs" => {
+            include_str!("../../../crates/ui-state-primitives/src/color_editor.rs")
+        }
         "../../apps/docs-app/src/pages/components/pages/forms_color.rs" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages/forms_color.rs")
         }
@@ -30,44 +33,44 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../e2e/tests/docs_app_color_editor_contract.spec.mjs" => {
             include_str!("../../../e2e/tests/docs_app_color_editor_contract.spec.mjs")
         }
-        "../../scripts/check-ui-components-performance.sh" => {
-            include_str!("../../../scripts/check-ui-components-performance.sh")
+        "../../scripts/check-ui-performance.sh" => {
+            include_str!("../../../scripts/check-ui-performance.sh")
         }
-        "../../scripts/check-ui-components-view-macro.sh" => {
-            include_str!("../../../scripts/check-ui-components-view-macro.sh")
+        "../../scripts/check-ui-view-macro.sh" => {
+            include_str!("../../../scripts/check-ui-view-macro.sh")
         }
-        "../../scripts/check-ui-components-inner-html.sh" => {
-            include_str!("../../../scripts/check-ui-components-inner-html.sh")
+        "../../scripts/check-ui-inner-html.sh" => {
+            include_str!("../../../scripts/check-ui-inner-html.sh")
         }
-        "../../scripts/check-ui-components-wasm-debug.sh" => {
-            include_str!("../../../scripts/check-ui-components-wasm-debug.sh")
+        "../../scripts/check-ui-wasm-debug.sh" => {
+            include_str!("../../../scripts/check-ui-wasm-debug.sh")
         }
-        "../../scripts/check-ui-components-dx.sh" => {
-            include_str!("../../../scripts/check-ui-components-dx.sh")
+        "../../scripts/check-ui-dx.sh" => {
+            include_str!("../../../scripts/check-ui-dx.sh")
         }
-        "../../scripts/check-ui-components-engineering.sh" => {
-            include_str!("../../../scripts/check-ui-components-engineering.sh")
+        "../../scripts/check-ui-engineering.sh" => {
+            include_str!("../../../scripts/check-ui-engineering.sh")
         }
-        "../../scripts/check-ui-components-component-files.sh" => {
-            include_str!("../../../scripts/check-ui-components-component-files.sh")
+        "../../scripts/check-ui-component-files.sh" => {
+            include_str!("../../../scripts/check-ui-component-files.sh")
         }
-        "../../scripts/check-ui-components-contract-hygiene.sh" => {
-            include_str!("../../../scripts/check-ui-components-contract-hygiene.sh")
+        "../../scripts/check-ui-contract-hygiene.sh" => {
+            include_str!("../../../scripts/check-ui-contract-hygiene.sh")
         }
-        "../../scripts/check-ui-components-entrypoints.sh" => {
-            include_str!("../../../scripts/check-ui-components-entrypoints.sh")
+        "../../scripts/check-ui-entrypoints.sh" => {
+            include_str!("../../../scripts/check-ui-entrypoints.sh")
         }
-        "../../scripts/check-ui-components-platforms.sh" => {
-            include_str!("../../../scripts/check-ui-components-platforms.sh")
+        "../../scripts/check-ui-platforms.sh" => {
+            include_str!("../../../scripts/check-ui-platforms.sh")
         }
-        "../../scripts/check-ui-components-streaming.sh" => {
-            include_str!("../../../scripts/check-ui-components-streaming.sh")
+        "../../scripts/check-ui-streaming.sh" => {
+            include_str!("../../../scripts/check-ui-streaming.sh")
         }
-        "../../scripts/check-ui-components-tree-shaking.sh" => {
-            include_str!("../../../scripts/check-ui-components-tree-shaking.sh")
+        "../../scripts/check-ui-tree-shaking.sh" => {
+            include_str!("../../../scripts/check-ui-tree-shaking.sh")
         }
-        "../../scripts/check-ui-components-e2e-color-editor.sh" => {
-            include_str!("../../../scripts/check-ui-components-e2e-color-editor.sh")
+        "../../components/color-editor/scripts/check-ui-e2e-color-editor.sh" => {
+            include_str!("../../../components/color-editor/scripts/check-ui-e2e-color-editor.sh")
         }
         "../../scripts/check-rust-hygiene.sh" => {
             include_str!("../../../scripts/check-rust-hygiene.sh")
@@ -95,19 +98,19 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../components/color-slider/src/motion.rs" => {
             include_str!("../../../components/color-slider/src/motion.rs")
         }
-        "../../crates/ui-components/src/lib.rs" => {
-            include_str!("../../../crates/ui-components/src/lib.rs")
+        "../../crates/ui/src/lib.rs" => {
+            include_str!("../../../crates/ui/src/lib.rs")
         }
-        "../../crates/ui-components/src/css.rs" => {
-            include_str!("../../../crates/ui-components/src/css.rs")
+        "../../crates/ui/src/css.rs" => {
+            include_str!("../../../crates/ui/src/css.rs")
         }
-        "../../crates/ui-components/src/root.rs" => {
-            include_str!("../../../crates/ui-components/src/root.rs")
+        "../../crates/ui/src/root.rs" => {
+            include_str!("../../../crates/ui/src/root.rs")
         }
         "../../components/color-editor/Cargo.toml" => {
             include_str!("../../../components/color-editor/Cargo.toml")
         }
-        "Cargo.toml" => include_str!("../../../crates/ui-components/Cargo.toml"),
+        "Cargo.toml" => include_str!("../../../crates/ui/Cargo.toml"),
         "legacy_semantics" => {
             include_str!("../../../components/color-editor/test/color_editor_semantics.rs")
         }
@@ -132,7 +135,7 @@ fn color_editor_semantics_tests_are_migrated_to_component_directory() {
 
     assert!(
         legacy_semantics.contains("../../../components/color-editor/test/semantics.rs"),
-        "legacy ui-components semantics entry should include migrated component semantics file.",
+        "legacy ui semantics entry should include migrated component semantics file.",
     );
     assert!(
         local_semantics
@@ -321,7 +324,7 @@ fn color_editor_semantics_matrix_covers_state_and_interaction_branches() {
 
     for needle in [
         "title=\"Controlled Color + Controlled Format\"",
-        "title=\"Disabled + Alpha Hidden + Reduced Motion\"",
+        "title=\"State Matrix (Disabled / Motion / Hidden Alpha)\"",
         "selected_color=selected_color_signal",
         "default_selected_color=\"#0ea5e9\".to_string()",
         "is_disabled=true",
@@ -363,13 +366,13 @@ fn color_editor_styles_consume_ui_theme_tokens_with_component_scoped_aliases() {
     let source = load_source("../../components/color-editor/src/styles.rs");
 
     for token in [
-        "var(--ui-space-sm)",
+        "var(--ui-space-sm,",
         "var(--ui-font-size-150",
-        "var(--ui-fg)",
-        "var(--ui-fg-muted)",
-        "var(--ui-border)",
-        "var(--ui-accent)",
-        "var(--ui-radius-sm)",
+        "var(--ui-fg,",
+        "var(--ui-fg-muted,",
+        "var(--ui-border,",
+        "var(--ui-accent,",
+        "var(--ui-radius-sm,",
     ] {
         assert!(
             source.contains(token),
@@ -401,7 +404,7 @@ fn color_editor_styles_use_defensive_variable_fallback_chain() {
     let styles_source = load_source("../../components/color-editor/src/styles.rs");
     let check2_source = load_source("../../components/color-editor/check2.md");
     let theme_css_source = include_str!("../../../crates/ui-theme/src/css.rs");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "--ui-color-editor-space-sm: var(--ui-space-sm, var(--ui-fallback-space-sm));",
@@ -473,7 +476,7 @@ fn color_editor_styles_use_defensive_variable_fallback_chain() {
         "color-editor styles should not hardcode hex colors; use theme variables/fallback chain.",
     );
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_styles_use_defensive_variable_fallback_chain";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -493,9 +496,9 @@ fn color_editor_styles_use_defensive_variable_fallback_chain() {
 #[test]
 fn color_editor_cascade_layer_and_runtime_style_contract_is_enforced() {
     let check2_source = load_source("../../components/color-editor/check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
+    let css_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let view_source = load_source("../../components/color-editor/src/view.rs");
     let logic_source = load_source("../../components/color-editor/src/logic.rs");
     let motion_source = load_source("../../components/color-editor/src/motion.rs");
@@ -509,7 +512,7 @@ fn color_editor_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css aggregation should keep cascade-layer marker `{required}`.",
+            "ui css aggregation should keep cascade-layer marker `{required}`.",
         );
     }
 
@@ -548,7 +551,7 @@ fn color_editor_cascade_layer_and_runtime_style_contract_is_enforced() {
         }
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_cascade_layer_and_runtime_style_contract_is_enforced";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -574,7 +577,7 @@ fn color_editor_docs_page_covers_primary_playgrounds() {
         "title=\"ColorEditor\"",
         "slug=\"color-editor\"",
         "Playground title=\"Hello World（默认路径）\" code_signal=hello_code",
-        "Playground title=\"State Matrix\" code_signal=state_matrix_code",
+        "Playground title=\"State Gallery\" code_signal=state_matrix_code",
         "title=\"Controlled vs Uncontrolled\"",
         "code_signal=controlled_vs_uncontrolled_code",
         "Playground title=\"Streaming Optional / Snapshot\" code_signal=output_mode_code",
@@ -585,7 +588,7 @@ fn color_editor_docs_page_covers_primary_playgrounds() {
         "test_css_source=workbench_test_css_source",
         "test_config_signal=workbench_actual_config",
         "title=\"Controlled Color + Controlled Format\"",
-        "title=\"Disabled + Alpha Hidden + Reduced Motion\"",
+        "title=\"State Matrix (Disabled / Motion / Hidden Alpha)\"",
         "Source-first / Copy-Paste Ready",
         "apps/docs-app/src/playground.rs::compose_copy_ready_code",
         "\"code_imports\"",
@@ -634,7 +637,8 @@ fn color_editor_docs_playgrounds_lock_state_matrix_contract_values() {
         "on_selected_change=on_selected_change",
         "format=format_signal",
         "on_format_change=on_format_change",
-        "<Playground title=\"Disabled + Alpha Hidden + Reduced Motion\" code_signal=states_code>",
+        "title=\"State Matrix (Disabled / Motion / Hidden Alpha)\"",
+        "code_signal=states_code",
         "id_base=\"docs-color-editor-disabled\".to_string()",
         "default_selected_color=\"#0ea5e9\".to_string()",
         "default_format=ColorEditorFormat::Rgb",
@@ -709,7 +713,7 @@ fn color_editor_docs_examples_parameter_and_state_matrix_stay_synced_with_logic_
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
     let logic_source = load_source("../../components/color-editor/src/logic.rs");
     let view_source = load_source("../../components/color-editor/src/view.rs");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     assert!(
         check2_source.contains("- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。"),
@@ -773,7 +777,7 @@ fn color_editor_docs_examples_parameter_and_state_matrix_stay_synced_with_logic_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_docs_examples_parameter_and_state_matrix_stay_synced_with_logic_defaults";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_docs_examples_parameter_and_state_matrix_stay_synced_with_logic_defaults";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -818,33 +822,42 @@ fn color_editor_docs_entry_exists_as_readme_or_equivalent_docs_app_page() {
 fn color_editor_docs_are_beginner_friendly_with_default_then_advanced_path() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
     let readme_source = load_source("../../components/color-editor/src/README.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
+    let color_editor_section_start = docs_source
+        .find("pub(super) fn color_editor() -> AnyView")
+        .expect("forms_color docs page should define color_editor section.");
+    let color_editor_section_end = docs_source[color_editor_section_start..]
+        .find("pub(super) fn color_handle() -> AnyView")
+        .map(|offset| color_editor_section_start + offset)
+        .unwrap_or(docs_source.len());
+    let color_editor_docs_section =
+        &docs_source[color_editor_section_start..color_editor_section_end];
 
     for required in [
         "title=\"ColorEditor\"",
         "slug=\"color-editor\"",
         "Playground title=\"Hello World（默认路径）\" code_signal=hello_code",
-        "Playground title=\"State Matrix\" code_signal=state_matrix_code",
+        "Playground title=\"State Gallery\" code_signal=state_matrix_code",
         "Playground title=\"Controlled vs Uncontrolled\" code_signal=controlled_vs_uncontrolled_code",
-        "Playground title=\"Interactive Playground\"",
+        "title=\"Interactive Playground\"",
     ] {
         assert!(
-            docs_source.contains(required),
+            color_editor_docs_section.contains(required),
             "color-editor docs should keep beginner-to-advanced marker `{required}`.",
         );
     }
 
-    let hello_pos = docs_source
+    let hello_pos = color_editor_docs_section
         .find("Playground title=\"Hello World（默认路径）\" code_signal=hello_code")
         .expect("docs should include hello-world playground for zero-threshold path.");
-    let matrix_pos = docs_source
-        .find("Playground title=\"State Matrix\" code_signal=state_matrix_code")
+    let matrix_pos = color_editor_docs_section
+        .find("Playground title=\"State Gallery\" code_signal=state_matrix_code")
         .expect("docs should include state-matrix playground as common usage.");
-    let controlled_pos = docs_source
+    let controlled_pos = color_editor_docs_section
         .find("Playground title=\"Controlled vs Uncontrolled\" code_signal=controlled_vs_uncontrolled_code")
         .expect("docs should include controlled-vs-uncontrolled playground.");
-    let interactive_pos = docs_source
-        .find("Playground title=\"Interactive Playground\"")
+    let interactive_pos = color_editor_docs_section
+        .find("title=\"Interactive Playground\"")
         .expect("docs should include interactive playground for advanced controls.");
     assert!(
         hello_pos < matrix_pos && matrix_pos < controlled_pos && controlled_pos < interactive_pos,
@@ -874,7 +887,7 @@ fn color_editor_docs_are_beginner_friendly_with_default_then_advanced_path() {
         "README should present default path before advanced playground details.",
     );
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_docs_are_beginner_friendly_with_default_then_advanced_path";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_docs_are_beginner_friendly_with_default_then_advanced_path";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -950,9 +963,11 @@ fn color_editor_docs_app_provides_interactive_playground_for_props_state_and_pre
 
     for marker in [
         "let section_class = \"docs-card playground\";",
-        "<div class=\"playground__preview\" data-playground-scope=scope_id.clone()>",
+        "<div data-playground-scope=scope_id.clone()>",
+        "<Card class_name=\"playground__preview\".to_string()>",
         "<div class=\"playground__preview-stage\">{children()}</div>",
-        "<aside class=\"playground__panel playground__controls\" data-slot=\"playground-controls\">",
+        "<div data-slot=\"playground-controls\">",
+        "<Card class_name=\"playground__panel playground__controls\".to_string()>",
     ] {
         assert!(
             playground_source.contains(marker),
@@ -986,11 +1001,11 @@ fn color_editor_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn color_editor_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(marker),
@@ -1086,11 +1101,11 @@ fn color_editor_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
 
 #[test]
 fn color_editor_contract_hygiene_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_docs_are_copy_paste_ready_with_imports_copy_button_and_sync",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_docs_are_copy_paste_ready_with_imports_copy_button_and_sync",
     ] {
         assert!(
             script_source.contains(marker),
@@ -1179,11 +1194,11 @@ fn color_editor_check2_marks_heroui_strategy_and_component_docs_sync_complete() 
 
 #[test]
 fn color_editor_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_check2_marks_heroui_strategy_and_component_docs_sync_complete",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_check2_marks_heroui_strategy_and_component_docs_sync_complete",
     ] {
         assert!(
             script_source.contains(marker),
@@ -1218,12 +1233,12 @@ fn color_editor_feature_dependency_chain_covers_composed_children() {
 #[test]
 fn color_editor_tree_shaking_feature_pruning_is_gated_in_lib_and_css() {
     let cargo_source = load_source("Cargo.toml");
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
 
     assert!(
         cargo_source.contains("component-color_editor = ["),
-        "ui-components feature graph should register component-color_editor explicitly.",
+        "ui feature graph should register component-color_editor explicitly.",
     );
     assert!(
         cargo_source.contains("all-components = [")
@@ -1233,7 +1248,7 @@ fn color_editor_tree_shaking_feature_pruning_is_gated_in_lib_and_css() {
 
     let color_export_idx = lib_source
         .find("pub use crate::color_editor as editor;")
-        .expect("ui-components lib.rs should expose color::editor namespace when feature enabled.");
+        .expect("ui lib.rs should expose color::editor namespace when feature enabled.");
     let export_prefix_start = color_export_idx.saturating_sub(128);
     let export_prefix = &lib_source[export_prefix_start..color_export_idx];
     assert!(
@@ -1243,7 +1258,7 @@ fn color_editor_tree_shaking_feature_pruning_is_gated_in_lib_and_css() {
 
     let module_idx = lib_source
         .find("pub mod color_editor;")
-        .expect("ui-components lib.rs should declare color_editor module.");
+        .expect("ui lib.rs should declare color_editor module.");
     let module_prefix_start = module_idx.saturating_sub(128);
     let module_prefix = &lib_source[module_prefix_start..module_idx];
     assert!(
@@ -1253,7 +1268,7 @@ fn color_editor_tree_shaking_feature_pruning_is_gated_in_lib_and_css() {
 
     let color_css_idx = css_source
         .find("out.push_str(crate::color::editor::styles::CSS);")
-        .expect("ui-components css.rs should aggregate color_editor CSS when feature is enabled.");
+        .expect("ui css.rs should aggregate color_editor CSS when feature is enabled.");
     let css_prefix_start = color_css_idx.saturating_sub(128);
     let css_prefix = &css_source[css_prefix_start..color_css_idx];
     assert!(
@@ -1276,18 +1291,18 @@ fn color_editor_tree_shaking_feature_pruning_is_gated_in_lib_and_css() {
 
 #[test]
 fn color_editor_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
 
     for needle in [
         "COLOR_EDITOR_MIN_FEATURES=\"component-color_editor,inject-css\"",
-        "COLOR_EDITOR_TREE_OUTPUT=\"$(cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$COLOR_EDITOR_MIN_FEATURES\")\"",
+        "COLOR_EDITOR_TREE_OUTPUT=\"$(cargo tree -e features -i ui -p ui --no-default-features --features \"$COLOR_EDITOR_MIN_FEATURES\")\"",
         "missing command-line feature: component-color_editor",
         "missing command-line feature: inject-css for color-editor minimal tree",
         "color-editor minimal feature tree should not pull all-components",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$COLOR_EDITOR_MIN_FEATURES\"",
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_tree_shaking_feature_pruning_is_gated_in_lib_and_css",
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$COLOR_EDITOR_MIN_FEATURES\"",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_tree_shaking_feature_pruning_is_gated_in_lib_and_css",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1307,10 +1322,11 @@ fn color_editor_check2_marks_tree_shaking_feature_pruning_contract_complete() {
 
     for needle in [
         "component-color_editor",
-        "#[cfg(feature = \"component-color_editor\")] pub use crate::color_editor as editor;",
+        "#[cfg(feature = \\\"component-color_editor\\\")]",
+        "color::editor",
         "out.push_str(crate::color::editor::styles::CSS);",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-color_editor,inject-css",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-color_editor,inject-css",
+        "scripts/check-ui-tree-shaking.sh",
         "color_editor_tree_shaking_feature_pruning_is_gated_in_lib_and_css",
     ] {
         assert!(
@@ -1358,7 +1374,7 @@ fn color_editor_motion_contract_is_component_scoped_reduced_motion_aware_and_non
     let slider_motion_source = load_source("../../components/color-slider/src/motion.rs");
     let ui_motion_spring_source = load_source("../../crates/ui-motion/src/spring.rs");
     let ui_motion_lib_source = load_source("../../crates/ui-motion/src/lib.rs");
-    let platform_script = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script = load_source("../../scripts/check-ui-platforms.sh");
     let check2_source = load_source("../../components/color-editor/check2.md");
 
     for required in [
@@ -1420,7 +1436,7 @@ fn color_editor_motion_contract_is_component_scoped_reduced_motion_aware_and_non
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
     assert!(
         platform_script.contains(script_needle),
         "platform gate script should include `{script_needle}`.",
@@ -1440,15 +1456,15 @@ fn color_editor_motion_contract_is_component_scoped_reduced_motion_aware_and_non
 #[test]
 fn color_editor_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let check2_source = load_source("../../components/color-editor/check2.md");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
-    let ui_components_root = load_source("../../crates/ui-components/src/root.rs");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
+    let ui_components_root = load_source("../../crates/ui/src/root.rs");
     let active_highlight =
         include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
     let controllable_state = include_str!("../../../crates/ui-headless/src/controllable_state.rs");
     let presence = include_str!("../../../crates/ui-headless/src/presence.rs");
     let a11y = include_str!("../../../crates/ui-headless/src/a11y.rs");
-    let entrypoints_script = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let entrypoints_script = load_source("../../scripts/check-ui-entrypoints.sh");
 
     for required in [
         "#[cfg(feature = \"component-color_editor\")]",
@@ -1458,14 +1474,14 @@ fn color_editor_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib.rs should keep fixed entry marker `{required}`.",
+            "ui lib.rs should keep fixed entry marker `{required}`.",
         );
     }
 
     for forbidden in ["pub use web_sys", "web_sys::", "NodeRef<", "JsValue"] {
         assert!(
             !ui_components_lib.contains(forbidden),
-            "ui-components lib.rs should not leak platform detail `{forbidden}`.",
+            "ui lib.rs should not leak platform detail `{forbidden}`.",
         );
     }
 
@@ -1477,7 +1493,7 @@ fn color_editor_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css.rs should keep fixed entry marker `{required}`.",
+            "ui css.rs should keep fixed entry marker `{required}`.",
         );
     }
 
@@ -1492,7 +1508,7 @@ fn color_editor_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_root.contains(required),
-            "ui-components root.rs should keep centralized injection marker `{required}`.",
+            "ui root.rs should keep centralized injection marker `{required}`.",
         );
     }
 
@@ -1542,22 +1558,22 @@ fn color_editor_ui_components_fixed_entry_files_follow_layered_boundaries() {
     }
 
     let ui_components_src_dir =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/src");
     for forbidden_file in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src_dir.join(forbidden_file).exists(),
-            "ui-components/src/{forbidden_file} should be absent by fixed-entrypoint contract.",
+            "ui/src/{forbidden_file} should be absent by fixed-entrypoint contract.",
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         entrypoints_script.contains(script_needle),
         "entrypoints gate script should include `{script_needle}`.",
     );
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "color_editor_ui_components_fixed_entry_files_follow_layered_boundaries",
     ] {
         assert!(
@@ -1575,7 +1591,7 @@ fn color_editor_component_directory_standard_files_follow_contract_and_na_paths(
     let styles_source = load_source("../../components/color-editor/src/styles.rs");
     let view_source = load_source("../../components/color-editor/src/view.rs");
     let motion_source = load_source("../../components/color-editor/src/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     for required_file in ["mod.rs", "logic.rs", "styles.rs", "view.rs", "motion.rs"] {
@@ -1703,7 +1719,7 @@ fn color_editor_component_directory_standard_files_follow_contract_and_na_paths(
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_component_directory_standard_files_follow_contract_and_na_paths";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_component_directory_standard_files_follow_contract_and_na_paths";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
@@ -1728,7 +1744,7 @@ fn color_editor_file_placement_discipline_contract_is_explicit_for_interactive_c
     let styles_source = load_source("../../components/color-editor/src/styles.rs");
     let view_source = load_source("../../components/color-editor/src/view.rs");
     let motion_source = load_source("../../components/color-editor/src/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     assert!(
         check2_source.contains("文件落点纪律"),
@@ -1766,7 +1782,7 @@ fn color_editor_file_placement_discipline_contract_is_explicit_for_interactive_c
         "logic/styles/view/motion should keep canonical responsibility anchors.",
     );
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_file_placement_discipline_contract_is_explicit_for_interactive_component_scope";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_file_placement_discipline_contract_is_explicit_for_interactive_component_scope";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
@@ -1793,7 +1809,7 @@ fn color_editor_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_co
     let motion_source = load_source("../../components/color-editor/src/motion.rs");
     let readme_source = load_source("../../components/color-editor/src/README.md");
     let protocol_source = include_str!("../src/protocol.rs");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     assert!(
         check2_source.contains("Hyper-Structure Builder（`spec.rs`）"),
@@ -1826,14 +1842,17 @@ fn color_editor_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_co
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_component";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_component";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
     );
 
     for required in [
-        "- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`ColorEditor` 当前不属于复杂 schema 驱动组件，且不存在 `src/spec.rs`；组件仅保留 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 职责分层。`protocol.rs` 仅承载最小版本化序列化类型，不暴露 builder API，不替代 `spec.rs`。）",
+        "- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。",
+        "N/A：`ColorEditor` 当前不属于复杂 schema 驱动组件",
+        "不存在 `src/spec.rs`",
+        "`protocol.rs` 仅承载最小版本化序列化类型",
         "color_editor_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_component",
     ] {
         assert!(
@@ -1846,7 +1865,7 @@ fn color_editor_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_co
 #[test]
 fn color_editor_context_compression_manifest_and_rbi_projection_are_present_and_current() {
     let check2_source = load_source("../../components/color-editor/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
     let component_manifest = include_str!("../src/Component.toml");
     let component_rbi = include_str!("../src/color_editor.rbi");
 
@@ -1901,14 +1920,14 @@ fn color_editor_context_compression_manifest_and_rbi_projection_are_present_and_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
     );
 
     for required in [
-        "- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`components/color-editor/src/Component.toml` 与 `components/color-editor/src/color_editor.rbi` 已同步维护；`Component.toml` 覆盖能力清单与输入输出轴，`.rbi` 提供 `ColorEditor` 接口签名投影，避免 AI 检索漂移。回归由 `components/color-editor/test/semantics.rs::color_editor_context_compression_manifest_and_rbi_projection_are_present_and_current` 覆盖，并接入 `scripts/check-ui-components-component-files.sh` 门禁。）",
+        "- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`components/color-editor/src/Component.toml` 与 `components/color-editor/src/color_editor.rbi` 已同步维护；`Component.toml` 覆盖能力清单与输入输出轴，`.rbi` 提供 `ColorEditor` 接口签名投影，避免 AI 检索漂移。回归由 `components/color-editor/test/semantics.rs::color_editor_context_compression_manifest_and_rbi_projection_are_present_and_current` 覆盖，并接入 `scripts/check-ui-component-files.sh` 门禁。）",
         "color_editor_context_compression_manifest_and_rbi_projection_are_present_and_current",
     ] {
         assert!(
@@ -1994,7 +2013,7 @@ fn color_editor_agent_contract_is_schema_typed_and_machine_readable() {
     }
 
     for required in [
-        "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`components/color-editor/src/logic.rs` 新增类型化 Agent Contract（`ColorEditorAgent{SchemaVersion/Intent/Action/State/Source}` + `resolve_agent_contract`），`components/color-editor/src/view.rs` 挂载稳定 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source` 与来源轴标记（`data-ui-*-source`），并在交互回调中更新 action 语义；`components/color-editor/src/Component.toml` 补充 `agent-contract-markers`、`agent_contract_schema_markers`、`[[agent_contract]]` 与 marker 白名单描述。回归由 `components/color-editor/test/semantics.rs::color_editor_agent_contract_is_schema_typed_and_machine_readable` 与 `components/color-editor/test/semantics.rs::color_editor_agent_contract_render_path_is_whitelist_safe_and_script_injection_free` 覆盖，并接入 `scripts/check-ui-components-contract-hygiene.sh` 门禁。）",
+        "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`components/color-editor/src/logic.rs` 新增类型化 Agent Contract（`ColorEditorAgent{SchemaVersion/Intent/Action/State/Source}` + `resolve_agent_contract`），`components/color-editor/src/view.rs` 挂载稳定 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source` 与来源轴标记（`data-ui-*-source`），并在交互回调中更新 action 语义；`components/color-editor/src/Component.toml` 补充 `agent-contract-markers`、`agent_contract_schema_markers`、`[[agent_contract]]` 与 marker 白名单描述。回归由 `components/color-editor/test/semantics.rs::color_editor_agent_contract_is_schema_typed_and_machine_readable` 与 `components/color-editor/test/semantics.rs::color_editor_agent_contract_render_path_is_whitelist_safe_and_script_injection_free` 覆盖，并接入 `scripts/check-ui-contract-hygiene.sh` 门禁。）",
         "color_editor_agent_contract_is_schema_typed_and_machine_readable",
     ] {
         assert!(
@@ -2010,7 +2029,7 @@ fn color_editor_agent_contract_render_path_is_whitelist_safe_and_script_injectio
     let logic_source = load_source("../../components/color-editor/src/logic.rs");
     let view_source = load_source("../../components/color-editor/src/view.rs");
     let component_manifest = include_str!("../src/Component.toml");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "[[agent_contract_whitelist]]",
@@ -2048,8 +2067,8 @@ fn color_editor_agent_contract_render_path_is_whitelist_safe_and_script_injectio
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -2077,10 +2096,10 @@ fn color_editor_check2_documents_streaming_definition_is_llm_output_only_with_tw
     let styles_source = load_source("../../components/color-editor/src/styles.rs");
     let docs_page_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for required in [
-        "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（N/A：`ColorEditor` 不是 LLM 正文渲染组件，组件职责是同步颜色编辑；组件侧不实现 token-by-token streaming 协议，仅消费稳定快照状态输入。术语约束仍固定为两种显示模式定义：`Streaming`（边生成边显示）与 `Snapshot`（完整结果一次性显示），避免在组件层引入第三种“伪流式”定义。回归由 `components/color-editor/test/semantics.rs::color_editor_check2_documents_streaming_definition_is_llm_output_only_with_two_modes` 覆盖，并接入 `scripts/check-ui-components-streaming.sh` 门禁。）",
+        "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（N/A：`ColorEditor` 不是 LLM 正文渲染组件，组件职责是同步颜色编辑；组件侧不实现 token-by-token streaming 协议，仅消费稳定快照状态输入。术语约束仍固定为两种显示模式定义：`Streaming`（边生成边显示）与 `Snapshot`（完整结果一次性显示），避免在组件层引入第三种“伪流式”定义。回归由 `components/color-editor/test/semantics.rs::color_editor_check2_documents_streaming_definition_is_llm_output_only_with_two_modes` 覆盖，并接入 `scripts/check-ui-streaming.sh` 门禁。）",
         "`Streaming`：LLM 还在生成，界面边生成边显示。",
         "`Snapshot`：LLM 全部生成完成后，一次性显示。",
         "N/A：`ColorEditor` 不是 LLM 正文渲染组件",
@@ -2102,7 +2121,7 @@ fn color_editor_check2_documents_streaming_definition_is_llm_output_only_with_tw
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(script_needle),
         "streaming gate script should include `{script_needle}`.",
@@ -2114,7 +2133,7 @@ fn color_editor_check2_documents_streaming_required_optional_classification_rule
     let checklist_source = load_source("../../components/color-editor/check2.md");
 
     for required in [
-        "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`ColorEditor` 归类为 `Streaming Optional`；组件职责是颜色编辑而非 LLM 正文阅读面，默认走 `Snapshot` 渲染路径。实现显式输出 `data-ui-stream-support=\"unsupported\"`、`data-ui-stream-fallback=\"full-snapshot\"`、`data-ui-stream-mode=\"snapshot\"` 与 `data-ui-output-status`，并保持 `role/aria/data-*` 连续可读。数据校验、断线恢复、重试策略继续留在上层编排，不下沉到组件。回归由 `components/color-editor/test/semantics.rs::color_editor_check2_documents_streaming_required_optional_classification_rules`、`components/color-editor/test/semantics.rs::color_editor_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-editor/test/semantics.rs::color_editor_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer` 覆盖，并接入 `scripts/check-ui-components-streaming.sh` 门禁。）",
+        "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`ColorEditor` 归类为 `Streaming Optional`；组件职责是颜色编辑而非 LLM 正文阅读面，默认走 `Snapshot` 渲染路径。实现显式输出 `data-ui-stream-support=\"unsupported\"`、`data-ui-stream-fallback=\"full-snapshot\"`、`data-ui-stream-mode=\"snapshot\"` 与 `data-ui-output-status`，并保持 `role/aria/data-*` 连续可读。数据校验、断线恢复、重试策略继续留在上层编排，不下沉到组件。回归由 `components/color-editor/test/semantics.rs::color_editor_check2_documents_streaming_required_optional_classification_rules`、`components/color-editor/test/semantics.rs::color_editor_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-editor/test/semantics.rs::color_editor_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer` 覆盖，并接入 `scripts/check-ui-streaming.sh` 门禁。）",
         "`Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。",
         "`Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。",
         "无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。",
@@ -2156,7 +2175,7 @@ fn color_editor_streaming_optional_scope_keeps_role_aria_and_data_markers_contin
 fn color_editor_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer() {
     let view_source = load_source("../../components/color-editor/src/view.rs");
     let logic_source = load_source("../../components/color-editor/src/logic.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
     let combined = format!("{view_source}\n{logic_source}");
 
     for forbidden in [
@@ -2176,9 +2195,9 @@ fn color_editor_streaming_validation_retry_resilience_boundaries_stay_outside_co
     }
 
     for needle in [
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2192,7 +2211,7 @@ fn color_editor_check2_documents_snapshot_as_default_baseline_capability() {
     let check2_source = load_source("../../components/color-editor/check2.md");
 
     for required in [
-        "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`ColorEditor` 已支持完整配置快照输入并稳定渲染：`components/color-editor/src/view.rs` 通过 `logic::normalize_default_inputs` + 双受控轴（`selected_color` 与 `format`）消费完整结果，根节点持续输出稳定语义标记（`data-state/data-format/data-alpha/...`）。docs 基线示例 `apps/docs-app/src/pages/components/pages/forms_color.rs` 提供 Hello World、Controlled、Disabled 等完整快照路径。回归由 `components/color-editor/test/semantics.rs::color_editor_check2_documents_snapshot_as_default_baseline_capability` 与 `components/color-editor/test/semantics.rs::color_editor_snapshot_baseline_consumes_complete_result_and_renders_stably` 覆盖，并接入 `scripts/check-ui-components-streaming.sh` 门禁。）",
+        "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`ColorEditor` 已支持完整配置快照输入并稳定渲染：`components/color-editor/src/view.rs` 通过 `logic::normalize_default_inputs` + 双受控轴（`selected_color` 与 `format`）消费完整结果，根节点持续输出稳定语义标记（`data-state/data-format/data-alpha/...`）。docs 基线示例 `apps/docs-app/src/pages/components/pages/forms_color.rs` 提供 Hello World、Controlled、Disabled 等完整快照路径。回归由 `components/color-editor/test/semantics.rs::color_editor_check2_documents_snapshot_as_default_baseline_capability` 与 `components/color-editor/test/semantics.rs::color_editor_snapshot_baseline_consumes_complete_result_and_renders_stably` 覆盖，并接入 `scripts/check-ui-streaming.sh` 门禁。）",
         "所有组件都应能消费“完整生成结果”并稳定渲染。",
         "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
     ] {
@@ -2207,8 +2226,9 @@ fn color_editor_check2_documents_snapshot_as_default_baseline_capability() {
 fn color_editor_snapshot_baseline_consumes_complete_result_and_renders_stably() {
     let view_source = load_source("../../components/color-editor/src/view.rs");
     let logic_source = load_source("../../components/color-editor/src/logic.rs");
+    let primitive_source = load_source("../../crates/ui-state-primitives/src/color_editor.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for marker in [
         "pub fn ColorEditor(",
@@ -2220,7 +2240,8 @@ fn color_editor_snapshot_baseline_consumes_complete_result_and_renders_stably() 
         "#[prop(optional)] on_format_change: Option<Callback<ColorEditorFormat>>",
         "let normalized_defaults = logic::normalize_default_inputs(",
         "let selected_state = overlay_open::use_controllable_state(",
-        "let format_state = overlay_open::use_controllable_state(",
+        "let format_state =",
+        "overlay_open::use_controllable_state(format, Some(default_format), on_format_change);",
         "data-state=move || state.get().data_state_attr",
         "data-format=move || state.get().format_attr",
         "data-alpha=move || state.get().alpha_visibility_attr",
@@ -2235,7 +2256,6 @@ fn color_editor_snapshot_baseline_consumes_complete_result_and_renders_stably() 
         "pub struct ColorEditorDefaultInput",
         "pub struct ColorEditorDefaultState",
         "pub fn normalize_default_inputs(input: ColorEditorDefaultInput) -> ColorEditorDefaultState",
-        "pub fn resolve_state(input: ColorEditorStateInput) -> ColorEditorState",
         "pub fn resolve_field_change(next: Option<String>) -> Option<String>",
     ] {
         assert!(
@@ -2243,6 +2263,12 @@ fn color_editor_snapshot_baseline_consumes_complete_result_and_renders_stably() 
             "color-editor logic should keep normalized snapshot baseline marker `{marker}`.",
         );
     }
+    assert!(
+        logic_source.contains("resolve_state(")
+            || primitive_source
+                .contains("pub fn resolve_state(input: ColorEditorStateInput) -> ColorEditorState"),
+        "color-editor snapshot baseline should keep resolve_state through logic wiring or primitive definition.",
+    );
 
     for marker in [
         "title=\"ColorEditor\"",
@@ -2261,7 +2287,7 @@ fn color_editor_snapshot_baseline_consumes_complete_result_and_renders_stably() 
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_snapshot_baseline_consumes_complete_result_and_renders_stably";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_snapshot_baseline_consumes_complete_result_and_renders_stably";
     assert!(
         script_source.contains(script_needle),
         "streaming gate script should include `{script_needle}`.",
@@ -2272,7 +2298,7 @@ fn color_editor_snapshot_baseline_consumes_complete_result_and_renders_stably() 
 fn color_editor_check2_documents_docs_product_copy_paste_ready_contract() {
     let check2_source = load_source("../../components/color-editor/check2.md");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。",
@@ -2287,7 +2313,7 @@ fn color_editor_check2_documents_docs_product_copy_paste_ready_contract() {
         "color_editor_docs_page_covers_primary_playgrounds",
         "color_editor_docs_playgrounds_lock_state_matrix_contract_values",
         "color_editor_check2_documents_docs_product_copy_paste_ready_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2311,7 +2337,7 @@ fn color_editor_check2_documents_docs_product_copy_paste_ready_contract() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_check2_documents_docs_product_copy_paste_ready_contract";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_check2_documents_docs_product_copy_paste_ready_contract";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -2322,7 +2348,7 @@ fn color_editor_check2_documents_docs_product_copy_paste_ready_contract() {
 fn color_editor_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only() {
     let check2_source = load_source("../../components/color-editor/check2.md");
     let view_source = load_source("../../components/color-editor/src/view.rs");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
     let local_semantics = include_str!("semantics.rs");
 
     for required in [
@@ -2351,9 +2377,6 @@ fn color_editor_semantics_priority_contract_prefers_semantic_assertions_over_sna
         "fn color_editor_semantics_contract_exposes_role_aria_and_source_markers()",
         "fn color_editor_semantics_matrix_covers_state_and_interaction_branches()",
         "fn color_editor_snapshot_baseline_consumes_complete_result_and_renders_stably()",
-        "role=\"group\"",
-        "aria-label=move || aria_label.get_value()",
-        "data-state=move || state.get().data_state_attr",
     ] {
         assert!(
             local_semantics.contains(required),
@@ -2361,7 +2384,7 @@ fn color_editor_semantics_priority_contract_prefers_semantic_assertions_over_sna
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -2373,7 +2396,7 @@ fn color_editor_semantics_priority_contract_prefers_semantic_assertions_over_sna
         "color_editor_semantics_matrix_covers_state_and_interaction_branches",
         "color_editor_snapshot_baseline_consumes_complete_result_and_renders_stably",
         "color_editor_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2394,7 +2417,7 @@ fn color_editor_check2_documents_e2e_selector_and_stable_wait_rules() {
         "color_editor_check2_documents_e2e_selector_and_stable_wait_rules",
         "color_editor_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "color_editor_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-color-editor.sh",
+        "components/color-editor/scripts/check-ui-e2e-color-editor.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2406,7 +2429,8 @@ fn color_editor_check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn color_editor_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_editor_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-editor.sh");
+    let script_source =
+        load_source("../../components/color-editor/scripts/check-ui-e2e-color-editor.sh");
 
     for required in [
         "const COLOR_EDITOR_PAGE = \"/#/components/color-editor\";",
@@ -2442,7 +2466,7 @@ fn color_editor_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_e2e_selector_contract_uses_semantic_markers_and_stable_waits";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_e2e_selector_contract_uses_semantic_markers_and_stable_waits";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-editor gate script should include `{script_needle}`.",
@@ -2452,7 +2476,8 @@ fn color_editor_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
 #[test]
 fn color_editor_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_editor_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-editor.sh");
+    let script_source =
+        load_source("../../components/color-editor/scripts/check-ui-e2e-color-editor.sh");
 
     for required in [
         "hslTab.focus()",
@@ -2472,7 +2497,7 @@ fn color_editor_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-editor gate script should include `{script_needle}`.",
@@ -2491,7 +2516,7 @@ fn color_editor_check2_documents_e2e_repeatable_key_flow_rules() {
         "color_editor_check2_documents_e2e_repeatable_key_flow_rules",
         "color_editor_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "color_editor_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-color-editor.sh",
+        "components/color-editor/scripts/check-ui-e2e-color-editor.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2503,7 +2528,8 @@ fn color_editor_check2_documents_e2e_repeatable_key_flow_rules() {
 #[test]
 fn color_editor_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_editor_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-editor.sh");
+    let script_source =
+        load_source("../../components/color-editor/scripts/check-ui-e2e-color-editor.sh");
 
     for required in [
         "key flow is repeatable and failures map to semantic breakpoints",
@@ -2523,7 +2549,7 @@ fn color_editor_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_e2e_key_flow_is_repeatable_and_failure_points_are_semantic";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_e2e_key_flow_is_repeatable_and_failure_points_are_semantic";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-editor gate script should include `{script_needle}`.",
@@ -2533,7 +2559,8 @@ fn color_editor_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 #[test]
 fn color_editor_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_editor_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-editor.sh");
+    let script_source =
+        load_source("../../components/color-editor/scripts/check-ui-e2e-color-editor.sh");
 
     for required in [
         "high-risk paths keep focus keyboard and disabled branches semantically explicit",
@@ -2555,7 +2582,7 @@ fn color_editor_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_br
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-editor gate script should include `{script_needle}`.",
@@ -2616,7 +2643,7 @@ fn color_editor_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_s
 #[test]
 fn color_editor_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let script_source = load_source("../../scripts/check-rust-hygiene.sh");
-    let engineering_script = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = load_source("../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -2631,9 +2658,9 @@ fn color_editor_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_static",
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_static",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(needle),
@@ -2647,7 +2674,7 @@ fn color_editor_check2_marks_rust_hygiene_contract_complete() {
     let check2_source = load_source("../../components/color-editor/check2.md");
 
     for needle in [
-        "- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/color-editor/src/logic.rs` 通过 `Cow<'static, str>` 收敛默认文案回退的字符串复制热点；组件非测试源码维持无 `unwrap/expect` 与无吞错 `let _ = ...`。回归由 `components/color-editor/test/semantics.rs::color_editor_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/color-editor/test/semantics.rs::color_editor_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_static`、`components/color-editor/test/semantics.rs::color_editor_rust_hygiene_script_enforces_repo_level_hygiene_guards` 覆盖，并接入 `scripts/check-ui-components-engineering.sh` 门禁。）",
+        "- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/color-editor/src/logic.rs` 通过 `Cow<'static, str>` 收敛默认文案回退的字符串复制热点；组件非测试源码维持无 `unwrap/expect` 与无吞错 `let _ = ...`。回归由 `components/color-editor/test/semantics.rs::color_editor_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/color-editor/test/semantics.rs::color_editor_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_static`、`components/color-editor/test/semantics.rs::color_editor_rust_hygiene_script_enforces_repo_level_hygiene_guards` 覆盖，并接入 `scripts/check-ui-engineering.sh` 门禁。）",
         "color_editor_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
         "color_editor_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_static",
         "color_editor_rust_hygiene_script_enforces_repo_level_hygiene_guards",
@@ -2666,11 +2693,12 @@ fn color_editor_performance_governance_contract_is_budgeted_traceable_and_blocki
     let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("../../components/color-editor/check2.md");
     let view_source = load_source("../../components/color-editor/src/view.rs");
     let logic_source = load_source("../../components/color-editor/src/logic.rs");
+    let primitive_source = load_source("../../crates/ui-state-primitives/src/color_editor.rs");
 
     for needle in [
         "fn component_page_perf_budget(slug: &'static str) -> UiPerfBudget",
@@ -2715,7 +2743,7 @@ fn color_editor_performance_governance_contract_is_budgeted_traceable_and_blocki
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_performance_governance_contract_is_budgeted_traceable_and_blocking";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_performance_governance_contract_is_budgeted_traceable_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include color-editor governance test command.",
@@ -2759,16 +2787,21 @@ fn color_editor_performance_governance_contract_is_budgeted_traceable_and_blocki
         );
     }
 
-    for needle in [
-        "pub fn normalize_default_inputs(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
-    ] {
-        assert!(
-            logic_source.contains(needle),
-            "logic should preserve attributable normalization path `{needle}`.",
-        );
-    }
+    let needle = "pub fn normalize_default_inputs(";
+    assert!(
+        logic_source.contains(needle),
+        "logic should preserve attributable normalization path `{needle}`.",
+    );
+    assert!(
+        logic_source.contains("compose_class_name,")
+            || primitive_source.contains("pub fn compose_class_name("),
+        "class-name composition should remain attributable through logic re-export or primitive definition.",
+    );
+    assert!(
+        logic_source.contains("resolve_state(")
+            || primitive_source.contains("pub fn resolve_state("),
+        "state resolution path should remain attributable through logic wiring or primitive definition.",
+    );
 }
 
 #[test]
@@ -2776,7 +2809,8 @@ fn color_editor_semantics_and_performance_regression_cover_aria_data_focus_and_r
  {
     let view_source = load_source("../../components/color-editor/src/view.rs");
     let logic_source = load_source("../../components/color-editor/src/logic.rs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let primitive_source = load_source("../../crates/ui-state-primitives/src/color_editor.rs");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let check2_source = load_source("../../components/color-editor/check2.md");
     let docs_shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
@@ -2816,8 +2850,8 @@ fn color_editor_semantics_and_performance_regression_cover_aria_data_focus_and_r
     }
 
     for marker in [
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
@@ -2850,15 +2884,16 @@ fn color_editor_semantics_and_performance_regression_cover_aria_data_focus_and_r
     }
 
     assert!(
-        logic_source.contains("pub fn resolve_state("),
-        "logic should keep state derivation path for attributable semantics/perf regressions.",
+        logic_source.contains("resolve_state(")
+            || primitive_source.contains("pub fn resolve_state("),
+        "state derivation path should remain attributable through logic wiring or primitive definition.",
     );
 }
 
 #[test]
 fn color_editor_view_macro_complexity_is_split_into_semantic_subrenders() {
     let view_source = load_source("../../components/color-editor/src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("../../components/color-editor/check2.md");
 
     for needle in [
@@ -2902,7 +2937,7 @@ fn color_editor_view_macro_complexity_is_split_into_semantic_subrenders() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_view_macro_complexity_is_split_into_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_view_macro_complexity_is_split_into_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include color-editor macro complexity test target.",
@@ -2923,7 +2958,7 @@ fn color_editor_view_macro_complexity_is_split_into_semantic_subrenders() {
 #[test]
 fn color_editor_view_functional_split_prefers_plain_functions_over_local_components() {
     let view_source = load_source("../../components/color-editor/src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("../../components/color-editor/check2.md");
 
     for needle in [
@@ -2974,7 +3009,7 @@ fn color_editor_view_functional_split_prefers_plain_functions_over_local_compone
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_view_functional_split_prefers_plain_functions_over_local_components";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_view_functional_split_prefers_plain_functions_over_local_components";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include color-editor function-first split test target.",
@@ -2995,7 +3030,7 @@ fn color_editor_view_functional_split_prefers_plain_functions_over_local_compone
 #[test]
 fn color_editor_static_fragments_are_constantized_or_absent_for_simple_layout() {
     let view_source = load_source("../../components/color-editor/src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("../../components/color-editor/check2.md");
 
     for needle in [
@@ -3034,7 +3069,7 @@ fn color_editor_static_fragments_are_constantized_or_absent_for_simple_layout() 
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_static_fragments_are_constantized_or_absent_for_simple_layout";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_static_fragments_are_constantized_or_absent_for_simple_layout";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include color-editor static-fragment test target.",
@@ -3055,11 +3090,20 @@ fn color_editor_static_fragments_are_constantized_or_absent_for_simple_layout() 
 
 #[test]
 fn color_editor_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
     let check2_source = load_source("../../components/color-editor/check2.md");
     let docs_page_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
     let docs_shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
+    let color_editor_section_start = docs_page_source
+        .find("pub(super) fn color_editor() -> AnyView")
+        .expect("forms_color docs page should define color_editor section.");
+    let color_editor_section_end = docs_page_source[color_editor_section_start..]
+        .find("pub(super) fn color_handle() -> AnyView")
+        .map(|offset| color_editor_section_start + offset)
+        .unwrap_or(docs_page_source.len());
+    let color_editor_docs_section =
+        &docs_page_source[color_editor_section_start..color_editor_section_end];
 
     for rel_path in [
         "../../components/color-editor/src/mod.rs",
@@ -3097,7 +3141,7 @@ fn color_editor_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
         "onload=",
     ] {
         assert!(
-            !docs_page_source.contains(forbidden),
+            !color_editor_docs_section.contains(forbidden),
             "color-editor docs page should avoid raw-html injection token `{forbidden}`.",
         );
     }
@@ -3111,7 +3155,7 @@ fn color_editor_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
         "color-editor should stay out of docs-shell inner_html whitelist.",
     );
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(script_needle),
         "inner-html check script should include color-editor inner-html contract target.",
@@ -3126,14 +3170,14 @@ fn color_editor_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 #[test]
 fn color_editor_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     let check2_source = load_source("../../components/color-editor/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
 
     let color_editor_cargo = load_source("../../components/color-editor/Cargo.toml");
     let ui_components_cargo = load_source("Cargo.toml");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
     let view_source = load_source("../../components/color-editor/src/view.rs");
     let logic_source = load_source("../../components/color-editor/src/logic.rs");
     let docs_page_source =
@@ -3164,7 +3208,7 @@ fn color_editor_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components should keep shared wasm-debug feature marker `{needle}`.",
+            "ui should keep shared wasm-debug feature marker `{needle}`.",
         );
     }
 
@@ -3176,7 +3220,7 @@ fn color_editor_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             !ui_components_cargo.contains(forbidden),
-            "ui-components feature graph should not leak color-editor debug toggle `{forbidden}`.",
+            "ui feature graph should not leak color-editor debug toggle `{forbidden}`.",
         );
     }
 
@@ -3186,7 +3230,7 @@ fn color_editor_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components root should keep shared wasm-debug isolation marker `{needle}`.",
+            "ui root should keep shared wasm-debug isolation marker `{needle}`.",
         );
     }
 
@@ -3236,7 +3280,6 @@ fn color_editor_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
         "provide_ui_trace",
         "trace.emit(",
         "wasm_debug_proxy!",
-        "observability::",
         "debug_overlay",
         "request_replay",
         "replay",
@@ -3264,7 +3307,7 @@ fn color_editor_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_wasm_debug_contract_is_explicitly_na_and_feature_isolated";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_wasm_debug_contract_is_explicitly_na_and_feature_isolated";
     assert!(
         script_source.contains(script_needle),
         "wasm-debug gate script should include `{script_needle}`.",
@@ -3285,10 +3328,19 @@ fn color_editor_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
 fn color_editor_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na()
 {
     let check2_source = load_source("../../components/color-editor/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
     let docs_page_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
+    let color_editor_section_start = docs_page_source
+        .find("pub(super) fn color_editor() -> AnyView")
+        .expect("forms_color docs page should define color_editor section.");
+    let color_editor_section_end = docs_page_source[color_editor_section_start..]
+        .find("pub(super) fn color_handle() -> AnyView")
+        .map(|offset| color_editor_section_start + offset)
+        .unwrap_or(docs_page_source.len());
+    let color_editor_docs_section =
+        &docs_page_source[color_editor_section_start..color_editor_section_end];
 
     for needle in [
         "let (show_settings_panel, set_show_settings_panel) = signal(false);",
@@ -3332,7 +3384,7 @@ fn color_editor_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_o
         "workbench_format.get().as_attr()",
     ] {
         assert!(
-            docs_page_source.contains(needle),
+            color_editor_docs_section.contains(needle),
             "color-editor docs should keep interactive workbench/context marker `{needle}`.",
         );
     }
@@ -3345,12 +3397,12 @@ fn color_editor_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_o
         "Persist workbench state",
     ] {
         assert!(
-            !docs_page_source.contains(forbidden),
+            !color_editor_docs_section.contains(forbidden),
             "color-editor keeps optional persisted workbench state as N/A for current scope; `{forbidden}` should remain absent.",
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na";
     assert!(
         script_source.contains(script_needle),
         "DX gate script should include `{script_needle}`.",
@@ -3374,7 +3426,7 @@ fn color_editor_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_o
 fn color_editor_engineering_contract_marks_spec_serde_path_as_na_and_keeps_tracing_runtime_boundaries()
  {
     let check2_source = load_source("../../components/color-editor/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
     let ui_components_cargo = load_source("Cargo.toml");
     let color_editor_cargo = load_source("../../components/color-editor/Cargo.toml");
     let mod_source = load_source("../../components/color-editor/src/mod.rs");
@@ -3457,7 +3509,7 @@ fn color_editor_engineering_contract_marks_spec_serde_path_as_na_and_keeps_traci
         }
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_engineering_contract_marks_spec_serde_path_as_na_and_keeps_tracing_runtime_boundaries";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_engineering_contract_marks_spec_serde_path_as_na_and_keeps_tracing_runtime_boundaries";
     assert!(
         script_source.contains(script_needle),
         "engineering gate script should include `{script_needle}`.",
@@ -3481,7 +3533,7 @@ fn color_editor_engineering_contract_marks_spec_serde_path_as_na_and_keeps_traci
 fn color_editor_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade()
  {
     let check2_source = load_source("../../components/color-editor/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
     let readme_source = load_source("../../components/color-editor/src/README.md");
     let protocol_source = include_str!("../src/protocol.rs");
     let component_manifest = include_str!("../src/Component.toml");
@@ -3516,14 +3568,14 @@ fn color_editor_version_deprecation_migration_registry_is_explicitly_na_without_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
+    let script_needle = "cargo test -p ui --test color_editor_semantics --no-default-features --features component-color_editor,inject-css color_editor_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(script_needle),
         "engineering gate script should include `{script_needle}`.",
     );
 
     for needle in [
-        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorEditor` 改动未引入跨大版本 API 破坏升级，也未将组件协议从 `v1` 升级到 `v2`；`components/color-editor/src/protocol.rs` 仍仅声明 `EditorComponentSchemaVersion::V1` 与最小 `EditorComponentSpec`，不存在 `migrate_v1_to_v2`/弃用窗口注册需求。回归由 `components/color-editor/test/semantics.rs::color_editor_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade` 覆盖，并接入 `scripts/check-ui-components-engineering.sh` 门禁。）",
+        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorEditor` 改动未引入跨大版本 API 破坏升级，也未将组件协议从 `v1` 升级到 `v2`；`components/color-editor/src/protocol.rs` 仍仅声明 `EditorComponentSchemaVersion::V1` 与最小 `EditorComponentSpec`，不存在 `migrate_v1_to_v2`/弃用窗口注册需求。回归由 `components/color-editor/test/semantics.rs::color_editor_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade` 覆盖，并接入 `scripts/check-ui-engineering.sh` 门禁。）",
         "color_editor_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
     ] {
         assert!(

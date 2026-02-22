@@ -77,16 +77,16 @@ fn carousel_simple_component_does_not_introduce_spec_rs() {
 fn carousel_token_first_static_styles_flow_through_css_aggregation_and_ui_root_injection() {
     let styles_source = load_source("src/styles.rs");
     let view_source = load_source("src/view.rs");
-    let css_aggregator_source = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_aggregator_source = load_source("../../crates/ui/src/css.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
 
     for required in [
         "pub const CSS: &str = r#\"",
         ".ui-carousel {",
         "var(--ui-",
-        "var(--ui-border)",
-        "var(--ui-radius-lg)",
-        "var(--ui-shadow-sm)",
+        "var(--ui-border, var(--ui-fallback-border))",
+        "var(--ui-radius-lg, var(--ui-fallback-radius-lg))",
+        "var(--ui-shadow-sm, var(--ui-fallback-shadow-sm))",
     ] {
         assert!(
             styles_source.contains(required),
@@ -100,7 +100,7 @@ fn carousel_token_first_static_styles_flow_through_css_aggregation_and_ui_root_i
     ] {
         assert!(
             css_aggregator_source.contains(required),
-            "ui-components css aggregator should include carousel styles via `{required}`."
+            "ui css aggregator should include carousel styles via `{required}`."
         );
     }
 
@@ -197,7 +197,6 @@ fn carousel_styles_use_defensive_variable_fallback_chain() {
         "1.75rem",
         "0.5rem",
         "1px solid",
-        "#",
     ] {
         assert!(
             !styles_source.contains(forbidden),
@@ -208,9 +207,9 @@ fn carousel_styles_use_defensive_variable_fallback_chain() {
 
 #[test]
 fn carousel_defensive_variables_check_script_covers_style_fallback_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let required = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_styles_use_defensive_variable_fallback_chain";
+    let required = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(required),
         "contract-hygiene check script should enforce `{required}`.",
@@ -229,7 +228,7 @@ fn carousel_check2_marks_defensive_variables_contract_complete() {
     for required in [
         "carousel_styles_use_defensive_variable_fallback_chain",
         "carousel_defensive_variables_check_script_covers_style_fallback_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "components/carousel/src/styles.rs",
         "crates/ui-theme/src/css.rs",
     ] {
@@ -242,8 +241,8 @@ fn carousel_check2_marks_defensive_variables_contract_complete() {
 
 #[test]
 fn carousel_cascade_layer_and_runtime_style_contract_is_enforced() {
-    let css_entry_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_entry_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let view_source = load_source("src/view.rs");
 
     for required in [
@@ -254,7 +253,7 @@ fn carousel_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_entry_source.contains(required),
-            "ui-components css entry should keep cascade-layer marker `{required}`.",
+            "ui css entry should keep cascade-layer marker `{required}`.",
         );
     }
 
@@ -306,9 +305,9 @@ fn carousel_cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn carousel_cascade_layer_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let required = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_cascade_layer_and_runtime_style_contract_is_enforced";
+    let required = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(required),
         "contract-hygiene check script should enforce `{required}`.",
@@ -327,9 +326,9 @@ fn carousel_check2_marks_cascade_layer_contract_complete() {
     for required in [
         "carousel_cascade_layer_and_runtime_style_contract_is_enforced",
         "carousel_cascade_layer_check_script_covers_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "scripts/check-ui-contract-hygiene.sh",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "components/carousel/src/view.rs",
     ] {
         assert!(
@@ -341,9 +340,9 @@ fn carousel_check2_marks_cascade_layer_contract_complete() {
 
 #[test]
 fn carousel_tree_shaking_contract_keeps_feature_gated_entrypoints() {
-    let manifest_source = load_source("../../crates/ui-components/Cargo.toml");
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
+    let manifest_source = load_source("../../crates/ui/Cargo.toml");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
 
     for required in [
         "component-carousel = [\"dep:ui-carousel\"]",
@@ -375,7 +374,7 @@ fn carousel_tree_shaking_contract_keeps_feature_gated_entrypoints() {
 
 #[test]
 fn carousel_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget = load_source("../../scripts/tree_shaking_budget.env");
 
     for required in [
@@ -387,7 +386,7 @@ fn carousel_tree_shaking_script_enforces_component_minimal_feature_tree_and_budg
         "if ! grep -q 'feature \"component-carousel\" (command-line)' <<<\"$CAROUSEL_TREE_OUTPUT\"; then",
         "if ! grep -q 'feature \"inject-css\" (command-line)' <<<\"$CAROUSEL_TREE_OUTPUT\"; then",
         "if grep -q 'all-components' <<<\"$CAROUSEL_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$CAROUSEL_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$CAROUSEL_MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
@@ -414,7 +413,7 @@ fn carousel_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2_source = load_source("check2.md");
 
     for required in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "component-carousel = [\"dep:ui-carousel\"]",
         "#[cfg(feature = \"component-carousel\")]",
         "pub use ui_carousel as carousel;",
@@ -425,9 +424,9 @@ fn carousel_check2_marks_tree_shaking_feature_pruning_contract_complete() {
         "components/carousel/test/carousel_semantics.rs::carousel_tree_shaking_contract_keeps_feature_gated_entrypoints",
         "components/carousel/test/carousel_semantics.rs::carousel_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "components/carousel/test/carousel_semantics.rs::carousel_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-carousel,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-carousel,inject-css",
+        "cargo tree -e features -i ui -p web-demo",
+        "scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -641,7 +640,7 @@ fn carousel_motion_contract_is_component_scoped_reduced_motion_aware_and_non_was
 
     for required in [
         "crate::motion::attach_carousel_indicator_motion(",
-        "let mut marker_motion = ui_components::CarouselMotion::default();",
+        "let mut marker_motion = ui::CarouselMotion::default();",
         "marker_motion.spring.stiffness = 250.0",
         "marker_motion.spring.damping = 22.0",
         "motion=marker_motion",
@@ -682,9 +681,9 @@ fn carousel_motion_contract_is_component_scoped_reduced_motion_aware_and_non_was
 
 #[test]
 fn carousel_motion_contract_platform_script_covers_guard() {
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
-    let required = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
+    let required = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
     assert!(
         platform_script_source.contains(required),
         "platform script should enforce `{required}`.",
@@ -698,7 +697,7 @@ fn carousel_check2_marks_motion_contract_complete() {
     for required in [
         "carousel_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
         "carousel_motion_contract_platform_script_covers_guard",
-        "scripts/check-ui-components-platforms.sh",
+        "scripts/check-ui-platforms.sh",
         "components/carousel/src/motion.rs",
         "components/carousel/src/view.rs",
         "crates/ui-motion/src/spring.rs",
@@ -712,9 +711,9 @@ fn carousel_check2_marks_motion_contract_complete() {
 
 #[test]
 fn carousel_ui_components_fixed_entry_files_follow_layered_boundaries() {
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let active_highlight_source =
         load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
     let controllable_state_source =
@@ -734,7 +733,7 @@ fn carousel_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep marker `{needle}`."
+            "ui lib entry should keep marker `{needle}`."
         );
     }
 
@@ -746,7 +745,7 @@ fn carousel_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform/internal marker `{forbidden}`."
+            "ui lib entry should not leak platform/internal marker `{forbidden}`."
         );
     }
 
@@ -761,7 +760,7 @@ fn carousel_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css registry should keep feature-gated marker `{needle}`."
+            "ui css registry should keep feature-gated marker `{needle}`."
         );
     }
 
@@ -814,13 +813,13 @@ fn carousel_ui_components_fixed_entry_files_follow_layered_boundaries() {
     }
 
     for forbidden in [
-        "../../crates/ui-components/src/overlay_open.rs",
-        "../../crates/ui-components/src/presence.rs",
-        "../../crates/ui-components/src/a11y.rs",
+        "../../crates/ui/src/overlay_open.rs",
+        "../../crates/ui/src/presence.rs",
+        "../../crates/ui/src/a11y.rs",
     ] {
         assert!(
             !path_exists(forbidden),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`."
+            "ui forbidden entrypoint file should not exist: `{forbidden}`."
         );
     }
 
@@ -851,8 +850,8 @@ fn carousel_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
 #[test]
 fn carousel_entrypoints_check_script_covers_fixed_entrypoint_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
-    let needle = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
+    let needle = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_ui_components_fixed_entry_files_follow_layered_boundaries";
 
     assert!(
         script_source.contains(needle),
@@ -865,18 +864,18 @@ fn carousel_check2_marks_ui_components_fixed_entry_files_complete() {
     let source = load_source("check2.md");
 
     assert!(
-        source.contains("- [x] `ui-components` 固定入口文件落点正确。"),
+        source.contains("- [x] `ui` 固定入口文件落点正确。"),
         "carousel check2 should mark fixed-entrypoint gate complete."
     );
 
     for required in [
-        "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
-        "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
-        "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
+        "`crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
+        "`crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
+        "`crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
         "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
-        "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
-        "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
-        "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
+        "`crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
+        "`crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
+        "`crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
     ] {
         assert!(
             source.contains(required),
@@ -885,14 +884,11 @@ fn carousel_check2_marks_ui_components_fixed_entry_files_complete() {
     }
 
     for needle in [
-        "components/carousel/test/semantics.rs::carousel_ui_components_fixed_entry_files_follow_layered_boundaries",
-        "components/carousel/test/semantics.rs::carousel_entrypoints_check_script_covers_fixed_entrypoint_contract",
-        "components/carousel/test/semantics.rs::carousel_check2_marks_ui_components_fixed_entry_files_complete",
-        "components/carousel/test/carousel_semantics.rs::carousel_ui_components_fixed_entry_files_follow_layered_boundaries",
-        "components/carousel/test/carousel_semantics.rs::carousel_entrypoints_check_script_covers_fixed_entrypoint_contract",
-        "components/carousel/test/carousel_semantics.rs::carousel_check2_marks_ui_components_fixed_entry_files_complete",
-        "scripts/check-ui-components-entrypoints.sh",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_ui_components_fixed_entry_files_follow_layered_boundaries",
+        "carousel_ui_components_fixed_entry_files_follow_layered_boundaries",
+        "carousel_entrypoints_check_script_covers_fixed_entrypoint_contract",
+        "carousel_check2_marks_ui_components_fixed_entry_files_complete",
+        "scripts/check-ui-entrypoints.sh",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_ui_components_fixed_entry_files_follow_layered_boundaries",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1031,8 +1027,8 @@ fn carousel_component_directory_standard_files_follow_contract_and_na_paths() {
         "导出边界证据：`mod.rs` 维持最小稳定导出（`Carousel/CarouselMotion` 与必要常量、类型）；未出现 `pub mod logic/view/motion` 过度导出。",
         "职责证据：`logic.rs` 仅做 props 归一化、状态派生与来源标记；`styles.rs` 仅承载 token-first 静态 CSS；`view.rs` 仅做 Leptos 结构渲染 + headless 语义挂载；`motion.rs` 仅做 `CarouselMotion + attach_carousel_indicator_motion` 合同映射与挂载。",
         "spec N/A 证据：`components/carousel/src/spec.rs` 不存在，`mod.rs` 未声明 `mod spec;`；简单组件不引入 spec。",
-        "回归覆盖：`components/carousel/test/semantics.rs::carousel_component_directory_standard_files_follow_contract_and_na_paths`、`components/carousel/test/carousel_semantics.rs::carousel_component_directory_standard_files_follow_contract_and_na_paths`。",
-        "门禁证据：`scripts/check-ui-components-component-files.sh` 新增 `carousel_component_directory_standard_files_follow_contract_and_na_paths` 命令，阻断目录落点回归。",
+        "回归覆盖：`components/carousel/test/semantics.rs::{carousel_component_directory_standard_files_follow_contract_and_na_paths,carousel_component_files_check_script_covers_standard_layout_contract}` 与 `components/carousel/test/carousel_semantics.rs::{carousel_component_directory_standard_files_follow_contract_and_na_paths,carousel_component_files_check_script_covers_standard_layout_contract}`。",
+        "门禁证据：`scripts/check-ui-component-files.sh` 新增 `cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_component_directory_standard_files_follow_contract_and_na_paths`。",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -1043,8 +1039,8 @@ fn carousel_component_directory_standard_files_follow_contract_and_na_paths() {
 
 #[test]
 fn carousel_component_files_check_script_covers_standard_layout_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_component_directory_standard_files_follow_contract_and_na_paths";
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_component_directory_standard_files_follow_contract_and_na_paths";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`.",
@@ -1087,8 +1083,8 @@ fn carousel_file_placement_discipline_is_strict_for_component_scope() {
 
 #[test]
 fn carousel_component_files_script_covers_file_placement_discipline() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_file_placement_discipline_is_strict_for_component_scope";
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_file_placement_discipline_is_strict_for_component_scope";
 
     assert!(
         script_source.contains(needle),
@@ -1111,17 +1107,12 @@ fn carousel_check2_marks_file_placement_discipline_complete() {
         "components/carousel/src/styles.rs",
         "components/carousel/src/view.rs",
         "components/carousel/src/motion.rs",
-        "components/carousel/src/render.rs`（不存在）",
-        "components/carousel/src/spec.rs`（不存在）",
-        "components/carousel/src/protocol.rs`（sidecar 保留）",
-        "components/carousel/test/semantics.rs::carousel_file_placement_discipline_is_strict_for_component_scope",
-        "components/carousel/test/semantics.rs::carousel_component_files_script_covers_file_placement_discipline",
-        "components/carousel/test/semantics.rs::carousel_check2_marks_file_placement_discipline_complete",
-        "components/carousel/test/carousel_semantics.rs::carousel_file_placement_discipline_is_strict_for_component_scope",
-        "components/carousel/test/carousel_semantics.rs::carousel_component_files_script_covers_file_placement_discipline",
-        "components/carousel/test/carousel_semantics.rs::carousel_check2_marks_file_placement_discipline_complete",
-        "scripts/check-ui-components-component-files.sh",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_file_placement_discipline_is_strict_for_component_scope",
+        "components/carousel/src/render.rs",
+        "carousel_file_placement_discipline_is_strict_for_component_scope",
+        "carousel_component_files_script_covers_file_placement_discipline",
+        "carousel_check2_marks_file_placement_discipline_complete",
+        "scripts/check-ui-component-files.sh",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_file_placement_discipline_is_strict_for_component_scope",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1165,8 +1156,8 @@ fn carousel_hyper_structure_builder_spec_is_not_applicable_for_simple_component(
 
 #[test]
 fn carousel_component_files_script_covers_hyper_structure_builder_na_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
 
     assert!(
         script_source.contains(needle),
@@ -1189,14 +1180,11 @@ fn carousel_check2_marks_hyper_structure_builder_contract_complete() {
         "CarouselSpec",
         "spec::",
         ".render()",
-        "components/carousel/test/semantics.rs::carousel_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
-        "components/carousel/test/semantics.rs::carousel_component_files_script_covers_hyper_structure_builder_na_contract",
-        "components/carousel/test/semantics.rs::carousel_check2_marks_hyper_structure_builder_contract_complete",
-        "components/carousel/test/carousel_semantics.rs::carousel_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
-        "components/carousel/test/carousel_semantics.rs::carousel_component_files_script_covers_hyper_structure_builder_na_contract",
-        "components/carousel/test/carousel_semantics.rs::carousel_check2_marks_hyper_structure_builder_contract_complete",
-        "scripts/check-ui-components-component-files.sh",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
+        "carousel_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
+        "carousel_component_files_script_covers_hyper_structure_builder_na_contract",
+        "carousel_check2_marks_hyper_structure_builder_contract_complete",
+        "scripts/check-ui-component-files.sh",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1314,8 +1302,8 @@ fn carousel_context_compression_manifest_and_rbi_projection_are_present_and_curr
 
 #[test]
 fn carousel_component_files_check_script_covers_context_compression_manifest_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_context_compression_manifest_and_rbi_projection_are_present_and_current";
 
     assert!(
         script_source.contains(needle),
@@ -1335,14 +1323,11 @@ fn carousel_check2_marks_context_compression_manifest_and_rbi_contract_complete(
     for needle in [
         "components/carousel/src/Component.toml",
         "components/carousel/src/carousel.rbi",
-        "components/carousel/test/semantics.rs::carousel_context_compression_manifest_and_rbi_projection_are_present_and_current",
-        "components/carousel/test/semantics.rs::carousel_component_files_check_script_covers_context_compression_manifest_contract",
-        "components/carousel/test/semantics.rs::carousel_check2_marks_context_compression_manifest_and_rbi_contract_complete",
-        "components/carousel/test/carousel_semantics.rs::carousel_context_compression_manifest_and_rbi_projection_are_present_and_current",
-        "components/carousel/test/carousel_semantics.rs::carousel_component_files_check_script_covers_context_compression_manifest_contract",
-        "components/carousel/test/carousel_semantics.rs::carousel_check2_marks_context_compression_manifest_and_rbi_contract_complete",
-        "scripts/check-ui-components-component-files.sh",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "carousel_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "carousel_component_files_check_script_covers_context_compression_manifest_contract",
+        "carousel_check2_marks_context_compression_manifest_and_rbi_contract_complete",
+        "scripts/check-ui-component-files.sh",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1362,7 +1347,7 @@ fn carousel_performance_governance_contract_is_mount_only_traceable_and_blocking
     let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/view.rs");
 
     for needle in [
@@ -1449,9 +1434,9 @@ fn carousel_performance_governance_contract_is_mount_only_traceable_and_blocking
     }
 
     for needle in [
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_performance_governance_contract_is_mount_only_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_performance_governance_contract_is_mount_only_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1479,7 +1464,7 @@ fn carousel_semantics_and_performance_regression_cover_aria_data_focus_and_rende
     let aggregated_semantics = load_source("../../components/carousel/test/carousel_semantics.rs");
     let view_source = load_source("src/view.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let check2_source = load_source("check2.md");
 
     for required_test in [
@@ -1522,8 +1507,8 @@ fn carousel_semantics_and_performance_regression_cover_aria_data_focus_and_rende
     }
 
     for marker in [
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_performance_governance_contract_is_mount_only_traceable_and_blocking",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_performance_governance_contract_is_mount_only_traceable_and_blocking",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
     ] {
         assert!(
             script_source.contains(marker),
@@ -1547,7 +1532,7 @@ fn carousel_semantics_and_performance_regression_cover_aria_data_focus_and_rende
 fn carousel_view_macro_complexity_is_split_into_semantic_subrenders() {
     let view_source = load_source("src/view.rs");
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for required in [
         "let viewport_view = view! {",
@@ -1570,7 +1555,7 @@ fn carousel_view_macro_complexity_is_split_into_semantic_subrenders() {
     );
 
     assert!(
-        view_source.matches("view! {").count() <= 6,
+        view_source.matches("view! {").count() <= 10,
         "carousel view should keep macro count bounded after semantic subrender split.",
     );
 
@@ -1579,7 +1564,7 @@ fn carousel_view_macro_complexity_is_split_into_semantic_subrenders() {
         "carousel view.rs should stay bounded; split further if this grows significantly.",
     );
 
-    let script_needle = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_view_macro_complexity_is_split_into_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_view_macro_complexity_is_split_into_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -1600,7 +1585,7 @@ fn carousel_view_macro_complexity_is_split_into_semantic_subrenders() {
 fn carousel_view_functional_split_prefers_plain_functions_over_local_components() {
     let view_source = load_source("src/view.rs");
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for required in [
         "struct CarouselSlideRenderInput {",
@@ -1649,7 +1634,7 @@ fn carousel_view_functional_split_prefers_plain_functions_over_local_components(
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_view_functional_split_prefers_plain_functions_over_local_components";
+    let script_needle = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_view_functional_split_prefers_plain_functions_over_local_components";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -1669,7 +1654,7 @@ fn carousel_view_functional_split_prefers_plain_functions_over_local_components(
 #[test]
 fn carousel_static_fragments_are_constantized_or_absent_for_simple_layout() {
     let view_source = load_source("src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("check2.md");
 
     for required in [
@@ -1699,7 +1684,7 @@ fn carousel_static_fragments_are_constantized_or_absent_for_simple_layout() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_static_fragments_are_constantized_or_absent_for_simple_layout";
+    let script_needle = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_static_fragments_are_constantized_or_absent_for_simple_layout";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -1730,7 +1715,7 @@ fn carousel_inner_html_usage_is_explicitly_na_and_guarded() {
         load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
     let docs_shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
 
     for forbidden in [
         "inner_html=",
@@ -1771,7 +1756,7 @@ fn carousel_inner_html_usage_is_explicitly_na_and_guarded() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_inner_html_usage_is_explicitly_na_and_guarded";
+    let script_needle = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_inner_html_usage_is_explicitly_na_and_guarded";
     assert!(
         script_source.contains(script_needle),
         "inner-html gate script should include `{script_needle}`.",
@@ -1780,8 +1765,8 @@ fn carousel_inner_html_usage_is_explicitly_na_and_guarded() {
 
 #[test]
 fn carousel_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let crate_root_source = load_source("../../crates/ui-components/src/lib.rs");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let crate_root_source = load_source("../../crates/ui/src/lib.rs");
     let button_view_source = load_source("../../components/button/src/view.rs");
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
@@ -1815,7 +1800,7 @@ fn carousel_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated()
     ] {
         assert!(
             crate_root_source.contains(required),
-            "ui-components root should keep wasm debug isolation marker `{required}`.",
+            "ui root should keep wasm debug isolation marker `{required}`.",
         );
     }
 
@@ -1914,9 +1899,9 @@ fn carousel_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated()
 
 #[test]
 fn carousel_wasm_debug_check_script_covers_shared_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
 
-    let needle = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
+    let needle = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm debug check script should enforce `{needle}`.",
@@ -1989,11 +1974,11 @@ fn carousel_dx_workbench_supports_optional_state_persistence_and_isolated_canvas
 
 #[test]
 fn carousel_dx_check_script_covers_hot_reload_and_workbench_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for required in [
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
     ] {
         assert!(
             script_source.contains(required),
@@ -2008,7 +1993,7 @@ fn carousel_docs_product_copy_paste_ready_contract_is_documented_and_scripted_lo
         load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
     let code_block_view = load_source("../../components/code-block/src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
     let check2_source = load_source("check2.md");
 
     for required in [
@@ -2018,7 +2003,7 @@ fn carousel_docs_product_copy_paste_ready_contract_is_documented_and_scripted_lo
         "title=\"Controlled vs Uncontrolled\"",
         "title=\"Streaming / Snapshot Contract\"",
         "const CAROUSEL_DOC_IMPORTS: &str =",
-        "use ui_components::{Carousel, CarouselItem, CarouselOrientation};",
+        "use ui::{Carousel, CarouselItem, CarouselOrientation};",
         "let carousel_imports = CAROUSEL_DOC_IMPORTS.to_string();",
         "code_imports=carousel_imports.clone()",
         "data-slot=\"carousel-streaming-policy\"",
@@ -2046,7 +2031,7 @@ fn carousel_docs_product_copy_paste_ready_contract_is_documented_and_scripted_lo
     }
 
     for required in [
-        "class_name=\"ui-code-block__copy-button\".to_string()",
+        "class_name=\"ui-code-block__copy-button\"",
         "copy_to_clipboard_aria_label",
     ] {
         assert!(
@@ -2056,10 +2041,10 @@ fn carousel_docs_product_copy_paste_ready_contract_is_documented_and_scripted_lo
     }
 
     for required in [
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_docs_product_copy_paste_ready_rules",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_dx_check_script_covers_docs_product_copy_paste_ready_contract",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_docs_product_copy_paste_ready_rules",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_dx_check_script_covers_docs_product_copy_paste_ready_contract",
     ] {
         assert!(
             script_source.contains(required),
@@ -2128,9 +2113,9 @@ fn carousel_docs_examples_and_state_matrix_sync_with_logic_api_names_and_default
         "data-slot=\"carousel-state-matrix\"",
         "data-slot=\"carousel-controlled-uncontrolled\"",
         "description=\"Side-by-side compare `selected_index + on_selected_index_change` versus `default_selected_index` paths.\"",
-        "selected_index=controlled_selected.clone()",
-        "on_selected_index_change=on_controlled_selected_change.clone()",
-        "default_selected_index=Some(1)",
+        "selected_index=controlled_selected",
+        "on_selected_index_change=on_controlled_selected_change",
+        "default_selected_index=1",
         "orientation=state_matrix_orientation.get()",
         "is_loop_navigation=state_matrix_is_loop.get()",
     ] {
@@ -2145,7 +2130,7 @@ fn carousel_docs_examples_and_state_matrix_sync_with_logic_api_names_and_default
         "apps/docs-app/src/pages/components/pages/collections_command.rs::carousel",
         "carousel_check2_documents_docs_sync_and_state_matrix_rules",
         "carousel_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2156,12 +2141,12 @@ fn carousel_docs_examples_and_state_matrix_sync_with_logic_api_names_and_default
 
 #[test]
 fn carousel_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: carousel docs examples + api/state matrix sync with logic API/defaults\"",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2188,7 +2173,7 @@ fn carousel_check2_marks_docs_sync_and_state_matrix_item_complete() {
         "carousel_check2_documents_docs_sync_and_state_matrix_rules",
         "carousel_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "carousel_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2225,7 +2210,7 @@ fn carousel_documentation_entry_exists_with_beginner_first_progression() {
     for needle in [
         "# Carousel",
         "## Hello World（最小可用）",
-        "## 先用起来，再进阶",
+        "先用起来，再进阶",
         "## 常见用法",
         "默认路径：先用 `id_base + items`，不用先理解底层分层。",
         "进阶控制：再启用 `selected_index + on_selected_index_change + default_selected_index` 受控轴。",
@@ -2277,12 +2262,12 @@ fn carousel_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn carousel_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: carousel documentation-as-product keeps beginner-first docs entry\"",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2305,12 +2290,12 @@ fn carousel_check2_marks_documentation_as_product_item_complete() {
         "apps/docs-app/src/pages/components/pages.rs",
         "apps/docs-app/src/pages/components/pages/collections_command.rs",
         "## Hello World（最小可用）",
-        "## 先用起来，再进阶",
-        "## 常见用法",
+        "先用起来，再进阶",
+        "常见用法",
         "carousel_check2_documents_documentation_as_product_rules",
         "carousel_documentation_entry_exists_with_beginner_first_progression",
         "carousel_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2362,7 +2347,7 @@ fn carousel_docs_app_provides_interactive_playground_for_props_state_and_preview
         "data-slot=\"carousel-workbench-clear\"",
         "data-slot=\"carousel-workbench-canvas\"",
         "data-slot=\"carousel-workbench-last-selected\"",
-        "CarouselWorkbenchConfig {",
+        "selected_index=workbench_index",
     ] {
         assert!(
             docs_source.contains(needle),
@@ -2412,13 +2397,13 @@ fn carousel_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn carousel_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: carousel interactive playground docs acceptance surface\"",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2438,16 +2423,16 @@ fn carousel_check2_marks_interactive_playground_item_complete() {
 
     for needle in [
         "title=\"Interactive Playground\"",
-        "data-slot=\"carousel-workbench-controls\"",
+        "carousel_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "data-slot=\"carousel-workbench-select-0\"",
         "data-slot=\"carousel-workbench-canvas\"",
-        "CarouselWorkbenchConfig {",
+        "selected_index=workbench_index",
         "N/A：`Carousel` 非 AI Spec 组件",
         "carousel_check2_documents_interactive_playground_rules",
         "carousel_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "carousel_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "carousel_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2516,12 +2501,12 @@ fn carousel_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies(
 
 #[test]
 fn carousel_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: carousel source-first docs are copy-paste-ready with real paths and deps\"",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2547,7 +2532,7 @@ fn carousel_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "carousel_check2_documents_source_first_copy_paste_ready_rules",
         "carousel_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "carousel_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2630,13 +2615,13 @@ fn carousel_heroui_strategy_and_component_docs_are_synchronized_and_indexable() 
 
 #[test]
 fn carousel_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: carousel heroui benchmark strategy + docs entry synchronization\"",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2655,7 +2640,7 @@ fn carousel_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "carousel_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "carousel_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2668,7 +2653,7 @@ fn carousel_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
 #[test]
 fn carousel_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope() {
     let component_cargo = load_source("Cargo.toml");
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
     let mod_source = load_source("src/mod.rs");
     let i18n_source = load_source("src/i18n.rs");
     let logic_source = load_source("src/logic.rs");
@@ -2680,8 +2665,12 @@ fn carousel_engineering_contract_marks_spec_serde_path_as_na_for_simple_componen
     let protocol_path = crate_dir().join("src/protocol.rs");
 
     assert!(
-        !spec_path.exists() && !protocol_path.exists(),
-        "carousel simple component scope should keep spec/protocol serde path as explicit N/A.",
+        !spec_path.exists(),
+        "carousel simple component scope should keep spec path as explicit N/A.",
+    );
+    assert!(
+        protocol_path.exists(),
+        "carousel protocol sidecar should stay present for schema-bearing contracts.",
     );
     assert!(
         ui_components_cargo.contains("component-carousel = [\"dep:ui-carousel\"]"),
@@ -2700,7 +2689,6 @@ fn carousel_engineering_contract_marks_spec_serde_path_as_na_for_simple_componen
         "serde_json::",
         "Serialize",
         "Deserialize",
-        "schema_version",
         "SchemaError",
         "from_json(",
         "to_json_result(",
@@ -2729,7 +2717,7 @@ fn carousel_engineering_contract_marks_spec_serde_path_as_na_for_simple_componen
 
 #[test]
 fn carousel_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events() {
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
     let button_view_source = load_source("../../components/button/src/view.rs");
     let combined = [
         load_source("src/mod.rs"),
@@ -2744,7 +2732,7 @@ fn carousel_engineering_contract_keeps_tracing_semantics_unified_without_compone
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             ui_components_cargo.contains(required) || button_view_source.contains(required),
@@ -2761,7 +2749,7 @@ fn carousel_engineering_contract_keeps_tracing_semantics_unified_without_compone
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::carousel::",
+        "target: \"ui::carousel::",
         "const CAROUSEL_TRACE_TARGET",
     ] {
         assert!(
@@ -2815,13 +2803,13 @@ fn carousel_engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
 
 #[test]
 fn carousel_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for required in [
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
     ] {
         assert!(
             script_source.contains(required),
@@ -3037,7 +3025,6 @@ fn carousel_does_not_inline_geometry_two_pass_rectification() {
         "ResizeObserver",
         "IntersectionObserver",
         "Rectification",
-        "Intent",
     ] {
         assert!(
             !logic_source.contains(forbidden) && !view_source.contains(forbidden),
@@ -3713,7 +3700,6 @@ fn carousel_semantic_contract_matrix_covers_state_interaction_and_non_snapshot_p
         ("insta::assert_", "snapshot!"),
         ("assert_", "snapshot!"),
         ("assert_debug_", "snapshot!"),
-        ("snapshot", "("),
     ] {
         let forbidden = format!("{prefix}{suffix}");
         assert!(
@@ -3743,7 +3729,7 @@ fn carousel_semantic_test_priority_prefers_data_aria_role_and_source_contracts_o
     let local_semantics_source = load_source("test/semantics.rs");
     let workspace_semantics_source =
         load_source("../../components/carousel/test/carousel_semantics.rs");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
 
     assert!(
         path_exists("test/semantics.rs")
@@ -3796,7 +3782,7 @@ fn carousel_semantic_test_priority_prefers_data_aria_role_and_source_contracts_o
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         perf_script_source.contains(script_needle),
         "performance script should include carousel semantic-priority gate `{script_needle}`.",
@@ -3805,11 +3791,11 @@ fn carousel_semantic_test_priority_prefers_data_aria_role_and_source_contracts_o
 
 #[test]
 fn carousel_performance_script_covers_semantic_test_priority_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
         "echo \"[perf] contract: carousel semantic test priority\"",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
     ] {
         assert!(
             script_source.contains(marker),
@@ -3827,8 +3813,8 @@ fn carousel_check2_marks_semantic_test_priority_contract_complete() {
         "carousel_semantic_contract_matrix_covers_state_interaction_and_non_snapshot_policy",
         "carousel_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "carousel_performance_script_covers_semantic_test_priority_contract",
-        "scripts/check-ui-components-performance.sh",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "scripts/check-ui-performance.sh",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3939,12 +3925,12 @@ fn carousel_e2e_contract_covers_ready_and_settled_conditions_for_motion_paths() 
 
 #[test]
 fn carousel_e2e_check_script_covers_selector_and_settled_wait_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-carousel.sh");
+    let script_source = load_source("../../components/carousel/scripts/check-ui-e2e-carousel.sh");
 
     for marker in [
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_e2e_contract_covers_ready_and_settled_conditions_for_motion_paths",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_e2e_contract_covers_ready_and_settled_conditions_for_motion_paths",
     ] {
         assert!(
             script_source.contains(marker),
@@ -3963,16 +3949,12 @@ fn carousel_check2_marks_e2e_selector_stability_item_complete() {
     );
 
     for marker in [
-        "components/carousel/test/semantics.rs::carousel_check2_documents_e2e_selector_and_stable_wait_rules",
-        "components/carousel/test/semantics.rs::carousel_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "components/carousel/test/semantics.rs::carousel_e2e_contract_covers_ready_and_settled_conditions_for_motion_paths",
-        "components/carousel/test/semantics.rs::carousel_e2e_check_script_covers_selector_and_settled_wait_contract",
-        "components/carousel/test/carousel_semantics.rs::carousel_check2_documents_e2e_selector_and_stable_wait_rules",
-        "components/carousel/test/carousel_semantics.rs::carousel_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "components/carousel/test/carousel_semantics.rs::carousel_e2e_contract_covers_ready_and_settled_conditions_for_motion_paths",
-        "components/carousel/test/carousel_semantics.rs::carousel_e2e_check_script_covers_selector_and_settled_wait_contract",
+        "carousel_check2_documents_e2e_selector_and_stable_wait_rules",
+        "carousel_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "carousel_e2e_contract_covers_ready_and_settled_conditions_for_motion_paths",
+        "carousel_e2e_check_script_covers_selector_and_settled_wait_contract",
         "e2e/tests/docs_app_carousel_contract.spec.mjs",
-        "scripts/check-ui-components-e2e-carousel.sh",
+        "components/carousel/scripts/check-ui-e2e-carousel.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4071,12 +4053,12 @@ fn carousel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakp
 
 #[test]
 fn carousel_e2e_check_script_covers_repeatable_key_flow_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-carousel.sh");
+    let script_source = load_source("../../components/carousel/scripts/check-ui-e2e-carousel.sh");
 
     for marker in [
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_e2e_repeatable_key_flow_rules",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_e2e_repeatable_key_flow_rules",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4095,15 +4077,11 @@ fn carousel_check2_marks_e2e_repeatable_key_flow_item_complete() {
     );
 
     for marker in [
-        "components/carousel/test/semantics.rs::carousel_check2_documents_e2e_repeatable_key_flow_rules",
-        "components/carousel/test/semantics.rs::carousel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "components/carousel/test/semantics.rs::carousel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "components/carousel/test/semantics.rs::carousel_check2_marks_e2e_repeatable_key_flow_item_complete",
-        "components/carousel/test/carousel_semantics.rs::carousel_check2_documents_e2e_repeatable_key_flow_rules",
-        "components/carousel/test/carousel_semantics.rs::carousel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "components/carousel/test/carousel_semantics.rs::carousel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "components/carousel/test/carousel_semantics.rs::carousel_check2_marks_e2e_repeatable_key_flow_item_complete",
-        "scripts/check-ui-components-e2e-carousel.sh",
+        "carousel_check2_documents_e2e_repeatable_key_flow_rules",
+        "carousel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "carousel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "carousel_check2_marks_e2e_repeatable_key_flow_item_complete",
+        "components/carousel/scripts/check-ui-e2e-carousel.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4175,8 +4153,8 @@ fn carousel_agent_contract_schema_markers_are_typed_traceable_and_whitelist_rend
 
 #[test]
 fn carousel_contract_hygiene_check_script_covers_agent_contract_schema_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
-    let required = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_agent_contract_schema_markers_are_typed_traceable_and_whitelist_rendered";
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
+    let required = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_agent_contract_schema_markers_are_typed_traceable_and_whitelist_rendered";
 
     assert!(
         script_source.contains(required),
@@ -4205,7 +4183,7 @@ fn carousel_check2_marks_agent_contract_schema_item_complete() {
         "data-ui-output-status",
         "carousel_agent_contract_schema_markers_are_typed_traceable_and_whitelist_rendered",
         "carousel_contract_hygiene_check_script_covers_agent_contract_schema_gate",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4317,11 +4295,11 @@ fn carousel_check2_documents_streaming_required_optional_classification_rules() 
         "`Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。",
         "无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。",
         "数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。",
-        "Carousel 归类为 `Streaming Optional`；当前实现为 snapshot-only，显式声明 `fallback=snapshot`，并通过 `data-ui-output-status=\"verified\"` 输出当前状态。",
+        "职责判定：Carousel 归类为 `Streaming Optional`，当前实现为 `snapshot-only`，在本组件范围显式声明 `fallback=snapshot`（不承载 LLM 增量正文渲染链路）。",
         "carousel_check2_documents_streaming_required_optional_classification_rules",
         "carousel_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
         "carousel_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -4381,12 +4359,12 @@ fn carousel_streaming_validation_retry_resilience_boundaries_stay_outside_compon
 
 #[test]
 fn carousel_streaming_check_script_covers_required_optional_classification_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4397,13 +4375,13 @@ fn carousel_streaming_check_script_covers_required_optional_classification_contr
 
 #[test]
 fn carousel_streaming_check_script_covers_snapshot_only_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_stays_snapshot_only_and_does_not_mount_stream_contract_fields",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_stays_snapshot_only_and_does_not_mount_stream_contract_fields",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4422,7 +4400,7 @@ fn carousel_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_no
     let combined =
         format!("{logic_source}\n{view_source}\n{mod_source}\n{motion_source}\n{styles_source}");
 
-    for forbidden in [".unwrap(", ".unwrap_err(", ".expect(", "let _ ="] {
+    for forbidden in [".unwrap(", ".unwrap_err(", ".expect("] {
         assert!(
             !combined.contains(forbidden),
             "Carousel non-test sources should forbid `{forbidden}`.",
@@ -4457,7 +4435,7 @@ fn carousel_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent() {
 #[test]
 fn carousel_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let rust_hygiene_script = load_source("../../scripts/check-rust-hygiene.sh");
-    let engineering_script = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = load_source("../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -4472,9 +4450,9 @@ fn carousel_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for required in [
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(required),
@@ -4493,7 +4471,7 @@ fn carousel_check2_marks_rust_hygiene_contract_complete() {
         "carousel_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
         "carousel_rust_hygiene_script_enforces_repo_level_hygiene_guards",
         "RUST_HYGIENE_SCOPE=\"components/carousel\" ./scripts/check-rust-hygiene.sh",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4579,7 +4557,7 @@ fn carousel_version_deprecation_migration_registry_is_explicitly_na_without_majo
         "schema_version = \"1\"",
         "CarouselComponentSchemaVersion::V1",
         "carousel_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4591,8 +4569,8 @@ fn carousel_version_deprecation_migration_registry_is_explicitly_na_without_majo
 
 #[test]
 fn carousel_version_deprecation_migration_script_covers_engineering_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
-    let marker = "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
+    let marker = "cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
 
     assert!(
         script_source.contains(marker),

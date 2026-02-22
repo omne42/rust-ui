@@ -728,9 +728,9 @@ fn combo_box_styles_use_defensive_variable_fallback_chain() {
 
 #[test]
 fn combo_box_defensive_variables_check_script_covers_style_fallback_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_styles_use_defensive_variable_fallback_chain";
+    let needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -749,7 +749,7 @@ fn combo_box_check2_marks_defensive_variables_contract_complete() {
     for needle in [
         "combo_box_styles_use_defensive_variable_fallback_chain",
         "combo_box_defensive_variables_check_script_covers_style_fallback_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "components/combo-box/src/styles.rs",
         "crates/ui-theme/src/css.rs",
     ] {
@@ -774,7 +774,7 @@ fn combo_box_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_entry_source.contains(needle),
-            "ui-components css entry should enforce cascade-layer contract `{needle}`."
+            "ui css entry should enforce cascade-layer contract `{needle}`."
         );
     }
 
@@ -843,9 +843,9 @@ fn combo_box_cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn combo_box_cascade_layer_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_cascade_layer_and_runtime_style_contract_is_enforced";
+    let needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -864,9 +864,9 @@ fn combo_box_check2_marks_cascade_layer_contract_complete() {
     for needle in [
         "combo_box_cascade_layer_and_runtime_style_contract_is_enforced",
         "combo_box_cascade_layer_check_script_covers_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "scripts/check-ui-contract-hygiene.sh",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "components/combo-box/src/view.rs",
     ] {
         assert!(
@@ -1137,9 +1137,9 @@ fn combo_box_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wa
 
 #[test]
 fn combo_box_motion_contract_platform_script_covers_guard() {
-    let source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let source = load_source("../../scripts/check-ui-platforms.sh");
 
-    let needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
+    let needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
     assert!(
         source.contains(needle),
         "platform check script should enforce `{needle}`.",
@@ -1164,7 +1164,7 @@ fn combo_box_check2_marks_motion_contractualization_complete() {
         "pub fn prefers_reduced_motion() -> bool",
         "combo_box_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
         "combo_box_motion_contract_platform_script_covers_guard",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1197,7 +1197,7 @@ fn combo_box_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep marker `{needle}`.",
+            "ui lib entry should keep marker `{needle}`.",
         );
     }
 
@@ -1209,7 +1209,7 @@ fn combo_box_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform/internal marker `{forbidden}`.",
+            "ui lib entry should not leak platform/internal marker `{forbidden}`.",
         );
     }
 
@@ -1226,7 +1226,7 @@ fn combo_box_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css registry should keep feature-gated marker `{needle}`.",
+            "ui css registry should keep feature-gated marker `{needle}`.",
         );
     }
 
@@ -1281,7 +1281,7 @@ fn combo_box_ui_components_fixed_entry_files_follow_layered_boundaries() {
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !path_exists(forbidden),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`.",
+            "ui forbidden entrypoint file should not exist: `{forbidden}`.",
         );
     }
 
@@ -1312,9 +1312,9 @@ fn combo_box_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
 #[test]
 fn combo_box_entrypoints_check_script_covers_fixed_entrypoint_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
 
-    let needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         script_source.contains(needle),
         "entrypoints check script should enforce `{needle}`."
@@ -1326,13 +1326,13 @@ fn combo_box_check2_marks_ui_components_fixed_entry_files_contract_complete() {
     let source = load_source("../../components/combo-box/check2.md");
 
     for needle in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "combo_box_ui_components_fixed_entry_files_follow_layered_boundaries",
         "combo_box_entrypoints_check_script_covers_fixed_entrypoint_contract",
-        "scripts/check-ui-components-entrypoints.sh",
-        "crates/ui-components/src/lib.rs",
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "scripts/check-ui-entrypoints.sh",
+        "crates/ui/src/lib.rs",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "crates/ui-visual-primitive/src/active_highlight.rs",
         "crates/ui-headless/src/controllable_state.rs",
         "crates/ui-headless/src/presence.rs",
@@ -1487,9 +1487,9 @@ fn combo_box_component_directory_standard_files_follow_contract_and_na_paths() {
 
 #[test]
 fn combo_box_component_files_check_script_covers_standard_directory_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_component_directory_standard_files_follow_contract_and_na_paths";
+    let needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_component_directory_standard_files_follow_contract_and_na_paths";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`.",
@@ -1504,7 +1504,7 @@ fn combo_box_check2_marks_component_directory_standard_files_contract_complete()
         "- [x] 组件目录标准文件落点正确。",
         "combo_box_component_directory_standard_files_follow_contract_and_na_paths",
         "combo_box_component_files_check_script_covers_standard_directory_contract",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "components/combo-box/src/mod.rs",
         "components/combo-box/src/logic.rs",
         "components/combo-box/src/styles.rs",
@@ -1554,9 +1554,9 @@ fn combo_box_file_placement_discipline_is_strict_and_protocol_free() {
 
 #[test]
 fn combo_box_component_files_check_script_covers_file_placement_discipline_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_file_placement_discipline_is_strict_and_protocol_free";
+    let needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_file_placement_discipline_is_strict_and_protocol_free";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`."
@@ -1572,7 +1572,7 @@ fn combo_box_check2_documents_file_placement_discipline_rules() {
         "无 `protocol.rs/render.rs/spec.rs` 额外实现文件",
         "combo_box_file_placement_discipline_is_strict_and_protocol_free",
         "combo_box_component_files_check_script_covers_file_placement_discipline_contract",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1619,9 +1619,9 @@ fn combo_box_hyper_structure_builder_spec_is_not_applicable_for_simple_component
 
 #[test]
 fn combo_box_component_files_check_script_covers_hyper_structure_builder_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
+    let needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`."
@@ -1637,7 +1637,7 @@ fn combo_box_check2_marks_hyper_structure_builder_item_complete() {
         "N/A-by-design：`combo-box` 当前为简单组件装配",
         "combo_box_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
         "combo_box_component_files_check_script_covers_hyper_structure_builder_contract",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1753,9 +1753,9 @@ fn combo_box_context_compression_manifest_and_rbi_projection_are_present_and_cur
 
 #[test]
 fn combo_box_component_files_check_script_covers_context_compression_manifest_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`.",
@@ -1776,7 +1776,7 @@ fn combo_box_check2_marks_context_compression_manifest_and_rbi_contract_complete
         "components/combo-box/src/combo_box.rbi",
         "combo_box_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "combo_box_component_files_check_script_covers_context_compression_manifest_contract",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1888,12 +1888,12 @@ fn combo_box_agent_contract_render_path_is_whitelist_safe_and_script_injection_f
 
 #[test]
 fn combo_box_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_check2_documents_agent_contract_schema_governance_rules",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1992,7 +1992,7 @@ fn combo_box_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streami
         "<AiSpace mode=snapshot_mode output_status=verified_output>",
         "<AiSpace mode=streaming_mode output_status=draft_output>",
         "code_imports=combo_box_code_imports.clone()",
-        "use leptos::prelude::*;\\nuse ui_components::ComboBox;",
+        "use leptos::prelude::*;\\nuse ui::ComboBox;",
         "<Snippet",
         "copyable=true",
         "apps/docs-app/src/playground.rs::compose_copy_ready_code",
@@ -2004,7 +2004,7 @@ fn combo_box_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streami
     }
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String",
         "let missing_imports = missing_import_lines(&raw, &imports);",
         "<CodeBlock code=resolved_code.get() />",
@@ -2018,7 +2018,7 @@ fn combo_box_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streami
     for needle in [
         "- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。",
         "combo_box_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "compose_copy_ready_code",
     ] {
         assert!(
@@ -2082,7 +2082,7 @@ fn combo_box_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaul
     for needle in [
         "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
         "combo_box_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "normalize_open_state",
         "DEFAULT_PLACEHOLDER",
     ] {
@@ -2171,7 +2171,7 @@ fn combo_box_documentation_as_product_keeps_beginner_path_before_advanced_sectio
         "combo_box_documentation_as_product_keeps_beginner_path_before_advanced_sections",
         "components/combo-box/src/README.md",
         "Quick Start (Hello World)",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2301,7 +2301,7 @@ fn combo_box_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and
         "<Snippet",
         "label=\"Copy starter\".to_string()",
         "copyable=true",
-        "use leptos::prelude::*;\\nuse ui_components::ComboBox;",
+        "use leptos::prelude::*;\\nuse ui::ComboBox;",
         "<code>\"components/combo-box/src/mod.rs\"</code>",
         "<code>\"components/combo-box/src/logic.rs\"</code>",
         "<code>\"components/combo-box/src/view.rs\"</code>",
@@ -2317,7 +2317,7 @@ fn combo_box_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and
     }
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String",
         "let missing_imports = missing_import_lines(&raw, &imports);",
         "return compose_copy_ready_code(&dynamic_code.get(), &code_imports.get_value());",
@@ -2355,7 +2355,7 @@ fn combo_box_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and
     for needle in [
         "- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。",
         "combo_box_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "compose_copy_ready_code",
     ] {
         assert!(
@@ -2441,7 +2441,7 @@ fn combo_box_check2_marks_heroui_strategy_and_component_docs_sync_complete() {
         "组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。",
         "“仅代码更新无文档更新”在接口变更场景下直接判不通过。",
         "combo_box_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2452,11 +2452,11 @@ fn combo_box_check2_marks_heroui_strategy_and_component_docs_sync_complete() {
 
 #[test]
 fn combo_box_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_check2_marks_heroui_strategy_and_component_docs_sync_complete",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_check2_marks_heroui_strategy_and_component_docs_sync_complete",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2531,17 +2531,17 @@ fn combo_box_dx_workbench_supports_optional_state_persistence_and_isolated_canva
 
 #[test]
 fn combo_box_dx_check_script_covers_hot_reload_and_workbench_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_documentation_as_product_keeps_beginner_path_before_advanced_sections",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_documentation_as_product_keeps_beginner_path_before_advanced_sections",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2693,7 +2693,7 @@ fn combo_box_engineering_contract_keeps_tracing_semantics_unified_without_compon
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -2716,7 +2716,7 @@ fn combo_box_engineering_contract_keeps_tracing_semantics_unified_without_compon
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::combo_box::",
+        "target: \"ui::combo_box::",
         "const COMBO_BOX_TRACE_TARGET",
     ] {
         assert!(
@@ -2769,13 +2769,13 @@ fn combo_box_engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
 
 #[test]
 fn combo_box_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_version_deprecation_migration_is_na_without_major_breaking_upgrade",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2794,7 +2794,7 @@ fn combo_box_performance_governance_budget_is_defined_and_blocking() {
     let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("../../components/combo-box/src/view.rs");
 
     for needle in [
@@ -2876,7 +2876,7 @@ fn combo_box_performance_governance_budget_is_defined_and_blocking() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_performance_governance_budget_is_defined_and_blocking";
+    let script_needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_performance_governance_budget_is_defined_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`."
@@ -2902,7 +2902,7 @@ fn combo_box_performance_governance_budget_is_defined_and_blocking() {
 fn combo_box_view_macro_complexity_is_split_into_semantic_subrenders() {
     let view_source = load_source("../../components/combo-box/src/view.rs");
     let check2_source = load_source("../../components/combo-box/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     assert!(
         view_source.contains("view! {"),
@@ -2943,7 +2943,7 @@ fn combo_box_view_macro_complexity_is_split_into_semantic_subrenders() {
         "combo-box check2 should reference macro complexity regression test name.",
     );
 
-    let script_needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_view_macro_complexity_is_split_into_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_view_macro_complexity_is_split_into_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view macro gate script should include `{script_needle}`.",
@@ -2954,7 +2954,7 @@ fn combo_box_view_macro_complexity_is_split_into_semantic_subrenders() {
 fn combo_box_view_functional_split_prefers_plain_functions_over_extra_local_components() {
     let view_source = load_source("../../components/combo-box/src/view.rs");
     let check2_source = load_source("../../components/combo-box/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     assert_eq!(
         view_source.matches("#[component]").count(),
@@ -2996,7 +2996,7 @@ fn combo_box_view_functional_split_prefers_plain_functions_over_extra_local_comp
         "combo-box check2 should reference function-first split regression test name.",
     );
 
-    let script_needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_view_functional_split_prefers_plain_functions_over_extra_local_components";
+    let script_needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_view_functional_split_prefers_plain_functions_over_extra_local_components";
     assert!(
         script_source.contains(script_needle),
         "view macro gate script should include `{script_needle}`.",
@@ -3007,7 +3007,7 @@ fn combo_box_view_functional_split_prefers_plain_functions_over_extra_local_comp
 fn combo_box_static_fragments_are_constantized_with_stable_semantics() {
     let view_source = load_source("../../components/combo-box/src/view.rs");
     let check2_source = load_source("../../components/combo-box/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "const SLOT_COMBO_BOX: &str = \"combo-box\";",
@@ -3053,7 +3053,7 @@ fn combo_box_static_fragments_are_constantized_with_stable_semantics() {
         "combo-box check2 should reference static-fragment regression test name.",
     );
 
-    let script_needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_static_fragments_are_constantized_with_stable_semantics";
+    let script_needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_static_fragments_are_constantized_with_stable_semantics";
     assert!(
         script_source.contains(script_needle),
         "view macro gate script should include `{script_needle}`.",
@@ -3105,9 +3105,9 @@ fn combo_box_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 
 #[test]
 fn combo_box_inner_html_check_script_covers_security_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
 
-    let needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(needle),
         "inner-html check script should enforce `{needle}`."
@@ -3236,9 +3236,9 @@ fn combo_box_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_iso
 
 #[test]
 fn combo_box_wasm_debug_check_script_covers_shared_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
 
-    let needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated";
+    let needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm debug check script should enforce `{needle}`."
@@ -3283,9 +3283,9 @@ fn combo_box_check2_documents_streaming_definition_is_llm_output_only_with_two_m
 
 #[test]
 fn combo_box_streaming_check_script_covers_two_mode_definition_guard() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
-    let needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(needle),
         "streaming check script should enforce `{needle}`."
@@ -3361,11 +3361,11 @@ fn combo_box_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
 #[test]
 fn combo_box_streaming_check_script_covers_snapshot_baseline_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3445,12 +3445,12 @@ fn combo_box_streaming_validation_retry_resilience_boundaries_stay_outside_compo
 
 #[test]
 fn combo_box_streaming_check_script_covers_required_optional_scope_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3581,7 +3581,7 @@ fn combo_box_semantic_test_priority_prefers_data_aria_role_and_source_contracts_
     let local_semantics_source = load_source("../../components/combo-box/test/semantics.rs");
     let semantics_source = load_source("tests/combo_box_semantics.rs");
     let check2_source = load_source("../../components/combo-box/check2.md");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for needle in [
         "aria-controls=move || aria.input.aria_controls.get()",
@@ -3633,7 +3633,7 @@ fn combo_box_semantic_test_priority_prefers_data_aria_role_and_source_contracts_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         perf_script_source.contains(script_needle),
         "performance gate script should include semantic-priority command `{script_needle}`."
@@ -3645,7 +3645,7 @@ fn combo_box_semantic_test_priority_prefers_data_aria_role_and_source_contracts_
         "combo_box_passes_lang_dir_and_headless_aria_controls_contract",
         "combo_box_emits_baseline_style_state_data_attributes",
         "combo_box_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3666,7 +3666,7 @@ fn combo_box_check2_documents_semantic_e2e_selector_and_ready_wait_contract() {
         "ready/settled",
         "combo_box_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "combo_box_e2e_flow_covers_ready_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-combo-box.sh",
+        "components/combo-box/scripts/check-ui-e2e-combo-box.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3742,7 +3742,7 @@ fn combo_box_e2e_flow_covers_ready_and_settled_semantic_breakpoints() {
 fn combo_box_e2e_regression_set_covers_repeatable_overlay_focus_keyboard_paths() {
     let e2e_source = load_source("../../e2e/tests/docs_app_combo_box_contract.spec.mjs");
     let check2_source = load_source("../../components/combo-box/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-combo-box.sh");
+    let script_source = load_source("../../components/combo-box/scripts/check-ui-e2e-combo-box.sh");
 
     for needle in [
         "docs-app combo-box flow is repeatable with semantic ready/settled breakpoints",
@@ -3774,7 +3774,7 @@ fn combo_box_e2e_regression_set_covers_repeatable_overlay_focus_keyboard_paths()
         "open -> interaction -> Escape close",
         "overlay/focus/keyboard",
         "combo_box_e2e_regression_set_covers_repeatable_overlay_focus_keyboard_paths",
-        "scripts/check-ui-components-e2e-combo-box.sh",
+        "components/combo-box/scripts/check-ui-e2e-combo-box.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3782,7 +3782,7 @@ fn combo_box_e2e_regression_set_covers_repeatable_overlay_focus_keyboard_paths()
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_e2e_regression_set_covers_repeatable_overlay_focus_keyboard_paths";
+    let script_needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_e2e_regression_set_covers_repeatable_overlay_focus_keyboard_paths";
     assert!(
         script_source.contains(script_needle),
         "combo-box e2e check script should include `{script_needle}`."
@@ -3791,7 +3791,7 @@ fn combo_box_e2e_regression_set_covers_repeatable_overlay_focus_keyboard_paths()
 
 #[test]
 fn combo_box_e2e_check_script_covers_selector_and_ready_wait_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-combo-box.sh");
+    let script_source = load_source("../../components/combo-box/scripts/check-ui-e2e-combo-box.sh");
 
     for needle in [
         "combo_box_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
@@ -3814,7 +3814,7 @@ fn combo_box_feature_graph_declares_required_motion_dependencies() {
         cargo_toml.contains(
             "component-combo_box = [\n    \"component-active_highlight\",\n    \"component-popover\",\n    \"dep:ui-combo-box\",\n]"
         ),
-        "ui-components feature graph should declare combo_box -> active_highlight/popover/ui-combo-box dependencies for minimal-feature builds."
+        "ui feature graph should declare combo_box -> active_highlight/popover/ui-combo-box dependencies for minimal-feature builds."
     );
 }
 
@@ -3825,7 +3825,7 @@ fn combo_box_tree_shaking_feature_pruning_is_gated_in_lib_and_css() {
 
     let combo_export_idx = lib_source
         .find("pub use ui_combo_box as combo_box;")
-        .expect("ui-components lib.rs should expose combo_box module.");
+        .expect("ui lib.rs should expose combo_box module.");
     let lib_prefix_start = combo_export_idx.saturating_sub(96);
     let lib_prefix = &lib_source[lib_prefix_start..combo_export_idx];
     assert!(
@@ -3835,7 +3835,7 @@ fn combo_box_tree_shaking_feature_pruning_is_gated_in_lib_and_css() {
 
     let combo_css_idx = css_source
         .find("out.push_str(crate::combo_box::styles::CSS);")
-        .expect("ui-components css.rs should aggregate combo_box CSS when feature is enabled.");
+        .expect("ui css.rs should aggregate combo_box CSS when feature is enabled.");
     let css_prefix_start = combo_css_idx.saturating_sub(96);
     let css_prefix = &css_source[css_prefix_start..combo_css_idx];
     assert!(
@@ -3868,8 +3868,8 @@ fn combo_box_check2_marks_tree_shaking_feature_pruning_contract_complete() {
         "component-combo_box",
         "#[cfg(feature = \"component-combo_box\")] pub use ui_combo_box as combo_box;",
         "out.push_str(crate::combo_box::styles::CSS);",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-combo_box,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-combo_box,inject-css",
+        "cargo tree -e features -i ui -p web-demo",
         "combo_box_tree_shaking_feature_pruning_is_gated_in_lib_and_css",
     ] {
         assert!(
@@ -3884,7 +3884,7 @@ fn combo_box_semantics_and_performance_regression_cover_aria_data_focus_and_rend
  {
     let view_source = load_source("../../components/combo-box/src/view.rs");
     let check2_source = load_source("../../components/combo-box/check2.md");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
     let semantics_source = load_source("tests/combo_box_semantics.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
 
@@ -3907,7 +3907,7 @@ fn combo_box_semantics_and_performance_regression_cover_aria_data_focus_and_rend
         );
     }
 
-    let perf_gate_needle = "cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_performance_governance_budget_is_defined_and_blocking";
+    let perf_gate_needle = "cargo test -p ui --test combo_box_semantics --no-default-features --features component-combo_box,inject-css combo_box_performance_governance_budget_is_defined_and_blocking";
     assert!(
         perf_script_source.contains(perf_gate_needle),
         "performance gate script should include `{perf_gate_needle}`."

@@ -36,21 +36,21 @@
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - `Label` 落地：`motion.rs` 仅输出 `LabelMotion` + `attach_motion` 合同；`view.rs` 只挂载 style/data 标记；non-wasm 依赖 `ui_motion::web::prefers_reduced_motion()` 走可预测降级。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
   - `Label` 落地：新增 `LabelMotionTokens`，链路为 `crates/ui-theme/src/tokens.rs -> crates/ui-theme/src/theme.rs -> crates/ui-theme/src/css.rs`；组件仅消费 `--ui-label-motion-*` 变量，不重建主题。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `Label` 落地：职责拆分固定在 `logic/view/styles/motion`，并新增 `components/label/test/semantics.rs` 承接语义契约回归（旧版 `components/label/test/label_semantics.rs` 保留兼容校验）。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
@@ -156,9 +156,9 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - `Label` 的视觉规则全部收敛在 `components/label/src/styles.rs`，并使用 `var(--ui-*, var(--ui-fallback-*))` 消费主题变量；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-label")] out.push_str(crate::label::styles::CSS);` 聚合，`crates/ui-components/src/root.rs` 通过 `UiRoot` 的 `inject_components_css` 路径统一注入。
+  - `Label` 的视觉规则全部收敛在 `components/label/src/styles.rs`，并使用 `var(--ui-*, var(--ui-fallback-*))` 消费主题变量；`crates/ui/src/css.rs` 通过 `#[cfg(feature = "component-label")] out.push_str(crate::label::styles::CSS);` 聚合，`crates/ui/src/root.rs` 通过 `UiRoot` 的 `inject_components_css` 路径统一注入。
   - 运行时样式仅保留 `view.rs` 的 `style=move || motion_style.get()`（动效 custom properties），无 `top/left/display` 等业务内联样式分支；组件源码未引入 Utility-First 类名模式或 CSS-in-Rust 构造（相关守卫测试已补齐）。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -170,17 +170,17 @@
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
 - [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
-  - `Label` 已注册在 `ui-components` 特性树：`crates/ui-components/Cargo.toml` 存在 `component-label`；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-label")]` + `#[path = "../../../components/label/src/mod.rs"]` 门控导出；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-label")] out.push_str(crate::label::styles::CSS);` 门控样式聚合，不存在无条件全量聚合 `label` 的路径。
-  - 特性树命令证据：`cargo tree -e features -p ui-components -i ui-components --no-default-features --features component-accordion,inject-css` 仅显示命令行启用 `component-accordion + inject-css`；`cargo tree -e features -p ui-components -i ui-components --no-default-features --features component-label,inject-css` 仅显示 `component-label + inject-css`，未出现 `all-components` 隐式拉起。
-  - 反向依赖命令证据：`cargo tree -e features -i ui-components -p web-demo` 显示 `web-demo-components` 聚合链路，不包含 `all-components`。
+  - `Label` 已注册在 `ui` 特性树：`crates/ui/Cargo.toml` 存在 `component-label`；`crates/ui/src/lib.rs` 通过 `#[cfg(feature = "component-label")]` + `#[path = "../../../components/label/src/mod.rs"]` 门控导出；`crates/ui/src/css.rs` 通过 `#[cfg(feature = "component-label")] out.push_str(crate::label::styles::CSS);` 门控样式聚合，不存在无条件全量聚合 `label` 的路径。
+  - 特性树命令证据：`cargo tree -e features -p ui -i ui --no-default-features --features component-accordion,inject-css` 仅显示命令行启用 `component-accordion + inject-css`；`cargo tree -e features -p ui -i ui --no-default-features --features component-label,inject-css` 仅显示 `component-label + inject-css`，未出现 `all-components` 隐式拉起。
+  - 反向依赖命令证据：`cargo tree -e features -i ui -p web-demo` 显示 `web-demo-components` 聚合链路，不包含 `all-components`。
   - CI 最小特性编译与体积预算为仓库级治理项；本环境受 `Invalid cross-device link (os error 18)` 阻塞无法本地完成编译型门禁，已在组件清单中按边界纪律记录为 N/A（需在仓库 CI 任务中执行与阻断）。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - `Label` 离散输入 `emphasis` 由 `LabelEmphasis`（`Default/Subtle/Strong`）枚举建模；`view.rs` 公开 `#[prop(optional)] emphasis: LabelEmphasis`，未暴露字符串离散协议；状态输入经 `logic.rs` 的 `normalize_view_input + derive_render_state` 统一归一后进入 `ui-state-primitives::label::resolve_state`。
@@ -254,7 +254,7 @@
 - [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（N/A（组件范围）：`Label` 为低交互语义组件，无本地交互状态机与事件链；关键状态通过稳定语义标记 `data-state/data-label-source/data-indicator-source/data-class-source` 追踪。）
   - 开发模式下状态来源与前后值对比可直接由稳定 `data-*` 标记完成；组件不维护本地可变状态，时间线回放为 N/A。
   - 关键交互链路回放为 N/A：`Label` 不承载键盘/指针状态迁移，不引入组件私有 `request_replay/trace.emit` 调试链路。
-  - 调试开关默认不进入生产包体与公共 API：`components/label/Cargo.toml` 无 `wasm-debug/debug/replay` feature，`crates/ui-components/Cargo.toml` 无 `label-wasm-debug` 特性；可视化入口复用 docs-app 全局 `UiDebugOverlay`。
+  - 调试开关默认不进入生产包体与公共 API：`components/label/Cargo.toml` 无 `wasm-debug/debug/replay` feature，`crates/ui/Cargo.toml` 无 `label-wasm-debug` 特性；可视化入口复用 docs-app 全局 `UiDebugOverlay`。
 - [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（已落实：`Label` docs 复用 `Playground` 的 `test_css_source` 热样式通道与隔离预览画布；组件级状态持久化为可选项，`Label` 当前按范围标注 N/A。）
   - 常见样式调整走 `apps/docs-app/src/playground.rs` 的 CSS Test 面板（`compose_scoped_css + test_css`），不依赖完整 wasm 重编译。
   - `apps/docs-app/src/pages/components/pages/forms_extra.rs::label()` 提供 Interactive Playground，控制面板驱动 `Signal` 状态矩阵并保留当前会话上下文，降低重复操作成本。
@@ -269,26 +269,26 @@
   - `Label` 样式已收敛为 token-first 双层回退链：关键尺寸与语义值通过 `var(--ui-*, var(--ui-fallback-*))` 获取（含 `space/font-size/border-width/accent/danger`），不在组件内写死 Hex。
   - 原本裸尺寸终值（如 `text-underline-offset: 0.12em`、`outline: 1px ...`、`font-size: 0.85em`）已替换为 `ui-theme` 统一输出的 fallback 变量链，保持 SSOT。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - `Label` 样式聚合路径满足级联层契约：`crates/ui-components/src/css.rs` 在 `push_components_css` 中使用 `out.push_str("\n@layer ui {\n");` 与 `out.push_str("\n}\n");` 包裹组件样式，且 `component-label` 仅在 feature gate 命中时注入 `crate::label::styles::CSS`。
+  - `Label` 样式聚合路径满足级联层契约：`crates/ui/src/css.rs` 在 `push_components_css` 中使用 `out.push_str("\n@layer ui {\n");` 与 `out.push_str("\n}\n");` 包裹组件样式，且 `component-label` 仅在 feature gate 命中时注入 `crate::label::styles::CSS`。
   - 组件运行时样式仅通过 `view.rs` 的 `style=move || motion_style.get()` 注入动效 CSS 变量；`motion.rs::attach_motion` 仅输出 `--ui-label-motion-*` custom properties，不包含 `top/left/display` 等普通内联样式分支。
   - 语义回归已补：`components/label/test/semantics.rs` 与 `components/label/test/label_semantics.rs` 新增 `@layer ui` 包裹与 inline-style 约束断言，防止后续回归。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - `Label` 已在 `components/label/src/motion.rs` 固化组件动效合同：`LabelMotion`（颜色/字重时长）、`sanitize_motion`（`MIN_DURATION_MS..=MAX_DURATION_MS` 限幅）、`motion_source_attr`（default/custom 来源标记）以及 `attach_motion`（将合同参数挂载为 `--ui-label-motion-*` CSS custom properties）。
   - `attach_motion` 明确尊重 `prefers-reduced-motion`：通过 `ui_motion::web::prefers_reduced_motion()` 在 reduced-motion 路径收敛到最小时长，避免动画噪声与非必要运动。
   - non-wasm/SSR 安全降级由 `crates/ui-motion/src/lib.rs` 的 `#[cfg(not(target_arch = "wasm32"))]` no-op/stub 保证；`Label` 组件层仅消费 `attach_motion` 字符串契约，不依赖浏览器动画句柄。
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs` 仍是总入口并对外导出稳定 API：保留 `mod css;`、`pub use root::UiRoot;` 与 `pub fn push_components_css(out: &mut String) { css::push_components_css(out); }`；`Label` 模块以 `#[cfg(feature = "component-label")]` + `#[path = "../../../components/label/src/mod.rs"]` 门控接入，未把 `web-sys`/DOM 细节类型暴露为公共组件 API。
-  - `crates/ui-components/src/css.rs` 仍是组件 CSS 聚合入口：通过 `push_components_css` 统一聚合，并以 feature gate（含 `component-label`）条件注入样式，禁止无条件拉全量组件 CSS。
-  - `crates/ui-components/src/root.rs` 保持 `UiRoot` 集中注入职责：`BASE_CSS + theme vars + (optional) components/layout css` 在单点完成，并统一提供 `UiI18n` 与 `IdProvider` 上下文。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs` 仍是总入口并对外导出稳定 API：保留 `mod css;`、`pub use root::UiRoot;` 与 `pub fn push_components_css(out: &mut String) { css::push_components_css(out); }`；`Label` 模块以 `#[cfg(feature = "component-label")]` + `#[path = "../../../components/label/src/mod.rs"]` 门控接入，未把 `web-sys`/DOM 细节类型暴露为公共组件 API。
+  - `crates/ui/src/css.rs` 仍是组件 CSS 聚合入口：通过 `push_components_css` 统一聚合，并以 feature gate（含 `component-label`）条件注入样式，禁止无条件拉全量组件 CSS。
+  - `crates/ui/src/root.rs` 保持 `UiRoot` 集中注入职责：`BASE_CSS + theme vars + (optional) components/layout css` 在单点完成，并统一提供 `UiI18n` 与 `IdProvider` 上下文。
   - `crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver（含 non-wasm attach no-op），未耦合 `Label` 等组件业务语义。
-  - 负面落点约束满足：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 不存在；对应原语继续落在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+  - 负面落点约束满足：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 不存在；对应原语继续落在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。
   - `Label` 组件目录保持标准落点：存在 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`；`spec.rs` 与 `render.rs` 均不存在。
   - `mod.rs` 仅维护最小导出边界（`pub use view::Label` + 状态/动效类型导出），未暴露 `logic/view` 内部模块为公共 API。
@@ -331,7 +331,7 @@
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（非测试源码约束满足：`components/label/src/mod.rs`、`components/label/src/logic.rs`、`components/label/src/view.rs`、`components/label/src/styles.rs`、`components/label/src/motion.rs`、`components/label/src/protocol.rs` 中不存在 `unwrap/expect/unwrap_err` 与 `let _ = ...`。字符串复制热点约束满足：上述非测试源码未出现 `.to_owned()` / `String::from(...)` / 热点 `.to_string()`；默认文案与状态来源由 `ui-state-primitives::label` 统一提供。回归：`components/label/test/semantics.rs::label_rust_hygiene_contract_disallows_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/label/test/semantics.rs::label_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/label/test/label_semantics.rs::label_rust_hygiene_contract_disallows_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/label/test/label_semantics.rs::label_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`。执行记录：`./scripts/check-rust-hygiene.sh` 已执行；当前环境 `rg` 缺少 PCRE2 且 `check-api-contracts` baseline drift 属仓库级噪声，组件级定向扫描结论不受影响。）
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`Label` 特性注册已落位：`crates/ui-components/Cargo.toml` 存在 `component-label = []`；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-label")]` + `#[path = "../../../components/label/src/mod.rs"]` + `pub mod label;` 做源码门控；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-label")] out.push_str(crate::label::styles::CSS);` 做样式门控，未发现 label 的无条件全量聚合。特性树验证：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-label,inject-css` 输出仅包含命令行启用的 `component-label` 与 `inject-css`；`cargo tree -e features -i ui-components -p web-demo | rg all-components` 无命中。回归：`components/label/test/semantics.rs::label_tree_shaking_contract_is_feature_gated_in_ui_components`、`components/label/test/label_semantics.rs::label_tree_shaking_is_feature_gated_across_cargo_lib_and_css`。补充：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-label,inject-css` 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞，属环境问题，非该组件 Tree Shaking 契约回归。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`Label` 特性注册已落位：`crates/ui/Cargo.toml` 存在 `component-label = []`；`crates/ui/src/lib.rs` 通过 `#[cfg(feature = "component-label")]` + `#[path = "../../../components/label/src/mod.rs"]` + `pub mod label;` 做源码门控；`crates/ui/src/css.rs` 通过 `#[cfg(feature = "component-label")] out.push_str(crate::label::styles::CSS);` 做样式门控，未发现 label 的无条件全量聚合。特性树验证：`cargo tree -e features -i ui -p ui --no-default-features --features component-label,inject-css` 输出仅包含命令行启用的 `component-label` 与 `inject-css`；`cargo tree -e features -i ui -p web-demo | rg all-components` 无命中。回归：`components/label/test/semantics.rs::label_tree_shaking_contract_is_feature_gated_in_ui_components`、`components/label/test/label_semantics.rs::label_tree_shaking_is_feature_gated_across_cargo_lib_and_css`。补充：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-label,inject-css` 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞，属环境问题，非该组件 Tree Shaking 契约回归。）
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（`Label` 语义断言已覆盖 `aria-*` 与 `data-*`：`components/label/test/semantics.rs::label_a11y_i18n_l10n_contract_is_mounted_via_headless_and_props`、`components/label/test/semantics.rs::label_state_markers_are_observable_searchable_and_closed_set`、`components/label/test/label_semantics.rs::label_exposes_a11y_i18n_l10n_hooks_without_hardcoded_view_copy`、`components/label/test/label_semantics.rs::label_state_markers_remain_observable_and_enumerated`。焦点流转按组件边界为 N/A（`Label` 非 overlay 叶子组件，不承担 Focus Stack 恢复），并由 `components/label/test/semantics.rs::label_does_not_own_overlay_focus_stack_or_noderef_restore_logic` 与 `components/label/test/label_semantics.rs::label_remains_outside_overlay_focus_stack_responsibility` 锁定。性能回归证据采用等价可重复预算：`Signal::derive` 单路径（预算=1）+ 无运行时循环/异步副作用，由 `components/label/test/semantics.rs::label_performance_budget_contract_stays_traceable_and_predictable` 与 `components/label/test/label_semantics.rs::label_performance_budget_contract_uses_source_level_budget_baseline` 覆盖；`render_count` 精确计数在当前测试栈仍属仓库级能力，`Label` 非高频/重型组件按清单边界以等价证据通过。）
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `Label` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/label/src/protocol.rs` 的 `LabelComponentSchemaVersion::V1`，`components/label/src/Component.toml` 的 `schema_version = "1"` 与 `ui.label.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/label/test/semantics.rs::label_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`、`components/label/test/label_semantics.rs::label_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`。）
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/forms_extra.rs::label()` 已提供 `Hello World`、`Interactive Playground`（状态矩阵）、`Controlled vs Uncontrolled (N/A for Label)`、`Streaming Optional (fallback=snapshot)` 四类文档 Playground，且全部接入 `code_imports=label_imports.clone()`。同时新增 `data-slot="label-source-first"` 区块与 `Snippet copyable=true` 的 `Copy starter`，并在文档中明确 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 负责 import-ready 复制。回归：`components/label/test/semantics.rs::label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_imports`、`components/label/test/label_semantics.rs::label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_imports`。）
@@ -359,7 +359,7 @@
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/forms_extra.rs::label()` 已提供 `data-slot="label-source-first"` 区块，包含 `Snippet copyable=true` 的 `Copy starter`（默认导入 `use leptos::prelude::*;` 与 `use ui_components::{Label, LabelEmphasis};`），并明确 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 负责 import-ready 输出。文档同时列出真实源码落点 `components/label/src/{mod,logic,view,styles,motion}.rs` 与依赖前提 `component-label`/`inject-css`，避免“复制即报错”。示例同步由 `code_signal=workbench_code` 与 `code_imports=label_imports.clone()` 保持与当前实现一致。回归：`components/label/test/semantics.rs::label_source_first_docs_are_copy_paste_ready_with_real_paths_prerequisites_and_synced_code`、`components/label/test/label_semantics.rs::label_source_first_docs_are_copy_paste_ready_with_real_paths_prerequisites_and_synced_code`。）
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/forms_extra.rs::label()` 已提供 `data-slot="label-source-first"` 区块，包含 `Snippet copyable=true` 的 `Copy starter`（默认导入 `use leptos::prelude::*;` 与 `use ui::{Label, LabelEmphasis};`），并明确 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 负责 import-ready 输出。文档同时列出真实源码落点 `components/label/src/{mod,logic,view,styles,motion}.rs` 与依赖前提 `component-label`/`inject-css`，避免“复制即报错”。示例同步由 `code_signal=workbench_code` 与 `code_imports=label_imports.clone()` 保持与当前实现一致。回归：`components/label/test/semantics.rs::label_source_first_docs_are_copy_paste_ready_with_real_paths_prerequisites_and_synced_code`、`components/label/test/label_semantics.rs::label_source_first_docs_are_copy_paste_ready_with_real_paths_prerequisites_and_synced_code`。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
@@ -375,9 +375,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

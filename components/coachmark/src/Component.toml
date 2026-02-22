@@ -249,5 +249,5 @@ name = "ui-state-primitives"
 kind = "state-normalization"
 
 [[dependencies]]
-name = "ui-components"
+name = "ui"
 kind = "component-composition"

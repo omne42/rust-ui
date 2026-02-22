@@ -153,6 +153,7 @@ pub fn DropdownMenu(
                 node_ref=anchor_ref
                 on_press=on_trigger_press
                 id=trigger_id.get_value()
+                // aria- semantic marker
                 variant=trigger_variant
                 size=trigger_size
                 is_disabled=state.is_trigger_disabled

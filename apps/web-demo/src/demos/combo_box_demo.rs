@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::ComboBox;
+use ui::ComboBox;
 
 #[component]
 pub fn ComboBoxDemo() -> impl IntoView {

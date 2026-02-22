@@ -157,7 +157,7 @@ fn animate_ui_component_names_are_covered_locally() {
 
     assert!(
         missing.is_empty(),
-        "local ui-components should cover animate-ui component names; missing: {missing:?}"
+        "local ui should cover animate-ui component names; missing: {missing:?}"
     );
 }
 
@@ -210,7 +210,7 @@ fn react_aria_components_names_are_covered_locally() {
 
     assert!(
         missing.is_empty(),
-        "local ui-components should cover a11y-baseline-components names; missing: {missing:?}"
+        "local ui should cover a11y-baseline-components names; missing: {missing:?}"
     );
 }
 
@@ -236,7 +236,7 @@ fn upstream_component_dir_names_are_covered_locally() {
 
     assert!(
         missing.is_empty(),
-        "local ui-components should cover Upstream component directory names; missing: {missing:?}"
+        "local ui should cover Upstream component directory names; missing: {missing:?}"
     );
 }
 
@@ -268,7 +268,7 @@ fn baseline_web_components_dir_names_are_covered_locally() {
 
     assert!(
         missing.is_empty(),
-        "local ui-components should cover web component names; missing: {missing:?}"
+        "local ui should cover web component names; missing: {missing:?}"
     );
 }
 
@@ -305,7 +305,7 @@ fn react_baseline_package_names_are_covered_locally() {
 
     assert!(
         missing.is_empty(),
-        "local ui-components should cover @ui-baseline package names; missing: {missing:?}"
+        "local ui should cover @ui-baseline package names; missing: {missing:?}"
     );
 }
 
@@ -347,7 +347,7 @@ fn react_aria_package_names_are_covered_locally() {
 
     assert!(
         missing.is_empty(),
-        "local ui-components should cover @a11y-baseline package names; missing: {missing:?}"
+        "local ui should cover @a11y-baseline package names; missing: {missing:?}"
     );
 }
 

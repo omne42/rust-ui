@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     Button, DropZone, DroppedFile, FileTrigger, FileTriggerFile, HoverCard, IllustratedMessage,
     Image, ToastStoreOptions, ToastVariant, ToastViewport, provide_toast_store,
 };
@@ -11,16 +11,14 @@ pub fn ExtrasDemo() -> impl IntoView {
     let push_toast = Callback::new({
         let toast_store = toast_store.clone();
         move |_| {
-            toast_store
-                .push
-                .run(ui_components::ToastOptions::simple("Saved"));
+            toast_store.push.run(ui::ToastOptions::simple("Saved"));
         }
     });
 
     let push_danger = Callback::new({
         let toast_store = toast_store.clone();
         move |_| {
-            toast_store.push.run(ui_components::ToastOptions {
+            toast_store.push.run(ui::ToastOptions {
                 title: "Upload failed".to_string(),
                 description: Some("Please check your network and retry.".to_string()),
                 variant: ToastVariant::Danger,
@@ -68,10 +66,10 @@ pub fn ExtrasDemo() -> impl IntoView {
                             </HoverCard>
 
                             <Button on_press=push_toast>"Toast"</Button>
-                            <Button variant=ui_components::ButtonVariant::Destructive on_press=push_danger>
+                            <Button variant=ui::ButtonVariant::Destructive on_press=push_danger>
                                 "Danger toast"
                             </Button>
-                            <Button variant=ui_components::ButtonVariant::Secondary on_press=clear_toasts>
+                            <Button variant=ui::ButtonVariant::Secondary on_press=clear_toasts>
                                 "Clear"
                             </Button>
                         </div>

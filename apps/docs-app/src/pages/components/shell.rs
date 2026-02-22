@@ -1,7 +1,7 @@
 use super::component_catalog;
 use crate::perf_probe::{UiPerfBudget, UiPerfProbe};
 use leptos::prelude::*;
-use ui_components::Snippet;
+use ui::Snippet;
 use ui_layout::{
     Card, Flex, FlexAlign, FlexDirection, FlexGap, FlexJustify, FlexWrap, Heading, HeadingLevel,
 };
@@ -334,7 +334,7 @@ pub fn ComponentPage(
             .unwrap_or((None, None))
     };
 
-    let import_text = format!("use ui_components::{title};");
+    let import_text = format!("use ui::{title};");
     let perf_budget = component_page_perf_budget(slug);
     let perf_name = format!("ComponentPage::{slug}");
     let readme_html = component_readme_markdown(slug).map(crate::markdown::markdown_to_html);

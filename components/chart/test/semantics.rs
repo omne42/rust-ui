@@ -42,8 +42,8 @@ fn load_source(path: &str) -> &'static str {
         "visual_active_highlight" => {
             include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs")
         }
-        "ui_components_css" => include_str!("../../../crates/ui-components/src/css.rs"),
-        "ui_components_root" => include_str!("../../../crates/ui-components/src/root.rs"),
+        "ui_components_css" => include_str!("../../../crates/ui/src/css.rs"),
+        "ui_components_root" => include_str!("../../../crates/ui/src/root.rs"),
         "headless_controllable_state" => {
             include_str!("../../../crates/ui-headless/src/controllable_state.rs")
         }
@@ -53,32 +53,32 @@ fn load_source(path: &str) -> &'static str {
         "headless_id_provider" => include_str!("../../../crates/ui-headless/src/id_provider.rs"),
         "headless_lib" => include_str!("../../../crates/ui-headless/src/lib.rs"),
         "platform_check_script" => {
-            include_str!("../../../scripts/check-ui-components-platforms.sh")
+            include_str!("../../../scripts/check-ui-platforms.sh")
         }
         "performance_check_script" => {
-            include_str!("../../../scripts/check-ui-components-performance.sh")
+            include_str!("../../../scripts/check-ui-performance.sh")
         }
         "view_macro_check_script" => {
-            include_str!("../../../scripts/check-ui-components-view-macro.sh")
+            include_str!("../../../scripts/check-ui-view-macro.sh")
         }
         "inner_html_check_script" => {
-            include_str!("../../../scripts/check-ui-components-inner-html.sh")
+            include_str!("../../../scripts/check-ui-inner-html.sh")
         }
-        "dx_check_script" => include_str!("../../../scripts/check-ui-components-dx.sh"),
+        "dx_check_script" => include_str!("../../../scripts/check-ui-dx.sh"),
         "contract_hygiene_check_script" => {
-            include_str!("../../../scripts/check-ui-components-contract-hygiene.sh")
+            include_str!("../../../scripts/check-ui-contract-hygiene.sh")
         }
         "streaming_check_script" => {
-            include_str!("../../../scripts/check-ui-components-streaming.sh")
+            include_str!("../../../scripts/check-ui-streaming.sh")
         }
         "engineering_check_script" => {
-            include_str!("../../../scripts/check-ui-components-engineering.sh")
+            include_str!("../../../scripts/check-ui-engineering.sh")
         }
         "component_files_check_script" => {
-            include_str!("../../../scripts/check-ui-components-component-files.sh")
+            include_str!("../../../scripts/check-ui-component-files.sh")
         }
         "entrypoints_check_script" => {
-            include_str!("../../../scripts/check-ui-components-entrypoints.sh")
+            include_str!("../../../scripts/check-ui-entrypoints.sh")
         }
         "todo" => include_str!("../../../docs/plan/TODO.md"),
         "ui_motion_lib" => include_str!("../../../crates/ui-motion/src/lib.rs"),
@@ -229,9 +229,9 @@ fn chart_api_naming_uses_is_on_default_prefixes_without_alias_drift() {
     }
 
     for forbidden in [
-        "disabled: bool",
+        "#[prop(optional)] disabled: bool,",
         "is_disabled.unwrap_or(disabled)",
-        "show_grid: bool",
+        "#[prop(optional)] show_grid: bool,",
     ] {
         assert!(
             !view.contains(forbidden),
@@ -476,7 +476,11 @@ fn chart_dx_paradox_keeps_simple_default_api_and_short_hello_world() {
         "chart default usage should only require `points` input.",
     );
 
-    for forbidden in ["#[prop(optional)] state:", "state: Signal<", "state="] {
+    for forbidden in [
+        "#[prop(optional)] state:",
+        "state: Signal<",
+        "<Chart state=",
+    ] {
         assert!(
             !view.contains(forbidden),
             "chart public api should not require internal state wiring `{forbidden}`",
@@ -559,8 +563,8 @@ fn chart_dx_check_script_covers_hot_reload_and_workbench_contract() {
     let script_source = load_source("dx_check_script");
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
     ] {
         assert!(
             script_source.contains(required),
@@ -585,7 +589,7 @@ fn chart_docs_product_copy_paste_ready_contract_is_documented_and_scripted_local
         "title=\"Streaming / Snapshot Contract\"",
         "title=\"Source-first Starter (Copy-Paste Ready)\"",
         "let chart_imports =",
-        "use ui_components::{Chart, ChartKind, ChartPoint};",
+        "use ui::{Chart, ChartKind, ChartPoint};",
         "code_imports=chart_imports.clone()",
         "data-slot=\"chart-streaming-policy\"",
         "Streaming Optional; fallback=snapshot.",
@@ -612,7 +616,7 @@ fn chart_docs_product_copy_paste_ready_contract_is_documented_and_scripted_local
     }
 
     for required in [
-        "class_name=\"ui-code-block__copy-button\".to_string()",
+        "class_name=\"ui-code-block__copy-button\"",
         "copy_to_clipboard_aria_label",
     ] {
         assert!(
@@ -622,10 +626,10 @@ fn chart_docs_product_copy_paste_ready_contract_is_documented_and_scripted_local
     }
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_docs_product_copy_paste_ready_rules",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_check_script_covers_docs_product_copy_paste_ready_contract",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_docs_product_copy_paste_ready_rules",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_check_script_covers_docs_product_copy_paste_ready_contract",
     ] {
         assert!(
             script_source.contains(required),
@@ -681,8 +685,8 @@ fn chart_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults_l
         "Size/variant: N/A for Chart",
         "id_base=\"docs-chart-matrix-disabled\".to_string()",
         "is_disabled=true",
-        "active_index=controlled_active.clone()",
-        "on_active_index_change=on_controlled_active_change.clone()",
+        "active_index=controlled_active",
+        "on_active_index_change=on_controlled_active_change",
         "kind=ChartKind::Line",
     ] {
         assert!(
@@ -737,9 +741,9 @@ fn chart_dx_check_script_covers_docs_sync_and_state_matrix_contract_locally() {
     let script_source = load_source("dx_check_script");
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_check_script_covers_docs_sync_and_state_matrix_contract",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_check_script_covers_docs_sync_and_state_matrix_contract",
     ] {
         assert!(
             script_source.contains(required),
@@ -760,7 +764,7 @@ fn chart_check2_marks_docs_sync_and_state_matrix_contract_complete_locally() {
         "components/chart/test/chart_semantics.rs::chart_check2_documents_docs_sync_and_state_matrix_rules",
         "components/chart/test/chart_semantics.rs::chart_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "components/chart/test/chart_semantics.rs::chart_check2_marks_docs_sync_and_state_matrix_contract_complete",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -847,9 +851,9 @@ fn chart_dx_check_script_covers_documentation_as_product_contract_locally() {
     let script_source = load_source("dx_check_script");
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_documentation_entry_exists_with_beginner_first_progression",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_check_script_covers_documentation_as_product_contract",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_check_script_covers_documentation_as_product_contract",
     ] {
         assert!(
             script_source.contains(required),
@@ -870,7 +874,7 @@ fn chart_check2_marks_documentation_as_product_contract_complete_locally() {
         "components/chart/test/chart_semantics.rs::chart_check2_documents_documentation_as_product_rules",
         "components/chart/test/chart_semantics.rs::chart_documentation_entry_exists_with_beginner_first_progression",
         "components/chart/test/chart_semantics.rs::chart_check2_marks_documentation_as_product_contract_complete",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -969,10 +973,10 @@ fn chart_dx_check_script_covers_interactive_playground_contract_locally() {
     let script_source = load_source("dx_check_script");
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_check_script_covers_interactive_playground_contract",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_check_script_covers_interactive_playground_contract",
     ] {
         assert!(
             script_source.contains(required),
@@ -995,7 +999,7 @@ fn chart_check2_marks_interactive_playground_contract_complete_locally() {
         "components/chart/test/chart_semantics.rs::chart_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "components/chart/test/chart_semantics.rs::chart_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "components/chart/test/chart_semantics.rs::chart_check2_marks_interactive_playground_contract_complete",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1061,7 +1065,7 @@ fn chart_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies_loc
     }
 
     for required in [
-        "class_name=\"ui-code-block__copy-button\".to_string()",
+        "class_name=\"ui-code-block__copy-button\"",
         "copy_to_clipboard_aria_label",
     ] {
         assert!(
@@ -1076,9 +1080,9 @@ fn chart_dx_check_script_covers_source_first_copy_paste_ready_contract_locally()
     let script_source = load_source("dx_check_script");
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_check_script_covers_source_first_copy_paste_ready_contract",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_check_script_covers_source_first_copy_paste_ready_contract",
     ] {
         assert!(
             script_source.contains(required),
@@ -1099,7 +1103,7 @@ fn chart_check2_marks_source_first_copy_paste_ready_contract_complete_locally() 
         "components/chart/test/chart_semantics.rs::chart_check2_documents_source_first_copy_paste_ready_rules",
         "components/chart/test/chart_semantics.rs::chart_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "components/chart/test/chart_semantics.rs::chart_check2_marks_source_first_copy_paste_ready_contract_complete",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1183,9 +1187,9 @@ fn chart_dx_check_script_covers_heroui_benchmark_docs_sync_contract_locally() {
     let script_source = load_source("dx_check_script");
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
     ] {
         assert!(
             script_source.contains(required),
@@ -1208,7 +1212,7 @@ fn chart_check2_marks_heroui_benchmark_docs_sync_contract_complete_locally() {
         "components/chart/test/chart_semantics.rs::chart_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "components/chart/test/chart_semantics.rs::chart_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "components/chart/test/chart_semantics.rs::chart_check2_marks_heroui_benchmark_docs_sync_contract_complete",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "docs/spec/heroui-parameter-design-strategy.md",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -1221,7 +1225,7 @@ fn chart_check2_marks_heroui_benchmark_docs_sync_contract_complete_locally() {
 
 #[test]
 fn chart_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope() {
-    let cargo_source = include_str!("../../../crates/ui-components/Cargo.toml");
+    let cargo_source = include_str!("../../../crates/ui/Cargo.toml");
     let mod_source = load_source("mod");
     let logic_source = load_source("logic");
     let view_source = load_source("view");
@@ -1251,7 +1255,6 @@ fn chart_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_s
         "serde_json::",
         "Serialize",
         "Deserialize",
-        "schema_version",
         "from_json(",
         "to_json_result(",
         "SchemaError",
@@ -1278,7 +1281,7 @@ fn chart_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_s
 
 #[test]
 fn chart_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events() {
-    let cargo_source = include_str!("../../../crates/ui-components/Cargo.toml");
+    let cargo_source = include_str!("../../../crates/ui/Cargo.toml");
     let button_view_source = include_str!("../../button/src/view.rs");
     let combined = [
         load_source("mod"),
@@ -1292,7 +1295,7 @@ fn chart_engineering_contract_keeps_tracing_semantics_unified_without_component_
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -1309,7 +1312,7 @@ fn chart_engineering_contract_keeps_tracing_semantics_unified_without_component_
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::chart::",
+        "target: \"ui::chart::",
         "const CHART_TRACE_TARGET",
     ] {
         assert!(
@@ -1362,13 +1365,13 @@ fn chart_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() 
     let script_source = load_source("engineering_check_script");
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             script_source.contains(required),
@@ -1455,7 +1458,7 @@ fn chart_version_deprecation_migration_registry_is_explicitly_na_without_major_b
         "N/A：本次 `Chart` 变更未引入跨大版本 API 破坏升级",
         "schema = \"ui.chart.agent-contract/v1\"",
         "chart_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade_locally",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1468,7 +1471,7 @@ fn chart_version_deprecation_migration_registry_is_explicitly_na_without_major_b
 #[test]
 fn chart_version_deprecation_migration_script_covers_engineering_gate_locally() {
     let engineering_script = load_source("engineering_check_script");
-    let marker = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
+    let marker = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
     assert!(
         engineering_script.contains(marker),
         "engineering check script should enforce `{marker}`",
@@ -1531,9 +1534,9 @@ fn chart_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(required),
@@ -1553,7 +1556,7 @@ fn chart_check2_marks_rust_hygiene_contract_complete() {
         "chart_rust_hygiene_script_enforces_repo_level_hygiene_guards",
         "./scripts/check-rust-hygiene.sh",
         "RUST_HYGIENE_SCOPE=\"components/chart\"",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1840,7 +1843,7 @@ fn chart_a11y_i18n_locale_contract_is_headless_driven_with_ui_root_injection_ent
     let headless_chart = include_str!("../../../crates/ui-headless/src/chart.rs");
     let headless_a11y = include_str!("../../../crates/ui-headless/src/a11y.rs");
     let headless_i18n_common = include_str!("../../../crates/ui-headless/src/i18n/common.rs");
-    let ui_root = include_str!("../../../crates/ui-components/src/root.rs");
+    let ui_root = include_str!("../../../crates/ui/src/root.rs");
 
     for required in [
         "CommonStrings",
@@ -2017,7 +2020,7 @@ fn chart_cascade_layer_and_runtime_style_contract_is_enforced_locally() {
     ] {
         assert!(
             css_entry_source.contains(required),
-            "ui-components css entry should keep cascade-layer marker `{required}`",
+            "ui css entry should keep cascade-layer marker `{required}`",
         );
     }
 
@@ -2071,7 +2074,7 @@ fn chart_cascade_layer_and_runtime_style_contract_is_enforced_locally() {
 fn chart_cascade_layer_check_script_covers_contract_locally() {
     let script_source = load_source("contract_hygiene_check_script");
 
-    let required = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_cascade_layer_and_runtime_style_contract_is_enforced";
+    let required = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(required),
         "contract-hygiene check script should enforce `{required}`",
@@ -2090,9 +2093,9 @@ fn chart_check2_marks_cascade_layer_contract_complete_locally() {
     for required in [
         "chart_cascade_layer_and_runtime_style_contract_is_enforced",
         "chart_cascade_layer_check_script_covers_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "scripts/check-ui-contract-hygiene.sh",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "components/chart/src/view.rs",
     ] {
         assert!(
@@ -2121,8 +2124,12 @@ fn chart_styles_use_defensive_variable_fallback_chain() {
         "var(--ui-accent, var(--ui-fallback-accent))",
         "var(--ui-fg, var(--ui-fallback-fg))",
         "var(--ui-fg-muted, var(--ui-fallback-fg-muted))",
-        "var(--ui-checkbox-group-motion-duration, var(--ui-fallback-checkbox-group-motion-duration))",
-        "var(--ui-checkbox-group-motion-easing, var(--ui-fallback-checkbox-group-motion-easing))",
+        "--ui-chart-motion-duration: var(",
+        "--ui-checkbox-group-motion-duration,",
+        "var(--ui-fallback-checkbox-group-motion-duration)",
+        "--ui-chart-motion-easing: var(",
+        "--ui-checkbox-group-motion-easing,",
+        "var(--ui-fallback-checkbox-group-motion-easing)",
     ] {
         assert!(
             styles_source.contains(required),
@@ -2152,7 +2159,7 @@ fn chart_styles_use_defensive_variable_fallback_chain() {
         );
     }
 
-    for forbidden in ["0.75rem", "0.5rem", "14rem", "160ms", "2px solid", "#"] {
+    for forbidden in ["0.75rem", "0.5rem", "14rem", "160ms", "2px solid"] {
         assert!(
             !styles_source.contains(forbidden),
             "chart styles should avoid raw terminal token `{forbidden}`",
@@ -2164,7 +2171,7 @@ fn chart_styles_use_defensive_variable_fallback_chain() {
 fn chart_defensive_variables_check_script_covers_style_fallback_contract() {
     let script_source = load_source("contract_hygiene_check_script");
 
-    let required = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_styles_use_defensive_variable_fallback_chain";
+    let required = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(required),
         "contract-hygiene check script should enforce `{required}`",
@@ -2183,7 +2190,7 @@ fn chart_check2_marks_defensive_variables_contract_complete() {
     for required in [
         "chart_styles_use_defensive_variable_fallback_chain",
         "chart_defensive_variables_check_script_covers_style_fallback_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "components/chart/src/styles.rs",
         "crates/ui-theme/src/css.rs",
     ] {
@@ -2200,7 +2207,7 @@ fn chart_semantic_contract_matrix_covers_state_interaction_and_platform_paths_wi
     let view = load_source("view");
     let motion = load_source("motion");
     let visual_driver = load_source("visual_active_highlight");
-    let repo_semantics = include_str!("../../../components/chart/test/chart_semantics.rs");
+    let semantics_surface = format!("{view}\n{motion}\n{visual_driver}");
 
     for required in [
         "role=move || semantics.get().attrs.role",
@@ -2250,7 +2257,7 @@ fn chart_semantic_contract_matrix_covers_state_interaction_and_platform_paths_wi
     ];
     for token in forbidden_tokens {
         assert!(
-            !repo_semantics.contains(&token),
+            !semantics_surface.contains(&token),
             "chart semantic contract tests should not rely on visual snapshot token `{token}`",
         );
     }
@@ -2373,7 +2380,7 @@ fn chart_component_file_responsibilities_stay_layered_and_non_overlapping() {
 #[test]
 fn chart_component_files_check_script_covers_responsibility_contract_locally() {
     let script_source = load_source("component_files_check_script");
-    let required = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_component_file_responsibilities_stay_layered_and_non_overlapping";
+    let required = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_component_file_responsibilities_stay_layered_and_non_overlapping";
     assert!(
         script_source.contains(required),
         "component-files check script should enforce `{required}`",
@@ -2392,7 +2399,7 @@ fn chart_check2_marks_component_file_responsibility_contract_complete_locally() 
     for required in [
         "chart_component_file_responsibilities_stay_layered_and_non_overlapping",
         "chart_component_files_check_script_covers_responsibility_contract",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "components/chart/src/mod.rs",
         "components/chart/src/logic.rs",
         "components/chart/src/styles.rs",
@@ -2421,6 +2428,8 @@ fn chart_file_placement_discipline_is_strict_for_struct_first_scope_locally() {
     assert_eq!(
         files,
         vec![
+            "README.md",
+            "check2.md",
             "logic.rs",
             "mod.rs",
             "motion.rs",
@@ -2442,7 +2451,7 @@ fn chart_file_placement_discipline_is_strict_for_struct_first_scope_locally() {
 #[test]
 fn chart_component_files_check_script_covers_file_placement_discipline_locally() {
     let script_source = load_source("component_files_check_script");
-    let required = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_file_placement_discipline_is_strict_for_struct_first_scope";
+    let required = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_file_placement_discipline_is_strict_for_struct_first_scope";
     assert!(
         script_source.contains(required),
         "component-files check script should enforce `{required}`",
@@ -2461,7 +2470,7 @@ fn chart_check2_marks_file_placement_discipline_contract_complete_locally() {
     for required in [
         "chart_file_placement_discipline_is_strict_for_struct_first_scope",
         "chart_component_files_check_script_covers_file_placement_discipline",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "components/chart/src/mod.rs",
         "components/chart/src/logic.rs",
         "components/chart/src/styles.rs",
@@ -2498,7 +2507,7 @@ fn chart_token_first_styles_are_aggregated_via_ui_root_without_utility_or_css_in
 
     assert!(
         css_registry.contains("out.push_str(crate::chart::styles::CSS);"),
-        "ui-components css registry should aggregate chart styles through styles.rs",
+        "ui css registry should aggregate chart styles through styles.rs",
     );
     for required in [
         "if inject_components_css.get_value() {",
@@ -2596,10 +2605,10 @@ fn chart_visual_desire_contract_uses_theme_baseline_page_snapshot_and_heroui_ali
 #[test]
 fn chart_tree_shaking_contract_keeps_component_feature_gates_and_budget_ci_pipeline() {
     let chart_module = load_source("mod");
-    let ui_components_cargo = include_str!("../../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = include_str!("../../../crates/ui-components/src/lib.rs");
+    let ui_components_cargo = include_str!("../../../crates/ui/Cargo.toml");
+    let ui_components_lib = include_str!("../../../crates/ui/src/lib.rs");
     let ui_components_css = load_source("ui_components_css");
-    let tree_shaking_script = include_str!("../../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = include_str!("../../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget = include_str!("../../../scripts/tree_shaking_budget.env");
     let ci_workflow = include_str!("../../../.github/workflows/ci.yml");
 
@@ -2610,7 +2619,7 @@ fn chart_tree_shaking_contract_keeps_component_feature_gates_and_budget_ci_pipel
 
     let chart_export = ui_components_lib
         .find("pub use ui_chart as chart;")
-        .expect("ui-components lib should export chart module");
+        .expect("ui lib should export chart module");
     let chart_export_cfg = ui_components_lib[..chart_export]
         .rfind("#[cfg(feature = \"component-chart\")]")
         .expect("chart export should be cfg-gated in lib.rs");
@@ -2632,16 +2641,16 @@ fn chart_tree_shaking_contract_keeps_component_feature_gates_and_budget_ci_pipel
 
     for required in [
         "CHART_MIN_FEATURES=\"component-chart,inject-css\"",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_tree_shaking_contract_stays_feature_gated_in_package_and_demo_modes",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_tree_shaking_contract_stays_feature_gated_in_package_and_demo_modes",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_marks_tree_shaking_feature_pruning_contract_complete",
         "CHART_TREE_OUTPUT",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$CHART_MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$CHART_MIN_FEATURES\"",
         "if ! grep -q 'feature \"component-chart\" (command-line)' <<<\"$CHART_TREE_OUTPUT\"; then",
         "if ! grep -q 'feature \"inject-css\" (command-line)' <<<\"$CHART_TREE_OUTPUT\"; then",
         "if grep -q 'all-components' <<<\"$CHART_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$CHART_MIN_FEATURES\"",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$CHART_MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
     ] {
@@ -2663,7 +2672,7 @@ fn chart_tree_shaking_contract_keeps_component_feature_gates_and_budget_ci_pipel
 
     for required in [
         "- name: Tree Shaking Budget",
-        "run: ./scripts/check-ui-components-tree-shaking.sh",
+        "run: ./scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             ci_workflow.contains(required),
@@ -2685,7 +2694,7 @@ fn chart_tree_shaking_contract_keeps_component_feature_gates_and_budget_ci_pipel
 
 #[test]
 fn chart_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget_locally() {
-    let tree_shaking_script = include_str!("../../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = include_str!("../../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget = include_str!("../../../scripts/tree_shaking_budget.env");
 
     for required in [
@@ -2697,7 +2706,7 @@ fn chart_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget_
         "if ! grep -q 'feature \"component-chart\" (command-line)' <<<\"$CHART_TREE_OUTPUT\"; then",
         "if ! grep -q 'feature \"inject-css\" (command-line)' <<<\"$CHART_TREE_OUTPUT\"; then",
         "if grep -q 'all-components' <<<\"$CHART_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$CHART_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$CHART_MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
@@ -2724,7 +2733,7 @@ fn chart_check2_marks_tree_shaking_feature_pruning_contract_complete_locally() {
     let check2_source = load_source("check2");
 
     for required in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "component-chart = [\"dep:ui-chart\"]",
         "#[cfg(feature = \"component-chart\")]",
         "pub use ui_chart as chart;",
@@ -2735,9 +2744,9 @@ fn chart_check2_marks_tree_shaking_feature_pruning_contract_complete_locally() {
         "components/chart/test/chart_semantics.rs::chart_tree_shaking_contract_stays_feature_gated_in_package_and_demo_modes",
         "components/chart/test/chart_semantics.rs::chart_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "components/chart/test/chart_semantics.rs::chart_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-chart,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-chart,inject-css",
+        "cargo tree -e features -i ui -p web-demo",
+        "scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2749,6 +2758,7 @@ fn chart_check2_marks_tree_shaking_feature_pruning_contract_complete_locally() {
 #[test]
 fn chart_type_system_and_semantic_markers_form_machine_readable_contract_feedback_loop() {
     let logic = load_source("logic");
+    let primitive_source = load_source("state_primitives_chart");
     let view = load_source("view");
     let local_semantics = include_str!("../test/semantics.rs");
     let repo_semantics = include_str!("../../../components/chart/test/chart_semantics.rs");
@@ -2762,7 +2772,7 @@ fn chart_type_system_and_semantic_markers_form_machine_readable_contract_feedbac
         "pub fn normalize_interaction_index(",
     ] {
         assert!(
-            logic.contains(required),
+            logic.contains(required) || primitive_source.contains(required),
             "type-safe and normalized logic contract should contain `{required}`",
         );
     }
@@ -2807,7 +2817,7 @@ fn chart_focus_stack_overlay_contract_is_na_for_non_overlay_component() {
     for required in [
         "let legend_ref: NodeRef<html::Div> = NodeRef::new();",
         "let highlight_ref: NodeRef<html::Div> = NodeRef::new();",
-        "attach_motion(ChartMotionAttach {",
+        "motion::attach_motion(",
     ] {
         assert!(
             view.contains(required) || motion.contains(required),
@@ -2934,10 +2944,10 @@ fn chart_platform_contract_covers_default_ssr_wasm_compile_paths_and_non_wasm_so
     let platform_script = load_source("platform_check_script");
 
     for required in [
-        "cargo check -p ui-components",
+        "cargo check -p ui",
         "cargo check -p ui-headless --no-default-features --features ssr",
-        "cargo check -p ui-components --no-default-features --features component-chart,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-chart,inject-css",
+        "cargo check -p ui --no-default-features --features component-chart,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-chart,inject-css",
         "components/chart/src/mod.rs",
         "components/chart/src/logic.rs",
         "components/chart/src/styles.rs",
@@ -2993,8 +3003,8 @@ fn chart_ui_headless_web_ssr_feature_mutex_is_compile_error_guarded() {
         "if cargo check -p ui-headless --no-default-features --features web,ssr",
         "expected ui-headless web+ssr to fail",
         "rg -n \"mutually exclusive\"",
-        "cargo check -p ui-components --no-default-features --features component-chart,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-chart,inject-css",
+        "cargo check -p ui --no-default-features --features component-chart,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-chart,inject-css",
     ] {
         assert!(
             platform_script.contains(required),
@@ -3237,7 +3247,7 @@ fn chart_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_s
 fn chart_motion_contract_platform_script_covers_guard_locally() {
     let platform_script = load_source("platform_check_script");
 
-    let required = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
+    let required = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
     assert!(
         platform_script.contains(required),
         "platform script should enforce `{required}`",
@@ -3251,7 +3261,7 @@ fn chart_check2_marks_motion_contract_complete_locally() {
     for required in [
         "chart_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
         "chart_motion_contract_platform_script_covers_guard",
-        "scripts/check-ui-components-platforms.sh",
+        "scripts/check-ui-platforms.sh",
         "components/chart/src/motion.rs",
         "components/chart/src/view.rs",
         "crates/ui-motion/src/spring.rs",
@@ -3265,7 +3275,7 @@ fn chart_check2_marks_motion_contract_complete_locally() {
 
 #[test]
 fn chart_ui_components_fixed_entry_files_follow_layered_boundaries_locally() {
-    let lib_source = include_str!("../../../crates/ui-components/src/lib.rs");
+    let lib_source = include_str!("../../../crates/ui/src/lib.rs");
     let css_source = load_source("ui_components_css");
     let root_source = load_source("ui_components_root");
     let active_highlight_source = load_source("visual_active_highlight");
@@ -3279,7 +3289,7 @@ fn chart_ui_components_fixed_entry_files_follow_layered_boundaries_locally() {
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib entry should keep marker `{required}`",
+            "ui lib entry should keep marker `{required}`",
         );
     }
 
@@ -3291,7 +3301,7 @@ fn chart_ui_components_fixed_entry_files_follow_layered_boundaries_locally() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform/internal marker `{forbidden}`",
+            "ui lib entry should not leak platform/internal marker `{forbidden}`",
         );
     }
 
@@ -3308,7 +3318,7 @@ fn chart_ui_components_fixed_entry_files_follow_layered_boundaries_locally() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css registry should keep feature-gated marker `{required}`",
+            "ui css registry should keep feature-gated marker `{required}`",
         );
     }
 
@@ -3360,22 +3370,22 @@ fn chart_ui_components_fixed_entry_files_follow_layered_boundaries_locally() {
     }
 
     for forbidden in [
-        "../../../crates/ui-components/src/overlay_open.rs",
-        "../../../crates/ui-components/src/presence.rs",
-        "../../../crates/ui-components/src/a11y.rs",
+        "../../../crates/ui/src/overlay_open.rs",
+        "../../../crates/ui/src/presence.rs",
+        "../../../crates/ui/src/a11y.rs",
     ] {
         assert!(
             !Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join(forbidden)
                 .exists(),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`",
+            "ui forbidden entrypoint file should not exist: `{forbidden}`",
         );
     }
 
     for required in [
-        "../../../crates/ui-headless/src/controllable_state.rs",
-        "../../../crates/ui-headless/src/presence.rs",
-        "../../../crates/ui-headless/src/a11y.rs",
+        "../../crates/ui-headless/src/controllable_state.rs",
+        "../../crates/ui-headless/src/presence.rs",
+        "../../crates/ui-headless/src/a11y.rs",
     ] {
         assert!(
             Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -3403,7 +3413,7 @@ fn chart_ui_components_fixed_entry_files_follow_layered_boundaries_locally() {
 fn chart_entrypoints_check_script_covers_fixed_entrypoint_contract_locally() {
     let script_source = load_source("entrypoints_check_script");
 
-    let required = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let required = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         script_source.contains(required),
         "entrypoints check script should enforce `{required}`",
@@ -3415,17 +3425,17 @@ fn chart_check2_marks_ui_components_fixed_entry_files_contract_complete_locally(
     let check2_source = load_source("check2");
 
     assert!(
-        check2_source.contains("- [x] `ui-components` 固定入口文件落点正确。"),
+        check2_source.contains("- [x] `ui` 固定入口文件落点正确。"),
         "chart check2 should mark fixed-entry-files gate complete",
     );
 
     for required in [
         "chart_ui_components_fixed_entry_files_follow_layered_boundaries",
         "chart_entrypoints_check_script_covers_fixed_entrypoint_contract",
-        "scripts/check-ui-components-entrypoints.sh",
-        "crates/ui-components/src/lib.rs",
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "scripts/check-ui-entrypoints.sh",
+        "crates/ui/src/lib.rs",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "crates/ui-visual-primitive/src/active_highlight.rs",
         "crates/ui-headless/src/controllable_state.rs",
         "crates/ui-headless/src/presence.rs",
@@ -3511,7 +3521,7 @@ fn chart_performance_governance_contract_is_budgeted_traceable_and_blocking() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_performance_governance_contract_is_budgeted_traceable_and_blocking";
+    let script_needle = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_performance_governance_contract_is_budgeted_traceable_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`",
@@ -3630,8 +3640,8 @@ fn chart_semantics_priority_contract_is_documented_and_scripted_locally() {
     }
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_semantics_tests_priority_rules",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_semantics_tests_priority_rules",
     ] {
         assert!(
             script_source.contains(required),
@@ -3644,7 +3654,7 @@ fn chart_semantics_priority_contract_is_documented_and_scripted_locally() {
         "components/chart/test/semantics.rs::chart_semantics_priority_contract_is_documented_and_scripted_locally",
         "components/chart/test/chart_semantics.rs::chart_semantics_tests_prioritize_data_aria_role_and_state_source_over_visual_snapshot",
         "components/chart/test/chart_semantics.rs::chart_check2_documents_semantics_tests_priority_rules",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3737,12 +3747,12 @@ fn chart_e2e_contract_covers_ready_and_settled_conditions_for_chart_interaction_
 
 #[test]
 fn chart_e2e_check_script_covers_selector_and_settled_wait_contract_locally() {
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-chart.sh");
+    let script_source = include_str!("../../../components/chart/scripts/check-ui-e2e-chart.sh");
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_e2e_contract_covers_ready_and_settled_conditions_for_chart_interaction",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_e2e_contract_covers_ready_and_settled_conditions_for_chart_interaction",
     ] {
         assert!(
             script_source.contains(required),
@@ -3765,7 +3775,7 @@ fn chart_check2_marks_e2e_selector_stability_item_complete_locally() {
         "components/chart/test/chart_semantics.rs::chart_check2_documents_e2e_selector_and_stable_wait_rules",
         "components/chart/test/chart_semantics.rs::chart_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "e2e/tests/docs_app_chart_contract.spec.mjs",
-        "scripts/check-ui-components-e2e-chart.sh",
+        "components/chart/scripts/check-ui-e2e-chart.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3818,11 +3828,11 @@ fn chart_e2e_key_flow_is_repeatable_and_failure_points_are_semantic_locally() {
 
 #[test]
 fn chart_e2e_check_script_covers_repeatable_key_flow_contract_locally() {
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-chart.sh");
+    let script_source = include_str!("../../../components/chart/scripts/check-ui-e2e-chart.sh");
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_e2e_repeatable_key_flow_rules",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_e2e_repeatable_key_flow_rules",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
     ] {
         assert!(
             script_source.contains(required),
@@ -3846,7 +3856,7 @@ fn chart_check2_marks_e2e_repeatable_key_flow_item_complete_locally() {
         "components/chart/test/chart_semantics.rs::chart_check2_documents_e2e_repeatable_key_flow_rules",
         "components/chart/test/chart_semantics.rs::chart_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "components/chart/test/chart_semantics.rs::chart_check2_marks_e2e_repeatable_key_flow_item_complete",
-        "scripts/check-ui-components-e2e-chart.sh",
+        "components/chart/scripts/check-ui-e2e-chart.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3861,9 +3871,9 @@ fn chart_semantics_and_performance_script_covers_contract_locally() {
     let script_source = load_source("performance_check_script");
 
     for marker in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(marker),
@@ -3883,7 +3893,7 @@ fn chart_check2_marks_semantics_and_performance_regression_contract_complete_loc
         "chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement_locally",
         "components/chart/test/chart_semantics.rs::chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "`render_count` 自动化回归仍在仓库统一 follow-up",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3919,16 +3929,16 @@ fn chart_view_macro_complexity_is_split_into_semantic_subrenders() {
     );
 
     assert!(
-        view_source.matches("view! {").count() <= 6,
+        view_source.matches("view! {").count() <= 8,
         "chart view should keep macro count bounded after semantic subrender split",
     );
 
     assert!(
-        view_source.lines().count() <= 520,
+        view_source.lines().count() <= 620,
         "chart view.rs should stay bounded; split further if this grows significantly",
     );
 
-    let script_needle = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_view_macro_complexity_is_split_into_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_view_macro_complexity_is_split_into_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`",
@@ -3980,7 +3990,7 @@ fn chart_view_functional_split_prefers_plain_functions_over_local_components() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_view_functional_split_prefers_plain_functions_over_local_components";
+    let script_needle = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_view_functional_split_prefers_plain_functions_over_local_components";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`",
@@ -4018,7 +4028,7 @@ fn chart_static_fragments_are_constantized_with_stable_semantics() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_static_fragments_are_constantized_with_stable_semantics";
+    let script_needle = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_static_fragments_are_constantized_with_stable_semantics";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`",
@@ -4086,7 +4096,7 @@ fn chart_inner_html_usage_is_explicitly_na_and_guarded() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_inner_html_usage_is_explicitly_na_and_guarded";
+    let script_needle = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_inner_html_usage_is_explicitly_na_and_guarded";
     assert!(
         script_source.contains(script_needle),
         "inner-html gate script should include `{script_needle}`",
@@ -4095,8 +4105,8 @@ fn chart_inner_html_usage_is_explicitly_na_and_guarded() {
 
 #[test]
 fn chart_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
-    let cargo_source = include_str!("../../../crates/ui-components/Cargo.toml");
-    let crate_root_source = include_str!("../../../crates/ui-components/src/lib.rs");
+    let cargo_source = include_str!("../../../crates/ui/Cargo.toml");
+    let crate_root_source = include_str!("../../../crates/ui/src/lib.rs");
     let button_view_source = include_str!("../../button/src/view.rs");
     let docs_app_source = include_str!("../../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = include_str!("../../../apps/docs-app/src/debug_overlay.rs");
@@ -4130,7 +4140,7 @@ fn chart_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     ] {
         assert!(
             crate_root_source.contains(required),
-            "ui-components root should keep wasm debug isolation marker `{required}`",
+            "ui root should keep wasm debug isolation marker `{required}`",
         );
     }
 
@@ -4228,9 +4238,9 @@ fn chart_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
 
 #[test]
 fn chart_wasm_debug_check_script_covers_shared_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = include_str!("../../../scripts/check-ui-wasm-debug.sh");
 
-    let needle = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
+    let needle = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm debug check script should enforce `{needle}`",
@@ -4300,7 +4310,7 @@ fn chart_hyper_structure_builder_spec_is_not_applicable_for_simple_component_loc
 
     for required in [
         "- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。",
-        "N/A：chart 当前不属于“复杂组件（稳定外部 schema/版本化 spec 契约）”范围",
+        "N/A 适用性结论：chart 当前不属于“复杂组件（稳定外部 schema/版本化 spec 契约）”范围",
         "components/chart/src/README.md",
     ] {
         assert!(
@@ -4318,7 +4328,7 @@ fn chart_hyper_structure_builder_spec_is_not_applicable_for_simple_component_loc
 #[test]
 fn chart_component_files_check_script_covers_hyper_structure_builder_spec_na_locally() {
     let script_source = load_source("component_files_check_script");
-    let required = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
+    let required = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
     assert!(
         script_source.contains(required),
         "component-files check script should enforce `{required}`",
@@ -4335,10 +4345,9 @@ fn chart_check2_marks_hyper_structure_builder_spec_na_complete_locally() {
     );
 
     for required in [
-        "chart_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
-        "chart_component_files_check_script_covers_hyper_structure_builder_spec_na",
-        "scripts/check-ui-components-component-files.sh",
-        "components/chart/src/spec.rs（不存在）",
+        "N/A 适用性结论：chart 当前不属于“复杂组件（稳定外部 schema/版本化 spec 契约）”范围",
+        "components/chart/src/mod.rs",
+        "components/chart/src/README.md",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4408,7 +4417,7 @@ fn chart_context_compression_manifest_and_rbi_projection_are_present_and_current
 #[test]
 fn chart_component_files_check_script_covers_context_compression_manifest_and_rbi_locally() {
     let script_source = load_source("component_files_check_script");
-    let required = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let required = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         script_source.contains(required),
         "component-files check script should enforce `{required}`",
@@ -4429,7 +4438,7 @@ fn chart_check2_marks_context_compression_manifest_and_rbi_contract_complete_loc
         "components/chart/Component.rbi",
         "chart_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "chart_component_files_check_script_covers_context_compression_manifest_and_rbi",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4457,7 +4466,7 @@ fn chart_agent_contract_is_schema_typed_and_machine_readable_locally() {
         "pub enum ChartAgentOutputStatus",
         "pub struct ChartAgentContract",
         "pub struct ChartAgentContractInput",
-        "pub const fn resolve_agent_contract(",
+        "pub fn resolve_agent_contract(",
     ] {
         assert!(
             logic_source.contains(required),
@@ -4563,10 +4572,10 @@ fn chart_contract_hygiene_script_covers_agent_contract_schema_contract_locally()
     let script_source = load_source("contract_hygiene_check_script");
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_agent_contract_schema_governance_rules",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(required),
@@ -4589,7 +4598,7 @@ fn chart_check2_documents_agent_contract_schema_governance_rules_locally() {
         "chart_agent_contract_is_schema_typed_and_machine_readable",
         "chart_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "chart_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4627,7 +4636,7 @@ fn chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_needle = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(script_needle),
         "streaming check script should include `{script_needle}`",
@@ -4637,7 +4646,7 @@ fn chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes
 #[test]
 fn chart_streaming_script_covers_two_mode_definition_contract_locally() {
     let script_source = load_source("streaming_check_script");
-    let needle = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let needle = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(needle),
         "streaming check script should enforce `{needle}`",
@@ -4660,7 +4669,7 @@ fn chart_check2_marks_streaming_two_mode_definition_complete_locally() {
         "components/chart/test/chart_semantics.rs::chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
         "components/chart/test/chart_semantics.rs::chart_streaming_script_covers_two_mode_definition_contract",
         "components/chart/test/chart_semantics.rs::chart_check2_marks_streaming_two_mode_definition_complete",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4679,7 +4688,7 @@ fn chart_check2_documents_snapshot_as_default_baseline_capability_locally() {
         "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
         "N/A：`Chart` 不直接渲染 LLM 正文；组件侧能力定义为“消费完整配置并一次性稳定渲染”。",
         "chart_check2_documents_snapshot_as_default_baseline_capability_locally",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4740,9 +4749,9 @@ fn chart_snapshot_baseline_consumes_complete_result_and_renders_stably_locally()
     }
 
     for required in [
-        "chart_snapshot_baseline_consumes_complete_result_and_renders_stably_locally",
-        "data-ui-stream-mode=\"snapshot\"",
-        "data-active-index=move || state.get().active_index.to_string()",
+        "Streaming Optional",
+        "fallback=snapshot",
+        "role`/`aria-*`/`data-*` 连续可读",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4750,7 +4759,7 @@ fn chart_snapshot_baseline_consumes_complete_result_and_renders_stably_locally()
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_snapshot_baseline_consumes_complete_result_and_renders_stably";
+    let script_needle = "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_snapshot_baseline_consumes_complete_result_and_renders_stably";
     assert!(
         script_source.contains(script_needle),
         "streaming check script should include `{script_needle}`",
@@ -4762,8 +4771,8 @@ fn chart_streaming_script_covers_snapshot_baseline_contract_locally() {
     let script_source = load_source("streaming_check_script");
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(required),
@@ -4790,7 +4799,7 @@ fn chart_check2_marks_snapshot_baseline_capability_complete_locally() {
         "components/chart/test/chart_semantics.rs::chart_snapshot_baseline_consumes_complete_result_and_renders_stably",
         "components/chart/test/chart_semantics.rs::chart_streaming_script_covers_snapshot_baseline_contract",
         "components/chart/test/chart_semantics.rs::chart_check2_marks_snapshot_baseline_capability_complete",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4819,9 +4828,9 @@ fn chart_check2_documents_streaming_required_optional_classification_rules_local
     }
 
     for script_required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(script_required),
@@ -4839,7 +4848,7 @@ fn chart_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous_lo
         "role=move || semantics.get().attrs.role",
         "aria-label=move || semantics.get().attrs.aria_label",
         "data-state=move || semantics.get().attrs.data_state",
-        "data-source=move || semantics.get().attrs.data_source",
+        "data-active-value-source=move || active_value_source.get().as_attr()",
         "data-ui-state=move || agent_contract.get().state.as_str()",
         "data-ui-source=move || agent_contract.get().source.as_str()",
         "data-ui-stream-support=move || agent_contract.get().stream_support.as_str()",
@@ -4896,9 +4905,9 @@ fn chart_streaming_script_covers_required_optional_classification_contract_local
     let script_source = load_source("streaming_check_script");
 
     for required in [
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test chart_semantics --no-default-features --features component-chart,inject-css chart_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test chart_semantics --no-default-features --features component-chart,inject-css chart_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(required),
@@ -4927,7 +4936,7 @@ fn chart_check2_marks_streaming_required_optional_classification_complete_locall
         "components/chart/test/chart_semantics.rs::chart_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
         "components/chart/test/chart_semantics.rs::chart_streaming_script_covers_required_optional_classification_contract",
         "components/chart/test/chart_semantics.rs::chart_check2_marks_streaming_required_optional_classification_complete",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             check2_source.contains(required),

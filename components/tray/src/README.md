@@ -42,7 +42,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::Tray;
+use ui::Tray;
 
 let (open, set_open) = signal(true);
 let open_signal = Signal::derive(move || open.get());

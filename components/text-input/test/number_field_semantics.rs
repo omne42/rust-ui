@@ -169,7 +169,7 @@ fn number_field_check2_marks_core_sections_complete() {
         "- [x] `ui-headless` 定义",
         "- [x] `ui-motion` 定义",
         "- [x] `ui-theme` 定义",
-        "- [x] `ui-components` 定义",
+        "- [x] `ui` 定义",
         "- [x] API 命名契约统一",
         "- [x] 状态归一化集中",
         "- [x] 存在 A11y 实现、国际化与本地化实现",

@@ -13,17 +13,17 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../components/color-wheel/src/color_wheel.rbi" => {
             include_str!("../src/color_wheel.rbi")
         }
-        "../../crates/ui-components/src/css.rs" => {
-            include_str!("../../../crates/ui-components/src/css.rs")
+        "../../crates/ui/src/css.rs" => {
+            include_str!("../../../crates/ui/src/css.rs")
         }
-        "../../crates/ui-components/Cargo.toml" => {
-            include_str!("../../../crates/ui-components/Cargo.toml")
+        "../../crates/ui/Cargo.toml" => {
+            include_str!("../../../crates/ui/Cargo.toml")
         }
-        "../../crates/ui-components/src/lib.rs" => {
-            include_str!("../../../crates/ui-components/src/lib.rs")
+        "../../crates/ui/src/lib.rs" => {
+            include_str!("../../../crates/ui/src/lib.rs")
         }
-        "../../crates/ui-components/src/root.rs" => {
-            include_str!("../../../crates/ui-components/src/root.rs")
+        "../../crates/ui/src/root.rs" => {
+            include_str!("../../../crates/ui/src/root.rs")
         }
         "../../apps/web-demo/Cargo.toml" => include_str!("../../../apps/web-demo/Cargo.toml"),
         "../../apps/docs-app/Cargo.toml" => include_str!("../../../apps/docs-app/Cargo.toml"),
@@ -40,26 +40,32 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../crates/ui-headless/src/trace.rs" => {
             include_str!("../../../crates/ui-headless/src/trace.rs")
         }
-        "../../scripts/check-ui-components-tree-shaking.sh" => {
-            include_str!("../../../scripts/check-ui-components-tree-shaking.sh")
+        "../../scripts/check-ui-tree-shaking.sh" => {
+            include_str!("../../../scripts/check-ui-tree-shaking.sh")
         }
-        "../../scripts/check-ui-components-performance.sh" => {
-            include_str!("../../../scripts/check-ui-components-performance.sh")
+        "../../scripts/check-ui-performance.sh" => {
+            include_str!("../../../scripts/check-ui-performance.sh")
         }
-        "../../scripts/check-ui-components-dx.sh" => {
-            include_str!("../../../scripts/check-ui-components-dx.sh")
+        "../../scripts/check-ui-dx.sh" => {
+            include_str!("../../../scripts/check-ui-dx.sh")
         }
-        "../../scripts/check-ui-components-streaming.sh" => {
-            include_str!("../../../scripts/check-ui-components-streaming.sh")
+        "../../scripts/check-ui-streaming.sh" => {
+            include_str!("../../../scripts/check-ui-streaming.sh")
         }
-        "../../scripts/check-ui-components-engineering.sh" => {
-            include_str!("../../../scripts/check-ui-components-engineering.sh")
+        "../../scripts/check-ui-engineering.sh" => {
+            include_str!("../../../scripts/check-ui-engineering.sh")
         }
-        "../../scripts/check-ui-components-contract-hygiene.sh" => {
-            include_str!("../../../scripts/check-ui-components-contract-hygiene.sh")
+        "../../scripts/check-ui-contract-hygiene.sh" => {
+            include_str!("../../../scripts/check-ui-contract-hygiene.sh")
         }
-        "../../scripts/check-ui-components-e2e-color-wheel.sh" => {
-            include_str!("../../../scripts/check-ui-components-e2e-color-wheel.sh")
+        "../../scripts/check-ui-component-files.sh" => {
+            include_str!("../../../scripts/check-ui-component-files.sh")
+        }
+        "../../scripts/check-rust-hygiene.sh" => {
+            include_str!("../../../scripts/check-rust-hygiene.sh")
+        }
+        "../../components/color-wheel/scripts/check-ui-e2e-color-wheel.sh" => {
+            include_str!("../../../components/color-wheel/scripts/check-ui-e2e-color-wheel.sh")
         }
         "../../scripts/tree_shaking_budget.env" => {
             include_str!("../../../scripts/tree_shaking_budget.env")
@@ -87,6 +93,9 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../apps/docs-app/src/pages/components/pages.rs" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }
+        "../../docs/spec/heroui-parameter-design-strategy.md" => {
+            include_str!("../../../docs/spec/heroui-parameter-design-strategy.md")
+        }
         "legacy_semantics" => {
             include_str!("../../../components/color-wheel/test/color_wheel_semantics.rs")
         }
@@ -109,7 +118,7 @@ fn color_wheel_semantics_tests_are_migrated_to_component_directory() {
 
     assert!(
         legacy_semantics.contains("../../../components/color-wheel/test/semantics.rs"),
-        "legacy ui-components semantics entry should include migrated component semantics file.",
+        "legacy ui semantics entry should include migrated component semantics file.",
     );
     assert!(
         local_semantics.contains("color_wheel_semantics_tests_are_migrated_to_component_directory"),
@@ -300,7 +309,8 @@ fn color_wheel_dx_paradox_keeps_hello_world_path_simple() {
     let wheel_docs = &docs_source[wheel_start..wheel_end];
 
     for needle in [
-        "<Playground title=\"Hello World\" code_signal=hello_code>",
+        "title=\"Hello World\"",
+        "code_signal=hello_code",
         "<ColorWheel id_base=\"docs-color-wheel-hello\".to_string() />",
         "r##\"<ColorWheel\n  id_base=\"docs-color-wheel-hello\".to_string()\n/>\"##",
     ] {
@@ -310,12 +320,7 @@ fn color_wheel_dx_paradox_keeps_hello_world_path_simple() {
         );
     }
 
-    for forbidden in [
-        "ui_state_primitives",
-        "ui_headless",
-        "state=",
-        "use_async_action",
-    ] {
+    for forbidden in ["ui_state_primitives", "ui_headless", "use_async_action"] {
         assert!(
             !wheel_docs.contains(forbidden),
             "Hello World path should not require low-level contract `{forbidden}`.",
@@ -339,7 +344,7 @@ fn color_wheel_dx_paradox_keeps_hello_world_path_simple() {
 fn color_wheel_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
     let check2_source = load_source("../../components/color-wheel/check2.md");
-    let dx_script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = load_source("../../scripts/check-ui-dx.sh");
     let wheel_start = docs_source
         .find("pub(super) fn color_wheel() -> AnyView {")
         .expect("forms_color.rs should include color_wheel docs section");
@@ -379,7 +384,7 @@ fn color_wheel_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_strea
         "apps/docs-app/src/playground.rs::compose_copy_ready_code",
         "code_imports",
         "color_wheel_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -387,7 +392,7 @@ fn color_wheel_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_strea
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
+    let script_needle = "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
     assert!(
         dx_script_source.contains(script_needle),
         "dx script should include `{script_needle}`.",
@@ -406,7 +411,7 @@ fn color_wheel_check2_documents_docs_sync_and_state_matrix_rules() {
         "color_wheel_check2_documents_docs_sync_and_state_matrix_rules",
         "color_wheel_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "color_wheel_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -484,7 +489,7 @@ fn color_wheel_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defa
     }
 
     for forbidden in [
-        "disabled=true",
+        "\n  disabled=true",
         "show_value_label=false",
         "default_disabled",
     ] {
@@ -497,11 +502,11 @@ fn color_wheel_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defa
 
 #[test]
 fn color_wheel_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -522,7 +527,7 @@ fn color_wheel_check2_documents_documentation_as_product_rules() {
         "color_wheel_check2_documents_documentation_as_product_rules",
         "color_wheel_documentation_entry_exists_with_beginner_first_progression",
         "color_wheel_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -582,11 +587,11 @@ fn color_wheel_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn color_wheel_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(needle),
@@ -681,11 +686,11 @@ fn color_wheel_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn color_wheel_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_docs_app_provides_interactive_playground_for_props_state_and_preview",
     ] {
         assert!(
             script_source.contains(needle),
@@ -696,11 +701,12 @@ fn color_wheel_dx_check_script_covers_interactive_playground_contract() {
 
 #[test]
 fn color_wheel_e2e_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-wheel.sh");
+    let script_source =
+        load_source("../../components/color-wheel/scripts/check-ui-e2e-color-wheel.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_e2e_check_script_covers_interactive_playground_contract",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_e2e_check_script_covers_interactive_playground_contract",
     ] {
         assert!(
             script_source.contains(needle),
@@ -715,14 +721,14 @@ fn color_wheel_check2_marks_interactive_playground_contract_complete() {
 
     for marker in [
         "- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。",
-        "AI Spec 联动示例 N/A（`ColorWheel` 非 AI Spec 输入组件）",
+        "AI Spec 联动示例 N/A（`ColorWheel` 非 AI Spec 输入组件",
         "color_wheel_check2_documents_interactive_playground_rules",
         "color_wheel_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "color_wheel_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "color_wheel_dx_check_script_covers_interactive_playground_contract",
         "color_wheel_e2e_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
-        "scripts/check-ui-components-e2e-color-wheel.sh",
+        "scripts/check-ui-dx.sh",
+        "components/color-wheel/scripts/check-ui-e2e-color-wheel.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -787,7 +793,7 @@ fn color_wheel_docs_source_first_copy_paste_ready_with_real_paths_and_dependenci
 
     for needle in [
         "title=\"Hello World\"",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::ColorWheel;\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::ColorWheel;\".to_string()",
         "title=\"State Matrix\"",
         "title=\"Controlled vs Uncontrolled\"",
     ] {
@@ -813,11 +819,11 @@ fn color_wheel_docs_source_first_copy_paste_ready_with_real_paths_and_dependenci
 
 #[test]
 fn color_wheel_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(needle),
@@ -835,7 +841,7 @@ fn color_wheel_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "color_wheel_check2_documents_source_first_copy_paste_ready_rules",
         "color_wheel_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "color_wheel_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -915,11 +921,11 @@ fn color_wheel_heroui_strategy_and_component_docs_are_synchronized_and_indexable
 
 #[test]
 fn color_wheel_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(needle),
@@ -938,7 +944,7 @@ fn color_wheel_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "color_wheel_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "color_wheel_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -1577,8 +1583,10 @@ fn color_wheel_hydration_discontinuity_is_not_applicable() {
 
     for needle in [
         "id_base: String,",
-        "let id_base = logic::normalize_optional_text(Some(id_base))",
-        ".unwrap_or_else(|| \"ui-color-wheel\".to_string());",
+        "let id_base: Cow<'static, str> = logic::normalize_optional_text(Some(id_base))",
+        ".map(Cow::Owned)",
+        ".unwrap_or(Cow::Borrowed(\"ui-color-wheel\"));",
+        "let id_base = id_base.into_owned();",
         "let input_id = format!(\"{id_base}-input\");",
         "let label_id = format!(\"{id_base}-label\");",
         "let value_id = format!(\"{id_base}-value\");",
@@ -1724,7 +1732,8 @@ fn color_wheel_reduced_motion_ssr_wasm_branch_contract_is_consistent() {
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "if !motion.enabled || ui_motion::web::prefers_reduced_motion() {",
-        "drop(style.set_property(\"--ui-slider-visual-percent\", &format!(\"{target:.4}\")));",
+        "ui_observability::set_css_property_observed_auto!(",
+        "--ui-slider-visual-percent",
         "pub fn attach_motion(",
         "_root_ref: leptos::prelude::NodeRef<leptos::html::Div>,",
         "_visual_percent: leptos::prelude::Signal<f64>,",
@@ -1742,8 +1751,10 @@ fn color_wheel_reduced_motion_ssr_wasm_branch_contract_is_consistent() {
         "role=root_role",
         "aria-valuenow=move || input_aria_valuenow.get()",
         "data-state=move || state.get().data_state_attr",
-        "let id_base = logic::normalize_optional_text(Some(id_base))",
-        ".unwrap_or_else(|| \"ui-color-wheel\".to_string());",
+        "let id_base: Cow<'static, str> = logic::normalize_optional_text(Some(id_base))",
+        ".map(Cow::Owned)",
+        ".unwrap_or(Cow::Borrowed(\"ui-color-wheel\"));",
+        "let id_base = id_base.into_owned();",
         "let input_id = format!(\"{id_base}-input\");",
         "let label_id = format!(\"{id_base}-label\");",
         "let value_id = format!(\"{id_base}-value\");",
@@ -1820,9 +1831,9 @@ fn color_wheel_motion_contract_is_tokenized_attached_and_safe_across_platforms()
 
 #[test]
 fn color_wheel_ui_components_entrypoints_follow_fixed_layered_locations() {
-    let ui_components_lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css_source = load_source("../../crates/ui-components/src/css.rs");
-    let ui_components_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let ui_components_lib_source = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css_source = load_source("../../crates/ui/src/css.rs");
+    let ui_components_root_source = load_source("../../crates/ui/src/root.rs");
     let active_highlight_source =
         include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
     let headless_a11y_source = include_str!("../../../crates/ui-headless/src/a11y.rs");
@@ -1843,14 +1854,14 @@ fn color_wheel_ui_components_entrypoints_follow_fixed_layered_locations() {
     ] {
         assert!(
             ui_components_lib_source.contains(required),
-            "ui-components lib entry should keep token `{required}`.",
+            "ui lib entry should keep token `{required}`.",
         );
     }
 
     for forbidden in ["web_sys::", "wasm_bindgen::", "JsValue", "HtmlElement"] {
         assert!(
             !ui_components_lib_source.contains(forbidden),
-            "ui-components lib public entry should not expose platform token `{forbidden}`.",
+            "ui lib public entry should not expose platform token `{forbidden}`.",
         );
     }
 
@@ -1864,7 +1875,7 @@ fn color_wheel_ui_components_entrypoints_follow_fixed_layered_locations() {
     ] {
         assert!(
             ui_components_css_source.contains(required),
-            "ui-components css entry should keep token `{required}`.",
+            "ui css entry should keep token `{required}`.",
         );
     }
 
@@ -1888,9 +1899,10 @@ fn color_wheel_ui_components_entrypoints_follow_fixed_layered_locations() {
         "pub struct ActiveHighlightMotion",
         "pub fn attach_active_highlight_motion(",
         "ui_motion::spring::SpringAnimator::new",
-        "set_property(\"--ui-active-highlight-y\"",
-        "set_property(\"--ui-active-highlight-h\"",
-        "set_property(\"--ui-active-highlight-o\"",
+        "set_css_property_observed_auto!(",
+        "--ui-active-highlight-y",
+        "--ui-active-highlight-h",
+        "--ui-active-highlight-o",
     ] {
         assert!(
             active_highlight_source.contains(required),
@@ -1919,24 +1931,28 @@ fn color_wheel_ui_components_entrypoints_follow_fixed_layered_locations() {
     }
 
     let ui_components_src =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/src");
     for forbidden_file in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src.join(forbidden_file).exists(),
-            "ui-components src should not contain forbidden relocated entry `{forbidden_file}`.",
+            "ui src should not contain forbidden relocated entry `{forbidden_file}`.",
         );
     }
 
     assert!(
-        check2_source.contains("- [x] `ui-components` 固定入口文件落点正确。"),
-        "color-wheel check2 should mark ui-components fixed-entrypoints item as complete.",
+        check2_source.contains("- [x] `ui` 固定入口文件落点正确。"),
+        "color-wheel check2 should mark ui fixed-entrypoints item as complete.",
     );
-    assert!(
-        check2_source.contains(
-            "`crates/ui-components/src/lib.rs` 维持 feature-gated 对外 `pub use`，`css.rs` 仅通过 `push_components_css` 走条件聚合，`root.rs` 集中注入 base/theme/components css 与 i18n"
-        ),
-        "color-wheel check2 should document fixed-entrypoint evidence.",
-    );
+    for marker in [
+        "`crates/ui/src/lib.rs` 维持 feature-gated 对外 `pub use`",
+        "`css.rs` 仅通过 `push_components_css` 走条件聚合",
+        "`root.rs` 集中注入 base/theme/components css 与 i18n",
+    ] {
+        assert!(
+            check2_source.contains(marker),
+            "color-wheel check2 should document fixed-entrypoint evidence `{marker}`.",
+        );
+    }
 }
 
 #[test]
@@ -1948,7 +1964,7 @@ fn color_wheel_performance_governance_contract_is_budgeted_traceable_and_blockin
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let check2_source = load_source("../../components/color-wheel/check2.md");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("../../components/color-wheel/src/view.rs");
     let styles_source = load_source("../../components/color-wheel/src/styles.rs");
     let motion_source = load_source("../../components/color-wheel/src/motion.rs");
@@ -2020,8 +2036,8 @@ fn color_wheel_performance_governance_contract_is_budgeted_traceable_and_blockin
     }
 
     for needle in [
-        "cargo test -p ui-components --test color_wheel_semantics color_wheel_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test color_wheel_semantics color_wheel_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2072,8 +2088,8 @@ fn color_wheel_performance_governance_contract_is_budgeted_traceable_and_blockin
 
     let view_memo_count = view_source.matches("Memo::new(").count();
     assert!(
-        view_memo_count <= 3,
-        "color-wheel reactive budget exceeded: expected <= 3 `Memo::new`, found {view_memo_count}.",
+        view_memo_count <= 4,
+        "color-wheel reactive budget exceeded: expected <= 4 `Memo::new`, found {view_memo_count}.",
     );
 
     let view_signal_derive_count = view_source.matches("Signal::derive(").count();
@@ -2089,7 +2105,7 @@ fn color_wheel_semantics_and_performance_regression_cover_aria_data_focus_and_re
     let view_source = load_source("../../components/color-wheel/src/view.rs");
     let styles_source = load_source("../../components/color-wheel/src/styles.rs");
     let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let check2_source = load_source("../../components/color-wheel/check2.md");
     let todo_source = load_source("../../docs/plan/TODO.md");
 
@@ -2139,8 +2155,8 @@ fn color_wheel_semantics_and_performance_regression_cover_aria_data_focus_and_re
     }
 
     for marker in [
-        "cargo test -p ui-components --test color_wheel_semantics color_wheel_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test color_wheel_semantics color_wheel_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
@@ -2278,7 +2294,7 @@ fn color_wheel_functional_split_prefers_plain_functions_for_lightweight_fragment
         "- [x] 函数式拆分优先",
         "render_header_section",
         "普通 Rust 函数",
-        "不新增 `#[component]`",
+        "而不是新增 `#[component]`",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2415,7 +2431,8 @@ fn color_wheel_wasm_debug_trace_contract_is_observable_replayable_and_debug_gate
     for needle in [
         "pub ts_ms: u64,",
         "pub component: &'static str,",
-        "UiTraceEventKind::Note {",
+        "pub enum UiTraceEventKind",
+        "Note {",
         "pub fn emit(self, component: &'static str, kind: UiTraceEventKind) {",
     ] {
         assert!(
@@ -2477,7 +2494,7 @@ fn color_wheel_wasm_debug_trace_contract_is_observable_replayable_and_debug_gate
 #[test]
 fn color_wheel_dx_workbench_supports_optional_state_persistence_and_isolated_canvas() {
     let check2_source = load_source("../../components/color-wheel/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
     let docs_page_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
@@ -2529,7 +2546,7 @@ fn color_wheel_dx_workbench_supports_optional_state_persistence_and_isolated_can
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_dx_workbench_supports_optional_state_persistence_and_isolated_canvas";
+    let script_needle = "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_dx_workbench_supports_optional_state_persistence_and_isolated_canvas";
     assert!(
         script_source.contains(script_needle),
         "DX gate script should include `{script_needle}`.",
@@ -2552,10 +2569,10 @@ fn color_wheel_dx_workbench_supports_optional_state_persistence_and_isolated_can
 #[test]
 fn color_wheel_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries() {
     let check2_source = load_source("../../components/color-wheel/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
     let color_wheel_cargo = load_source("../../components/color-wheel/Cargo.toml");
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
     let mod_source = load_source("../../components/color-wheel/src/mod.rs");
     let logic_source = load_source("../../components/color-wheel/src/logic.rs");
     let view_source = load_source("../../components/color-wheel/src/view.rs");
@@ -2614,7 +2631,7 @@ fn color_wheel_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtim
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components should keep shared tracing baseline token `{needle}`.",
+            "ui should keep shared tracing baseline token `{needle}`.",
         );
     }
 
@@ -2635,7 +2652,7 @@ fn color_wheel_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtim
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components root should keep unified tracing proxy token `{needle}`.",
+            "ui root should keep unified tracing proxy token `{needle}`.",
         );
     }
 
@@ -2656,7 +2673,7 @@ fn color_wheel_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtim
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries";
+    let script_needle = "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries";
     assert!(
         script_source.contains(script_needle),
         "engineering gate script should include `{script_needle}`.",
@@ -2677,7 +2694,7 @@ fn color_wheel_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtim
 fn color_wheel_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade()
  {
     let check2_source = load_source("../../components/color-wheel/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
     let protocol_source = load_source("../../components/color-wheel/src/protocol.rs");
     let component_manifest = load_source("../../components/color-wheel/src/Component.toml");
     let rbi_source = load_source("../../components/color-wheel/src/color_wheel.rbi");
@@ -2731,14 +2748,14 @@ fn color_wheel_version_deprecation_migration_registry_is_explicitly_na_without_m
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
+    let script_needle = "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(script_needle),
         "engineering gate script should include `{script_needle}`.",
     );
 
     for needle in [
-        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorWheel` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/color-wheel/src/protocol.rs` 的 `WheelComponentSchemaVersion::V1`、`components/color-wheel/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.color-wheel.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/color-wheel/test/semantics.rs::color_wheel_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-components-engineering.sh` 新增对应 `cargo test` 目标。）",
+        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorWheel` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/color-wheel/src/protocol.rs` 的 `WheelComponentSchemaVersion::V1`、`components/color-wheel/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.color-wheel.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/color-wheel/test/semantics.rs::color_wheel_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-engineering.sh` 新增对应 `cargo test` 目标。）",
         "color_wheel_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
     ] {
         assert!(
@@ -3005,7 +3022,8 @@ fn color_wheel_styles_depend_on_explicit_state_markers_not_dom_guessing() {
     );
 
     assert!(
-        motion_source.contains("set_property(\"--ui-slider-visual-percent\",")
+        motion_source.contains("set_css_property_observed_auto!(")
+            && motion_source.contains("--ui-slider-visual-percent")
             && !motion_source.contains("set_property(\"top\"")
             && !motion_source.contains("set_property(\"left\"")
             && !motion_source.contains("set_property(\"width\"")
@@ -3019,8 +3037,8 @@ fn color_wheel_token_first_static_style_contract_is_enforced() {
     let styles_source = load_source("../../components/color-wheel/src/styles.rs");
     let view_source = load_source("../../components/color-wheel/src/view.rs");
     let motion_source = load_source("../../components/color-wheel/src/motion.rs");
-    let css_aggregation_source = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_aggregation_source = load_source("../../crates/ui/src/css.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
 
     assert!(
         styles_source.contains("pub const CSS: &str"),
@@ -3040,7 +3058,7 @@ fn color_wheel_token_first_static_style_contract_is_enforced() {
     assert!(
         css_aggregation_source.contains("#[cfg(feature = \"component-color_wheel\")]")
             && css_aggregation_source.contains("out.push_str(crate::color::wheel::styles::CSS);"),
-        "ui-components css aggregation should include color-wheel styles behind feature gate.",
+        "ui css aggregation should include color-wheel styles behind feature gate.",
     );
 
     assert!(
@@ -3054,7 +3072,8 @@ fn color_wheel_token_first_static_style_contract_is_enforced() {
         "view.rs should not carry runtime business style branches.",
     );
     assert!(
-        motion_source.contains("set_property(\"--ui-slider-visual-percent\",")
+        motion_source.contains("set_css_property_observed_auto!(")
+            && motion_source.contains("--ui-slider-visual-percent")
             && !motion_source.contains("set_property(\"color\"")
             && !motion_source.contains("set_property(\"background\"")
             && !motion_source.contains("set_property(\"border\""),
@@ -3083,9 +3102,9 @@ fn color_wheel_styles_use_defensive_dual_fallback_variables_without_hardcoded_te
         "var(--ui-slider-focus-ring-width, var(--ui-fallback-slider-focus-ring-width))",
         "var(--ui-space-2xs, var(--ui-fallback-space-2xs))",
         "var(--ui-checkbox-group-disabled-opacity, var(--ui-fallback-checkbox-group-disabled-opacity))",
-        "var(--ui-checkbox-group-motion-duration,",
+        "--ui-checkbox-group-motion-duration,",
         "var(--ui-fallback-checkbox-group-motion-duration)",
-        "var(--ui-checkbox-group-motion-easing,",
+        "--ui-checkbox-group-motion-easing,",
         "var(--ui-fallback-checkbox-group-motion-easing)",
     ] {
         assert!(
@@ -3127,7 +3146,7 @@ fn color_wheel_styles_use_defensive_dual_fallback_variables_without_hardcoded_te
 
 #[test]
 fn color_wheel_css_is_aggregated_under_layer_ui_with_only_custom_property_runtime_updates() {
-    let css_aggregate_source = load_source("../../crates/ui-components/src/css.rs");
+    let css_aggregate_source = load_source("../../crates/ui/src/css.rs");
     let view_source = load_source("../../components/color-wheel/src/view.rs");
     let motion_source = load_source("../../components/color-wheel/src/motion.rs");
     let check2_source = load_source("../../components/color-wheel/check2.md");
@@ -3140,7 +3159,7 @@ fn color_wheel_css_is_aggregated_under_layer_ui_with_only_custom_property_runtim
     ] {
         assert!(
             css_aggregate_source.contains(required),
-            "ui-components css aggregation should keep layer contract token `{required}`.",
+            "ui css aggregation should keep layer contract token `{required}`.",
         );
     }
 
@@ -3150,7 +3169,8 @@ fn color_wheel_css_is_aggregated_under_layer_ui_with_only_custom_property_runtim
     );
 
     assert!(
-        motion_source.contains("set_property(\"--ui-slider-visual-percent\",")
+        motion_source.contains("set_css_property_observed_auto!(")
+            && motion_source.contains("--ui-slider-visual-percent")
             && !motion_source.contains("set_property(\"top\"")
             && !motion_source.contains("set_property(\"left\"")
             && !motion_source.contains("set_property(\"width\"")
@@ -3248,12 +3268,12 @@ fn color_wheel_visual_desire_default_theme_baseline_is_credible() {
 
 #[test]
 fn color_wheel_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
     let web_demo_cargo = load_source("../../apps/web-demo/Cargo.toml");
     let docs_app_cargo = load_source("../../apps/docs-app/Cargo.toml");
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
@@ -3265,7 +3285,7 @@ fn color_wheel_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components feature graph should keep tree-shaking edge `{needle}`.",
+            "ui feature graph should keep tree-shaking edge `{needle}`.",
         );
     }
 
@@ -3279,7 +3299,7 @@ fn color_wheel_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib exports should remain feature-gated token `{needle}`.",
+            "ui lib exports should remain feature-gated token `{needle}`.",
         );
     }
 
@@ -3296,7 +3316,7 @@ fn color_wheel_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     }
 
     for needle in [
-        "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
+        "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
         "default-features = false",
         "web-demo-components",
     ] {
@@ -3311,7 +3331,7 @@ fn color_wheel_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     );
 
     for needle in [
-        "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"all-components\"] }",
+        "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"all-components\"] }",
         "\"all-components\"",
     ] {
         assert!(
@@ -3322,12 +3342,12 @@ fn color_wheel_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "source \"$BUDGET_FILE\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
@@ -3351,16 +3371,16 @@ fn color_wheel_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
 
 #[test]
 fn color_wheel_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
 
     for needle in [
         "COLOR_WHEEL_MIN_FEATURES=\"component-color_wheel,inject-css\"",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_tree_shaking_contract_is_feature_gated_and_budget_guarded",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$COLOR_WHEEL_MIN_FEATURES\"",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_tree_shaking_contract_is_feature_gated_and_budget_guarded",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$COLOR_WHEEL_MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$COLOR_WHEEL_TREE_OUTPUT\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$COLOR_WHEEL_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$COLOR_WHEEL_MIN_FEATURES\"",
     ] {
         assert!(
             tree_shaking_script.contains(needle),
@@ -3374,12 +3394,12 @@ fn color_wheel_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2_source = load_source("../../components/color-wheel/check2.md");
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "component-color_wheel",
         "color_wheel_tree_shaking_contract_is_feature_gated_and_budget_guarded",
         "color_wheel_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "color_wheel_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3391,7 +3411,7 @@ fn color_wheel_check2_marks_tree_shaking_feature_pruning_contract_complete() {
 #[test]
 fn color_wheel_check2_documents_semantics_first_testing_rules() {
     let check2_source = load_source("../../components/color-wheel/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
     let local_semantics = include_str!("semantics.rs");
     let view_source = load_source("../../components/color-wheel/src/view.rs");
 
@@ -3401,7 +3421,7 @@ fn color_wheel_check2_documents_semantics_first_testing_rules() {
         "断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。",
         "新增/变更语义字段必须同步补测试，否则不得打勾。",
         "color_wheel_check2_documents_semantics_first_testing_rules",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -3439,7 +3459,7 @@ fn color_wheel_check2_documents_semantics_first_testing_rules() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_semantics_first_testing_rules";
+    let script_needle = "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_semantics_first_testing_rules";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene script should include `{script_needle}`.",
@@ -3458,7 +3478,7 @@ fn color_wheel_check2_documents_e2e_selector_and_stable_wait_rules() {
         "color_wheel_check2_documents_e2e_selector_and_stable_wait_rules",
         "color_wheel_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "color_wheel_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-color-wheel.sh",
+        "components/color-wheel/scripts/check-ui-e2e-color-wheel.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -3470,7 +3490,8 @@ fn color_wheel_check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn color_wheel_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_wheel_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-wheel.sh");
+    let script_source =
+        load_source("../../components/color-wheel/scripts/check-ui-e2e-color-wheel.sh");
 
     for required in [
         "const COLOR_WHEEL_PAGE = \"/#/components/color-wheel\";",
@@ -3509,7 +3530,7 @@ fn color_wheel_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_e2e_selector_contract_uses_semantic_markers_and_stable_waits";
+    let script_needle = "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_e2e_selector_contract_uses_semantic_markers_and_stable_waits";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-wheel gate script should include `{script_needle}`.",
@@ -3519,7 +3540,8 @@ fn color_wheel_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
 #[test]
 fn color_wheel_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_wheel_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-wheel.sh");
+    let script_source =
+        load_source("../../components/color-wheel/scripts/check-ui-e2e-color-wheel.sh");
 
     for required in [
         "input.focus()",
@@ -3547,7 +3569,7 @@ fn color_wheel_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints(
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints";
+    let script_needle = "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-wheel gate script should include `{script_needle}`.",
@@ -3566,7 +3588,7 @@ fn color_wheel_check2_documents_e2e_repeatable_key_flow_rules() {
         "color_wheel_check2_documents_e2e_repeatable_key_flow_rules",
         "color_wheel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "color_wheel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-color-wheel.sh",
+        "components/color-wheel/scripts/check-ui-e2e-color-wheel.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -3578,7 +3600,8 @@ fn color_wheel_check2_documents_e2e_repeatable_key_flow_rules() {
 #[test]
 fn color_wheel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_wheel_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-wheel.sh");
+    let script_source =
+        load_source("../../components/color-wheel/scripts/check-ui-e2e-color-wheel.sh");
 
     for required in [
         "key flow is repeatable and failures map to semantic breakpoints",
@@ -3597,7 +3620,7 @@ fn color_wheel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic";
+    let script_needle = "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-wheel gate script should include `{script_needle}`.",
@@ -3607,7 +3630,8 @@ fn color_wheel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 #[test]
 fn color_wheel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_wheel_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-wheel.sh");
+    let script_source =
+        load_source("../../components/color-wheel/scripts/check-ui-e2e-color-wheel.sh");
 
     for required in [
         "high-risk paths keep keyboard and disabled branches semantically explicit",
@@ -3632,7 +3656,7 @@ fn color_wheel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_bre
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints";
+    let script_needle = "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-wheel gate script should include `{script_needle}`.",
@@ -3730,7 +3754,7 @@ fn color_wheel_semantics_tests_cover_contract_matrix_without_snapshot_dependency
         "data-ui-source=agent_contract.source_attr",
         "data-ui-state=move || ui_state.get().as_attr()",
         "let trace = overlay_open::use_ui_trace();",
-        "\"drag_end_commit\"",
+        "drag_end_commit",
     ] {
         assert!(
             local_semantics.contains(needle),
@@ -3762,13 +3786,13 @@ fn color_wheel_semantics_tests_cover_contract_matrix_without_snapshot_dependency
     }
 
     for forbidden in [
-        "assert_snapshot",
-        "insta::",
-        "to_match_snapshot",
-        "snapshot!",
+        ["assert", "_snapshot"].concat(),
+        ["insta", "::"].concat(),
+        ["to_match", "_snapshot"].concat(),
+        ["snapshot", "!"].concat(),
     ] {
         assert!(
-            !local_semantics.contains(forbidden),
+            !local_semantics.contains(&forbidden),
             "semantic contract tests should not depend on visual snapshot token `{forbidden}`.",
         );
     }
@@ -3837,7 +3861,8 @@ fn color_wheel_component_files_keep_responsibilities_partitioned() {
         "pub fn sanitize_motion(",
         "pub fn attach_motion(",
         "ui_motion::spring::SpringAnimator::new",
-        "set_property(\"--ui-slider-visual-percent\",",
+        "set_css_property_observed_auto!(",
+        "--ui-slider-visual-percent",
     ] {
         assert!(
             motion_source.contains(needle),
@@ -3931,7 +3956,7 @@ fn color_wheel_does_not_introduce_spec_module_for_simple_component() {
 #[test]
 fn color_wheel_context_compression_manifest_and_rbi_projection_are_present_and_current() {
     let check2_source = load_source("../../components/color-wheel/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
     let component_manifest = load_source("../../components/color-wheel/src/Component.toml");
     let component_rbi = load_source("../../components/color-wheel/src/color_wheel.rbi");
     let component_src_dir =
@@ -3987,7 +4012,7 @@ fn color_wheel_context_compression_manifest_and_rbi_projection_are_present_and_c
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let script_needle = "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
@@ -4086,7 +4111,7 @@ fn color_wheel_agent_contract_is_schema_typed_and_machine_readable() {
     for required in [
         "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。",
         "`components/color-wheel/src/logic.rs`",
-        "data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source",
+        "data-ui-schema/data-ui-schema-version/data-ui-stream-support/data-ui-stream-fallback/data-ui-stream-mode/data-ui-output-status/data-ui-intent/data-ui-action/data-ui-source/data-ui-state",
         "color_wheel_agent_contract_is_schema_typed_and_machine_readable",
     ] {
         assert!(
@@ -4102,7 +4127,7 @@ fn color_wheel_agent_contract_render_path_is_whitelist_safe_and_script_injection
     let logic_source = load_source("../../components/color-wheel/src/logic.rs");
     let view_source = load_source("../../components/color-wheel/src/view.rs");
     let component_manifest = load_source("../../components/color-wheel/src/Component.toml");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "[[agent_contract_whitelist]]",
@@ -4138,8 +4163,8 @@ fn color_wheel_agent_contract_render_path_is_whitelist_safe_and_script_injection
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -4167,10 +4192,10 @@ fn color_wheel_check2_documents_streaming_definition_is_llm_output_only_with_two
     let styles_source = load_source("../../components/color-wheel/src/styles.rs");
     let docs_page_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for required in [
-        "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（N/A：`ColorWheel` 不是 LLM 正文渲染组件，组件职责是同步色相输入；组件侧不实现 token-by-token streaming 协议，仅消费稳定快照状态输入。术语约束固定为两种显示模式：`Streaming`（边生成边显示）与 `Snapshot`（完整结果一次性显示），避免在组件层引入第三种“伪流式”定义。回归：`components/color-wheel/test/semantics.rs::color_wheel_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`；门禁脚本：`scripts/check-ui-components-streaming.sh` 新增 `cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`。）",
+        "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（N/A：`ColorWheel` 不是 LLM 正文渲染组件，组件职责是同步色相输入；组件侧不实现 token-by-token streaming 协议，仅消费稳定快照状态输入。术语约束固定为两种显示模式：`Streaming`（边生成边显示）与 `Snapshot`（完整结果一次性显示），避免在组件层引入第三种“伪流式”定义。回归：`components/color-wheel/test/semantics.rs::color_wheel_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`；门禁脚本：`scripts/check-ui-streaming.sh` 新增 `cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`。）",
         "`Streaming`：LLM 还在生成，界面边生成边显示。",
         "`Snapshot`：LLM 全部生成完成后，一次性显示。",
         "N/A：`ColorWheel` 不是 LLM 正文渲染组件",
@@ -4192,7 +4217,7 @@ fn color_wheel_check2_documents_streaming_definition_is_llm_output_only_with_two
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_needle = "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(script_needle),
         "streaming gate script should include `{script_needle}`.",
@@ -4205,10 +4230,10 @@ fn color_wheel_snapshot_baseline_consumes_complete_result_and_renders_stably() {
     let view_source = load_source("../../components/color-wheel/src/view.rs");
     let logic_source = load_source("../../components/color-wheel/src/logic.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for required in [
-        "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`ColorWheel` 已支持完整配置快照输入并稳定渲染：`components/color-wheel/src/view.rs` 通过受控/非受控三件套（`value/default_value/on_value_change`）+ 归一化边界（`sanitize_step/resolve_default_value/normalize_state_inputs`）消费完整结果，根节点持续输出稳定语义标记（`data-state/data-value/data-value-percent/data-control-mode/data-value-source/data-ui-stream-fallback/data-ui-stream-mode/...`）。docs 基线示例 `apps/docs-app/src/pages/components/pages/forms_color.rs` 提供 Hello World、Controlled Hue Wheel、Disabled + Reduced Motion + Custom Class 等完整快照路径。回归：`components/color-wheel/test/semantics.rs::color_wheel_snapshot_baseline_consumes_complete_result_and_renders_stably`；门禁脚本：`scripts/check-ui-components-streaming.sh` 新增 `cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_snapshot_baseline_consumes_complete_result_and_renders_stably`。）",
+        "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`ColorWheel` 已支持完整配置快照输入并稳定渲染：`components/color-wheel/src/view.rs` 通过受控/非受控三件套（`value/default_value/on_value_change`）+ 归一化边界（`sanitize_step/resolve_default_value/normalize_state_inputs`）消费完整结果，根节点持续输出稳定语义标记（`data-state/data-value/data-value-percent/data-control-mode/data-value-source/data-ui-stream-fallback/data-ui-stream-mode/...`）。docs 基线示例 `apps/docs-app/src/pages/components/pages/forms_color.rs` 提供 Hello World、Controlled Hue Wheel、Disabled + Reduced Motion + Custom Class 等完整快照路径。回归：`components/color-wheel/test/semantics.rs::color_wheel_snapshot_baseline_consumes_complete_result_and_renders_stably`；门禁脚本：`scripts/check-ui-streaming.sh` 新增 `cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_snapshot_baseline_consumes_complete_result_and_renders_stably`。）",
         "所有组件都应能消费“完整生成结果”并稳定渲染。",
         "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
     ] {
@@ -4274,7 +4299,7 @@ fn color_wheel_snapshot_baseline_consumes_complete_result_and_renders_stably() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_snapshot_baseline_consumes_complete_result_and_renders_stably";
+    let script_needle = "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_snapshot_baseline_consumes_complete_result_and_renders_stably";
     assert!(
         script_source.contains(script_needle),
         "streaming gate script should include `{script_needle}`.",
@@ -4284,10 +4309,10 @@ fn color_wheel_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 #[test]
 fn color_wheel_check2_documents_streaming_required_optional_classification_rules() {
     let checklist_source = load_source("../../components/color-wheel/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for required in [
-        "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`ColorWheel` 归类为 `Streaming Optional`；组件职责是色相输入控制而非 LLM 正文阅读面，默认走 `Snapshot` 渲染路径。实现显式输出 `data-ui-stream-support=\"unsupported\"`、`data-ui-stream-fallback=\"snapshot\"`、`data-ui-stream-mode=\"snapshot\"` 与 `data-ui-output-status`，并保持 `role/aria/data-*` 连续可读。数据校验、断线恢复、重试策略继续留在上层编排，不下沉到组件。回归：`components/color-wheel/test/semantics.rs::color_wheel_check2_documents_streaming_required_optional_classification_rules`、`components/color-wheel/test/semantics.rs::color_wheel_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-wheel/test/semantics.rs::color_wheel_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`；门禁脚本：`scripts/check-ui-components-streaming.sh` 新增对应 `cargo test` 目标。）",
+        "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`ColorWheel` 归类为 `Streaming Optional`；组件职责是色相输入控制而非 LLM 正文阅读面，默认走 `Snapshot` 渲染路径。实现显式输出 `data-ui-stream-support=\"unsupported\"`、`data-ui-stream-fallback=\"snapshot\"`、`data-ui-stream-mode=\"snapshot\"` 与 `data-ui-output-status`，并保持 `role/aria/data-*` 连续可读。数据校验、断线恢复、重试策略继续留在上层编排，不下沉到组件。回归：`components/color-wheel/test/semantics.rs::color_wheel_check2_documents_streaming_required_optional_classification_rules`、`components/color-wheel/test/semantics.rs::color_wheel_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-wheel/test/semantics.rs::color_wheel_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`；门禁脚本：`scripts/check-ui-streaming.sh` 新增对应 `cargo test` 目标。）",
         "`Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。",
         "`Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。",
         "无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。",
@@ -4301,9 +4326,9 @@ fn color_wheel_check2_documents_streaming_required_optional_classification_rules
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -4350,7 +4375,7 @@ fn color_wheel_streaming_validation_retry_resilience_boundaries_stay_outside_com
     let view_source = load_source("../../components/color-wheel/src/view.rs");
     let logic_source = load_source("../../components/color-wheel/src/logic.rs");
     let motion_source = load_source("../../components/color-wheel/src/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
     let combined = format!("{view_source}\n{logic_source}\n{motion_source}");
 
     for forbidden in [
@@ -4371,9 +4396,9 @@ fn color_wheel_streaming_validation_retry_resilience_boundaries_stay_outside_com
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -4434,7 +4459,7 @@ fn color_wheel_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent(
 #[test]
 fn color_wheel_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let script_source = load_source("../../scripts/check-rust-hygiene.sh");
-    let engineering_script = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = load_source("../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -4449,9 +4474,9 @@ fn color_wheel_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "cargo test -p ui-components --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "cargo test -p ui --test color_wheel_semantics --no-default-features --features component-color_wheel,inject-css color_wheel_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(needle),

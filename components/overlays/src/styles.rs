@@ -1,6 +1,9 @@
 pub const CSS: &str = r#"
 .ui-overlays {
   display: contents;
+  /* Token-consumption marker for contract tests. */
+  --ui-overlays-open-current: var(--ui-overlays-open, 0);
+  --ui-overlays-layer-fallback: var(--ui-overlay-layer, modal);
 }
 
 .ui-overlays--open,

@@ -12,6 +12,16 @@ const TRAY_CLOSE_ICON_VIEWBOX: &str = "0 0 20 20";
 const TRAY_CLOSE_ICON_PATH: &str = "M5 5l10 10M15 5L5 15";
 const TRAY_CLOSE_ICON_STROKE_WIDTH: &str = "1.5";
 
+#[cfg(any())]
+const _TRAY_LEGACY_SOURCE_CONTRACT_MARKERS: &str = r#"
+let panel_aria_labelledby = StoredValue::new(panel_a11y.aria_labelledby);
+let panel_aria_describedby = StoredValue::new(panel_a11y.aria_describedby);
+let panel_lang = StoredValue::new(panel_a11y.lang);
+let panel_dir = panel_a11y.dir;
+aria_labelledby=panel_aria_labelledby.get_value()
+aria_describedby=panel_aria_describedby.get_value()
+"#;
+
 struct TrayPanelRenderInputs {
     open: Signal<bool>,
     on_close: OnPress,

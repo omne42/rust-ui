@@ -23,6 +23,9 @@
 - `docs/spec/tree_shaking.md`
   - Tree Shaking / 组件级裁剪策略与验收契约
 
+- `docs/spec/playground_standard.md`
+  - docs-app Playground 统一规范与 API 覆盖强制检测规则
+
 - `docs/spec/i18n.md`
   - i18n / l10n 注入契约（组件层）
 

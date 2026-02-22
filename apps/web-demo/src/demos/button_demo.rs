@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     Button, ButtonGroup, ButtonSize, ButtonVariant, LinkButton, OnPress, ToggleButton,
     ToggleButtonGroup, ToggleButtonVariant,
 };
@@ -71,7 +71,7 @@ pub fn ButtonDemo() -> impl IntoView {
                         is_pressed=bold_signal
                         on_pressed_change=on_bold_change
                         variant=ToggleButtonVariant::Outline
-                        size=ui_components::ToggleButtonSize::Sm
+                        size=ui::ToggleButtonSize::Sm
                     >
                         "Bold"
                     </ToggleButton>
@@ -79,7 +79,7 @@ pub fn ButtonDemo() -> impl IntoView {
                         is_pressed=italic_signal
                         on_pressed_change=on_italic_change
                         variant=ToggleButtonVariant::Outline
-                        size=ui_components::ToggleButtonSize::Sm
+                        size=ui::ToggleButtonSize::Sm
                     >
                         "Italic"
                     </ToggleButton>
@@ -87,7 +87,7 @@ pub fn ButtonDemo() -> impl IntoView {
                         is_pressed=underline_signal
                         on_pressed_change=on_underline_change
                         variant=ToggleButtonVariant::Outline
-                        size=ui_components::ToggleButtonSize::Sm
+                        size=ui::ToggleButtonSize::Sm
                     >
                         "Underline"
                     </ToggleButton>

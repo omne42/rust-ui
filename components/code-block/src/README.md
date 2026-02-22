@@ -8,7 +8,7 @@
 
 ```rust
 view! {
-    <CodeBlock code="cargo check -p ui-components".to_string() />
+    <CodeBlock code="cargo check -p ui".to_string() />
 }
 ```
 
@@ -47,11 +47,11 @@ let (copied, set_copied) = signal(false);
 
 view! {
     <CodeBlock
-        code="cargo test -p ui-components --test code_block_semantics".to_string()
+        code="cargo test -p ui --test code_block_semantics".to_string()
         is_copied=Signal::derive(move || copied.get()).into()
         on_copied_change=Callback::new(move |next| set_copied.set(next))
-        output_mode=ui_components::code_block::protocol::CodeBlockAgentOutputMode::Snapshot.into()
-        output_status=ui_components::code_block::protocol::CodeBlockAgentOutputStatus::Validated.into()
+        output_mode=ui::code_block::protocol::CodeBlockAgentOutputMode::Snapshot.into()
+        output_status=ui::code_block::protocol::CodeBlockAgentOutputStatus::Validated.into()
     />
 }
 ```

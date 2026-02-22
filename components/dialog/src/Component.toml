@@ -272,11 +272,11 @@ name = "ui-motion"
 kind = "motion-contract"
 
 [[dependencies]]
-name = "ui-components/overlay"
+name = "ui/overlay"
 kind = "overlay-shell"
 
 [[dependencies]]
-name = "ui-components/button"
+name = "ui/button"
 kind = "close-action-slot"
 
 [agent_contract]

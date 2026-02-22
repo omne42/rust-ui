@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     IconsUi, IconsUiSize, IconsUiTone, IconsetGlyph, SegmentedControl, SegmentedControlSize, Switch,
 };
 
@@ -87,9 +87,9 @@ pub(super) fn icons_ui() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/icon/ui/styles.rs */\n{}\n\n/* crates/ui-components/src/icon/set/styles.rs */\n{}",
-            ui_components::icons_ui::styles::CSS,
-            ui_components::iconset::styles::CSS
+            "/* crates/ui/src/icon/ui/styles.rs */\n{}\n\n/* crates/ui/src/icon/set/styles.rs */\n{}",
+            ui::icons_ui::styles::CSS,
+            ui::iconset::styles::CSS
         )
     });
 
@@ -166,7 +166,7 @@ pub(super) fn icons_ui() -> AnyView {
                 description="Display + Config + Code + CSS Test workbench for icons-ui source/state contract tuning."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/icon/ui/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui/src/icon/ui/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="icons-ui-workbench-controls">

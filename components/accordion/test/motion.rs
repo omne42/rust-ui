@@ -289,3 +289,21 @@ fn sanitize_motion_clamps_rotation_and_offset_ranges() {
     assert_eq!(motion.spring.mass, 1.2);
     assert_eq!(motion.spring.precision, 0.002);
 }
+
+#[test]
+fn sanitize_motion_keeps_custom_underdamped_spring() {
+    let motion = sanitize_motion(AccordionMotion {
+        spring: SpringConfig {
+            stiffness: 260.0,
+            damping: 4.0,
+            mass: 1.0,
+            precision: 0.001,
+        },
+        ..AccordionMotion::default()
+    });
+
+    assert_eq!(motion.spring.stiffness, 260.0);
+    assert_eq!(motion.spring.damping, 4.0);
+    assert_eq!(motion.spring.mass, 1.0);
+    assert_eq!(motion.spring.precision, 0.001);
+}

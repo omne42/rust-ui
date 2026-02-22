@@ -44,7 +44,7 @@ LinkActualConfig {
 ## css test（Scoped CSS Test）
 
 - `test_source_path="components/link/src/styles.rs"`
-- `test_css_source=ui_components::link::styles::CSS`
+- `test_css_source=ui::link::styles::CSS`
 
 ```css
 :scope .ui-link[data-state="enabled"] {

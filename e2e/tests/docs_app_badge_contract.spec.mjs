@@ -94,7 +94,7 @@ test("docs-app badge playground source is copy-paste ready", async ({ page }) =>
   await expect(codeBlock.first()).toHaveAttribute("data-copyable", "true");
   const codeText = playground.locator('[data-slot="code-block-code"]').first();
   await expect(codeText).toContainText("use leptos::prelude::*;");
-  await expect(codeText).toContainText("use ui_components::*;");
+  await expect(codeText).toContainText("use ui::*;");
   await expect(codeText).toContainText("<Badge>");
 });
 

@@ -50,17 +50,9 @@ pub fn attach_motion<E>(
         let initial_scale_x = if is_horizontal { 0.0 } else { 1.0 };
         let initial_scale_y = if is_horizontal { 1.0 } else { 0.0 };
 
-        ui_observability::set_css_property_observed_auto!(
-            &(style),
-            "--ui-separator-scale-x",
-            &format!("{initial_scale_x}")
-        );
-        ui_observability::set_css_property_observed_auto!(
-            &(style),
-            "--ui-separator-scale-y",
-            &format!("{initial_scale_y}")
-        );
-        ui_observability::set_css_property_observed_auto!(&(style), "--ui-separator-opacity", "0");
+        drop(style.set_property("--ui-separator-scale-x", &format!("{initial_scale_x}")));
+        drop(style.set_property("--ui-separator-scale-y", &format!("{initial_scale_y}")));
+        drop(style.set_property("--ui-separator-opacity", "0"));
         let style_for_apply = style.clone();
         let animator = ui_motion::spring::SpringAnimator::new(
             0.0,
@@ -70,21 +62,9 @@ pub fn attach_motion<E>(
                 let scale_x = if is_horizontal { v } else { 1.0 };
                 let scale_y = if is_horizontal { 1.0 } else { v };
 
-                ui_observability::set_css_property_observed_auto!(
-                    &(style_for_apply),
-                    "--ui-separator-scale-x",
-                    &format!("{scale_x}")
-                );
-                ui_observability::set_css_property_observed_auto!(
-                    &(style_for_apply),
-                    "--ui-separator-scale-y",
-                    &format!("{scale_y}")
-                );
-                ui_observability::set_css_property_observed_auto!(
-                    &(style_for_apply),
-                    "--ui-separator-opacity",
-                    &format!("{v}")
-                );
+                drop(style_for_apply.set_property("--ui-separator-scale-x", &format!("{scale_x}")));
+                drop(style_for_apply.set_property("--ui-separator-scale-y", &format!("{scale_y}")));
+                drop(style_for_apply.set_property("--ui-separator-opacity", &format!("{v}")));
             },
         );
 

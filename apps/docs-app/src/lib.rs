@@ -17,7 +17,7 @@ Ensure `.cargo/config.toml` is picked up (workspace root), or set `RUSTFLAGS=\"-
 );
 
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     Button, ButtonSize, ButtonVariant, Sheet, SheetPlacement, Theme, ThemeMode, ThemeToggleButton,
     UiRoot,
 };

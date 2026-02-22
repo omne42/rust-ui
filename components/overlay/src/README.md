@@ -86,7 +86,7 @@ let on_exit_complete = Callback::new(move |_| set_present.set(false));
 
 - Component feature: `component-overlay`.
 - CSS injection is gated via `inject-css` and `push_components_css` conditional aggregation.
-- Public export is gated from `crates/ui-components/src/lib.rs`.
+- Public export is gated from `crates/ui/src/lib.rs`.
 
 ## Test Contract
 

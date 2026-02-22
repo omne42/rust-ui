@@ -87,7 +87,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
 
 ### css test
 
-- `css test` 面板绑定 `crates/ui-components/src/contextual_help/styles.rs`。
+- `css test` 面板绑定 `crates/ui/src/contextual_help/styles.rs`。
 - 可在隔离作用域下直接修改样式并验证 `data-*` 状态选择器效果。
 
 ### 多场景对比显示
@@ -99,8 +99,8 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
 
 - docs-app `Playground` 自带复制按钮并生成可运行片段。
 - 真实源码落点：
-  - `crates/ui-components/src/contextual_help/mod.rs`
-  - `crates/ui-components/src/contextual_help/logic.rs`
-  - `crates/ui-components/src/contextual_help/view.rs`
-  - `crates/ui-components/src/contextual_help/styles.rs`
-  - `crates/ui-components/src/contextual_help/motion.rs`
+  - `crates/ui/src/contextual_help/mod.rs`
+  - `crates/ui/src/contextual_help/logic.rs`
+  - `crates/ui/src/contextual_help/view.rs`
+  - `crates/ui/src/contextual_help/styles.rs`
+  - `crates/ui/src/contextual_help/motion.rs`

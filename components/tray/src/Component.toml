@@ -145,5 +145,5 @@ name = "ui-state-primitives"
 kind = "state-primitive"
 
 [[dependencies]]
-name = "ui-components/sheet"
+name = "ui/sheet"
 kind = "overlay-shell"

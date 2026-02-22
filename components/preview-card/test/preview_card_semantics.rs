@@ -257,7 +257,7 @@ fn preview_card_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::preview_card::styles::CSS);"),
-        "ui-components css aggregator should include preview_card styles."
+        "ui css aggregator should include preview_card styles."
     );
 }
 

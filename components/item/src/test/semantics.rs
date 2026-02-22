@@ -975,7 +975,7 @@ fn docs_source_first_copy_paste_contract_is_wired_and_stable() {
         "data-copyable\", \"true\"",
         "Copy to clipboard",
         "use leptos::prelude::*;",
-        "use ui_components::{Item",
+        "use ui::{Item",
     ] {
         assert!(
             e2e_source.contains(needle),
@@ -1294,14 +1294,14 @@ fn defensive_variable_chain_for_item_min_inline_size_is_enforced() {
 #[test]
 fn item_styles_are_wired_into_uiroot_css_pipeline() {
     let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let css_src = std::fs::read_to_string(repo_root.join("crates/ui-components/src/css.rs"))
-        .expect("must read ui-components css aggregator source");
-    let root_src = std::fs::read_to_string(repo_root.join("crates/ui-components/src/root.rs"))
-        .expect("must read ui-components root source");
+    let css_src = std::fs::read_to_string(repo_root.join("crates/ui/src/css.rs"))
+        .expect("must read ui css aggregator source");
+    let root_src = std::fs::read_to_string(repo_root.join("crates/ui/src/root.rs"))
+        .expect("must read ui root source");
 
     assert!(
         css_src.contains("out.push_str(crate::item::styles::CSS);"),
-        "ui-components css aggregator must include item styles"
+        "ui css aggregator must include item styles"
     );
     assert!(
         root_src.contains("crate::css::push_components_css(&mut out);"),
@@ -1312,8 +1312,8 @@ fn item_styles_are_wired_into_uiroot_css_pipeline() {
 #[test]
 fn item_css_is_aggregated_under_ui_layer_without_plain_inline_style_paths() {
     let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let css_src = std::fs::read_to_string(repo_root.join("crates/ui-components/src/css.rs"))
-        .expect("must read ui-components css aggregator source");
+    let css_src = std::fs::read_to_string(repo_root.join("crates/ui/src/css.rs"))
+        .expect("must read ui css aggregator source");
 
     assert!(
         css_src.contains("@layer ui {"),
@@ -1321,7 +1321,7 @@ fn item_css_is_aggregated_under_ui_layer_without_plain_inline_style_paths() {
     );
     assert!(
         css_src.contains("out.push_str(crate::item::styles::CSS);"),
-        "item css must be routed through ui-components layered css aggregation"
+        "item css must be routed through ui layered css aggregation"
     );
 
     for source in [VIEW_SRC, LOGIC_SRC, STYLES_SRC] {
@@ -1335,15 +1335,12 @@ fn item_css_is_aggregated_under_ui_layer_without_plain_inline_style_paths() {
 #[test]
 fn ui_components_fixed_entry_files_remain_in_expected_locations() {
     let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let ui_components_lib =
-        std::fs::read_to_string(repo_root.join("crates/ui-components/src/lib.rs"))
-            .expect("must read ui-components lib source");
-    let ui_components_css =
-        std::fs::read_to_string(repo_root.join("crates/ui-components/src/css.rs"))
-            .expect("must read ui-components css source");
-    let ui_components_root =
-        std::fs::read_to_string(repo_root.join("crates/ui-components/src/root.rs"))
-            .expect("must read ui-components root source");
+    let ui_components_lib = std::fs::read_to_string(repo_root.join("crates/ui/src/lib.rs"))
+        .expect("must read ui lib source");
+    let ui_components_css = std::fs::read_to_string(repo_root.join("crates/ui/src/css.rs"))
+        .expect("must read ui css source");
+    let ui_components_root = std::fs::read_to_string(repo_root.join("crates/ui/src/root.rs"))
+        .expect("must read ui root source");
     let active_highlight = std::fs::read_to_string(
         repo_root.join("crates/ui-visual-primitive/src/active_highlight.rs"),
     )
@@ -1352,14 +1349,14 @@ fn ui_components_fixed_entry_files_remain_in_expected_locations() {
     assert!(
         ui_components_lib.contains("#[cfg(feature = \"component-item\")]")
             && ui_components_lib.contains("pub use ui_item as item;"),
-        "ui-components lib.rs must keep feature-gated public item export boundary"
+        "ui lib.rs must keep feature-gated public item export boundary"
     );
 
     assert!(
         ui_components_css.contains("pub fn push_components_css(out: &mut String)")
             && ui_components_css.contains("@layer ui {")
             && ui_components_css.contains("out.push_str(crate::item::styles::CSS);"),
-        "ui-components css.rs must keep layered component css aggregation entry"
+        "ui css.rs must keep layered component css aggregation entry"
     );
 
     for needle in [
@@ -1371,7 +1368,7 @@ fn ui_components_fixed_entry_files_remain_in_expected_locations() {
     ] {
         assert!(
             ui_components_root.contains(needle),
-            "ui-components root.rs must keep centralized theme/css/i18n injection `{needle}`"
+            "ui root.rs must keep centralized theme/css/i18n injection `{needle}`"
         );
     }
 
@@ -1394,13 +1391,13 @@ fn ui_components_fixed_entry_files_remain_in_expected_locations() {
     }
 
     for missing in [
-        repo_root.join("crates/ui-components/src/overlay_open.rs"),
-        repo_root.join("crates/ui-components/src/presence.rs"),
-        repo_root.join("crates/ui-components/src/a11y.rs"),
+        repo_root.join("crates/ui/src/overlay_open.rs"),
+        repo_root.join("crates/ui/src/presence.rs"),
+        repo_root.join("crates/ui/src/a11y.rs"),
     ] {
         assert!(
             !missing.exists(),
-            "ui-components fixed-entry layout should not reintroduce forbidden file {:?}",
+            "ui fixed-entry layout should not reintroduce forbidden file {:?}",
             missing.file_name().expect("must have file name")
         );
     }
@@ -1409,19 +1406,16 @@ fn ui_components_fixed_entry_files_remain_in_expected_locations() {
 #[test]
 fn tree_shaking_feature_gates_for_item_are_wired() {
     let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let ui_components_cargo =
-        std::fs::read_to_string(repo_root.join("crates/ui-components/Cargo.toml"))
-            .expect("must read ui-components Cargo.toml");
-    let ui_components_lib =
-        std::fs::read_to_string(repo_root.join("crates/ui-components/src/lib.rs"))
-            .expect("must read ui-components lib.rs");
-    let ui_components_css =
-        std::fs::read_to_string(repo_root.join("crates/ui-components/src/css.rs"))
-            .expect("must read ui-components css.rs");
+    let ui_components_cargo = std::fs::read_to_string(repo_root.join("crates/ui/Cargo.toml"))
+        .expect("must read ui Cargo.toml");
+    let ui_components_lib = std::fs::read_to_string(repo_root.join("crates/ui/src/lib.rs"))
+        .expect("must read ui lib.rs");
+    let ui_components_css = std::fs::read_to_string(repo_root.join("crates/ui/src/css.rs"))
+        .expect("must read ui css.rs");
 
     assert!(
         ui_components_cargo.contains("component-item = [\"dep:ui-item\"]"),
-        "ui-components must expose component-item feature gate"
+        "ui must expose component-item feature gate"
     );
     assert!(
         ui_components_cargo

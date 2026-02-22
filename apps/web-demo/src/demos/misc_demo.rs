@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     Alert, AlertVariant, AvatarGroup, AvatarGroupItem, Button, ButtonLoadingPlacement, Chip,
     Skeleton, Spinner,
 };
@@ -53,16 +53,16 @@ pub fn MiscDemo() -> impl IntoView {
                             title="Heads up".to_string()
                             description="This alert uses semantic tokens and stays readable in OLED.".to_string()
                         >
-                            <Button variant=ui_components::ButtonVariant::Secondary on_press=Callback::new(toggle_loading)>
+                            <Button variant=ui::ButtonVariant::Secondary on_press=Callback::new(toggle_loading)>
                                 "Toggle loading"
                             </Button>
                         </Alert>
                         <div class="demo-row">
                             <Chip>"Default"</Chip>
-                            <Chip variant=ui_components::ChipVariant::Accent>"Accent"</Chip>
-                            <Chip variant=ui_components::ChipVariant::Outline>"Outline"</Chip>
+                            <Chip variant=ui::ChipVariant::Accent>"Accent"</Chip>
+                            <Chip variant=ui::ChipVariant::Outline>"Outline"</Chip>
                             <Chip
-                                variant=ui_components::ChipVariant::Danger
+                                variant=ui::ChipVariant::Danger
                                 on_dismiss=Callback::new(|_| {})
                                 dismiss_aria_label="Remove chip".to_string()
                             >
@@ -95,7 +95,7 @@ pub fn MiscDemo() -> impl IntoView {
                         <div class="demo-row demo-row--tall">
                             <Skeleton class_name="demo-skeleton-line" />
                             <Skeleton class_name="demo-skeleton-line demo-skeleton-line--sm" />
-                            <Skeleton variant=ui_components::SkeletonVariant::Circle class_name="demo-skeleton-circle" />
+                            <Skeleton variant=ui::SkeletonVariant::Circle class_name="demo-skeleton-circle" />
                             <Spinner />
                         </div>
                         <AvatarGroup items=avatars max=4 />
@@ -104,7 +104,7 @@ pub fn MiscDemo() -> impl IntoView {
                             title="Danger".to_string()
                             description="Use for destructive feedback; role=status by default today.".to_string()
                         >
-                            <Button variant=ui_components::ButtonVariant::Destructive>"Retry"</Button>
+                            <Button variant=ui::ButtonVariant::Destructive>"Retry"</Button>
                         </Alert>
                     </div>
                 </Card>

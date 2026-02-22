@@ -8,7 +8,7 @@ Use the default API first. No state machine wiring is required.
 
 ```rust
 use leptos::prelude::*;
-use ui_components::Avatar;
+use ui::Avatar;
 
 view! {
     <Avatar />
@@ -21,7 +21,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{Avatar, AvatarSize};
+use ui::{Avatar, AvatarSize};
 
 view! {
     <Avatar
@@ -36,7 +36,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::Avatar;
+use ui::Avatar;
 
 view! {
     <Avatar name="Grace Hopper".to_string() />

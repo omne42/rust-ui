@@ -7,10 +7,10 @@
 先直接走默认 API，不需要先理解 `state/headless/theme/motion` 分层细节。最小路径就是：
 
 ```rust
-use ui_components::Code;
+use ui::Code;
 
 view! {
-    <Code>"cargo test -p ui-components"</Code>
+    <Code>"cargo test -p ui"</Code>
 }
 ```
 
@@ -50,10 +50,10 @@ view! {
 ## Hello World
 
 ```rust
-use ui_components::Code;
+use ui::Code;
 
 view! {
-    <Code>"cargo test -p ui-components"</Code>
+    <Code>"cargo test -p ui"</Code>
 }
 ```
 
@@ -68,7 +68,7 @@ view! { <Code>"pnpm lint"</Code> }
 ### Block（常见）
 
 ```rust
-use ui_components::{Code, CodeVariant};
+use ui::{Code, CodeVariant};
 
 view! {
     <Code variant=CodeVariant::Block>

@@ -22,7 +22,7 @@ Add optional slots when you need richer empty-state presentation.
   title="No results".to_string()
   description="Try changing your search.".to_string()
   illustration=move || view! { <div class="docs-illustration">"o"</div> }
-  actions=move || view! { <ui_components::Button>"Clear"</ui_components::Button> }
+  actions=move || view! { <ui::Button>"Clear"</ui::Button> }
 />
 ```
 

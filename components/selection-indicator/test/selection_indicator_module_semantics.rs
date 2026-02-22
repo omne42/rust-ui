@@ -264,7 +264,7 @@ fn selection_indicator_check2_includes_ui_motion_gate_and_contract_rules() {
         "`selection_indicator` 当前无本地 `motion.rs`",
         "不存在组件语义状态到动效契约的私有重实现",
         "放在 `crates/ui-motion`：通用动画数学与执行后端",
-        "放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract",
+        "放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract",
         "禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。",
         "禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。",
         "非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。",
@@ -446,9 +446,9 @@ fn selection_indicator_check2_includes_ui_components_gate_and_contract_rules() {
     let check2 = load_source("src/selection_indicator/check2.md");
 
     for needle in [
-        "- [x] `ui-components` 定义：最终 Leptos 组件装配层",
-        "已核验：`crates/ui-components/Cargo.toml` 依赖 `ui-state-primitives/ui-headless/ui-motion/ui-theme`",
-        "`crates/ui-components/src/lib.rs` 通过 `component-*` feature gate 暴露组件入口",
+        "- [x] `ui` 定义：最终 Leptos 组件装配层",
+        "已核验：`crates/ui/Cargo.toml` 依赖 `ui-state-primitives/ui-headless/ui-motion/ui-theme`",
+        "`crates/ui/src/lib.rs` 通过 `component-*` feature gate 暴露组件入口",
         "`selection_indicator` 当前仅治理清单，无 `logic.rs/view.rs/styles.rs/motion.rs`",
         "不存在本地状态机重写与 `web-sys`/DOM 公共 API 泄露",
         "`logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。",
@@ -457,7 +457,7 @@ fn selection_indicator_check2_includes_ui_components_gate_and_contract_rules() {
     ] {
         assert!(
             check2.contains(needle),
-            "selection_indicator check2 should keep ui-components governance marker `{needle}`."
+            "selection_indicator check2 should keep ui governance marker `{needle}`."
         );
     }
 }
@@ -475,7 +475,7 @@ fn selection_indicator_ui_components_boundary_remains_feature_gated_and_layered(
     ] {
         assert!(
             cargo_toml.contains(needle),
-            "ui-components dependency graph should include layered dependency `{needle}`."
+            "ui dependency graph should include layered dependency `{needle}`."
         );
     }
 
@@ -491,7 +491,7 @@ fn selection_indicator_ui_components_boundary_remains_feature_gated_and_layered(
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components crate root should keep feature-gated/public boundary marker `{needle}`."
+            "ui crate root should keep feature-gated/public boundary marker `{needle}`."
         );
     }
 
@@ -503,7 +503,7 @@ fn selection_indicator_ui_components_boundary_remains_feature_gated_and_layered(
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components public root must avoid leaking low-level web details marker `{forbidden}`."
+            "ui public root must avoid leaking low-level web details marker `{forbidden}`."
         );
     }
 
@@ -1051,7 +1051,7 @@ fn selection_indicator_check2_includes_a11y_i18n_l10n_rules() {
         "已核验（N/A-无独立渲染入口）：`selection_indicator` 当前不导出独立组件且无 `view.rs`",
         "A11y/locale 契约由 `crates/ui-headless/src/a11y.rs` 统一提供",
         "`A11yDirection`/`locale_attrs`/`aria_controls_when_open`",
-        "i18n 注入由 `crates/ui-components/src/root.rs` 通过 `UiRoot` 的 `i18n: UiI18n` + `provide_ui_i18n(i18n)` 完成",
+        "i18n 注入由 `crates/ui/src/root.rs` 通过 `UiRoot` 的 `i18n: UiI18n` + `provide_ui_i18n(i18n)` 完成",
         "实际 `selection_indicator` 语义由宿主 `list-item/menu-item` 挂载 `role/aria-*` 并经 `normalize_aria_label` 走“外部输入优先、组件兜底”路径",
         "交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。",
         "用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。",
@@ -1145,7 +1145,7 @@ fn selection_indicator_a11y_i18n_contract_is_headless_backed_and_root_injected()
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components public surface should keep lang/dir integration marker `{needle}`."
+            "ui public surface should keep lang/dir integration marker `{needle}`."
         );
     }
 
@@ -1540,7 +1540,7 @@ fn selection_indicator_check2_includes_component_file_responsibility_rules() {
         "- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。",
         "已核验（N/A-无独立组件文件面）：`selection_indicator` 当前目录仅保留治理清单 `check2.md`",
         "不存在 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`，因此不存在职责错位风险",
-        "未在 `crates/ui-components/src/lib.rs` 导出 `selection_indicator` 模块",
+        "未在 `crates/ui/src/lib.rs` 导出 `selection_indicator` 模块",
         "语义职责由宿主 `list/menu item` 组件按既有分层文件承担",
         "`selection_indicator` 本身仅维护契约治理",
         "`mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。",
@@ -1593,7 +1593,7 @@ fn selection_indicator_check2_includes_spec_file_scarcity_rules() {
         "- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。",
         "已核验（N/A-无独立 Schema 面）：`selection_indicator` 当前无独立组件实现与外部 Schema 契约需求",
         "目录下不存在 `spec.rs`",
-        "`crates/ui-components/src/button/spec.rs` 作为少数正例承载",
+        "`crates/ui/src/button/spec.rs` 作为少数正例承载",
         "`selection_indicator` 说明与治理保留在 `check2.md`",
         "仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。",
         "简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。",
@@ -1639,7 +1639,7 @@ fn selection_indicator_does_not_add_spec_file_and_button_remains_complex_schema_
     for needle in [
         "vec![\"button/spec.rs\".to_string()]",
         "spec.rs should stay limited to complex components; simple components should not add spec.rs by default.",
-        "spec.rs should stay scarce; only button/spec.rs is allowed in ui-components/src.",
+        "spec.rs should stay scarce; only button/spec.rs is allowed in ui/src.",
     ] {
         assert!(
             button_semantics.contains(needle),
@@ -1666,12 +1666,12 @@ fn selection_indicator_check2_includes_token_first_static_style_contract_rules()
     for needle in [
         "- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。",
         "已核验（N/A-无独立样式实现）：`selection_indicator` 目录无 `styles.rs`",
-        "`styles.rs` 提供，并通过 `crates/ui-components/src/css.rs::push_components_css` 聚合",
-        "在 `crates/ui-components/src/root.rs` 由 `UiRoot` 注入",
+        "`styles.rs` 提供，并通过 `crates/ui/src/css.rs::push_components_css` 聚合",
+        "在 `crates/ui/src/root.rs` 由 `UiRoot` 注入",
         "宿主样式视觉值使用 `var(--ui-*)`",
         "运行时 `view.rs` 未注入业务 `style=`",
         "未引入 Utility-First 或 CSS-in-Rust 作为组件库默认范式",
-        "样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。",
+        "样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。",
         "颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。",
         "Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。",
         "CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。",
@@ -1864,7 +1864,7 @@ fn selection_indicator_check2_includes_dx_paradox_rules() {
 
     for needle in [
         "- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。",
-        "已核验（N/A-无独立公共 API 面）：`selection_indicator` 未在 `crates/ui-components/src/lib.rs` 导出独立组件",
+        "已核验（N/A-无独立公共 API 面）：`selection_indicator` 未在 `crates/ui/src/lib.rs` 导出独立组件",
         "\"selection-indicator\" => &[\"list-item\", \"menu-item\"]",
         "不手动接线 `ui-state-primitives/ui-headless`、不要求 `state=...` 必填参数",
         "基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。",
@@ -1930,12 +1930,12 @@ fn selection_indicator_check2_includes_tree_shaking_rules() {
 
     for needle in [
         "- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。",
-        "已核验：`ui-components` 保持组件级 feature 边界",
-        "Tree-shaking 证据命令已执行：`/root/.cargo/bin/cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-accordion,inject-css`",
+        "已核验：`ui` 保持组件级 feature 边界",
+        "Tree-shaking 证据命令已执行：`/root/.cargo/bin/cargo tree -e features -i ui -p ui --no-default-features --features component-accordion,inject-css`",
         "仅出现命令行特性 `component-accordion` 与 `inject-css`",
-        "`/root/.cargo/bin/cargo tree -e features -i ui-components -p web-demo` 出现 `web-demo-components` 且无 `all-components`",
-        "CI 预算/阻断由 `scripts/check-ui-components-tree-shaking.sh` + `scripts/tree_shaking_budget.env`",
-        "验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。",
+        "`/root/.cargo/bin/cargo tree -e features -i ui -p web-demo` 出现 `web-demo-components` 且无 `all-components`",
+        "CI 预算/阻断由 `scripts/check-ui-tree-shaking.sh` + `scripts/tree_shaking_budget.env`",
+        "验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。",
     ] {
         assert!(
             check2.contains(needle),
@@ -1952,7 +1952,7 @@ fn selection_indicator_tree_shaking_boundaries_and_budget_guards_exist() {
     let css_source = load_source("src/css.rs");
     let web_demo_cargo = load_source("../../apps/web-demo/Cargo.toml");
     let docs_app_cargo = load_source("../../apps/docs-app/Cargo.toml");
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
@@ -1980,24 +1980,24 @@ fn selection_indicator_tree_shaking_boundaries_and_budget_guards_exist() {
 
     assert!(
         web_demo_cargo.contains(
-            "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"
+            "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"
         ),
         "web-demo should keep source-like dependency path with default-features disabled + web-demo-components."
     );
     assert!(
         docs_app_cargo.contains(
-            "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"all-components\"] }"
+            "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"all-components\"] }"
         ),
         "docs-app should keep all-components as full acceptance surface."
     );
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
     ] {
@@ -2064,9 +2064,9 @@ fn selection_indicator_check2_includes_platform_and_motion_branch_rules() {
 
     for needle in [
         "- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。",
-        "已执行 `/root/.cargo/bin/cargo check -p ui-components`（默认 native）",
+        "已执行 `/root/.cargo/bin/cargo check -p ui`（默认 native）",
         "`/root/.cargo/bin/cargo check -p ui-headless --no-default-features --features ssr`（ssr native）",
-        "`/root/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`（web wasm）并通过",
+        "`/root/.cargo/bin/cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`（web wasm）并通过",
         "- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。",
         "web,ssr` 已实测失败并命中 “mutually exclusive” 错误（退出码 `101`）",
         "- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。",
@@ -2084,7 +2084,7 @@ fn selection_indicator_check2_includes_platform_and_motion_branch_rules() {
 
 #[test]
 fn selection_indicator_platform_and_motion_branch_guards_are_centralized() {
-    let platform_script = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script = load_source("../../scripts/check-ui-platforms.sh");
     let headless_lib = load_source("../ui-headless/src/lib.rs");
     let headless_cargo = load_source("../ui-headless/Cargo.toml");
     let motion_lib = load_source("../ui-motion/src/lib.rs");
@@ -2095,9 +2095,9 @@ fn selection_indicator_platform_and_motion_branch_guards_are_centralized() {
     let menu_item_view = load_source("src/menu/item/view.rs");
 
     for needle in [
-        "cargo check -p ui-components",
+        "cargo check -p ui",
         "cargo check -p ui-headless --no-default-features --features ssr",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
         "cargo check -p ui-headless --no-default-features --features web,ssr",
         "mutually exclusive",
         "cargo test -p ui-motion --test non_wasm_stub",
@@ -2172,8 +2172,8 @@ fn selection_indicator_check2_includes_performance_governance_rules() {
         "已核验（共享性能门禁 + N/A-无独立渲染面）：性能预算与阻断由公共链路承担",
         "`component_page_perf_budget` + `UiPerfProbe` 提供 `data-perf-*` 指标",
         "`e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言预算属性与无 `data-perf-violation=true`",
-        "`scripts/check-ui-components-performance.sh` 覆盖组件性能契约并包含 `perf_render_count_follow_up_is_tracked_in_plan` 跟踪项",
-        "已执行 `/root/.cargo/bin/cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages`",
+        "`scripts/check-ui-performance.sh` 覆盖组件性能契约并包含 `perf_render_count_follow_up_is_tracked_in_plan` 跟踪项",
+        "已执行 `/root/.cargo/bin/cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages`",
         "`docs/plan/TODO.md` 保留 `render_count` 自动化补齐任务。",
     ] {
         assert!(
@@ -2187,7 +2187,7 @@ fn selection_indicator_check2_includes_performance_governance_rules() {
 fn selection_indicator_shared_perf_budget_and_render_count_follow_up_are_guarded() {
     let docs_shell = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let coverage_e2e = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
-    let perf_script = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script = load_source("../../scripts/check-ui-performance.sh");
     let plan_todo = load_source("../../docs/plan/TODO.md");
 
     for needle in [
@@ -2527,12 +2527,12 @@ fn selection_indicator_wasm_debug_contract_reuses_global_trace_and_stays_feature
     let controllable_source = load_source("../../crates/ui-headless/src/controllable_state.rs");
     let list_view_source = load_source("src/list/view.rs");
     let menu_item_view_source = load_source("src/menu/item/view.rs");
-    let wasm_debug_script = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let wasm_debug_script = load_source("../../scripts/check-ui-wasm-debug.sh");
 
     for needle in ["macro_rules! wasm_debug_proxy"] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components should keep wasm-debug capability isolated with `{needle}`."
+            "ui should keep wasm-debug capability isolated with `{needle}`."
         );
     }
 
@@ -2542,7 +2542,7 @@ fn selection_indicator_wasm_debug_contract_reuses_global_trace_and_stays_feature
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
+            "ui Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
         );
     }
 
@@ -2651,8 +2651,8 @@ fn selection_indicator_wasm_debug_contract_reuses_global_trace_and_stays_feature
     }
 
     for needle in [
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
-        "cargo test -p ui-components --test button_semantics button_wasm_debug_contract_is_feature_gated_and_dev_only",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
+        "cargo test -p ui --test button_semantics button_wasm_debug_contract_is_feature_gated_and_dev_only",
     ] {
         assert!(
             wasm_debug_script.contains(needle),
@@ -2679,7 +2679,7 @@ fn selection_indicator_check2_includes_dx_rules() {
         "`list-item/menu-item` 通过本地 `signal` + `on_press` 回调保持当前交互上下文",
         "`data-playground-scope` + `playground__preview-stage` + `playground-controls`",
         "可选状态保留在 `selection_indicator` 当前范围标记为 N/A",
-        "沿用共享 `scripts/check-ui-components-dx.sh` 门禁",
+        "沿用共享 `scripts/check-ui-dx.sh` 门禁",
         "常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。",
         "组件调试应尽量保持当前交互上下文，降低重复操作成本。",
         "复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。",
@@ -2741,7 +2741,7 @@ fn selection_indicator_dx_scope_keeps_isolated_canvas_and_marks_persist_state_na
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
-    let dx_script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "let section_class = \"docs-card playground\";",
@@ -2770,8 +2770,8 @@ fn selection_indicator_dx_scope_keeps_isolated_canvas_and_marks_persist_state_na
 
     for needle in [
         "[dx] contract: playground css hot-reload path",
-        "cargo test -p ui-components --test button_semantics button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test button_semantics button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test well_semantics --no-default-features --features component-well,inject-css well_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
     ] {
         assert!(
             dx_script_source.contains(needle),
@@ -2793,10 +2793,10 @@ fn selection_indicator_check2_includes_engineering_rules() {
         "- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。",
         "已核验（N/A-无独立 `selection_indicator` spec/config 面）：`selection_indicator` 当前不导出组件模块",
         "不存在 `spec.rs` 与组件级 serde 序列化/版本迁移实现",
-        "`crates/ui-components/src/button/spec.rs`",
-        "`scripts/check-ui-components-engineering.sh` 中 `button_engineering_contract_uses_serde_schema_and_structured_migration_errors`",
+        "`crates/ui/src/button/spec.rs`",
+        "`scripts/check-ui-engineering.sh` 中 `button_engineering_contract_uses_serde_schema_and_structured_migration_errors`",
         "tracing 语义沿用全库统一基线",
-        "`target: \"ui_components::button::state_change\"`",
+        "`target: \"ui::button::state_change\"`",
         "`selection_indicator` 宿主 `list/menu item` 无组件私有 tracing 词汇漂移",
         "无 `tokio/async-std/runtime::Handle` 泄露",
         "复用共享 engineering 门禁脚本",
@@ -2878,7 +2878,7 @@ fn selection_indicator_engineering_contract_keeps_tracing_semantics_unified_with
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
         "pub enum UiTraceEventKind {",
     ] {
         assert!(
@@ -2900,7 +2900,7 @@ fn selection_indicator_engineering_contract_keeps_tracing_semantics_unified_with
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::selection_indicator::",
+        "target: \"ui::selection_indicator::",
         "const SELECTION_INDICATOR_TRACE_TARGET",
     ] {
         assert!(
@@ -2946,13 +2946,13 @@ fn selection_indicator_engineering_contract_avoids_runtime_leaks_in_public_api_s
 
 #[test]
 fn selection_indicator_engineering_check_script_covers_shared_contract_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_engineering_contract_uses_serde_schema_and_structured_migration_errors",
-        "cargo test -p ui-components --test button_semantics button_engineering_contract_uses_consistent_tracing_targets",
-        "cargo test -p ui-components --test button_semantics button_engineering_contract_avoids_runtime_leaks_in_public_api",
-        "cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test button_semantics button_engineering_contract_uses_serde_schema_and_structured_migration_errors",
+        "cargo test -p ui --test button_semantics button_engineering_contract_uses_consistent_tracing_targets",
+        "cargo test -p ui --test button_semantics button_engineering_contract_avoids_runtime_leaks_in_public_api",
+        "cargo test -p ui --test well_semantics --no-default-features --features component-well,inject-css well_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2971,29 +2971,29 @@ fn selection_indicator_check2_includes_ui_components_entrypoint_rules() {
     let check2 = load_source("src/selection_indicator/check2.md");
 
     for needle in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "已核验（N/A-无独立 `selection_indicator` 入口文件面）",
-        "`crates/ui-components/src/lib.rs` 保持总入口与 feature gate 导出边界",
+        "`crates/ui/src/lib.rs` 保持总入口与 feature gate 导出边界",
         "`#[cfg(feature = \"component-list\")]` / `#[cfg(feature = \"component-menu_item\")]`",
         "`lib.rs` 通过 `#[cfg(feature = \"inject-css\")] pub fn push_components_css(...)`",
-        "`crates/ui-components/src/css.rs` 以 `push_components_css` 聚合组件样式并按 `component-*` 条件注入",
-        "`crates/ui-components/src/root.rs` 的 `UiRoot` 集中注入 base css + theme vars + 可选 component css",
+        "`crates/ui/src/css.rs` 以 `push_components_css` 聚合组件样式并按 `component-*` 条件注入",
+        "`crates/ui/src/root.rs` 的 `UiRoot` 集中注入 base css + theme vars + 可选 component css",
         "`provide_ui_i18n` 提供全局 i18n 上下文",
         "`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver",
-        "`crates/ui-components/src/overlay_open.rs` / `presence.rs` / `a11y.rs` 在组件层不存在",
+        "`crates/ui/src/overlay_open.rs` / `presence.rs` / `a11y.rs` 在组件层不存在",
         "`crates/ui-headless/src/{controllable_state,presence,a11y}.rs`",
-        "`scripts/check-ui-components-entrypoints.sh` 共享入口契约检查",
-        "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
-        "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
-        "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
+        "`scripts/check-ui-entrypoints.sh` 共享入口契约检查",
+        "`crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
+        "`crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
+        "`crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
         "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
-        "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
-        "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
-        "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
+        "`crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
+        "`crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
+        "`crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
     ] {
         assert!(
             check2.contains(needle),
-            "selection_indicator check2 should keep ui-components entrypoint governance marker `{needle}`."
+            "selection_indicator check2 should keep ui entrypoint governance marker `{needle}`."
         );
     }
 }
@@ -3022,7 +3022,7 @@ fn selection_indicator_ui_components_fixed_entry_files_follow_layered_boundaries
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep stable export/gate marker `{needle}`."
+            "ui lib entry should keep stable export/gate marker `{needle}`."
         );
     }
 
@@ -3035,7 +3035,7 @@ fn selection_indicator_ui_components_fixed_entry_files_follow_layered_boundaries
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not expose internal platform/details marker `{forbidden}`."
+            "ui lib entry should not expose internal platform/details marker `{forbidden}`."
         );
     }
 
@@ -3047,7 +3047,7 @@ fn selection_indicator_ui_components_fixed_entry_files_follow_layered_boundaries
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css entry should keep feature-gated aggregation marker `{needle}`."
+            "ui css entry should keep feature-gated aggregation marker `{needle}`."
         );
     }
 
@@ -3078,8 +3078,8 @@ fn selection_indicator_ui_components_fixed_entry_files_follow_layered_boundaries
     }
 
     for forbidden in [
-        "ui_components::list",
-        "ui_components::menu",
+        "ui::list",
+        "ui::menu",
         "MenuItem",
         "business",
         "role=",
@@ -3094,7 +3094,7 @@ fn selection_indicator_ui_components_fixed_entry_files_follow_layered_boundaries
     for forbidden_path in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !path_exists(forbidden_path),
-            "ui-components forbidden entrypoint file should remain absent: `{forbidden_path}`."
+            "ui forbidden entrypoint file should remain absent: `{forbidden_path}`."
         );
     }
 
@@ -3139,14 +3139,14 @@ fn selection_indicator_ui_components_fixed_entry_files_follow_layered_boundaries
 
 #[test]
 fn selection_indicator_entrypoint_check_script_covers_shared_contract_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks",
-        "cargo test -p ui-components --test button_semantics ui_components_css_registry_remains_feature_gated_and_non_global",
-        "cargo test -p ui-components --test button_semantics ui_root_centralizes_theme_injection_and_i18n_context",
-        "cargo test -p ui-components --test button_semantics active_highlight_stays_shared_motion_primitive_without_component_semantics",
-        "cargo test -p ui-components --test button_semantics ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present",
+        "cargo test -p ui --test button_semantics ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks",
+        "cargo test -p ui --test button_semantics ui_components_css_registry_remains_feature_gated_and_non_global",
+        "cargo test -p ui --test button_semantics ui_root_centralizes_theme_injection_and_i18n_context",
+        "cargo test -p ui --test button_semantics active_highlight_stays_shared_motion_primitive_without_component_semantics",
+        "cargo test -p ui --test button_semantics ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3172,7 +3172,7 @@ fn selection_indicator_check2_includes_component_directory_standard_file_rules()
         "不存在目录职责错位与 `render.rs` 漂移风险",
         "`components/list/src/{mod,logic,styles,view,motion}.rs`",
         "`components/menu/src/item/{mod,logic,styles,view}.rs`",
-        "`scripts/check-ui-components-component-files.sh` 门禁",
+        "`scripts/check-ui-component-files.sh` 门禁",
         "`<component>/mod.rs`：最小稳定导出面，存在且无过度导出。",
         "`<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。",
         "`<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。",
@@ -3352,13 +3352,13 @@ fn selection_indicator_component_directory_standard_files_are_na_and_hosted_with
 
 #[test]
 fn selection_indicator_component_files_check_script_covers_shared_contract_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_component_directory_has_standard_file_layout",
-        "cargo test -p ui-components --test button_semantics button_mod_rs_keeps_minimal_stable_exports",
-        "cargo test -p ui-components --test button_semantics button_component_file_responsibilities_remain_scoped",
-        "cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_component_directory_has_standard_file_layout",
+        "cargo test -p ui --test button_semantics button_component_directory_has_standard_file_layout",
+        "cargo test -p ui --test button_semantics button_mod_rs_keeps_minimal_stable_exports",
+        "cargo test -p ui --test button_semantics button_component_file_responsibilities_remain_scoped",
+        "cargo test -p ui --test well_semantics --no-default-features --features component-well,inject-css well_component_directory_has_standard_file_layout",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3663,7 +3663,7 @@ fn selection_indicator_docs_copy_ready_pipeline_and_beginner_flow_are_kept() {
         load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String {",
         "return compose_copy_ready_code(&dynamic_code.get(), &code_imports.get_value());",
         ".map(|snippet| compose_copy_ready_code(&snippet, &code_imports.get_value()))",
@@ -3695,7 +3695,7 @@ fn selection_indicator_docs_copy_ready_pipeline_and_beginner_flow_are_kept() {
 #[test]
 fn selection_indicator_e2e_contracts_use_semantic_selectors_and_ready_waits() {
     let coverage_e2e = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
-    let time_field_e2e_script = load_source("../../scripts/check-ui-components-e2e-time-field.sh");
+    let time_field_e2e_script = load_source("../../components/text-input/scripts/check-ui-e2e-time-field.sh");
 
     for needle in [
         "await page.locator(\"body:not(:has(#boot))\").waitFor();",
@@ -3813,7 +3813,7 @@ fn selection_indicator_forbidden_anti_patterns_remain_absent_in_host_layers() {
     ] {
         assert!(
             !components_lib.contains(forbidden),
-            "ui-components public API should not leak selection-indicator compat/platform detail `{forbidden}`."
+            "ui public API should not leak selection-indicator compat/platform detail `{forbidden}`."
         );
     }
 

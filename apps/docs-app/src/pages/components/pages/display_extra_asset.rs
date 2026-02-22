@@ -1,10 +1,10 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{Asset, AssetSize, AssetVariant};
+use ui::{Asset, AssetSize, AssetVariant};
 
 const ASSET_PLAYGROUND_IMPORTS: &str =
-    "use leptos::prelude::*;\nuse ui_components::{Asset, AssetSize, AssetVariant};";
+    "use leptos::prelude::*;\nuse ui::{Asset, AssetSize, AssetVariant};";
 
 pub(super) fn asset() -> AnyView {
     let hello_code = Signal::derive(move || r#"<Asset />"#.to_string());
@@ -61,6 +61,14 @@ pub(super) fn asset() -> AnyView {
 // data-ui-stream-support="optional"
 // data-ui-stream-fallback="snapshot"
 // data-ui-output-status="verified""#
+            .to_string()
+    });
+    let state_matrix_code = Signal::derive(move || {
+        r#"<Asset variant=AssetVariant::File size=AssetSize::Size600 label="Build Report".into() />
+<Asset variant=AssetVariant::Folder size=AssetSize::Size700 label="Design Assets".into() />
+<Asset variant=AssetVariant::Custom size=AssetSize::Size800 is_selected=true is_focused=true>
+  <img src="https://picsum.photos/500/360" alt="Cover artwork" />
+</Asset>"#
             .to_string()
     });
 
@@ -134,10 +142,10 @@ pub(super) fn asset() -> AnyView {
                 "builtin-icon"
             };
         format!(
-            "AssetComponentSpecInput {{\n  variant: \"{}\",\n  size: {},\n  label: \"{}\",\n  is_selected: {},\n  is_focused: {},\n  class_name: {},\n  content_mode: \"{}\",\n}}",
+            "AssetComponentSpecInput {{\n  variant: \"{}\",\n  label: Some(\"{}\"),\n  lang: Some(\"en\"),\n  dir: Some(\"ltr\"),\n  size: {},\n  is_selected: {},\n  is_focused: {},\n  motion: AssetMotion::default(),\n  class_name: {},\n  content_mode: \"{}\",\n}}",
             interactive_variant_key.get(),
-            interactive_size_key.get(),
             interactive_label.get(),
+            interactive_size_key.get(),
             interactive_selected.get(),
             interactive_focused.get(),
             class_name,
@@ -362,6 +370,34 @@ pub(super) fn asset() -> AnyView {
                 </div>
             </Playground>
 
+            <Playground
+                title="State Matrix (File / Folder / Custom)"
+                code_signal=state_matrix_code
+                code_imports=ASSET_PLAYGROUND_IMPORTS.to_string()
+            >
+                <div class="docs-row">
+                    <Asset
+                        variant=AssetVariant::File
+                        size=AssetSize::Size600
+                        label="Build Report".to_string()
+                    />
+                    <Asset
+                        variant=AssetVariant::Folder
+                        size=AssetSize::Size700
+                        label="Design Assets".to_string()
+                    />
+                    <Asset
+                        variant=AssetVariant::Custom
+                        size=AssetSize::Size800
+                        label="Featured Artwork".to_string()
+                        is_selected=true
+                        is_focused=true
+                    >
+                        <img src="https://picsum.photos/500/360" alt="Cover artwork" />
+                    </Asset>
+                </div>
+            </Playground>
+
             <section class="docs-card docs-prose" data-slot="asset-source-first">
                 <h3>"Source-first Copy-Paste"</h3>
                 <p>
@@ -376,11 +412,11 @@ pub(super) fn asset() -> AnyView {
                     <li><code>"components/asset/src/styles.rs"</code>" (token-first css contract)"</li>
                     <li><code>"components/asset/src/motion.rs"</code>" (motion contract mapping)"</li>
                     <li><code>"components/asset/src/protocol.rs"</code>" (schema/serde contract)"</li>
-                    <li><code>"crates/ui-components/src/lib.rs"</code>" (feature-gated re-export entry)"</li>
+                    <li><code>"crates/ui/src/lib.rs"</code>" (feature-gated re-export entry)"</li>
                 </ul>
                 <p data-slot="asset-source-first-prerequisites">
                     "Dependency prerequisites: enable "
-                    <code>"ui-components"</code>
+                    <code>"ui"</code>
                     " with "
                     <code>"component-asset"</code>
                     " in package mode, or import from "

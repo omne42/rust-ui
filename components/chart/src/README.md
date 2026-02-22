@@ -78,7 +78,7 @@
 
 - `Interactive Playground` 启用 `Scoped CSS` 测试面板：
   - Source: `components/chart/src/styles.rs`
-  - 预加载 `ui_components::chart::styles::CSS`
+  - 预加载 `ui::chart::styles::CSS`
   - 支持局部改写与 `Restore original CSS` 回滚
 - 用于验证样式契约是否仍由稳定 `data-*` / class 驱动。
 
@@ -147,7 +147,7 @@ let (active_raw, set_active_raw) = signal(1_usize);
 - docs-app Playground 自带复制按钮（`apps/docs-app/src/playground.rs`）。
 - 常见导入：
   - `use leptos::prelude::*;`
-  - `use ui_components::*;`
+  - `use ui::*;`
 - 真实源码落点：
   - `components/chart/src/mod.rs`
   - `components/chart/src/logic.rs`

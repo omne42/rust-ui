@@ -6,7 +6,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::DropZone;
+use ui::DropZone;
 
 view! {
     <DropZone>
@@ -45,7 +45,7 @@ view! {
 - 依赖基线：
 
 ```toml
-ui-components = { default-features = false, features = ["component-drop_zone", "inject-css"] }
+ui = { default-features = false, features = ["component-drop_zone", "inject-css"] }
 ```
 
 ## 文档入口

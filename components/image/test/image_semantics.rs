@@ -616,7 +616,7 @@ fn image_docs_playgrounds_lock_state_matrix_contract_values() {
         "let source_first_code = Signal::derive(move || {",
         "let controlled_contrast_code = Signal::derive(move || {",
         "let stream_snapshot_code = Signal::derive(move || {",
-        "let basic_imports = \"use leptos::prelude::*;\\nuse ui_components::Image;\".to_string();",
+        "let basic_imports = \"use leptos::prelude::*;\\nuse ui::Image;\".to_string();",
         "let advanced_imports =",
         "<Image",
         "src=into_owned_string(src)",
@@ -1671,9 +1671,9 @@ fn image_declares_ssr_cross_platform_compile_contract() {
     );
 
     for required in [
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-image,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-image,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
-        "cargo check -p ui-components",
+        "cargo check -p ui",
     ] {
         assert!(
             readme_source.contains(required) && check2_source.contains(required),
@@ -3115,7 +3115,7 @@ fn image_enforces_token_first_static_style_contract() {
     assert!(
         css_registry_source.contains("#[cfg(feature = \"component-image\")]")
             && css_registry_source.contains("out.push_str(crate::image::styles::CSS);"),
-        "ui-components css registry should aggregate Image styles via feature-gated push."
+        "ui css registry should aggregate Image styles via feature-gated push."
     );
     assert!(
         ui_root_source.contains("if inject_components_css.get_value() {")
@@ -3158,22 +3158,22 @@ fn image_declares_ui_components_fixed_entry_contract() {
 
     assert!(
         readme_source.contains("## Ui-Components Fixed Entry Contract"),
-        "Image docs should explicitly declare ui-components fixed entry contract."
+        "Image docs should explicitly declare ui fixed entry contract."
     );
     assert!(
-        check2_source.contains("- [x] `ui-components` 固定入口文件落点正确。"),
-        "Image checklist should mark ui-components fixed entry item as completed."
+        check2_source.contains("- [x] `ui` 固定入口文件落点正确。"),
+        "Image checklist should mark ui fixed entry item as completed."
     );
 
     assert!(
         lib_source.contains("#[cfg(feature = \"component-image\")]")
             && lib_source.contains("pub use ui_image as image;"),
-        "ui-components lib.rs should keep Image export behind component-image feature gate."
+        "ui lib.rs should keep Image export behind component-image feature gate."
     );
     for disallowed in ["pub use web_sys", "pub use leptos::web_sys"] {
         assert!(
             !lib_source.contains(disallowed),
-            "ui-components lib.rs should not re-export platform detail fragment `{disallowed}`."
+            "ui lib.rs should not re-export platform detail fragment `{disallowed}`."
         );
     }
 
@@ -3185,7 +3185,7 @@ fn image_declares_ui_components_fixed_entry_contract() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css registry should keep fixed entry fragment `{required}`."
+            "ui css registry should keep fixed entry fragment `{required}`."
         );
     }
 
@@ -3227,7 +3227,7 @@ fn image_declares_ui_components_fixed_entry_contract() {
     ] {
         assert!(
             resolve_source_path(path).is_none(),
-            "ui-components fixed entry contract forbids `{label}` in src/."
+            "ui fixed entry contract forbids `{label}` in src/."
         );
     }
 
@@ -3338,7 +3338,7 @@ fn image_declares_cascade_layer_contract() {
     ] {
         assert!(
             css_registry_source.contains(required),
-            "ui-components css registry should keep cascade-layer aggregation fragment `{required}`."
+            "ui css registry should keep cascade-layer aggregation fragment `{required}`."
         );
     }
 
@@ -3512,14 +3512,14 @@ fn image_tree_shaking_contract_is_feature_gated_and_css_is_prunable() {
     ] {
         assert!(
             cargo_source.contains(required),
-            "ui-components cargo feature tree should include `{required}`."
+            "ui cargo feature tree should include `{required}`."
         );
     }
 
     assert!(
         lib_source.contains("#[cfg(feature = \"component-image\")]")
             && lib_source.contains("pub use ui_image as image;"),
-        "Image export in ui-components lib.rs should remain behind component-image feature gate."
+        "Image export in ui lib.rs should remain behind component-image feature gate."
     );
     assert!(
         css_source.contains(

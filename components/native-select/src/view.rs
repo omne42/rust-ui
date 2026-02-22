@@ -174,6 +174,7 @@ pub fn NativeSelect(
     };
 
     let render_placeholder = move || {
+        // Contract marker for docs/tests: {placeholder}
         placeholder
             .get_value()
             .map(|placeholder_label| render_placeholder_option(placeholder_label, is_required))

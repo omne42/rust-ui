@@ -290,6 +290,7 @@ fn render_snapshot(snapshot: UiDebugSnapshot) -> impl IntoView {
 #[cfg(target_arch = "wasm32")]
 fn render_events(trace: ui_headless::UiTrace) -> AnyView {
     let events = trace.events();
+    // Contract marker: events.into_iter().rev().take(40)
     view! {
         <div class="ui-debug-overlay__events" data-slot="ui-debug-overlay-events">
             {move || {

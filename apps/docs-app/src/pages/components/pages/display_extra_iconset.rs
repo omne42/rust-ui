@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     Iconset, IconsetGlyph, IconsetSize, IconsetTone, SegmentedControl, SegmentedControlSize, Switch,
 };
 
@@ -118,8 +118,8 @@ pub(super) fn iconset() -> AnyView {
 
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/icon/set/styles.rs */\n{}",
-            ui_components::iconset::styles::CSS
+            "/* crates/ui/src/icon/set/styles.rs */\n{}",
+            ui::iconset::styles::CSS
         )
     });
 
@@ -194,7 +194,7 @@ pub(super) fn iconset() -> AnyView {
                 description="Interactive display/config/code/css-test playground for Iconset registry behavior."
                 code_signal=workbench_code
                 test_css_source=test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/icon/set/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui/src/icon/set/styles.rs".to_string()
                 test_config_signal=actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">

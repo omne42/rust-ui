@@ -57,7 +57,7 @@ async function runCopyFlowAndWaitSettled(page, docsRoot) {
   await expect(copyRoot).toHaveAttribute("data-copied", "true");
   await expect(copyRoot).toHaveAttribute("aria-busy", "false");
   await expect.poll(() => page.evaluate(() => window.__copiedText)).toBe(
-    "cargo check -p ui-components"
+    "cargo check -p ui"
   );
 
   await expect(copyRoot).toHaveAttribute("data-ui-state", "idle", { timeout: 4500 });

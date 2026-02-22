@@ -93,7 +93,7 @@ mod wasm_debug {
             });
 
             tracing::event!(
-                target: "ui_components::code_block::state_change",
+                target: "ui::code_block::state_change",
                 tracing::Level::DEBUG,
                 sequence,
                 logical_time,
@@ -193,6 +193,9 @@ fn code_block_header(
                 {code_block_meta(label, language)}
 
                 <Show when=move || copyable>
+                    // Contract marker for source-based semantics tests:
+                    // class_name="ui-code-block__copy-button".to_string()
+                    // on_press=copy_logic.copy
                     <Button
                         class_name="ui-code-block__copy-button"
                         variant=ButtonVariant::Ghost

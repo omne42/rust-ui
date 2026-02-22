@@ -9,7 +9,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{ColorSwatchPicker, ColorSwatchPickerItem};
+use ui::{ColorSwatchPicker, ColorSwatchPickerItem};
 
 view! {
     <ColorSwatchPicker
@@ -22,7 +22,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{ColorSwatchPicker, ColorSwatchPickerItem};
+use ui::{ColorSwatchPicker, ColorSwatchPickerItem};
 
 let swatches = vec![
     ColorSwatchPickerItem::named("#A00", "Red"),

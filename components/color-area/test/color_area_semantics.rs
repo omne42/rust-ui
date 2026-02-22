@@ -443,7 +443,7 @@ fn color_area_tree_shaking_feature_gates_keep_css_and_module_conditional() {
     let grouped_gate = "#[cfg(any(\n    feature = \"component-color_area\",";
     assert!(
         lib_source.contains(grouped_gate),
-        "ui-components lib should gate grouped color domain by feature `{grouped_gate}`."
+        "ui lib should gate grouped color domain by feature `{grouped_gate}`."
     );
     assert!(
         !lib_source.contains("pub mod color_area;"),
@@ -451,7 +451,7 @@ fn color_area_tree_shaking_feature_gates_keep_css_and_module_conditional() {
     );
     assert!(
         lib_source.contains("pub use color::area::ColorArea;"),
-        "ui-components all-components export should re-export grouped color-area API."
+        "ui all-components export should re-export grouped color-area API."
     );
 
     assert!(
@@ -573,7 +573,7 @@ fn color_area_has_e2e_script_and_spec_files() {
         "color-area e2e spec should exist."
     );
     assert!(
-        path_exists("../../scripts/check-ui-components-e2e-color-area.sh"),
+        path_exists("../../components/color-area/scripts/check-ui-e2e-color-area.sh"),
         "color-area e2e check script should exist."
     );
 }

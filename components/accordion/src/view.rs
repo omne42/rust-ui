@@ -63,7 +63,7 @@ mod wasm_debug {
                 });
             });
             tracing::event!(
-                target: "ui_components::accordion::state_change",
+                target: "ui::accordion::state_change",
                 tracing::Level::DEBUG,
                 sequence,
                 timestamp_ms,

@@ -12,18 +12,17 @@ const ASSET_PROTOCOL_TEST_SOURCE: &str = include_str!("../test/protocol.rs");
 const THUMBNAIL_MOTION_SOURCE: &str = include_str!("../../thumbnail/src/motion.rs");
 const ASSET_PRIMITIVES_SOURCE: &str =
     include_str!("../../../crates/ui-state-primitives/src/asset.rs");
-const UI_COMPONENTS_LIB_SOURCE: &str = include_str!("../../../crates/ui-components/src/lib.rs");
-const UI_COMPONENTS_CSS_SOURCE: &str = include_str!("../../../crates/ui-components/src/css.rs");
-const UI_COMPONENTS_CARGO_SOURCE: &str = include_str!("../../../crates/ui-components/Cargo.toml");
-const UI_COMPONENTS_ROOT_SOURCE: &str = include_str!("../../../crates/ui-components/src/root.rs");
+const UI_COMPONENTS_LIB_SOURCE: &str = include_str!("../../../crates/ui/src/lib.rs");
+const UI_COMPONENTS_CSS_SOURCE: &str = include_str!("../../../crates/ui/src/css.rs");
+const UI_COMPONENTS_CARGO_SOURCE: &str = include_str!("../../../crates/ui/Cargo.toml");
+const UI_COMPONENTS_ROOT_SOURCE: &str = include_str!("../../../crates/ui/src/root.rs");
 const UI_VISUAL_PRIMITIVE_ACTIVE_HIGHLIGHT_SOURCE: &str =
     include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
 const UI_HEADLESS_LIB_SOURCE: &str = include_str!("../../../crates/ui-headless/src/lib.rs");
 const UI_MOTION_LIB_SOURCE: &str = include_str!("../../../crates/ui-motion/src/lib.rs");
-const PLATFORM_CHECK_SCRIPT_SOURCE: &str =
-    include_str!("../../../scripts/check-ui-components-platforms.sh");
+const PLATFORM_CHECK_SCRIPT_SOURCE: &str = include_str!("../../../scripts/check-ui-platforms.sh");
 const PERFORMANCE_CHECK_SCRIPT_SOURCE: &str =
-    include_str!("../../../scripts/check-ui-components-performance.sh");
+    include_str!("../../../scripts/check-ui-performance.sh");
 const WEB_DEMO_CARGO_SOURCE: &str = include_str!("../../../apps/web-demo/Cargo.toml");
 const DOCS_PAGE_SOURCE: &str =
     include_str!("../../../apps/docs-app/src/pages/components/pages/display_extra_asset.rs");
@@ -409,7 +408,7 @@ fn asset_is_exported_from_module_and_ui_components_root() {
     assert!(
         UI_COMPONENTS_LIB_SOURCE
             .contains("pub use asset::{Asset, AssetMotion, AssetSize, AssetVariant};"),
-        "ui-components crate root should re-export Asset contract."
+        "ui crate root should re-export Asset contract."
     );
 }
 
@@ -577,7 +576,7 @@ fn asset_styles_use_defensive_variable_fallback_chains() {
 fn asset_css_is_aggregated_under_ui_layer_without_plain_inline_styles() {
     assert!(
         UI_COMPONENTS_CSS_SOURCE.contains("out.push_str(\"\\n@layer ui {\\n\");"),
-        "ui-components css registry should aggregate component styles under `@layer ui`."
+        "ui css registry should aggregate component styles under `@layer ui`."
     );
     assert!(
         UI_COMPONENTS_CSS_SOURCE.contains("#[cfg(feature = \"component-asset\")]")
@@ -610,7 +609,7 @@ fn asset_tree_shaking_contract_is_feature_gated_for_package_and_style_layers() {
         "#[cfg(feature = \"component-asset\")]\npub use ui_asset as asset;",
         "#[cfg(feature = \"component-asset\")]\n    out.push_str(crate::asset::styles::CSS);",
         "#[cfg(feature = \"inject-css\")]\npub fn push_components_css(out: &mut String) {",
-        "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
+        "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
     ] {
         assert!(
             UI_COMPONENTS_CARGO_SOURCE.contains(required)
@@ -622,8 +621,8 @@ fn asset_tree_shaking_contract_is_feature_gated_for_package_and_style_layers() {
     }
 
     for forbidden in [
-        "ui-components = { path = \"../../crates/ui-components\", features = [\"all-components\"] }",
-        "ui-components = { path = \"../../crates/ui-components\", default-features = true",
+        "ui = { path = \"../../crates/ui\", features = [\"all-components\"] }",
+        "ui = { path = \"../../crates/ui\", default-features = true",
     ] {
         assert!(
             !WEB_DEMO_CARGO_SOURCE.contains(forbidden),
@@ -642,7 +641,7 @@ fn asset_ui_components_fixed_entry_files_are_correct() {
     ] {
         assert!(
             UI_COMPONENTS_LIB_SOURCE.contains(required),
-            "ui-components lib.rs should keep fixed entry marker `{required}`."
+            "ui lib.rs should keep fixed entry marker `{required}`."
         );
     }
 
@@ -654,7 +653,7 @@ fn asset_ui_components_fixed_entry_files_are_correct() {
     ] {
         assert!(
             UI_COMPONENTS_CSS_SOURCE.contains(required),
-            "ui-components css.rs should keep fixed css entry marker `{required}`."
+            "ui css.rs should keep fixed css entry marker `{required}`."
         );
     }
 
@@ -668,7 +667,7 @@ fn asset_ui_components_fixed_entry_files_are_correct() {
     ] {
         assert!(
             UI_COMPONENTS_ROOT_SOURCE.contains(required),
-            "ui-components root.rs should keep unified root entry marker `{required}`."
+            "ui root.rs should keep unified root entry marker `{required}`."
         );
     }
 
@@ -685,14 +684,12 @@ fn asset_ui_components_fixed_entry_files_are_correct() {
     }
 
     for forbidden in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
-        let path = std::path::Path::new(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../crates/ui-components/src"
-        ))
-        .join(forbidden);
+        let path =
+            std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../crates/ui/src"))
+                .join(forbidden);
         assert!(
             !path.exists(),
-            "ui-components fixed entry layout should not include forbidden file `{forbidden}`."
+            "ui fixed entry layout should not include forbidden file `{forbidden}`."
         );
     }
 }
@@ -1256,7 +1253,7 @@ fn asset_docs_copy_paste_ready_playground_contract_is_complete() {
     for required in [
         "const ASSET_PLAYGROUND_IMPORTS: &str =",
         "use leptos::prelude::*;",
-        "use ui_components::{Asset, AssetSize, AssetVariant};",
+        "use ui::{Asset, AssetSize, AssetVariant};",
         "code_imports=ASSET_PLAYGROUND_IMPORTS.to_string()",
         "title=\"Hello World (Default Path)\"",
         "title=\"State + Source Markers\"",
@@ -1274,7 +1271,7 @@ fn asset_docs_copy_paste_ready_playground_contract_is_complete() {
     }
 
     for required in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String",
         "let missing_imports = missing_import_lines(&raw, &imports);",
         "<CodeBlock code=resolved_code.get() />",
@@ -1299,7 +1296,7 @@ fn asset_source_first_docs_are_copy_paste_ready_and_point_to_real_source_files()
         "components/asset/src/styles.rs",
         "components/asset/src/motion.rs",
         "components/asset/src/protocol.rs",
-        "crates/ui-components/src/lib.rs",
+        "crates/ui/src/lib.rs",
         "data-slot=\"asset-source-first-prerequisites\"",
         "component-asset",
     ] {
@@ -1330,7 +1327,7 @@ fn asset_source_first_docs_are_copy_paste_ready_and_point_to_real_source_files()
         "src/styles.rs",
         "src/motion.rs",
         "src/protocol.rs",
-        "../../crates/ui-components/src/lib.rs",
+        "../../crates/ui/src/lib.rs",
     ] {
         let path = component_root.join(relative);
         assert!(
@@ -1432,7 +1429,7 @@ fn asset_source_first_e2e_contract_is_repeatable_with_semantic_markers() {
         "[data-slot=\"asset-source-first\"]",
         "[data-slot=\"asset-source-first-paths\"]",
         "components/asset/src/view.rs",
-        "crates/ui-components/src/lib.rs",
+        "crates/ui/src/lib.rs",
         "[data-slot=\"asset-source-first-prerequisites\"]",
     ] {
         assert!(
@@ -1993,9 +1990,9 @@ fn asset_has_no_hydration_nondeterministic_id_or_time_surface() {
 #[test]
 fn asset_cross_platform_contract_uses_feature_cfg_guards_and_keeps_non_wasm_browser_free() {
     for required in [
-        "cargo check -p ui-components",
+        "cargo check -p ui",
         "cargo check -p ui-headless --no-default-features --features ssr",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
     ] {
         assert!(
@@ -2224,9 +2221,9 @@ fn asset_motion_contract_is_parameterized_and_attached_with_safe_degrade() {
 #[test]
 fn asset_performance_governance_budget_is_equivalently_guarded_and_traceable() {
     for required in [
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             PERFORMANCE_CHECK_SCRIPT_SOURCE.contains(required),

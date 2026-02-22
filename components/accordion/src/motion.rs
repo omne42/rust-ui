@@ -3,7 +3,10 @@ use ui_motion::spring::SpringConfig;
 use ui_theme::default_accordion_motion_tokens;
 
 #[cfg(any(test, target_arch = "wasm32"))]
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AccordionMotion {
@@ -233,6 +236,10 @@ struct PanelMotionDriver {
     y_spring: Option<ui_motion::spring::SpringAnimator>,
     last_measured_height_px: Option<f64>,
     last_open: Option<bool>,
+    current_height_px: Rc<Cell<f64>>,
+    current_opacity: Rc<Cell<f64>>,
+    current_y_px: Rc<Cell<f64>>,
+    is_closing: Rc<Cell<bool>>,
 }
 
 #[cfg(any(test, target_arch = "wasm32"))]
@@ -257,6 +264,10 @@ impl PanelMotionDriver {
             y_spring: None,
             last_measured_height_px: None,
             last_open: None,
+            current_height_px: Rc::new(Cell::new(0.0)),
+            current_opacity: Rc::new(Cell::new(0.0)),
+            current_y_px: Rc::new(Cell::new(motion.panel_offset_y_px)),
+            is_closing: Rc::new(Cell::new(false)),
         }
     }
 
@@ -272,75 +283,98 @@ impl PanelMotionDriver {
         }
     }
 
-    fn sync_initial_state(&mut self, open: bool) {
+    fn make_height_spring(
+        &self,
+        initial: f64,
+        config: SpringConfig,
+    ) -> ui_motion::spring::SpringAnimator {
+        let set_height = Rc::clone(&self.set_height);
+        let current_height_px = Rc::clone(&self.current_height_px);
+        let is_closing = Rc::clone(&self.is_closing);
+        ui_motion::spring::SpringAnimator::new(initial, config, move |value| {
+            let mut value = value.clamp(0.0, 100000.0);
+            let prev = current_height_px.get();
+            if is_closing.get() {
+                value = value.min(prev);
+            }
+            current_height_px.set(value);
+            (set_height.borrow_mut())(value);
+        })
+    }
+
+    fn make_opacity_spring(
+        &self,
+        initial: f64,
+        config: SpringConfig,
+    ) -> ui_motion::spring::SpringAnimator {
+        let set_opacity = Rc::clone(&self.set_opacity);
+        let current_opacity = Rc::clone(&self.current_opacity);
+        let is_closing = Rc::clone(&self.is_closing);
+        ui_motion::spring::SpringAnimator::new(initial, config, move |value| {
+            let mut value = value.clamp(0.0, 1.0);
+            let prev = current_opacity.get();
+            if is_closing.get() {
+                value = value.min(prev);
+            }
+            current_opacity.set(value);
+            (set_opacity.borrow_mut())(value);
+        })
+    }
+
+    fn make_y_spring(
+        &self,
+        initial: f64,
+        config: SpringConfig,
+    ) -> ui_motion::spring::SpringAnimator {
+        let set_y = Rc::clone(&self.set_y);
+        let current_y_px = Rc::clone(&self.current_y_px);
+        let is_closing = Rc::clone(&self.is_closing);
+        ui_motion::spring::SpringAnimator::new(initial, config, move |value| {
+            let mut value = value.clamp(-1000.0, 1000.0);
+            let prev = current_y_px.get();
+            if is_closing.get() {
+                value = value.max(prev);
+            }
+            current_y_px.set(value);
+            (set_y.borrow_mut())(value);
+        })
+    }
+
+    fn reset_springs(&mut self, config: SpringConfig) {
         self.stop();
+        self.height_spring = Some(self.make_height_spring(self.current_height_px.get(), config));
+        self.opacity_spring = Some(self.make_opacity_spring(self.current_opacity.get(), config));
+        self.y_spring = Some(self.make_y_spring(self.current_y_px.get(), config));
+    }
+
+    fn sync_initial_state(&mut self, open: bool) {
         self.last_measured_height_px = None;
         self.last_open = Some(open);
 
-        let config = self.motion.spring;
-
         if open {
+            self.is_closing.set(false);
             (self.set_hidden.borrow_mut())(false);
 
             let height_px = (self.measure_height_px)().max(0.0);
             self.last_measured_height_px = Some(height_px);
+            self.current_height_px.set(height_px);
+            self.current_opacity.set(1.0);
+            self.current_y_px.set(0.0);
             (self.set_height.borrow_mut())(height_px);
             (self.set_opacity.borrow_mut())(1.0);
             (self.set_y.borrow_mut())(0.0);
-
-            let set_height = Rc::clone(&self.set_height);
-            let height = ui_motion::spring::SpringAnimator::new(height_px, config, move |v| {
-                let v = v.clamp(0.0, 100000.0);
-                (set_height.borrow_mut())(v);
-            });
-
-            let set_opacity = Rc::clone(&self.set_opacity);
-            let opacity = ui_motion::spring::SpringAnimator::new(1.0, config, move |v| {
-                let v = v.clamp(0.0, 1.0);
-                (set_opacity.borrow_mut())(v);
-            });
-
-            let set_y = Rc::clone(&self.set_y);
-            let y = ui_motion::spring::SpringAnimator::new(0.0, config, move |v| {
-                let v = v.clamp(-1000.0, 1000.0);
-                (set_y.borrow_mut())(v);
-            });
-
-            self.height_spring = Some(height);
-            self.opacity_spring = Some(opacity);
-            self.y_spring = Some(y);
+            self.reset_springs(self.motion.spring);
         } else {
+            self.is_closing.set(true);
             (self.set_hidden.borrow_mut())(true);
             self.last_measured_height_px = Some(0.0);
+            self.current_height_px.set(0.0);
+            self.current_opacity.set(0.0);
+            self.current_y_px.set(self.motion.panel_offset_y_px);
             (self.set_height.borrow_mut())(0.0);
             (self.set_opacity.borrow_mut())(0.0);
             (self.set_y.borrow_mut())(self.motion.panel_offset_y_px);
-
-            let set_height = Rc::clone(&self.set_height);
-            let height = ui_motion::spring::SpringAnimator::new(0.0, config, move |v| {
-                let v = v.clamp(0.0, 100000.0);
-                (set_height.borrow_mut())(v);
-            });
-
-            let set_opacity = Rc::clone(&self.set_opacity);
-            let opacity = ui_motion::spring::SpringAnimator::new(0.0, config, move |v| {
-                let v = v.clamp(0.0, 1.0);
-                (set_opacity.borrow_mut())(v);
-            });
-
-            let set_y = Rc::clone(&self.set_y);
-            let y = ui_motion::spring::SpringAnimator::new(
-                self.motion.panel_offset_y_px,
-                config,
-                move |v| {
-                    let v = v.clamp(-1000.0, 1000.0);
-                    (set_y.borrow_mut())(v);
-                },
-            );
-
-            self.height_spring = Some(height);
-            self.opacity_spring = Some(opacity);
-            self.y_spring = Some(y);
+            self.reset_springs(self.motion.spring);
         }
     }
 
@@ -362,6 +396,8 @@ impl PanelMotionDriver {
     }
 
     fn open_panel(&mut self) {
+        self.is_closing.set(false);
+
         let Some(height) = self.height_spring.as_ref() else {
             return;
         };
@@ -388,6 +424,8 @@ impl PanelMotionDriver {
     }
 
     fn close_panel(&mut self) {
+        self.is_closing.set(true);
+
         let Some(height) = self.height_spring.as_ref() else {
             return;
         };
@@ -429,6 +467,7 @@ impl PanelMotionDriver {
             return;
         }
         self.last_measured_height_px = Some(measured_height);
+        self.current_height_px.set(measured_height);
 
         (self.set_height.borrow_mut())(measured_height);
 
@@ -436,15 +475,7 @@ impl PanelMotionDriver {
             height.stop();
         }
 
-        let set_height = Rc::clone(&self.set_height);
-        let height = ui_motion::spring::SpringAnimator::new(
-            measured_height,
-            self.motion.spring,
-            move |value| {
-                let value = value.clamp(0.0, 100000.0);
-                (set_height.borrow_mut())(value);
-            },
-        );
+        let height = self.make_height_spring(measured_height, self.motion.spring);
         self.height_spring = Some(height);
     }
 }

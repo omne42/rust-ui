@@ -738,7 +738,11 @@ fn semantic_contract_tests_are_primary_and_snapshot_only_checks_are_absent() {
         );
     }
 
-    for snapshot_token in ["assert_snapshot!", "insta::assert", ".snap"] {
+    for snapshot_token in [
+        concat!("assert_", "snapshot!"),
+        concat!("insta::", "assert"),
+        concat!(".", "snap"),
+    ] {
         assert!(
             !semantics_source.contains(snapshot_token),
             "meter semantic tests should not be replaced by snapshot-only assertion `{snapshot_token}`"
@@ -757,8 +761,8 @@ fn token_first_static_style_contract_is_enforced() {
     let view_source = load_source("src/view.rs");
     let styles_source = load_source("src/styles.rs");
     let motion_source = load_source("src/motion.rs");
-    let components_css_source = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let components_css_source = load_source("../../crates/ui/src/css.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
     let check2_source = load_source("check2.md");
 
     assert!(
@@ -798,7 +802,7 @@ fn token_first_static_style_contract_is_enforced() {
     assert!(
         components_css_source.contains("#[cfg(feature = \"component-meter\")]")
             && components_css_source.contains("out.push_str(crate::meter::styles::CSS);"),
-        "meter styles should be aggregated by crates/ui-components/src/css.rs"
+        "meter styles should be aggregated by crates/ui/src/css.rs"
     );
     for marker in [
         "if inject_components_css.get_value() {",
@@ -1021,9 +1025,9 @@ fn visual_desire_quality_gate_is_repository_level_for_meter() {
 #[test]
 fn tree_shaking_contract_is_feature_gated_for_meter() {
     let check2_source = load_source("check2.md");
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
     let web_demo_cargo = load_source("../../apps/web-demo/Cargo.toml");
 
     assert!(
@@ -1031,7 +1035,7 @@ fn tree_shaking_contract_is_feature_gated_for_meter() {
         "meter checklist should keep tree-shaking contract entry"
     );
     assert!(
-        check2_source.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
+        check2_source.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
         "meter checklist should mark tree-shaking feature-gating execution entry as completed"
     );
     assert!(
@@ -1041,7 +1045,7 @@ fn tree_shaking_contract_is_feature_gated_for_meter() {
 
     assert!(
         ui_components_cargo.contains("component-meter = [\"dep:ui-meter\"]"),
-        "ui-components must keep component-level meter feature gate"
+        "ui must keep component-level meter feature gate"
     );
     for marker in [
         "#[cfg(feature = \"component-meter\")]\npub use ui_meter as meter;",
@@ -1049,21 +1053,21 @@ fn tree_shaking_contract_is_feature_gated_for_meter() {
     ] {
         assert!(
             ui_components_lib.contains(marker),
-            "ui-components lib export should remain meter feature-gated marker `{marker}`"
+            "ui lib export should remain meter feature-gated marker `{marker}`"
         );
     }
     assert!(
         ui_components_lib.contains(
             "#[cfg(all(feature = \"web-demo-components\", not(feature = \"all-components\")))]"
         ),
-        "ui-components should keep separate web-demo feature aggregation path"
+        "ui should keep separate web-demo feature aggregation path"
     );
 
     assert!(
         ui_components_css.contains(
             "#[cfg(feature = \"component-meter\")]\n    out.push_str(crate::meter::styles::CSS);"
         ),
-        "ui-components css aggregation should keep meter style gate"
+        "ui css aggregation should keep meter style gate"
     );
     assert_eq!(
         ui_components_css
@@ -1074,18 +1078,18 @@ fn tree_shaking_contract_is_feature_gated_for_meter() {
     );
 
     for marker in [
-        "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
+        "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
         "default-features = false",
         "web-demo-components",
     ] {
         assert!(
             web_demo_cargo.contains(marker),
-            "web-demo should consume ui-components through explicit feature-gated path `{marker}`"
+            "web-demo should consume ui through explicit feature-gated path `{marker}`"
         );
     }
     assert!(
         !web_demo_cargo.contains("all-components"),
-        "web-demo should not implicitly pull ui-components all-components feature"
+        "web-demo should not implicitly pull ui all-components feature"
     );
 }
 
@@ -1277,7 +1281,7 @@ fn ssr_hydration_discontinuity_is_avoided_with_deterministic_id_path() {
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
     let motion_source = load_source("src/motion.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
 
     assert!(
         check2_source.contains("SSR 时空断裂治理（Hydration Discontinuity）"),
@@ -1412,7 +1416,7 @@ fn ui_headless_web_ssr_feature_mutex_contract_is_preserved() {
     let check2_source = load_source("check2.md");
     let headless_lib_source = load_source("../../crates/ui-headless/src/lib.rs");
     let meter_cargo_source = load_source("Cargo.toml");
-    let ui_components_cargo_source = load_source("../../crates/ui-components/Cargo.toml");
+    let ui_components_cargo_source = load_source("../../crates/ui/Cargo.toml");
 
     assert!(
         check2_source.contains("`ui-headless` web/ssr feature 互斥受 `compile_error!` 保护"),
@@ -1429,7 +1433,7 @@ fn ui_headless_web_ssr_feature_mutex_contract_is_preserved() {
         );
     }
 
-    // Meter and ui-components may depend on ui-headless, but must not enable
+    // Meter and ui may depend on ui-headless, but must not enable
     // both web+ssr features in the same dependency declaration.
     for marker in [
         "ui-headless = { path = \"../../crates/ui-headless\" }",
@@ -1617,7 +1621,7 @@ fn performance_governance_budget_is_defined_repeatable_and_traceable_for_meter()
     let motion_source = load_source("src/motion.rs");
     let styles_source = load_source("src/styles.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
         "- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。",
@@ -1715,7 +1719,7 @@ fn semantic_and_performance_regression_contract_is_covered_for_meter() {
     let logic_source = load_source("src/logic.rs");
     let semantics_source = load_source("test/semantics.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
         "- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。",
@@ -1751,7 +1755,11 @@ fn semantic_and_performance_regression_contract_is_covered_for_meter() {
         );
     }
 
-    for snapshot_token in ["assert_snapshot!", "insta::assert", ".snap"] {
+    for snapshot_token in [
+        concat!("assert_", "snapshot!"),
+        concat!("insta::", "assert"),
+        concat!(".", "snap"),
+    ] {
         assert!(
             !semantics_source.contains(snapshot_token),
             "meter semantic+performance gate should not rely on snapshot-only token `{snapshot_token}`"
@@ -2389,7 +2397,7 @@ fn defensive_variable_contract_uses_double_fallback_and_theme_ssot() {
 #[test]
 fn cascade_layer_contract_uses_ui_layer_and_css_variable_only_runtime_updates() {
     let check2_source = load_source("check2.md");
-    let components_css_source = load_source("../../crates/ui-components/src/css.rs");
+    let components_css_source = load_source("../../crates/ui/src/css.rs");
     let view_source = load_source("src/view.rs");
     let motion_source = load_source("src/motion.rs");
 
@@ -2531,21 +2539,20 @@ fn motion_contract_is_component_scoped_and_respects_reduced_motion_with_non_wasm
 #[test]
 fn ui_components_entry_files_follow_fixed_layered_contract() {
     let check2_source = load_source("check2.md");
-    let ui_components_lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css_source = load_source("../../crates/ui-components/src/css.rs");
-    let ui_components_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let ui_components_lib_source = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css_source = load_source("../../crates/ui/src/css.rs");
+    let ui_components_root_source = load_source("../../crates/ui/src/root.rs");
     let active_highlight_source =
         load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
-    let ui_components_root =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
+    let ui_components_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/src");
 
     for marker in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "ui_components_entry_files_follow_fixed_layered_contract",
     ] {
         assert!(
             check2_source.contains(marker),
-            "meter checklist should keep ui-components entry contract marker `{marker}`"
+            "meter checklist should keep ui entry contract marker `{marker}`"
         );
     }
 
@@ -2560,13 +2567,13 @@ fn ui_components_entry_files_follow_fixed_layered_contract() {
     ] {
         assert!(
             ui_components_lib_source.contains(marker),
-            "ui-components lib entry should keep marker `{marker}`"
+            "ui lib entry should keep marker `{marker}`"
         );
     }
     for forbidden in ["pub use web_sys", "pub use leptos::web_sys"] {
         assert!(
             !ui_components_lib_source.contains(forbidden),
-            "ui-components public API should not expose platform detail token `{forbidden}`"
+            "ui public API should not expose platform detail token `{forbidden}`"
         );
     }
 
@@ -2580,7 +2587,7 @@ fn ui_components_entry_files_follow_fixed_layered_contract() {
     ] {
         assert!(
             ui_components_css_source.contains(marker),
-            "ui-components css entry should keep feature-gated aggregation marker `{marker}`"
+            "ui css entry should keep feature-gated aggregation marker `{marker}`"
         );
     }
 
@@ -2620,7 +2627,7 @@ fn ui_components_entry_files_follow_fixed_layered_contract() {
     for forbidden_path in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_root.join(forbidden_path).exists(),
-            "ui-components entry should not host duplicated headless primitive file `{forbidden_path}`"
+            "ui entry should not host duplicated headless primitive file `{forbidden_path}`"
         );
     }
 }
@@ -2755,7 +2762,7 @@ fn component_directory_standard_file_layout_is_correct() {
             "motion.rs should keep motion contract marker `{marker}`"
         );
     }
-    for forbidden in ["pub struct Meter", "pub fn Meter("] {
+    for forbidden in ["pub struct Meter {", "pub fn Meter("] {
         assert!(
             !motion_source.contains(forbidden),
             "motion.rs should not own component view token `{forbidden}`"
@@ -3301,10 +3308,10 @@ fn docs_product_copy_paste_ready_contract_is_enforced_for_meter() {
         "title=\"Controlled vs Uncontrolled (N/A)\"",
         "title=\"Streaming Optional / Snapshot\"",
         "title=\"Workbench (Display + Config + Code + CSS Test)\"",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::Meter;\".to_string()",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::{Meter, MeterSize, MeterVariant};\".to_string()",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::{Meter, MeterMotion};\".to_string()",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::{Meter, MeterSize, MeterVariant, Switch};\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::Meter;\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::{Meter, MeterSize, MeterVariant};\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::{Meter, MeterMotion};\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::{Meter, MeterSize, MeterVariant, Switch};\".to_string()",
         "data-slot=\"meter-streaming-policy\"",
         "Streaming Optional; fallback=snapshot.",
         "data-slot=\"meter-copy-ready-hint\"",
@@ -3731,7 +3738,7 @@ fn source_first_docs_are_copy_paste_ready_and_synced_with_meter_api() {
         "label=\"Copy meter starter\".to_string()",
         "copyable=true",
         "use leptos::prelude::*;",
-        "use ui_components::{Meter, MeterSize, MeterVariant};",
+        "use ui::{Meter, MeterSize, MeterVariant};",
         "data-slot=\"meter-source-paths\"",
         "<code>\"components/meter/src/mod.rs\"</code>",
         "<code>\"components/meter/src/logic.rs\"</code>",

@@ -5,7 +5,7 @@
 ## Hello World（最小可用）
 
 ```rust
-use ui_components::FlipCard;
+use ui::FlipCard;
 
 view! {
     <FlipCard

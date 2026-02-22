@@ -255,8 +255,6 @@ pub const DEFAULT_ARIA_LABEL: &str = primitives::DEFAULT_ARIA_LABEL;
 pub const MIN_VALUE: f64 = primitives::MIN_VALUE;
 pub const MAX_VALUE: f64 = primitives::MAX_VALUE;
 pub const DEFAULT_STEP: f64 = primitives::DEFAULT_STEP;
-#[cfg(test)]
-pub const DEFAULT_PAGE_STEP: f64 = primitives::DEFAULT_PAGE_STEP;
 
 pub fn normalize_state_inputs(
     is_disabled: Option<bool>,
@@ -318,7 +316,6 @@ pub fn parse_value(value: &str) -> Option<f64> {
 
 #[cfg(test)]
 pub fn page_step(step: f64) -> f64 {
-    let _ = DEFAULT_PAGE_STEP;
     primitives::page_step(step)
 }
 

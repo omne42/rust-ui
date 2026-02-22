@@ -131,6 +131,6 @@ test("docs-app keyboard source-first snippet is copy-paste ready with imports", 
 
   const codeText = sourceFirst.locator('[data-slot="code-block-code"]').first();
   await expect(codeText).toContainText("use leptos::prelude::*;");
-  await expect(codeText).toContainText("use ui_components::{Keyboard, KeyboardTone};");
+  await expect(codeText).toContainText("use ui::{Keyboard, KeyboardTone};");
   await expect(codeText).toContainText("<Keyboard tone=KeyboardTone::Muted>\"⌥⇧P\"</Keyboard>");
 });

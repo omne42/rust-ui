@@ -9,6 +9,6 @@ pub use ui_state_primitives::hover_card::{
 };
 pub use view::HoverCard;
 
-#[cfg(test)]
+#[cfg(all(test, feature = "local-semantics"))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

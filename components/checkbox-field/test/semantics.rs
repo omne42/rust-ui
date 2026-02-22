@@ -12,7 +12,7 @@ fn load_source(path: &str) -> &'static str {
         }
         "readme" => include_str!("../src/README.md"),
         "check2" => include_str!("../check2.md"),
-        "dx_script" => include_str!("../../../scripts/check-ui-components-dx.sh"),
+        "dx_script" => include_str!("../../../scripts/check-ui-dx.sh"),
         _ => panic!("unsupported source path: {path}"),
     }
 }
@@ -30,7 +30,7 @@ fn checkbox_field_component_keeps_ui_components_layer_file_layout() {
     ] {
         assert!(
             module.contains(needle),
-            "checkbox-field module should keep ui-components assembly layout via `{needle}`"
+            "checkbox-field module should keep ui assembly layout via `{needle}`"
         );
     }
 
@@ -212,9 +212,9 @@ fn checkbox_field_styles_stay_token_first_static_contract() {
     );
 
     for needle in [
-        "var(--ui-space-2xs)",
-        "var(--ui-fg)",
-        "var(--ui-fg-muted)",
+        "var(--ui-space-2xs, var(--ui-fallback-space-2xs))",
+        "var(--ui-fg, var(--ui-fallback-fg))",
+        "var(--ui-fg-muted, var(--ui-fallback-fg-muted))",
         "var(--ui-text-field-motion-duration",
     ] {
         assert!(
@@ -268,9 +268,9 @@ fn checkbox_field_semantics_and_performance_regression_cover_aria_data_focus_and
 
     for marker in [
         "<Checkbox",
-        "is_checked=Some(checked)",
+        "is_checked=checked",
         "on_checked_change=on_checked_change",
-        "is_disabled=Some(disabled)",
+        "is_disabled=disabled",
     ] {
         assert!(
             view.contains(marker),
@@ -427,19 +427,19 @@ fn checkbox_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_d
     let logic = load_source("logic");
 
     for required in [
-        "<Playground title=\"Hello World（默认路径）\"",
-        "<Playground title=\"Controlled + Description\"",
-        "<Playground title=\"Indicator End + Quiet + Invalid/Disabled\"",
-        "<Playground title=\"Controlled vs Default (Comparison)\"",
+        "title=\"Hello World（默认路径）\"",
+        "title=\"Controlled + Description\"",
+        "title=\"Indicator End + Quiet + Invalid/Disabled\"",
+        "title=\"Controlled vs Default (Comparison)\"",
         "data-slot=\"checkbox-field-state-matrix-note\"",
         "data-slot=\"checkbox-field-controlled-uncontrolled-note\"",
-        "is_checked=Some(newsletter)",
-        "on_checked_change=Some(set_newsletter)",
-        "is_checked=Some(terms)",
-        "on_checked_change=Some(set_terms)",
-        "default_checked=Some(true)",
-        "is_disabled=Some(true)",
-        "is_invalid=Some(true)",
+        "is_checked=newsletter",
+        "on_checked_change=set_newsletter",
+        "is_checked=terms",
+        "on_checked_change=set_terms",
+        "default_checked=true",
+        "is_disabled=true",
+        "is_invalid=true",
         "tone=CheckboxFieldTone::Quiet",
         "indicator_placement=CheckboxFieldIndicatorPlacement::End",
     ] {
@@ -484,7 +484,7 @@ fn checkbox_field_check2_marks_docs_sync_and_state_matrix_item_complete() {
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_check2_documents_docs_sync_and_state_matrix_rules",
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -589,7 +589,7 @@ fn checkbox_field_check2_marks_documentation_as_product_contract_complete() {
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_check2_documents_documentation_as_product_rules",
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_documentation_entry_exists_with_beginner_first_progression",
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -626,7 +626,7 @@ fn checkbox_field_docs_app_provides_interactive_playground_for_props_state_and_p
         "description=\"Display + Config + Code + CSS Test: edit props and inspect actual config/state contracts.\"",
         "code_signal=interactive_code",
         "test_css_source=interactive_test_css",
-        "test_source_path=\"crates/ui-components/src/checkbox_field/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui/src/checkbox_field/styles.rs\".to_string()",
         "test_config_signal=interactive_config",
         "controls=move || view!",
         "Switch checked=interactive_checked set_checked=set_interactive_checked",
@@ -634,8 +634,8 @@ fn checkbox_field_docs_app_provides_interactive_playground_for_props_state_and_p
         "Switch checked=interactive_invalid set_checked=set_interactive_invalid",
         "checked=interactive_show_description",
         "checked=interactive_custom_class",
-        "is_checked=Some(interactive_checked)",
-        "on_checked_change=Some(set_interactive_checked)",
+        "is_checked=interactive_checked",
+        "on_checked_change=set_interactive_checked",
         "\"checked: \" {move || interactive_checked.get()}",
     ] {
         assert!(
@@ -646,9 +646,11 @@ fn checkbox_field_docs_app_provides_interactive_playground_for_props_state_and_p
 
     for required in [
         "let section_class = \"docs-card playground\";",
-        "<div class=\"playground__preview\" data-playground-scope=scope_id.clone()>",
+        "<div data-playground-scope=scope_id.clone()>",
+        "<Card class_name=\"playground__preview\".to_string()>",
         "<div class=\"playground__preview-stage\">{children()}</div>",
-        "<aside class=\"playground__panel playground__controls\" data-slot=\"playground-controls\">",
+        "<div data-slot=\"playground-controls\">",
+        "<Card class_name=\"playground__panel playground__controls\".to_string()>",
     ] {
         assert!(
             playground.contains(required),
@@ -702,7 +704,7 @@ fn checkbox_field_check2_marks_interactive_playground_contract_complete() {
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "AI Spec 相关联动示例：N/A（`checkbox-field` 非 Spec 构建器组件）",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -740,7 +742,7 @@ fn checkbox_field_docs_source_first_copy_paste_ready_with_real_paths_and_depende
         "data-slot=\"checkbox-field-copy-ready\"",
         "data-slot=\"checkbox-field-source-paths\"",
         "data-slot=\"checkbox-field-source-prerequisites\"",
-        "Copy-ready snippets prepend imports automatically: use leptos::prelude::*; use ui_components::*.",
+        "Copy-ready snippets prepend imports automatically: use leptos::prelude::*; use ui::*.",
         "Source paths: components/checkbox-field/src/mod.rs, components/checkbox-field/src/logic.rs, components/checkbox-field/src/view.rs, components/checkbox-field/src/styles.rs.",
         "Feature prerequisites: component-checkbox_field (inject-css optional for runtime style injection).",
         "title=\"Controlled + Description\"",
@@ -768,7 +770,7 @@ fn checkbox_field_docs_source_first_copy_paste_ready_with_real_paths_and_depende
         "docs-app checkbox-field playground source is copy-paste ready",
         "data-copyable",
         "use leptos::prelude::*;",
-        "use ui_components::*;",
+        "use ui::*;",
         "data-slot=\"checkbox-field-source-paths\"",
         "data-slot=\"checkbox-field-source-prerequisites\"",
         "toContainText(\"components/checkbox-field/src/mod.rs\")",
@@ -801,7 +803,7 @@ fn checkbox_field_check2_marks_source_first_copy_paste_ready_contract_complete()
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_check2_documents_source_first_copy_paste_ready_rules",
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -888,12 +890,12 @@ fn checkbox_field_heroui_strategy_and_component_docs_are_synchronized_and_indexa
 
 #[test]
 fn checkbox_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "echo \"[dx] contract: checkbox-field heroui benchmark strategy + docs entry synchronization\"",
-        "cargo test -p ui-components --test checkbox_field_semantics --no-default-features --features component-checkbox_field,inject-css checkbox_field_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test checkbox_field_semantics --no-default-features --features component-checkbox_field,inject-css checkbox_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test checkbox_field_semantics --no-default-features --features component-checkbox_field,inject-css checkbox_field_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test checkbox_field_semantics --no-default-features --features component-checkbox_field,inject-css checkbox_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(required),
@@ -915,7 +917,7 @@ fn checkbox_field_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(

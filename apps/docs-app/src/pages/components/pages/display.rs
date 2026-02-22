@@ -1,8 +1,10 @@
+use super::playground_workbench::{bool_word, rust_string_literal};
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::{html, prelude::*};
-use ui_components::color::area::A11yDirection;
-use ui_components::{
+use ui::color::area::A11yDirection;
+use ui::snippet::SnippetMotion;
+use ui::{
     Alert, AlertFill, AlertLayout, AlertMotion, AlertTone, AlertVariant, Avatar, AvatarGroup,
     AvatarGroupItem, AvatarSize, Badge, BadgeVariant, Chip, ChipSize, ChipVariant,
     CircularProgress, Code, CodeBlock, CodeVariant, IllustratedMessage, Image, ImageMotion,
@@ -230,7 +232,7 @@ pub(super) fn alert() -> AnyView {
     let workbench_test_css = Signal::derive(move || {
         format!(
             "/* components/alert/src/styles.rs */\n{}",
-            ui_components::alert::styles::CSS
+            ui::alert::styles::CSS
         )
     });
 
@@ -251,16 +253,36 @@ pub(super) fn alert() -> AnyView {
             AlertTone::Notice => "notice",
             AlertTone::Negative => "negative",
         };
+        let fill_attr = fill.attr_value();
         let layout_attr = match layout {
             AlertLayout::Banner => "banner",
             AlertLayout::Inline => "inline",
         };
 
         format!(
-            "AlertWorkbenchConfig {{\n  tone: {tone:?},\n  fill: {fill:?},\n  layout: {layout:?},\n  hide_icon: {hide_icon},\n  show_title: {show_title},\n  show_description: {show_description},\n  custom_class: {custom_class},\n  lang: \"{}\",\n  dir: \"{}\",\n  marker_expectations: [\"data-tone={tone_attr}\", \"data-fill={}\", \"data-layout={layout_attr}\", \"data-hide-icon-source\", \"data-ui-state=snapshot\"],\n}}",
-            if rtl { "ar" } else { "auto" },
-            if rtl { "rtl" } else { "ltr" },
-            fill.attr_value(),
+            "AlertWorkbenchConfig {{\n  tone: {tone:?},\n  variant: None,\n  layout: {layout:?},\n  fill: {fill:?},\n  title: {},\n  description: {},\n  is_hide_icon: Some({hide_icon}),\n  hide_icon: Some({hide_icon}),\n  icon_label: {},\n  start_content: None,\n  end_content: None,\n  class_name: {},\n  lang: {},\n  dir: {},\n  motion: AlertMotion::default(),\n  marker_expectations: [\"data-tone={tone_attr}\", \"data-fill={fill_attr}\", \"data-layout={layout_attr}\", \"data-hide-icon-source\", \"data-ui-state=snapshot\"],\n}}",
+            if show_title {
+                "Some(\"Interactive status\")"
+            } else {
+                "None"
+            },
+            if show_description {
+                "Some(\"Props update in real time; inspect data-* markers.\")"
+            } else {
+                "None"
+            },
+            if hide_icon {
+                "Some(\"Status icon\")"
+            } else {
+                "None"
+            },
+            if custom_class {
+                "Some(\"docs-alert-custom\")"
+            } else {
+                "None"
+            },
+            if rtl { "Some(\"ar\")" } else { "None" },
+            if rtl { "Some(\"rtl\")" } else { "None" }
         )
     });
 
@@ -274,7 +296,7 @@ pub(super) fn alert() -> AnyView {
             <Playground
                 title="Hello World"
                 code_signal=hello_world_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::Alert;".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::Alert;".to_string()
                 test_source_path="components/alert/src/view.rs".to_string()
             >
                 <div class="docs-stack">
@@ -287,7 +309,7 @@ pub(super) fn alert() -> AnyView {
             <Playground
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::color::area::A11yDirection;\nuse ui_components::{Alert, AlertFill, AlertLayout, AlertTone};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::color::area::A11yDirection;\nuse ui::{Alert, AlertFill, AlertLayout, AlertTone};".to_string()
                 test_css_source=workbench_test_css
                 test_source_path="components/alert/src/styles.rs".to_string()
                 test_config_signal=workbench_config
@@ -394,12 +416,12 @@ pub(super) fn alert() -> AnyView {
                                 lang=lang
                                 dir=dir
                                 end_content=move || view! {
-                                    <ui_components::Button
-                                        variant=ui_components::ButtonVariant::Secondary
-                                        size=ui_components::ButtonSize::Sm
+                                    <ui::Button
+                                        variant=ui::ButtonVariant::Secondary
+                                        size=ui::ButtonSize::Sm
                                     >
                                         "Acknowledge"
-                                    </ui_components::Button>
+                                    </ui::Button>
                                 }
                             >
                                 "Observe semantic markers update in real time."
@@ -418,7 +440,7 @@ pub(super) fn alert() -> AnyView {
                 title="State Matrix"
                 description="Tone + fill + variant-source matrix with stable semantic markers."
                 code_signal=tone_fill_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Alert, AlertFill, AlertTone};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Alert, AlertFill, AlertTone};".to_string()
             >
                 <div class="docs-stack">
                     <Alert
@@ -449,12 +471,12 @@ pub(super) fn alert() -> AnyView {
                     description="Service may be degraded during migration.".to_string()
                     start_content=move || view! { <span>"↳"</span> }
                     end_content=move || view! {
-                        <ui_components::Button
-                            variant=ui_components::ButtonVariant::Secondary
-                            size=ui_components::ButtonSize::Sm
+                        <ui::Button
+                            variant=ui::ButtonVariant::Secondary
+                            size=ui::ButtonSize::Sm
                         >
                             "Details"
-                        </ui_components::Button>
+                        </ui::Button>
                     }
                     class_name="docs-alert-custom".to_string()
                 >
@@ -480,7 +502,7 @@ pub(super) fn alert() -> AnyView {
                 title="Controlled vs Uncontrolled (N/A)"
                 description="Alert has no internal controlled/uncontrolled axis; compare default usage vs app-state-mapped props."
                 code_signal=controlled_contrast_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Alert, AlertFill, AlertTone};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Alert, AlertFill, AlertTone};".to_string()
             >
                 <div class="docs-stack">
                     <Alert>"Default path: no controlled/uncontrolled state axis."</Alert>
@@ -499,7 +521,7 @@ pub(super) fn alert() -> AnyView {
                 title="Streaming Optional / Snapshot"
                 description="Alert is not a body-reader surface: streaming stays optional and falls back to snapshot rendering."
                 code_signal=stream_snapshot_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Alert, AlertFill, AlertTone};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Alert, AlertFill, AlertTone};".to_string()
             >
                 <div class="docs-stack">
                     <Alert
@@ -593,7 +615,7 @@ pub(super) fn alert() -> AnyView {
                     </li>
                 </ul>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::{Alert, AlertFill, AlertTone};\n\n<Alert tone=AlertTone::Info fill=AlertFill::Border>\n  \"Install now to keep your workspace secure.\"\n</Alert>".to_string()
+                    text="use leptos::prelude::*;\nuse ui::{Alert, AlertFill, AlertTone};\n\n<Alert tone=AlertTone::Info fill=AlertFill::Border>\n  \"Install now to keep your workspace secure.\"\n</Alert>".to_string()
                     label="Copy alert starter".to_string()
                     copyable=true
                     class_name="docs-alert-source-copy".to_string()
@@ -691,7 +713,7 @@ pub(super) fn badge() -> AnyView {
     let workbench_test_css_source = Signal::derive(move || {
         format!(
             "/* components/badge/src/styles.rs */\n{}",
-            ui_components::badge::styles::CSS
+            ui::badge::styles::CSS
         )
     });
 
@@ -717,7 +739,12 @@ pub(super) fn badge() -> AnyView {
         }
 
         format!(
-            "BadgeActualConfig {{\n  variant: {variant:?},\n  variant_attr: \"{}\",\n  fill_attr: \"{}\",\n  class_source: \"{}\",\n  lang: \"{lang}\",\n  dir: \"{}\",\n  class: \"{}\",\n}}",
+            "BadgeActualConfig {{\n  variant: {variant:?},\n  class_name: {},\n  variant_attr: \"{}\",\n  fill_attr: \"{}\",\n  class_source: \"{}\",\n  lang: \"{lang}\",\n  dir: \"{}\",\n  class: \"{}\",\n}}",
+            if custom_class {
+                "Some(\"docs-badge-custom\")"
+            } else {
+                "None"
+            },
             variant.as_attr(),
             variant.fill_attr(),
             if custom_class { "custom" } else { "default" },
@@ -739,7 +766,7 @@ pub(super) fn badge() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Variant Matrix" code_signal=matrix_code>
+            <Playground title="Variants (Default / Accent / Danger / Outline)" code_signal=matrix_code>
                 <div class="docs-row">
                     <Badge variant=BadgeVariant::Default>"Default"</Badge>
                     <Badge variant=BadgeVariant::Accent>"Accent"</Badge>
@@ -849,35 +876,117 @@ pub(super) fn badge() -> AnyView {
                     }
                 }}
             </Playground>
+
+            <Playground
+                title="Comparison Matrix (Variant + Fill)"
+                code_signal=matrix_code
+            >
+                <div class="docs-row">
+                    <Badge variant=BadgeVariant::Default>"default"</Badge>
+                    <Badge variant=BadgeVariant::Accent>"accent"</Badge>
+                    <Badge variant=BadgeVariant::Danger>"danger"</Badge>
+                    <Badge variant=BadgeVariant::Outline>"outline"</Badge>
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn status_light() -> AnyView {
-    let hello_world_code =
-        Signal::derive(move || r#"<StatusLight>"Idle"</StatusLight>"#.to_string());
+    let variant_options = vec![
+        "Default".to_string(),
+        "Accent".to_string(),
+        "Danger".to_string(),
+    ];
+    let role_options = vec!["None".to_string(), "status".to_string()];
+    let lang_options = vec!["en-US".to_string(), "zh-CN".to_string()];
 
-    let variants_code = Signal::derive(move || {
-        r#"<StatusLight variant=StatusLightVariant::Default>"Idle"</StatusLight>
-<StatusLight variant=StatusLightVariant::Accent>"Deploying"</StatusLight>
-<StatusLight variant=StatusLightVariant::Danger>"Failed"</StatusLight>"#
-            .to_string()
+    let (variant_index, set_variant_index) = signal(Some(0usize));
+    let (role_index, set_role_index) = signal(Some(1usize));
+    let (lang_index, set_lang_index) = signal(Some(0usize));
+    let (custom_class, set_custom_class) = signal(false);
+    let (rtl, set_rtl) = signal(false);
+
+    let variant = Signal::derive(move || match variant_index.get().unwrap_or(0) {
+        1 => StatusLightVariant::Accent,
+        2 => StatusLightVariant::Danger,
+        _ => StatusLightVariant::Default,
+    });
+    let role = Signal::derive(move || match role_index.get().unwrap_or(1) {
+        1 => Some(StatusLightRole::Status),
+        _ => None,
+    });
+    let lang = Signal::derive(move || match lang_index.get().unwrap_or(0) {
+        1 => "zh-CN".to_string(),
+        _ => "en-US".to_string(),
+    });
+    let dir = Signal::derive(move || {
+        if rtl.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        }
+    });
+    let class_name = Signal::derive(move || {
+        if custom_class.get() {
+            "docs-status-light-custom".to_string()
+        } else {
+            String::new()
+        }
     });
 
-    let role_code = Signal::derive(move || {
-        r#"<StatusLight role=StatusLightRole::Status>"Background sync complete"</StatusLight>"#
-            .to_string()
-    });
-
-    let custom_code = Signal::derive(move || {
-        r#"<StatusLight class_name="docs-status-light-custom".to_string()>"Queued"</StatusLight>
-<StatusLight
-  role=StatusLightRole::Status
+    let showcase_code = Signal::derive(move || {
+        r#"<StatusLight
   variant=StatusLightVariant::Accent
-  class_name="docs-status-light-custom".to_string()
+  role=StatusLightRole::Status
 >
-  "Deploy started"
+  "Syncing invoices"
+</StatusLight>"#
+            .to_string()
+    });
+    let workbench_code = Signal::derive(move || {
+        let mut lines = vec!["<StatusLight".to_string()];
+        if variant.get() != StatusLightVariant::Default {
+            lines.push(format!("  variant=StatusLightVariant::{:?}", variant.get()));
+        }
+        if let Some(role) = role.get() {
+            lines.push(format!("  role=StatusLightRole::{role:?}"));
+        }
+        let class_name = class_name.get();
+        if !class_name.is_empty() {
+            lines.push(format!("  class_name={}", rust_string_literal(&class_name)));
+        }
+        lines.push(format!("  lang={}", rust_string_literal(&lang.get())));
+        lines.push(format!("  dir=A11yDirection::{:?}", dir.get()));
+        lines.push(">".to_string());
+        lines.push("  \"Syncing invoices\"".to_string());
+        lines.push("</StatusLight>".to_string());
+        lines.join("\n")
+    });
+    let workbench_config = Signal::derive(move || {
+        format!(
+            "StatusLightWorkbenchConfig {{\n  variant: {:?},\n  role: {:?},\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n}}",
+            variant.get(),
+            role.get(),
+            if class_name.get().is_empty() {
+                None::<String>
+            } else {
+                Some(class_name.get())
+            },
+            Some(lang.get()),
+            Some(dir.get()),
+        )
+    });
+    let matrix_code = Signal::derive(move || {
+        r#"<StatusLight variant=StatusLightVariant::Default role=StatusLightRole::Status lang="en-US".to_string() dir=A11yDirection::Ltr>
+  "Idle"
+</StatusLight>
+<StatusLight variant=StatusLightVariant::Accent role=StatusLightRole::Status lang="en-US".to_string() dir=A11yDirection::Ltr>
+  "Deploying"
+</StatusLight>
+<StatusLight variant=StatusLightVariant::Danger role=StatusLightRole::Status class_name="docs-status-light-custom".to_string() lang="zh-CN".to_string() dir=A11yDirection::Rtl>
+  "失败"
 </StatusLight>"#
             .to_string()
     });
@@ -890,57 +999,130 @@ pub(super) fn status_light() -> AnyView {
             description="Status indicator + label with centralized variant/live/role-source state attrs and optional custom-class contract."
         >
             <Playground
-                title="Hello World"
-                code_signal=hello_world_code
+                title="Hello World (Default API)"
+                code_signal=showcase_code
                 test_source_path="components/status-light/src/view.rs".to_string()
             >
                 <div class="docs-row">
-                    <StatusLight>"Idle"</StatusLight>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Variants"
-                code_signal=variants_code
-                test_source_path="components/status-light/src/view.rs".to_string()
-            >
-                <div class="docs-row">
-                    <StatusLight variant=StatusLightVariant::Default>"Idle"</StatusLight>
-                    <StatusLight variant=StatusLightVariant::Accent>"Deploying"</StatusLight>
-                    <StatusLight variant=StatusLightVariant::Danger>"Failed"</StatusLight>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Live Region Role"
-                code_signal=role_code
-                test_source_path="components/status-light/src/view.rs".to_string()
-            >
-                <div class="docs-row">
-                    <StatusLight role=StatusLightRole::Status>"Background sync complete"</StatusLight>
                     <StatusLight
-                        role=StatusLightRole::Status
                         variant=StatusLightVariant::Accent
-                        class_name="docs-status-light-custom".to_string()
+                        role=StatusLightRole::Status
                     >
-                        "Deploy started"
+                        "Syncing invoices"
                     </StatusLight>
                 </div>
             </Playground>
 
             <Playground
-                title="Custom Class + Static"
-                code_signal=custom_code
+                title="Workbench (Variant + Role + Locale)"
+                code_signal=workbench_code
+                test_source_path="components/status-light/src/view.rs".to_string()
+                test_config_signal=workbench_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="status-light-workbench-controls">
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-status-light-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=variant_index
+                            set_selected_index=set_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="StatusLight variant".to_string()
+                        />
+
+                        <div class="docs-search__label">"Role"</div>
+                        <SegmentedControl
+                            id_base="docs-status-light-role".to_string()
+                            options=role_options.clone()
+                            selected_index=role_index
+                            set_selected_index=set_role_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="StatusLight role".to_string()
+                        />
+
+                        <div class="docs-search__label">"Language"</div>
+                        <SegmentedControl
+                            id_base="docs-status-light-lang".to_string()
+                            options=lang_options.clone()
+                            selected_index=lang_index
+                            set_selected_index=set_lang_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="StatusLight language".to_string()
+                        />
+
+                        <Switch checked=rtl set_checked=set_rtl>"RTL direction"</Switch>
+                        <Switch checked=custom_class set_checked=set_custom_class>"Custom class"</Switch>
+                    </div>
+                }
+            >
+                {move || {
+                    let variant = variant.get();
+                    let role = role.get();
+                    let class_name = class_name.get();
+                    let lang = lang.get();
+                    let dir = dir.get();
+
+                    let content = if let Some(role) = role {
+                        view! {
+                            <StatusLight
+                                variant=variant
+                                role=role
+                                class_name=class_name
+                                lang=lang
+                                dir=dir
+                            >
+                                "Syncing invoices"
+                            </StatusLight>
+                        }
+                        .into_any()
+                    } else {
+                        view! {
+                            <StatusLight
+                                variant=variant
+                                class_name=class_name
+                                lang=lang
+                                dir=dir
+                            >
+                                "Syncing invoices"
+                            </StatusLight>
+                        }
+                        .into_any()
+                    };
+
+                    view! { <div class="docs-row">{content}</div> }
+                }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Variant + Role + Locale)"
+                code_signal=matrix_code
                 test_source_path="components/status-light/src/view.rs".to_string()
             >
-                <div class="docs-row">
-                    <StatusLight class_name="docs-status-light-custom".to_string()>"Queued"</StatusLight>
+                <div class="docs-stack docs-stack--tight">
                     <StatusLight
+                        variant=StatusLightVariant::Default
                         role=StatusLightRole::Status
-                        variant=StatusLightVariant::Accent
-                        class_name="docs-status-light-custom".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
                     >
-                        "Deploy started"
+                        "Idle"
+                    </StatusLight>
+                    <StatusLight
+                        variant=StatusLightVariant::Accent
+                        role=StatusLightRole::Status
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    >
+                        "Deploying"
+                    </StatusLight>
+                    <StatusLight
+                        variant=StatusLightVariant::Danger
+                        role=StatusLightRole::Status
+                        class_name="docs-status-light-custom".to_string()
+                        lang="zh-CN".to_string()
+                        dir=A11yDirection::Rtl
+                    >
+                        "失败"
                     </StatusLight>
                 </div>
             </Playground>
@@ -1054,7 +1236,7 @@ pub(super) fn chip() -> AnyView {
     let chip_test_css_source = Signal::derive(move || {
         format!(
             "/* components/chip/src/styles.rs */\n{}",
-            ui_components::chip::styles::CSS
+            ui::chip::styles::CSS
         )
     });
 
@@ -1235,13 +1417,46 @@ pub(super) fn chip() -> AnyView {
     .into_any()
 }
 pub(super) fn skeleton() -> AnyView {
-    let shimmer_code = Signal::derive(move || {
-        r#"<Skeleton variant=SkeletonVariant::Rect is_shimmer=true class_name="docs-skeleton-line".to_string() />
-<Skeleton variant=SkeletonVariant::Circle is_shimmer=true class_name="docs-skeleton-avatar".to_string() />"#.to_string()
+    let variant_options = vec!["Rect".to_string(), "Circle".to_string()];
+    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let (is_shimmer, set_is_shimmer) = signal(true);
+    let (custom_class, set_custom_class) = signal(false);
+
+    let variant = Signal::derive(move || match variant_index.get().unwrap_or(0) {
+        1 => SkeletonVariant::Circle,
+        _ => SkeletonVariant::Rect,
+    });
+    let class_name = Signal::derive(move || {
+        if custom_class.get() {
+            "docs-skeleton-line docs-skeleton-line--short".to_string()
+        } else {
+            "docs-skeleton-line".to_string()
+        }
     });
 
-    let still_code = Signal::derive(move || {
-        r#"<Skeleton variant=SkeletonVariant::Rect is_shimmer=false class_name="docs-skeleton-line".to_string() />
+    let showcase_code = Signal::derive(move || {
+        r#"<Skeleton variant=SkeletonVariant::Rect is_shimmer=true class_name="docs-skeleton-line".to_string() />"#.to_string()
+    });
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<Skeleton\n  variant=SkeletonVariant::{:?}\n  is_shimmer={}\n  class_name={:?}.to_string()\n/>",
+            variant.get(),
+            is_shimmer.get(),
+            class_name.get()
+        )
+    });
+    let workbench_config = Signal::derive(move || {
+        format!(
+            "SkeletonWorkbenchConfig {{\n  variant: {:?},\n  is_shimmer: {},\n  class_name: {:?},\n}}",
+            variant.get(),
+            is_shimmer.get(),
+            class_name.get(),
+        )
+    });
+    let matrix_code = Signal::derive(move || {
+        r#"<Skeleton variant=SkeletonVariant::Rect is_shimmer=true class_name="docs-skeleton-line".to_string() />
+<Skeleton variant=SkeletonVariant::Rect is_shimmer=false class_name="docs-skeleton-line docs-skeleton-line--short".to_string() />
+<Skeleton variant=SkeletonVariant::Circle is_shimmer=true class_name="docs-skeleton-avatar".to_string() />
 <Skeleton variant=SkeletonVariant::Circle is_shimmer=false class_name="docs-skeleton-avatar".to_string() />"#.to_string()
     });
 
@@ -1253,33 +1468,65 @@ pub(super) fn skeleton() -> AnyView {
             description="Skeleton placeholder blocks with centralized variant/shimmer state attrs."
         >
             <Playground
-                title="Shimmer"
-                code_signal=shimmer_code
-                test_source_path="crates/ui-components/src/skeleton/view.rs".to_string()
+                title="Hello World (Default API)"
+                code_signal=showcase_code
+                test_source_path="crates/ui/src/skeleton/view.rs".to_string()
             >
                 <div class="docs-stack">
                     <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line".to_string() />
-                    <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line docs-skeleton-line--short".to_string() />
-                    <Skeleton variant=SkeletonVariant::Circle class_name="docs-skeleton-avatar".to_string() />
-                    <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-card".to_string() />
                 </div>
             </Playground>
 
             <Playground
-                title="Still"
-                code_signal=still_code
-                test_source_path="crates/ui-components/src/skeleton/view.rs".to_string()
+                title="Workbench (Variant + Shimmer + Class)"
+                code_signal=workbench_code
+                test_source_path="crates/ui/src/skeleton/view.rs".to_string()
+                test_config_signal=workbench_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-skeleton-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=variant_index
+                            set_selected_index=set_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Skeleton variant".to_string()
+                        />
+                        <Switch checked=is_shimmer set_checked=set_is_shimmer>"Shimmer"</Switch>
+                        <Switch checked=custom_class set_checked=set_custom_class>"Custom class"</Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack">
+                    <Skeleton
+                        variant=variant.get()
+                        is_shimmer=is_shimmer.get()
+                        class_name=class_name.get()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Variant / Shimmer / Class Comparison)"
+                code_signal=matrix_code
+                test_source_path="crates/ui/src/skeleton/view.rs".to_string()
             >
                 <div class="docs-stack">
                     <Skeleton
                         variant=SkeletonVariant::Rect
-                        is_shimmer=false
+                        is_shimmer=true
                         class_name="docs-skeleton-line".to_string()
                     />
                     <Skeleton
                         variant=SkeletonVariant::Rect
                         is_shimmer=false
                         class_name="docs-skeleton-line docs-skeleton-line--short".to_string()
+                    />
+                    <Skeleton
+                        variant=SkeletonVariant::Circle
+                        is_shimmer=true
+                        class_name="docs-skeleton-avatar".to_string()
                     />
                     <Skeleton
                         variant=SkeletonVariant::Circle
@@ -1375,30 +1622,50 @@ pub(super) fn circular_progress() -> AnyView {
     });
 
     let workbench_config = Signal::derive(move || {
-        let size_source = if workbench_size_px.get().is_some() {
-            "custom"
+        let aria_label = if workbench_custom_label.get() {
+            "Workbench sync"
         } else {
-            "default"
+            ""
         };
-        let thickness_source = if workbench_thickness_px.get().is_some() {
-            "custom"
+        let class_name = if workbench_custom_class.get() {
+            "docs-circular-progress-custom"
         } else {
-            "default"
+            ""
         };
-        let label_source = if workbench_custom_label.get() {
-            "custom"
-        } else {
-            "default"
-        };
-        let class_source = if workbench_custom_class.get() {
-            "custom"
-        } else {
-            "default"
-        };
-        let dir = if workbench_rtl.get() { "rtl" } else { "ltr" };
+        let lang = if workbench_rtl.get() { "ar" } else { "" };
 
         format!(
-            "CircularProgressWorkbenchConfig {{\n  size_source: {size_source},\n  thickness_source: {thickness_source},\n  label_source: {label_source},\n  class_source: {class_source},\n  dir: {dir},\n}}"
+            "CircularProgressWorkbenchConfig {{\n  aria_label: {:?},\n  size_px: {:?},\n  thickness_px: {:?},\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n  size_source: {:?},\n  thickness_source: {:?},\n  label_source: {:?},\n  class_source: {:?},\n}}",
+            aria_label,
+            workbench_size_px.get(),
+            workbench_thickness_px.get(),
+            class_name,
+            lang,
+            if workbench_rtl.get() {
+                A11yDirection::Rtl
+            } else {
+                A11yDirection::Ltr
+            },
+            if workbench_size_px.get().is_some() {
+                "custom"
+            } else {
+                "default"
+            },
+            if workbench_thickness_px.get().is_some() {
+                "custom"
+            } else {
+                "default"
+            },
+            if workbench_custom_label.get() {
+                "custom"
+            } else {
+                "default"
+            },
+            if workbench_custom_class.get() {
+                "custom"
+            } else {
+                "default"
+            },
         )
     });
 
@@ -1412,7 +1679,7 @@ pub(super) fn circular_progress() -> AnyView {
             <Playground
                 title="Hello World"
                 code_signal=hello_world_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::CircularProgress;"
+                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
                     .to_string()
                 test_source_path="components/circular-progress/src/view.rs".to_string()
             >
@@ -1424,7 +1691,7 @@ pub(super) fn circular_progress() -> AnyView {
             <Playground
                 title="Size + Thickness Matrix"
                 code_signal=matrix_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::CircularProgress;"
+                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
                     .to_string()
                 test_source_path="components/circular-progress/src/view.rs".to_string()
             >
@@ -1440,10 +1707,11 @@ pub(super) fn circular_progress() -> AnyView {
                 </div>
             </Playground>
 
+            // <Playground title="Custom Label + Class" code_signal=custom_code>
             <Playground
                 title="Custom Label + Class"
                 code_signal=custom_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::CircularProgress;"
+                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
                     .to_string()
                 test_source_path="components/circular-progress/src/view.rs".to_string()
             >
@@ -1465,7 +1733,7 @@ pub(super) fn circular_progress() -> AnyView {
                 title="Controlled vs Uncontrolled (N/A)"
                 description="CircularProgress has no internal controlled/uncontrolled axis; compare default usage with app-state-mapped props."
                 code_signal=controlled_contrast_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::CircularProgress;"
+                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
                     .to_string()
                 test_source_path="components/circular-progress/src/view.rs".to_string()
             >
@@ -1479,7 +1747,7 @@ pub(super) fn circular_progress() -> AnyView {
                 title="Streaming Optional / Snapshot"
                 description="CircularProgress is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
                 code_signal=stream_snapshot_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::CircularProgress;"
+                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
                     .to_string()
                 test_source_path="components/circular-progress/src/view.rs".to_string()
             >
@@ -1498,7 +1766,7 @@ pub(super) fn circular_progress() -> AnyView {
                 title="Source-first Starter (Copy-Paste Ready)"
                 description="Copy action auto-injects missing imports for direct run."
                 code_signal=source_first_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::CircularProgress;"
+                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
                     .to_string()
                 test_source_path="components/circular-progress/src/view.rs".to_string()
             >
@@ -1515,7 +1783,7 @@ pub(super) fn circular_progress() -> AnyView {
                 title="Interactive Playground (Props / State / Preview)"
                 description="在线调整 props（size/thickness/label/class/lang/dir）并实时预览语义标记变化；组件本身无内部受控状态轴。"
                 code_signal=workbench_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::color::area::A11yDirection;\nuse ui_components::CircularProgress;"
+                code_imports="use leptos::prelude::*;\nuse ui::color::area::A11yDirection;\nuse ui::CircularProgress;"
                     .to_string()
                 test_source_path="components/circular-progress/src/view.rs".to_string()
                 test_config_signal=workbench_config
@@ -1718,6 +1986,28 @@ pub(super) fn circular_progress() -> AnyView {
                 }}
             </Playground>
 
+            <Playground
+                title="State Matrix (Size / Thickness / Locale Comparison)"
+                code_signal=matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::color::area::A11yDirection;\nuse ui::CircularProgress;"
+                    .to_string()
+                test_source_path="components/circular-progress/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <CircularProgress aria_label="Loading".to_string() />
+                    <CircularProgress aria_label="Syncing mail".to_string() size_px=24.0 />
+                    <CircularProgress aria_label="Syncing mail".to_string() thickness_px=3.0 />
+                    <CircularProgress
+                        aria_label="Syncing mail".to_string()
+                        size_px=30.0
+                        thickness_px=4.0
+                        class_name="docs-circular-progress-custom".to_string()
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                    />
+                </div>
+            </Playground>
+
             <section class="docs-card docs-prose" data-slot="circular-progress-source-first">
                 <h3>"Source-first / Copy-Paste Ready"</h3>
                 <p data-slot="circular-progress-source-first-contract">
@@ -1801,19 +2091,109 @@ pub(super) fn circular_progress() -> AnyView {
 }
 
 pub(super) fn spinner() -> AnyView {
-    let hello_code = Signal::derive(move || r#"<Spinner />"#.to_string());
+    let (workbench_size_key, set_workbench_size_key) = signal("md".to_string());
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_arabic_locale, set_workbench_arabic_locale) = signal(false);
 
-    let matrix_code = Signal::derive(move || {
-        r#"<Spinner size=SpinnerSize::Sm />
-<Spinner size=SpinnerSize::Md />
-<Spinner size=SpinnerSize::Lg />"#
-            .to_string()
+    let workbench_size = Signal::derive(move || match workbench_size_key.get().as_str() {
+        "sm" => SpinnerSize::Sm,
+        "lg" => SpinnerSize::Lg,
+        _ => SpinnerSize::Md,
+    });
+    let workbench_aria_label = Signal::derive(move || {
+        if workbench_custom_aria.get() {
+            "Syncing workspace data".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if workbench_custom_class.get() {
+            "docs-spinner-custom".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_motion = Signal::derive(move || {
+        if workbench_custom_motion.get() {
+            ui::spinner::SpinnerMotion {
+                rotation_duration_ms: 640,
+            }
+        } else {
+            ui::spinner::SpinnerMotion::default()
+        }
+    });
+    let workbench_lang = Signal::derive(move || {
+        if workbench_arabic_locale.get() {
+            "ar".to_string()
+        } else {
+            "en-US".to_string()
+        }
+    });
+    let workbench_dir = Signal::derive(move || {
+        if workbench_arabic_locale.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        }
     });
 
-    let custom_code = Signal::derive(move || {
-        r#"<Spinner aria_label="Fetching notifications".to_string() />
-<Spinner aria_label="   ".to_string() class_name="docs-spinner-custom".to_string() />
-<Spinner aria_label="Syncing inbox".to_string() class_name="docs-spinner-custom".to_string() size=SpinnerSize::Lg />"#.to_string()
+    let showcase_code = Signal::derive(move || {
+        r#"<Spinner aria_label="Loading activity".to_string() />"#.to_string()
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let size_expr = match workbench_size.get() {
+            SpinnerSize::Sm => "SpinnerSize::Sm",
+            SpinnerSize::Md => "SpinnerSize::Md",
+            SpinnerSize::Lg => "SpinnerSize::Lg",
+        };
+
+        format!(
+            "<Spinner\n  size={size_expr}\n  aria_label={}\n  class_name={}\n  motion=ui::spinner::SpinnerMotion {{ rotation_duration_ms: {} }}\n  lang={}\n  dir={}\n/>",
+            rust_string_literal(&workbench_aria_label.get()),
+            rust_string_literal(&workbench_class_name.get()),
+            workbench_motion.get().rotation_duration_ms,
+            rust_string_literal(&workbench_lang.get()),
+            if matches!(workbench_dir.get(), A11yDirection::Rtl) {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            },
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "SpinnerActualConfig {{\n  size: {:?},\n  aria_label: {:?},\n  class_name: {:?},\n  motion: {:?},\n  lang: {:?},\n  dir: {:?},\n}}",
+            workbench_size.get(),
+            workbench_aria_label.get(),
+            workbench_class_name.get(),
+            workbench_motion.get(),
+            workbench_lang.get(),
+            workbench_dir.get(),
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<Spinner
+  size=SpinnerSize::Sm
+  aria_label="Fetching notifications".to_string()
+  class_name="docs-spinner-custom".to_string()
+  motion=ui::spinner::SpinnerMotion { rotation_duration_ms: 480 }
+  lang="en-US".to_string()
+  dir=A11yDirection::Ltr
+/>
+<Spinner
+  size=SpinnerSize::Lg
+  aria_label="Loading Arabic inbox".to_string()
+  motion=ui::spinner::SpinnerMotion { rotation_duration_ms: 840 }
+  lang="ar".to_string()
+  dir=A11yDirection::Rtl
+/>"#
+        .to_string()
     });
 
     view! {
@@ -1823,31 +2203,103 @@ pub(super) fn spinner() -> AnyView {
             group="Display"
             description="Spinner wraps CircularProgress with centralized size/label/class source attrs."
         >
-            <Playground title="Hello World" code_signal=hello_code>
+            <Playground title="Default Showcase" code_signal=showcase_code>
                 <div class="docs-row">
-                    <Spinner />
+                    <Spinner aria_label="Loading activity".to_string() />
                 </div>
             </Playground>
 
-            <Playground title="Size Matrix" code_signal=matrix_code>
+            <Playground
+                title="Workbench (All API Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="spinner-workbench-controls">
+                        <label class="docs-search__label">
+                            "Size"
+                            <select
+                                prop:value=move || workbench_size_key.get()
+                                on:change=move |ev| set_workbench_size_key.set(event_target_value(&ev))
+                            >
+                                <option value="sm">"Sm"</option>
+                                <option value="md">"Md"</option>
+                                <option value="lg">"Lg"</option>
+                            </select>
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_aria.get()
+                                on:change=move |ev| set_workbench_custom_aria.set(event_target_checked(&ev))
+                            />
+                            " aria_label"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                            />
+                            " class_name"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_motion.get()
+                                on:change=move |ev| set_workbench_custom_motion.set(event_target_checked(&ev))
+                            />
+                            " custom motion"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_arabic_locale.get()
+                                on:change=move |ev| set_workbench_arabic_locale.set(event_target_checked(&ev))
+                            />
+                            " lang/dir Arabic"
+                        </label>
+                    </div>
+                }
+            >
                 <div class="docs-row">
-                    <Spinner size=SpinnerSize::Sm />
-                    <Spinner size=SpinnerSize::Md />
-                    <Spinner size=SpinnerSize::Lg />
-                </div>
-            </Playground>
-
-            <Playground title="Custom Label + Class" code_signal=custom_code>
-                <div class="docs-row">
-                    <Spinner aria_label="Fetching notifications".to_string() />
                     <Spinner
-                        aria_label="   ".to_string()
+                        size=workbench_size.get()
+                        aria_label=workbench_aria_label.get()
+                        class_name=workbench_class_name.get()
+                        motion=workbench_motion.get()
+                        lang=workbench_lang.get()
+                        dir=workbench_dir.get()
+                    />
+                    <span class="ui-muted">
+                        "Configured spinner updates size/label/class/motion/locale in one canvas."
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Size / Motion / Locale Comparison)"
+                code_signal=matrix_code
+                code_imports="use ui::color::area::A11yDirection;\nuse ui::{Spinner, SpinnerSize};".to_string()
+            >
+                <div class="docs-row">
+                    <Spinner
+                        size=SpinnerSize::Sm
+                        aria_label="Fetching notifications".to_string()
                         class_name="docs-spinner-custom".to_string()
+                        motion=ui::spinner::SpinnerMotion {
+                            rotation_duration_ms: 480,
+                        }
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
                     />
                     <Spinner
-                        aria_label="Syncing inbox".to_string()
-                        class_name="docs-spinner-custom".to_string()
                         size=SpinnerSize::Lg
+                        aria_label="Loading Arabic inbox".to_string()
+                        motion=ui::spinner::SpinnerMotion {
+                            rotation_duration_ms: 840,
+                        }
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
                     />
                 </div>
             </Playground>
@@ -1857,30 +2309,132 @@ pub(super) fn spinner() -> AnyView {
 }
 
 pub(super) fn progress() -> AnyView {
-    let (value, set_value) = signal(42.0_f64);
-    let progress_value = Signal::derive(move || Some(value.get()));
+    let min_options = ["0".to_string(), "20".to_string()];
+    let max_options = ["100".to_string(), "200".to_string()];
+    let (workbench_value_raw, set_workbench_value_raw) = signal(42.0_f64);
+    let (workbench_min_index, set_workbench_min_index) = signal(Some(0_usize));
+    let (workbench_max_index, set_workbench_max_index) = signal(Some(0_usize));
+    let (workbench_indeterminate, set_workbench_indeterminate) = signal(false);
+    let (workbench_custom_label, set_workbench_custom_label) = signal(true);
+    let (workbench_fast_motion, set_workbench_fast_motion) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(true);
 
-    let matrix_code = Signal::derive(move || {
-        r#"let progress_value = Signal::derive(move || Some(value.get()));
-<Progress aria_label="Determinate".to_string() value=progress_value />
-<Progress aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />"#
-            .to_string()
+    let workbench_min = Signal::derive(move || {
+        if workbench_min_index.get().unwrap_or(0) == 1 {
+            20.0_f64
+        } else {
+            0.0_f64
+        }
+    });
+    let workbench_max = Signal::derive(move || {
+        if workbench_max_index.get().unwrap_or(0) == 1 {
+            200.0_f64
+        } else {
+            100.0_f64
+        }
+    });
+    let workbench_value = Signal::derive(move || {
+        if workbench_indeterminate.get() {
+            None
+        } else {
+            let min = workbench_min.get();
+            let max = workbench_max.get().max(min + 1.0_f64);
+            Some(workbench_value_raw.get().clamp(min, max))
+        }
+    });
+    let workbench_value_label = Signal::derive(move || {
+        if workbench_custom_label.get() {
+            match workbench_value.get() {
+                Some(value) => format!("{value:.0}% complete"),
+                None => "loading…".to_string(),
+            }
+        } else {
+            String::new()
+        }
+    });
+    let workbench_motion = Signal::derive(move || {
+        if workbench_fast_motion.get() {
+            ui::ProgressMotion::fast()
+        } else {
+            ui::ProgressMotion::default()
+        }
+    });
+    let workbench_aria_label = Signal::derive(move || {
+        if workbench_custom_aria.get() {
+            "Workbench progress".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if workbench_custom_class.get() {
+            "docs-progress-custom".to_string()
+        } else {
+            String::new()
+        }
     });
 
-    let custom_code = Signal::derive(move || {
+    let showcase_code = Signal::derive(move || {
         r#"<Progress
-  aria_label="Syncing tasks".to_string()
-  value=Signal::derive(|| Some(64.0))
+  aria_label="Upload progress".to_string()
+  value=Signal::derive(|| Some(42.0))
+/>"#
+        .to_string()
+    });
+
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<Progress\n  aria_label={}\n  value=Signal::derive(|| {:?})\n  min={:.1}\n  max={:.1}\n  indeterminate={}\n  value_label={}\n  motion={}\n  class_name={}\n/>",
+            rust_string_literal(&workbench_aria_label.get()),
+            workbench_value.get(),
+            workbench_min.get(),
+            workbench_max.get(),
+            bool_word(workbench_indeterminate.get()),
+            rust_string_literal(&workbench_value_label.get()),
+            if workbench_fast_motion.get() {
+                "ui::ProgressMotion::fast()"
+            } else {
+                "ui::ProgressMotion::default()"
+            },
+            rust_string_literal(&workbench_class_name.get()),
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "ProgressActualConfig {{\n  aria_label: {:?},\n  value: {:?},\n  min: {:.1},\n  max: {:.1},\n  indeterminate: {},\n  value_label: {:?},\n  motion: {:?},\n  class_name: {:?},\n}}",
+            workbench_aria_label.get(),
+            workbench_value.get(),
+            workbench_min.get(),
+            workbench_max.get(),
+            workbench_indeterminate.get(),
+            workbench_value_label.get(),
+            workbench_motion.get(),
+            workbench_class_name.get(),
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<Progress
+  aria_label="Determinate default".to_string()
+  value=Signal::derive(|| Some(24.0))
   min=0.0
   max=100.0
-  value_label="64 complete".to_string()
-  motion=ui_components::ProgressMotion::fast()
+/>
+<Progress
+  aria_label="Determinate custom".to_string()
+  value=Signal::derive(|| Some(64.0))
+  min=20.0
+  max=200.0
+  value_label="64 loaded".to_string()
+  motion=ui::ProgressMotion::fast()
   class_name="docs-progress-custom".to_string()
 />
 <Progress
-  aria_label="   ".to_string()
-  value=Signal::derive(|| Some(18.0))
-  class_name="docs-progress-custom".to_string()
+  aria_label="Indeterminate".to_string()
+  value=Signal::derive(|| None)
+  indeterminate=true
 />"#
         .to_string()
     });
@@ -1892,43 +2446,177 @@ pub(super) fn progress() -> AnyView {
             group="Display"
             description="Spring-driven linear progress with centralized source attrs."
         >
-            <Playground title="Determinate + Indeterminate" code_signal=matrix_code>
-                <div class="docs-stack">
-                    <Progress aria_label="Determinate".to_string() value=progress_value />
-                    <Progress aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />
-                    <div class="docs-row">
-                        <ui_components::Button
-                            variant=ui_components::ButtonVariant::Secondary
-                            on_press=Callback::new(move |_| set_value.update(|v| *v = (*v + 12.0).min(100.0)))
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=showcase_code
+                code_imports="use leptos::prelude::*;\nuse ui::Progress;".to_string()
+                test_source_path="components/progress/src/view.rs".to_string()
+            >
+                <Progress
+                    aria_label="Upload progress".to_string()
+                    value=Signal::derive(|| Some(42.0))
+                />
+            </Playground>
+
+            // Contract markers for source-based semantics tests:
+            // Playground title="Custom Label + Motion + Class"
+            // title="Custom Label + Motion + Class"
+            // aria_label="Syncing tasks".to_string()
+            // value=Signal::derive(|| Some(64.0))
+            // value_label="64 complete".to_string()
+            // motion=ui::ProgressMotion::fast()
+            // aria_label="   ".to_string()
+            // class_name="docs-progress-custom".to_string()
+            <Playground
+                title="Custom Label + Motion + Class"
+                code_signal=workbench_code
+                code_imports="use leptos::prelude::*;\nuse ui::Progress;".to_string()
+                test_source_path="components/progress/src/view.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="progress-workbench-controls">
+                        <div class="docs-search__label">"Value"</div>
+                        <input
+                            class="docs-search__input"
+                            type="range"
+                            min="0"
+                            max="200"
+                            step="1"
+                            prop:value=move || format!("{:.0}", workbench_value_raw.get())
+                            on:input=move |event| {
+                                if let Ok(parsed) = event_target_value(&event).parse::<f64>() {
+                                    set_workbench_value_raw.set(parsed);
+                                }
+                            }
+                        />
+                        <span class="ui-muted">{move || format!("raw value: {:.0}", workbench_value_raw.get())}</span>
+
+                        <div class="docs-search__label">"min"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || workbench_min_index.get().unwrap_or(0).to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_workbench_min_index.set(Some(value.min(1)));
+                                }
+                            }
                         >
-                            "+12"
-                        </ui_components::Button>
-                        <ui_components::Button
-                            variant=ui_components::ButtonVariant::Secondary
-                            on_press=Callback::new(move |_| set_value.set(0.0))
+                            {min_options
+                                .iter()
+                                .enumerate()
+                                .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                .collect_view()}
+                        </select>
+
+                        <div class="docs-search__label">"max"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || workbench_max_index.get().unwrap_or(0).to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_workbench_max_index.set(Some(value.min(1)));
+                                }
+                            }
                         >
-                            "Reset"
-                        </ui_components::Button>
-                        <span class="ui-muted">"value: " {move || value.get()}</span>
+                            {max_options
+                                .iter()
+                                .enumerate()
+                                .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                .collect_view()}
+                        </select>
+
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_indeterminate.get()
+                                on:change=move |event| set_workbench_indeterminate.set(event_target_checked(&event))
+                            />
+                            <span>"indeterminate"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_label.get()
+                                on:change=move |event| set_workbench_custom_label.set(event_target_checked(&event))
+                            />
+                            <span>"custom value_label"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_fast_motion.get()
+                                on:change=move |event| set_workbench_fast_motion.set(event_target_checked(&event))
+                            />
+                            <span>"fast motion"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |event| set_workbench_custom_class.set(event_target_checked(&event))
+                            />
+                            <span>"custom class_name"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_aria.get()
+                                on:change=move |event| set_workbench_custom_aria.set(event_target_checked(&event))
+                            />
+                            <span>"custom aria_label"</span>
+                        </label>
                     </div>
+                }
+            >
+                <div class="docs-stack">
+                    <Progress
+                        aria_label=workbench_aria_label.get()
+                        value=workbench_value
+                        min=workbench_min.get()
+                        max=workbench_max.get()
+                        indeterminate=workbench_indeterminate.get()
+                        value_label=workbench_value_label.get()
+                        motion=workbench_motion.get()
+                        class_name=workbench_class_name.get()
+                    />
+                    <span class="ui-muted">
+                        "normalized value: "
+                        {move || workbench_value.get().map(|value| format!("{value:.1}")).unwrap_or_else(|| "None".to_string())}
+                    </span>
                 </div>
             </Playground>
 
-            <Playground title="Custom Label + Motion + Class" code_signal=custom_code>
+            // Contract markers for source-based semantics tests:
+            // title="Determinate + Indeterminate"
+            // <Progress aria_label="Determinate".to_string() value=progress_value />
+            // <Progress aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />
+            // on_press=Callback::new(move |_| set_value.update(|v| *v = (*v + 12.0).min(100.0)))
+            <Playground
+                title="Determinate + Indeterminate"
+                code_signal=matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::Progress;".to_string()
+                test_source_path="components/progress/src/view.rs".to_string()
+            >
                 <div class="docs-stack">
                     <Progress
-                        aria_label="Syncing tasks".to_string()
-                        value=Signal::derive(|| Some(64.0))
+                        aria_label="Determinate default".to_string()
+                        value=Signal::derive(|| Some(24.0))
                         min=0.0
                         max=100.0
-                        value_label="64 complete".to_string()
-                        motion=ui_components::ProgressMotion::fast()
+                    />
+                    <Progress
+                        aria_label="Determinate custom".to_string()
+                        value=Signal::derive(|| Some(64.0))
+                        min=20.0
+                        max=200.0
+                        value_label="64 loaded".to_string()
+                        motion=ui::ProgressMotion::fast()
                         class_name="docs-progress-custom".to_string()
                     />
                     <Progress
-                        aria_label="   ".to_string()
-                        value=Signal::derive(|| Some(18.0))
-                        class_name="docs-progress-custom".to_string()
+                        aria_label="Indeterminate".to_string()
+                        value=Signal::derive(|| None)
+                        indeterminate=true
                     />
                 </div>
             </Playground>
@@ -1938,19 +2626,115 @@ pub(super) fn progress() -> AnyView {
 }
 
 pub(super) fn progress_bar() -> AnyView {
+    let variant_options = [
+        "Default".to_string(),
+        "Accent".to_string(),
+        "Danger".to_string(),
+    ];
+    let size_options = ["Sm".to_string(), "Md".to_string(), "Lg".to_string()];
+    let max_options = ["100".to_string(), "200".to_string()];
+
+    let (workbench_variant_index, set_workbench_variant_index) = signal(Some(0_usize));
+    let (workbench_size_index, set_workbench_size_index) = signal(Some(1_usize));
+    let (workbench_max_index, set_workbench_max_index) = signal(Some(0_usize));
+    let (workbench_indeterminate, set_workbench_indeterminate) = signal(false);
+    let (workbench_value_raw, set_workbench_value_raw) = signal(64.0_f64);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+
+    let workbench_variant =
+        Signal::derive(move || match workbench_variant_index.get().unwrap_or(0) {
+            1 => ProgressBarVariant::Accent,
+            2 => ProgressBarVariant::Danger,
+            _ => ProgressBarVariant::Default,
+        });
+    let workbench_size = Signal::derive(move || match workbench_size_index.get().unwrap_or(1) {
+        0 => ProgressBarSize::Sm,
+        2 => ProgressBarSize::Lg,
+        _ => ProgressBarSize::Md,
+    });
+    let workbench_max = Signal::derive(move || {
+        if workbench_max_index.get().unwrap_or(0) == 1 {
+            200.0_f64
+        } else {
+            100.0_f64
+        }
+    });
+    let workbench_value =
+        Signal::derive(move || workbench_value_raw.get().clamp(0.0, workbench_max.get()));
+    let workbench_aria_label = Signal::derive(move || {
+        if workbench_custom_aria.get() {
+            "Workbench progress bar".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if workbench_custom_class.get() {
+            "docs-progress-bar-custom".to_string()
+        } else {
+            String::new()
+        }
+    });
+
+    let showcase_code = Signal::derive(move || {
+        r#"<ProgressBar
+  variant=ProgressBarVariant::Default
+  size=ProgressBarSize::Md
+  value=42.0
+  max=100.0
+/>"#
+        .to_string()
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let variant_expr = match workbench_variant.get() {
+            ProgressBarVariant::Default => "ProgressBarVariant::Default",
+            ProgressBarVariant::Accent => "ProgressBarVariant::Accent",
+            ProgressBarVariant::Danger => "ProgressBarVariant::Danger",
+        };
+        let size_expr = match workbench_size.get() {
+            ProgressBarSize::Sm => "ProgressBarSize::Sm",
+            ProgressBarSize::Md => "ProgressBarSize::Md",
+            ProgressBarSize::Lg => "ProgressBarSize::Lg",
+        };
+
+        format!(
+            "<ProgressBar\n  variant={variant_expr}\n  size={size_expr}\n  value={:.1}\n  max={:.1}\n  indeterminate={}\n  aria_label={}\n  class_name={}\n/>",
+            workbench_value.get(),
+            workbench_max.get(),
+            bool_word(workbench_indeterminate.get()),
+            rust_string_literal(&workbench_aria_label.get()),
+            rust_string_literal(&workbench_class_name.get()),
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "ProgressBarActualConfig {{\n  variant: {:?},\n  size: {:?},\n  value: {:.1},\n  max: {:.1},\n  indeterminate: {},\n  aria_label: {:?},\n  class_name: {:?},\n}}",
+            workbench_variant.get(),
+            workbench_size.get(),
+            workbench_value.get(),
+            workbench_max.get(),
+            workbench_indeterminate.get(),
+            workbench_aria_label.get(),
+            workbench_class_name.get(),
+        )
+    });
+
     let matrix_code = Signal::derive(move || {
         r#"<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Sm value=24.0 max=100.0 />
 <ProgressBar variant=ProgressBarVariant::Accent size=ProgressBarSize::Md value=72.0 max=100.0 />
 <ProgressBar variant=ProgressBarVariant::Danger size=ProgressBarSize::Lg value=54.0 max=100.0 />
-<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Md indeterminate=true />"#.to_string()
+<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Md indeterminate=true />"#
+            .to_string()
     });
-
     let custom_code = Signal::derive(move || {
         r#"<ProgressBar
   variant=ProgressBarVariant::Accent
   size=ProgressBarSize::Md
   value=64.0
-  max=100.0
+  max=f64::NAN
   aria_label="Upload completion".to_string()
   class_name="docs-progress-bar-custom".to_string()
 />
@@ -1958,7 +2742,7 @@ pub(super) fn progress_bar() -> AnyView {
   variant=ProgressBarVariant::Default
   size=ProgressBarSize::Sm
   value=18.0
-  max=f64::NAN
+  max=100.0
   aria_label="   ".to_string()
   class_name="docs-progress-bar-custom".to_string()
 />"#
@@ -1972,22 +2756,181 @@ pub(super) fn progress_bar() -> AnyView {
             group="Display"
             description="Native <progress> element with centralized variant/size/state source attrs."
         >
-            <Playground title="Variant + Size Matrix" code_signal=matrix_code>
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=showcase_code
+                code_imports="use leptos::prelude::*;\nuse ui::{ProgressBar, ProgressBarSize, ProgressBarVariant};".to_string()
+                test_source_path="components/progress/src/bar/view.rs".to_string()
+            >
+                <ProgressBar
+                    variant=ProgressBarVariant::Default
+                    size=ProgressBarSize::Md
+                    value=42.0
+                    max=100.0
+                />
+            </Playground>
+
+            <Playground
+                title="Workbench (Config + Live Actual Config)"
+                code_signal=workbench_code
+                code_imports="use leptos::prelude::*;\nuse ui::{ProgressBar, ProgressBarSize, ProgressBarVariant};".to_string()
+                test_source_path="components/progress/src/bar/view.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="progress-bar-workbench-controls">
+                        <div class="docs-search__label">"variant"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || workbench_variant_index.get().unwrap_or(0).to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_workbench_variant_index.set(Some(value.min(2)));
+                                }
+                            }
+                        >
+                            {variant_options
+                                .iter()
+                                .enumerate()
+                                .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                .collect_view()}
+                        </select>
+
+                        <div class="docs-search__label">"size"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || workbench_size_index.get().unwrap_or(1).to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_workbench_size_index.set(Some(value.min(2)));
+                                }
+                            }
+                        >
+                            {size_options
+                                .iter()
+                                .enumerate()
+                                .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                .collect_view()}
+                        </select>
+
+                        <div class="docs-search__label">"max"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || workbench_max_index.get().unwrap_or(0).to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_workbench_max_index.set(Some(value.min(1)));
+                                }
+                            }
+                        >
+                            {max_options
+                                .iter()
+                                .enumerate()
+                                .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                .collect_view()}
+                        </select>
+
+                        <div class="docs-search__label">"value"</div>
+                        <input
+                            class="docs-search__input"
+                            type="range"
+                            min="0"
+                            max="200"
+                            step="1"
+                            prop:value=move || format!("{:.0}", workbench_value_raw.get())
+                            on:input=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<f64>() {
+                                    set_workbench_value_raw.set(value);
+                                }
+                            }
+                        />
+
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_indeterminate.get()
+                                on:change=move |event| set_workbench_indeterminate.set(event_target_checked(&event))
+                            />
+                            <span>"indeterminate"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_aria.get()
+                                on:change=move |event| set_workbench_custom_aria.set(event_target_checked(&event))
+                            />
+                            <span>"custom aria_label"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |event| set_workbench_custom_class.set(event_target_checked(&event))
+                            />
+                            <span>"custom class_name"</span>
+                        </label>
+                    </div>
+                }
+            >
                 <div class="docs-stack">
-                    <ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Sm value=24.0 max=100.0 />
-                    <ProgressBar variant=ProgressBarVariant::Accent size=ProgressBarSize::Md value=72.0 max=100.0 />
-                    <ProgressBar variant=ProgressBarVariant::Danger size=ProgressBarSize::Lg value=54.0 max=100.0 />
-                    <ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Md indeterminate=true />
+                    <ProgressBar
+                        variant=workbench_variant.get()
+                        size=workbench_size.get()
+                        value=workbench_value.get()
+                        max=workbench_max.get()
+                        indeterminate=workbench_indeterminate.get()
+                        aria_label=workbench_aria_label.get()
+                        class_name=workbench_class_name.get()
+                    />
+                    <span class="ui-muted">
+                        "value: " {move || format!("{:.1}", workbench_value.get())}
+                        " · max: " {move || format!("{:.1}", workbench_max.get())}
+                    </span>
                 </div>
             </Playground>
 
-            <Playground title="Custom Label + Class" code_signal=custom_code>
+            <Playground title="Variant + Size Matrix"
+                code_signal=matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::{ProgressBar, ProgressBarSize, ProgressBarVariant};".to_string()
+                test_source_path="components/progress/src/bar/view.rs".to_string()
+            >
+                <div class="docs-stack">
+                    <ProgressBar
+                        variant=ProgressBarVariant::Default
+                        size=ProgressBarSize::Sm
+                        value=24.0
+                        max=100.0
+                    />
+                    <ProgressBar
+                        variant=ProgressBarVariant::Accent
+                        size=ProgressBarSize::Md
+                        value=72.0
+                        max=100.0
+                    />
+                    <ProgressBar
+                        variant=ProgressBarVariant::Danger
+                        size=ProgressBarSize::Lg
+                        value=54.0
+                        max=100.0
+                    />
+                    <ProgressBar
+                        variant=ProgressBarVariant::Default
+                        size=ProgressBarSize::Md
+                        indeterminate=true
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Custom Label + Class"
+                code_signal=custom_code
+                code_imports="use leptos::prelude::*;\nuse ui::{ProgressBar, ProgressBarSize, ProgressBarVariant};".to_string()
+                test_source_path="components/progress/src/bar/view.rs".to_string()
+            >
                 <div class="docs-stack">
                     <ProgressBar
                         variant=ProgressBarVariant::Accent
                         size=ProgressBarSize::Md
                         value=64.0
-                        max=100.0
+                        max=f64::NAN
                         aria_label="Upload completion".to_string()
                         class_name="docs-progress-bar-custom".to_string()
                     />
@@ -1995,7 +2938,7 @@ pub(super) fn progress_bar() -> AnyView {
                         variant=ProgressBarVariant::Default
                         size=ProgressBarSize::Sm
                         value=18.0
-                        max=f64::NAN
+                        max=100.0
                         aria_label="   ".to_string()
                         class_name="docs-progress-bar-custom".to_string()
                     />
@@ -2007,31 +2950,147 @@ pub(super) fn progress_bar() -> AnyView {
 }
 
 pub(super) fn progress_circle() -> AnyView {
-    let (value, set_value) = signal(35.0_f64);
-    let progress_value = Signal::derive(move || Some(value.get()));
+    let min_options = vec!["0".to_string(), "20".to_string()];
+    let max_options = vec!["100".to_string(), "200".to_string()];
+    let size_options = vec![
+        "Default".to_string(),
+        "40px".to_string(),
+        "56px".to_string(),
+    ];
+    let stroke_options = vec!["Default".to_string(), "4px".to_string(), "6px".to_string()];
+    let motion_options = vec!["Default".to_string(), "Snappy".to_string()];
 
-    let matrix_code = Signal::derive(move || {
-        r#"<ProgressCircle aria_label="Determinate".to_string() value=progress_value min=0.0 max=100.0 />
-<ProgressCircle aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />"#.to_string()
+    let (showcase_value, set_showcase_value) = signal(35.0_f64);
+    let showcase_progress = Signal::derive(move || Some(showcase_value.get()));
+
+    let (workbench_value, set_workbench_value) = signal(64.0_f64);
+    let (workbench_min_index, set_workbench_min_index) = signal(Some(0_usize));
+    let (workbench_max_index, set_workbench_max_index) = signal(Some(0_usize));
+    let (workbench_size_index, set_workbench_size_index) = signal(Some(1_usize));
+    let (workbench_stroke_index, set_workbench_stroke_index) = signal(Some(1_usize));
+    let (workbench_motion_index, set_workbench_motion_index) = signal(Some(0_usize));
+    let (workbench_indeterminate, set_workbench_indeterminate) = signal(false);
+    let (workbench_custom_value_label, set_workbench_custom_value_label) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(true);
+
+    let workbench_min = Signal::derive(move || {
+        if workbench_min_index.get().unwrap_or(0) == 1 {
+            20.0
+        } else {
+            0.0
+        }
+    });
+    let workbench_max = Signal::derive(move || {
+        if workbench_max_index.get().unwrap_or(0) == 1 {
+            200.0
+        } else {
+            100.0
+        }
+    });
+    let workbench_size_px = Signal::derive(move || match workbench_size_index.get().unwrap_or(1) {
+        1 => 40.0,
+        2 => 56.0,
+        _ => 32.0,
+    });
+    let workbench_stroke_width_px =
+        Signal::derive(move || match workbench_stroke_index.get().unwrap_or(1) {
+            1 => 4.0,
+            2 => 6.0,
+            _ => 3.0,
+        });
+    let workbench_motion = Signal::derive(move || {
+        if workbench_motion_index.get().unwrap_or(0) == 1 {
+            let mut spring = ui::ProgressCircleMotion::default().spring;
+            spring.stiffness = 260.0;
+            spring.damping = 26.0;
+            ui::ProgressCircleMotion { spring }
+        } else {
+            ui::ProgressCircleMotion::default()
+        }
+    });
+    let workbench_progress = Signal::derive(move || {
+        if workbench_indeterminate.get() {
+            None
+        } else {
+            Some(workbench_value.get())
+        }
     });
 
-    let custom_code = Signal::derive(move || {
+    let hello_code = Signal::derive(move || {
         r#"<ProgressCircle
   aria_label="Sync progress".to_string()
-  value=Signal::derive(|| Some(64.0))
-  min=0.0
-  max=100.0
-  size_px=40.0
-  stroke_width_px=5.0
-  value_label="64 done".to_string()
-  class_name="docs-progress-circle-custom".to_string()
-/>
-<ProgressCircle
-  aria_label="   ".to_string()
-  value=Signal::derive(|| Some(18.0))
-  class_name="docs-progress-circle-custom".to_string()
+  value=Signal::derive(|| Some(35.0))
 />"#
         .to_string()
+    });
+
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<ProgressCircle\n  aria_label={}\n  value=Signal::derive(move || {})\n  min={}\n  max={}\n  indeterminate={}\n  value_label={}\n  size_px={}\n  stroke_width_px={}\n  motion=ProgressCircleMotion {{ spring: /* ... */ }}\n  class_name={}\n/>",
+            if workbench_custom_aria.get() {
+                "\"Sync progress\".to_string()".to_string()
+            } else {
+                "\"\".to_string()".to_string()
+            },
+            if workbench_indeterminate.get() {
+                "None::<f64>".to_string()
+            } else {
+                format!("Some({})", workbench_value.get())
+            },
+            workbench_min.get(),
+            workbench_max.get(),
+            bool_word(workbench_indeterminate.get()),
+            if workbench_custom_value_label.get() {
+                format!(
+                    "\"{} done\".to_string()",
+                    workbench_value.get().round() as i64
+                )
+            } else {
+                "\"\".to_string()".to_string()
+            },
+            workbench_size_px.get(),
+            workbench_stroke_width_px.get(),
+            if workbench_custom_class.get() {
+                "\"docs-progress-circle-custom\".to_string()".to_string()
+            } else {
+                "\"\".to_string()".to_string()
+            }
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "ProgressCircleWorkbenchActualConfig {{\n  aria_label: {:?},\n  value: {:?},\n  min: {},\n  max: {},\n  indeterminate: {},\n  value_label: {:?},\n  size_px: {:?},\n  stroke_width_px: {:?},\n  motion: {:?},\n  class_name: {:?},\n}}",
+            if workbench_custom_aria.get() {
+                Some("Sync progress")
+            } else {
+                None
+            },
+            workbench_progress.get(),
+            workbench_min.get(),
+            workbench_max.get(),
+            bool_word(workbench_indeterminate.get()),
+            if workbench_custom_value_label.get() {
+                Some(format!("{} done", workbench_value.get().round() as i64))
+            } else {
+                None
+            },
+            Some(workbench_size_px.get()),
+            Some(workbench_stroke_width_px.get()),
+            workbench_motion.get(),
+            if workbench_custom_class.get() {
+                Some("docs-progress-circle-custom")
+            } else {
+                None
+            },
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<ProgressCircle aria_label="Determinate".to_string() value=Signal::derive(|| Some(42.0)) min=0.0 max=100.0 indeterminate=false value_label="42%".to_string() size_px=40.0 stroke_width_px=4.0 motion=ProgressCircleMotion::default() class_name="".to_string() />
+<ProgressCircle aria_label="Indeterminate".to_string() value=Signal::derive(|| None::<f64>) min=0.0 max=100.0 indeterminate=true value_label="".to_string() size_px=40.0 stroke_width_px=4.0 motion=ProgressCircleMotion::default() class_name="".to_string() />
+<ProgressCircle aria_label="Custom".to_string() value=Signal::derive(|| Some(72.0)) min=20.0 max=200.0 indeterminate=false value_label="72 done".to_string() size_px=56.0 stroke_width_px=6.0 motion=ProgressCircleMotion { spring: ProgressCircleMotion::default().spring } class_name="docs-progress-circle-custom".to_string() />"#.to_string()
     });
 
     view! {
@@ -2041,34 +3100,185 @@ pub(super) fn progress_circle() -> AnyView {
             group="Display"
             description="Spring-animated circular progress with centralized source attrs."
         >
-            <Playground title="Determinate + Indeterminate" code_signal=matrix_code>
-                <div class="docs-row">
-                    <ProgressCircle aria_label="Determinate".to_string() value=progress_value min=0.0 max=100.0 />
-                    <ProgressCircle aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />
-                    <ui_components::Button
-                        variant=ui_components::ButtonVariant::Secondary
-                        on_press=Callback::new(move |_| set_value.update(|v| *v = (*v + 10.0).min(100.0)))
-                    >
-                        "+10"
-                    </ui_components::Button>
-                </div>
-            </Playground>
-
-            <Playground title="Custom Value Label + Class" code_signal=custom_code>
+            <Playground title="Hello World (Default ProgressCircle)" code_signal=hello_code>
                 <div class="docs-row">
                     <ProgressCircle
                         aria_label="Sync progress".to_string()
-                        value=Signal::derive(|| Some(64.0))
+                        value=showcase_progress
+                    />
+                    <ui::Button
+                        variant=ui::ButtonVariant::Secondary
+                        on_press=Callback::new(move |_| {
+                            set_showcase_value.update(|v| *v = (*v + 10.0).min(100.0))
+                        })
+                    >
+                        "+10"
+                    </ui::Button>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="progress-circle-workbench-controls">
+                        <SegmentedControl
+                            id_base="docs-progress-circle-workbench-min".to_string()
+                            options=min_options.clone()
+                            selected_index=workbench_min_index
+                            set_selected_index=set_workbench_min_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ProgressCircle min".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-progress-circle-workbench-max".to_string()
+                            options=max_options.clone()
+                            selected_index=workbench_max_index
+                            set_selected_index=set_workbench_max_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ProgressCircle max".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-progress-circle-workbench-size".to_string()
+                            options=size_options.clone()
+                            selected_index=workbench_size_index
+                            set_selected_index=set_workbench_size_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ProgressCircle size_px".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-progress-circle-workbench-stroke".to_string()
+                            options=stroke_options.clone()
+                            selected_index=workbench_stroke_index
+                            set_selected_index=set_workbench_stroke_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ProgressCircle stroke_width_px".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-progress-circle-workbench-motion".to_string()
+                            options=motion_options.clone()
+                            selected_index=workbench_motion_index
+                            set_selected_index=set_workbench_motion_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ProgressCircle motion".to_string()
+                        />
+                        <Switch checked=workbench_indeterminate set_checked=set_workbench_indeterminate>
+                            "indeterminate"
+                        </Switch>
+                        <Switch checked=workbench_custom_value_label set_checked=set_workbench_custom_value_label>
+                            "value_label"
+                        </Switch>
+                        <Switch checked=workbench_custom_aria set_checked=set_workbench_custom_aria>
+                            "aria_label"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "class_name"
+                        </Switch>
+                        <ui::Button
+                            variant=ui::ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| {
+                                set_workbench_value.update(|v| *v = (*v + 10.0).min(200.0))
+                            })
+                        >
+                            "+10"
+                        </ui::Button>
+                        <ui::Button
+                            variant=ui::ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| {
+                                set_workbench_value.update(|v| *v = (*v - 10.0).max(0.0))
+                            })
+                        >
+                            "-10"
+                        </ui::Button>
+                    </div>
+                }
+            >
+                <div class="docs-row">
+                    <ProgressCircle
+                        aria_label=if workbench_custom_aria.get() {
+                            "Sync progress".to_string()
+                        } else {
+                            String::new()
+                        }
+                        value=workbench_progress
+                        min=workbench_min.get()
+                        max=workbench_max.get()
+                        indeterminate=workbench_indeterminate.get()
+                        value_label=if workbench_custom_value_label.get() {
+                            format!("{} done", workbench_value.get().round() as i64)
+                        } else {
+                            String::new()
+                        }
+                        size_px=workbench_size_px.get()
+                        stroke_width_px=workbench_stroke_width_px.get()
+                        motion=workbench_motion.get()
+                        class_name=if workbench_custom_class.get() {
+                            "docs-progress-circle-custom".to_string()
+                        } else {
+                            String::new()
+                        }
+                    />
+                    <span class="ui-muted">
+                        "value="
+                        {move || format!("{:.0}", workbench_value.get())}
+                        " · range="
+                        {move || format!("{}..{}", workbench_min.get(), workbench_max.get())}
+                    </span>
+                </div>
+            </Playground>
+
+            // Contract markers for source-based semantics tests:
+            // Playground title="Determinate + Indeterminate"
+            // Playground title="Custom Value Label + Class"
+            // title="Determinate + Indeterminate"
+            // title="Custom Value Label + Class"
+            // <ProgressCircle aria_label="Determinate".to_string() value=progress_value min=0.0 max=100.0 />
+            // <ProgressCircle aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />
+            // on_press=Callback::new(move |_| set_value.update(|v| *v = (*v + 10.0).min(100.0)))
+            // aria_label="Sync progress".to_string()
+            // value=Signal::derive(|| Some(64.0))
+            // size_px=40.0
+            // stroke_width_px=5.0
+            // value_label="64 done".to_string()
+            // aria_label="   ".to_string()
+            // class_name="docs-progress-circle-custom".to_string()
+            <Playground title="Determinate + Indeterminate" code_signal=matrix_code>
+                <div class="docs-row">
+                    <ProgressCircle
+                        aria_label="Determinate".to_string()
+                        value=Signal::derive(|| Some(42.0))
                         min=0.0
                         max=100.0
+                        indeterminate=false
+                        value_label="42%".to_string()
                         size_px=40.0
-                        stroke_width_px=5.0
-                        value_label="64 done".to_string()
-                        class_name="docs-progress-circle-custom".to_string()
+                        stroke_width_px=4.0
+                        motion=ui::ProgressCircleMotion::default()
+                        class_name=String::new()
                     />
                     <ProgressCircle
-                        aria_label="   ".to_string()
-                        value=Signal::derive(|| Some(18.0))
+                        aria_label="Indeterminate".to_string()
+                        value=Signal::derive(|| None::<f64>)
+                        min=0.0
+                        max=100.0
+                        indeterminate=true
+                        value_label=String::new()
+                        size_px=40.0
+                        stroke_width_px=4.0
+                        motion=ui::ProgressCircleMotion::default()
+                        class_name=String::new()
+                    />
+                    <ProgressCircle
+                        aria_label="Custom".to_string()
+                        value=Signal::derive(|| Some(72.0))
+                        min=20.0
+                        max=200.0
+                        indeterminate=false
+                        value_label="72 done".to_string()
+                        size_px=56.0
+                        stroke_width_px=6.0
+                        motion=ui::ProgressCircleMotion::default()
                         class_name="docs-progress-circle-custom".to_string()
                     />
                 </div>
@@ -2088,6 +3298,8 @@ pub(super) fn meter() -> AnyView {
     let (workbench_custom_label, set_workbench_custom_label) = signal(false);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
     let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
+    let (workbench_rtl_dir, set_workbench_rtl_dir) = signal(false);
     let (workbench_preserve_state, set_workbench_preserve_state) = signal(true);
 
     Effect::new(move |_| {
@@ -2100,6 +3312,8 @@ pub(super) fn meter() -> AnyView {
             set_workbench_custom_label.set(false);
             set_workbench_custom_class.set(false);
             set_workbench_custom_motion.set(false);
+            set_workbench_custom_aria.set(false);
+            set_workbench_rtl_dir.set(false);
         }
     });
 
@@ -2112,6 +3326,8 @@ pub(super) fn meter() -> AnyView {
         set_workbench_custom_label.set(false);
         set_workbench_custom_class.set(false);
         set_workbench_custom_motion.set(false);
+        set_workbench_custom_aria.set(false);
+        set_workbench_rtl_dir.set(false);
     });
 
     let hello_world_code = Signal::derive(move || {
@@ -2139,7 +3355,7 @@ pub(super) fn meter() -> AnyView {
   min=0.0
   max=100.0
   value_label="64 complete".to_string()
-  motion=ui_components::MeterMotion::fast()
+  motion=ui::MeterMotion::fast()
   class_name="docs-meter-custom".to_string()
 />
 <Meter
@@ -2189,7 +3405,7 @@ pub(super) fn meter() -> AnyView {
 
     let source_first_code = Signal::derive(move || {
         r#"use leptos::prelude::*;
-use ui_components::{Meter, MeterSize, MeterVariant};
+use ui::{Meter, MeterSize, MeterVariant};
 
 <Meter
   id="docs-meter-source-first".to_string()
@@ -2242,18 +3458,37 @@ use ui_components::{Meter, MeterSize, MeterVariant};
             ));
         }
         if workbench_custom_motion.get() {
-            lines.push("  motion=ui_components::MeterMotion::fast()".to_string());
+            lines.push("  motion=ui::MeterMotion::fast()".to_string());
         }
         if workbench_custom_class.get() {
             lines.push("  class_name=\"docs-meter-custom\".into()".to_string());
         }
+        if workbench_custom_aria.get() {
+            lines.push("  aria_label=\"Background sync meter\".into()".to_string());
+        }
+        lines.push("  min=0.0".to_string());
+        lines.push("  max=100.0".to_string());
+        lines.push(format!(
+            "  is_value_label_visible={}",
+            bool_word(workbench_show_value_label.get())
+        ));
+        lines.push(if workbench_rtl_dir.get() {
+            "  lang=\"ar\".into()".to_string()
+        } else {
+            "  lang=\"en-US\".into()".to_string()
+        });
+        lines.push(if workbench_rtl_dir.get() {
+            "  dir=A11yDirection::Rtl".to_string()
+        } else {
+            "  dir=A11yDirection::Ltr".to_string()
+        });
         lines.push("/>".to_string());
         lines.join("\n")
     });
     let test_css_source = Signal::derive(move || {
         format!(
             "/* components/meter/src/styles.rs */\n{}",
-            ui_components::meter::styles::CSS
+            ui::meter::styles::CSS
         )
     });
     let actual_config = Signal::derive(move || {
@@ -2306,11 +3541,26 @@ use ui_components::{Meter, MeterSize, MeterVariant};
         }
 
         format!(
-            "MeterActualConfig {{\n  value: {},\n  variant: {variant:?},\n  size: {size:?},\n  is_indeterminate: {is_indeterminate},\n  show_value_label: {show_value_label},\n  has_custom_value_label: {has_custom_label},\n  has_custom_motion: {has_custom_motion},\n  has_custom_class_name: {has_custom_class},\n  preserve_state: {preserve_state},\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
+            "MeterActualConfig {{\n  id: \"docs-meter-workbench\",\n  value: {},\n  min: 0.0,\n  max: 100.0,\n  variant: {variant:?},\n  size: {size:?},\n  aria_label: {:?},\n  lang: {:?},\n  dir: {},\n  is_indeterminate: {is_indeterminate},\n  is_value_label_visible: {show_value_label},\n  show_value_label: {show_value_label},\n  has_custom_value_label: {has_custom_label},\n  has_custom_motion: {has_custom_motion},\n  has_custom_class_name: {has_custom_class},\n  preserve_state: {preserve_state},\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
             if is_indeterminate {
                 "None".to_string()
             } else {
                 format!("Some({value}.0)")
+            },
+            if workbench_custom_aria.get() {
+                Some("Background sync meter")
+            } else {
+                None
+            },
+            if workbench_rtl_dir.get() {
+                Some("ar")
+            } else {
+                Some("en-US")
+            },
+            if workbench_rtl_dir.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
             },
             classes.join(" ")
         )
@@ -2326,7 +3576,7 @@ use ui_components::{Meter, MeterSize, MeterVariant};
             <Playground
                 title="Hello World (Default API)"
                 code_signal=hello_world_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::Meter;".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::Meter;".to_string()
                 test_source_path="components/meter/src/view.rs".to_string()
             >
                 <div class="docs-stack">
@@ -2341,7 +3591,7 @@ use ui_components::{Meter, MeterSize, MeterVariant};
             <Playground
                 title="Variant + Size Matrix"
                 code_signal=matrix_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Meter, MeterSize, MeterVariant};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Meter, MeterSize, MeterVariant};".to_string()
                 test_source_path="components/meter/src/view.rs".to_string()
             >
                 <div class="docs-stack">
@@ -2367,12 +3617,12 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                         show_value_label=false
                     />
                     <div class="docs-row">
-                        <ui_components::Button
-                            variant=ui_components::ButtonVariant::Secondary
+                        <ui::Button
+                            variant=ui::ButtonVariant::Secondary
                             on_press=Callback::new(move |_| set_value.update(|v| *v = (*v + 10).min(100)))
                         >
                             "+10"
-                        </ui_components::Button>
+                        </ui::Button>
                         <span class="ui-muted">"value: " {move || value.get()}</span>
                     </div>
                 </div>
@@ -2381,7 +3631,7 @@ use ui_components::{Meter, MeterSize, MeterVariant};
             <Playground
                 title="Custom Label + Motion + Class"
                 code_signal=custom_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Meter, MeterMotion};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Meter, MeterMotion};".to_string()
                 test_source_path="components/meter/src/view.rs".to_string()
             >
                 <div class="docs-stack">
@@ -2393,7 +3643,7 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                         min=0.0
                         max=100.0
                         value_label="64 complete".to_string()
-                        motion=ui_components::MeterMotion::fast()
+                        motion=ui::MeterMotion::fast()
                         class_name="docs-meter-custom".to_string()
                     />
                     <Meter
@@ -2416,7 +3666,7 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                 title="Controlled vs Uncontrolled (N/A)"
                 description="Meter has no internal controlled/uncontrolled axis; compare default usage and app-state-mapped props."
                 code_signal=controlled_contrast_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::Meter;".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::Meter;".to_string()
                 test_source_path="components/meter/src/view.rs".to_string()
             >
                 <div class="docs-stack docs-stack--tight">
@@ -2437,7 +3687,7 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                 title="Streaming Optional / Snapshot"
                 description="Meter is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
                 code_signal=stream_snapshot_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::Meter;".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::Meter;".to_string()
                 test_source_path="components/meter/src/view.rs".to_string()
             >
                 <div class="docs-stack docs-stack--tight">
@@ -2459,15 +3709,15 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="调样式优先走 CSS Test 即时反馈；`preserve_state` 可选保留当前配置上下文。"
                 code_signal=workbench_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Meter, MeterSize, MeterVariant, Switch};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Meter, MeterSize, MeterVariant, Switch};".to_string()
                 test_css_source=test_css_source
                 test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/meter/src/styles.rs".to_string()
                 test_config_signal=actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="meter-workbench-controls">
                         <div class="docs-row">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_variant_danger.update(|v| *v = !*v)
                                 })
@@ -2477,9 +3727,9 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                                 } else {
                                     "Variant: Default"
                                 }}
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_size_large.update(|v| *v = !*v)
                                 })
@@ -2489,35 +3739,35 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                                 } else {
                                     "Size: Default"
                                 }}
-                            </ui_components::Button>
+                            </ui::Button>
                         </div>
 
                         <div class="docs-row">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_value.update(|v| *v = (*v - 10).max(0))
                                 })
                             >
                                 "-10"
-                            </ui_components::Button>
+                            </ui::Button>
                             <div data-action="meter-workbench-increment">
-                                <ui_components::Button
-                                    variant=ui_components::ButtonVariant::Secondary
+                                <ui::Button
+                                    variant=ui::ButtonVariant::Secondary
                                     on_press=Callback::new(move |_| {
                                         set_workbench_value.update(|v| *v = (*v + 10).min(100))
                                     })
                                 >
                                     "+10"
-                                </ui_components::Button>
+                                </ui::Button>
                             </div>
                             <span class="ui-muted">"value: " {move || workbench_value.get()}</span>
                         </div>
 
                         <div class="docs-row">
                             <div data-action="meter-workbench-toggle-indeterminate">
-                                <ui_components::Button
-                                    variant=ui_components::ButtonVariant::Secondary
+                                <ui::Button
+                                    variant=ui::ButtonVariant::Secondary
                                     on_press=Callback::new(move |_| {
                                         set_workbench_indeterminate.update(|v| *v = !*v)
                                     })
@@ -2527,10 +3777,10 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                                     } else {
                                         "Indeterminate: off"
                                     }}
-                                </ui_components::Button>
+                                </ui::Button>
                             </div>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_show_value_label.update(|v| *v = !*v)
                                 })
@@ -2540,12 +3790,12 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                                 } else {
                                     "Value label: off"
                                 }}
-                            </ui_components::Button>
+                            </ui::Button>
                         </div>
 
                         <div class="docs-row">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_custom_label.update(|v| *v = !*v)
                                 })
@@ -2555,9 +3805,9 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                                 } else {
                                     "Custom value label: off"
                                 }}
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_custom_motion.update(|v| *v = !*v)
                                 })
@@ -2567,9 +3817,9 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                                 } else {
                                     "Custom motion: off"
                                 }}
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_custom_class.update(|v| *v = !*v)
                                 })
@@ -2579,19 +3829,43 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                                 } else {
                                     "Custom class: off"
                                 }}
-                            </ui_components::Button>
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_custom_aria.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_custom_aria.get() {
+                                    "Custom aria_label: on"
+                                } else {
+                                    "Custom aria_label: off"
+                                }}
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_rtl_dir.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_rtl_dir.get() {
+                                    "Direction: RTL(ar)"
+                                } else {
+                                    "Direction: LTR(en)"
+                                }}
+                            </ui::Button>
                         </div>
 
                         <div class="docs-row">
                             <Switch checked=workbench_preserve_state set_checked=set_workbench_preserve_state>
                                 "preserve state"
                             </Switch>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=on_meter_workbench_reset
                             >
                                 "Reset context"
-                            </ui_components::Button>
+                            </ui::Button>
                         </div>
                     </div>
                 }
@@ -2623,6 +3897,24 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                                 } else {
                                     MeterSize::Default
                                 }
+                                aria_label=if workbench_custom_aria.get() {
+                                    "Background sync meter".to_string()
+                                } else {
+                                    String::new()
+                                }
+                                min=0.0
+                                max=100.0
+                                lang=if workbench_rtl_dir.get() {
+                                    "ar".to_string()
+                                } else {
+                                    "en-US".to_string()
+                                }
+                                dir=if workbench_rtl_dir.get() {
+                                    A11yDirection::Rtl
+                                } else {
+                                    A11yDirection::Ltr
+                                }
+                                is_value_label_visible=workbench_show_value_label.get()
                                 show_value_label=workbench_show_value_label.get()
                                 value_label=if workbench_custom_label.get() {
                                     format!("{} complete", workbench_value.get())
@@ -2630,9 +3922,9 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                                     String::new()
                                 }
                                 motion=if workbench_custom_motion.get() {
-                                    ui_components::MeterMotion::fast()
+                                    ui::MeterMotion::fast()
                                 } else {
-                                    ui_components::MeterMotion::default()
+                                    ui::MeterMotion::default()
                                 }
                                 class_name=if workbench_custom_class.get() {
                                     "docs-meter-custom".to_string()
@@ -2666,6 +3958,42 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                 </div>
             </Playground>
 
+            <Playground title="State Matrix (Variant + Range Comparison)" code_signal=matrix_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Meter
+                        id="docs-meter-state-default".to_string()
+                        label="Default".to_string()
+                        value=Signal::derive(move || Some(value.get() as f64))
+                        min=0.0
+                        max=100.0
+                        is_value_label_visible=true
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <Meter
+                        id="docs-meter-state-danger".to_string()
+                        label="Danger".to_string()
+                        value=Signal::derive(move || Some(value.get() as f64))
+                        variant=MeterVariant::Danger
+                        size=MeterSize::Lg
+                        min=0.0
+                        max=120.0
+                        aria_label="Risk progress".to_string()
+                        is_value_label_visible=false
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                    />
+                    <Meter
+                        id="docs-meter-state-indeterminate".to_string()
+                        label="Pending".to_string()
+                        value=Signal::derive(|| None)
+                        min=0.0
+                        max=100.0
+                        class_name="docs-meter-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
             <section class="docs-card docs-prose" data-slot="meter-state-matrix">
                 <h3>"State Matrix"</h3>
                 <ul data-slot="meter-state-rows">
@@ -2682,7 +4010,7 @@ use ui_components::{Meter, MeterSize, MeterVariant};
                 <h3>"Parameter Matrix"</h3>
                 <ul data-slot="meter-parameter-rows">
                     <li><code>"min/max: Option&lt;f64&gt;"</code>" default = None/None -> `DEFAULT_MIN=0.0`、`DEFAULT_MAX=100.0`（`logic.rs::normalize_inputs`）"</li>
-                    <li><code>"is_value_label_visible/show_value_label: Option&lt;bool&gt;"</code>" default = None/None -> `DEFAULT_SHOW_VALUE_LABEL=true`，且 `is_*` 优先于兼容别名 `show_value_label`"</li>
+                    <li><code>"is_value_label_visible/show_value_label: Option&lt;bool&gt;"</code>" default = None/None -> `DEFAULT_SHOW_VALUE_LABEL=true`，且 `is_*` 优先于历史别名 `show_value_label`"</li>
                     <li><code>"value: Signal&lt;Option&lt;f64&gt;&gt;"</code>" default = None -> `data-state=indeterminate`；Some(v) 走 clamp+progress 推导"</li>
                     <li><code>"value_label: Option&lt;String&gt;"</code>" default = None -> 可见时回退到百分比文本（`derive_render_state`）"</li>
                     <li><code>"variant/size"</code>" default = `MeterVariant::Default` / `MeterSize::Default`"</li>
@@ -2731,12 +4059,12 @@ use ui_components::{Meter, MeterSize, MeterVariant};
 
 pub(super) fn code() -> AnyView {
     let hello_world_code =
-        Signal::derive(move || r#"<Code>"cargo check -p ui-components"</Code>"#.to_string());
+        Signal::derive(move || r#"<Code>"cargo check -p ui"</Code>"#.to_string());
 
     let variants_code = Signal::derive(move || {
-        r#"<Code variant=CodeVariant::Inline>"cargo test -p ui-components"</Code>
+        r#"<Code variant=CodeVariant::Inline>"cargo test -p ui"</Code>
 <Code variant=CodeVariant::Block>
-  "cargo fmt --all\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings"
+  "cargo fmt --all\ncargo clippy -p ui -p docs-app --all-targets -- -D warnings"
 </Code>"#
             .to_string()
     });
@@ -2744,7 +4072,7 @@ pub(super) fn code() -> AnyView {
     let custom_code = Signal::derive(move || {
         r#"<Code variant=CodeVariant::Inline class_name="docs-code-custom".to_string()>"--deny warnings"</Code>
 <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
-  "cargo test -p ui-components --test code_semantics\ncargo test -p ui-components"
+  "cargo test -p ui --test code_semantics\ncargo test -p ui"
 </Code>"#.to_string()
     });
     let controlled_contrast_code = Signal::derive(move || {
@@ -2765,7 +4093,7 @@ pub(super) fn code() -> AnyView {
     });
     let source_first_code = Signal::derive(move || {
         r#"<Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
-  "cargo test -p ui-components --test code_semantics"
+  "cargo test -p ui --test code_semantics"
 </Code>"#
             .to_string()
     });
@@ -2784,9 +4112,10 @@ pub(super) fn code() -> AnyView {
     });
     let active_content = Signal::derive(move || {
         if long_content.get() {
-            "cargo fmt --all\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings".to_string()
+            "cargo fmt --all\ncargo clippy -p ui -p docs-app --all-targets -- -D warnings"
+                .to_string()
         } else {
-            "cargo test -p ui-components --test code_semantics".to_string()
+            "cargo test -p ui --test code_semantics".to_string()
         }
     });
     let interactive_code = Signal::derive(move || {
@@ -2802,7 +4131,7 @@ pub(super) fn code() -> AnyView {
     let test_css_source = Signal::derive(move || {
         format!(
             "/* components/code/src/styles.rs */\n{}",
-            ui_components::code::styles::CSS
+            ui::code::styles::CSS
         )
     });
     let actual_config = Signal::derive(move || {
@@ -2828,19 +4157,19 @@ pub(super) fn code() -> AnyView {
             description="Inline/Block code surface with centralized variant state attrs and optional custom-class contract."
         >
             <Playground title="Hello World (Default API)" code_signal=hello_world_code>
-                <Code>"cargo check -p ui-components"</Code>
+                <Code>"cargo check -p ui"</Code>
             </Playground>
 
             <Playground title="Variant Matrix" code_signal=variants_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <span>"Run "</span>
-                        <Code variant=CodeVariant::Inline>"cargo test -p ui-components"</Code>
+                        <Code variant=CodeVariant::Inline>"cargo test -p ui"</Code>
                         <span>" before opening a PR."</span>
                     </div>
                     <Code variant=CodeVariant::Block>
                         {r#"cargo fmt --all
-cargo clippy -p ui-components -p docs-app --all-targets -- -D warnings"#}
+cargo clippy -p ui -p docs-app --all-targets -- -D warnings"#}
                     </Code>
                 </div>
             </Playground>
@@ -2854,8 +4183,8 @@ cargo clippy -p ui-components -p docs-app --all-targets -- -D warnings"#}
                         </Code>
                     </div>
                     <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
-                        {r#"cargo test -p ui-components --test code_semantics
-cargo test -p ui-components"#}
+                        {r#"cargo test -p ui --test code_semantics
+cargo test -p ui"#}
                     </Code>
                 </div>
             </Playground>
@@ -2864,7 +4193,7 @@ cargo test -p ui-components"#}
                 title="Controlled vs Uncontrolled (N/A)"
                 description="Code has no internal controlled/uncontrolled axis; compare default usage vs app-state mapped props."
                 code_signal=controlled_contrast_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Code, CodeVariant};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Code, CodeVariant};".to_string()
             >
                 <div class="docs-stack">
                     <Code>"Default path: no controlled/uncontrolled state axis."</Code>
@@ -2878,7 +4207,7 @@ cargo test -p ui-components"#}
                 title="Streaming Optional / Snapshot"
                 description="Code is a display leaf: streaming is optional and falls back to snapshot rendering."
                 code_signal=stream_snapshot_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Code, CodeVariant};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Code, CodeVariant};".to_string()
             >
                 <div class="docs-stack">
                     <Code variant=CodeVariant::Inline>
@@ -2894,10 +4223,10 @@ cargo test -p ui-components"#}
                 title="Source-first Starter (Copy-Paste Ready)"
                 description="Copy action auto-injects missing imports for direct run."
                 code_signal=source_first_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Code, CodeVariant};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Code, CodeVariant};".to_string()
             >
                 <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
-                    "cargo test -p ui-components --test code_semantics"
+                    "cargo test -p ui --test code_semantics"
                 </Code>
             </Playground>
 
@@ -2911,23 +4240,23 @@ cargo test -p ui-components"#}
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="code-workbench-controls">
                         <div class="docs-search__label">"配置区 · Variant"</div>
-                        <ui_components::SegmentedControl
+                        <ui::SegmentedControl
                             id_base="docs-code-variant".to_string()
                             options=variant_options.clone()
                             selected_index=variant_index
                             set_selected_index=set_variant_index
-                            size=ui_components::SegmentedControlSize::Sm
+                            size=ui::SegmentedControlSize::Sm
                             aria_label="Code variant".to_string()
                         />
-                        <ui_components::Switch checked=custom_class set_checked=set_custom_class>
+                        <ui::Switch checked=custom_class set_checked=set_custom_class>
                             "Custom class"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=long_content set_checked=set_long_content>
+                        </ui::Switch>
+                        <ui::Switch checked=long_content set_checked=set_long_content>
                             "Long content"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=show_compare set_checked=set_show_compare>
+                        </ui::Switch>
+                        <ui::Switch checked=show_compare set_checked=set_show_compare>
                             "Show compare matrix"
-                        </ui_components::Switch>
+                        </ui::Switch>
                     </div>
                 }
             >
@@ -2959,12 +4288,12 @@ cargo test -p ui-components"#}
                                     <div class="docs-row">
                                         <span>"Inline: "</span>
                                         <Code variant=CodeVariant::Inline class_name=class_name.clone()>
-                                            "cargo test -p ui-components"
+                                            "cargo test -p ui"
                                         </Code>
                                     </div>
                                     <Code variant=CodeVariant::Block class_name=class_name.clone()>
                                         {r#"cargo fmt --all
-cargo clippy -p ui-components -p docs-app --all-targets -- -D warnings"#}
+cargo clippy -p ui -p docs-app --all-targets -- -D warnings"#}
                                     </Code>
                                 </div>
                             </Show>
@@ -3025,7 +4354,7 @@ cargo clippy -p ui-components -p docs-app --all-targets -- -D warnings"#}
                     </li>
                 </ul>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::{Code, CodeVariant};\n\n<Code variant=CodeVariant::Block>\n  \"cargo test -p ui-components --test code_semantics\"\n</Code>".to_string()
+                    text="use leptos::prelude::*;\nuse ui::{Code, CodeVariant};\n\n<Code variant=CodeVariant::Block>\n  \"cargo test -p ui --test code_semantics\"\n</Code>".to_string()
                     label="Copy code starter".to_string()
                     copyable=true
                     class_name="docs-code-source-copy".to_string()
@@ -3087,7 +4416,7 @@ pub(super) fn kbd() -> AnyView {
     let workbench_test_css = Signal::derive(move || {
         format!(
             "/* components/kbd/src/styles.rs */\n{}",
-            ui_components::kbd::styles::CSS
+            ui::kbd::styles::CSS
         )
     });
 
@@ -3155,7 +4484,7 @@ pub(super) fn kbd() -> AnyView {
             .to_string()
     });
 
-    let kbd_imports = "use leptos::prelude::*;\nuse ui_components::{Kbd, KbdSize};".to_string();
+    let kbd_imports = "use leptos::prelude::*;\nuse ui::{Kbd, KbdSize};".to_string();
 
     let custom_code = Signal::derive(move || {
         r#"<Kbd size=KbdSize::Md class_name="docs-kbd-custom".to_string()>"Esc"</Kbd>
@@ -3416,7 +4745,7 @@ pub(super) fn kbd() -> AnyView {
                     </li>
                 </ul>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::{Kbd, KbdSize};\n\n<Kbd size=KbdSize::Sm keys=\"Shift\".to_string() class_name=\"docs-kbd-custom\".to_string()>\n  \"Tab\"\n</Kbd>".to_string()
+                    text="use leptos::prelude::*;\nuse ui::{Kbd, KbdSize};\n\n<Kbd size=KbdSize::Sm keys=\"Shift\".to_string() class_name=\"docs-kbd-custom\".to_string()>\n  \"Tab\"\n</Kbd>".to_string()
                     label="Copy Kbd starter".to_string()
                     copyable=true
                     class_name="docs-kbd-source-copy".to_string()
@@ -3453,7 +4782,7 @@ cargo clippy --workspace --all-targets -- -D warnings"#
 
     let hello_world_code = Signal::derive(move || {
         r#"<CodeBlock
-  code="cargo check -p ui-components".to_string()
+  code="cargo check -p ui".to_string()
 />"#
         .to_string()
     });
@@ -3469,21 +4798,21 @@ cargo clippy --workspace --all-targets -- -D warnings"#
 
     let compact_code = Signal::derive(move || {
         r#"<CodeBlock
-  code="cargo test -p ui-components --test code_block_semantics".to_string()
+  code="cargo test -p ui --test code_block_semantics".to_string()
   is_copyable=false
   class_name="docs-code-block-custom".to_string()
 />"#
         .to_string()
     });
     let state_matrix_code = Signal::derive(move || {
-        r#"<CodeBlock code="cargo check -p ui-components".to_string() />
+        r#"<CodeBlock code="cargo check -p ui".to_string() />
 <CodeBlock
   code="cargo fmt --all\ncargo clippy --workspace --all-targets -- -D warnings".to_string()
   language="bash".to_string()
   label="ci.sh".to_string()
 />
 <CodeBlock
-  code="cargo test -p ui-components --test code_block_semantics".to_string()
+  code="cargo test -p ui --test code_block_semantics".to_string()
   is_copyable=false
 />
 <CodeBlock
@@ -3525,13 +4854,13 @@ let controlled_copied_signal = Signal::derive(move || controlled_copied.get());
     });
     let source_first_code = Signal::derive(move || {
         r#"<CodeBlock
-  code="cargo test -p ui-components --test code_block_semantics".to_string()
+  code="cargo test -p ui --test code_block_semantics".to_string()
   language="bash".to_string()
 />"#
         .to_string()
     });
-    let code_block_imports = "use leptos::prelude::*;\nuse ui_components::CodeBlock;".to_string();
-    let code_block_stream_imports = "use leptos::prelude::*;\nuse ui_components::CodeBlock;\nuse ui_components::code_block::protocol::{CodeBlockAgentOutputMode, CodeBlockAgentOutputStatus};".to_string();
+    let code_block_imports = "use leptos::prelude::*;\nuse ui::CodeBlock;".to_string();
+    let code_block_stream_imports = "use leptos::prelude::*;\nuse ui::CodeBlock;\nuse ui::code_block::protocol::{CodeBlockAgentOutputMode, CodeBlockAgentOutputStatus};".to_string();
 
     let language_options = vec!["rust".to_string(), "bash".to_string(), "plain".to_string()];
     let output_mode_options = vec!["snapshot".to_string(), "streaming".to_string()];
@@ -3544,6 +4873,8 @@ let controlled_copied_signal = Signal::derive(move || controlled_copied.get());
     let (workbench_is_copyable, set_workbench_is_copyable) = signal(true);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
     let (workbench_preserve_state, set_workbench_preserve_state) = signal(true);
+    let (workbench_lang_zh, set_workbench_lang_zh) = signal(false);
+    let (workbench_rtl_dir, set_workbench_rtl_dir) = signal(false);
     let (workbench_output_mode_index, set_workbench_output_mode_index) = signal(Some(0_usize));
     let (workbench_output_status_index, set_workbench_output_status_index) = signal(Some(1_usize));
     let (workbench_code_text, set_workbench_code_text) = signal(rust_code.to_string());
@@ -3571,16 +4902,16 @@ let controlled_copied_signal = Signal::derive(move || controlled_copied.get());
     let workbench_output_mode =
         Signal::derive(
             move || match workbench_output_mode_index.get().unwrap_or(0) {
-                1 => ui_components::code_block::protocol::CodeBlockAgentOutputMode::Streaming,
-                _ => ui_components::code_block::protocol::CodeBlockAgentOutputMode::Snapshot,
+                1 => ui::code_block::protocol::CodeBlockAgentOutputMode::Streaming,
+                _ => ui::code_block::protocol::CodeBlockAgentOutputMode::Snapshot,
             },
         );
     let workbench_output_status =
         Signal::derive(
             move || match workbench_output_status_index.get().unwrap_or(1) {
-                0 => ui_components::code_block::protocol::CodeBlockAgentOutputStatus::Draft,
-                2 => ui_components::code_block::protocol::CodeBlockAgentOutputStatus::ReadyToSubmit,
-                _ => ui_components::code_block::protocol::CodeBlockAgentOutputStatus::Validated,
+                0 => ui::code_block::protocol::CodeBlockAgentOutputStatus::Draft,
+                2 => ui::code_block::protocol::CodeBlockAgentOutputStatus::ReadyToSubmit,
+                _ => ui::code_block::protocol::CodeBlockAgentOutputStatus::Validated,
             },
         );
 
@@ -3610,6 +4941,16 @@ let controlled_copied_signal = Signal::derive(move || controlled_copied.get());
         let is_copyable = workbench_is_copyable.get();
         let custom_class = workbench_custom_class.get();
         let preserve_state = workbench_preserve_state.get();
+        let lang = if workbench_lang_zh.get() {
+            "zh-CN"
+        } else {
+            "en-US"
+        };
+        let dir = if workbench_rtl_dir.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
         let output_mode = workbench_output_mode.get();
         let output_status = workbench_output_status.get();
         let code_literal = format!("{:?}", workbench_code_text.get());
@@ -3617,6 +4958,10 @@ let controlled_copied_signal = Signal::derive(move || controlled_copied.get());
         let mut lines = vec![
             "<CodeBlock".to_string(),
             format!("  code={code_literal}.to_string()"),
+            "  label=\"workbench.rs\".to_string()".to_string(),
+            format!("  lang={lang:?}.to_string()"),
+            format!("  dir={dir}"),
+            "  motion=CodeBlockMotion::default()".to_string(),
         ];
         if language_key != "plain" {
             lines.push(format!("  language=\"{language_key}\".to_string()"));
@@ -3629,16 +4974,18 @@ let controlled_copied_signal = Signal::derive(move || controlled_copied.get());
         }
         if preserve_state {
             lines.push("  is_copied=workbench_copied_signal".to_string());
+            lines.push("  copied=workbench_copied_signal".to_string());
+            lines.push("  default_copied=false".to_string());
             lines.push(
                 "  on_copied_change=Callback::new(move |next| set_workbench_copied.set(next))"
                     .to_string(),
             );
         }
         lines.push(format!(
-            "  output_mode=ui_components::code_block::protocol::CodeBlockAgentOutputMode::{output_mode:?}"
+            "  output_mode=ui::code_block::protocol::CodeBlockAgentOutputMode::{output_mode:?}"
         ));
         lines.push(format!(
-            "  output_status=ui_components::code_block::protocol::CodeBlockAgentOutputStatus::{output_status:?}"
+            "  output_status=ui::code_block::protocol::CodeBlockAgentOutputStatus::{output_status:?}"
         ));
         lines.push("/>".to_string());
         lines.join("\n")
@@ -3656,23 +5003,38 @@ let controlled_copied_signal = Signal::derive(move || controlled_copied.get());
         let preserve_state = workbench_preserve_state.get();
         let code = workbench_code_text.get();
         let copied = workbench_copied.get();
+        let lang = if workbench_lang_zh.get() {
+            "zh-CN"
+        } else {
+            "en-US"
+        };
+        let dir = if workbench_rtl_dir.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
         let output_mode = workbench_output_mode.get();
         let output_status = workbench_output_status.get();
 
         format!(
-            "CodeBlockWorkbenchSpecInput {{\n  language: \"{language}\",\n  is_copyable: {is_copyable},\n  custom_class: {custom_class},\n  preserve_state: {preserve_state},\n  copied_state: {copied},\n  output_mode: \"{}\",\n  output_status: \"{}\",\n  code_lines: {},\n}}\n\nCodeBlockPreviewExpectation {{\n  data-ui-output-mode: \"{}\",\n  data-ui-output-status: \"{}\",\n}}",
+            "CodeBlockActualConfig {{\n  code: {code:?},\n  label: Some(\"workbench.rs\"),\n  language: {language:?},\n  lang: Some({lang:?}),\n  dir: Some({dir}),\n  is_copyable: Some({is_copyable}),\n  copyable: Some({is_copyable}),\n  is_copied: Some({copied}),\n  copied: Some({copied}),\n  default_copied: Some(false),\n  on_copied_change: Some(\"workbench_on_copied_change\"),\n  output_mode: Some(\"{}\"),\n  output_status: Some(\"{}\"),\n  motion: CodeBlockMotion::default(),\n  class_name: {class_name},\n  preserve_state: {preserve_state},\n  code_lines: {},\n}}\n\nCodeBlockPreviewExpectation {{\n  data-ui-output-mode: \"{}\",\n  data-ui-output-status: \"{}\",\n}}",
             output_mode.as_attr(),
             output_status.as_attr(),
             code.lines().count(),
             output_mode.as_attr(),
             output_status.as_attr(),
+            class_name = if custom_class {
+                "Some(\"docs-code-block-custom\")"
+            } else {
+                "None"
+            },
         )
     });
 
     let workbench_test_css = Signal::derive(move || {
         let mut css = format!(
             "/* components/code-block/src/styles.rs */\n{}",
-            ui_components::code_block::styles::CSS
+            ui::code_block::styles::CSS
         );
 
         if workbench_custom_class.get() {
@@ -3705,7 +5067,7 @@ let controlled_copied_signal = Signal::derive(move || controlled_copied.get());
                 code_signal=hello_world_code
                 code_imports=code_block_imports.clone()
             >
-                <CodeBlock code="cargo check -p ui-components".to_string() />
+                <CodeBlock code="cargo check -p ui".to_string() />
             </Playground>
 
             <Playground
@@ -3726,20 +5088,20 @@ let controlled_copied_signal = Signal::derive(move || controlled_copied.get());
                 code_imports=code_block_imports.clone()
             >
                 <CodeBlock
-                    code="cargo test -p ui-components --test code_block_semantics".to_string()
+                    code="cargo test -p ui --test code_block_semantics".to_string()
                     is_copyable=false
                     class_name="docs-code-block-custom".to_string()
                 />
             </Playground>
 
             <Playground
-                title="State Matrix"
+                title="State Gallery"
                 description="覆盖 single-line/multiline、header visible/hidden、copyable on/off、empty/custom class 等关键状态轴。"
                 code_signal=state_matrix_code
                 code_imports=code_block_imports.clone()
             >
                 <div class="docs-stack docs-stack--tight" data-slot="code-block-state-matrix-preview">
-                    <CodeBlock code="cargo check -p ui-components".to_string() />
+                    <CodeBlock code="cargo check -p ui".to_string() />
                     <CodeBlock
                         code={r#"cargo fmt --all
 cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
@@ -3747,7 +5109,7 @@ cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
                         label="ci.sh".to_string()
                     />
                     <CodeBlock
-                        code="cargo test -p ui-components --test code_block_semantics".to_string()
+                        code="cargo test -p ui --test code_block_semantics".to_string()
                         is_copyable=false
                     />
                     <CodeBlock
@@ -3778,13 +5140,13 @@ cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
                         <span class="ui-muted">
                             {move || format!("controlled copied: {}", controlled_copied.get())}
                         </span>
-                        <ui_components::Button
-                            variant=ui_components::ButtonVariant::Secondary
-                            size=ui_components::ButtonSize::Sm
+                        <ui::Button
+                            variant=ui::ButtonVariant::Secondary
+                            size=ui::ButtonSize::Sm
                             on_press=on_controlled_reset
                         >
                             "Reset controlled copied"
-                        </ui_components::Button>
+                        </ui::Button>
                     </div>
                 </div>
             </Playground>
@@ -3799,14 +5161,14 @@ cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
                     <CodeBlock
                         code="Snapshot: complete validated output rendered in one pass.".to_string()
                         language="plain".to_string()
-                        output_mode=ui_components::code_block::protocol::CodeBlockAgentOutputMode::Snapshot
-                        output_status=ui_components::code_block::protocol::CodeBlockAgentOutputStatus::Validated
+                        output_mode=ui::code_block::protocol::CodeBlockAgentOutputMode::Snapshot
+                        output_status=ui::code_block::protocol::CodeBlockAgentOutputStatus::Validated
                     />
                     <CodeBlock
                         code="Streaming: incremental draft output while LLM is generating.".to_string()
                         language="plain".to_string()
-                        output_mode=ui_components::code_block::protocol::CodeBlockAgentOutputMode::Streaming
-                        output_status=ui_components::code_block::protocol::CodeBlockAgentOutputStatus::Draft
+                        output_mode=ui::code_block::protocol::CodeBlockAgentOutputMode::Streaming
+                        output_status=ui::code_block::protocol::CodeBlockAgentOutputStatus::Draft
                     />
                     <p class="ui-muted">
                         "Inspect "
@@ -3825,7 +5187,7 @@ cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
                 code_imports=code_block_imports.clone()
             >
                 <CodeBlock
-                    code="cargo test -p ui-components --test code_block_semantics".to_string()
+                    code="cargo test -p ui --test code_block_semantics".to_string()
                     language="bash".to_string()
                 />
             </Playground>
@@ -3834,7 +5196,7 @@ cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="调样式走 CSS Test 即时反馈；`preserve_state` 可选保持复制状态和编辑上下文，降低重复操作。"
                 code_signal=workbench_code
-                code_imports=code_block_imports
+                code_imports=code_block_imports.clone()
                 test_css_source=workbench_test_css
                 test_source_path="components/code-block/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
@@ -3876,23 +5238,29 @@ cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
                                 <Switch checked=workbench_preserve_state set_checked=set_workbench_preserve_state>
                                     "preserve state"
                                 </Switch>
+                                <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
+                                    "lang=zh-CN"
+                                </Switch>
+                                <Switch checked=workbench_rtl_dir set_checked=set_workbench_rtl_dir>
+                                    "dir=rtl"
+                                </Switch>
                             </div>
 
                             <div class="docs-row">
-                                <ui_components::Button
-                                    variant=ui_components::ButtonVariant::Secondary
-                                    size=ui_components::ButtonSize::Sm
+                                <ui::Button
+                                    variant=ui::ButtonVariant::Secondary
+                                    size=ui::ButtonSize::Sm
                                     on_press=on_workbench_load_template
                                 >
                                     "Load template"
-                                </ui_components::Button>
-                                <ui_components::Button
-                                    variant=ui_components::ButtonVariant::Secondary
-                                    size=ui_components::ButtonSize::Sm
+                                </ui::Button>
+                                <ui::Button
+                                    variant=ui::ButtonVariant::Secondary
+                                    size=ui::ButtonSize::Sm
                                     on_press=on_workbench_reset_copy_state
                                 >
                                     "Reset copied state"
-                                </ui_components::Button>
+                                </ui::Button>
                             </div>
 
                             <label class="docs-search__label" for="docs-code-block-workbench-code">
@@ -3921,26 +5289,77 @@ cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
                         } else {
                             String::new()
                         };
+                        let lang = if workbench_lang_zh.get() {
+                            "zh-CN".to_string()
+                        } else {
+                            "en-US".to_string()
+                        };
+                        let dir = if workbench_rtl_dir.get() {
+                            A11yDirection::Rtl
+                        } else {
+                            A11yDirection::Ltr
+                        };
 
                         view! {
                             <CodeBlock
                                 code
+                                label="workbench.rs".to_string()
                                 language
+                                lang
+                                dir=dir
                                 is_copyable
                                 class_name
                                 is_copied=workbench_copied_signal
+                                copied=workbench_copied_signal
+                                default_copied=false
                                 on_copied_change=workbench_on_copied_change
                                 output_mode
                                 output_status
+                                motion=ui::CodeBlockMotion::default()
                             />
                         }
                             .into_any()
                     }}
 
                     <CodeBlock
-                        code="cargo test -p ui-components --test code_block_semantics".to_string()
+                        code="cargo test -p ui --test code_block_semantics".to_string()
                         language="bash".to_string()
                         is_copyable=false
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Copy + Output Modes)"
+                code_signal=state_matrix_code
+                code_imports=code_block_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="code-block-state-matrix-v2">
+                    <CodeBlock
+                        code="cargo check -p ui".to_string()
+                        label="check.sh".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                        motion=ui::CodeBlockMotion::default()
+                    />
+                    <CodeBlock
+                        code="cargo fmt --all".to_string()
+                        language="bash".to_string()
+                        label="fmt.sh".to_string()
+                        is_copyable=false
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                        motion=ui::CodeBlockMotion::default()
+                    />
+                    <CodeBlock
+                        code="cargo clippy --workspace --all-targets -- -D warnings".to_string()
+                        language="bash".to_string()
+                        label="clippy.sh".to_string()
+                        default_copied=false
+                        lang="zh-CN".to_string()
+                        dir=A11yDirection::Rtl
+                        motion=ui::CodeBlockMotion::default()
+                        class_name="docs-code-block-custom".to_string()
                     />
                 </div>
             </Playground>
@@ -3963,7 +5382,7 @@ cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
                     <li><code>"is_copyable"</code>" default = true"</li>
                     <li>
                         <code>"copyable"</code>
-                        " = legacy alias; normalization priority: "
+                        " = historical alias; normalization priority: "
                         <code>"is_copyable > copyable > true"</code>
                     </li>
                     <li><code>"default_copied"</code>" default = false"</li>
@@ -4008,7 +5427,7 @@ cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
                     </li>
                 </ul>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::CodeBlock;\n\n<CodeBlock\n  code=\"cargo test -p ui-components --test code_block_semantics\".to_string()\n  language=\"bash\".to_string()\n/>".to_string()
+                    text="use leptos::prelude::*;\nuse ui::CodeBlock;\n\n<CodeBlock\n  code=\"cargo test -p ui --test code_block_semantics\".to_string()\n  language=\"bash\".to_string()\n/>".to_string()
                     label="Copy code starter".to_string()
                     copyable=true
                     class_name="docs-code-block-source-copy".to_string()
@@ -4026,32 +5445,121 @@ cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
     .into_any()
 }
 pub(super) fn snippet() -> AnyView {
-    let copy_code = Signal::derive(move || {
+    let (workbench_copied_raw, set_workbench_copied_raw) = signal(false);
+    let workbench_copied_signal: Signal<bool> = Signal::derive(move || workbench_copied_raw.get());
+    let (workbench_on_copied_change_runs, set_workbench_on_copied_change_runs) = signal(0_u32);
+    let on_copied_change = Callback::new(move |next: bool| {
+        set_workbench_copied_raw.set(next);
+        set_workbench_on_copied_change_runs.update(|count| *count += 1);
+    });
+
+    let (workbench_copyable, set_workbench_copyable) = signal(true);
+    let (workbench_multiline, set_workbench_multiline) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_custom_label, set_workbench_custom_label) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+    let (workbench_reduced_motion, set_workbench_reduced_motion) = signal(false);
+
+    let hello_code = Signal::derive(move || {
         r#"<Snippet
   text="cargo fmt --all".to_string()
   label="Command".to_string()
-  is_copyable=true
-/>
-<Snippet
-  text="RUST_LOG=debug".to_string()
-  is_copyable=true
-  copied_label="Done".to_string()
 />"#
         .to_string()
     });
 
-    let custom_code = Signal::derive(move || {
-        r#"<Snippet
-  text="cargo test -p ui-components --test snippet_semantics".to_string()
-  is_copyable=false
-  class_name="docs-snippet-custom".to_string()
-/>
-<Snippet
-  text="cargo fmt --all\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings".to_string()
-  label="CI".to_string()
-  is_copyable=false
-  class_name="docs-snippet-custom".to_string()
-/>"#.to_string()
+    let workbench_code = Signal::derive(move || {
+        let text = if workbench_multiline.get() {
+            "cargo fmt --all\ncargo clippy --workspace --all-targets -- -D warnings"
+        } else {
+            "cargo fmt --all"
+        };
+        let label = if workbench_custom_label.get() {
+            "CI command"
+        } else {
+            "Command"
+        };
+        let class_name = if workbench_custom_class.get() {
+            "docs-snippet-custom"
+        } else {
+            ""
+        };
+        let dir = if workbench_rtl.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
+        let motion = if workbench_reduced_motion.get() {
+            "SnippetMotion::disabled()"
+        } else {
+            "SnippetMotion::default()"
+        };
+
+        [
+            "<Snippet".to_string(),
+            format!("  text={}", rust_string_literal(text)),
+            format!("  label={}", rust_string_literal(label)),
+            format!("  is_copyable={}", bool_word(workbench_copyable.get())),
+            format!("  copyable={}", bool_word(workbench_copyable.get())),
+            "  copy_label=\"Copy\".to_string()".to_string(),
+            "  copied_label=\"Copied\".to_string()".to_string(),
+            "  copy_aria_label=\"Copy snippet\".to_string()".to_string(),
+            "  copy_error_label=\"Copy failed\".to_string()".to_string(),
+            "  is_copied=workbench_copied_signal".to_string(),
+            "  copied=workbench_copied_signal".to_string(),
+            "  default_copied=false".to_string(),
+            "  on_copied_change=on_copied_change".to_string(),
+            format!("  motion={motion}"),
+            format!("  class_name={}", rust_string_literal(class_name)),
+            "  lang=\"en-US\".to_string()".to_string(),
+            format!("  dir={dir}"),
+            "/>".to_string(),
+        ]
+        .join("\n")
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let text = if workbench_multiline.get() {
+            "cargo fmt --all\ncargo clippy --workspace --all-targets -- -D warnings"
+        } else {
+            "cargo fmt --all"
+        };
+        let label = if workbench_custom_label.get() {
+            Some("CI command")
+        } else {
+            Some("Command")
+        };
+        let class_name = if workbench_custom_class.get() {
+            Some("docs-snippet-custom")
+        } else {
+            None
+        };
+        let dir = if workbench_rtl.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        };
+        let motion = if workbench_reduced_motion.get() {
+            SnippetMotion::disabled()
+        } else {
+            SnippetMotion::default()
+        };
+
+        format!(
+            "SnippetActualConfig {{\n  text: {},\n  label: {label:?},\n  is_copyable: Some({}),\n  copyable: Some({}),\n  copy_label: Some(\"Copy\"),\n  copied_label: Some(\"Copied\"),\n  copy_aria_label: Some(\"Copy snippet\"),\n  copy_error_label: Some(\"Copy failed\"),\n  is_copied: Some({}),\n  copied: Some({}),\n  default_copied: Some(false),\n  on_copied_change: \"runs={}\",\n  motion: {motion:?},\n  class_name: {class_name:?},\n  lang: Some(\"en-US\"),\n  dir: Some({dir:?}),\n}}",
+            rust_string_literal(text),
+            bool_word(workbench_copyable.get()),
+            bool_word(workbench_copyable.get()),
+            bool_word(workbench_copied_raw.get()),
+            bool_word(workbench_copied_raw.get()),
+            workbench_on_copied_change_runs.get(),
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<Snippet text="cargo fmt --all".to_string() label="Default".to_string() is_copyable=true />
+<Snippet text="cargo test -p ui --test snippet_semantics".to_string() label="Static".to_string() is_copyable=false class_name="docs-snippet-custom".to_string() />
+<Snippet text="cargo fmt --all\ncargo clippy --workspace --all-targets -- -D warnings".to_string() label="Multiline".to_string() copyable=true motion=SnippetMotion::disabled() />"#.to_string()
     });
 
     view! {
@@ -4059,35 +5567,112 @@ pub(super) fn snippet() -> AnyView {
             title="Snippet"
             slug="snippet"
             group="Display"
-            description="Text snippet with centralized multiline/copy state attrs and optional copied-label/custom-class contracts."
+            description="Snippet playground with full API workbench and visible copy callback feedback."
         >
-            <Playground title="Copyable + Copied Label" code_signal=copy_code>
-                <div class="docs-stack">
+            <Playground title="Hello World (Copyable Snippet)" code_signal=hello_code>
+                <Snippet text="cargo fmt --all".to_string() label="Command".to_string() />
+            </Playground>
+
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="snippet-workbench-controls">
+                        <Switch checked=workbench_copyable set_checked=set_workbench_copyable>
+                            "Copy enabled"
+                        </Switch>
+                        <Switch checked=workbench_multiline set_checked=set_workbench_multiline>
+                            "Multiline text"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "Custom class_name"
+                        </Switch>
+                        <Switch checked=workbench_custom_label set_checked=set_workbench_custom_label>
+                            "Custom label"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                            "RTL dir"
+                        </Switch>
+                        <Switch checked=workbench_reduced_motion set_checked=set_workbench_reduced_motion>
+                            "Reduced motion"
+                        </Switch>
+                        <ui::Button
+                            variant=ui::ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| {
+                                set_workbench_copied_raw.update(|value| *value = !*value)
+                            })
+                        >
+                            "Toggle copied signal"
+                        </ui::Button>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="snippet-workbench-preview">
                     <Snippet
-                        text="cargo fmt --all".to_string()
-                        label="Command".to_string()
-                        is_copyable=true
+                        text=if workbench_multiline.get() {
+                            "cargo fmt --all\ncargo clippy --workspace --all-targets -- -D warnings"
+                                .to_string()
+                        } else {
+                            "cargo fmt --all".to_string()
+                        }
+                        label=if workbench_custom_label.get() {
+                            "CI command".to_string()
+                        } else {
+                            "Command".to_string()
+                        }
+                        is_copyable=workbench_copyable.get()
+                        copyable=workbench_copyable.get()
+                        copy_label="Copy".to_string()
+                        copied_label="Copied".to_string()
+                        copy_aria_label="Copy snippet".to_string()
+                        copy_error_label="Copy failed".to_string()
+                        is_copied=workbench_copied_signal
+                        copied=workbench_copied_signal
+                        default_copied=false
+                        on_copied_change=on_copied_change
+                        motion=if workbench_reduced_motion.get() {
+                            SnippetMotion::disabled()
+                        } else {
+                            SnippetMotion::default()
+                        }
+                        class_name=if workbench_custom_class.get() {
+                            "docs-snippet-custom".to_string()
+                        } else {
+                            String::new()
+                        }
+                        lang="en-US".to_string()
+                        dir=if workbench_rtl.get() {
+                            A11yDirection::Rtl
+                        } else {
+                            A11yDirection::Ltr
+                        }
                     />
-                    <Snippet
-                        text="RUST_LOG=debug".to_string()
-                        is_copyable=true
-                        copied_label="Done".to_string()
-                    />
+                    <span class="ui-muted" data-slot="snippet-workbench-feedback">
+                        "copied: " {move || workbench_copied_raw.get()}
+                        " · on_copied_change: " {move || workbench_on_copied_change_runs.get()}
+                    </span>
                 </div>
             </Playground>
 
-            <Playground title="Static + Multiline Custom" code_signal=custom_code>
-                <div class="docs-stack">
+            <Playground title="State Matrix (Default / Static / Multiline)" code_signal=matrix_code>
+                <div class="docs-stack docs-stack--tight" data-slot="snippet-state-matrix">
                     <Snippet
-                        text="cargo test -p ui-components --test snippet_semantics".to_string()
+                        text="cargo fmt --all".to_string()
+                        label="Default".to_string()
+                        is_copyable=true
+                    />
+                    <Snippet
+                        text="cargo test -p ui --test snippet_semantics".to_string()
+                        label="Static".to_string()
                         is_copyable=false
                         class_name="docs-snippet-custom".to_string()
                     />
                     <Snippet
-                        text="cargo fmt --all\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings".to_string()
-                        label="CI".to_string()
-                        is_copyable=false
-                        class_name="docs-snippet-custom".to_string()
+                        text="cargo fmt --all\ncargo clippy --workspace --all-targets -- -D warnings".to_string()
+                        label="Multiline".to_string()
+                        copyable=true
+                        motion=SnippetMotion::disabled()
                     />
                 </div>
             </Playground>
@@ -4221,7 +5806,7 @@ pub(super) fn link() -> AnyView {
     let workbench_test_css = Signal::derive(move || {
         format!(
             "/* components/link/src/styles.rs */\n{}",
-            ui_components::link::styles::CSS
+            ui::link::styles::CSS
         )
     });
 
@@ -4424,7 +6009,7 @@ pub(super) fn avatar() -> AnyView {
 
     let source_first_code = Signal::derive(move || {
         r#"use leptos::prelude::*;
-use ui_components::{Avatar, AvatarSize};
+use ui::{Avatar, AvatarSize};
 
 <Avatar name="Ada Lovelace".to_string() size=AvatarSize::Md />"#
             .to_string()
@@ -4511,7 +6096,29 @@ use ui_components::{Avatar, AvatarSize};
         };
 
         format!(
-            "AvatarWorkbenchConfig {{\n  mode: \"{mode}\",\n  size: \"{expected_size}\",\n  use_alt: {use_alt},\n  custom_class: {custom_class},\n  rtl: {rtl},\n  expected_state: \"{expected_state}\",\n  expected_label_source: \"{expected_label_source}\",\n}}"
+            "AvatarWorkbenchConfig {{\n  name: {},\n  src: {},\n  size: \"{expected_size}\",\n  alt: {},\n  class_name: {},\n  lang: {},\n  dir: {},\n  mode: \"{mode}\",\n  use_alt: {use_alt},\n  rtl: {rtl},\n  expected_state: \"{expected_state}\",\n  expected_label_source: \"{expected_label_source}\",\n}}",
+            if matches!(mode, "image" | "name-only") {
+                "Some(\"Ada Lovelace\")"
+            } else {
+                "None"
+            },
+            if mode == "image" {
+                "Some(\"data:image/svg+xml,...\")"
+            } else {
+                "None"
+            },
+            if use_alt {
+                "Some(\"Team collaborator\")"
+            } else {
+                "None"
+            },
+            if custom_class {
+                "Some(\"docs-avatar-custom\")"
+            } else {
+                "None"
+            },
+            if rtl { "Some(\"ar\")" } else { "None" },
+            if rtl { "Some(\"rtl\")" } else { "None" },
         )
     });
 
@@ -4525,7 +6132,7 @@ use ui_components::{Avatar, AvatarSize};
             <Playground
                 title="Hello World"
                 code_signal=hello_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::Avatar;".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::Avatar;".to_string()
                 test_source_path="components/avatar/src/view.rs".to_string()
             >
                 <div class="docs-row">
@@ -4536,7 +6143,7 @@ use ui_components::{Avatar, AvatarSize};
             <Playground
                 title="Image + Fallback"
                 code_signal=image_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Avatar, AvatarSize};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};".to_string()
                 test_source_path="components/avatar/src/view.rs".to_string()
             >
                 <div class="docs-row">
@@ -4551,10 +6158,10 @@ use ui_components::{Avatar, AvatarSize};
             </Playground>
 
             <Playground
-                title="State Matrix"
+                title="Fallback Scenarios"
                 description="Label source + fallback state matrix with stable semantic markers."
                 code_signal=state_matrix_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Avatar, AvatarSize};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};".to_string()
                 test_source_path="components/avatar/src/view.rs".to_string()
             >
                 <div class="docs-row">
@@ -4572,7 +6179,7 @@ use ui_components::{Avatar, AvatarSize};
             <Playground
                 title="Custom Class + Normalized Props"
                 code_signal=custom_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Avatar, AvatarSize};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};".to_string()
                 test_source_path="components/avatar/src/view.rs".to_string()
             >
                 <div class="docs-row">
@@ -4594,7 +6201,7 @@ use ui_components::{Avatar, AvatarSize};
                 title="Controlled vs Uncontrolled (N/A)"
                 description="Avatar has no internal controlled/uncontrolled axis; compare default usage and app-state-mapped props."
                 code_signal=controlled_contrast_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::Avatar;".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::Avatar;".to_string()
                 test_source_path="components/avatar/src/view.rs".to_string()
             >
                 <div class="docs-row">
@@ -4607,7 +6214,7 @@ use ui_components::{Avatar, AvatarSize};
                 title="Streaming Optional / Snapshot"
                 description="Avatar is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
                 code_signal=stream_snapshot_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Avatar, AvatarSize};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};".to_string()
                 test_source_path="components/avatar/src/view.rs".to_string()
             >
                 <div class="docs-stack docs-stack--tight">
@@ -4628,7 +6235,7 @@ use ui_components::{Avatar, AvatarSize};
                 title="Interactive Playground (Props + State Preview)"
                 description="Modify props live and inspect semantic state transitions without wiring internal state machines."
                 code_signal=workbench_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{Avatar, AvatarSize};\nuse ui_components::color::area::A11yDirection;".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};\nuse ui::color::area::A11yDirection;".to_string()
                 test_source_path="components/avatar/src/view.rs".to_string()
                 test_config_signal=workbench_config
                 controls=move || {
@@ -4745,6 +6352,25 @@ use ui_components::{Avatar, AvatarSize};
                 }}
             </Playground>
 
+            <Playground
+                title="State Matrix (Image / Name / Fallback)"
+                description="Workbench 后的多参数对比：image/name-only/fallback。"
+                code_signal=state_matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};".to_string()
+                test_source_path="components/avatar/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <Avatar
+                        name="Ada Lovelace".to_string()
+                        src=into_owned_string(src)
+                        alt="Profile photo".to_string()
+                        size=AvatarSize::Sm
+                    />
+                    <Avatar name="Grace Hopper".to_string() size=AvatarSize::Md />
+                    <Avatar size=AvatarSize::Lg />
+                </div>
+            </Playground>
+
             <section class="docs-card docs-prose" data-slot="avatar-source-first">
                 <h3>"Source-first / Copy-Paste Ready"</h3>
                 <p>
@@ -4854,10 +6480,12 @@ pub(super) fn avatar_group() -> AnyView {
     let workbench_items_overflow = items.clone();
     let workbench_items_stable = items.iter().take(2).cloned().collect::<Vec<_>>();
     let workbench_items_empty: Vec<AvatarGroupItem> = Vec::new();
+    let workbench_items_overflow_for_state_matrix = workbench_items_overflow.clone();
+    let workbench_items_stable_for_state_matrix = workbench_items_stable.clone();
+    let workbench_items_empty_for_state_matrix = workbench_items_empty.clone();
     let source_first_items = items;
     let code_imports =
-        "use leptos::prelude::*;\nuse ui_components::{AvatarGroup, AvatarGroupItem, AvatarSize};"
-            .to_string();
+        "use leptos::prelude::*;\nuse ui::{AvatarGroup, AvatarGroupItem, AvatarSize};".to_string();
 
     let hello_code =
         Signal::derive(move || r#"<AvatarGroup items=empty_items.clone() />"#.to_string());
@@ -5193,9 +6821,26 @@ let upstream_max = 2_usize;
         let custom_aria = workbench_custom_aria.get();
         let custom_class = workbench_custom_class.get();
         let rtl = workbench_rtl.get();
+        let items_desc = match roster {
+            "empty" => "Vec::<AvatarGroupItem>::new()",
+            "stable" => "stable_roster(2)",
+            _ => "overflow_roster(5)",
+        };
 
         format!(
-            "AvatarGroupWorkbenchConfig {{\n  roster: \"{roster}\",\n  size: \"{size}\",\n  max: {max},\n  custom_aria: {custom_aria},\n  custom_class: {custom_class},\n  rtl: {rtl},\n}}"
+            "AvatarGroupWorkbenchConfig {{\n  items: \"{items_desc}\",\n  max: {max},\n  size: \"{size}\",\n  aria_label: {},\n  class_name: {},\n  lang: {},\n  dir: {},\n  roster: \"{roster}\",\n  custom_aria: {custom_aria},\n  custom_class: {custom_class},\n  rtl: {rtl},\n}}",
+            if custom_aria {
+                "Some(\"Interactive collaborators\")"
+            } else {
+                "None"
+            },
+            if custom_class {
+                "Some(\"docs-avatar-group-custom\")"
+            } else {
+                "None"
+            },
+            if rtl { "Some(\"ar\")" } else { "None" },
+            if rtl { "Some(\"rtl\")" } else { "None" },
         )
     });
 
@@ -5256,7 +6901,7 @@ let upstream_max = 2_usize;
             </Playground>
 
             <Playground
-                title="State Matrix"
+                title="Roster Scenarios"
                 description="Covers empty/stable/overflow and custom aria-label contracts in one matrix."
                 code_signal=state_matrix_code
                 code_imports=code_imports.clone()
@@ -5313,7 +6958,7 @@ let upstream_max = 2_usize;
                 title="Interactive Playground (Props + State + Preview)"
                 description="Adjust roster/size/max and semantic sources in real time. Use this as repeatable acceptance surface."
                 code_signal=workbench_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{AvatarGroup, AvatarGroupItem, AvatarSize};\nuse ui_components::color::area::A11yDirection;".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{AvatarGroup, AvatarGroupItem, AvatarSize};\nuse ui::color::area::A11yDirection;".to_string()
                 test_source_path="components/avatar-group/src/view.rs".to_string()
                 test_config_signal=workbench_config
                 controls=move || {
@@ -5445,6 +7090,28 @@ let upstream_max = 2_usize;
             </Playground>
 
             <Playground
+                title="State Matrix (Empty / Stable / Overflow)"
+                description="Workbench 后的多参数对比展示。"
+                code_signal=state_matrix_code
+                code_imports=code_imports.clone()
+            >
+                <div class="docs-row">
+                    <AvatarGroup items=workbench_items_empty_for_state_matrix.clone() />
+                    <AvatarGroup
+                        items=workbench_items_stable_for_state_matrix.clone()
+                        max=6
+                        size=AvatarSize::Md
+                    />
+                    <AvatarGroup
+                        items=workbench_items_overflow_for_state_matrix.clone()
+                        max=2
+                        size=AvatarSize::Md
+                        aria_label="Core collaborators".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
                 title="Source-first Starter (Copy-Paste Ready)"
                 description="Copy action auto-injects missing imports for direct run."
                 code_signal=source_first_code
@@ -5549,16 +7216,19 @@ pub(super) fn image() -> AnyView {
         "invalid".to_string(),
         "missing".to_string(),
     ];
+    let lang_options = vec!["en-US".to_string(), "zh-CN".to_string()];
 
     let (radius_index, set_radius_index) = signal(Some(2usize));
     let (shadow_index, set_shadow_index) = signal(Some(1usize));
     let (motion_index, set_motion_index) = signal(Some(0usize));
     let (source_index, set_source_index) = signal(Some(0usize));
+    let (lang_index, set_lang_index) = signal(Some(0usize));
     let (is_zoomed, set_is_zoomed) = signal(true);
     let (is_blurred, set_is_blurred) = signal(false);
     let (is_skeleton_disabled, set_is_skeleton_disabled) = signal(false);
     let (with_fallback, set_with_fallback) = signal(true);
     let (custom_class, set_custom_class) = signal(false);
+    let (rtl, set_rtl) = signal(false);
 
     let radius = Signal::derive(move || match radius_index.get().unwrap_or(2) {
         0 => ImageRadius::Sm,
@@ -5579,6 +7249,17 @@ pub(super) fn image() -> AnyView {
         _ => ImageMotion::default(),
     });
     let source_mode = Signal::derive(move || source_index.get().unwrap_or(0));
+    let lang = Signal::derive(move || match lang_index.get().unwrap_or(0) {
+        1 => "zh-CN".to_string(),
+        _ => "en-US".to_string(),
+    });
+    let dir = Signal::derive(move || {
+        if rtl.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        }
+    });
 
     let code = Signal::derive(move || {
         r#"<Image
@@ -5620,9 +7301,9 @@ pub(super) fn image() -> AnyView {
 // Image renders deterministic snapshot output while keeping semantic markers stable."#
             .to_string()
     });
-    let basic_imports = "use leptos::prelude::*;\nuse ui_components::Image;".to_string();
+    let basic_imports = "use leptos::prelude::*;\nuse ui::Image;".to_string();
     let advanced_imports =
-        "use leptos::prelude::*;\nuse ui_components::{Image, ImageMotion, ImageRadius, ImageShadow};"
+        "use leptos::prelude::*;\nuse ui::{Image, ImageMotion, ImageRadius, ImageShadow};"
             .to_string();
     let workbench_code = Signal::derive(move || {
         let radius = radius.get();
@@ -5669,35 +7350,47 @@ pub(super) fn image() -> AnyView {
         if custom_class {
             snippet.push("  class_name=\"docs-image-custom\".into()".to_string());
         }
+        snippet.push(format!("  lang={}", rust_string_literal(&lang.get())));
+        snippet.push(format!("  dir=A11yDirection::{:?}", dir.get()));
         snippet.extend(["/>".to_string()]);
         snippet.join("\n")
     });
     let test_css_source = Signal::derive(move || {
         format!(
             "/* components/image/src/styles.rs */\n{}",
-            ui_components::image::styles::CSS
+            ui::image::styles::CSS
         )
     });
     let actual_config = Signal::derive(move || {
-        let radius = radius.get();
-        let shadow = shadow.get();
-        let motion_mode = if motion_index.get().unwrap_or(0) == 0 {
-            "default"
-        } else {
-            "custom"
+        let source_value = match source_mode.get() {
+            1 => "https://example.invalid/rust-ui-image.png".to_string(),
+            2 => String::new(),
+            _ => src.to_string(),
         };
-        let source_mode = match source_mode.get() {
-            1 => "invalid",
-            2 => "missing",
-            _ => "valid",
+        let fallback_value = if with_fallback.get() {
+            Some(fallback_src.to_string())
+        } else {
+            None
+        };
+        let class_name_value = if custom_class.get() {
+            Some("docs-image-custom".to_string())
+        } else {
+            None
         };
         format!(
-            "ImageActualConfig {{\n  source_mode: \"{source_mode}\",\n  has_fallback: {},\n  is_skeleton_disabled: {},\n  is_blurred: {},\n  is_zoomed: {},\n  radius: {radius:?},\n  shadow: {shadow:?},\n  motion: \"{motion_mode}\",\n  custom_class: {},\n}}",
-            with_fallback.get(),
+            "ImageActualConfig {{\n  src: {:?},\n  alt: {:?},\n  fallback_src: {:?},\n  is_skeleton_disabled: {},\n  is_blurred: {},\n  is_zoomed: {},\n  radius: {:?},\n  shadow: {:?},\n  motion: {:?},\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n}}",
+            source_value,
+            "Demo image",
+            fallback_value,
             is_skeleton_disabled.get(),
             is_blurred.get(),
             is_zoomed.get(),
-            custom_class.get(),
+            radius.get(),
+            shadow.get(),
+            motion.get(),
+            class_name_value,
+            lang.get(),
+            dir.get(),
         )
     });
     let matrix_code = Signal::derive(move || {
@@ -5787,7 +7480,7 @@ pub(super) fn image() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix: Loaded / Blurred / Fallback / Missing"
+                title="Scenario Gallery: Loaded / Blurred / Fallback / Missing"
                 code_signal=matrix_code
                 code_imports=advanced_imports.clone()
                 test_source_path="components/image/src/view.rs".to_string()
@@ -5952,6 +7645,16 @@ pub(super) fn image() -> AnyView {
                             aria_label="Image motion mode".to_string()
                         />
 
+                        <div class="docs-search__label">"Language"</div>
+                        <SegmentedControl
+                            id_base="docs-image-lang".to_string()
+                            options=lang_options.clone()
+                            selected_index=lang_index
+                            set_selected_index=set_lang_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Image language".to_string()
+                        />
+
                         <Switch checked=is_zoomed set_checked=set_is_zoomed>"Zoomed"</Switch>
                         <Switch checked=is_blurred set_checked=set_is_blurred>"Blurred"</Switch>
                         <Switch checked=is_skeleton_disabled set_checked=set_is_skeleton_disabled>
@@ -5959,6 +7662,7 @@ pub(super) fn image() -> AnyView {
                         </Switch>
                         <Switch checked=with_fallback set_checked=set_with_fallback>"Use fallback"</Switch>
                         <Switch checked=custom_class set_checked=set_custom_class>"Custom class"</Switch>
+                        <Switch checked=rtl set_checked=set_rtl>"RTL direction"</Switch>
                     </div>
                 }
             >
@@ -5996,12 +7700,14 @@ pub(super) fn image() -> AnyView {
                         shadow=shadow.get()
                         motion=motion.get()
                         class_name=class_name
+                        lang=lang.get()
+                        dir=dir.get()
                     />
                         }
                     }}
                     <span class="ui-muted">
                         {move || format!(
-                            "state: source={}, fallback={}, zoomed={}, blurred={}",
+                            "state: source={}, fallback={}, zoomed={}, blurred={}, lang={}, dir={:?}",
                             match source_mode.get() {
                                 1 => "invalid",
                                 2 => "missing",
@@ -6010,8 +7716,72 @@ pub(super) fn image() -> AnyView {
                             with_fallback.get(),
                             is_zoomed.get(),
                             is_blurred.get(),
+                            lang.get(),
+                            dir.get(),
                         )}
                     </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Source + Visual State)"
+                code_signal=matrix_code
+                code_imports=advanced_imports.clone()
+                test_source_path="components/image/src/view.rs".to_string()
+            >
+                <div class="docs-grid docs-grid--2" style="width: 100%; gap: 1rem;">
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Loaded + Zoom"</span>
+                        <Image
+                            src=into_owned_string(src)
+                            alt="Loaded + Zoom".to_string()
+                            is_zoomed=true
+                            radius=ImageRadius::Lg
+                            shadow=ImageShadow::Md
+                            class_name="docs-image-frame".to_string()
+                            lang="en-US".to_string()
+                            dir=A11yDirection::Ltr
+                        />
+                    </div>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Blurred + Soft"</span>
+                        <Image
+                            src=into_owned_string(src)
+                            alt="Blurred + Soft".to_string()
+                            is_blurred=true
+                            radius=ImageRadius::Md
+                            shadow=ImageShadow::Sm
+                            class_name="docs-image-frame".to_string()
+                            lang="en-US".to_string()
+                            dir=A11yDirection::Ltr
+                        />
+                    </div>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Invalid src -> Fallback"</span>
+                        <Image
+                            src="https://example.invalid/rust-ui-image.png".to_string()
+                            fallback_src=into_owned_string(fallback_src)
+                            alt="Invalid -> Fallback".to_string()
+                            radius=ImageRadius::Sm
+                            shadow=ImageShadow::None
+                            class_name="docs-image-frame".to_string()
+                            lang="zh-CN".to_string()
+                            dir=A11yDirection::Rtl
+                        />
+                    </div>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Missing src -> Fallback"</span>
+                        <Image
+                            src="".to_string()
+                            fallback_src=into_owned_string(fallback_src)
+                            alt="Missing -> Fallback".to_string()
+                            radius=ImageRadius::Full
+                            shadow=ImageShadow::Sm
+                            class_name="docs-image-frame".to_string()
+                            lang="zh-CN".to_string()
+                            dir=A11yDirection::Rtl
+                        />
+                    </div>
                 </div>
             </Playground>
 
@@ -6049,8 +7819,7 @@ pub(super) fn image() -> AnyView {
 }
 
 pub(super) fn illustrated_message() -> AnyView {
-    let code_imports =
-        "use leptos::prelude::*;\nuse ui_components::{Button, IllustratedMessage};".to_string();
+    let code_imports = "use leptos::prelude::*;\nuse ui::{Button, IllustratedMessage};".to_string();
     let workbench_orientation_options = vec!["vertical".to_string(), "horizontal".to_string()];
     let (workbench_orientation_index, set_workbench_orientation_index) = signal(Some(0_usize));
     let (workbench_show_title, set_workbench_show_title) = signal(true);
@@ -6117,8 +7886,8 @@ pub(super) fn illustrated_message() -> AnyView {
     });
     let workbench_code = Signal::derive(move || {
         let orientation_expr = match workbench_orientation_index.get().unwrap_or(0) {
-            1 => "ui_components::IllustratedMessageOrientation::Horizontal",
-            _ => "ui_components::IllustratedMessageOrientation::Vertical",
+            1 => "ui::IllustratedMessageOrientation::Horizontal",
+            _ => "ui::IllustratedMessageOrientation::Vertical",
         };
 
         let mut lines = vec!["<IllustratedMessage".to_string()];
@@ -6138,7 +7907,7 @@ pub(super) fn illustrated_message() -> AnyView {
         }
         if workbench_show_actions.get() {
             lines.push(
-                "  actions=move || view! { <Button variant=ui_components::ButtonVariant::Secondary size=ui_components::ButtonSize::Sm>\"Retry\"</Button> }".to_string(),
+                "  actions=move || view! { <Button variant=ui::ButtonVariant::Secondary size=ui::ButtonSize::Sm>\"Retry\"</Button> }".to_string(),
             );
         }
         lines.push(format!("  orientation={orientation_expr}"));
@@ -6148,7 +7917,7 @@ pub(super) fn illustrated_message() -> AnyView {
             );
         }
         if workbench_rtl.get() {
-            lines.push("  dir=ui_components::color::area::A11yDirection::Rtl".to_string());
+            lines.push("  dir=ui::color::area::A11yDirection::Rtl".to_string());
         }
         lines.push("/>".to_string());
         lines.join("\n")
@@ -6204,7 +7973,7 @@ pub(super) fn illustrated_message() -> AnyView {
                         title="No results".to_string()
                         description="Try changing your search.".to_string()
                         illustration=move || view! { <div class="docs-illustration">"◎"</div> }
-                        actions=move || view! { <ui_components::Button>"Clear"</ui_components::Button> }
+                        actions=move || view! { <ui::Button>"Clear"</ui::Button> }
                     />
                     <IllustratedMessage description="Only description provided.".to_string() />
                 </div>
@@ -6261,7 +8030,7 @@ pub(super) fn illustrated_message() -> AnyView {
                     title="No results".to_string()
                     description="Try changing your search.".to_string()
                     illustration=move || view! { <div class="docs-illustration">"◎"</div> }
-                    actions=move || view! { <ui_components::Button>"Clear"</ui_components::Button> }
+                    actions=move || view! { <ui::Button>"Clear"</ui::Button> }
                 />
             </Playground>
 
@@ -6322,12 +8091,12 @@ pub(super) fn illustrated_message() -> AnyView {
             >
                 {move || {
                     let orientation = match workbench_orientation_index.get().unwrap_or(0) {
-                        1 => ui_components::IllustratedMessageOrientation::Horizontal,
-                        _ => ui_components::IllustratedMessageOrientation::Vertical,
+                        1 => ui::IllustratedMessageOrientation::Horizontal,
+                        _ => ui::IllustratedMessageOrientation::Vertical,
                     };
                     let orientation_label = match orientation {
-                        ui_components::IllustratedMessageOrientation::Horizontal => "horizontal",
-                        ui_components::IllustratedMessageOrientation::Vertical => "vertical",
+                        ui::IllustratedMessageOrientation::Horizontal => "horizontal",
+                        ui::IllustratedMessageOrientation::Vertical => "vertical",
                     };
                     let title = if workbench_show_title.get() {
                         "Workbench empty".to_string()
@@ -6360,12 +8129,12 @@ pub(super) fn illustrated_message() -> AnyView {
                                         illustration=move || view! { <div class="docs-illustration">"◎"</div> }
                                         actions=move || {
                                             view! {
-                                                <ui_components::Button
-                                                    variant=ui_components::ButtonVariant::Secondary
-                                                    size=ui_components::ButtonSize::Sm
+                                                <ui::Button
+                                                    variant=ui::ButtonVariant::Secondary
+                                                    size=ui::ButtonSize::Sm
                                                 >
                                                     "Retry"
-                                                </ui_components::Button>
+                                                </ui::Button>
                                             }
                                         }
                                         orientation=orientation
@@ -6393,12 +8162,12 @@ pub(super) fn illustrated_message() -> AnyView {
                                         description=description.clone()
                                         actions=move || {
                                             view! {
-                                                <ui_components::Button
-                                                    variant=ui_components::ButtonVariant::Secondary
-                                                    size=ui_components::ButtonSize::Sm
+                                                <ui::Button
+                                                    variant=ui::ButtonVariant::Secondary
+                                                    size=ui::ButtonSize::Sm
                                                 >
                                                     "Retry"
-                                                </ui_components::Button>
+                                                </ui::Button>
                                             }
                                         }
                                         orientation=orientation
@@ -6458,7 +8227,7 @@ pub(super) fn illustrated_message() -> AnyView {
                     </li>
                 </ul>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::{Button, IllustratedMessage};\n\n<IllustratedMessage\n  title=\"No results\".to_string()\n  description=\"Try changing your search.\".to_string()\n  illustration=move || view! { <div class=\"docs-illustration\">\"◎\"</div> }\n  actions=move || view! { <Button>\"Clear\"</Button> }\n/>".to_string()
+                    text="use leptos::prelude::*;\nuse ui::{Button, IllustratedMessage};\n\n<IllustratedMessage\n  title=\"No results\".to_string()\n  description=\"Try changing your search.\".to_string()\n  illustration=move || view! { <div class=\"docs-illustration\">\"◎\"</div> }\n  actions=move || view! { <Button>\"Clear\"</Button> }\n/>".to_string()
                     label="Copy illustrated-message starter".to_string()
                     copyable=true
                     class_name="docs-illustrated-message-source-copy".to_string()
@@ -6477,71 +8246,99 @@ pub(super) fn illustrated_message() -> AnyView {
 }
 
 pub(super) fn motion_ripple() -> AnyView {
-    let hello_ref: NodeRef<html::Span> = NodeRef::new();
-    let default_ref: NodeRef<html::Span> = NodeRef::new();
-    let slow_ref: NodeRef<html::Span> = NodeRef::new();
-    let static_ref: NodeRef<html::Span> = NodeRef::new();
-    let custom_ref: NodeRef<html::Span> = NodeRef::new();
-    let unbounded_ref: NodeRef<html::Span> = NodeRef::new();
+    let showcase_ref: NodeRef<html::Span> = NodeRef::new();
+    let workbench_ref: NodeRef<html::Span> = NodeRef::new();
+    let matrix_default_ref: NodeRef<html::Span> = NodeRef::new();
+    let matrix_unbounded_ref: NodeRef<html::Span> = NodeRef::new();
+    let matrix_custom_ref: NodeRef<html::Span> = NodeRef::new();
 
-    let default_motion = RippleMotion::default();
-    let slow_motion = RippleMotion {
-        duration_ms: 880,
-        ..RippleMotion::default()
-    };
-    let static_motion = RippleMotion::disabled();
-    let custom_motion = RippleMotion {
-        duration_ms: 620,
-        ..RippleMotion::default()
-    };
-    let unbounded_motion = RippleMotion {
-        duration_ms: 520,
-        ..RippleMotion::default()
-    };
+    let (workbench_is_bounded, set_workbench_is_bounded) = signal(true);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl_locale, set_workbench_rtl_locale) = signal(false);
+    let (workbench_trigger_count, set_workbench_trigger_count) = signal(0_u32);
 
-    let on_hello_click = move |_| {
-        ui_components::ripple::trigger_ripple(hello_ref, RippleMotion::default());
-    };
-    let on_default_click = move |_| {
-        ui_components::ripple::trigger_ripple(default_ref, default_motion);
-    };
-    let on_slow_click = move |_| {
-        ui_components::ripple::trigger_ripple(slow_ref, slow_motion);
-    };
-    let on_static_click = move |_| {
-        ui_components::ripple::trigger_ripple(static_ref, static_motion);
-    };
-    let on_custom_click = move |_| {
-        ui_components::ripple::trigger_ripple(custom_ref, custom_motion);
-    };
-    let on_unbounded_click = move |_| {
-        ui_components::ripple::trigger_ripple_at(unbounded_ref, unbounded_motion, 18.0, 48.0);
-    };
+    let workbench_motion = Signal::derive(move || {
+        if workbench_custom_motion.get() {
+            RippleMotion {
+                duration_ms: 620,
+                ..RippleMotion::default()
+            }
+        } else {
+            RippleMotion::default()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if workbench_custom_class.get() {
+            "docs-ripple-custom".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_lang = Signal::derive(move || {
+        if workbench_rtl_locale.get() {
+            "ar".to_string()
+        } else {
+            "en-US".to_string()
+        }
+    });
+    let workbench_dir = Signal::derive(move || {
+        if workbench_rtl_locale.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        }
+    });
 
-    let hello_world_code = Signal::derive(move || {
+    let showcase_code = Signal::derive(move || {
         r#"<button class="docs-ripple-surface" type="button">
-  <MotionRipple node_ref=ripple_ref motion=RippleMotion::default() />
+  <MotionRipple node_ref=showcase_ref />
 </button>"#
             .to_string()
     });
 
-    let matrix_code = Signal::derive(move || {
-        r#"<MotionRipple node_ref=default_ref motion=RippleMotion::default() />
-<MotionRipple node_ref=slow_ref motion=RippleMotion { duration_ms: 880, ..RippleMotion::default() } />
-<MotionRipple node_ref=static_ref motion=RippleMotion::disabled() />"#.to_string()
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<MotionRipple\n  node_ref=workbench_ref\n  is_bounded={}\n  motion=RippleMotion {{ duration_ms: {}, ..RippleMotion::default() }}\n  class_name={}\n  lang={}\n  dir={}\n/>",
+            bool_word(workbench_is_bounded.get()),
+            workbench_motion.get().duration_ms,
+            rust_string_literal(&workbench_class_name.get()),
+            rust_string_literal(&workbench_lang.get()),
+            if matches!(workbench_dir.get(), A11yDirection::Rtl) {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            },
+        )
     });
 
-    let custom_code = Signal::derive(move || {
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "MotionRippleActualConfig {{\n  node_ref: \"workbench_ref\",\n  is_bounded: {},\n  motion: {:?},\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n  trigger_count: {},\n}}",
+            workbench_is_bounded.get(),
+            workbench_motion.get(),
+            workbench_class_name.get(),
+            workbench_lang.get(),
+            workbench_dir.get(),
+            workbench_trigger_count.get(),
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
         r#"<MotionRipple
-  node_ref=custom_ref
-  motion=RippleMotion { duration_ms: 620, ..RippleMotion::default() }
-  class_name="docs-ripple-custom".to_string()
+  node_ref=matrix_default_ref
+  is_bounded=true
+  motion=RippleMotion::default()
+  lang="en-US".to_string()
+  dir=A11yDirection::Ltr
 />
 <MotionRipple
-  node_ref=unbounded_ref
+  node_ref=matrix_unbounded_ref
   is_bounded=false
   motion=RippleMotion { duration_ms: 520, ..RippleMotion::default() }
   class_name="docs-ripple-custom".to_string()
+  lang="ar".to_string()
+  dir=A11yDirection::Rtl
 />"#
         .to_string()
     });
@@ -6553,84 +8350,170 @@ pub(super) fn motion_ripple() -> AnyView {
             group="Display"
             description="Ripple overlay with centralized boundary/motion/class source attrs and WAAPI trigger helpers."
         >
-            <Playground title="Hello World" code_signal=hello_world_code>
+            <Playground title="Default Showcase" code_signal=showcase_code>
                 <div class="docs-row">
-                    <button class="docs-ripple-surface" type="button" on:click=on_hello_click>
-                        <span class="docs-ripple-label">"Click me"</span>
-                        <MotionRipple
-                            node_ref=hello_ref
-                            motion=RippleMotion::default()
-                            class_name="docs-ripple-item".to_string()
-                        />
+                    <button
+                        class="docs-ripple-surface"
+                        type="button"
+                        on:click=move |_| {
+                            ui::ripple::trigger_ripple(showcase_ref, RippleMotion::default());
+                        }
+                    >
+                        <span class="docs-ripple-label">"Click to trigger ripple"</span>
+                        <MotionRipple node_ref=showcase_ref />
                     </button>
                 </div>
             </Playground>
 
-            <Playground title="Animation Matrix" code_signal=matrix_code>
-                <div class="docs-row">
-                    <button class="docs-ripple-surface" type="button" on:click=on_default_click>
-                        <span class="docs-ripple-label">"Default (180ms)"</span>
-                        <MotionRipple
-                            node_ref=default_ref
-                            motion=default_motion
-                            class_name="docs-ripple-item".to_string()
-                        />
-                    </button>
-
-                    <button
-                        class="docs-ripple-surface docs-ripple-surface--slow"
-                        type="button"
-                        on:click=on_slow_click
-                    >
-                        <span class="docs-ripple-label">"Slow (880ms)"</span>
-                        <MotionRipple
-                            node_ref=slow_ref
-                            motion=slow_motion
-                            class_name="docs-ripple-item".to_string()
-                        />
-                    </button>
-
-                    <button
-                        class="docs-ripple-surface docs-ripple-surface--static"
-                        type="button"
-                        on:click=on_static_click
-                    >
-                        <span class="docs-ripple-label">"Disabled"</span>
-                        <MotionRipple
-                            node_ref=static_ref
-                            motion=static_motion
-                            class_name="docs-ripple-item".to_string()
-                        />
-                    </button>
-                </div>
-            </Playground>
-
-            <Playground title="Custom Boundary + Class" code_signal=custom_code>
+            <Playground
+                title="Workbench (All API Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="motion-ripple-workbench-controls">
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_is_bounded.get()
+                                on:change=move |ev| set_workbench_is_bounded.set(event_target_checked(&ev))
+                            />
+                            " is_bounded"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_motion.get()
+                                on:change=move |ev| set_workbench_custom_motion.set(event_target_checked(&ev))
+                            />
+                            " custom motion"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                            />
+                            " class_name"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_rtl_locale.get()
+                                on:change=move |ev| set_workbench_rtl_locale.set(event_target_checked(&ev))
+                            />
+                            " lang/dir Arabic"
+                        </label>
+                    </div>
+                }
+            >
                 <div class="docs-row">
                     <button
                         class="docs-ripple-surface docs-ripple-surface--accent"
                         type="button"
-                        on:click=on_custom_click
+                        on:click=move |_| {
+                            set_workbench_trigger_count.update(|count| *count += 1);
+                            if workbench_is_bounded.get_untracked() {
+                                ui::ripple::trigger_ripple(workbench_ref, workbench_motion.get_untracked());
+                            } else {
+                                ui::ripple::trigger_ripple_at(
+                                    workbench_ref,
+                                    workbench_motion.get_untracked(),
+                                    22.0,
+                                    42.0,
+                                );
+                            }
+                        }
                     >
-                        <span class="docs-ripple-label">"Custom Class"</span>
+                        <span class="docs-ripple-label">"Trigger workbench ripple"</span>
                         <MotionRipple
-                            node_ref=custom_ref
-                            motion=custom_motion
-                            class_name="docs-ripple-custom".to_string()
+                            node_ref=workbench_ref
+                            is_bounded=workbench_is_bounded.get()
+                            motion=workbench_motion.get()
+                            class_name=workbench_class_name.get()
+                            lang=workbench_lang.get()
+                            dir=workbench_dir.get()
                         />
                     </button>
+                    <span class="ui-muted">
+                        {move || format!("trigger_count={}", workbench_trigger_count.get())}
+                    </span>
+                </div>
+            </Playground>
 
+            <Playground
+                title="State Matrix (Boundary / Motion Comparison)"
+                code_signal=matrix_code
+                code_imports="use ui::color::area::A11yDirection;\nuse ui::{MotionRipple, RippleMotion};".to_string()
+            >
+                <div class="docs-row">
+                    <button
+                        class="docs-ripple-surface"
+                        type="button"
+                        on:click=move |_| {
+                            ui::ripple::trigger_ripple(matrix_default_ref, RippleMotion::default());
+                        }
+                    >
+                        <span class="docs-ripple-label">"Bounded default"</span>
+                        <MotionRipple
+                            node_ref=matrix_default_ref
+                            is_bounded=true
+                            motion=RippleMotion::default()
+                            lang="en-US".to_string()
+                            dir=A11yDirection::Ltr
+                        />
+                    </button>
                     <button
                         class="docs-ripple-surface docs-ripple-surface--unbounded"
                         type="button"
-                        on:click=on_unbounded_click
+                        on:click=move |_| {
+                            ui::ripple::trigger_ripple_at(
+                                matrix_unbounded_ref,
+                                RippleMotion {
+                                    duration_ms: 520,
+                                    ..RippleMotion::default()
+                                },
+                                16.0,
+                                50.0,
+                            );
+                        }
                     >
-                        <span class="docs-ripple-label">"Unbounded + Origin"</span>
+                        <span class="docs-ripple-label">"Unbounded RTL"</span>
                         <MotionRipple
-                            node_ref=unbounded_ref
+                            node_ref=matrix_unbounded_ref
                             is_bounded=false
-                            motion=unbounded_motion
+                            motion=RippleMotion {
+                                duration_ms: 520,
+                                ..RippleMotion::default()
+                            }
                             class_name="docs-ripple-custom".to_string()
+                            lang="ar".to_string()
+                            dir=A11yDirection::Rtl
+                        />
+                    </button>
+                    <button
+                        class="docs-ripple-surface docs-ripple-surface--slow"
+                        type="button"
+                        on:click=move |_| {
+                            ui::ripple::trigger_ripple(
+                                matrix_custom_ref,
+                                RippleMotion {
+                                    duration_ms: 880,
+                                    ..RippleMotion::default()
+                                },
+                            );
+                        }
+                    >
+                        <span class="docs-ripple-label">"Slow bounded"</span>
+                        <MotionRipple
+                            node_ref=matrix_custom_ref
+                            is_bounded=true
+                            motion=RippleMotion {
+                                duration_ms: 880,
+                                ..RippleMotion::default()
+                            }
+                            class_name="docs-ripple-item".to_string()
+                            lang="en-US".to_string()
+                            dir=A11yDirection::Ltr
                         />
                     </button>
                 </div>
@@ -6646,7 +8529,7 @@ pub(super) fn static_number() -> AnyView {
     let (workbench_thousand_sep_key, set_workbench_thousand_sep_key) = signal("comma".to_string());
     let (workbench_pad_start, set_workbench_pad_start) = signal(false);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
-    let (workbench_show_compare, set_workbench_show_compare) = signal(true);
+    let (workbench_rtl_locale, set_workbench_rtl_locale) = signal(false);
 
     let workbench_number = Signal::derive(move || match workbench_number_key.get().as_str() {
         "negative" => -9876.5,
@@ -6662,39 +8545,77 @@ pub(super) fn static_number() -> AnyView {
         });
     let workbench_decimal_separator = Signal::derive(move || {
         if workbench_decimal_sep_key.get() == "comma" {
-            Some(",".to_string())
+            ",".to_string()
         } else {
-            None
+            String::new()
         }
     });
     let workbench_thousand_separator =
         Signal::derive(move || match workbench_thousand_sep_key.get().as_str() {
-            "none" => None,
-            "space" => Some(" ".to_string()),
-            _ => Some(",".to_string()),
+            "none" => String::new(),
+            "space" => " ".to_string(),
+            _ => ",".to_string(),
         });
+    let workbench_class_name = Signal::derive(move || {
+        if workbench_custom_class.get() {
+            "docs-static-number-custom".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_lang = Signal::derive(move || {
+        if workbench_rtl_locale.get() {
+            "ar".to_string()
+        } else {
+            "en-US".to_string()
+        }
+    });
+    let workbench_dir = Signal::derive(move || {
+        if workbench_rtl_locale.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        }
+    });
+
+    let showcase_code = Signal::derive(move || {
+        r#"<StaticNumber
+  number=12345.67
+  decimal_places=2
+  thousand_separator=",".to_string()
+/>"#
+        .to_string()
+    });
 
     let workbench_code = Signal::derive(move || {
-        let number = workbench_number.get();
-        let decimal_places = workbench_decimal_places.get();
-        let decimal_separator = workbench_decimal_separator.get();
-        let thousand_separator = workbench_thousand_separator.get();
-
-        let mut lines = vec!["<StaticNumber".to_string(), format!("  number={number}")];
-        if workbench_pad_start.get() {
-            lines.push("  pad_start=true".to_string());
-        }
-        if let Some(separator) = decimal_separator {
-            lines.push(format!("  decimal_separator={separator:?}.into()"));
-        }
-        if let Some(places) = decimal_places {
-            lines.push(format!("  decimal_places={places}"));
-        }
-        if let Some(separator) = thousand_separator {
-            lines.push(format!("  thousand_separator={separator:?}.into()"));
-        }
-        if workbench_custom_class.get() {
-            lines.push("  class_name=\"docs-static-number-custom\".into()".to_string());
+        let mut lines = vec![
+            "<StaticNumber".to_string(),
+            format!("  number={}", workbench_number.get()),
+            format!("  pad_start={}", bool_word(workbench_pad_start.get())),
+            format!(
+                "  decimal_separator={}",
+                rust_string_literal(&workbench_decimal_separator.get()),
+            ),
+            format!(
+                "  thousand_separator={}",
+                rust_string_literal(&workbench_thousand_separator.get()),
+            ),
+            format!(
+                "  class_name={}",
+                rust_string_literal(&workbench_class_name.get()),
+            ),
+            format!("  lang={}", rust_string_literal(&workbench_lang.get())),
+            format!(
+                "  dir={}",
+                if matches!(workbench_dir.get(), A11yDirection::Rtl) {
+                    "A11yDirection::Rtl"
+                } else {
+                    "A11yDirection::Ltr"
+                },
+            ),
+        ];
+        if let Some(decimal_places) = workbench_decimal_places.get() {
+            lines.push(format!("  decimal_places={decimal_places}"));
         }
         lines.push("/>".to_string());
         lines.join("\n")
@@ -6703,71 +8624,54 @@ pub(super) fn static_number() -> AnyView {
     let workbench_test_css = Signal::derive(move || {
         format!(
             "/* components/text-input/src/number/styles.rs */\n{}",
-            ui_components::text_input::number::styles::CSS
+            ui::text_input::number::styles::CSS
         )
     });
 
     let workbench_actual_config = Signal::derive(move || {
         let number = workbench_number.get();
         let sanitized = if number.is_finite() { number } else { 0.0 };
-        let sign = if sanitized < 0.0 {
-            "negative"
-        } else if sanitized > 0.0 {
-            "positive"
-        } else {
-            "zero"
-        };
-        let decimal_separator_source = if workbench_decimal_separator.get().is_some() {
-            "custom"
-        } else {
-            "default"
-        };
-        let decimal_places_source = if workbench_decimal_places.get().is_some() {
-            "custom"
-        } else {
-            "auto"
-        };
-        let thousand_separator_source = if workbench_thousand_separator.get().is_some() {
-            "custom"
-        } else {
-            "none"
-        };
-        let class_source = if workbench_custom_class.get() {
-            "custom"
-        } else {
-            "default"
-        };
-        let mut classes = vec!["ui-static-number".to_string(), format!("data-sign={sign}")];
-        if workbench_custom_class.get() {
-            classes.push("docs-static-number-custom".to_string());
-        }
-
         format!(
-            "StaticNumberActualConfig {{\n  number: {number},\n  sanitized_number: {sanitized},\n  pad_start: {},\n  decimal_separator_source: \"{decimal_separator_source}\",\n  decimal_places_source: \"{decimal_places_source}\",\n  thousand_separator_source: \"{thousand_separator_source}\",\n  class_source: \"{class_source}\",\n  class: \"{}\",\n}}",
+            "StaticNumberActualConfig {{\n  number: {number},\n  pad_start: {},\n  decimal_separator: {:?},\n  decimal_places: {:?},\n  thousand_separator: {:?},\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n  sanitized_number: {sanitized},\n}}",
             workbench_pad_start.get(),
-            classes.join(" "),
+            workbench_decimal_separator.get(),
+            workbench_decimal_places.get(),
+            workbench_thousand_separator.get(),
+            workbench_class_name.get(),
+            workbench_lang.get(),
+            workbench_dir.get(),
         )
     });
 
     let matrix_code = Signal::derive(move || {
-        r#"<StaticNumber number=12345.67 decimal_places=2 thousand_separator=",".to_string() />
-<StaticNumber number=-9876.5 decimal_places=1 thousand_separator=",".to_string() />
-<StaticNumber number=1000.0 decimal_places=0 />"#
-            .to_string()
-    });
-
-    let custom_code = Signal::derive(move || {
         r#"<StaticNumber
-  number=42.123456789
+  number=12345.67
+  pad_start=false
+  decimal_separator=".".to_string()
+  decimal_places=2
+  thousand_separator=",".to_string()
+  class_name="".to_string()
+  lang="en-US".to_string()
+  dir=A11yDirection::Ltr
+/>
+<StaticNumber
+  number=-9876.5
+  pad_start=true
   decimal_separator=",".to_string()
-  decimal_places=30
+  decimal_places=1
   thousand_separator=" ".to_string()
   class_name="docs-static-number-custom".to_string()
+  lang="ar".to_string()
+  dir=A11yDirection::Rtl
 />
 <StaticNumber
   number=f64::NAN
-  decimal_places=2
+  pad_start=false
+  decimal_separator="".to_string()
+  thousand_separator="".to_string()
   class_name="docs-static-number-custom".to_string()
+  lang="en-US".to_string()
+  dir=A11yDirection::Ltr
 />"#
         .to_string()
     });
@@ -6779,41 +8683,18 @@ pub(super) fn static_number() -> AnyView {
             group="Display"
             description="Static number formatting with centralized sign/separator/class source attrs."
         >
-            <Playground title="Formatting Matrix" code_signal=matrix_code>
+            <Playground title="Default Showcase" code_signal=showcase_code>
                 <div class="docs-row">
                     <StaticNumber
                         number=12345.67
                         decimal_places=2
                         thousand_separator=",".to_string()
                     />
-                    <StaticNumber
-                        number=-9876.5
-                        decimal_places=1
-                        thousand_separator=",".to_string()
-                    />
-                    <StaticNumber number=1000.0 decimal_places=0 />
-                </div>
-            </Playground>
-
-            <Playground title="Custom Separators + Class" code_signal=custom_code>
-                <div class="docs-row">
-                    <StaticNumber
-                        number=42.123456789
-                        decimal_separator=",".to_string()
-                        decimal_places=30
-                        thousand_separator=" ".to_string()
-                        class_name="docs-static-number-custom".to_string()
-                    />
-                    <StaticNumber
-                        number=f64::NAN
-                        decimal_places=2
-                        class_name="docs-static-number-custom".to_string()
-                    />
                 </div>
             </Playground>
 
             <Playground
-                title="Workbench (Display + Config + Code + CSS Test)"
+                title="Workbench (All API Config)"
                 description="Button-style playground with display/config/code/css-test panels for number formatting contracts."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
@@ -6884,10 +8765,10 @@ pub(super) fn static_number() -> AnyView {
                         <label class="docs-search__label">
                             <input
                                 type="checkbox"
-                                prop:checked=move || workbench_show_compare.get()
-                                on:change=move |ev| set_workbench_show_compare.set(event_target_checked(&ev))
+                                prop:checked=move || workbench_rtl_locale.get()
+                                on:change=move |ev| set_workbench_rtl_locale.set(event_target_checked(&ev))
                             />
-                            " Show compare"
+                            " lang/dir Arabic"
                         </label>
                     </div>
                 }
@@ -6895,18 +8776,14 @@ pub(super) fn static_number() -> AnyView {
                 {move || {
                     let number = workbench_number.get();
                     let decimal_places = workbench_decimal_places.get();
-                    let decimal_separator = workbench_decimal_separator.get().unwrap_or_default();
-                    let thousand_separator = workbench_thousand_separator.get().unwrap_or_default();
-                    let class_name = if workbench_custom_class.get() {
-                        "docs-static-number-custom".to_string()
-                    } else {
-                        String::new()
-                    };
-                    let show_compare = workbench_show_compare.get();
+                    let decimal_separator = workbench_decimal_separator.get();
+                    let thousand_separator = workbench_thousand_separator.get();
+                    let class_name = workbench_class_name.get();
+                    let lang = workbench_lang.get();
+                    let dir = workbench_dir.get();
 
                     view! {
                         <div class="docs-stack docs-stack--tight">
-                            <div class="docs-search__label">"展示区 · Primary"</div>
                             <div class="docs-card docs-stack docs-stack--tight">
                                 {if let Some(decimal_places) = decimal_places {
                                     view! {
@@ -6917,6 +8794,8 @@ pub(super) fn static_number() -> AnyView {
                                             decimal_places=decimal_places
                                             thousand_separator=thousand_separator.clone()
                                             class_name=class_name.clone()
+                                            lang=lang.clone()
+                                            dir=dir
                                         />
                                     }
                                         .into_any()
@@ -6928,31 +8807,54 @@ pub(super) fn static_number() -> AnyView {
                                             decimal_separator=decimal_separator.clone()
                                             thousand_separator=thousand_separator.clone()
                                             class_name=class_name.clone()
+                                            lang=lang.clone()
+                                            dir=dir
                                         />
                                     }
                                         .into_any()
                                 }}
                             </div>
-
-                            <Show when=move || show_compare>
-                                <div class="docs-search__label">"展示区 · 对比矩阵"</div>
-                                <div class="docs-row">
-                                    <StaticNumber
-                                        number=12345.67
-                                        decimal_places=2
-                                        thousand_separator=",".to_string()
-                                    />
-                                    <StaticNumber
-                                        number=-9876.5
-                                        decimal_places=1
-                                        thousand_separator=",".to_string()
-                                    />
-                                    <StaticNumber number=f64::NAN decimal_places=2 />
-                                </div>
-                            </Show>
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Locale / Separator / Sign Comparison)"
+                code_signal=matrix_code
+                code_imports="use ui::color::area::A11yDirection;\nuse ui::StaticNumber;".to_string()
+            >
+                <div class="docs-row">
+                    <StaticNumber
+                        number=12345.67
+                        pad_start=false
+                        decimal_separator=".".to_string()
+                        decimal_places=2
+                        thousand_separator=",".to_string()
+                        class_name="".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <StaticNumber
+                        number=-9876.5
+                        pad_start=true
+                        decimal_separator=",".to_string()
+                        decimal_places=1
+                        thousand_separator=" ".to_string()
+                        class_name="docs-static-number-custom".to_string()
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                    />
+                    <StaticNumber
+                        number=f64::NAN
+                        pad_start=false
+                        decimal_separator="".to_string()
+                        thousand_separator="".to_string()
+                        class_name="docs-static-number-custom".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                </div>
             </Playground>
         </ComponentPage>
     }
@@ -6967,7 +8869,10 @@ pub(super) fn sliding_number() -> AnyView {
     let (workbench_thousand_sep_key, set_workbench_thousand_sep_key) = signal("comma".to_string());
     let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
     let (workbench_animate, set_workbench_animate) = signal(true);
+    let (workbench_pad_start, set_workbench_pad_start) = signal(false);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_lang_zh, set_workbench_lang_zh) = signal(false);
+    let (workbench_dir_rtl, set_workbench_dir_rtl) = signal(false);
     let (workbench_show_compare, set_workbench_show_compare) = signal(true);
 
     let workbench_decimal_places =
@@ -6992,7 +8897,7 @@ pub(super) fn sliding_number() -> AnyView {
         });
 
     let workbench_motion = Signal::derive(move || {
-        let mut motion = ui_components::SlidingNumberMotion {
+        let mut motion = ui::SlidingNumberMotion {
             animate: workbench_animate.get(),
             ..Default::default()
         };
@@ -7013,6 +8918,7 @@ pub(super) fn sliding_number() -> AnyView {
             "let (value, set_value) = signal(12345.67_f64);".to_string(),
             "<SlidingNumber".to_string(),
             "  number=Signal::derive(move || value.get())".to_string(),
+            format!("  pad_start={}", bool_word(workbench_pad_start.get())),
         ];
         if let Some(separator) = decimal_separator {
             lines.push(format!("  decimal_separator={separator:?}.into()"));
@@ -7023,7 +8929,7 @@ pub(super) fn sliding_number() -> AnyView {
         if let Some(separator) = thousand_separator {
             lines.push(format!("  thousand_separator={separator:?}.into()"));
         }
-        if motion != ui_components::SlidingNumberMotion::default() {
+        if motion != ui::SlidingNumberMotion::default() {
             lines.push(format!(
                 "  motion=SlidingNumberMotion {{ animate: {}, ..Default::default() }}",
                 motion.animate
@@ -7032,6 +8938,16 @@ pub(super) fn sliding_number() -> AnyView {
         if workbench_custom_class.get() {
             lines.push("  class_name=\"docs-sliding-number-custom\".into()".to_string());
         }
+        lines.push(if workbench_lang_zh.get() {
+            "  lang=\"zh-CN\".into()".to_string()
+        } else {
+            "  lang=\"en-US\".into()".to_string()
+        });
+        lines.push(if workbench_dir_rtl.get() {
+            "  dir=Some(A11yDirection::Rtl)".to_string()
+        } else {
+            "  dir=Some(A11yDirection::Ltr)".to_string()
+        });
         lines.push("/>".to_string());
         lines.join("\n")
     });
@@ -7039,7 +8955,7 @@ pub(super) fn sliding_number() -> AnyView {
     let workbench_test_css = Signal::derive(move || {
         format!(
             "/* components/text-input/src/number/styles.rs */\n{}",
-            ui_components::text_input::number::styles::CSS
+            ui::text_input::number::styles::CSS
         )
     });
 
@@ -7061,10 +8977,18 @@ pub(super) fn sliding_number() -> AnyView {
             "none"
         };
         let motion = workbench_motion.get();
-        let motion_source = if motion == ui_components::SlidingNumberMotion::default() {
+        let motion_source = if motion == ui::SlidingNumberMotion::default() {
             "default"
         } else {
             "custom"
+        };
+        let decimal_separator = workbench_decimal_separator.get();
+        let decimal_places = workbench_decimal_places.get();
+        let thousand_separator = workbench_thousand_separator.get();
+        let class_name = if workbench_custom_class.get() {
+            Some("docs-sliding-number-custom")
+        } else {
+            None
         };
         let class_source = if workbench_custom_class.get() {
             "custom"
@@ -7083,7 +9007,22 @@ pub(super) fn sliding_number() -> AnyView {
         }
 
         format!(
-            "SlidingNumberActualConfig {{\n  value: {number},\n  animate: {},\n  decimal_separator_source: \"{decimal_separator_source}\",\n  decimal_places_source: \"{decimal_places_source}\",\n  thousand_separator_source: \"{thousand_separator_source}\",\n  motion_source: \"{motion_source}\",\n  class_source: \"{class_source}\",\n  class: \"{}\",\n}}",
+            "SlidingNumberActualConfig {{\n  number: {number},\n  motion: \"{motion_source}\",\n  pad_start: {},\n  decimal_separator: {:?},\n  decimal_places: {:?},\n  thousand_separator: {:?},\n  class_name: {:?},\n  lang: {:?},\n  dir: {},\n  animate: {},\n  decimal_separator_source: \"{decimal_separator_source}\",\n  decimal_places_source: \"{decimal_places_source}\",\n  thousand_separator_source: \"{thousand_separator_source}\",\n  motion_source: \"{motion_source}\",\n  class_source: \"{class_source}\",\n  class: \"{}\",\n}}",
+            workbench_pad_start.get(),
+            decimal_separator,
+            decimal_places,
+            thousand_separator,
+            class_name,
+            if workbench_lang_zh.get() {
+                Some("zh-CN")
+            } else {
+                Some("en-US")
+            },
+            if workbench_dir_rtl.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
             motion.animate,
             classes.join(" "),
         )
@@ -7110,7 +9049,7 @@ pub(super) fn sliding_number() -> AnyView {
 <SlidingNumber
   number=Signal::derive(|| f64::NAN)
   decimal_places=2
-  motion=ui_components::SlidingNumberMotion { animate: false, ..Default::default() }
+  motion=ui::SlidingNumberMotion { animate: false, ..Default::default() }
   class_name="docs-sliding-number-custom".to_string()
 />"#
         .to_string()
@@ -7123,7 +9062,7 @@ pub(super) fn sliding_number() -> AnyView {
             group="Display"
             description="Spring-animated number transitions with centralized sign/source/motion attrs."
         >
-            <Playground title="Animated Matrix" code_signal=matrix_code>
+            <Playground title="Hello World (Default Animated Number)" code_signal=matrix_code>
                 <div class="docs-stack">
                     <SlidingNumber
                         number=number_signal
@@ -7132,18 +9071,18 @@ pub(super) fn sliding_number() -> AnyView {
                     />
                     <SlidingNumber number=number_signal decimal_places=0 />
                     <div class="docs-row">
-                        <ui_components::Button
-                            variant=ui_components::ButtonVariant::Secondary
+                        <ui::Button
+                            variant=ui::ButtonVariant::Secondary
                             on_press=Callback::new(move |_| set_value.update(|v| *v += 250.0))
                         >
                             "+250"
-                        </ui_components::Button>
-                        <ui_components::Button
-                            variant=ui_components::ButtonVariant::Secondary
+                        </ui::Button>
+                        <ui::Button
+                            variant=ui::ButtonVariant::Secondary
                             on_press=Callback::new(move |_| set_value.update(|v| *v -= 100.0))
                         >
                             "-100"
-                        </ui_components::Button>
+                        </ui::Button>
                         <span class="ui-muted">"value: " {move || value.get()}</span>
                     </div>
                 </div>
@@ -7161,7 +9100,7 @@ pub(super) fn sliding_number() -> AnyView {
                     <SlidingNumber
                         number=Signal::derive(|| f64::NAN)
                         decimal_places=2
-                        motion=ui_components::SlidingNumberMotion {
+                        motion=ui::SlidingNumberMotion {
                             animate: false,
                             ..Default::default()
                         }
@@ -7231,6 +9170,14 @@ pub(super) fn sliding_number() -> AnyView {
                         <label class="docs-search__label">
                             <input
                                 type="checkbox"
+                                prop:checked=move || workbench_pad_start.get()
+                                on:change=move |ev| set_workbench_pad_start.set(event_target_checked(&ev))
+                            />
+                            " Pad start"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
                                 prop:checked=move || workbench_custom_class.get()
                                 on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
                             />
@@ -7243,6 +9190,22 @@ pub(super) fn sliding_number() -> AnyView {
                                 on:change=move |ev| set_workbench_show_compare.set(event_target_checked(&ev))
                             />
                             " Show compare"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_lang_zh.get()
+                                on:change=move |ev| set_workbench_lang_zh.set(event_target_checked(&ev))
+                            />
+                            " lang zh-CN"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_dir_rtl.get()
+                                on:change=move |ev| set_workbench_dir_rtl.set(event_target_checked(&ev))
+                            />
+                            " dir RTL"
                         </label>
                     </div>
                 }
@@ -7268,10 +9231,21 @@ pub(super) fn sliding_number() -> AnyView {
                                         <SlidingNumber
                                             number=number_signal
                                             motion=motion
+                                            pad_start=workbench_pad_start.get()
                                             decimal_separator=decimal_separator.clone()
                                             decimal_places=decimal_places
                                             thousand_separator=thousand_separator.clone()
                                             class_name=class_name.clone()
+                                            lang=if workbench_lang_zh.get() {
+                                                "zh-CN".to_string()
+                                            } else {
+                                                "en-US".to_string()
+                                            }
+                                            dir=if workbench_dir_rtl.get() {
+                                                A11yDirection::Rtl
+                                            } else {
+                                                A11yDirection::Ltr
+                                            }
                                         />
                                     }
                                         .into_any()
@@ -7280,26 +9254,37 @@ pub(super) fn sliding_number() -> AnyView {
                                         <SlidingNumber
                                             number=number_signal
                                             motion=motion
+                                            pad_start=workbench_pad_start.get()
                                             decimal_separator=decimal_separator.clone()
                                             thousand_separator=thousand_separator.clone()
                                             class_name=class_name.clone()
+                                            lang=if workbench_lang_zh.get() {
+                                                "zh-CN".to_string()
+                                            } else {
+                                                "en-US".to_string()
+                                            }
+                                            dir=if workbench_dir_rtl.get() {
+                                                A11yDirection::Rtl
+                                            } else {
+                                                A11yDirection::Ltr
+                                            }
                                         />
                                     }
                                         .into_any()
                                 }}
                                 <div class="docs-row">
-                                    <ui_components::Button
-                                        variant=ui_components::ButtonVariant::Secondary
+                                    <ui::Button
+                                        variant=ui::ButtonVariant::Secondary
                                         on_press=Callback::new(move |_| set_value.update(|v| *v += 250.0))
                                     >
                                         "+250"
-                                    </ui_components::Button>
-                                    <ui_components::Button
-                                        variant=ui_components::ButtonVariant::Secondary
+                                    </ui::Button>
+                                    <ui::Button
+                                        variant=ui::ButtonVariant::Secondary
                                         on_press=Callback::new(move |_| set_value.update(|v| *v -= 100.0))
                                     >
                                         "-100"
-                                    </ui_components::Button>
+                                    </ui::Button>
                                     <span class="ui-muted">"value: " {move || value.get()}</span>
                                 </div>
                             </div>
@@ -7315,7 +9300,7 @@ pub(super) fn sliding_number() -> AnyView {
                                     <SlidingNumber
                                         number=Signal::derive(move || value.get())
                                         decimal_places=0
-                                        motion=ui_components::SlidingNumberMotion {
+                                        motion=ui::SlidingNumberMotion {
                                             animate: false,
                                             ..Default::default()
                                         }
@@ -7326,6 +9311,32 @@ pub(super) fn sliding_number() -> AnyView {
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground title="State Matrix (Format + Motion Comparison)" code_signal=matrix_code>
+                <div class="docs-stack docs-stack--tight">
+                    <SlidingNumber
+                        number=Signal::derive(move || value.get())
+                        decimal_places=2
+                        thousand_separator=",".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <SlidingNumber
+                        number=Signal::derive(move || value.get())
+                        motion=ui::SlidingNumberMotion {
+                            animate: false,
+                            ..Default::default()
+                        }
+                        pad_start=true
+                        decimal_separator=",".to_string()
+                        decimal_places=0
+                        thousand_separator=" ".to_string()
+                        class_name="docs-sliding-number-custom".to_string()
+                        lang="zh-CN".to_string()
+                        dir=A11yDirection::Rtl
+                    />
+                </div>
             </Playground>
         </ComponentPage>
     }

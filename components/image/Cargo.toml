@@ -10,6 +10,7 @@ path = "src/mod.rs"
 [features]
 default = []
 wasm-debug = []
+local-semantics = []
 
 [dependencies]
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }

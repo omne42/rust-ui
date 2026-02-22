@@ -9,7 +9,7 @@ leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 pulldown-cmark = "0.13.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-ui-components = { path = "../../crates/ui-components", default-features = false, features = ["inject-css", "all-components"] }
+ui = { path = "../../crates/ui", default-features = false, features = ["inject-css", "all-components"] }
 ui-layout = { path = "../../crates/ui-layout", default-features = false, features = ["inject-css", "all-components"] }
 ui-headless = { path = "../../crates/ui-headless" }
 

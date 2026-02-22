@@ -24,7 +24,7 @@ pub struct CodeBlockStateInput {
 #[cfg(test)]
 pub fn resolve_state(input: CodeBlockStateInput) -> CodeBlockViewState {
     let code = if input.is_empty {
-        ""
+        if input.is_multiline { "\n" } else { "" }
     } else if input.is_multiline {
         "line one\nline two"
     } else {

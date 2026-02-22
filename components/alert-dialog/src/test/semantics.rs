@@ -294,9 +294,9 @@ fn styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals() {
 
 #[test]
 fn defensive_variables_check_script_covers_style_fallback_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_styles_use_defensive_variable_fallback_chain";
+    let needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -305,8 +305,8 @@ fn defensive_variables_check_script_covers_style_fallback_contract() {
 
 #[test]
 fn cascade_layer_and_runtime_style_contract_is_enforced() {
-    let css_entry_source = include_str!("../../../../crates/ui-components/src/css.rs");
-    let root_source = include_str!("../../../../crates/ui-components/src/root.rs");
+    let css_entry_source = include_str!("../../../../crates/ui/src/css.rs");
+    let root_source = include_str!("../../../../crates/ui/src/root.rs");
     let view_source = include_str!("../view.rs");
     let styles_source = include_str!("../styles.rs");
 
@@ -318,7 +318,7 @@ fn cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_entry_source.contains(needle),
-            "ui-components css entry should enforce cascade-layer contract `{needle}`."
+            "ui css entry should enforce cascade-layer contract `{needle}`."
         );
     }
 
@@ -375,9 +375,9 @@ fn cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn cascade_layer_check_script_covers_alert_dialog_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_cascade_layer_and_runtime_style_contract_is_enforced";
+    let needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -739,9 +739,9 @@ fn motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe() 
 
 #[test]
 fn motion_contract_platform_script_covers_alert_dialog_guard() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-platforms.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-platforms.sh");
 
-    let needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
+    let needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
     assert!(
         script_source.contains(needle),
         "platform check script should enforce `{needle}`."
@@ -756,7 +756,7 @@ fn performance_governance_budget_is_defined_and_blocking() {
     let coverage_source =
         include_str!("../../../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = include_str!("../../../../docs/plan/TODO.md");
-    let script_source = include_str!("../../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-performance.sh");
     let view_source = include_str!("../view.rs");
 
     for needle in [
@@ -838,7 +838,7 @@ fn performance_governance_budget_is_defined_and_blocking() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_performance_governance_budget_is_defined_and_blocking";
+    let script_needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_performance_governance_budget_is_defined_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`."
@@ -1010,9 +1010,9 @@ fn inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 
 #[test]
 fn inner_html_check_script_covers_alert_dialog_security_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-inner-html.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-inner-html.sh");
 
-    let needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(needle),
         "inner-html check script should enforce alert-dialog contract marker `{needle}`."
@@ -1021,8 +1021,8 @@ fn inner_html_check_script_covers_alert_dialog_security_contract() {
 
 #[test]
 fn wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated() {
-    let cargo_source = include_str!("../../../../crates/ui-components/Cargo.toml");
-    let crate_root_source = include_str!("../../../../crates/ui-components/src/lib.rs");
+    let cargo_source = include_str!("../../../../crates/ui/Cargo.toml");
+    let crate_root_source = include_str!("../../../../crates/ui/src/lib.rs");
     let docs_app_source = include_str!("../../../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = include_str!("../../../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = include_str!("../../../../crates/ui-headless/src/trace.rs");
@@ -1061,7 +1061,7 @@ fn wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated() {
     ] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components root should keep wasm-debug isolation marker `{needle}`."
+            "ui root should keep wasm-debug isolation marker `{needle}`."
         );
     }
 
@@ -1178,9 +1178,9 @@ fn wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated() {
 
 #[test]
 fn wasm_debug_check_script_covers_alert_dialog_shared_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-wasm-debug.sh");
 
-    let needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated";
+    let needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm-debug check script should enforce `{needle}`."
@@ -1293,11 +1293,11 @@ fn dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_
 
 #[test]
 fn dx_check_script_covers_hot_reload_and_isolated_canvas_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1346,7 +1346,7 @@ fn docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync() {
         "label=\"Copy alert-dialog starter\".to_string()",
         "copyable=true",
         "class_name=\"docs-alert-dialog-source-copy\".to_string()",
-        "use leptos::prelude::*;\\nuse ui_components::{AlertDialog, AlertDialogVariant, OnPress};",
+        "use leptos::prelude::*;\\nuse ui::{AlertDialog, AlertDialogVariant, OnPress};",
         "ALERT_DIALOG_DOC_IMPORTS",
         "component-alert_dialog",
         "inject-css",
@@ -1397,7 +1397,7 @@ fn check2_documents_docs_product_copy_paste_ready_rules() {
             "docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
             "docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync",
             "dx_check_script_covers_docs_product_copy_paste_ready_contract",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
         ] {
             assert!(
                 source.contains(needle),
@@ -1409,13 +1409,13 @@ fn check2_documents_docs_product_copy_paste_ready_rules() {
 
 #[test]
 fn dx_check_script_covers_docs_product_copy_paste_ready_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_docs_product_copy_paste_ready_rules",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_dx_check_script_covers_docs_product_copy_paste_ready_contract",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_docs_product_copy_paste_ready_rules",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_dx_check_script_covers_docs_product_copy_paste_ready_contract",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1518,7 +1518,7 @@ fn docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults() {
             "apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs::alert_dialog",
             "check2_documents_docs_sync_and_state_matrix_rules",
             "docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
         ] {
             assert!(
                 source.contains(needle),
@@ -1530,12 +1530,12 @@ fn docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults() {
 
 #[test]
 fn dx_check_script_covers_docs_sync_state_matrix_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: alert-dialog docs examples + api/state matrix sync with logic API/defaults\"",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1567,7 +1567,7 @@ fn check2_marks_docs_sync_and_state_matrix_contract_complete() {
             "check2_documents_docs_sync_and_state_matrix_rules",
             "docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
             "dx_check_script_covers_docs_sync_state_matrix_contract",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -1683,12 +1683,12 @@ fn documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: alert-dialog documentation-as-product keeps beginner-first docs entry\"",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1718,7 +1718,7 @@ fn check2_marks_documentation_as_product_contract_complete() {
             "check2_documents_documentation_as_product_rules",
             "documentation_entry_exists_with_beginner_first_progression",
             "dx_check_script_covers_documentation_as_product_contract",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -1820,13 +1820,13 @@ fn interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn dx_check_script_covers_interactive_playground_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: alert-dialog interactive playground docs acceptance surface\"",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1856,7 +1856,7 @@ fn check2_marks_interactive_playground_contract_complete() {
             "docs_app_provides_interactive_playground_for_props_state_and_preview",
             "interactive_playground_reuses_repeatable_semantic_e2e_flow",
             "dx_check_script_covers_interactive_playground_contract",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -1943,12 +1943,12 @@ fn docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() {
 
 #[test]
 fn dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: alert-dialog source-first docs are copy-paste-ready with real paths and deps\"",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1977,7 +1977,7 @@ fn check2_marks_source_first_copy_paste_ready_contract_complete() {
             "check2_documents_source_first_copy_paste_ready_rules",
             "docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
             "dx_check_script_covers_source_first_copy_paste_ready_contract",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -2029,7 +2029,7 @@ fn engineering_contract_uses_serde_protocol_and_structured_schema_defaults() {
 
 #[test]
 fn engineering_contract_keeps_tracing_semantics_unified_without_component_local_events() {
-    let cargo_source = include_str!("../../../../crates/ui-components/Cargo.toml");
+    let cargo_source = include_str!("../../../../crates/ui/Cargo.toml");
     let button_view_source = include_str!("../../../button/src/view.rs");
     let combined = format!(
         "{}\n{}\n{}\n{}\n{}\n{}",
@@ -2044,7 +2044,7 @@ fn engineering_contract_keeps_tracing_semantics_unified_without_component_local_
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -2063,7 +2063,7 @@ fn engineering_contract_keeps_tracing_semantics_unified_without_component_local_
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::alert_dialog::",
+        "target: \"ui::alert_dialog::",
         "const ALERT_DIALOG_TRACE_TARGET",
     ] {
         assert!(
@@ -2174,9 +2174,9 @@ fn version_deprecation_migration_registry_is_explicitly_na_without_major_breakin
 
 #[test]
 fn version_deprecation_migration_script_covers_engineering_gate() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-engineering.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-engineering.sh");
 
-    let marker = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
+    let marker = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(marker),
         "engineering check script should enforce `{marker}`."
@@ -2185,13 +2185,13 @@ fn version_deprecation_migration_script_covers_engineering_gate() {
 
 #[test]
 fn engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-engineering.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2212,7 +2212,7 @@ fn check2_marks_version_deprecation_migration_registry_item_complete() {
             "schema_version = \"1\"",
             "version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
             "version_deprecation_migration_script_covers_engineering_gate",
-            "scripts/check-ui-components-engineering.sh",
+            "scripts/check-ui-engineering.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -2225,9 +2225,9 @@ fn check2_marks_version_deprecation_migration_registry_item_complete() {
 
 #[test]
 fn ui_components_fixed_entry_files_follow_layered_boundaries() {
-    let lib_source = include_str!("../../../../crates/ui-components/src/lib.rs");
-    let css_source = include_str!("../../../../crates/ui-components/src/css.rs");
-    let root_source = include_str!("../../../../crates/ui-components/src/root.rs");
+    let lib_source = include_str!("../../../../crates/ui/src/lib.rs");
+    let css_source = include_str!("../../../../crates/ui/src/css.rs");
+    let root_source = include_str!("../../../../crates/ui/src/root.rs");
     let active_highlight_source =
         include_str!("../../../../crates/ui-visual-primitive/src/active_highlight.rs");
     let controllable_state_source =
@@ -2247,7 +2247,7 @@ fn ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep marker `{needle}`."
+            "ui lib entry should keep marker `{needle}`."
         );
     }
 
@@ -2259,7 +2259,7 @@ fn ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform/internal marker `{forbidden}`."
+            "ui lib entry should not leak platform/internal marker `{forbidden}`."
         );
     }
 
@@ -2276,7 +2276,7 @@ fn ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css registry should keep feature-gated marker `{needle}`."
+            "ui css registry should keep feature-gated marker `{needle}`."
         );
     }
 
@@ -2329,13 +2329,13 @@ fn ui_components_fixed_entry_files_follow_layered_boundaries() {
 
     let workspace_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     for forbidden in [
-        "../../crates/ui-components/src/overlay_open.rs",
-        "../../crates/ui-components/src/presence.rs",
-        "../../crates/ui-components/src/a11y.rs",
+        "../../crates/ui/src/overlay_open.rs",
+        "../../crates/ui/src/presence.rs",
+        "../../crates/ui/src/a11y.rs",
     ] {
         assert!(
             !workspace_dir.join(forbidden).exists(),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`."
+            "ui forbidden entrypoint file should not exist: `{forbidden}`."
         );
     }
 
@@ -2366,8 +2366,8 @@ fn ui_components_fixed_entry_files_follow_layered_boundaries() {
 
 #[test]
 fn entrypoints_check_script_covers_alert_dialog_fixed_entrypoint_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-entrypoints.sh");
-    let needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let script_source = include_str!("../../../../scripts/check-ui-entrypoints.sh");
+    let needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_ui_components_fixed_entry_files_follow_layered_boundaries";
 
     assert!(
         script_source.contains(needle),
@@ -2521,8 +2521,8 @@ fn spec_file_is_not_introduced_for_simple_component() {
 
 #[test]
 fn component_files_check_script_covers_alert_dialog_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_component_directory_standard_files_follow_contract_and_no_spec";
+    let script_source = include_str!("../../../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_component_directory_standard_files_follow_contract_and_no_spec";
 
     assert!(
         script_source.contains(needle),
@@ -2653,8 +2653,8 @@ fn file_placement_discipline_is_strict_for_component_scope() {
 
 #[test]
 fn file_placement_check_script_covers_alert_dialog_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_file_placement_discipline_is_strict_for_component_scope";
+    let script_source = include_str!("../../../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_file_placement_discipline_is_strict_for_component_scope";
 
     assert!(
         script_source.contains(needle),
@@ -2717,8 +2717,8 @@ fn hyper_structure_builder_spec_is_not_applicable_for_simple_component() {
 
 #[test]
 fn hyper_structure_builder_check_script_covers_alert_dialog_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
+    let script_source = include_str!("../../../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
 
     assert!(
         script_source.contains(needle),
@@ -2787,8 +2787,8 @@ fn context_compression_manifest_and_rbi_projection_are_present_and_current() {
 
 #[test]
 fn context_compression_check_script_covers_alert_dialog_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let script_source = include_str!("../../../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_context_compression_manifest_and_rbi_projection_are_present_and_current";
 
     assert!(
         script_source.contains(needle),
@@ -2811,7 +2811,7 @@ fn check2_documents_agent_contract_schema_governance_rules() {
             "agent_contract_is_schema_typed_and_machine_readable",
             "agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
             "agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-            "scripts/check-ui-components-contract-hygiene.sh",
+            "scripts/check-ui-contract-hygiene.sh",
         ] {
             assert!(
                 source.contains(required),
@@ -2982,13 +2982,13 @@ fn agent_contract_render_path_is_whitelist_safe_and_script_injection_free() {
 
 #[test]
 fn contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_agent_contract_schema_governance_rules",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3010,7 +3010,7 @@ fn check2_marks_agent_contract_schema_governance_complete() {
             "agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
             "agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
             "contract_hygiene_script_covers_agent_contract_schema_guards",
-            "scripts/check-ui-components-contract-hygiene.sh",
+            "scripts/check-ui-contract-hygiene.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -3029,7 +3029,7 @@ fn check2_documents_streaming_definition_is_llm_output_only_with_two_modes() {
     let logic_source = include_str!("../logic.rs");
     let mod_source = include_str!("../mod.rs");
     let motion_source = include_str!("../motion.rs");
-    let script_source = include_str!("../../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-streaming.sh");
     let combined = format!("{view_source}\n{logic_source}\n{mod_source}\n{motion_source}");
 
     for source in [check2_src, check2_root] {
@@ -3063,7 +3063,7 @@ fn check2_documents_streaming_definition_is_llm_output_only_with_two_modes() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(script_needle),
         "streaming check script should include `{script_needle}`."
@@ -3072,9 +3072,9 @@ fn check2_documents_streaming_definition_is_llm_output_only_with_two_modes() {
 
 #[test]
 fn streaming_script_covers_two_mode_definition_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-streaming.sh");
 
-    let needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(needle),
         "streaming check script should enforce `{needle}`."
@@ -3095,7 +3095,7 @@ fn check2_marks_streaming_two_mode_definition_complete() {
         for needle in [
             "check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
             "streaming_script_covers_two_mode_definition_contract",
-            "scripts/check-ui-components-streaming.sh",
+            "scripts/check-ui-streaming.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -3118,7 +3118,7 @@ fn check2_documents_snapshot_as_default_baseline_capability() {
             "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
             "N/A：`AlertDialog` 不直接渲染 LLM 正文",
             "check2_documents_snapshot_as_default_baseline_capability",
-            "scripts/check-ui-components-streaming.sh",
+            "scripts/check-ui-streaming.sh",
         ] {
             assert!(
                 source.contains(needle),
@@ -3134,7 +3134,7 @@ fn snapshot_baseline_consumes_complete_result_and_renders_stably() {
     let logic_source = include_str!("../logic.rs");
     let check2_src = include_str!("../check2.md");
     let check2_root = include_str!("../../check2.md");
-    let script_source = include_str!("../../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-streaming.sh");
 
     for needle in [
         "let id_base = logic::normalize_id_base(id_base);",
@@ -3202,7 +3202,7 @@ fn snapshot_baseline_consumes_complete_result_and_renders_stably() {
         }
     }
 
-    let script_needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_snapshot_baseline_consumes_complete_result_and_renders_stably";
+    let script_needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_snapshot_baseline_consumes_complete_result_and_renders_stably";
     assert!(
         script_source.contains(script_needle),
         "streaming check script should include `{script_needle}`."
@@ -3211,11 +3211,11 @@ fn snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
 #[test]
 fn streaming_script_covers_snapshot_baseline_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3235,7 +3235,7 @@ fn check2_marks_snapshot_baseline_capability_complete() {
             "check2_documents_snapshot_as_default_baseline_capability",
             "snapshot_baseline_consumes_complete_result_and_renders_stably",
             "streaming_script_covers_snapshot_baseline_contract",
-            "scripts/check-ui-components-streaming.sh",
+            "scripts/check-ui-streaming.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -3250,7 +3250,7 @@ fn check2_marks_snapshot_baseline_capability_complete() {
 fn check2_documents_streaming_required_optional_classification_rules() {
     let check2_src = include_str!("../check2.md");
     let check2_root = include_str!("../../check2.md");
-    let script_source = include_str!("../../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-streaming.sh");
 
     for source in [check2_src, check2_root] {
         for needle in [
@@ -3270,9 +3270,9 @@ fn check2_documents_streaming_required_optional_classification_rules() {
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -3360,12 +3360,12 @@ fn streaming_validation_retry_resilience_boundaries_stay_outside_component_layer
 
 #[test]
 fn streaming_script_covers_required_optional_classification_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3386,7 +3386,7 @@ fn check2_marks_streaming_required_optional_classification_complete() {
             "streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
             "streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
             "streaming_script_covers_required_optional_classification_contract",
-            "scripts/check-ui-components-streaming.sh",
+            "scripts/check-ui-streaming.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -3467,7 +3467,7 @@ fn rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent() {
 #[test]
 fn rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let script_source = include_str!("../../../../scripts/check-rust-hygiene.sh");
-    let engineering_script = include_str!("../../../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = include_str!("../../../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -3482,9 +3482,9 @@ fn rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(needle),
@@ -3518,44 +3518,44 @@ fn check2_marks_rust_hygiene_contract_complete() {
 
 #[test]
 fn tree_shaking_feature_pruning_contract_is_registered_and_feature_gated() {
-    let cargo_source = include_str!("../../../../crates/ui-components/Cargo.toml");
-    let lib_source = include_str!("../../../../crates/ui-components/src/lib.rs");
-    let css_source = include_str!("../../../../crates/ui-components/src/css.rs");
+    let cargo_source = include_str!("../../../../crates/ui/Cargo.toml");
+    let lib_source = include_str!("../../../../crates/ui/src/lib.rs");
+    let css_source = include_str!("../../../../crates/ui/src/css.rs");
 
     assert!(
         cargo_source
             .contains("component-alert_dialog = [\"component-overlay\", \"component-button\"]"),
-        "ui-components feature tree should register component-alert_dialog with required dependencies."
+        "ui feature tree should register component-alert_dialog with required dependencies."
     );
     assert!(
         lib_source.contains("#[cfg(feature = \"component-alert_dialog\")]")
             && lib_source.contains("pub mod alert_dialog;"),
-        "ui-components lib.rs should feature-gate alert-dialog module export."
+        "ui lib.rs should feature-gate alert-dialog module export."
     );
     assert!(
         css_source.contains("#[cfg(feature = \"component-alert_dialog\")]")
             && css_source.contains("out.push_str(crate::alert_dialog::styles::CSS);"),
-        "ui-components css.rs should gate alert-dialog CSS aggregation behind component-alert_dialog."
+        "ui css.rs should gate alert-dialog CSS aggregation behind component-alert_dialog."
     );
 }
 
 #[test]
 fn tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-tree-shaking.sh");
     let budget_source = include_str!("../../../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "ALERT_DIALOG_MIN_FEATURES=\"component-alert_dialog,inject-css\"",
         "echo \"[tree-shaking] alert-dialog feature registration + gated aggregation contract\"",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_tree_shaking_keeps_component_feature_and_css_boundaries",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_tree_shaking_check_script_covers_feature_tree_wasm_and_budget",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "ALERT_DIALOG_TREE_OUTPUT=\"$(cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$ALERT_DIALOG_MIN_FEATURES\")\"",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_tree_shaking_keeps_component_feature_and_css_boundaries",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_tree_shaking_check_script_covers_feature_tree_wasm_and_budget",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "ALERT_DIALOG_TREE_OUTPUT=\"$(cargo tree -e features -i ui -p ui --no-default-features --features \"$ALERT_DIALOG_MIN_FEATURES\")\"",
         "feature \"component-alert_dialog\" (command-line)",
         "feature \"inject-css\" (command-line)",
         "alert-dialog minimal feature tree should not pull all-components",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$ALERT_DIALOG_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$ALERT_DIALOG_MIN_FEATURES\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
     ] {
@@ -3583,7 +3583,7 @@ fn check2_marks_tree_shaking_feature_pruning_contract_complete() {
 
     for source in [check2_src, check2_root] {
         for needle in [
-            "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+            "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
             "tree_shaking_feature_pruning_contract_is_registered_and_feature_gated",
             "tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
             "alert_dialog_tree_shaking_keeps_component_feature_and_css_boundaries",
@@ -3591,7 +3591,7 @@ fn check2_marks_tree_shaking_feature_pruning_contract_complete() {
             "alert_dialog_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
             "alert_dialog_check2_marks_tree_shaking_feature_pruning_contract_complete",
             "component-alert_dialog = [\"component-overlay\", \"component-button\"]",
-            "bash ./scripts/check-ui-components-tree-shaking.sh",
+            "bash ./scripts/check-ui-tree-shaking.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -3693,12 +3693,12 @@ fn semantics_and_performance_regression_cover_aria_data_focus_and_render_count_m
 
 #[test]
 fn semantics_and_performance_script_covers_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-performance.sh");
 
     for marker in [
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_performance_governance_budget_is_defined_and_blocking",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_performance_governance_budget_is_defined_and_blocking",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(marker),
@@ -3720,7 +3720,7 @@ fn check2_marks_semantics_and_performance_regression_contract_complete() {
             "performance_governance_budget_is_defined_and_blocking",
             "alert_dialog_performance_governance_budget_is_defined_and_blocking",
             "`render_count` 自动化回归仍在仓库统一 follow-up",
-            "scripts/check-ui-components-performance.sh",
+            "scripts/check-ui-performance.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -3738,7 +3738,7 @@ fn semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snaps
     let local_semantics_source = include_str!("semantics.rs");
     let workspace_semantics_source =
         include_str!("../../../../components/alert-dialog/src/test/alert_dialog_semantics.rs");
-    let perf_script_source = include_str!("../../../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = include_str!("../../../../scripts/check-ui-performance.sh");
 
     for marker in [
         "data-state=move || ctx.root_state.get().state_attr",
@@ -3797,7 +3797,7 @@ fn semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snaps
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         perf_script_source.contains(script_needle),
         "performance script should include alert-dialog semantic-priority gate `{script_needle}`."
@@ -3806,11 +3806,11 @@ fn semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snaps
 
 #[test]
 fn performance_script_covers_semantic_test_priority_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-performance.sh");
 
     for marker in [
         "echo \"[perf] contract: alert-dialog semantic test priority\"",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
     ] {
         assert!(
             script_source.contains(marker),
@@ -3836,7 +3836,7 @@ fn check2_marks_semantic_test_priority_item_complete() {
             "components/alert-dialog/src/test/semantics.rs::semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
             "components/alert-dialog/src/test/semantics.rs::semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
             "components/alert-dialog/src/test/alert_dialog_semantics.rs::alert_dialog_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
-            "scripts/check-ui-components-performance.sh",
+            "scripts/check-ui-performance.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -3949,12 +3949,13 @@ fn e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths() {
 
 #[test]
 fn e2e_check_script_covers_selector_and_ready_settled_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-e2e-alert-dialog.sh");
+    let script_source =
+        include_str!("../../../../components/alert-dialog/scripts/check-ui-e2e-alert-dialog.sh");
 
     for marker in [
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
     ] {
         assert!(
             script_source.contains(marker),
@@ -3982,7 +3983,7 @@ fn check2_marks_e2e_selector_stability_item_complete() {
             "ready/settled",
             "components/alert-dialog/src/test/semantics.rs::e2e_selector_contract_uses_semantic_markers_and_settled_waits",
             "components/alert-dialog/src/test/alert_dialog_semantics.rs::alert_dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-            "scripts/check-ui-components-e2e-alert-dialog.sh",
+            "components/alert-dialog/scripts/check-ui-e2e-alert-dialog.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -4067,12 +4068,13 @@ fn e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints() {
 
 #[test]
 fn e2e_check_script_covers_repeatable_key_flow_contracts() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-e2e-alert-dialog.sh");
+    let script_source =
+        include_str!("../../../../components/alert-dialog/scripts/check-ui-e2e-alert-dialog.sh");
 
     for marker in [
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_e2e_repeatable_key_flow_rules",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_e2e_repeatable_key_flow_rules",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4101,7 +4103,7 @@ fn check2_marks_e2e_repeatable_key_flow_item_complete() {
             "components/alert-dialog/src/test/semantics.rs::e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
             "components/alert-dialog/src/test/semantics.rs::e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
             "components/alert-dialog/src/test/alert_dialog_semantics.rs::alert_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-            "scripts/check-ui-components-e2e-alert-dialog.sh",
+            "components/alert-dialog/scripts/check-ui-e2e-alert-dialog.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(
@@ -4189,12 +4191,12 @@ fn heroui_strategy_and_component_docs_are_synchronized_and_indexable() {
 
 #[test]
 fn dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = include_str!("../../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../../scripts/check-ui-dx.sh");
 
     for marker in [
         "echo \"[dx] contract: alert-dialog heroui benchmark strategy + docs entry synchronization\"",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test alert_dialog_semantics --no-default-features --features component-alert_dialog,inject-css alert_dialog_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4215,7 +4217,7 @@ fn check2_marks_heroui_benchmark_docs_sync_contract_complete() {
             "heroui_strategy_and_component_docs_are_synchronized_and_indexable",
             "dx_check_script_covers_heroui_benchmark_docs_sync_contract",
             "docs/spec/heroui-parameter-design-strategy.md",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
             "Invalid cross-device link (os error 18)",
         ] {
             assert!(

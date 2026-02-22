@@ -68,7 +68,7 @@ let custom_motion = ToastMotion {
   - `components/toast/src/sonner/view.rs`
   - `components/toast/src/sonner/styles.rs`
   - `components/toast/src/sonner/motion.rs`
-- 依赖前提：`ui-components` 最小 feature 组合为 `component-sonner` 与 `component-toast`。
+- 依赖前提：`ui` 最小 feature 组合为 `component-sonner` 与 `component-toast`。
 
 ## 命名兼容策略
 

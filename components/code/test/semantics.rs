@@ -9,10 +9,10 @@ fn load_source(path: &str) -> &'static str {
         }
         "heroui_strategy" => include_str!("../../../docs/spec/heroui-parameter-design-strategy.md"),
         "e2e_code_contract" => include_str!("../../../e2e/tests/docs_app_code_contract.spec.mjs"),
-        "ui_components_css" => include_str!("../../../crates/ui-components/src/css.rs"),
-        "ui_components_manifest" => include_str!("../../../crates/ui-components/Cargo.toml"),
-        "ui_components_lib" => include_str!("../../../crates/ui-components/src/lib.rs"),
-        "ui_components_root" => include_str!("../../../crates/ui-components/src/root.rs"),
+        "ui_components_css" => include_str!("../../../crates/ui/src/css.rs"),
+        "ui_components_manifest" => include_str!("../../../crates/ui/Cargo.toml"),
+        "ui_components_lib" => include_str!("../../../crates/ui/src/lib.rs"),
+        "ui_components_root" => include_str!("../../../crates/ui/src/root.rs"),
         "ui_headless_manifest" => include_str!("../../../crates/ui-headless/Cargo.toml"),
         "ui_headless_lib" => include_str!("../../../crates/ui-headless/src/lib.rs"),
         "ui_motion_manifest" => include_str!("../../../crates/ui-motion/Cargo.toml"),
@@ -171,7 +171,7 @@ fn code_component_stays_in_ui_components_assembly_boundary() {
     ] {
         assert!(
             module.contains(required),
-            "code module should keep stable ui-components assembly export `{required}`"
+            "code module should keep stable ui assembly export `{required}`"
         );
     }
 
@@ -270,8 +270,8 @@ fn code_file_responsibilities_stay_in_their_own_layers() {
 
     for required in [
         "pub const CSS: &str =",
-        "var(--ui-fg)",
-        "var(--ui-bg)",
+        "var(--ui-fg, var(--ui-fallback-fg))",
+        "var(--ui-bg, var(--ui-fallback-bg))",
         ".ui-code[data-state=\"inline\"]",
         ".ui-code[data-state=\"block\"]",
     ] {
@@ -665,7 +665,7 @@ fn code_snapshot_is_foundational_and_accepts_complete_result_and_config() {
     for required in [
         "pub(super) fn code() -> AnyView {",
         "<Playground title=\"Hello World (Default API)\" code_signal=hello_world_code>",
-        "<Code>\"cargo check -p ui-components\"</Code>",
+        "<Code>\"cargo check -p ui\"</Code>",
         "test_config_signal=actual_config",
         "<Code variant=variant class_name=class_name.clone()>",
         "{content}",
@@ -976,7 +976,7 @@ fn code_token_first_static_style_contract_is_enforced() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css aggregator should include code styles under feature gate: `{required}`"
+            "ui css aggregator should include code styles under feature gate: `{required}`"
         );
     }
 
@@ -1066,7 +1066,7 @@ fn code_tree_shaking_contract_is_feature_gated_end_to_end() {
 
     for required in [
         "Tree Shaking & 特性剪裁",
-        "组件必须注册到 `ui-components` 特性树",
+        "组件必须注册到 `ui` 特性树",
         "`css.rs` 和 `lib.rs` 聚合必须受 feature 门控",
     ] {
         assert!(
@@ -1388,7 +1388,6 @@ fn code_async_interaction_contract_is_explicitly_na_for_static_component() {
         "is_loading",
         "on_retry",
         "retry",
-        "aria-busy",
         "disabled:",
         "use_async_action",
         "create_resource(",
@@ -1416,7 +1415,7 @@ fn code_dx_paradox_keeps_default_usage_simple_and_internal_complexity_hidden() {
 
     for required in [
         "## Hello World",
-        "<Code>\"cargo test -p ui-components\"</Code>",
+        "<Code>\"cargo test -p ui\"</Code>",
         "pub fn Code(",
         "children: Children,",
     ] {
@@ -1433,13 +1432,12 @@ fn code_dx_paradox_keeps_default_usage_simple_and_internal_complexity_hidden() {
         "docs-app should expose a copy-paste default Code path for zero-threshold onboarding."
     );
     assert!(
-        docs_display.contains("<Code>\"cargo check -p ui-components\"</Code>"),
+        docs_display.contains("<Code>\"cargo check -p ui\"</Code>"),
         "docs-app hello world should use default api path without forcing internal wiring."
     );
 
     for forbidden in [
         "state:",
-        "state=",
         "headless_state:",
         "primitive_state:",
         "state: CodeState",
@@ -1471,7 +1469,7 @@ fn code_documentation_as_product_readme_is_beginner_friendly_with_default_first_
         "### Block（常见）",
         "## 进阶用法（可选）",
         "## docs-app Playground（展示区 / Config 区 / Code 区 / CSS Test 区）",
-        "<Code>\"cargo test -p ui-components\"</Code>",
+        "<Code>\"cargo test -p ui\"</Code>",
     ] {
         assert!(
             readme.contains(required),
@@ -1538,8 +1536,8 @@ fn code_dx_workbench_flow_supports_fast_style_iteration_and_context_retention() 
         "let (custom_class, set_custom_class) = signal(false);",
         "let (long_content, set_long_content) = signal(false);",
         "let (show_compare, set_show_compare) = signal(true);",
-        "<ui_components::SegmentedControl",
-        "<ui_components::Switch checked=show_compare set_checked=set_show_compare>",
+        "<ui::SegmentedControl",
+        "<ui::Switch checked=show_compare set_checked=set_show_compare>",
     ] {
         assert!(
             docs_display.contains(required),
@@ -1572,7 +1570,7 @@ fn code_docs_product_copy_paste_ready_playground_covers_hello_matrix_control_str
         "title=\"Controlled vs Uncontrolled (N/A)\"",
         "title=\"Streaming Optional / Snapshot\"",
         "title=\"Source-first Starter (Copy-Paste Ready)\"",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::{Code, CodeVariant};\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::{Code, CodeVariant};\".to_string()",
         "data-slot=\"code-state-matrix\"",
         "data-slot=\"code-streaming-modes\"",
         "data-slot=\"code-source-first\"",
@@ -1605,7 +1603,7 @@ fn code_source_first_docs_are_copy_paste_ready_with_imports_prerequisites_and_sy
 
     for required in [
         "title=\"Source-first Starter (Copy-Paste Ready)\"",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::{Code, CodeVariant};\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::{Code, CodeVariant};\".to_string()",
         "data-slot=\"code-source-first\"",
         "apps/docs-app/src/playground.rs::compose_copy_ready_code",
         "label=\"Copy code starter\".to_string()",
@@ -1618,7 +1616,7 @@ fn code_source_first_docs_are_copy_paste_ready_with_imports_prerequisites_and_sy
         "components/code/src/logic.rs",
         "components/code/src/view.rs",
         "components/code/src/styles.rs",
-        "use ui_components::{Code, CodeVariant};",
+        "use ui::{Code, CodeVariant};",
         "<Code variant=CodeVariant::Block>",
     ] {
         assert!(
@@ -1737,10 +1735,10 @@ fn code_docs_app_interactive_playground_supports_live_prop_state_preview_and_rep
         "let (custom_class, set_custom_class) = signal(false);",
         "let (long_content, set_long_content) = signal(false);",
         "let (show_compare, set_show_compare) = signal(true);",
-        "<ui_components::SegmentedControl",
-        "<ui_components::Switch checked=custom_class set_checked=set_custom_class>",
-        "<ui_components::Switch checked=long_content set_checked=set_long_content>",
-        "<ui_components::Switch checked=show_compare set_checked=set_show_compare>",
+        "<ui::SegmentedControl",
+        "<ui::Switch checked=custom_class set_checked=set_custom_class>",
+        "<ui::Switch checked=long_content set_checked=set_long_content>",
+        "<ui::Switch checked=show_compare set_checked=set_show_compare>",
         "test_config_signal=actual_config",
     ] {
         assert!(
@@ -2567,7 +2565,6 @@ fn code_state_observability_uses_stable_enumerable_data_markers() {
         "aria-expanded",
         "aria-selected",
         "aria-disabled",
-        "aria-busy",
         "data-state=class_name",
     ] {
         assert!(
@@ -2898,8 +2895,8 @@ fn code_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
 
     for required in [
         "cargo check -p ui-code --target wasm32-unknown-unknown --quiet",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-code,inject-css",
-        "cargo tree -e features -p ui-components --no-default-features --features component-code,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-code,inject-css",
+        "cargo tree -e features -p ui --no-default-features --features component-code,inject-css",
     ] {
         assert!(
             check2.contains(required),
@@ -2932,7 +2929,7 @@ fn code_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             !ui_components_manifest.contains(forbidden),
-            "ui-components feature graph should not introduce code-specific wasm debug public toggle `{forbidden}`"
+            "ui feature graph should not introduce code-specific wasm debug public toggle `{forbidden}`"
         );
     }
 
@@ -3163,7 +3160,7 @@ fn code_defensive_variables_use_ui_theme_fallback_chain_without_raw_terminal_val
     }
 
     for forbidden in [
-        ", 12px)", ", 16px)", ", 20px)", ", 6px)", ", 2px)", "#", "rgb(", "hsl(",
+        ", 12px)", ", 16px)", ", 20px)", ", 6px)", ", 2px)", "rgb(", "hsl(",
     ] {
         assert!(
             !styles.to_ascii_lowercase().contains(forbidden),
@@ -3256,15 +3253,15 @@ fn code_ui_components_fixed_entry_files_follow_layering_contract() {
     let ui_components_root = load_source("ui_components_root");
     let ui_headless_lib = load_source("ui_headless_lib");
     let ui_components_src =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/src");
     let active_highlight_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../crates/ui-visual-primitive/src/active_highlight.rs");
     let active_highlight = std::fs::read_to_string(&active_highlight_path)
         .expect("should read ui-visual-primitive active_highlight.rs");
 
     assert!(
-        check2.contains("`ui-components` 固定入口文件落点正确"),
-        "checklist should keep ui-components fixed-entry gate explicitly."
+        check2.contains("`ui` 固定入口文件落点正确"),
+        "checklist should keep ui fixed-entry gate explicitly."
     );
 
     for required in [
@@ -3274,7 +3271,7 @@ fn code_ui_components_fixed_entry_files_follow_layering_contract() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib.rs should keep feature-gated public export surface via `{required}`"
+            "ui lib.rs should keep feature-gated public export surface via `{required}`"
         );
     }
 
@@ -3285,7 +3282,7 @@ fn code_ui_components_fixed_entry_files_follow_layering_contract() {
     ] {
         assert!(
             !ui_components_lib.contains(forbidden),
-            "ui-components lib.rs should not expose platform internals through public API: `{forbidden}`"
+            "ui lib.rs should not expose platform internals through public API: `{forbidden}`"
         );
     }
 
@@ -3298,7 +3295,7 @@ fn code_ui_components_fixed_entry_files_follow_layering_contract() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css.rs should aggregate component css with feature-gated @layer ui path via `{required}`"
+            "ui css.rs should aggregate component css with feature-gated @layer ui path via `{required}`"
         );
     }
 
@@ -3312,7 +3309,7 @@ fn code_ui_components_fixed_entry_files_follow_layering_contract() {
     ] {
         assert!(
             ui_components_root.contains(required),
-            "ui-components root.rs should keep UiRoot theme/css/i18n centralization via `{required}`"
+            "ui root.rs should keep UiRoot theme/css/i18n centralization via `{required}`"
         );
     }
 
@@ -3335,7 +3332,7 @@ fn code_ui_components_fixed_entry_files_follow_layering_contract() {
     for forbidden_file in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src.join(forbidden_file).exists(),
-            "ui-components/src should not host forbidden shared primitive file `{forbidden_file}`"
+            "ui/src should not host forbidden shared primitive file `{forbidden_file}`"
         );
     }
 

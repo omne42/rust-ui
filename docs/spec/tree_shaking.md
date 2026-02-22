@@ -8,8 +8,8 @@
 
 范围：
 
-- `ui-components` 的组件级 feature 切分
-- `ui-components` 的 CSS 条件注入
+- `ui` 的组件级 feature 切分
+- `ui` 的 CSS 条件注入
 - package 分发模式下的可裁剪交付
 - source 分发模式下的天然裁剪路径
 
@@ -32,7 +32,7 @@
 - release 构建下由 rustc/linker 自动移除不可达路径。
 
 2. 依赖配置层（Cargo features）：
-- `ui-components` 提供组件级 feature，用户按需启用。
+- `ui` 提供组件级 feature，用户按需启用。
 
 3. 分发层（Hybrid + source-first）：
 - package 模式通过 feature 精确裁剪。
@@ -40,7 +40,7 @@
 
 ## 3.2 package 模式（默认可裁剪路径）
 
-`ui-components` 必须支持以下能力：
+`ui` 必须支持以下能力：
 
 - `default-features = false` 时，不自动包含全部组件。
 - 支持显式组合特性：`features = ["component-button", "component-input"]`。
@@ -58,7 +58,7 @@
 
 约束：
 
-- `ui-components/src/css.rs` 的聚合逻辑必须按组件 feature 条件拼接。
+- `ui/src/css.rs` 的聚合逻辑必须按组件 feature 条件拼接。
 - 禁止“无条件引用全部组件 CSS 常量”的实现。
 - `inject-css` 只控制“是否注入”，不应等价于“永远注入全量组件 CSS”。
 
@@ -78,7 +78,7 @@
 
 ```toml
 [dependencies]
-ui-components = { path = "../../crates/ui-components", default-features = false, features = ["component-button", "component-input", "inject-css"] }
+ui = { path = "../../crates/ui", default-features = false, features = ["component-button", "component-input", "inject-css"] }
 ```
 
 ## 4.2 Source 用户（shadcn-like）

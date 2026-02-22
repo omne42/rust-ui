@@ -20,7 +20,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::NumberField;
+use ui::NumberField;
 
 let (value, set_value) = signal(1_i64);
 
@@ -54,7 +54,7 @@ view! {
 ## Source-first
 
 - 组件源码：`components/text-input/src/number_field/{mod,logic,i18n,view,styles}.rs`
-- 依赖组件：`crates/ui-components/src/button/`
+- 依赖组件：`crates/ui/src/button/`
 - package feature：`component-number_field`（依赖 `component-button`，可选叠加 `inject-css`）
 
 ## Docs Playground

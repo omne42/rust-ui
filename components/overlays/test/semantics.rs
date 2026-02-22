@@ -171,9 +171,9 @@ fn overlays_checklist_marks_ui_components_boundary_complete() {
     let check2 = load_source("check2");
     assert!(
         check2.contains(
-            "- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。"
+            "- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。"
         ),
-        "check2.md should mark ui-components definition as completed."
+        "check2.md should mark ui definition as completed."
     );
     assert!(
         check2.contains("components/overlays/test/semantics.rs"),
@@ -468,7 +468,7 @@ fn overlays_checklist_marks_component_directory_standard_file_layout_complete() 
             && check2.contains(
                 "overlays_component_directory_standard_files_follow_contract_and_na_spec"
             )
-            && check2.contains("`scripts/check-ui-components-component-files.sh`")
+            && check2.contains("`scripts/check-ui-component-files.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_component_directory_standard_files_follow_contract_and_na_spec`"
             ),
@@ -494,7 +494,7 @@ fn overlays_checklist_marks_file_placement_discipline_complete() {
             && check2.contains(
                 "overlays_file_placement_discipline_is_strict_for_component_scope"
             )
-            && check2.contains("`scripts/check-ui-components-component-files.sh`")
+            && check2.contains("`scripts/check-ui-component-files.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_file_placement_discipline_is_strict_for_component_scope`"
             ),
@@ -516,7 +516,7 @@ fn overlays_checklist_marks_hyper_structure_builder_spec_complete() {
             && check2.contains(
                 "overlays_hyper_structure_builder_spec_is_not_applicable_for_simple_component"
             )
-            && check2.contains("`scripts/check-ui-components-component-files.sh`")
+            && check2.contains("`scripts/check-ui-component-files.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_hyper_structure_builder_spec_is_not_applicable_for_simple_component`"
             ),
@@ -539,7 +539,7 @@ fn overlays_checklist_marks_context_compression_manifest_rbi_complete() {
             && check2.contains(
                 "overlays_context_compression_manifest_and_rbi_projection_are_present_and_current"
             )
-            && check2.contains("`scripts/check-ui-components-component-files.sh`")
+            && check2.contains("`scripts/check-ui-component-files.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_context_compression_manifest_and_rbi_projection_are_present_and_current`"
             ),
@@ -566,7 +566,7 @@ fn overlays_checklist_marks_agent_contract_schema_governance_complete() {
             && check2.contains(
                 "overlays_agent_contract_is_schema_typed_and_machine_readable"
             )
-            && check2.contains("`scripts/check-ui-components-contract-hygiene.sh`")
+            && check2.contains("`scripts/check-ui-contract-hygiene.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_agent_contract_is_schema_typed_and_machine_readable`"
             ),
@@ -590,7 +590,7 @@ fn overlays_checklist_marks_streaming_definition_complete() {
             && check2.contains(
                 "overlays_streaming_definition_is_llm_output_only_with_two_modes"
             )
-            && check2.contains("`scripts/check-ui-components-streaming.sh`")
+            && check2.contains("`scripts/check-ui-streaming.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_streaming_definition_is_llm_output_only_with_two_modes`"
             ),
@@ -614,7 +614,7 @@ fn overlays_checklist_marks_snapshot_baseline_capability_complete() {
             && check2.contains(
                 "overlays_snapshot_baseline_consumes_complete_result_and_renders_stably"
             )
-            && check2.contains("`scripts/check-ui-components-streaming.sh`")
+            && check2.contains("`scripts/check-ui-streaming.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_snapshot_baseline_consumes_complete_result_and_renders_stably`"
             ),
@@ -640,7 +640,7 @@ fn overlays_checklist_marks_streaming_required_optional_classification_complete(
             && check2.contains(
                 "overlays_streaming_required_optional_classification_rules_are_scope_driven_and_boundary_safe"
             )
-            && check2.contains("`scripts/check-ui-components-streaming.sh`")
+            && check2.contains("`scripts/check-ui-streaming.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_streaming_required_optional_classification_rules_are_scope_driven_and_boundary_safe`"
             ),
@@ -669,7 +669,7 @@ fn overlays_checklist_marks_rust_hygiene_complete() {
                 "overlays_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent"
             )
             && check2.contains("overlays_rust_hygiene_script_enforces_repo_level_hygiene_guards")
-            && check2.contains("`scripts/check-ui-components-engineering.sh`")
+            && check2.contains("`scripts/check-ui-engineering.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`"
             ),
@@ -700,7 +700,7 @@ fn overlays_checklist_marks_token_first_static_style_contract_complete() {
         "check2.md should mark token-first static style contract checklist item as completed."
     );
     assert!(
-        check2.contains("`crates/ui-components/src/css.rs` 按 feature gate 聚合")
+        check2.contains("`crates/ui/src/css.rs` 按 feature gate 聚合")
             && check2.contains("`crate::css::push_components_css` 注入")
             && check2.contains("`var(--ui-*)` token-first")
             && check2.contains("`style=panel_vars`")
@@ -743,11 +743,11 @@ fn overlays_checklist_marks_tree_shaking_first_class_complete() {
     );
     assert!(
         check2.contains("`component-overlays`")
-            && check2.contains("`crates/ui-components/src/lib.rs`")
-            && check2.contains("`crates/ui-components/src/css.rs`")
+            && check2.contains("`crates/ui/src/lib.rs`")
+            && check2.contains("`crates/ui/src/css.rs`")
             && check2.contains("component-overlays,inject-css")
             && check2.contains("web-demo-components")
-            && check2.contains("`scripts/check-ui-components-tree-shaking.sh`")
+            && check2.contains("`scripts/check-ui-tree-shaking.sh`")
             && check2.contains("`scripts/tree_shaking_budget.env`")
             && check2.contains("Invalid cross-device link (os error 18)")
             && check2
@@ -760,15 +760,15 @@ fn overlays_checklist_marks_tree_shaking_first_class_complete() {
 fn overlays_checklist_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2 = load_source("check2");
     assert!(
-        check2.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
+        check2.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
         "check2.md should mark tree-shaking feature-pruning checklist item as completed."
     );
     assert!(
         check2.contains("`component-overlays`")
-            && check2.contains("`crates/ui-components/Cargo.toml`")
-            && check2.contains("`crates/ui-components/src/lib.rs`")
-            && check2.contains("`crates/ui-components/src/css.rs`")
-            && check2.contains("`scripts/check-ui-components-tree-shaking.sh`")
+            && check2.contains("`crates/ui/Cargo.toml`")
+            && check2.contains("`crates/ui/src/lib.rs`")
+            && check2.contains("`crates/ui/src/css.rs`")
+            && check2.contains("`scripts/check-ui-tree-shaking.sh`")
             && check2.contains("component-overlays,inject-css")
             && check2.contains("Invalid cross-device link (os error 18)")
             && check2.contains(
@@ -794,7 +794,7 @@ fn overlays_checklist_marks_semantics_and_performance_regression_contract_comple
             && check2
                 .contains("overlays_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement")
             && check2.contains("`render_count` 自动化回归仍在仓库统一 follow-up")
-            && check2.contains("`scripts/check-ui-components-performance.sh`")
+            && check2.contains("`scripts/check-ui-performance.sh`")
             && check2.contains("Invalid cross-device link (os error 18)"),
         "check2.md should include semantic/performance regression evidence and regression test references."
     );
@@ -818,7 +818,7 @@ fn overlays_checklist_marks_semantic_test_priority_contract_complete() {
             "overlays_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks"
         ) && check2.contains(
             "overlays_performance_script_covers_semantic_test_priority_contract"
-        ) && check2.contains("`scripts/check-ui-components-performance.sh`")
+        ) && check2.contains("`scripts/check-ui-performance.sh`")
             && check2.contains("`TMPDIR=/tmp CARGO_TARGET_DIR=/tmp/codex-overlays-sem-priority")
             && check2.contains("Invalid cross-device link (os error 18)"),
         "check2.md should include semantic-test-priority evidence and regression gate references."
@@ -838,7 +838,7 @@ fn overlays_checklist_marks_version_deprecation_migration_contract_complete() {
             && check2.contains("`schema_version = \"1\"`")
             && check2.contains("`components/overlays/src/overlays.rbi`")
             && check2.contains("`migrate_v1_to_v2`")
-            && check2.contains("`scripts/check-ui-components-engineering.sh`")
+            && check2.contains("`scripts/check-ui-engineering.sh`")
             && check2.contains(
                 "overlays_version_deprecation_migration_is_na_without_major_breaking_upgrade"
             )
@@ -874,7 +874,7 @@ fn overlays_checklist_marks_docs_product_copy_paste_ready_complete() {
             && check2.contains(
                 "overlays_dx_check_script_covers_docs_product_copy_paste_ready_contract"
             )
-            && check2.contains("`scripts/check-ui-components-dx.sh`")
+            && check2.contains("`scripts/check-ui-dx.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`"
             )
@@ -956,7 +956,7 @@ fn overlays_checklist_marks_hydration_discontinuity_contract_complete() {
             && check2.contains("`now()/UUID/rand`")
             && check2.contains("`normalize_id_base + 固定后缀`")
             && check2.contains("`UiRoot(id_seed) -> provide_ui_id_provider(id_seed)`")
-            && check2.contains("`crates/ui-components/src/root.rs`")
+            && check2.contains("`crates/ui/src/root.rs`")
             && check2.contains("`crates/ui-headless/src/id_provider.rs`")
             && check2.contains(
                 "overlays_hydration_discontinuity_contract_avoids_entropy_and_keeps_seeded_id_provider_path"
@@ -1073,7 +1073,7 @@ fn overlays_checklist_marks_performance_governance_contract_complete() {
             && check2.contains("`apps/docs-app/src/perf_probe.rs::UiPerfProbe`")
             && check2.contains("`data-perf-violation != true`")
             && check2.contains("`data-state/data-open/data-closed/data-*-source/data-motion-source`")
-            && check2.contains("`scripts/check-ui-components-performance.sh`")
+            && check2.contains("`scripts/check-ui-performance.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_performance_governance_contract_is_budgeted_traceable_and_blocking`"
             )
@@ -1169,7 +1169,7 @@ fn overlays_checklist_marks_inner_html_constraint_complete() {
             && check2.contains(
                 "overlays_inner_html_usage_is_forbidden_and_docs_shell_path_is_whitelisted"
             )
-            && check2.contains("`scripts/check-ui-components-inner-html.sh`")
+            && check2.contains("`scripts/check-ui-inner-html.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_inner_html_usage_is_forbidden_and_docs_shell_path_is_whitelisted`"
             ),
@@ -1196,7 +1196,7 @@ fn overlays_checklist_marks_wasm_debug_contract_complete() {
             && check2.contains(
                 "overlays_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_isolated"
             )
-            && check2.contains("`scripts/check-ui-components-wasm-debug.sh`")
+            && check2.contains("`scripts/check-ui-wasm-debug.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_isolated`"
             ),
@@ -1224,7 +1224,7 @@ fn overlays_checklist_marks_dx_requirement_complete() {
             && check2.contains(
                 "overlays_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_workbench"
             )
-            && check2.contains("`scripts/check-ui-components-dx.sh`")
+            && check2.contains("`scripts/check-ui-dx.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_workbench`"
             ),
@@ -1243,13 +1243,13 @@ fn overlays_checklist_marks_engineering_contract_complete() {
         check2.contains("`components/{overlays,overlay,popover,modal,sheet,tray}/src/protocol.rs`")
             && check2.contains("`#[serde(default)]`")
             && check2.contains("`button-wasm-debug`")
-            && check2.contains("`target: \"ui_components::button::state_change\"`")
+            && check2.contains("`target: \"ui::button::state_change\"`")
             && check2.contains("不新增 overlays 家族私有 tracing/wasm-debug feature 别名")
             && check2.contains("`tokio/async-std/smol/runtime::Handle/spawn_blocking`")
             && check2.contains(
                 "overlays_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries"
             )
-            && check2.contains("`scripts/check-ui-components-engineering.sh`")
+            && check2.contains("`scripts/check-ui-engineering.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`"
             ),
@@ -1274,7 +1274,7 @@ fn overlays_checklist_marks_defensive_variables_contract_complete() {
             && check2.contains(
                 "overlays_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals"
             )
-            && check2.contains("`scripts/check-ui-components-contract-hygiene.sh`")
+            && check2.contains("`scripts/check-ui-contract-hygiene.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals`"
             ),
@@ -1290,7 +1290,7 @@ fn overlays_checklist_marks_cascade_layer_contract_complete() {
         "check2.md should mark cascade-layer checklist item as completed."
     );
     assert!(
-        check2.contains("`crates/ui-components/src/css.rs::push_components_css`")
+        check2.contains("`crates/ui/src/css.rs::push_components_css`")
             && check2.contains("`out.push_str(\"\\\\n@layer ui {\\\\n\")`")
             && check2.contains("`#[cfg(feature = \"component-overlay|overlays|popover|modal|sheet|tray\")]`")
             && check2.contains("`style=panel_vars`")
@@ -1298,7 +1298,7 @@ fn overlays_checklist_marks_cascade_layer_contract_complete() {
             && check2.contains(
                 "overlays_cascade_layer_and_runtime_style_contract_is_enforced"
             )
-            && check2.contains("`scripts/check-ui-components-contract-hygiene.sh`")
+            && check2.contains("`scripts/check-ui-contract-hygiene.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_cascade_layer_and_runtime_style_contract_is_enforced`"
             ),
@@ -1323,7 +1323,7 @@ fn overlays_checklist_marks_motion_contractualization_complete() {
             && check2.contains(
                 "overlays_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe"
             )
-            && check2.contains("`scripts/check-ui-components-platforms.sh`")
+            && check2.contains("`scripts/check-ui-platforms.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`"
             ),
@@ -1335,23 +1335,23 @@ fn overlays_checklist_marks_motion_contractualization_complete() {
 fn overlays_checklist_marks_ui_components_fixed_entrypoint_files_complete() {
     let check2 = load_source("check2");
     assert!(
-        check2.contains("- [x] `ui-components` 固定入口文件落点正确。"),
-        "check2.md should mark ui-components fixed-entrypoint checklist item as completed."
+        check2.contains("- [x] `ui` 固定入口文件落点正确。"),
+        "check2.md should mark ui fixed-entrypoint checklist item as completed."
     );
     assert!(
-        check2.contains("`crates/ui-components/src/lib.rs`")
-            && check2.contains("`crates/ui-components/src/css.rs::push_components_css`")
-            && check2.contains("`crates/ui-components/src/root.rs::UiRoot`")
+        check2.contains("`crates/ui/src/lib.rs`")
+            && check2.contains("`crates/ui/src/css.rs::push_components_css`")
+            && check2.contains("`crates/ui/src/root.rs::UiRoot`")
             && check2.contains("`provide_ui_i18n(i18n)`")
             && check2.contains("`crates/ui-visual-primitive/src/active_highlight.rs`")
-            && check2.contains("`crates/ui-components/src/overlay_open.rs`")
-            && check2.contains("`crates/ui-components/src/presence.rs`")
-            && check2.contains("`crates/ui-components/src/a11y.rs`")
+            && check2.contains("`crates/ui/src/overlay_open.rs`")
+            && check2.contains("`crates/ui/src/presence.rs`")
+            && check2.contains("`crates/ui/src/a11y.rs`")
             && check2.contains("`crates/ui-headless/src/controllable_state.rs`")
             && check2.contains("`crates/ui-headless/src/presence.rs`")
             && check2.contains("`crates/ui-headless/src/a11y.rs`")
             && check2.contains("overlays_ui_components_fixed_entry_files_follow_layered_boundaries")
-            && check2.contains("`scripts/check-ui-components-entrypoints.sh`")
+            && check2.contains("`scripts/check-ui-entrypoints.sh`")
             && check2.contains(
                 "`cargo test -p ui-overlays overlays_ui_components_fixed_entry_files_follow_layered_boundaries`"
             ),

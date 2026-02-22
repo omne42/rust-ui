@@ -10,10 +10,10 @@ const CHECK2_SOURCE: &str = include_str!("../check2.md");
 const COMPONENT_MANIFEST_SOURCE: &str = include_str!("../src/Component.toml");
 const COMPONENT_RBI_SOURCE: &str = include_str!("../src/label.rbi");
 const COMPONENT_CARGO_SOURCE: &str = include_str!("../Cargo.toml");
-const UI_COMPONENTS_CARGO_SOURCE: &str = include_str!("../../../crates/ui-components/Cargo.toml");
-const UI_COMPONENTS_CSS_SOURCE: &str = include_str!("../../../crates/ui-components/src/css.rs");
-const UI_COMPONENTS_LIB_SOURCE: &str = include_str!("../../../crates/ui-components/src/lib.rs");
-const UI_COMPONENTS_ROOT_SOURCE: &str = include_str!("../../../crates/ui-components/src/root.rs");
+const UI_COMPONENTS_CARGO_SOURCE: &str = include_str!("../../../crates/ui/Cargo.toml");
+const UI_COMPONENTS_CSS_SOURCE: &str = include_str!("../../../crates/ui/src/css.rs");
+const UI_COMPONENTS_LIB_SOURCE: &str = include_str!("../../../crates/ui/src/lib.rs");
+const UI_COMPONENTS_ROOT_SOURCE: &str = include_str!("../../../crates/ui/src/root.rs");
 const UI_VISUAL_ACTIVE_HIGHLIGHT_SOURCE: &str =
     include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
 const UI_THEME_CSS_SOURCE: &str = include_str!("../../../crates/ui-theme/src/css.rs");
@@ -1156,19 +1156,19 @@ fn label_cascade_layer_contract_wraps_css_in_ui_layer_and_restricts_inline_style
     ] {
         assert!(
             UI_COMPONENTS_CSS_SOURCE.contains(needle),
-            "ui-components css aggregator should keep cascade-layer marker `{needle}`."
+            "ui css aggregator should keep cascade-layer marker `{needle}`."
         );
     }
 
     let layer_start = UI_COMPONENTS_CSS_SOURCE
         .find("out.push_str(\"\\n@layer ui {\\n\");")
-        .expect("ui-components css should open @layer ui.");
+        .expect("ui css should open @layer ui.");
     let label_css = UI_COMPONENTS_CSS_SOURCE
         .find("out.push_str(crate::label::styles::CSS);")
-        .expect("ui-components css should include label css push.");
+        .expect("ui css should include label css push.");
     let layer_end = UI_COMPONENTS_CSS_SOURCE
         .rfind("out.push_str(\"\\n}\\n\");")
-        .expect("ui-components css should close @layer ui.");
+        .expect("ui css should close @layer ui.");
     assert!(
         layer_start < label_css && label_css < layer_end,
         "label css injection must stay inside @layer ui wrapper."
@@ -1247,19 +1247,16 @@ fn label_tree_shaking_contract_is_feature_gated_in_ui_components() {
         .parent()
         .and_then(std::path::Path::parent)
         .expect("workspace root should be two levels above components/label");
-    let cargo_toml =
-        std::fs::read_to_string(workspace_root.join("crates/ui-components/Cargo.toml"))
-            .expect("should read crates/ui-components/Cargo.toml");
-    let lib_source =
-        std::fs::read_to_string(workspace_root.join("crates/ui-components/src/lib.rs"))
-            .expect("should read crates/ui-components/src/lib.rs");
-    let css_source =
-        std::fs::read_to_string(workspace_root.join("crates/ui-components/src/css.rs"))
-            .expect("should read crates/ui-components/src/css.rs");
+    let cargo_toml = std::fs::read_to_string(workspace_root.join("crates/ui/Cargo.toml"))
+        .expect("should read crates/ui/Cargo.toml");
+    let lib_source = std::fs::read_to_string(workspace_root.join("crates/ui/src/lib.rs"))
+        .expect("should read crates/ui/src/lib.rs");
+    let css_source = std::fs::read_to_string(workspace_root.join("crates/ui/src/css.rs"))
+        .expect("should read crates/ui/src/css.rs");
 
     assert!(
         cargo_toml.contains("component-label = []"),
-        "ui-components feature tree should register `component-label`."
+        "ui feature tree should register `component-label`."
     );
 
     for needle in [
@@ -1269,7 +1266,7 @@ fn label_tree_shaking_contract_is_feature_gated_in_ui_components() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib gate should keep `{needle}` for label source-mode tree shaking."
+            "ui lib gate should keep `{needle}` for label source-mode tree shaking."
         );
     }
 
@@ -1279,7 +1276,7 @@ fn label_tree_shaking_contract_is_feature_gated_in_ui_components() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css gate should keep `{needle}` for label style tree shaking."
+            "ui css gate should keep `{needle}` for label style tree shaking."
         );
     }
 
@@ -1290,18 +1287,18 @@ fn label_tree_shaking_contract_is_feature_gated_in_ui_components() {
     ] {
         assert!(
             !css_source.contains(forbidden) && !lib_source.contains(forbidden),
-            "ui-components should not introduce unconditional central registry token `{forbidden}`."
+            "ui should not introduce unconditional central registry token `{forbidden}`."
         );
     }
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "`component-label = []`",
         "`#[cfg(feature = \"component-label\")]`",
         "`#[path = \"../../../components/label/src/mod.rs\"]`",
         "`out.push_str(crate::label::styles::CSS);`",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-label,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo | rg all-components",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-label,inject-css",
+        "cargo tree -e features -i ui -p web-demo | rg all-components",
         "Invalid cross-device link (os error 18)",
         "components/label/test/semantics.rs::label_tree_shaking_contract_is_feature_gated_in_ui_components",
         "components/label/test/label_semantics.rs::label_tree_shaking_is_feature_gated_across_cargo_lib_and_css",
@@ -1447,9 +1444,8 @@ fn label_headless_web_ssr_feature_mutex_guard_remains_enforced() {
     let ui_headless_cargo =
         std::fs::read_to_string(workspace_root.join("crates/ui-headless/Cargo.toml"))
             .expect("should read crates/ui-headless/Cargo.toml");
-    let ui_components_cargo =
-        std::fs::read_to_string(workspace_root.join("crates/ui-components/Cargo.toml"))
-            .expect("should read crates/ui-components/Cargo.toml");
+    let ui_components_cargo = std::fs::read_to_string(workspace_root.join("crates/ui/Cargo.toml"))
+        .expect("should read crates/ui/Cargo.toml");
 
     for needle in [
         "#[cfg(all(feature = \"web\", feature = \"ssr\"))]",
@@ -1484,7 +1480,7 @@ fn label_headless_web_ssr_feature_mutex_guard_remains_enforced() {
     ] {
         assert!(
             !ui_components_cargo.contains(forbidden),
-            "ui-components should not override ui-headless mutex boundary via `{forbidden}`.",
+            "ui should not override ui-headless mutex boundary via `{forbidden}`.",
         );
     }
 }
@@ -2013,7 +2009,7 @@ fn label_wasm_debug_contract_is_na_but_traceable_and_feature_isolated() {
     }
     assert!(
         !UI_COMPONENTS_CARGO_SOURCE.contains("label-wasm-debug"),
-        "label should not expose dedicated wasm-debug feature in ui-components feature surface."
+        "label should not expose dedicated wasm-debug feature in ui feature surface."
     );
     for forbidden in ["wasm-debug", "debug", "replay"] {
         assert!(
@@ -2146,7 +2142,7 @@ fn label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_im
 
     for needle in [
         "let label_imports =",
-        "use leptos::prelude::*;\\nuse ui_components::{Label, LabelEmphasis};",
+        "use leptos::prelude::*;\\nuse ui::{Label, LabelEmphasis};",
         "title=\"Hello World\"",
         "title=\"Interactive Playground\"",
         "title=\"Controlled vs Uncontrolled (N/A for Label)\"",
@@ -2156,7 +2152,7 @@ fn label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_im
         "data-slot=\"label-source-first\"",
         "label=\"Copy starter\".to_string()",
         "copyable=true",
-        "use ui_components::{Label, LabelEmphasis};",
+        "use ui::{Label, LabelEmphasis};",
         "<code>\"apps/docs-app/src/playground.rs::compose_copy_ready_code\"</code>",
     ] {
         assert!(
@@ -2493,7 +2489,7 @@ fn label_engineering_contract_marks_spec_path_na_and_keeps_tracing_runtime_bound
             "tracing::span!(",
             "tracing::event!(",
             "#[tracing::instrument]",
-            "target: \"ui_components::label::",
+            "target: \"ui::label::",
             "tokio::",
             "async_std::",
             "async-std",
@@ -2510,7 +2506,7 @@ fn label_engineering_contract_marks_spec_path_na_and_keeps_tracing_runtime_bound
 
     assert!(
         UI_COMPONENTS_CARGO_SOURCE.contains("component-label = []"),
-        "ui-components feature tree should keep label as zero-extra-dependency feature."
+        "ui feature tree should keep label as zero-extra-dependency feature."
     );
     for forbidden in [
         "component-label = [\"dep:serde\"",
@@ -2658,8 +2654,8 @@ fn label_component_directory_contract_keeps_standard_file_layout_and_responsibil
 #[test]
 fn label_ui_components_entrypoint_contract_paths_are_stable_and_boundary_scoped() {
     assert!(
-        CHECK2_SOURCE.contains("- [x] `ui-components` 固定入口文件落点正确。"),
-        "label/check2.md should mark ui-components entrypoint checklist item completed."
+        CHECK2_SOURCE.contains("- [x] `ui` 固定入口文件落点正确。"),
+        "label/check2.md should mark ui entrypoint checklist item completed."
     );
 
     for needle in [
@@ -2672,7 +2668,7 @@ fn label_ui_components_entrypoint_contract_paths_are_stable_and_boundary_scoped(
     ] {
         assert!(
             UI_COMPONENTS_LIB_SOURCE.contains(needle),
-            "ui-components/lib.rs should keep entrypoint marker `{needle}`."
+            "ui/lib.rs should keep entrypoint marker `{needle}`."
         );
     }
     for forbidden in [
@@ -2683,7 +2679,7 @@ fn label_ui_components_entrypoint_contract_paths_are_stable_and_boundary_scoped(
     ] {
         assert!(
             !UI_COMPONENTS_LIB_SOURCE.contains(forbidden),
-            "ui-components/lib.rs public entry should not expose platform detail token `{forbidden}`."
+            "ui/lib.rs public entry should not expose platform detail token `{forbidden}`."
         );
     }
 
@@ -2696,7 +2692,7 @@ fn label_ui_components_entrypoint_contract_paths_are_stable_and_boundary_scoped(
     ] {
         assert!(
             UI_COMPONENTS_CSS_SOURCE.contains(needle),
-            "ui-components/css.rs should keep css aggregation marker `{needle}`."
+            "ui/css.rs should keep css aggregation marker `{needle}`."
         );
     }
 
@@ -2712,7 +2708,7 @@ fn label_ui_components_entrypoint_contract_paths_are_stable_and_boundary_scoped(
     ] {
         assert!(
             UI_COMPONENTS_ROOT_SOURCE.contains(needle),
-            "ui-components/root.rs should keep root-injection marker `{needle}`."
+            "ui/root.rs should keep root-injection marker `{needle}`."
         );
     }
 
@@ -2739,13 +2735,13 @@ fn label_ui_components_entrypoint_contract_paths_are_stable_and_boundary_scoped(
         .and_then(std::path::Path::parent)
         .expect("workspace root should be two levels above components/label");
     for absent in [
-        "crates/ui-components/src/overlay_open.rs",
-        "crates/ui-components/src/presence.rs",
-        "crates/ui-components/src/a11y.rs",
+        "crates/ui/src/overlay_open.rs",
+        "crates/ui/src/presence.rs",
+        "crates/ui/src/a11y.rs",
     ] {
         assert!(
             !workspace_root.join(absent).exists(),
-            "`{absent}` should not exist under ui-components entrypoints."
+            "`{absent}` should not exist under ui entrypoints."
         );
     }
 

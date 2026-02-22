@@ -991,12 +991,12 @@ fn text_field_css_is_aggregated_and_ui_root_injects_components_css() {
         lib_source.contains(
             "#[cfg(feature = \"component-text_field\")]\n#[path = \"text_input/text_field/mod.rs\"]\npub mod text_field;"
         ),
-        "ui-components lib should gate `text_field` module with `component-text_field` feature."
+        "ui lib should gate `text_field` module with `component-text_field` feature."
     );
 
     assert!(
         css_source.contains("out.push_str(crate::text_field::styles::CSS);"),
-        "ui-components css aggregator should include text_field styles."
+        "ui css aggregator should include text_field styles."
     );
 
     let text_field_css_push = css_source
@@ -1042,7 +1042,7 @@ fn text_field_ui_components_fixed_entry_files_follow_layer_contracts() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components fixed entry should include `{needle}` in lib.rs."
+            "ui fixed entry should include `{needle}` in lib.rs."
         );
     }
 
@@ -1060,7 +1060,7 @@ fn text_field_ui_components_fixed_entry_files_follow_layer_contracts() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components public entry should not leak internal/platform detail `{forbidden}`."
+            "ui public entry should not leak internal/platform detail `{forbidden}`."
         );
     }
 
@@ -1119,7 +1119,7 @@ fn text_field_ui_components_fixed_entry_files_follow_layer_contracts() {
     for forbidden_path in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !manifest_dir.join(forbidden_path).exists(),
-            "ui-components should not define forbidden entry file `{forbidden_path}`."
+            "ui should not define forbidden entry file `{forbidden_path}`."
         );
     }
 
@@ -1423,7 +1423,7 @@ fn text_field_wasm_debug_capability_reuses_global_trace_and_stays_feature_isolat
     for needle in ["macro_rules! wasm_debug_proxy"] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components should keep wasm debug capability isolated via `{needle}`."
+            "ui should keep wasm debug capability isolated via `{needle}`."
         );
     }
 
@@ -1433,7 +1433,7 @@ fn text_field_wasm_debug_capability_reuses_global_trace_and_stays_feature_isolat
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
+            "ui Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
         );
     }
 
@@ -1696,7 +1696,7 @@ fn text_field_docs_page_syncs_api_matrix_state_matrix_and_source_first_contracts
         "data-slot=\"text-field-api-matrix\"",
         "<h3>\"API Matrix\"</h3>",
         "data-slot=\"text-field-api-rows\"",
-        "ui_components::text_input::text_field::DEFAULT_LABEL",
+        "ui::text_input::text_field::DEFAULT_LABEL",
         "value + on_value_change + default_value",
         "data-slot=\"text-field-state-matrix\"",
         "<h3>\"State Matrix\"</h3>",
@@ -1708,7 +1708,7 @@ fn text_field_docs_page_syncs_api_matrix_state_matrix_and_source_first_contracts
         "<Snippet",
         "label=\"Copy starter\".to_string()",
         "copyable=true",
-        "text=\"use leptos::prelude::*;\\nuse ui_components::*;",
+        "text=\"use leptos::prelude::*;\\nuse ui::*;",
         "id=\\\"email\\\".into()",
         "label=\\\"Email\\\".into()",
         "data-slot=\"text-field-source-paths\"",
@@ -1956,7 +1956,7 @@ fn text_field_architecture_foundation_layers_are_checked_individually() {
         "- [x] `ui-headless` 定义：",
         "- [x] `ui-motion` 定义：",
         "- [x] `ui-theme` 定义：",
-        "- [x] `ui-components` 定义：",
+        "- [x] `ui` 定义：",
     ] {
         assert!(
             checklist_source.contains(needle),
@@ -2114,10 +2114,10 @@ fn text_field_gate_completion_records_full_responsible_chain_commands() {
 
     for needle in [
         "$HOME/.cargo/bin/rustfmt --edition 2024 --check",
-        "$HOME/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-text_field,inject-css --lib --test text_field_semantics -- -D warnings",
-        "$HOME/.cargo/bin/cargo test -p ui-components --test text_field_semantics --no-default-features --features component-text_field,inject-css",
-        "$HOME/.cargo/bin/cargo check -p ui-components --no-default-features --features component-text_field,inject-css",
-        "$HOME/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-text_field,inject-css",
+        "$HOME/.cargo/bin/cargo clippy -p ui --no-default-features --features component-text_field,inject-css --lib --test text_field_semantics -- -D warnings",
+        "$HOME/.cargo/bin/cargo test -p ui --test text_field_semantics --no-default-features --features component-text_field,inject-css",
+        "$HOME/.cargo/bin/cargo check -p ui --no-default-features --features component-text_field,inject-css",
+        "$HOME/.cargo/bin/cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-text_field,inject-css",
         "TMPDIR=/root/autodl-tmp/zjj/p/rust-ui/.codex-tmp CARGO_TARGET_DIR=target-codex-textfield-smoke bash ./scripts/smoke-csr.sh apps/docs-app \"body:not(:has(#boot))\"",
     ] {
         assert!(

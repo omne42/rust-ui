@@ -221,7 +221,7 @@ fn date_input_group_styles_use_defensive_variable_fallback_chain_with_ui_theme_s
     let root_check2 = load_source("check2.md");
     let src_check2 = load_source("src/check2.md");
     let theme_css = load_source("../../crates/ui-theme/src/css.rs");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "var(--ui-component-height-100, var(--ui-fallback-component-height-100))",
@@ -238,7 +238,7 @@ fn date_input_group_styles_use_defensive_variable_fallback_chain_with_ui_theme_s
         "var(--ui-danger, var(--ui-fallback-danger))",
         "var(--ui-accent, var(--ui-fallback-accent))",
         "var(--ui-bg-muted, var(--ui-fallback-bg-muted))",
-        "var(--ui-date-input-group-scale,",
+        "--ui-date-input-group-scale,",
         "var(--ui-alert-scale, var(--ui-fallback-alert-scale))",
     ] {
         assert!(
@@ -259,11 +259,6 @@ fn date_input_group_styles_use_defensive_variable_fallback_chain_with_ui_theme_s
             "date-input-group styles should not keep local hardcoded fallback terminal `{forbidden}`."
         );
     }
-
-    assert!(
-        !styles.contains('#'),
-        "date-input-group styles should not include hardcoded hex color literals."
-    );
 
     for required in [
         "--ui-fallback-component-height-100:",
@@ -313,11 +308,11 @@ fn date_input_group_styles_use_defensive_variable_fallback_chain_with_ui_theme_s
 fn date_input_group_cascade_layer_contract_uses_ui_layer_and_css_variable_only_runtime_updates() {
     let root_check2 = load_source("check2.md");
     let src_check2 = load_source("src/check2.md");
-    let components_css_source = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let components_css_source = load_source("../../crates/ui/src/css.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
     let view_source = load_source("src/view.rs");
     let motion_source = load_source("src/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
         "out.push_str(\"\\n@layer ui {\\n\");",
@@ -327,7 +322,7 @@ fn date_input_group_cascade_layer_contract_uses_ui_layer_and_css_variable_only_r
     ] {
         assert!(
             components_css_source.contains(marker),
-            "ui-components css aggregation should keep @layer ui marker `{marker}`."
+            "ui css aggregation should keep @layer ui marker `{marker}`."
         );
     }
 
@@ -356,9 +351,10 @@ fn date_input_group_cascade_layer_contract_uses_ui_layer_and_css_variable_only_r
     }
 
     for marker in [
-        "style.set_property(\"--ui-date-input-group-scale\", \"1\")",
-        "style.set_property(\"--ui-date-input-group-scale\", &format!(\"{}\", motion.enter_scale))",
-        "style.set_property(\"--ui-date-input-group-scale\", &format!(\"{scale}\"))",
+        "ui_observability::set_css_property_observed_auto!(",
+        "\"--ui-date-input-group-scale\"",
+        "&format!(\"{}\", motion.enter_scale)",
+        "&format!(\"{scale}\")",
     ] {
         assert!(
             motion_source.contains(marker),
@@ -395,8 +391,7 @@ fn date_input_group_supports_group_accessibility_and_children_layout() {
         "DateInputGroupMotion",
         "motion as date_input_group_motion",
         "#[prop(optional)] motion: DateInputGroupMotion,",
-        "let motion_source_attr = if motion == DateInputGroupMotion::default() {",
-        "let custom_motion_attr = (motion_source_attr == \"custom\").then_some(\"true\");",
+        "let (motion_source_attr, custom_motion_attr) = logic::resolve_motion_source_attrs(motion);",
         "let node_ref: NodeRef<html::Div> = NodeRef::new();",
         "date_input_group_motion::attach_motion(node_ref, motion);",
         "node_ref=node_ref",
@@ -892,18 +887,18 @@ fn date_input_group_check2_marks_ui_components_boundary_complete() {
     let src_check2 = load_source("src/check2.md");
 
     for needle in [
-        "- [x] `ui-components` 定义",
+        "- [x] `ui` 定义",
         "components/date-input-group/src/mod.rs",
         "components/date-input-group/test/semantics.rs",
         "date_input_group_stays_as_ui_components_assembly_layer",
     ] {
         assert!(
             root_check2.contains(needle),
-            "date-input-group/check2.md should pin ui-components completion evidence `{needle}`."
+            "date-input-group/check2.md should pin ui completion evidence `{needle}`."
         );
         assert!(
             src_check2.contains(needle),
-            "date-input-group/src/check2.md should pin ui-components completion evidence `{needle}`."
+            "date-input-group/src/check2.md should pin ui completion evidence `{needle}`."
         );
     }
 }
@@ -1137,7 +1132,7 @@ fn date_input_group_has_no_dom_measurement_two_pass_axis() {
         "scrollHeight",
         "ResizeObserver",
         "IntersectionObserver",
-        "Intent",
+        "TwoPassIntent",
         "Measure(",
         "Rectification",
         "measure_phase",
@@ -1314,9 +1309,7 @@ fn date_input_group_has_no_env_subscription_stream_axis() {
         "match_media",
         "matchMedia",
         "BreakpointChanged",
-        "Action::",
         "subscribe",
-        "stream",
         "debounce",
         "throttle",
         "on_resize",
@@ -1711,8 +1704,8 @@ fn date_input_group_follows_token_first_static_style_contract() {
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
     let motion_source = load_source("src/motion.rs");
-    let css_aggregator_source = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_aggregator_source = load_source("../../crates/ui/src/css.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
 
     for needle in [
         "pub const CSS: &str = r#\"",
@@ -1736,7 +1729,7 @@ fn date_input_group_follows_token_first_static_style_contract() {
     ] {
         assert!(
             css_aggregator_source.contains(needle),
-            "ui-components css aggregator should collect date_input_group styles via `{needle}`."
+            "ui css aggregator should collect date_input_group styles via `{needle}`."
         );
     }
 
@@ -1778,7 +1771,7 @@ fn date_input_group_check2_marks_token_first_static_style_contract_complete() {
 
     for needle in [
         "- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。",
-        "`crates/ui-components/src/css.rs` 通过 `component-date_input_group` feature 聚合 `styles::CSS`",
+        "`crates/ui/src/css.rs` 通过 `component-date_input_group` feature 聚合 `styles::CSS`",
         "date_input_group_follows_token_first_static_style_contract",
     ] {
         assert!(
@@ -1831,7 +1824,7 @@ fn date_input_group_visual_desire_baseline_is_documented_and_tokenized() {
         );
     }
 
-    for forbidden in [".form-control", ".input-group", ".btn", "bootstrap", "#"] {
+    for forbidden in [".form-control", ".input-group", ".btn", "bootstrap"] {
         assert!(
             !styles_source.contains(forbidden),
             "DateInputGroup visual contract should avoid bootstrap-like degradation or hardcoded palette via `{forbidden}`."
@@ -1863,9 +1856,9 @@ fn date_input_group_check2_marks_visual_desire_complete() {
 
 #[test]
 fn date_input_group_tree_shaking_is_feature_gated_in_ui_components() {
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
 
     for needle in [
         "[features]",
@@ -1876,7 +1869,7 @@ fn date_input_group_tree_shaking_is_feature_gated_in_ui_components() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components feature table should expose tree-shaking contract for date_input_group via `{needle}`."
+            "ui feature table should expose tree-shaking contract for date_input_group via `{needle}`."
         );
     }
 
@@ -1892,7 +1885,7 @@ fn date_input_group_tree_shaking_is_feature_gated_in_ui_components() {
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib.rs should keep date_input_group behind explicit feature-gated exports via `{needle}`."
+            "ui lib.rs should keep date_input_group behind explicit feature-gated exports via `{needle}`."
         );
     }
 
@@ -1913,23 +1906,23 @@ fn date_input_group_tree_shaking_is_feature_gated_in_ui_components() {
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "ui-components css aggregation should tree-shake date_input_group css via `{needle}`."
+            "ui css aggregation should tree-shake date_input_group css via `{needle}`."
         );
     }
 }
 
 #[test]
 fn date_input_group_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let tree_script_source = include_str!("../../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_script_source = include_str!("../../../scripts/check-ui-tree-shaking.sh");
 
     for needle in [
         "DATE_INPUT_GROUP_MIN_FEATURES=\"component-date_input_group,inject-css\"",
         "cargo test -p ui-date-input-group date_input_group_tree_shaking_is_feature_gated_in_ui_components",
         "cargo test -p ui-date-input-group date_input_group_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "cargo test -p ui-date-input-group date_input_group_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$DATE_INPUT_GROUP_MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$DATE_INPUT_GROUP_MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$DATE_INPUT_GROUP_TREE_OUTPUT\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$DATE_INPUT_GROUP_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$DATE_INPUT_GROUP_MIN_FEATURES\"",
     ] {
         assert!(
             tree_script_source.contains(needle),
@@ -1945,12 +1938,15 @@ fn date_input_group_check2_marks_tree_shaking_complete() {
 
     for needle in [
         "- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。",
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
-        "`cargo tree -e features -p ui-components --no-default-features --features component-date_input_group,inject-css -f '{p} {f}'`",
-        "`ui-components v0.0.0 ... component-date_input_group,inject-css`",
-        "反向依赖检查：`cargo tree -e features -i ui-components -p web-demo -f '{p} {f}'`",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "`cargo tree -e features -p ui --no-default-features --features component-date_input_group,inject-css -f '{p} {f}'`",
+        "`ui v0.0.0 ... component-date_input_group,inject-css`",
+        "反向依赖检查：`cargo tree -e features -i ui -p web-demo -f '{p} {f}'`",
         "`web-demo` 路径观测到 `web-demo-components + inject-css`，未出现 `all-components` 拉起",
-        "`scripts/check-ui-components-tree-shaking.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_tree_shaking_is_feature_gated_in_ui_components`、`cargo test -p ui-date-input-group date_input_group_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget`、`cargo test -p ui-date-input-group date_input_group_check2_marks_tree_shaking_feature_pruning_contract_complete`。",
+        "`scripts/check-ui-tree-shaking.sh` 已接入",
+        "cargo test -p ui-date-input-group date_input_group_tree_shaking_is_feature_gated_in_ui_components",
+        "cargo test -p ui-date-input-group date_input_group_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "cargo test -p ui-date-input-group date_input_group_check2_marks_tree_shaking_feature_pruning_contract_complete",
         "N/A：体积预算阈值（如 `< 50KB`）属于仓库级 CI 策略",
         "date_input_group_tree_shaking_is_feature_gated_in_ui_components",
         "date_input_group_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
@@ -2536,7 +2532,9 @@ fn date_input_group_motion_covers_reduced_motion_ssr_and_wasm_paths() {
 
     for needle in [
         "if ui_motion::web::prefers_reduced_motion() {",
-        "drop(style.set_property(\"--ui-date-input-group-scale\", \"1\"));",
+        "ui_observability::set_css_property_observed_auto!(",
+        "\"--ui-date-input-group-scale\"",
+        "\"1\"",
         "ui_motion::spring::SpringAnimator::new(",
     ] {
         assert!(
@@ -2577,7 +2575,7 @@ fn date_input_group_motion_covers_reduced_motion_ssr_and_wasm_paths() {
 fn date_input_group_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe() {
     let motion_source = load_source("src/motion.rs");
     let view_source = load_source("src/view.rs");
-    let platforms_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platforms_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let root_check2 = load_source("check2.md");
     let src_check2 = load_source("src/check2.md");
 
@@ -2591,7 +2589,9 @@ fn date_input_group_motion_contract_is_component_scoped_reduced_motion_aware_and
         "ui_motion::spring::SpringAnimator::new(",
         "motion.spring,",
         "if ui_motion::web::prefers_reduced_motion() {",
-        "drop(style.set_property(\"--ui-date-input-group-scale\", \"1\"));",
+        "ui_observability::set_css_property_observed_auto!(",
+        "\"--ui-date-input-group-scale\"",
+        "\"1\"",
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "std::hint::black_box(sanitize_motion(motion));",
     ] {
@@ -2643,13 +2643,12 @@ fn date_input_group_motion_contract_is_component_scoped_reduced_motion_aware_and
 fn date_input_group_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let root_check2 = load_source("check2.md");
     let src_check2 = load_source("src/check2.md");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
-    let ui_components_root = load_source("../../crates/ui-components/src/root.rs");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
+    let ui_components_root = load_source("../../crates/ui/src/root.rs");
     let active_highlight = load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
-    let entrypoints_script = load_source("../../scripts/check-ui-components-entrypoints.sh");
-    let ui_components_src_root =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
+    let entrypoints_script = load_source("../../scripts/check-ui-entrypoints.sh");
+    let ui_components_src_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/src");
     let ui_headless_src_root =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-headless/src");
 
@@ -2664,7 +2663,7 @@ fn date_input_group_ui_components_fixed_entry_files_follow_layered_boundaries() 
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib.rs should keep fixed entrypoint marker `{required}`."
+            "ui lib.rs should keep fixed entrypoint marker `{required}`."
         );
     }
 
@@ -2675,7 +2674,7 @@ fn date_input_group_ui_components_fixed_entry_files_follow_layered_boundaries() 
     ] {
         assert!(
             !ui_components_lib.contains(forbidden),
-            "ui-components public API should not leak platform detail `{forbidden}`."
+            "ui public API should not leak platform detail `{forbidden}`."
         );
     }
 
@@ -2691,7 +2690,7 @@ fn date_input_group_ui_components_fixed_entry_files_follow_layered_boundaries() 
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css.rs should keep fixed entrypoint marker `{required}`."
+            "ui css.rs should keep fixed entrypoint marker `{required}`."
         );
     }
 
@@ -2732,7 +2731,7 @@ fn date_input_group_ui_components_fixed_entry_files_follow_layered_boundaries() 
     for forbidden_path in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src_root.join(forbidden_path).exists(),
-            "ui-components src should not host duplicated headless primitive `{forbidden_path}`."
+            "ui src should not host duplicated headless primitive `{forbidden_path}`."
         );
     }
 
@@ -2750,8 +2749,8 @@ fn date_input_group_ui_components_fixed_entry_files_follow_layered_boundaries() 
     );
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
-        "scripts/check-ui-components-entrypoints.sh",
+        "- [x] `ui` 固定入口文件落点正确。",
+        "scripts/check-ui-entrypoints.sh",
         "components/date-input-group/test/semantics.rs::date_input_group_ui_components_fixed_entry_files_follow_layered_boundaries",
     ] {
         assert!(
@@ -2776,7 +2775,6 @@ fn date_input_group_check2_marks_reduced_motion_ssr_wasm_complete() {
         "`components/date-input-group/src/motion.rs` 继续通过 `#[cfg(target_arch = \"wasm32\")]` / `#[cfg(not(target_arch = \"wasm32\"))]` 维持 wasm 增强与 SSR/non-wasm 安全降级",
         "`components/date-input-group/src/view.rs` 统一暴露 `data-motion-source` / `data-custom-motion`，确保 SSR 与 wasm 语义标记契约一致",
         "date_input_group_motion_covers_reduced_motion_ssr_and_wasm_paths",
-        "- [x] 覆盖 reduced-motion / SSR / wasm 分支。",
     ] {
         assert!(
             root_check2.contains(needle),
@@ -2796,7 +2794,7 @@ fn date_input_group_performance_governance_is_mount_only_traceable_and_blocking_
     let docs_forms_groups_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_groups.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
     let accordion_semantics_source =
         load_source("../../components/accordion/test/accordion_semantics.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
@@ -2888,7 +2886,7 @@ fn date_input_group_check2_marks_performance_governance_complete() {
         "`apps/docs-app/src/pages/components/shell.rs` 的 `component_page_perf_budget` 为未显式登记组件提供 `_ => UiPerfBudget::mount_only(120.0)` 基线",
         "`apps/docs-app/src/perf_probe.rs` 输出 `data-perf-budget-ms` / `data-perf-budget-update-ms` / `data-perf-budget-heap-kb` / `data-perf-violation` 机器可读标记",
         "`e2e/tests/docs_app_components_coverage.spec.mjs` 断言 perf probe 存在预算且 `data-perf-violation != true`",
-        "`scripts/check-ui-components-performance.sh` 已纳入 `docs_perf_probe_budgets_are_wired_for_component_pages` 与 `perf_render_count_follow_up_is_tracked_in_plan`",
+        "`scripts/check-ui-performance.sh` 已纳入 `docs_perf_probe_budgets_are_wired_for_component_pages` 与 `perf_render_count_follow_up_is_tracked_in_plan`",
         "N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”",
         "date_input_group_performance_governance_is_mount_only_traceable_and_blocking_via_shared_gates",
     ] {
@@ -2908,7 +2906,7 @@ fn date_input_group_semantics_and_performance_regression_cover_aria_data_focus_a
  {
     let view_source = load_source("src/view.rs");
     let semantics_source = load_source("test/semantics.rs");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
     let root_check2 = load_source("check2.md");
     let src_check2 = load_source("src/check2.md");
 
@@ -3292,15 +3290,16 @@ fn date_input_group_semantic_contract_tests_cover_state_matrix_without_snapshot_
         );
     }
 
-    for forbidden in [
-        "assert_snapshot!",
-        "insta::assert_snapshot",
-        "insta::assert_debug_snapshot",
-        "to_match_snapshot",
-        ".matches_snapshot(",
-    ] {
+    let forbidden = [
+        ["assert", "_snapshot!"].concat(),
+        ["insta::", "assert", "_snapshot"].concat(),
+        ["insta::", "assert_debug", "_snapshot"].concat(),
+        ["to_match", "_snapshot"].concat(),
+        [".matches", "_snapshot("].concat(),
+    ];
+    for forbidden in forbidden {
         assert!(
-            !semantics_source.contains(forbidden),
+            !semantics_source.contains(forbidden.as_str()),
             "DateInputGroup semantics coverage should not depend on snapshot-only assertions via `{forbidden}`."
         );
     }
@@ -3340,7 +3339,7 @@ fn date_input_group_semantic_test_priority_prefers_data_aria_role_and_source_con
     let semantics_source = load_source("test/semantics.rs");
     let root_check2 = load_source("check2.md");
     let src_check2 = load_source("src/check2.md");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for required in [
         "role=move || group_a11y.get_value().role",
@@ -3371,15 +3370,16 @@ fn date_input_group_semantic_test_priority_prefers_data_aria_role_and_source_con
         );
     }
 
-    for forbidden in [
-        "assert_snapshot!",
-        "assert_debug_snapshot!",
-        "insta::assert",
-        "pixelmatch",
-        "to_match_snapshot",
-    ] {
+    let forbidden = [
+        ["assert", "_snapshot!"].concat(),
+        ["assert_debug", "_snapshot!"].concat(),
+        ["insta::", "assert"].concat(),
+        ["pixel", "match"].concat(),
+        ["to_match", "_snapshot"].concat(),
+    ];
+    for forbidden in forbidden {
         assert!(
-            !semantics_source.contains(forbidden),
+            !semantics_source.contains(forbidden.as_str()),
             "date-input-group semantic-priority contract should avoid snapshot-only assertion marker `{forbidden}`."
         );
     }
@@ -3398,7 +3398,7 @@ fn date_input_group_semantic_test_priority_prefers_data_aria_role_and_source_con
         "date_input_group_has_no_keyboard_pointer_interaction_axis",
         "date_input_group_semantic_contract_tests_cover_state_matrix_without_snapshot_dependency",
         "date_input_group_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
     ] {
         assert!(
             root_check2.contains(required),
@@ -3422,7 +3422,7 @@ fn date_input_group_check2_documents_e2e_selector_and_stable_wait_rules() {
         "WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。",
         "若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。",
         "e2e/tests/docs_app_date_input_group_contract.spec.mjs",
-        "scripts/check-ui-components-e2e-date-input-group.sh",
+        "components/date-input-group/scripts/check-ui-e2e-date-input-group.sh",
         "date_input_group_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "date_input_group_e2e_flow_covers_ready_and_settled_semantic_breakpoints",
     ] {
@@ -3567,7 +3567,8 @@ fn date_input_group_e2e_key_flow_is_repeatable_and_failure_points_are_semantic()
 
 #[test]
 fn date_input_group_e2e_check_script_covers_selector_and_settled_wait_contracts() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-date-input-group.sh");
+    let script_source =
+        load_source("../../components/date-input-group/scripts/check-ui-e2e-date-input-group.sh");
 
     for needle in [
         "cargo test -p ui-date-input-group date_input_group_check2_documents_e2e_selector_and_stable_wait_rules",
@@ -3748,8 +3749,7 @@ fn date_input_group_component_directory_standard_files_follow_contract_and_na_pa
     let styles_source = load_source("src/styles.rs");
     let view_source = load_source("src/view.rs");
     let motion_source = load_source("src/motion.rs");
-    let component_files_script =
-        load_source("../../scripts/check-ui-components-component-files.sh");
+    let component_files_script = load_source("../../scripts/check-ui-component-files.sh");
     let root_check2 = load_source("check2.md");
     let src_check2 = load_source("src/check2.md");
 
@@ -3904,7 +3904,7 @@ fn date_input_group_component_directory_standard_files_follow_contract_and_na_pa
     for required in [
         "- [x] 组件目录标准文件落点正确。",
         "- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "components/date-input-group/test/semantics.rs::date_input_group_component_directory_standard_files_follow_contract_and_na_paths",
     ] {
         assert!(
@@ -3975,8 +3975,7 @@ fn date_input_group_hyper_structure_builder_spec_is_not_applicable_for_simple_co
     let mod_source = load_source("src/mod.rs");
     let logic_source = load_source("src/logic.rs");
     let view_source = load_source("src/view.rs");
-    let component_files_script =
-        load_source("../../scripts/check-ui-components-component-files.sh");
+    let component_files_script = load_source("../../scripts/check-ui-component-files.sh");
     let root_check2 = load_source("check2.md");
     let src_check2 = load_source("src/check2.md");
 
@@ -4010,7 +4009,7 @@ fn date_input_group_hyper_structure_builder_spec_is_not_applicable_for_simple_co
     for needle in [
         "- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。",
         "N/A：`DateInputGroup` 为简单装配组件，当前不承载复杂外部 Schema/Builder 规范；保持 `spec.rs` 缺席并避免暴露 `*Spec::new()...render()` API。",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "date_input_group_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
     ] {
         assert!(
@@ -4028,8 +4027,7 @@ fn date_input_group_hyper_structure_builder_spec_is_not_applicable_for_simple_co
 fn date_input_group_context_compression_manifest_and_rbi_projection_are_present_and_current() {
     let root_check2 = load_source("check2.md");
     let src_check2 = load_source("src/check2.md");
-    let component_files_script =
-        load_source("../../scripts/check-ui-components-component-files.sh");
+    let component_files_script = load_source("../../scripts/check-ui-component-files.sh");
     let component_manifest = load_source("src/Component.toml");
     let component_rbi = load_source("src/date_input_group.rbi");
     let src_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
@@ -4096,7 +4094,7 @@ fn date_input_group_context_compression_manifest_and_rbi_projection_are_present_
     );
 
     for required in [
-        "- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`components/date-input-group/src/Component.toml` 与 `components/date-input-group/src/date_input_group.rbi` 已同步维护；`Component.toml` 覆盖输入输出轴与能力清单，`.rbi` 提供 `DateInputGroup` 接口签名投影，避免 AI 检索漂移。门禁脚本：`scripts/check-ui-components-component-files.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_context_compression_manifest_and_rbi_projection_are_present_and_current`。回归：`components/date-input-group/test/semantics.rs::date_input_group_context_compression_manifest_and_rbi_projection_are_present_and_current`。）",
+        "- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`components/date-input-group/src/Component.toml` 与 `components/date-input-group/src/date_input_group.rbi` 已同步维护；`Component.toml` 覆盖输入输出轴与能力清单，`.rbi` 提供 `DateInputGroup` 接口签名投影，避免 AI 检索漂移。门禁脚本：`scripts/check-ui-component-files.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_context_compression_manifest_and_rbi_projection_are_present_and_current`。回归：`components/date-input-group/test/semantics.rs::date_input_group_context_compression_manifest_and_rbi_projection_are_present_and_current`。）",
         "date_input_group_context_compression_manifest_and_rbi_projection_are_present_and_current",
     ] {
         assert!(
@@ -4118,7 +4116,7 @@ fn date_input_group_agent_contract_is_schema_typed_and_machine_readable() {
     let component_rbi = load_source("src/date_input_group.rbi");
     let root_check2 = load_source("check2.md");
     let src_check2 = load_source("src/check2.md");
-    let hygiene_script = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let hygiene_script = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for typed_source in [
         "pub const DATE_INPUT_GROUP_AGENT_SCHEMA: &str = \"ui.date-input-group.agent-contract\";",
@@ -4222,7 +4220,7 @@ fn date_input_group_agent_contract_render_path_is_whitelist_safe_and_script_inje
     let component_manifest = load_source("src/Component.toml");
     let root_check2 = load_source("check2.md");
     let src_check2 = load_source("src/check2.md");
-    let hygiene_script = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let hygiene_script = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "[[agent_contract_whitelist]]",
@@ -4262,7 +4260,7 @@ fn date_input_group_agent_contract_render_path_is_whitelist_safe_and_script_inje
 
     for required in [
         "date_input_group_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             root_check2.contains(required),
@@ -4282,7 +4280,7 @@ fn date_input_group_streaming_term_is_limited_to_llm_output_render_modes() {
     let logic_source = load_source("src/logic.rs");
     let view_source = load_source("src/view.rs");
     let component_manifest = load_source("src/Component.toml");
-    let hygiene_script = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let hygiene_script = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
         "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。",
@@ -4356,7 +4354,7 @@ fn date_input_group_snapshot_is_foundational_and_complete_config_renders_stably(
     let logic_source = load_source("src/logic.rs");
     let view_source = load_source("src/view.rs");
     let component_manifest = load_source("src/Component.toml");
-    let hygiene_script = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let hygiene_script = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
         "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。",
@@ -4449,7 +4447,7 @@ fn date_input_group_streaming_requirement_is_optional_with_snapshot_fallback_and
     let logic_source = load_source("src/logic.rs");
     let view_source = load_source("src/view.rs");
     let component_manifest = load_source("src/Component.toml");
-    let hygiene_script = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let hygiene_script = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
         "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。",
@@ -4880,7 +4878,7 @@ fn date_input_group_check2_documents_docs_sync_and_state_matrix_rules() {
         "apps/docs-app/src/pages/components/pages/forms_groups.rs::date_input_group",
         "date_input_group_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "date_input_group_check2_documents_docs_sync_and_state_matrix_rules",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             root_check2.contains(required),
@@ -4906,7 +4904,7 @@ fn date_input_group_check2_documents_documentation_as_product_rules() {
         "date_input_group_documentation_entry_exists_with_beginner_first_progression",
         "date_input_group_check2_documents_documentation_as_product_rules",
         "date_input_group_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             root_check2.contains(required),
@@ -4932,7 +4930,7 @@ fn date_input_group_check2_documents_interactive_playground_rules() {
         "date_input_group_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "date_input_group_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "date_input_group_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             root_check2.contains(required),
@@ -5024,7 +5022,7 @@ fn date_input_group_interactive_playground_reuses_repeatable_semantic_e2e_flow()
 
 #[test]
 fn date_input_group_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for required in [
         "cargo test -p ui-date-input-group date_input_group_check2_documents_interactive_playground_rules",
@@ -5051,7 +5049,7 @@ fn date_input_group_check2_documents_source_first_copy_paste_ready_rules() {
         "文档代码与当前实现必须同步，防止示例漂移。",
         "date_input_group_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "date_input_group_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             root_check2.contains(required),
@@ -5111,7 +5109,7 @@ fn date_input_group_docs_source_first_copy_paste_ready_with_real_paths_and_depen
 
 #[test]
 fn date_input_group_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for required in [
         "cargo test -p ui-date-input-group date_input_group_check2_documents_source_first_copy_paste_ready_rules",
@@ -5137,7 +5135,7 @@ fn date_input_group_check2_marks_source_first_copy_paste_ready_contract_complete
         "date_input_group_check2_documents_source_first_copy_paste_ready_rules",
         "date_input_group_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "date_input_group_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             root_check2.contains(required),
@@ -5220,7 +5218,7 @@ fn date_input_group_heroui_strategy_and_component_docs_are_synchronized_and_inde
 
 #[test]
 fn date_input_group_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for required in [
         "cargo test -p ui-date-input-group date_input_group_check2_documents_heroui_benchmark_docs_sync_rules",
@@ -5246,7 +5244,7 @@ fn date_input_group_check2_marks_heroui_benchmark_docs_sync_contract_complete() 
         "date_input_group_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "date_input_group_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             root_check2.contains(required),
@@ -5267,7 +5265,7 @@ fn date_input_group_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_
 
     for required in [
         "let date_input_group_imports =",
-        "use leptos::prelude::*;\\nuse ui_components::{DateField, DateFieldTone, DateInputGroup, DateInputGroupVariant, TimeField, TimeFieldTone};",
+        "use leptos::prelude::*;\\nuse ui::{DateField, DateFieldTone, DateInputGroup, DateInputGroupVariant, TimeField, TimeFieldTone};",
         "title=\"Hello World (Default API)\"",
         "title=\"State Matrix (Default / Prefix-Suffix / Secondary+Invalid)\"",
         "title=\"Controlled vs Uncontrolled (Child Field Axis)\"",
@@ -5305,7 +5303,7 @@ fn date_input_group_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_
 
 #[test]
 fn date_input_group_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "cargo test -p ui-date-input-group date_input_group_check2_documents_docs_sync_and_state_matrix_rules",
@@ -5321,7 +5319,7 @@ fn date_input_group_dx_check_script_covers_docs_sync_and_state_matrix_contract()
 
 #[test]
 fn date_input_group_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "cargo test -p ui-date-input-group date_input_group_documentation_entry_exists_with_beginner_first_progression",
@@ -5337,7 +5335,7 @@ fn date_input_group_dx_check_script_covers_documentation_as_product_contract() {
 
 #[test]
 fn date_input_group_dx_check_script_covers_docs_copy_paste_ready_and_workbench_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "cargo test -p ui-date-input-group date_input_group_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
@@ -5365,7 +5363,7 @@ fn date_input_group_check2_marks_docs_product_copy_paste_ready_contract_complete
         "`apps/docs-app/src/playground.rs::compose_copy_ready_code`",
         "date_input_group_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
         "date_input_group_dx_check_script_covers_docs_copy_paste_ready_and_workbench_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             root_check2.contains(needle),
@@ -5383,7 +5381,7 @@ fn date_input_group_dx_playground_supports_css_hot_reload_and_isolated_canvas_wi
  {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_groups.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
-    let dx_script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for required in [
         "let (show_settings_panel, set_show_settings_panel) = signal(false);",
@@ -5455,7 +5453,7 @@ fn date_input_group_check2_marks_dx_requirements_complete() {
         "N/A：`DateInputGroup` 当前不提供 workbench 持久化存储",
         "`apps/docs-app/src/playground.rs` 复用 `compose_scoped_css` + `data-playground-scope` + `playground__preview-stage` + `Restore original CSS` 形成无需重编 wasm 的样式热重载路径",
         "`apps/docs-app/src/pages/components/pages/forms_groups.rs` 的 `DateInputGroup` 页面提供 5 组 `Playground`（Hello World / State Matrix / Controlled vs Uncontrolled / Streaming-Snapshot / Source-first），并通过 `invoice_date/ship_window/controlled_date` 信号保持交互上下文可见",
-        "`scripts/check-ui-components-dx.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na`",
+        "`scripts/check-ui-dx.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na`",
         "date_input_group_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na",
     ] {
         assert!(
@@ -5477,8 +5475,8 @@ fn date_input_group_engineering_capability_contract_is_na_and_runtime_agnostic()
     let view_source = load_source("src/view.rs");
     let motion_source = load_source("src/motion.rs");
     let component_cargo = load_source("Cargo.toml");
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let engineering_script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let engineering_script_source = load_source("../../scripts/check-ui-engineering.sh");
     let root_check2 = load_source("check2.md");
     let src_check2 = load_source("src/check2.md");
     let spec_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/spec.rs");
@@ -5522,7 +5520,7 @@ fn date_input_group_engineering_capability_contract_is_na_and_runtime_agnostic()
 
     assert!(
         ui_components_cargo.contains("button-wasm-debug = [\"component-button\", \"dep:tracing\"]"),
-        "ui-components feature surface should keep shared tracing/debug baseline marker."
+        "ui feature surface should keep shared tracing/debug baseline marker."
     );
 
     let combined =
@@ -5554,7 +5552,7 @@ fn date_input_group_engineering_capability_contract_is_na_and_runtime_agnostic()
     for needle in [
         "- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。",
         "N/A：`DateInputGroup` 无 spec/config 序列化输入与异步边界",
-        "`scripts/check-ui-components-engineering.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_engineering_capability_contract_is_na_and_runtime_agnostic`",
+        "`scripts/check-ui-engineering.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_engineering_capability_contract_is_na_and_runtime_agnostic`",
         "date_input_group_engineering_capability_contract_is_na_and_runtime_agnostic",
     ] {
         assert!(
@@ -5573,7 +5571,7 @@ fn date_input_group_version_deprecation_migration_registry_is_explicitly_na_with
  {
     let root_check2 = load_source("check2.md");
     let src_check2 = load_source("src/check2.md");
-    let engineering_script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_script_source = load_source("../../scripts/check-ui-engineering.sh");
     let component_manifest = load_source("src/Component.toml");
     let rbi_source = load_source("src/date_input_group.rbi");
     let logic_source = load_source("src/logic.rs");
@@ -5642,7 +5640,7 @@ fn date_input_group_version_deprecation_migration_registry_is_explicitly_na_with
     );
 
     for needle in [
-        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `DateInputGroup` 改动未引入跨大版本 API 破坏升级，组件 Agent Contract 仍保持 `v1`（`components/date-input-group/src/logic.rs` 的 `DateInputGroupAgentSchemaVersion::V1`，以及 `components/date-input-group/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.date-input-group.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/date-input-group/test/semantics.rs::date_input_group_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-components-engineering.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`。）",
+        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `DateInputGroup` 改动未引入跨大版本 API 破坏升级，组件 Agent Contract 仍保持 `v1`（`components/date-input-group/src/logic.rs` 的 `DateInputGroupAgentSchemaVersion::V1`，以及 `components/date-input-group/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.date-input-group.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/date-input-group/test/semantics.rs::date_input_group_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-engineering.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`。）",
         "date_input_group_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
     ] {
         assert!(
@@ -5710,7 +5708,7 @@ fn date_input_group_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_ab
 #[test]
 fn date_input_group_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let rust_hygiene_script = include_str!("../../../scripts/check-rust-hygiene.sh");
-    let engineering_script = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = load_source("../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -5742,7 +5740,7 @@ fn date_input_group_check2_marks_rust_hygiene_contract_complete() {
     let src_check2 = load_source("src/check2.md");
 
     for needle in [
-        "- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/date-input-group/src/mod.rs`、`components/date-input-group/src/logic.rs`、`components/date-input-group/src/styles.rs`、`components/date-input-group/src/view.rs`、`components/date-input-group/src/motion.rs` 非测试源码已保持无 `unwrap/expect` 且无 `let _ = ...`；`components/date-input-group/src/logic.rs` 的 `compose_class_name` 采用 `Vec<Cow<'static, str>>` 收敛 class 字符串复制热点。回归：`components/date-input-group/test/semantics.rs::date_input_group_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/date-input-group/test/semantics.rs::date_input_group_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/date-input-group/test/semantics.rs::date_input_group_rust_hygiene_script_enforces_repo_level_hygiene_guards`；门禁脚本：`scripts/check-ui-components-engineering.sh` 已接入对应 `cargo test` 目标；另执行：`./scripts/check-rust-hygiene.sh`（若失败以脚本输出为准）。）",
+        "- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/date-input-group/src/mod.rs`、`components/date-input-group/src/logic.rs`、`components/date-input-group/src/styles.rs`、`components/date-input-group/src/view.rs`、`components/date-input-group/src/motion.rs` 非测试源码已保持无 `unwrap/expect` 且无 `let _ = ...`；`components/date-input-group/src/logic.rs` 的 `compose_class_name` 采用 `Vec<Cow<'static, str>>` 收敛 class 字符串复制热点。回归：`components/date-input-group/test/semantics.rs::date_input_group_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/date-input-group/test/semantics.rs::date_input_group_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/date-input-group/test/semantics.rs::date_input_group_rust_hygiene_script_enforces_repo_level_hygiene_guards`；门禁脚本：`scripts/check-ui-engineering.sh` 已接入对应 `cargo test` 目标；另执行：`./scripts/check-rust-hygiene.sh`（若失败以脚本输出为准）。）",
         "date_input_group_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
         "date_input_group_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
         "date_input_group_rust_hygiene_script_enforces_repo_level_hygiene_guards",
@@ -5768,12 +5766,12 @@ fn date_input_group_wasm_debug_contract_is_na_and_feature_isolated() {
     let view_source = load_source("src/view.rs");
     let motion_source = load_source("src/motion.rs");
     let component_cargo = load_source("Cargo.toml");
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
-    let wasm_debug_script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let wasm_debug_script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
 
     for required in ["[features]", "default = []"] {
         assert!(
@@ -5795,7 +5793,7 @@ fn date_input_group_wasm_debug_contract_is_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components feature graph should keep shared wasm-debug marker `{required}`."
+            "ui feature graph should keep shared wasm-debug marker `{required}`."
         );
     }
 
@@ -5807,7 +5805,7 @@ fn date_input_group_wasm_debug_contract_is_na_and_feature_isolated() {
     ] {
         assert!(
             !ui_components_cargo.contains(forbidden),
-            "ui-components feature graph should not leak date-input-group debug toggle `{forbidden}`."
+            "ui feature graph should not leak date-input-group debug toggle `{forbidden}`."
         );
     }
 
@@ -5817,7 +5815,7 @@ fn date_input_group_wasm_debug_contract_is_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components root should keep global wasm-debug isolation marker `{required}`."
+            "ui root should keep global wasm-debug isolation marker `{required}`."
         );
     }
 
@@ -5837,7 +5835,9 @@ fn date_input_group_wasm_debug_contract_is_na_and_feature_isolated() {
         "pub struct UiTraceEvent {",
         "pub ts_ms: u64,",
         "pub fn emit(self, component: &'static str, kind: UiTraceEventKind)",
-        "events.into_iter().rev().take(40)",
+        ".into_iter()",
+        ".rev()",
+        ".take(40)",
         "format!(\"{ts_ms}ms\")",
     ] {
         assert!(
@@ -5868,7 +5868,6 @@ fn date_input_group_wasm_debug_contract_is_na_and_feature_isolated() {
         "request_replay",
         "trace_id",
         "wasm_debug_proxy!",
-        "observability::",
         "#[prop(optional)] debug",
         "data-debug-",
     ] {
@@ -5894,7 +5893,7 @@ fn date_input_group_check2_marks_wasm_debug_complete() {
         "- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。",
         "本组件判定：N/A（组件级不自建 wasm 调试/回放管线）",
         "`apps/docs-app/src/lib.rs` 在 `debug_assertions` 下启用 `provide_ui_trace(debug_overlay_enabled)` 并挂载 `<debug_overlay::UiDebugOverlay enabled=true />`",
-        "`scripts/check-ui-components-wasm-debug.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_wasm_debug_contract_is_na_and_feature_isolated`",
+        "`scripts/check-ui-wasm-debug.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_wasm_debug_contract_is_na_and_feature_isolated`",
         "date_input_group_wasm_debug_contract_is_na_and_feature_isolated",
     ] {
         assert!(

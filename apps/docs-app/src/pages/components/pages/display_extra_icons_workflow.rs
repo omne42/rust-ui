@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{IconsWorkflow, IconsWorkflowSize, IconsWorkflowTone, IconsetGlyph};
+use ui::{IconsWorkflow, IconsWorkflowSize, IconsWorkflowTone, IconsetGlyph};
 
 pub(super) fn icons_workflow() -> AnyView {
     let defaults_code = Signal::derive(move || {
@@ -89,8 +89,8 @@ pub(super) fn icons_workflow() -> AnyView {
     });
     let interactive_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/icon/workflow/styles.rs */\n{}",
-            ui_components::icons_workflow::styles::CSS
+            "/* crates/ui/src/icon/workflow/styles.rs */\n{}",
+            ui::icons_workflow::styles::CSS
         )
     });
     let interactive_actual_config = Signal::derive(move || {
@@ -211,7 +211,7 @@ pub(super) fn icons_workflow() -> AnyView {
                 title="Interactive Playground (Display / Config / Code / CSS Test)"
                 code_signal=interactive_code
                 test_css_source=interactive_test_css_source
-                test_source_path="crates/ui-components/src/icon/workflow/styles.rs".to_string()
+                test_source_path="crates/ui/src/icon/workflow/styles.rs".to_string()
                 test_config_signal=interactive_actual_config
                 description="展示区用于 current 与 baseline 对比；Config/Code/CSS Test 区用于验证 icon/source/aria/class/glyph 合同。"
                 controls=move || view! {

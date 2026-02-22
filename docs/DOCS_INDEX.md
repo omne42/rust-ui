@@ -5,7 +5,7 @@
 范围说明：
 - 包含：仓库自有 docs、crate/app README、根目录 markdown
 - 不逐条展开：`examples/_upstream/**`（research mirror文档）
-- 不逐条展开：`crates/ui-components/src/**/check2.md`（组件级执行清单）
+- 不逐条展开：`crates/ui/src/**/check2.md`（组件级执行清单）
 - 外部文档以 `External` 状态登记
 
 ## A. 根目录文档
@@ -38,6 +38,7 @@
 | `docs/spec/styling.md` | Spec | Active | 样式系统规范 |
 | `docs/spec/style_island_defense.md` | Spec | Active | 样式孤岛防御（防御性变量 + 懒加载注入 + SSOT） |
 | `docs/spec/tree_shaking.md` | Spec | Active | Tree Shaking / 组件级裁剪规范 |
+| `docs/spec/playground_standard.md` | Spec | Active | docs-app Playground 结构、API 覆盖与强制检测规范 |
 | `docs/spec/i18n.md` | Spec | Draft | i18n / l10n 注入契约（组件层） |
 | `docs/spec/component_boundaries.md` | Spec | Draft | UI 组件边界与跨层归属规则 |
 | `docs/spec/component_domains.md` | Spec | Draft | 同功能同域目录收敛与兼容策略 |
@@ -99,7 +100,7 @@
 | `crates/ui-theme/README.md` | Package | Active | `ui-theme` token 与变量用法 |
 | `crates/ui-motion/README.md` | Package | Active | `ui-motion` 运行时与 API |
 | `crates/ui-visual-primitive/README.md` | Package | Active | `ui-visual-primitive` 内部视觉原语边界 |
-| `crates/ui-components/README.md` | Package | Active | `ui-components` 组合与用法 |
+| `crates/ui/README.md` | Package | Active | `ui` 组合与用法 |
 
 ## G. 应用级 README
 

@@ -4,7 +4,6 @@ use crate::overlay::Overlay;
 use crate::overlay::OverlayMotion;
 use leptos::prelude::*;
 use std::borrow::Cow;
-use ui_headless::{A11yDirection, overlay_dialog_attrs, use_controllable_open_state_traced};
 
 fn render_modal_title(
     title: Signal<String>,
@@ -107,7 +106,7 @@ pub fn Modal(
     #[prop(optional)] motion: OverlayMotion,
     #[prop(optional)] on_exit_complete: Option<Callback<()>>,
     #[prop(optional, into)] lang: Option<String>,
-    #[prop(optional)] dir: Option<A11yDirection>,
+    #[prop(optional)] dir: Option<ui_headless::A11yDirection>,
     #[prop(optional, into)] class_name: Option<String>,
     children: ChildrenFn,
 ) -> impl IntoView {
@@ -118,7 +117,7 @@ pub fn Modal(
     });
     let children = StoredValue::new(children);
     let open_contract = logic::resolve_open_contract(&open_state);
-    let open_state = use_controllable_open_state_traced(
+    let open_state = ui_headless::use_controllable_open_state_traced(
         "modal",
         open_state.open,
         Some(open_state.default_open),
@@ -203,7 +202,7 @@ pub fn Modal(
     let title_id_attr: Signal<String> = title_id.clone().into();
     let description_id_attr: Signal<String> = description_id.clone().into();
 
-    let dialog_a11y = overlay_dialog_attrs(
+    let dialog_a11y = ui_headless::overlay_dialog_attrs(
         Some(title_id.clone()),
         description.as_ref().map(|_| description_id.clone()),
         lang,

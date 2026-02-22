@@ -1,7 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{
-    Breadcrumb, BreadcrumbItem, Code, CodeVariant, Kbd, Link, ProgressBar, Snippet,
-};
+use ui::{Breadcrumb, BreadcrumbItem, Code, CodeVariant, Kbd, Link, ProgressBar, Snippet};
 use ui_layout::{Spacer, SpacerAxis, SpacerSize};
 
 #[component]
@@ -58,8 +56,8 @@ pub fn TypographyDemo() -> impl IntoView {
 
                 <div class="demo-progress-stack">
                     <ProgressBar value=36.0 />
-                    <ProgressBar variant=ui_components::ProgressBarVariant::Accent value=72.0 />
-                    <ProgressBar variant=ui_components::ProgressBarVariant::Danger indeterminate=true />
+                    <ProgressBar variant=ui::ProgressBarVariant::Accent value=72.0 />
+                    <ProgressBar variant=ui::ProgressBarVariant::Danger indeterminate=true />
                 </div>
 
                 <Snippet

@@ -1,85 +1,109 @@
+use super::playground_workbench::{bool_word, rust_string_literal};
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::color::handle::ColorHandleMotion;
-use ui_components::color::loupe::ColorLoupeOutputState;
-use ui_components::{
+use ui::color::handle::ColorHandleMotion;
+use ui::color::loupe::ColorLoupeOutputState;
+use ui::color_thumb::ColorThumbMotion;
+use ui::{
     ColorArea, ColorEditor, ColorEditorFormat, ColorField, ColorHandle, ColorLoupe, ColorPicker,
     ColorSlider, ColorSliderChannel, ColorSliderMotion, ColorSwatchPicker, ColorSwatchPickerItem,
     ColorThumb, ColorWheel, ColorWheelMotion, SegmentedControl, SegmentedControlSize, Switch,
 };
+use ui_headless::A11yDirection;
 
 pub(super) fn color_field() -> AnyView {
-    let (value, set_value) = signal(Some("#4f46e5".to_string()));
-    let on_value_change = Callback::new(move |next: Option<String>| set_value.set(next));
-    let (compare_value, set_compare_value) = signal(Some("#22c55e".to_string()));
-    let on_compare_value_change =
-        Callback::new(move |next: Option<String>| set_compare_value.set(next));
+    let (showcase_value, set_showcase_value) = signal(Some("#4f46e5".to_string()));
+    let on_showcase_value_change =
+        Callback::new(move |next: Option<String>| set_showcase_value.set(next));
+
+    let (workbench_value, set_workbench_value) = signal(Some("#22c55e".to_string()));
+    let (workbench_change_count, set_workbench_change_count) = signal(0_u32);
+    let on_workbench_value_change = Callback::new(move |next: Option<String>| {
+        set_workbench_change_count.update(|count| *count += 1);
+        set_workbench_value.set(next);
+    });
+
+    let (workbench_placeholder, set_workbench_placeholder) = signal(false);
+    let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
+    let (workbench_disabled_alias, set_workbench_disabled_alias) = signal(false);
+    let (workbench_preview_visible, set_workbench_preview_visible) = signal(true);
+    let (workbench_show_preview, set_workbench_show_preview) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_lang_zh, set_workbench_lang_zh) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
 
     let hello_code = Signal::derive(move || {
         r##"<ColorField
   id_base="docs-color-field-hello".to_string()
-/>"##
-            .to_string()
-    });
-
-    let basic_code = Signal::derive(move || {
-        r##"let (value, set_value) = signal(Some("#4f46e5".to_string()));
-let on_value_change = Callback::new(move |next: Option<String>| set_value.set(next));
-
-<ColorField
-  id_base="docs-color-field-basic".to_string()
-  label="Fill color".to_string()
-  value=value.into()
-  on_value_change=on_value_change
-/>"##
-            .to_string()
-    });
-
-    let states_code = Signal::derive(move || {
-        r##"<ColorField
-  id_base="docs-color-field-invalid".to_string()
   label="Brand color".to_string()
-  default_value="javascript:alert(1)".to_string()
-  class_name="docs-color-field-custom".to_string()
-/>
-<ColorField
-  id_base="docs-color-field-disabled".to_string()
-  label="Accent color".to_string()
-  default_value="#0ea5e9".to_string()
-  is_disabled=true
+  default_value="#4f46e5".to_string()
 />"##
             .to_string()
     });
 
-    let controlled_vs_uncontrolled_code = Signal::derive(move || {
-        r##"let (controlled, set_controlled) = signal(Some("#22c55e".to_string()));
-let on_controlled_change = Callback::new(move |next: Option<String>| set_controlled.set(next));
-
-<ColorField
-  id_base="docs-color-field-compare-controlled".to_string()
-  label="Controlled".to_string()
-  value=controlled.into()
-  on_value_change=on_controlled_change
-/>
-<ColorField
-  id_base="docs-color-field-compare-uncontrolled".to_string()
-  label="Uncontrolled".to_string()
-  default_value="#0ea5e9".to_string()
-/>"##
-            .to_string()
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<ColorField\n  id_base=\"docs-color-field-workbench\".to_string()\n  label=\"Brand color\".to_string()\n  placeholder={}.to_string()\n  is_disabled={}\n  disabled={}\n  value=value.into()\n  default_value=\"#0ea5e9\".to_string()\n  on_value_change=on_value_change\n  is_preview_visible={}\n  show_preview={}\n  aria_label=\"Brand color input\".to_string()\n  class_name={}\n  lang={}.to_string()\n  dir={}\n/>",
+            rust_string_literal(if workbench_placeholder.get() {
+                "Use #RRGGBB"
+            } else {
+                ""
+            }),
+            bool_word(workbench_is_disabled.get()),
+            bool_word(workbench_disabled_alias.get()),
+            bool_word(workbench_preview_visible.get()),
+            bool_word(workbench_show_preview.get()),
+            if workbench_custom_class.get() {
+                "\"docs-color-field-custom\".to_string()"
+            } else {
+                "String::new()"
+            },
+            rust_string_literal(if workbench_lang_zh.get() {
+                "zh-CN"
+            } else {
+                "en-US"
+            }),
+            if workbench_rtl.get() {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            },
+        )
     });
 
-    let output_mode_code = Signal::derive(move || {
-        r##"// ColorField is not a text-reading surface.
-// Streaming is optional; fallback is snapshot.
-<div
-  data-ui-streaming="optional"
-  data-ui-fallback="snapshot"
-  data-ui-output-state="snapshot"
->
-  "ColorField docs output mode: snapshot"
-</div>"##
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "ColorFieldActualConfig {{\n  id_base: \"docs-color-field-workbench\",\n  label: Some(\"Brand color\"),\n  placeholder: {:?},\n  is_disabled: Some({}),\n  disabled: Some({}),\n  value: {:?},\n  default_value: Some(\"#0ea5e9\"),\n  on_value_change: \"count={}\",\n  is_preview_visible: Some({}),\n  show_preview: Some({}),\n  aria_label: Some(\"Brand color input\"),\n  class_name: {:?},\n  lang: Some({:?}),\n  dir: Some({:?}),\n}}",
+            if workbench_placeholder.get() {
+                Some("Use #RRGGBB")
+            } else {
+                None
+            },
+            bool_word(workbench_is_disabled.get()),
+            bool_word(workbench_disabled_alias.get()),
+            workbench_value.get(),
+            workbench_change_count.get(),
+            bool_word(workbench_preview_visible.get()),
+            bool_word(workbench_show_preview.get()),
+            if workbench_custom_class.get() {
+                Some("docs-color-field-custom")
+            } else {
+                None
+            },
+            if workbench_lang_zh.get() {
+                "zh-CN"
+            } else {
+                "en-US"
+            },
+            if workbench_rtl.get() { "rtl" } else { "ltr" },
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r##"<ColorField id_base="cf-default".to_string() label="Default".to_string() default_value="#4f46e5".to_string() />
+<ColorField id_base="cf-placeholder".to_string() label="Placeholder".to_string() placeholder="Use #RRGGBB".to_string() is_preview_visible=true show_preview=true />
+<ColorField id_base="cf-disabled".to_string() label="Disabled".to_string() is_disabled=true disabled=true class_name="docs-color-field-custom".to_string() lang="zh-CN".to_string() dir=A11yDirection::Rtl />"##
             .to_string()
     });
 
@@ -88,78 +112,121 @@ let on_controlled_change = Callback::new(move |next: Option<String>| set_control
             title="ColorField"
             slug="color-field"
             group="Forms"
-            description="baseline-compatible color text field with centralized label/placeholder/aria/state normalization, sanitized preview rendering, and stable slot/data contracts."
+            description="ColorField playground with full API workbench coverage and visible callback feedback."
         >
-            <Playground title="Hello World" code_signal=hello_code>
-                <ColorField id_base="docs-color-field-hello".to_string() />
-            </Playground>
-
-            <Playground title="Controlled Value" code_signal=basic_code>
+            <Playground title="Hello World (Default ColorField)" code_signal=hello_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorField
-                        id_base="docs-color-field-basic".to_string()
-                        label="Fill color".to_string()
-                        value=value.into()
-                        on_value_change=on_value_change
+                        id_base="docs-color-field-hello".to_string()
+                        label="Brand color".to_string()
+                        default_value="#4f46e5".to_string()
+                        value=showcase_value.into()
+                        on_value_change=on_showcase_value_change
                     />
                     <span class="ui-muted">
                         "value: "
-                        {move || value.get().unwrap_or_else(|| "none".to_string())}
+                        {move || showcase_value.get().unwrap_or_else(|| "none".to_string())}
                     </span>
                 </div>
             </Playground>
 
             <Playground
-                title="Controlled vs Uncontrolled"
-                code_signal=controlled_vs_uncontrolled_code
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="color-field-workbench-controls">
+                        <Switch checked=workbench_placeholder set_checked=set_workbench_placeholder>
+                            "placeholder"
+                        </Switch>
+                        <Switch checked=workbench_is_disabled set_checked=set_workbench_is_disabled>
+                            "is_disabled"
+                        </Switch>
+                        <Switch checked=workbench_disabled_alias set_checked=set_workbench_disabled_alias>
+                            "disabled alias"
+                        </Switch>
+                        <Switch checked=workbench_preview_visible set_checked=set_workbench_preview_visible>
+                            "is_preview_visible"
+                        </Switch>
+                        <Switch checked=workbench_show_preview set_checked=set_workbench_show_preview>
+                            "show_preview"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "class_name"
+                        </Switch>
+                        <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
+                            "lang=zh-CN"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                            "dir=rtl"
+                        </Switch>
+                    </div>
+                }
             >
-                <div class="docs-stack docs-stack--tight">
+                <div class="docs-stack docs-stack--tight" data-slot="color-field-workbench">
                     <ColorField
-                        id_base="docs-color-field-compare-controlled".to_string()
-                        label="Controlled".to_string()
-                        value=compare_value.into()
-                        on_value_change=on_compare_value_change
-                    />
-                    <ColorField
-                        id_base="docs-color-field-compare-uncontrolled".to_string()
-                        label="Uncontrolled".to_string()
-                        default_value="#0ea5e9".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground title="Invalid + Disabled + Custom Class" code_signal=states_code>
-                <div class="docs-stack docs-stack--tight">
-                    <ColorField
-                        id_base="docs-color-field-invalid".to_string()
+                        id_base="docs-color-field-workbench".to_string()
                         label="Brand color".to_string()
-                        default_value="javascript:alert(1)".to_string()
-                        class_name="docs-color-field-custom".to_string()
-                    />
-                    <ColorField
-                        id_base="docs-color-field-disabled".to_string()
-                        label="Accent color".to_string()
+                        placeholder=if workbench_placeholder.get() {
+                            "Use #RRGGBB".to_string()
+                        } else {
+                            String::new()
+                        }
+                        is_disabled=workbench_is_disabled.get()
+                        disabled=workbench_disabled_alias.get()
+                        value=workbench_value.into()
                         default_value="#0ea5e9".to_string()
-                        is_disabled=true
+                        on_value_change=on_workbench_value_change
+                        is_preview_visible=workbench_preview_visible.get()
+                        show_preview=workbench_show_preview.get()
+                        aria_label="Brand color input".to_string()
+                        class_name=if workbench_custom_class.get() {
+                            "docs-color-field-custom".to_string()
+                        } else {
+                            String::new()
+                        }
+                        lang=if workbench_lang_zh.get() {
+                            "zh-CN".to_string()
+                        } else {
+                            "en-US".to_string()
+                        }
+                        dir=if workbench_rtl.get() {
+                            A11yDirection::Rtl
+                        } else {
+                            A11yDirection::Ltr
+                        }
                     />
+                    <span class="ui-muted">
+                        "changes="
+                        {move || workbench_change_count.get()}
+                        " · value="
+                        {move || workbench_value.get().unwrap_or_else(|| "none".to_string())}
+                    </span>
                 </div>
             </Playground>
 
-            <Playground title="Streaming Optional / Snapshot" code_signal=output_mode_code>
-                <div
-                    class="docs-stack docs-stack--tight"
-                    data-slot="color-field-output-mode"
-                    data-ui-streaming="optional"
-                    data-ui-fallback="snapshot"
-                    data-ui-output-state="snapshot"
-                >
-                    <span class="ui-muted">
-                        "ColorField is an input surface; docs-mode output is snapshot (`fallback=snapshot`)."
-                    </span>
+            <Playground title="State Matrix (Default / Placeholder / Disabled RTL)" code_signal=matrix_code>
+                <div class="docs-row">
                     <ColorField
-                        id_base="docs-color-field-snapshot".to_string()
-                        label="Snapshot fallback".to_string()
-                        default_value="#334155".to_string()
+                        id_base="docs-color-field-matrix-default".to_string()
+                        label="Default".to_string()
+                        default_value="#4f46e5".to_string()
+                    />
+                    <ColorField
+                        id_base="docs-color-field-matrix-placeholder".to_string()
+                        label="Placeholder".to_string()
+                        placeholder="Use #RRGGBB".to_string()
+                        is_preview_visible=true
+                        show_preview=true
+                    />
+                    <ColorField
+                        id_base="docs-color-field-matrix-disabled".to_string()
+                        label="Disabled RTL".to_string()
+                        is_disabled=true
+                        disabled=true
+                        class_name="docs-color-field-custom".to_string()
+                        lang="zh-CN".to_string()
+                        dir=A11yDirection::Rtl
                     />
                 </div>
             </Playground>
@@ -192,6 +259,16 @@ pub(super) fn color_area() -> AnyView {
     let (custom_axis_labels, set_custom_axis_labels) = signal(false);
     let (custom_class, set_custom_class) = signal(false);
     let (show_preview, set_show_preview) = signal(true);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_lang_zh, set_workbench_lang_zh) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+    let workbench_motion = Signal::derive(move || {
+        if workbench_custom_motion.get() {
+            ui::color::area::ColorAreaMotion { duration_ms: 320.0 }
+        } else {
+            ui::color::area::ColorAreaMotion::default()
+        }
+    });
 
     let hello_code = Signal::derive(move || {
         r##"<ColorArea
@@ -312,15 +389,17 @@ let on_controlled_change = Callback::new(move |next: (f32, f32)| set_controlled.
         let custom_axis_labels = custom_axis_labels.get();
         let custom_class = custom_class.get();
         let show_preview = show_preview.get();
+        let motion = workbench_motion.get();
 
         format!(
-            "<ColorArea\n  id_base=\"docs-color-area-workbench\".into()\n  label=\"Color workbench\".into()\n  default_value=({:.2}, {:.2})\n  grid_size={}\n  step={:.2}\n  is_disabled={}\n  preview_color=\"{}\".into()\n  x_axis_label=\"{}\".into()\n  y_axis_label=\"{}\".into()\n  class_name=\"{}\".into()\n/>",
+            "<ColorArea\n  id_base=\"docs-color-area-workbench-main\".into()\n  label=\"Color workbench\".into()\n  default_value=({:.2}, {:.2})\n  grid_size={}\n  step={:.2}\n  is_disabled={}\n  on_value_change=on_value_change\n  preview_color=\"{}\".into()\n  motion=ui::color::area::ColorAreaMotion {{ duration_ms: {:.1} }}\n  aria_label=\"Color workbench area\".into()\n  x_axis_label=\"{}\".into()\n  y_axis_label=\"{}\".into()\n  class_name=\"{}\".into()\n  lang={}.to_string()\n  dir={}\n/>",
             default_value.0,
             default_value.1,
             grid_size,
             step,
             disabled,
             if show_preview { preview_color } else { "" },
+            motion.duration_ms,
             if custom_axis_labels {
                 "Saturation (X)"
             } else {
@@ -335,6 +414,16 @@ let on_controlled_change = Callback::new(move |next: (f32, f32)| set_controlled.
                 "docs-color-area-workbench"
             } else {
                 ""
+            },
+            rust_string_literal(if workbench_lang_zh.get() {
+                "zh-CN"
+            } else {
+                "en-US"
+            }),
+            if workbench_rtl.get() {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
             },
         )
     });
@@ -361,30 +450,57 @@ let on_controlled_change = Callback::new(move |next: (f32, f32)| set_controlled.
             2 => (0.85_f32, 0.25_f32, "end"),
             _ => (0.6_f32, 0.4_f32, "center"),
         };
+        let motion = workbench_motion.get();
+        let lang = if workbench_lang_zh.get() {
+            "zh-CN"
+        } else {
+            "en-US"
+        };
+        let dir = if workbench_rtl.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
 
         format!(
-            "ColorAreaActualConfig {{\n  default_value: ({:.2}, {:.2}) [{}],\n  grid_size: {},\n  step: {:.2},\n  is_disabled: {},\n  preview_color: \"{}\",\n  custom_axis_labels: {},\n  custom_class: {},\n  show_preview: {},\n}}",
-            default_value.0,
-            default_value.1,
-            default_value.2,
-            grid_size,
-            step,
-            is_disabled.get(),
-            if show_preview.get() {
-                preview_color
+            "ColorAreaActualConfig {{\n  id_base: \"docs-color-area-workbench-main\",\n  label: Some(\"Color workbench\"),\n  is_disabled: Some({is_disabled}),\n  value: None,\n  default_value: Some(({default_x:.2}, {default_y:.2})) [{position}],\n  on_value_change: Some(\"on_value_change\"),\n  step: Some({step:.2}),\n  grid_size: Some({grid_size}),\n  preview_color: {preview_color},\n  motion: ColorAreaMotion {{ duration_ms: {motion_duration:.1} }},\n  aria_label: Some(\"Color workbench area\"),\n  x_axis_label: {x_axis_label},\n  y_axis_label: {y_axis_label},\n  class_name: {class_name},\n  lang: Some({lang:?}),\n  dir: Some({dir}),\n  show_preview: {show_preview},\n}}",
+            is_disabled = is_disabled.get(),
+            default_x = default_value.0,
+            default_y = default_value.1,
+            position = default_value.2,
+            step = step,
+            grid_size = grid_size,
+            preview_color = if show_preview.get() {
+                format!("Some({preview_color:?})")
             } else {
-                ""
+                "None".to_string()
             },
-            custom_axis_labels.get(),
-            custom_class.get(),
-            show_preview.get(),
+            motion_duration = motion.duration_ms,
+            x_axis_label = if custom_axis_labels.get() {
+                "Some(\"Saturation (X)\")"
+            } else {
+                "None"
+            },
+            y_axis_label = if custom_axis_labels.get() {
+                "Some(\"Lightness (Y)\")"
+            } else {
+                "None"
+            },
+            class_name = if custom_class.get() {
+                "Some(\"docs-color-area-workbench\")"
+            } else {
+                "None"
+            },
+            lang = lang,
+            dir = dir,
+            show_preview = show_preview.get(),
         )
     });
 
     let workbench_test_css = Signal::derive(move || {
         format!(
             "/* components/color-area/src/styles.rs */\n{}",
-            ui_components::color::area::styles::CSS
+            ui::color::area::styles::CSS
         )
     });
 
@@ -465,7 +581,7 @@ let on_controlled_change = Callback::new(move |next: (f32, f32)| set_controlled.
                 />
             </Playground>
 
-            <Playground title="State Matrix" code_signal=state_matrix_code>
+            <Playground title="State Gallery" code_signal=state_matrix_code>
                 <div class="docs-row docs-row--wrap" style="gap: var(--ui-space-lg); align-items: flex-start;">
                     <div class="docs-stack docs-stack--tight">
                         <span class="ui-muted">"Default"</span>
@@ -568,6 +684,15 @@ let on_controlled_change = Callback::new(move |next: (f32, f32)| set_controlled.
                             "Custom class"
                         </Switch>
                         <Switch checked=show_preview set_checked=set_show_preview>"Show preview color"</Switch>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>
+                            "Custom motion"
+                        </Switch>
+                        <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
+                            "lang=zh-CN"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                            "dir=rtl"
+                        </Switch>
                     </div>
                 }
             >
@@ -603,6 +728,7 @@ let on_controlled_change = Callback::new(move |next: (f32, f32)| set_controlled.
                                         id_base="docs-color-area-workbench-main".to_string()
                                         label="Color workbench".to_string()
                                         default_value=(default_x, default_y)
+                                        on_value_change=on_value_change
                                         grid_size=grid_size
                                         step=step
                                         is_disabled=is_disabled.get()
@@ -611,6 +737,8 @@ let on_controlled_change = Callback::new(move |next: (f32, f32)| set_controlled.
                                         } else {
                                             String::new()
                                         }
+                                        motion=workbench_motion.get()
+                                        aria_label="Color workbench area".to_string()
                                         x_axis_label=if custom_axis_labels.get() {
                                             "Saturation (X)".to_string()
                                         } else {
@@ -625,6 +753,16 @@ let on_controlled_change = Callback::new(move |next: (f32, f32)| set_controlled.
                                             "docs-color-area-workbench".to_string()
                                         } else {
                                             String::new()
+                                        }
+                                        lang=if workbench_lang_zh.get() {
+                                            "zh-CN".to_string()
+                                        } else {
+                                            "en-US".to_string()
+                                        }
+                                        dir=if workbench_rtl.get() {
+                                            A11yDirection::Rtl
+                                        } else {
+                                            A11yDirection::Ltr
                                         }
                                     />
                                 </div>
@@ -656,10 +794,63 @@ let on_controlled_change = Callback::new(move |next: (f32, f32)| set_controlled.
                             </div>
                             <span class="ui-muted">
                                 "左侧工作台可调，右侧两个固定对照用于状态/样式差异比对。"
+                                " callback value="
+                                {move || {
+                                    let (x, y) = value.get();
+                                    format!("({x:.2}, {y:.2})")
+                                }}
                             </span>
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Controlled / Dense / Disabled)"
+                code_signal=state_matrix_code
+            >
+                <div class="docs-row docs-row--wrap" style="gap: var(--ui-space-lg); align-items: flex-start;">
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Controlled"</span>
+                        <ColorArea
+                            id_base="docs-color-area-matrix-controlled-v2".to_string()
+                            label="Controlled".to_string()
+                            value=value.into()
+                            on_value_change=on_value_change
+                            aria_label="Controlled color area".to_string()
+                            lang="en-US".to_string()
+                            dir=A11yDirection::Ltr
+                        />
+                    </div>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Dense grid"</span>
+                        <ColorArea
+                            id_base="docs-color-area-matrix-dense-v2".to_string()
+                            label="Dense grid".to_string()
+                            default_value=(0.25, 0.85)
+                            grid_size=15
+                            step=0.05
+                            preview_color="#a78bfa".to_string()
+                            motion=ui::color::area::ColorAreaMotion { duration_ms: 320.0 }
+                            aria_label="Dense grid area".to_string()
+                            lang="en-US".to_string()
+                            dir=A11yDirection::Ltr
+                        />
+                    </div>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Disabled RTL"</span>
+                        <ColorArea
+                            id_base="docs-color-area-matrix-disabled-v2".to_string()
+                            label="Disabled".to_string()
+                            is_disabled=true
+                            class_name="docs-color-area-custom".to_string()
+                            aria_label="Disabled color area".to_string()
+                            lang="ar".to_string()
+                            dir=A11yDirection::Rtl
+                            motion=ui::color::area::ColorAreaMotion::default()
+                        />
+                    </div>
+                </div>
             </Playground>
 
             <section class="docs-card docs-prose" data-slot="color-area-copy-ready">
@@ -671,7 +862,7 @@ let on_controlled_change = Callback::new(move |next: (f32, f32)| set_controlled.
                 </p>
                 <p>
                     "Default import baseline: "
-                    <code>"use leptos::prelude::*; use ui_components::*;"</code>
+                    <code>"use leptos::prelude::*; use ui::*;"</code>
                     " (overridable per-playground with "
                     <code>"code_imports"</code>
                     ")."
@@ -825,7 +1016,11 @@ pub(super) fn color_slider() -> AnyView {
             },
         );
     let (workbench_value, set_workbench_value) = signal(initial_workbench_state.value);
-    let on_workbench_value_change = Callback::new(move |next: f64| set_workbench_value.set(next));
+    let (workbench_change_count, set_workbench_change_count) = signal(0_u32);
+    let on_workbench_value_change = Callback::new(move |next: f64| {
+        set_workbench_change_count.update(|count| *count += 1);
+        set_workbench_value.set(next);
+    });
     let workbench_value_signal: Signal<f64> = workbench_value.into();
 
     let (workbench_disabled, set_workbench_disabled) = signal(initial_workbench_state.is_disabled);
@@ -839,6 +1034,8 @@ pub(super) fn color_slider() -> AnyView {
         signal(initial_workbench_state.preserve_context);
     let (workbench_persist_state, set_workbench_persist_state) =
         signal(has_persisted_workbench_state);
+    let (workbench_lang_zh, set_workbench_lang_zh) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
 
     let last_workbench_channel_index =
         RwSignal::new(workbench_channel_index.get_untracked().unwrap_or(0).min(3));
@@ -897,6 +1094,22 @@ pub(super) fn color_slider() -> AnyView {
             ColorSliderChannel::Alpha => "ColorSliderChannel::Alpha",
             _ => "ColorSliderChannel::Hue",
         };
+        let (min, max, step) = match channel {
+            ColorSliderChannel::Hue => (0.0, 360.0, 1.0),
+            _ => (0.0, 100.0, 1.0),
+        };
+        let default_value = channel.default_value();
+        let aria_label = format!("{} slider", channel.default_label());
+        let lang_literal = if workbench_lang_zh.get() {
+            "\"zh-CN\".to_string()"
+        } else {
+            "\"en-US\".to_string()"
+        };
+        let dir_literal = if workbench_rtl.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
 
         let mut lines = vec![
             format!(
@@ -910,9 +1123,18 @@ pub(super) fn color_slider() -> AnyView {
             "  id_base=\"docs-color-slider-workbench\".into()".to_string(),
             format!("  channel={channel_literal}"),
             format!("  label=\"{}\".into()", channel.default_label()),
+            format!("  aria_label={:?}.into()", aria_label),
             "  value=value.into()".to_string(),
+            format!("  default_value={default_value:.1}"),
             "  on_value_change=on_value_change".to_string(),
+            format!("  min={min:.1}"),
+            format!("  max={max:.1}"),
+            format!("  step={step:.1}"),
+            "  is_disabled=false".to_string(),
             format!("  disabled={}", workbench_disabled.get()),
+            "  show_value_label=true".to_string(),
+            format!("  lang={lang_literal}"),
+            format!("  dir={dir_literal}"),
         ];
 
         if workbench_custom_track.get() {
@@ -933,13 +1155,18 @@ pub(super) fn color_slider() -> AnyView {
     let workbench_test_css_source = Signal::derive(move || {
         format!(
             "/* components/color-slider/src/styles.rs */\n{}\n\n/* apps/docs-app/dev-overrides.css */\n{}",
-            ui_components::color::slider::styles::CSS,
+            ui::color::slider::styles::CSS,
             include_str!("../../../../dev-overrides.css"),
         )
     });
 
     let workbench_actual_config = Signal::derive(move || {
         let channel = workbench_channel.get();
+        let (min, max, step) = match channel {
+            ColorSliderChannel::Hue => (0.0, 360.0, 1.0),
+            _ => (0.0, 100.0, 1.0),
+        };
+        let default_value = channel.default_value();
         let value = workbench_value.get();
         let is_disabled = workbench_disabled.get();
         let custom_track = workbench_custom_track.get();
@@ -948,7 +1175,28 @@ pub(super) fn color_slider() -> AnyView {
         let preserve_context = workbench_preserve_context.get();
         let persist_state = workbench_persist_state.get();
         format!(
-            "ColorSliderWorkbenchConfig {{\n  channel: {channel:?},\n  value: {value:.2},\n  is_disabled: {is_disabled},\n  custom_track: {custom_track},\n  custom_class: {custom_class},\n  reduced_motion: {reduced_motion},\n  preserve_context: {preserve_context},\n  persist_state: {persist_state},\n}}"
+            "ColorSliderWorkbenchConfig {{\n  id_base: \"docs-color-slider-workbench\",\n  channel: {channel:?},\n  label: {:?},\n  aria_label: {:?},\n  value: {value:.2},\n  default_value: Some({default_value:.1}),\n  on_value_change: \"count={} last={value:.2}\",\n  min: {min:.1},\n  max: {max:.1},\n  step: {step:.1},\n  is_disabled: Some(false),\n  disabled: {is_disabled},\n  motion: {:?},\n  show_value_label: true,\n  track_start_color: {:?},\n  track_end_color: {:?},\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n  custom_track: {custom_track},\n  custom_class: {custom_class},\n  reduced_motion: {reduced_motion},\n  preserve_context: {preserve_context},\n  persist_state: {persist_state},\n}}",
+            channel.default_label(),
+            format!("{} slider", channel.default_label()),
+            workbench_change_count.get(),
+            if reduced_motion {
+                ColorSliderMotion::disabled()
+            } else {
+                ColorSliderMotion::default()
+            },
+            if custom_track { Some("#0f172a") } else { None },
+            if custom_track { Some("#38bdf8") } else { None },
+            if custom_class {
+                Some("docs-color-slider-workbench")
+            } else {
+                None
+            },
+            if workbench_lang_zh.get() {
+                "zh-CN"
+            } else {
+                "en-US"
+            },
+            if workbench_rtl.get() { "rtl" } else { "ltr" },
         )
     });
 
@@ -1069,7 +1317,7 @@ let on_controlled_hue_change =
             <Playground
                 title="Hello World"
                 code_signal=hello_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::ColorSlider;".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::ColorSlider;".to_string()
             >
                 <ColorSlider id_base="docs-color-slider-hello".to_string() />
             </Playground>
@@ -1077,7 +1325,7 @@ let on_controlled_hue_change =
             <Playground
                 title="State Matrix"
                 code_signal=state_matrix_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{ColorSlider, ColorSliderChannel, ColorSliderMotion};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{ColorSlider, ColorSliderChannel, ColorSliderMotion};".to_string()
             >
                 <div class="docs-row" data-slot="color-slider-state-matrix">
                     <div class="docs-card">
@@ -1115,7 +1363,7 @@ let on_controlled_hue_change =
             <Playground
                 title="Controlled vs Uncontrolled"
                 code_signal=controlled_vs_uncontrolled_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{ColorSlider, ColorSliderChannel};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{ColorSlider, ColorSliderChannel};".to_string()
             >
                 <div class="docs-row" data-slot="color-slider-controlled-vs-uncontrolled">
                     <div class="docs-card">
@@ -1146,7 +1394,7 @@ let on_controlled_hue_change =
             <Playground
                 title="Streaming Optional / Snapshot"
                 code_signal=output_mode_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{ColorSlider, ColorSliderChannel};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{ColorSlider, ColorSliderChannel};".to_string()
             >
                 <div
                     class="docs-stack docs-stack--tight"
@@ -1204,6 +1452,12 @@ let on_controlled_hue_change =
                         <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
                             "Persist workbench state"
                         </Switch>
+                        <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
+                            "lang=zh-CN"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                            "dir=rtl"
+                        </Switch>
                     </div>
                 }
             >
@@ -1233,11 +1487,32 @@ let on_controlled_hue_change =
                                     id_base="docs-color-slider-workbench".to_string()
                                     channel=channel
                                     label=format!("{} (Workbench)", channel.default_label())
+                                    aria_label=format!("{} slider", channel.default_label())
                                     value=workbench_value_signal
+                                    default_value=channel.default_value()
                                     on_value_change=on_workbench_value_change
+                                    min=0.0
+                                    max=if channel == ColorSliderChannel::Hue {
+                                        360.0
+                                    } else {
+                                        100.0
+                                    }
+                                    step=1.0
+                                    show_value_label=true
+                                    is_disabled=false
                                     disabled=is_disabled
                                     track_start_color=track_start_color
                                     track_end_color=track_end_color
+                                    lang=if workbench_lang_zh.get() {
+                                        "zh-CN".to_string()
+                                    } else {
+                                        "en-US".to_string()
+                                    }
+                                    dir=if workbench_rtl.get() {
+                                        A11yDirection::Rtl
+                                    } else {
+                                        A11yDirection::Ltr
+                                    }
                                     motion=motion
                                     class_name=if custom_class {
                                         "docs-color-slider-workbench".to_string()
@@ -1250,12 +1525,64 @@ let on_controlled_hue_change =
                             <span class="ui-muted" data-slot="color-slider-workbench-state">
                                 "channel: " {channel.as_attr()}
                                 " · value: " {format!("{value:.1}")}
+                                " · changes: " {workbench_change_count.get()}
                                 " · preserve: " {if workbench_preserve_context.get() { "on" } else { "off" }}
                                 " · persist: " {if workbench_persist_state.get() { "on" } else { "off" }}
                             </span>
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Hue / Saturation / Disabled Alpha)"
+                code_signal=state_matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::{ColorSlider, ColorSliderChannel, ColorSliderMotion};".to_string()
+            >
+                <div class="docs-row" data-slot="color-slider-state-matrix-final">
+                    <ColorSlider
+                        id_base="docs-color-slider-matrix-final-hue".to_string()
+                        channel=ColorSliderChannel::Hue
+                        label="Hue".to_string()
+                        aria_label="Hue slider".to_string()
+                        default_value=196.0
+                        min=0.0
+                        max=360.0
+                        step=1.0
+                        show_value_label=true
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <ColorSlider
+                        id_base="docs-color-slider-matrix-final-saturation".to_string()
+                        channel=ColorSliderChannel::Saturation
+                        label="Saturation".to_string()
+                        aria_label="Saturation slider".to_string()
+                        default_value=72.0
+                        min=0.0
+                        max=100.0
+                        step=1.0
+                        show_value_label=true
+                        lang="zh-CN".to_string()
+                        dir=A11yDirection::Rtl
+                    />
+                    <ColorSlider
+                        id_base="docs-color-slider-matrix-final-disabled".to_string()
+                        channel=ColorSliderChannel::Alpha
+                        label="Disabled alpha".to_string()
+                        aria_label="Disabled alpha slider".to_string()
+                        default_value=40.0
+                        min=0.0
+                        max=100.0
+                        step=1.0
+                        show_value_label=true
+                        disabled=true
+                        motion=ColorSliderMotion::disabled()
+                        class_name="docs-color-slider-custom".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                </div>
             </Playground>
 
             <Playground title="Controlled Hue Channel" code_signal=basic_code>
@@ -1501,6 +1828,9 @@ pub(super) fn color_wheel() -> AnyView {
         signal(initial_workbench_state.preserve_context);
     let (workbench_persist_state, set_workbench_persist_state) =
         signal(has_persisted_workbench_state);
+    let (workbench_show_value_label, set_workbench_show_value_label) = signal(true);
+    let (workbench_lang_zh, set_workbench_lang_zh) = signal(false);
+    let (workbench_rtl_dir, set_workbench_rtl_dir) = signal(false);
     let workbench_motion = Signal::derive(move || {
         if workbench_reduced_motion.get() {
             ColorWheelMotion::disabled()
@@ -1661,10 +1991,36 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
             "<ColorWheel".to_string(),
             "  id_base=\"docs-color-wheel-workbench\".into()".to_string(),
             format!("  label=\"{} (Workbench)\".into()", preset.label),
+            "  aria_label=\"Workbench hue selector\".into()".to_string(),
             "  value=value.into()".to_string(),
             "  on_value_change=on_value_change".to_string(),
             format!("  default_value={:.1}", workbench_value.get()),
+            "  step=15.0".to_string(),
             format!("  is_disabled={}", workbench_disabled.get()),
+            format!(
+                "  is_value_label_visible={}",
+                bool_word(workbench_show_value_label.get())
+            ),
+            format!(
+                "  show_value_label={}",
+                bool_word(workbench_show_value_label.get())
+            ),
+            format!(
+                "  lang={}.into()",
+                rust_string_literal(if workbench_lang_zh.get() {
+                    "zh-CN"
+                } else {
+                    "en-US"
+                })
+            ),
+            format!(
+                "  dir={}",
+                if workbench_rtl_dir.get() {
+                    "A11yDirection::Rtl"
+                } else {
+                    "A11yDirection::Ltr"
+                }
+            ),
         ];
 
         if workbench_reduced_motion.get() {
@@ -1695,15 +2051,35 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
         let reduced_motion = workbench_reduced_motion.get();
         let preserve_context = workbench_preserve_context.get();
         let persist_state = workbench_persist_state.get();
+        let show_value_label = workbench_show_value_label.get();
+        let lang = if workbench_lang_zh.get() {
+            "zh-CN"
+        } else {
+            "en-US"
+        };
+        let dir = if workbench_rtl_dir.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
         format!(
-            "ColorWheelWorkbenchConfig {{\n  preset_label: \"{}\",\n  value: {:.2},\n  is_disabled: {},\n  custom_class: {},\n  reduced_motion: {},\n  preserve_context: {},\n  persist_state: {},\n}}",
-            preset.label,
-            value,
-            is_disabled,
-            custom_class,
-            reduced_motion,
-            preserve_context,
-            persist_state,
+            "ColorWheelWorkbenchConfig {{\n  id_base: \"docs-color-wheel-workbench\",\n  label: Some(\"{preset_label} (Workbench)\"),\n  aria_label: Some(\"Workbench hue selector\"),\n  value: Some({value:.2}),\n  default_value: Some({default_value:.2}),\n  on_value_change: Some(\"on_workbench_value_change\"),\n  step: 15.0,\n  is_disabled: Some({is_disabled}),\n  disabled: {is_disabled},\n  motion: {motion:?},\n  is_value_label_visible: Some({show_value_label}),\n  show_value_label: {show_value_label},\n  class_name: {class_name},\n  lang: Some({lang:?}),\n  dir: Some({dir}),\n  preset_label: \"{preset_label}\",\n  reduced_motion: {reduced_motion},\n  preserve_context: {preserve_context},\n  persist_state: {persist_state},\n}}",
+            preset_label = preset.label,
+            value = value,
+            default_value = preset.default_value,
+            is_disabled = is_disabled,
+            motion = workbench_motion.get(),
+            show_value_label = show_value_label,
+            class_name = if custom_class {
+                "Some(\"docs-color-wheel-workbench\")"
+            } else {
+                "None"
+            },
+            lang = lang,
+            dir = dir,
+            reduced_motion = reduced_motion,
+            preserve_context = preserve_context,
+            persist_state = persist_state,
         )
     });
 
@@ -1770,7 +2146,7 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
             <Playground
                 title="Hello World"
                 code_signal=hello_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::ColorWheel;".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::ColorWheel;".to_string()
             >
                 <ColorWheel id_base="docs-color-wheel-hello".to_string() />
             </Playground>
@@ -1778,7 +2154,7 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
             <Playground
                 title="State Matrix"
                 code_signal=state_matrix_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::{ColorWheel, ColorWheelMotion};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{ColorWheel, ColorWheelMotion};".to_string()
             >
                 <div class="docs-row" data-slot="color-wheel-state-matrix">
                     <div class="docs-card">
@@ -1813,7 +2189,7 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
             <Playground
                 title="Parameter Matrix"
                 code_signal=parameter_matrix_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::ColorWheel;".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::ColorWheel;".to_string()
             >
                 <div class="docs-row" data-slot="color-wheel-parameter-matrix">
                     <div class="docs-card">
@@ -1847,7 +2223,7 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
             <Playground
                 title="Controlled vs Uncontrolled"
                 code_signal=controlled_vs_uncontrolled_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::ColorWheel;".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::ColorWheel;".to_string()
             >
                 <div class="docs-row" data-slot="color-wheel-controlled-vs-uncontrolled">
                     <div class="docs-card">
@@ -1876,7 +2252,7 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
             <Playground
                 title="Streaming Optional / Snapshot"
                 code_signal=output_mode_code
-                code_imports="use leptos::prelude::*;\nuse ui_components::ColorWheel;".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::ColorWheel;".to_string()
             >
                 <div
                     class="docs-stack docs-stack--tight"
@@ -1932,6 +2308,24 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
                                 "Reduced motion"
                             </Switch>
                         </div>
+                        <div data-slot="color-wheel-workbench-toggle-value-label">
+                            <Switch
+                                checked=workbench_show_value_label
+                                set_checked=set_workbench_show_value_label
+                            >
+                                "Show value label"
+                            </Switch>
+                        </div>
+                        <div data-slot="color-wheel-workbench-toggle-lang">
+                            <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
+                                "lang=zh-CN"
+                            </Switch>
+                        </div>
+                        <div data-slot="color-wheel-workbench-toggle-dir">
+                            <Switch checked=workbench_rtl_dir set_checked=set_workbench_rtl_dir>
+                                "dir=rtl"
+                            </Switch>
+                        </div>
                         <div data-slot="color-wheel-workbench-toggle-preserve-context">
                             <Switch checked=workbench_preserve_context set_checked=set_workbench_preserve_context>
                                 "Preserve context on preset change"
@@ -1964,9 +2358,24 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
                                     label=format!("{} (Workbench)", preset.label)
                                     value=workbench_value_signal
                                     on_value_change=on_workbench_value_change
+                                    default_value=preset.default_value
+                                    step=15.0
                                     is_disabled=is_disabled
                                     motion=motion
+                                    is_value_label_visible=workbench_show_value_label.get()
+                                    show_value_label=workbench_show_value_label.get()
                                     class_name=class_name
+                                    aria_label="Workbench hue selector".to_string()
+                                    lang=if workbench_lang_zh.get() {
+                                        "zh-CN".to_string()
+                                    } else {
+                                        "en-US".to_string()
+                                    }
+                                    dir=if workbench_rtl_dir.get() {
+                                        A11yDirection::Rtl
+                                    } else {
+                                        A11yDirection::Ltr
+                                    }
                                 />
                             </div>
 
@@ -1979,6 +2388,49 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Controlled vs Default)"
+                code_signal=controlled_vs_uncontrolled_code
+                code_imports="use leptos::prelude::*;\nuse ui::ColorWheel;".to_string()
+            >
+                <div class="docs-row" data-slot="color-wheel-controlled-vs-default-matrix">
+                    <div class="docs-card">
+                        <div class="ui-muted">"Controlled"</div>
+                        <ColorWheel
+                            id_base="docs-color-wheel-matrix-controlled-v2".to_string()
+                            label="Controlled".to_string()
+                            value=value.into()
+                            on_value_change=on_value_change
+                            lang="en-US".to_string()
+                            dir=A11yDirection::Ltr
+                        />
+                    </div>
+                    <div class="docs-card">
+                        <div class="ui-muted">"Default"</div>
+                        <ColorWheel
+                            id_base="docs-color-wheel-matrix-default-v2".to_string()
+                            label="Default".to_string()
+                            default_value=180.0
+                            lang="en-US".to_string()
+                            dir=A11yDirection::Ltr
+                        />
+                    </div>
+                    <div class="docs-card">
+                        <div class="ui-muted">"Disabled + hidden label"</div>
+                        <ColorWheel
+                            id_base="docs-color-wheel-matrix-disabled-v2".to_string()
+                            label="Disabled".to_string()
+                            default_value=282.0
+                            is_disabled=true
+                            is_value_label_visible=false
+                            motion=ColorWheelMotion::disabled()
+                            lang="ar".to_string()
+                            dir=A11yDirection::Rtl
+                        />
+                    </div>
+                </div>
             </Playground>
 
             <Playground
@@ -2079,18 +2531,6 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
 }
 
 pub(super) fn color_picker() -> AnyView {
-    let (selected_color, set_selected_color) = signal(Some("#ef4444".to_string()));
-    let on_selected_change =
-        Callback::new(move |next: Option<String>| set_selected_color.set(next));
-    let (compare_selected_color, set_compare_selected_color) = signal(Some("#22c55e".to_string()));
-    let on_compare_selected_change =
-        Callback::new(move |next: Option<String>| set_compare_selected_color.set(next));
-
-    let (open, set_open) = signal(false);
-    let on_open_change = Callback::new(move |next: bool| set_open.set(next));
-    let (compare_open, set_compare_open) = signal(false);
-    let on_compare_open_change = Callback::new(move |next: bool| set_compare_open.set(next));
-
     let (swatches, _set_swatches) = signal(vec![
         ColorSwatchPickerItem::named("#ef4444", "Red"),
         ColorSwatchPickerItem::named("#f59e0b", "Amber"),
@@ -2099,350 +2539,194 @@ pub(super) fn color_picker() -> AnyView {
         ColorSwatchPickerItem::named("#8b5cf6", "Violet"),
     ]);
 
-    let selected_color_signal: Signal<Option<String>> = selected_color.into();
-    let open_signal: Signal<bool> = open.into();
-    let compare_selected_color_signal: Signal<Option<String>> = compare_selected_color.into();
-    let compare_open_signal: Signal<bool> = compare_open.into();
-    let color_picker_imports = "use leptos::prelude::*;\nuse ui_components::{ColorPicker, ColorSwatchPicker, ColorSwatchPickerItem};".to_string();
+    let (workbench_color, set_workbench_color) = signal(Some("#ef4444".to_string()));
+    let workbench_value: Signal<Option<String>> = Signal::derive(move || workbench_color.get());
+    let workbench_selected_color: Signal<Option<String>> =
+        Signal::derive(move || workbench_color.get());
 
-    let hello_code = Signal::derive(move || {
-        r##"<ColorPicker
-  id_base="docs-color-picker-hello".to_string()
->
-  <div class="ui-muted">"Default picker content"</div>
-</ColorPicker>"##
-            .to_string()
+    let (workbench_open_raw, set_workbench_open_raw) = signal(false);
+    let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
+
+    let (last_value_change, set_last_value_change) = signal("none".to_string());
+    let (last_selected_change, set_last_selected_change) = signal("none".to_string());
+    let (last_open_change, set_last_open_change) = signal("none".to_string());
+    let on_value_change = Callback::new(move |next: Option<String>| {
+        set_last_value_change.set(next.clone().unwrap_or_else(|| "none".to_string()));
+        set_workbench_color.set(next);
+    });
+    let on_selected_change = Callback::new(move |next: Option<String>| {
+        set_last_selected_change.set(next.clone().unwrap_or_else(|| "none".to_string()));
+        set_workbench_color.set(next);
+    });
+    let on_open_change = Callback::new(move |next: bool| {
+        set_last_open_change.set(if next { "true" } else { "false" }.to_string());
+        set_workbench_open_raw.set(next);
     });
 
-    let basic_code = Signal::derive(move || {
-        r##"let (selected_color, set_selected_color) = signal(Some("#ef4444".to_string()));
-let on_selected_change = Callback::new(move |next: Option<String>| set_selected_color.set(next));
-let (open, set_open) = signal(false);
-let on_open_change = Callback::new(move |next: bool| set_open.set(next));
-
-let (swatches, _set_swatches) = signal(vec![
-  ColorSwatchPickerItem::named("#ef4444", "Red"),
-  ColorSwatchPickerItem::named("#3b82f6", "Blue"),
-]);
-let selected_color_signal: Signal<Option<String>> = selected_color.into();
-let open_signal: Signal<bool> = open.into();
-
-<ColorPicker
-  id_base="docs-color-picker-basic".to_string()
-  label="Fill".to_string()
-  selected_color=selected_color_signal
-  on_selected_change=on_selected_change
-  open=open_signal
-  on_open_change=on_open_change
->
-  <ColorSwatchPicker
-    swatches=swatches
-    selected_color=selected_color_signal
-    on_selected_change=on_selected_change
-  />
-</ColorPicker>"##
-            .to_string()
-    });
-
-    let state_matrix_code = Signal::derive(move || {
-        r##"<div class="docs-row" data-slot="color-picker-state-matrix">
-  <div class="docs-card">
-    <div class="ui-muted">"Ready"</div>
-    <ColorPicker
-      id_base="docs-color-picker-matrix-ready".to_string()
-      label="Ready".to_string()
-      default_selected_color="#3b82f6".to_string()
-    >
-      <ColorSwatchPicker
-        swatches=swatches
-        selected_color=selected_color_signal
-        on_selected_change=on_selected_change
-      />
-    </ColorPicker>
-  </div>
-  <div class="docs-card">
-    <div class="ui-muted">"Open"</div>
-    <ColorPicker
-      id_base="docs-color-picker-matrix-open".to_string()
-      label="Open".to_string()
-      default_selected_color="#8b5cf6".to_string()
-      default_open=true
-    >
-      <div class="ui-muted">"Overlay preview"</div>
-    </ColorPicker>
-  </div>
-  <div class="docs-card">
-    <div class="ui-muted">"Disabled"</div>
-    <ColorPicker
-      id_base="docs-color-picker-matrix-disabled".to_string()
-      label="Disabled".to_string()
-      default_selected_color="#0ea5e9".to_string()
-      is_disabled=true
-    >
-      <div class="ui-muted">"Disabled picker"</div>
-    </ColorPicker>
-  </div>
-</div>"##
-            .to_string()
-    });
-
-    let controlled_vs_uncontrolled_code = Signal::derive(move || {
-        r##"let (controlled_color, set_controlled_color) = signal(Some("#22c55e".to_string()));
-let on_controlled_color_change =
-  Callback::new(move |next: Option<String>| set_controlled_color.set(next));
-let (controlled_open, set_controlled_open) = signal(false);
-let on_controlled_open_change = Callback::new(move |next: bool| set_controlled_open.set(next));
-
-<ColorPicker
-  id_base="docs-color-picker-compare-controlled".to_string()
-  label="Controlled".to_string()
-  selected_color=controlled_color.into()
-  on_selected_change=on_controlled_color_change
-  open=controlled_open.into()
-  on_open_change=on_controlled_open_change
->
-  <ColorSwatchPicker
-    swatches=swatches
-    selected_color=controlled_color.into()
-    on_selected_change=on_controlled_color_change
-  />
-</ColorPicker>
-
-<ColorPicker
-  id_base="docs-color-picker-compare-uncontrolled".to_string()
-  label="Uncontrolled".to_string()
-  default_selected_color="#8b5cf6".to_string()
-  default_open=true
->
-  <div class="ui-muted">"Uncontrolled content"</div>
-</ColorPicker>"##
-            .to_string()
-    });
-
-    let output_mode_code = Signal::derive(move || {
-        r##"// ColorPicker is an interaction component, not an LLM text-reading surface.
-// Streaming is optional; fallback is snapshot.
-<div
-  data-ui-streaming="optional"
-  data-ui-fallback="snapshot"
-  data-ui-output-state="snapshot"
->
-  "ColorPicker docs output mode: snapshot"
-</div>"##
-            .to_string()
-    });
-
-    let source_first_code = Signal::derive(move || {
-        r##"let swatches = vec![
-  ColorSwatchPickerItem::named("#ef4444", "Red"),
-  ColorSwatchPickerItem::named("#3b82f6", "Blue"),
-];
-let (selected, set_selected) = signal(Some("#ef4444".to_string()));
-let on_selected_change = Callback::new(move |next: Option<String>| set_selected.set(next));
-
-<ColorPicker
-  id_base="docs-color-picker-source-first".to_string()
-  label="Source-first starter".to_string()
-  selected_color=selected.into()
-  on_selected_change=on_selected_change
->
-  <ColorSwatchPicker
-    swatches=swatches
-    selected_color=selected.into()
-    on_selected_change=on_selected_change
-  />
-</ColorPicker>"##
-            .to_string()
-    });
-
-    let states_code = Signal::derive(move || {
-        r##"<ColorPicker
-  id_base="docs-color-picker-disabled".to_string()
-  label="Disabled".to_string()
-  default_selected_color="#0ea5e9".to_string()
-  is_disabled=true
-  class_name="docs-color-picker-custom".to_string()
->
-  <div class="ui-muted">"Disabled picker content"</div>
-</ColorPicker>
-
-<ColorPicker
-  id_base="docs-color-picker-open".to_string()
-  label="Open by default".to_string()
-  default_selected_color="#8b5cf6".to_string()
-  default_open=true
->
-  <div class="docs-stack docs-stack--tight">
-    <span class="ui-muted">"Custom content area"</span>
-  </div>
-</ColorPicker>"##
-            .to_string()
-    });
-
-    let baseline_code = Signal::derive(move || {
-        r##"<div
-  class="docs-stack docs-stack--tight"
-  data-doc-visual-baseline="color-picker-default-theme"
-  data-doc-baseline-shot="color-picker-default-theme-v1"
->
-  <ColorPicker
-    id_base="docs-color-picker-baseline-default".to_string()
-    label="Primary".to_string()
-    default_selected_color="#3b82f6".to_string()
-  >
-    <ColorSwatchPicker
-      swatches=swatches
-      selected_color=selected_color_signal
-      on_selected_change=on_selected_change
-    />
-  </ColorPicker>
-
-  <ColorPicker
-    id_base="docs-color-picker-baseline-open".to_string()
-    label="Overlay depth".to_string()
-    default_selected_color="#8b5cf6".to_string()
-    default_open=true
-  >
-    <div class="docs-stack docs-stack--tight">
-      <span class="ui-muted">"Overlay baseline content"</span>
-      <span class="ui-muted">"Hover/Focus/Depth target"</span>
-    </div>
-  </ColorPicker>
-</div>"##
-            .to_string()
-    });
-
-    let workbench_palette_options = vec!["Warm".to_string(), "Cool".to_string()];
-    let (workbench_palette_index, set_workbench_palette_index) = signal(Some(0usize));
-    let (workbench_selected_color, set_workbench_selected_color) =
-        signal(Some("#ef4444".to_string()));
-    let on_workbench_selected_change = Callback::new(move |next: Option<String>| {
-        set_workbench_selected_color.set(next);
-    });
-    let workbench_selected_color_signal: Signal<Option<String>> = workbench_selected_color.into();
-    let (workbench_open, set_workbench_open) = signal(false);
-    let on_workbench_open_change = Callback::new(move |next: bool| set_workbench_open.set(next));
-    let workbench_open_signal: Signal<bool> = workbench_open.into();
     let (workbench_disabled, set_workbench_disabled) = signal(false);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
-    let (workbench_preserve_context, set_workbench_preserve_context) = signal(true);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_swatch_bordered, set_workbench_swatch_bordered) = signal(true);
 
-    let last_workbench_palette_index =
-        RwSignal::new(workbench_palette_index.get_untracked().unwrap_or(0).min(1));
-    Effect::new(move |_| {
-        let next_palette_index = workbench_palette_index.get().unwrap_or(0).min(1);
-        let prev_palette_index = last_workbench_palette_index.get_untracked();
-        if next_palette_index == prev_palette_index {
-            return;
-        }
-
-        last_workbench_palette_index.set(next_palette_index);
-        if !workbench_preserve_context.get() {
-            let default_color = if next_palette_index == 0 {
-                "#ef4444"
-            } else {
-                "#06b6d4"
-            };
-            set_workbench_selected_color.set(Some(default_color.to_string()));
-            set_workbench_open.set(false);
-            set_workbench_disabled.set(false);
-            set_workbench_custom_class.set(false);
-        }
+    let (placement_key, set_placement_key) = signal("bottom-start".to_string());
+    let workbench_placement = Signal::derive(move || match placement_key.get().as_str() {
+        "top-start" => ui_headless::PopoverPlacement::TopStart,
+        "bottom-end" => ui_headless::PopoverPlacement::BottomEnd,
+        _ => ui_headless::PopoverPlacement::BottomStart,
     });
 
-    let (workbench_swatches, set_workbench_swatches) = signal(
-        match workbench_palette_index.get_untracked().unwrap_or(0).min(1) {
-            0 => vec![
-                ColorSwatchPickerItem::named("#ef4444", "Red"),
-                ColorSwatchPickerItem::named("#f59e0b", "Amber"),
-                ColorSwatchPickerItem::named("#f97316", "Orange"),
-                ColorSwatchPickerItem::named("#f43f5e", "Rose"),
-                ColorSwatchPickerItem::named("#eab308", "Yellow"),
-            ],
-            _ => vec![
-                ColorSwatchPickerItem::named("#06b6d4", "Cyan"),
-                ColorSwatchPickerItem::named("#3b82f6", "Blue"),
-                ColorSwatchPickerItem::named("#8b5cf6", "Violet"),
-                ColorSwatchPickerItem::named("#10b981", "Emerald"),
-                ColorSwatchPickerItem::named("#14b8a6", "Teal"),
-            ],
-        },
-    );
-    Effect::new(move |_| {
-        let next = match workbench_palette_index.get().unwrap_or(0).min(1) {
-            0 => vec![
-                ColorSwatchPickerItem::named("#ef4444", "Red"),
-                ColorSwatchPickerItem::named("#f59e0b", "Amber"),
-                ColorSwatchPickerItem::named("#f97316", "Orange"),
-                ColorSwatchPickerItem::named("#f43f5e", "Rose"),
-                ColorSwatchPickerItem::named("#eab308", "Yellow"),
-            ],
-            _ => vec![
-                ColorSwatchPickerItem::named("#06b6d4", "Cyan"),
-                ColorSwatchPickerItem::named("#3b82f6", "Blue"),
-                ColorSwatchPickerItem::named("#8b5cf6", "Violet"),
-                ColorSwatchPickerItem::named("#10b981", "Emerald"),
-                ColorSwatchPickerItem::named("#14b8a6", "Teal"),
-            ],
-        };
-        set_workbench_swatches.set(next);
+    let (swatch_size_key, set_swatch_size_key) = signal("md".to_string());
+    let workbench_swatch_size = Signal::derive(move || match swatch_size_key.get().as_str() {
+        "xs" => ui::ColorSwatchSize::Xs,
+        "sm" => ui::ColorSwatchSize::Sm,
+        "lg" => ui::ColorSwatchSize::Lg,
+        _ => ui::ColorSwatchSize::Md,
+    });
+
+    let (swatch_rounding_key, set_swatch_rounding_key) = signal("default".to_string());
+    let workbench_swatch_rounding =
+        Signal::derive(move || match swatch_rounding_key.get().as_str() {
+            "none" => ui::ColorSwatchRounding::None,
+            "full" => ui::ColorSwatchRounding::Full,
+            _ => ui::ColorSwatchRounding::Default,
+        });
+
+    let (swatch_shape_key, set_swatch_shape_key) = signal("square".to_string());
+    let workbench_swatch_shape = Signal::derive(move || match swatch_shape_key.get().as_str() {
+        "wide" => ui::ColorSwatchShape::Wide,
+        _ => ui::ColorSwatchShape::Square,
+    });
+
+    let hello_code = Signal::derive(move || {
+        r##"<ColorPicker id_base="docs-color-picker-hello".to_string()>
+  <div class="ui-muted">"Choose a brand color"</div>
+</ColorPicker>"##
+            .to_string()
     });
 
     let workbench_code = Signal::derive(move || {
-        let palette = if workbench_palette_index.get().unwrap_or(0).min(1) == 0 {
-            "warm"
-        } else {
-            "cool"
-        };
-        let selected = workbench_selected_color
-            .get()
-            .unwrap_or_else(|| "none".to_string());
-        let open = workbench_open.get();
-        let is_disabled = workbench_disabled.get();
-        let custom_class = workbench_custom_class.get();
-        let preserve_context = workbench_preserve_context.get();
-
-        let class_name_line = if custom_class {
-            "  class_name=\"docs-color-picker-workbench\".into()\n"
-        } else {
-            ""
-        };
-
         format!(
-            "<ColorPicker\n  id_base=\"docs-color-picker-workbench\".into()\n  label=\"{palette} palette\".into()\n  selected_color=selected.into()\n  on_selected_change=on_selected_change\n  open=open.into()\n  on_open_change=on_open_change\n  is_disabled={is_disabled}\n{class_name_line}>\n  <ColorSwatchPicker\n    swatches=swatches\n    selected_color=selected.into()\n    on_selected_change=on_selected_change\n  />\n</ColorPicker>\n\n// selected={selected}; open={open}; preserve_context={preserve_context}",
+            "<ColorPicker\n  id_base=\"docs-color-picker-workbench\".to_string()\n  label=\"Brand color\".to_string()\n  aria_label=\"Brand color picker\".to_string()\n  lang={}\n  dir={}\n  is_disabled={}\n  disabled={}\n  value=value\n  default_value=\"#ef4444\".to_string()\n  on_value_change=on_value_change\n  selected_color=selected_color\n  default_selected_color=\"#ef4444\".to_string()\n  on_selected_change=on_selected_change\n  open=open\n  default_open=false\n  on_open_change=on_open_change\n  motion={}\n  placement={}\n  swatch_size={}\n  swatch_rounding={}\n  swatch_shape={}\n  swatch_bordered={}\n  class_name={}\n>\n  <ColorSwatchPicker swatches=swatches selected_color=selected_color on_selected_change=on_selected_change />\n</ColorPicker>",
+            if workbench_rtl.get() {
+                "\"ar\".to_string()"
+            } else {
+                "\"en\".to_string()"
+            },
+            if workbench_rtl.get() {
+                "ui_headless::A11yDirection::Rtl"
+            } else {
+                "ui_headless::A11yDirection::Ltr"
+            },
+            workbench_disabled.get(),
+            workbench_disabled.get(),
+            if workbench_custom_motion.get() {
+                "ui::ColorPickerMotion { popover: ui::PopoverMotion { initial_scale: 0.92, offset_y_px: 10.0, ..ui::PopoverMotion::default() } }"
+            } else {
+                "ui::ColorPickerMotion::default()"
+            },
+            match workbench_placement.get() {
+                ui_headless::PopoverPlacement::TopStart => {
+                    "ui_headless::PopoverPlacement::TopStart"
+                }
+                ui_headless::PopoverPlacement::BottomEnd => {
+                    "ui_headless::PopoverPlacement::BottomEnd"
+                }
+                _ => "ui_headless::PopoverPlacement::BottomStart",
+            },
+            match workbench_swatch_size.get() {
+                ui::ColorSwatchSize::Xs => "ui::ColorSwatchSize::Xs",
+                ui::ColorSwatchSize::Sm => "ui::ColorSwatchSize::Sm",
+                ui::ColorSwatchSize::Lg => "ui::ColorSwatchSize::Lg",
+                _ => "ui::ColorSwatchSize::Md",
+            },
+            match workbench_swatch_rounding.get() {
+                ui::ColorSwatchRounding::None => "ui::ColorSwatchRounding::None",
+                ui::ColorSwatchRounding::Full => "ui::ColorSwatchRounding::Full",
+                _ => "ui::ColorSwatchRounding::Default",
+            },
+            match workbench_swatch_shape.get() {
+                ui::ColorSwatchShape::Wide => "ui::ColorSwatchShape::Wide",
+                _ => "ui::ColorSwatchShape::Square",
+            },
+            workbench_swatch_bordered.get(),
+            if workbench_custom_class.get() {
+                "\"docs-color-picker-workbench\".to_string()"
+            } else {
+                "String::new()"
+            }
         )
-    });
-
-    let workbench_test_css_source = Signal::derive(move || {
-        r#"
-:scope .docs-color-picker-workbench[data-open="true"] .ui-color-picker__trigger {
-  outline: 1px solid color-mix(in oklch, var(--ui-accent), white 24%);
-  outline-offset: 2px;
-}
-:scope .docs-color-picker-workbench .ui-color-picker__panel {
-  border-color: color-mix(in oklch, var(--ui-accent), transparent 72%);
-}
-"#
-        .trim()
-        .to_string()
     });
 
     let workbench_actual_config = Signal::derive(move || {
-        let palette = if workbench_palette_index.get().unwrap_or(0).min(1) == 0 {
-            "warm"
-        } else {
-            "cool"
-        };
-        let selected = workbench_selected_color
-            .get()
-            .unwrap_or_else(|| "none".to_string());
-        let open = workbench_open.get();
-        let is_disabled = workbench_disabled.get();
-        let custom_class = workbench_custom_class.get();
-        let preserve_context = workbench_preserve_context.get();
         format!(
-            "{{\n  \"palette\": \"{palette}\",\n  \"selected\": \"{selected}\",\n  \"open\": {open},\n  \"disabled\": {is_disabled},\n  \"custom_class\": {custom_class},\n  \"preserve_context\": {preserve_context}\n}}",
+            "ColorPickerWorkbenchConfig {{\n  id_base: \"docs-color-picker-workbench\",\n  label: Some(\"Brand color\"),\n  aria_label: Some(\"Brand color picker\"),\n  lang: {},\n  dir: {},\n  is_disabled: {},\n  disabled: Some({}),\n  value: {},\n  default_value: Some(\"#ef4444\"),\n  on_value_change: Some(\"Callback<Option<String>>\"),\n  selected_color: {},\n  default_selected_color: Some(\"#ef4444\"),\n  on_selected_change: Some(\"Callback<Option<String>>\"),\n  open: {},\n  default_open: Some(false),\n  on_open_change: Some(\"Callback<bool>\"),\n  motion: {},\n  placement: {},\n  swatch_size: {},\n  swatch_rounding: {},\n  swatch_shape: {},\n  swatch_bordered: {},\n  class_name: {},\n}}",
+            if workbench_rtl.get() {
+                "Some(\"ar\")"
+            } else {
+                "Some(\"en\")"
+            },
+            if workbench_rtl.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
+            workbench_disabled.get(),
+            workbench_disabled.get(),
+            match workbench_color.get() {
+                Some(value) => format!("Some({value:?})"),
+                None => "None".to_string(),
+            },
+            match workbench_color.get() {
+                Some(value) => format!("Some({value:?})"),
+                None => "None".to_string(),
+            },
+            workbench_open_raw.get(),
+            if workbench_custom_motion.get() {
+                "ColorPickerMotion::custom"
+            } else {
+                "ColorPickerMotion::default"
+            },
+            match workbench_placement.get() {
+                ui_headless::PopoverPlacement::TopStart => "TopStart",
+                ui_headless::PopoverPlacement::BottomEnd => "BottomEnd",
+                _ => "BottomStart",
+            },
+            match workbench_swatch_size.get() {
+                ui::ColorSwatchSize::Xs => "Xs",
+                ui::ColorSwatchSize::Sm => "Sm",
+                ui::ColorSwatchSize::Lg => "Lg",
+                _ => "Md",
+            },
+            match workbench_swatch_rounding.get() {
+                ui::ColorSwatchRounding::None => "None",
+                ui::ColorSwatchRounding::Full => "Full",
+                _ => "Default",
+            },
+            match workbench_swatch_shape.get() {
+                ui::ColorSwatchShape::Wide => "Wide",
+                _ => "Square",
+            },
+            workbench_swatch_bordered.get(),
+            if workbench_custom_class.get() {
+                "Some(\"docs-color-picker-workbench\")"
+            } else {
+                "None"
+            }
         )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r##"<ColorPicker id_base="docs-color-picker-matrix-default".to_string() label="Default".to_string() default_selected_color="#3b82f6".to_string()>
+  <div class="ui-muted">"Default"</div>
+</ColorPicker>
+<ColorPicker id_base="docs-color-picker-matrix-open".to_string() label="Open".to_string() default_selected_color="#8b5cf6".to_string() default_open=true>
+  <div class="ui-muted">"Open by default"</div>
+</ColorPicker>
+<ColorPicker id_base="docs-color-picker-matrix-disabled".to_string() label="Disabled".to_string() default_selected_color="#0ea5e9".to_string() is_disabled=true>
+  <div class="ui-muted">"Disabled"</div>
+</ColorPicker>"##
+            .to_string()
     });
 
     view! {
@@ -2450,338 +2734,166 @@ let on_selected_change = Callback::new(move |next: Option<String>| set_selected.
             title="ColorPicker"
             slug="color-picker"
             group="Forms"
-            description="baseline-compatible color picker primitive that composes swatch trigger + popover content with controllable color/open state and stable slot/data-state contracts."
+            description="Color picker with controlled value/open contracts and swatch composition."
         >
-            <Playground
-                title="Hello World（默认路径）"
-                code_signal=hello_code
-                code_imports=color_picker_imports.clone()
-            >
+            <Playground title="Hello World" code_signal=hello_code>
                 <ColorPicker id_base="docs-color-picker-hello".to_string()>
-                    <div class="ui-muted">"Default picker content"</div>
+                    <div class="ui-muted">"Choose a brand color"</div>
                 </ColorPicker>
             </Playground>
 
             <Playground
-                title="State Matrix"
-                code_signal=state_matrix_code
-                code_imports=color_picker_imports.clone()
-            >
-                <div class="docs-row" data-slot="color-picker-state-matrix">
-                    <div class="docs-card">
-                        <div class="ui-muted">"Ready"</div>
-                        <ColorPicker
-                            id_base="docs-color-picker-matrix-ready".to_string()
-                            label="Ready".to_string()
-                            default_selected_color="#3b82f6".to_string()
-                        >
-                            <ColorSwatchPicker
-                                swatches=swatches
-                                selected_color=selected_color_signal
-                                on_selected_change=on_selected_change
-                            />
-                        </ColorPicker>
-                    </div>
-                    <div class="docs-card">
-                        <div class="ui-muted">"Open"</div>
-                        <ColorPicker
-                            id_base="docs-color-picker-matrix-open".to_string()
-                            label="Open".to_string()
-                            default_selected_color="#8b5cf6".to_string()
-                            default_open=true
-                        >
-                            <div class="ui-muted">"Overlay preview"</div>
-                        </ColorPicker>
-                    </div>
-                    <div class="docs-card">
-                        <div class="ui-muted">"Disabled"</div>
-                        <ColorPicker
-                            id_base="docs-color-picker-matrix-disabled".to_string()
-                            label="Disabled".to_string()
-                            default_selected_color="#0ea5e9".to_string()
-                            is_disabled=true
-                        >
-                            <div class="ui-muted">"Disabled picker"</div>
-                        </ColorPicker>
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Default Theme Baseline"
-                description="默认主题视觉基线：信息层级、对比层次、hover/focus 反馈与 overlay 深度。"
-                code_signal=baseline_code
-            >
-                <div
-                    class="docs-stack docs-stack--tight"
-                    data-doc-visual-baseline="color-picker-default-theme"
-                    data-doc-baseline-shot="color-picker-default-theme-v1"
-                    data-doc-visual-targets="trigger,overlay,content"
-                >
-                    <ColorPicker
-                        id_base="docs-color-picker-baseline-default".to_string()
-                        label="Primary".to_string()
-                        default_selected_color="#3b82f6".to_string()
-                    >
-                        <ColorSwatchPicker
-                            swatches=swatches
-                            selected_color=selected_color_signal
-                            on_selected_change=on_selected_change
-                        />
-                    </ColorPicker>
-
-                    <ColorPicker
-                        id_base="docs-color-picker-baseline-open".to_string()
-                        label="Overlay depth".to_string()
-                        default_selected_color="#8b5cf6".to_string()
-                        default_open=true
-                    >
-                        <div class="docs-stack docs-stack--tight">
-                            <span class="ui-muted">"Overlay baseline content"</span>
-                            <span class="ui-muted">"Hover/Focus/Depth target"</span>
-                        </div>
-                    </ColorPicker>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Interactive Workbench (DX)"
-                description="Scoped CSS test panel + 交互配置工作台；默认保留上下文，可按需关闭保留以复位状态。"
+                title="Config Workbench"
+                description="Covers full ColorPicker API and shows callback feedback."
                 code_signal=workbench_code
-                test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/color-picker/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="color-picker-workbench-controls">
-                        <div class="docs-search__label">"Palette"</div>
-                        <SegmentedControl
-                            id_base="docs-color-picker-workbench-palette".to_string()
-                            options=workbench_palette_options.clone()
-                            selected_index=workbench_palette_index
-                            set_selected_index=set_workbench_palette_index
-                            size=SegmentedControlSize::Sm
-                            aria_label="ColorPicker workbench palette".to_string()
-                        />
-                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
-                            "Disabled"
-                        </Switch>
-                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
-                            "Custom class"
-                        </Switch>
-                        <Switch checked=workbench_preserve_context set_checked=set_workbench_preserve_context>
-                            "Preserve context on palette change"
-                        </Switch>
+                        <label class="docs-choice-row">
+                            <span>"Placement"</span>
+                            <select
+                                class="docs-select"
+                                on:change=move |ev| set_placement_key.set(event_target_value(&ev))
+                            >
+                                <option value="bottom-start" selected=move || placement_key.get() == "bottom-start">"BottomStart"</option>
+                                <option value="top-start" selected=move || placement_key.get() == "top-start">"TopStart"</option>
+                                <option value="bottom-end" selected=move || placement_key.get() == "bottom-end">"BottomEnd"</option>
+                            </select>
+                        </label>
+                        <label class="docs-choice-row">
+                            <span>"Swatch size"</span>
+                            <select
+                                class="docs-select"
+                                on:change=move |ev| set_swatch_size_key.set(event_target_value(&ev))
+                            >
+                                <option value="xs" selected=move || swatch_size_key.get() == "xs">"Xs"</option>
+                                <option value="sm" selected=move || swatch_size_key.get() == "sm">"Sm"</option>
+                                <option value="md" selected=move || swatch_size_key.get() == "md">"Md"</option>
+                                <option value="lg" selected=move || swatch_size_key.get() == "lg">"Lg"</option>
+                            </select>
+                        </label>
+                        <label class="docs-choice-row">
+                            <span>"Rounding"</span>
+                            <select
+                                class="docs-select"
+                                on:change=move |ev| set_swatch_rounding_key.set(event_target_value(&ev))
+                            >
+                                <option value="default" selected=move || swatch_rounding_key.get() == "default">"Default"</option>
+                                <option value="none" selected=move || swatch_rounding_key.get() == "none">"None"</option>
+                                <option value="full" selected=move || swatch_rounding_key.get() == "full">"Full"</option>
+                            </select>
+                        </label>
+                        <label class="docs-choice-row">
+                            <span>"Shape"</span>
+                            <select
+                                class="docs-select"
+                                on:change=move |ev| set_swatch_shape_key.set(event_target_value(&ev))
+                            >
+                                <option value="square" selected=move || swatch_shape_key.get() == "square">"Square"</option>
+                                <option value="wide" selected=move || swatch_shape_key.get() == "wide">"Wide"</option>
+                            </select>
+                        </label>
+                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>"Disabled"</Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>"Custom class"</Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>"RTL"</Switch>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>"Custom motion"</Switch>
+                        <Switch checked=workbench_swatch_bordered set_checked=set_workbench_swatch_bordered>"Swatch bordered"</Switch>
                     </div>
                 }
             >
-                {move || {
-                    let palette_name = if workbench_palette_index.get().unwrap_or(0).min(1) == 0 {
-                        "Warm"
-                    } else {
-                        "Cool"
-                    };
-                    view! {
-                        <div class="docs-stack docs-stack--tight" data-slot="color-picker-workbench">
-                            <div class="docs-card docs-stack docs-stack--tight" data-slot="color-picker-workbench-canvas">
-                                <ColorPicker
-                                    id_base="docs-color-picker-workbench".to_string()
-                                    label=format!("{palette_name} palette")
-                                    selected_color=workbench_selected_color_signal
-                                    on_selected_change=on_workbench_selected_change
-                                    open=workbench_open_signal
-                                    on_open_change=on_workbench_open_change
-                                    is_disabled=workbench_disabled.get()
-                                    class_name=if workbench_custom_class.get() {
-                                        "docs-color-picker-workbench".to_string()
-                                    } else {
-                                        String::new()
-                                    }
-                                >
-                                    <ColorSwatchPicker
-                                        swatches=workbench_swatches
-                                        selected_color=workbench_selected_color_signal
-                                        on_selected_change=on_workbench_selected_change
-                                    />
-                                </ColorPicker>
-                            </div>
-
-                            <span class="ui-muted" data-slot="color-picker-workbench-state">
-                                "palette: " {palette_name}
-                                " · selected: " {workbench_selected_color.get().unwrap_or_else(|| "none".to_string())}
-                                " · open: " {if workbench_open.get() { "true" } else { "false" }}
-                                " · preserve: " {if workbench_preserve_context.get() { "on" } else { "off" }}
-                            </span>
-                        </div>
-                    }
-                }}
-            </Playground>
-
-            <Playground title="Controlled Color + Controlled Open" code_signal=basic_code>
-                <div class="docs-stack docs-stack--tight">
+                <div class="docs-stack docs-stack--tight" data-slot="color-picker-workbench-preview">
                     <ColorPicker
-                        id_base="docs-color-picker-basic".to_string()
-                        label="Fill".to_string()
-                        selected_color=selected_color_signal
+                        id_base="docs-color-picker-workbench".to_string()
+                        label="Brand color".to_string()
+                        aria_label="Brand color picker".to_string()
+                        lang=if workbench_rtl.get() {
+                            "ar".to_string()
+                        } else {
+                            "en".to_string()
+                        }
+                        dir=if workbench_rtl.get() {
+                            ui_headless::A11yDirection::Rtl
+                        } else {
+                            ui_headless::A11yDirection::Ltr
+                        }
+                        is_disabled=workbench_disabled.get()
+                        disabled=workbench_disabled.get()
+                        value=workbench_value
+                        default_value="#ef4444".to_string()
+                        on_value_change=on_value_change
+                        selected_color=workbench_selected_color
+                        default_selected_color="#ef4444".to_string()
                         on_selected_change=on_selected_change
-                        open=open_signal
+                        open=workbench_open
+                        default_open=false
                         on_open_change=on_open_change
+                        motion=if workbench_custom_motion.get() {
+                            ui::ColorPickerMotion {
+                                popover: ui::PopoverMotion {
+                                    initial_scale: 0.92,
+                                    offset_y_px: 10.0,
+                                    ..ui::PopoverMotion::default()
+                                },
+                            }
+                        } else {
+                            ui::ColorPickerMotion::default()
+                        }
+                        placement=workbench_placement.get()
+                        swatch_size=workbench_swatch_size.get()
+                        swatch_rounding=workbench_swatch_rounding.get()
+                        swatch_shape=workbench_swatch_shape.get()
+                        swatch_bordered=workbench_swatch_bordered.get()
+                        class_name=if workbench_custom_class.get() {
+                            "docs-color-picker-workbench".to_string()
+                        } else {
+                            String::new()
+                        }
                     >
                         <ColorSwatchPicker
                             swatches=swatches
-                            selected_color=selected_color_signal
+                            selected_color=workbench_selected_color
                             on_selected_change=on_selected_change
                         />
                     </ColorPicker>
-
                     <span class="ui-muted">
-                        "selected: " {move || selected_color.get().unwrap_or_else(|| "none".to_string())}
-                        " · open: " {move || if open.get() { "true" } else { "false" }}
+                        "selected=" {move || workbench_color.get().unwrap_or_else(|| "none".to_string())}
+                        " · open=" {move || workbench_open_raw.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "on_value_change=" {move || last_value_change.get()}
+                        " · on_selected_change=" {move || last_selected_change.get()}
+                        " · on_open_change=" {move || last_open_change.get()}
                     </span>
                 </div>
             </Playground>
 
-            <Playground
-                title="Controlled vs Uncontrolled"
-                code_signal=controlled_vs_uncontrolled_code
-                code_imports=color_picker_imports.clone()
-            >
-                <div class="docs-row" data-slot="color-picker-controlled-vs-uncontrolled">
-                    <div class="docs-card">
-                        <div class="ui-muted">"Controlled"</div>
-                        <ColorPicker
-                            id_base="docs-color-picker-compare-controlled".to_string()
-                            label="Controlled".to_string()
-                            selected_color=compare_selected_color_signal
-                            on_selected_change=on_compare_selected_change
-                            open=compare_open_signal
-                            on_open_change=on_compare_open_change
-                        >
-                            <ColorSwatchPicker
-                                swatches=swatches
-                                selected_color=compare_selected_color_signal
-                                on_selected_change=on_compare_selected_change
-                            />
-                        </ColorPicker>
-                        <span class="ui-muted">
-                            "selected: "
-                            {move || compare_selected_color.get().unwrap_or_else(|| "none".to_string())}
-                            " · open: "
-                            {move || if compare_open.get() { "true" } else { "false" }}
-                        </span>
-                    </div>
-                    <div class="docs-card">
-                        <div class="ui-muted">"Uncontrolled"</div>
-                        <ColorPicker
-                            id_base="docs-color-picker-compare-uncontrolled".to_string()
-                            label="Uncontrolled".to_string()
-                            default_selected_color="#8b5cf6".to_string()
-                            default_open=true
-                        >
-                            <div class="ui-muted">"Uncontrolled content"</div>
-                        </ColorPicker>
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground title="Disabled + Default Open + Custom Class" code_signal=states_code>
-                <div class="docs-stack docs-stack--tight">
+            <Playground title="State Matrix" code_signal=matrix_code>
+                <div class="docs-row" data-slot="color-picker-state-matrix">
                     <ColorPicker
-                        id_base="docs-color-picker-disabled".to_string()
-                        label="Disabled".to_string()
-                        default_selected_color="#0ea5e9".to_string()
-                        is_disabled=true
-                        class_name="docs-color-picker-custom".to_string()
+                        id_base="docs-color-picker-matrix-default".to_string()
+                        label="Default".to_string()
+                        default_selected_color="#3b82f6".to_string()
                     >
-                        <div class="ui-muted">"Disabled picker content"</div>
+                        <div class="ui-muted">"Default"</div>
                     </ColorPicker>
-
                     <ColorPicker
-                        id_base="docs-color-picker-open".to_string()
-                        label="Open by default".to_string()
+                        id_base="docs-color-picker-matrix-open".to_string()
+                        label="Open".to_string()
                         default_selected_color="#8b5cf6".to_string()
                         default_open=true
                     >
-                        <div class="docs-stack docs-stack--tight">
-                            <span class="ui-muted">"Custom content area"</span>
-                        </div>
+                        <div class="ui-muted">"Open by default"</div>
                     </ColorPicker>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional / Snapshot"
-                code_signal=output_mode_code
-                code_imports=color_picker_imports.clone()
-            >
-                <div
-                    class="docs-stack docs-stack--tight"
-                    data-slot="color-picker-output-mode"
-                    data-ui-streaming="optional"
-                    data-ui-fallback="snapshot"
-                    data-ui-output-state="snapshot"
-                >
-                    <span class="ui-muted">
-                        "ColorPicker is an interaction component; docs output stays snapshot (`fallback=snapshot`)."
-                    </span>
                     <ColorPicker
-                        id_base="docs-color-picker-snapshot".to_string()
-                        label="Snapshot fallback".to_string()
-                        default_selected_color="#6366f1".to_string()
+                        id_base="docs-color-picker-matrix-disabled".to_string()
+                        label="Disabled".to_string()
+                        default_selected_color="#0ea5e9".to_string()
+                        is_disabled=true
                     >
-                        <div class="ui-muted">"Snapshot-only output surface"</div>
+                        <div class="ui-muted">"Disabled"</div>
                     </ColorPicker>
                 </div>
             </Playground>
-
-            <Playground
-                title="Source-first Starter (Copy-Paste Ready)"
-                code_signal=source_first_code
-                code_imports=color_picker_imports.clone()
-            >
-                <ColorPicker
-                    id_base="docs-color-picker-source-first".to_string()
-                    label="Source-first starter".to_string()
-                    selected_color=selected_color_signal
-                    on_selected_change=on_selected_change
-                >
-                    <ColorSwatchPicker
-                        swatches=swatches
-                        selected_color=selected_color_signal
-                        on_selected_change=on_selected_change
-                    />
-                </ColorPicker>
-            </Playground>
-
-            <section class="docs-card docs-prose" data-slot="color-picker-copy-ready">
-                <h3>"Source-first / Copy-Paste Ready"</h3>
-                <p>
-                    "Playground copy action injects missing imports through "
-                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
-                    ", and keeps snippet imports synchronized with "
-                    <code>"code_imports"</code>
-                    "."
-                </p>
-                <p data-slot="color-picker-source-paths">
-                    "Source-first path: "
-                    <code>"components/color-picker/src/mod.rs"</code>
-                    ", "
-                    <code>"components/color-picker/src/view.rs"</code>
-                    ", "
-                    <code>"components/color-picker/src/logic.rs"</code>
-                    ", "
-                    <code>"components/color-picker/src/styles.rs"</code>
-                    ", "
-                    <code>"components/color-picker/src/motion.rs"</code>
-                    "."
-                </p>
-                <p data-slot="color-picker-source-prerequisites">
-                    "Prerequisites: enable "
-                    <code>"component-color_picker"</code>
-                    " (and "
-                    <code>"inject-css"</code>
-                    " when runtime CSS injection is required) so copied snippets compile and render as expected."
-                </p>
-            </section>
         </ComponentPage>
     }
     .into_any()
@@ -2801,7 +2913,7 @@ pub(super) fn color_thumb() -> AnyView {
     }
 
     let board_style = "position: relative; inline-size: 12rem; block-size: 7rem; border: 1px dashed color-mix(in oklch, var(--ui-border), transparent 24%); border-radius: var(--ui-radius-sm); background: color-mix(in oklch, var(--ui-bg), var(--ui-fg) 2%);";
-    let color_thumb_imports = "use leptos::prelude::*;\nuse ui_components::ColorThumb;".to_string();
+    let color_thumb_imports = "use leptos::prelude::*;\nuse ui::ColorThumb;".to_string();
     let (workbench_color, set_workbench_color) = signal("#10b981".to_string());
     let (workbench_x_percent, set_workbench_x_percent) = signal(48.0_f32);
     let (workbench_y_percent, set_workbench_y_percent) = signal(46.0_f32);
@@ -2810,6 +2922,9 @@ pub(super) fn color_thumb() -> AnyView {
     let (workbench_dragging, set_workbench_dragging) = signal(false);
     let (workbench_loupe_visible, set_workbench_loupe_visible) = signal(true);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_reduced_motion, set_workbench_reduced_motion) = signal(false);
+    let (workbench_lang_zh, set_workbench_lang_zh) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
     let (workbench_replay_count, set_workbench_replay_count) = signal(0_u32);
     let (workbench_spec_input, set_workbench_spec_input) = signal(
         r##"{"color":"#0ea5e9","x_percent":66.0,"y_percent":34.0,"is_focused":true}"##.to_string(),
@@ -2982,6 +3097,17 @@ pub(super) fn color_thumb() -> AnyView {
             .to_string()
     });
     let workbench_code = Signal::derive(move || {
+        let motion_line = "    motion=ColorThumbMotion::default()\n";
+        let lang_line = if workbench_lang_zh.get() {
+            "    lang=\"zh-CN\".to_string()\n"
+        } else {
+            "    lang=\"en-US\".to_string()\n"
+        };
+        let dir_line = if workbench_rtl.get() {
+            "    dir=A11yDirection::Rtl\n"
+        } else {
+            "    dir=A11yDirection::Ltr\n"
+        };
         let class_name_line = if workbench_custom_class.get() {
             "    class_name=\"docs-color-thumb-workbench\".to_string()\n"
         } else {
@@ -2989,7 +3115,7 @@ pub(super) fn color_thumb() -> AnyView {
         };
 
         format!(
-            "<div style=board_style>\n  <ColorThumb\n    id_base=\"docs-color-thumb-workbench\".to_string()\n    color=\"{}\".to_string()\n    is_disabled={}\n    is_focused={}\n    is_dragging={}\n    is_loupe_visible={}\n    x_percent={:.1}\n    y_percent={:.1}\n{}  />\n</div>\n\n// replay_count={}; spec_valid={}",
+            "<div style=board_style>\n  <ColorThumb\n    id_base=\"docs-color-thumb-workbench\".to_string()\n    color=\"{}\".to_string()\n    is_disabled={}\n    is_focused={}\n    is_dragging={}\n    is_loupe_visible={}\n    x_percent={:.1}\n    y_percent={:.1}\n    aria_label=\"Color thumb\".to_string()\n    aria_value_text={:?}.to_string()\n{}{}{}{}  />\n</div>\n\n// replay_count={}; spec_valid={}",
             workbench_color.get(),
             workbench_disabled.get(),
             workbench_focused.get(),
@@ -2997,6 +3123,15 @@ pub(super) fn color_thumb() -> AnyView {
             workbench_loupe_visible.get(),
             workbench_x_percent.get(),
             workbench_y_percent.get(),
+            format!(
+                "{} @ ({:.1}%, {:.1}%)",
+                workbench_color.get(),
+                workbench_x_percent.get(),
+                workbench_y_percent.get()
+            ),
+            motion_line,
+            lang_line,
+            dir_line,
             class_name_line,
             workbench_replay_count.get(),
             if workbench_spec.get().is_some() {
@@ -3021,15 +3156,32 @@ pub(super) fn color_thumb() -> AnyView {
     });
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "{{\n  \"color\": \"{}\",\n  \"x_percent\": {:.1},\n  \"y_percent\": {:.1},\n  \"is_disabled\": {},\n  \"is_focused\": {},\n  \"is_dragging\": {},\n  \"is_loupe_visible\": {},\n  \"custom_class\": {},\n  \"replay_count\": {},\n  \"spec_valid\": {}\n}}",
+            "ColorThumbWorkbenchConfig {{\n  id_base: \"docs-color-thumb-workbench\",\n  color: Some({:?}),\n  is_disabled: {},\n  is_focused: {},\n  is_dragging: {},\n  x_percent: Some({:.1}),\n  y_percent: Some({:.1}),\n  is_loupe_visible: Some({}),\n  motion: {:?},\n  aria_label: Some(\"Color thumb\"),\n  aria_value_text: Some({:?}),\n  class_name: {:?},\n  lang: Some({:?}),\n  dir: Some({:?}),\n  replay_count: {},\n  spec_valid: {},\n}}",
             workbench_color.get(),
-            workbench_x_percent.get(),
-            workbench_y_percent.get(),
             workbench_disabled.get(),
             workbench_focused.get(),
             workbench_dragging.get(),
+            workbench_x_percent.get(),
+            workbench_y_percent.get(),
             workbench_loupe_visible.get(),
-            workbench_custom_class.get(),
+            ColorThumbMotion::default(),
+            format!(
+                "{} @ ({:.1}%, {:.1}%)",
+                workbench_color.get(),
+                workbench_x_percent.get(),
+                workbench_y_percent.get()
+            ),
+            if workbench_custom_class.get() {
+                Some("docs-color-thumb-workbench")
+            } else {
+                None
+            },
+            if workbench_lang_zh.get() {
+                "zh-CN"
+            } else {
+                "en-US"
+            },
+            if workbench_rtl.get() { "rtl" } else { "ltr" },
             workbench_replay_count.get(),
             workbench_spec.get().is_some(),
         )
@@ -3272,6 +3424,15 @@ pub(super) fn color_thumb() -> AnyView {
                         <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
                             "Custom class"
                         </Switch>
+                        <Switch checked=workbench_reduced_motion set_checked=set_workbench_reduced_motion>
+                            "Reduced motion"
+                        </Switch>
+                        <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
+                            "lang=zh-CN"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                            "dir=rtl"
+                        </Switch>
 
                         <div class="docs-stack docs-stack--tight" data-slot="color-thumb-workbench-replay-controls">
                             <button
@@ -3371,6 +3532,28 @@ pub(super) fn color_thumb() -> AnyView {
                                         is_loupe_visible=workbench_loupe_visible.get()
                                         x_percent=workbench_x_percent.get()
                                         y_percent=workbench_y_percent.get()
+                                        motion=if workbench_reduced_motion.get() {
+                                            ColorThumbMotion::disabled()
+                                        } else {
+                                            ColorThumbMotion::default()
+                                        }
+                                        aria_label="Color thumb".to_string()
+                                        aria_value_text=format!(
+                                            "{} @ ({:.1}%, {:.1}%)",
+                                            workbench_color.get(),
+                                            workbench_x_percent.get(),
+                                            workbench_y_percent.get()
+                                        )
+                                        lang=if workbench_lang_zh.get() {
+                                            "zh-CN".to_string()
+                                        } else {
+                                            "en-US".to_string()
+                                        }
+                                        dir=if workbench_rtl.get() {
+                                            A11yDirection::Rtl
+                                        } else {
+                                            A11yDirection::Ltr
+                                        }
                                         class_name=if workbench_custom_class.get() {
                                             "docs-color-thumb-workbench".to_string()
                                         } else {
@@ -3394,6 +3577,24 @@ pub(super) fn color_thumb() -> AnyView {
                                         is_loupe_visible=spec_loupe_visible
                                         x_percent=spec_x
                                         y_percent=spec_y
+                                        motion=ColorThumbMotion::default()
+                                        aria_label="Spec color thumb".to_string()
+                                        aria_value_text=format!(
+                                            "{} @ ({:.1}%, {:.1}%)",
+                                            workbench_color.get(),
+                                            spec_x,
+                                            spec_y
+                                        )
+                                        lang=if workbench_lang_zh.get() {
+                                            "zh-CN".to_string()
+                                        } else {
+                                            "en-US".to_string()
+                                        }
+                                        dir=if workbench_rtl.get() {
+                                            A11yDirection::Rtl
+                                        } else {
+                                            A11yDirection::Ltr
+                                        }
                                         class_name=spec_class_name
                                     />
                                 </div>
@@ -3419,6 +3620,76 @@ pub(super) fn color_thumb() -> AnyView {
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                code_signal=state_matrix_code
+                code_imports=color_thumb_imports.clone()
+            >
+                <div style=board_style data-slot="color-thumb-state-matrix-final">
+                    <ColorThumb
+                        id_base="docs-color-thumb-matrix-final-idle".to_string()
+                        color="#f59e0b".to_string()
+                        x_percent=22.0
+                        y_percent=72.0
+                        motion=ColorThumbMotion::default()
+                        aria_label="Idle thumb".to_string()
+                        aria_value_text="amber @ (22%, 72%)".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-matrix-final-focused".to_string()
+                        color="#10b981".to_string()
+                        is_focused=true
+                        x_percent=52.0
+                        y_percent=44.0
+                        motion=ColorThumbMotion::default()
+                        aria_label="Focused thumb".to_string()
+                        aria_value_text="emerald @ (52%, 44%)".to_string()
+                        lang="zh-CN".to_string()
+                        dir=A11yDirection::Rtl
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-matrix-final-dragging".to_string()
+                        color="#3b82f6".to_string()
+                        is_dragging=true
+                        x_percent=82.0
+                        y_percent=28.0
+                        motion=ColorThumbMotion::default()
+                        aria_label="Dragging thumb".to_string()
+                        aria_value_text="blue @ (82%, 28%)".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-matrix-final-disabled".to_string()
+                        color="#a78bfa".to_string()
+                        is_disabled=true
+                        x_percent=30.0
+                        y_percent=56.0
+                        motion=ColorThumbMotion::default()
+                        aria_label="Disabled thumb".to_string()
+                        aria_value_text="violet @ (30%, 56%)".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-matrix-final-custom".to_string()
+                        color="rgba(56, 189, 248, 0.72)".to_string()
+                        is_dragging=true
+                        is_loupe_visible=false
+                        x_percent=70.0
+                        y_percent=40.0
+                        motion=ColorThumbMotion::default()
+                        aria_label="Custom thumb".to_string()
+                        aria_value_text="cyan @ (70%, 40%)".to_string()
+                        class_name="docs-color-thumb-custom".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                </div>
             </Playground>
 
             <Playground
@@ -3643,19 +3914,22 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
             3 => ColorEditorFormat::Hsb,
             _ => ColorEditorFormat::Hex,
         });
+    let (workbench_selected_color, set_workbench_selected_color) =
+        signal(Some("#4f46e5".to_string()));
+    let (workbench_selected_change_count, set_workbench_selected_change_count) = signal(0_u32);
+    let (workbench_format_change_count, set_workbench_format_change_count) = signal(0_u32);
     let on_workbench_format_change = Callback::new(move |next: ColorEditorFormat| {
         set_workbench_format_index.set(Some(match next {
             ColorEditorFormat::Hex => 0,
             ColorEditorFormat::Rgb => 1,
             ColorEditorFormat::Hsl => 2,
             ColorEditorFormat::Hsb => 3,
-        }))
+        }));
+        set_workbench_format_change_count.update(|count| *count += 1);
     });
-
-    let (workbench_selected_color, set_workbench_selected_color) =
-        signal(Some("#4f46e5".to_string()));
     let on_workbench_selected_change = Callback::new(move |next: Option<String>| {
         set_workbench_selected_color.set(next);
+        set_workbench_selected_change_count.update(|count| *count += 1);
     });
     let workbench_selected_color_signal: Signal<Option<String>> = workbench_selected_color.into();
     let workbench_format_signal: Signal<ColorEditorFormat> = workbench_format;
@@ -3688,6 +3962,21 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
             "  on_selected_change=on_selected_change".to_string(),
             "  format=format.into()".to_string(),
             "  on_format_change=on_format_change".to_string(),
+            "  aria_label=\"Brand palette editor\".into()".to_string(),
+            "  default_selected_color=\"#4f46e5\".into()".to_string(),
+            "  default_format=ColorEditorFormat::Hex".to_string(),
+            "  default_hue=258.0".to_string(),
+            "  default_alpha=88.0".to_string(),
+            "  default_area=(0.55_f32, 0.22_f32)".to_string(),
+            "  area_label=\"Saturation and brightness\".into()".to_string(),
+            "  area_aria_label=\"Drag to change saturation and brightness\".into()".to_string(),
+            "  hue_label=\"Hue\".into()".to_string(),
+            "  alpha_label=\"Alpha\".into()".to_string(),
+            "  value_label=\"Color value\".into()".to_string(),
+            "  format_aria_label=\"Color format selector\".into()".to_string(),
+            "  preview_color=\"#4f46e5\".into()".to_string(),
+            "  lang=\"en-US\".into()".to_string(),
+            "  dir=A11yDirection::Ltr".to_string(),
         ];
 
         if workbench_custom_label.get() {
@@ -3713,7 +4002,7 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
     let workbench_test_css_source = Signal::derive(move || {
         format!(
             "/* components/color-editor/src/styles.rs */\n{}",
-            ui_components::color::editor::styles::CSS
+            ui::color::editor::styles::CSS
         )
     });
 
@@ -3725,6 +4014,12 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
         let custom_label = workbench_custom_label.get();
         let custom_class = workbench_custom_class.get();
         let reduced_motion = workbench_reduced_motion.get();
+        let selected_value = workbench_selected_color.get();
+        let selected_value_text = selected_value
+            .as_ref()
+            .map_or_else(|| "None".to_string(), |value| format!("Some({value:?})"));
+        let callback_runs = workbench_selected_change_count.get();
+        let format_callback_runs = workbench_format_change_count.get();
 
         let data_state = if is_disabled {
             "disabled"
@@ -3755,7 +4050,22 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
         }
 
         format!(
-            "ColorEditorActualConfig {{\n  format: {format:?},\n  is_disabled: {is_disabled},\n  is_alpha_channel_hidden: {is_alpha_channel_hidden},\n  has_selection: {has_selection},\n  custom_label: {custom_label},\n  custom_class: {custom_class},\n  reduced_motion: {reduced_motion},\n  data_state: \"{data_state}\",\n  data_alpha: \"{data_alpha}\",\n  data_motion_source: \"{data_motion_source}\",\n  data_label_source: \"{data_label_source}\",\n  data_class_source: \"{data_class_source}\",\n  class: \"{}\",\n}}",
+            "ColorEditorActualConfig {{\n  id_base: \"docs-color-editor-workbench\",\n  label: {:?},\n  aria_label: \"Brand palette editor\",\n  is_disabled: {is_disabled},\n  selected_color: {selected_value_text},\n  default_selected_color: Some(\"#4f46e5\"),\n  on_selected_change: \"callback_runs={callback_runs}\",\n  format: {format:?},\n  default_format: ColorEditorFormat::Hex,\n  on_format_change: \"callback_runs={format_callback_runs}\",\n  is_alpha_channel_hidden: {is_alpha_channel_hidden},\n  default_hue: Some(258.0),\n  default_alpha: Some(88.0),\n  default_area: Some((0.55_f32, 0.22_f32)),\n  area_label: \"Saturation and brightness\",\n  area_aria_label: \"Drag to change saturation and brightness\",\n  hue_label: \"Hue\",\n  alpha_label: \"Alpha\",\n  value_label: \"Color value\",\n  format_aria_label: \"Color format selector\",\n  preview_color: Some(\"#4f46e5\"),\n  motion: {:?},\n  class_name: {:?},\n  lang: Some(\"en-US\"),\n  dir: Some(A11yDirection::Ltr),\n  has_selection: {has_selection},\n  custom_label: {custom_label},\n  custom_class: {custom_class},\n  reduced_motion: {reduced_motion},\n  data_state: \"{data_state}\",\n  data_alpha: \"{data_alpha}\",\n  data_motion_source: \"{data_motion_source}\",\n  data_label_source: \"{data_label_source}\",\n  data_class_source: \"{data_class_source}\",\n  class: \"{}\",\n}}",
+            if custom_label {
+                "Brand color workspace"
+            } else {
+                "Color editor"
+            },
+            if reduced_motion {
+                ColorSliderMotion::disabled()
+            } else {
+                ColorSliderMotion::default()
+            },
+            if custom_class {
+                Some("docs-color-editor-workbench")
+            } else {
+                None
+            },
             classes.join(" ")
         )
     });
@@ -3771,7 +4081,7 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
                 <ColorEditor id_base="docs-color-editor-hello".to_string() />
             </Playground>
 
-            <Playground title="State Matrix" code_signal=state_matrix_code>
+            <Playground title="State Gallery" code_signal=state_matrix_code>
                 <div class="docs-row" data-slot="color-editor-state-matrix">
                     <div class="docs-card">
                         <div class="ui-muted">"Ready"</div>
@@ -3909,17 +4219,32 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
                                         } else {
                                             "Color editor".to_string()
                                         }
+                                        aria_label="Brand palette editor".to_string()
                                         selected_color=workbench_selected_color_signal
                                         on_selected_change=on_workbench_selected_change
+                                        default_selected_color="#4f46e5".to_string()
                                         format=workbench_format_signal
+                                        default_format=ColorEditorFormat::Hex
                                         on_format_change=on_workbench_format_change
                                         is_alpha_channel_hidden=workbench_hide_alpha.get()
                                         is_disabled=workbench_disabled.get()
+                                        default_hue=258.0
+                                        default_alpha=88.0
+                                        default_area=(0.55_f32, 0.22_f32)
+                                        area_label="Saturation and brightness".to_string()
+                                        area_aria_label="Drag to change saturation and brightness".to_string()
+                                        hue_label="Hue".to_string()
+                                        alpha_label="Alpha".to_string()
+                                        value_label="Color value".to_string()
+                                        format_aria_label="Color format selector".to_string()
+                                        preview_color="#4f46e5".to_string()
                                         class_name=if workbench_custom_class.get() {
                                             "docs-color-editor-workbench".to_string()
                                         } else {
                                             String::new()
                                         }
+                                        lang="en-US".to_string()
+                                        dir=A11yDirection::Ltr
                                         motion=reduced_motion
                                     />
                                 </div>
@@ -3947,6 +4272,10 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
                                 }}
                                 " · format: "
                                 {move || workbench_format.get().as_attr()}
+                                " · on_selected_change: "
+                                {move || workbench_selected_change_count.get()}
+                                " · on_format_change: "
+                                {move || workbench_format_change_count.get()}
                             </span>
                         </div>
                     }
@@ -3973,7 +4302,10 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Alpha Hidden + Reduced Motion" code_signal=states_code>
+            <Playground
+                title="State Matrix (Disabled / Motion / Hidden Alpha)"
+                code_signal=states_code
+            >
                 <div class="docs-stack docs-stack--tight">
                     <ColorEditor
                         id_base="docs-color-editor-disabled".to_string()
@@ -4191,16 +4523,27 @@ let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem;";
     let workbench_test_css = Signal::derive(move || {
         format!(
             "/* components/color-handle/src/styles.rs */\n{}",
-            ui_components::color::handle::styles::CSS
+            ui::color::handle::styles::CSS
         )
     });
 
     let workbench_actual_config = Signal::derive(move || {
+        let color = match workbench_color_key.get().as_str() {
+            "mint" => "#10b981",
+            "sky" => "#0ea5e9",
+            "violet" => "#8b5cf6",
+            _ => "#f59e0b",
+        };
         let is_disabled = workbench_disabled.get();
         let is_focused = workbench_focused.get();
         let is_dragging = workbench_dragging.get();
         let is_loupe_visible = workbench_show_loupe.get();
         let has_custom_class = workbench_custom_class.get();
+        let class_name = if has_custom_class {
+            Some("docs-color-handle-custom")
+        } else {
+            None
+        };
         let state = if is_disabled {
             "disabled"
         } else if is_dragging {
@@ -4226,7 +4569,10 @@ let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem;";
             classes.push("docs-color-handle-custom".to_string());
         }
         format!(
-            "ColorHandleActualConfig {{\n  state: \"{state}\",\n  x_percent: {:.1},\n  y_percent: {:.1},\n  is_disabled: {is_disabled},\n  is_focused: {is_focused},\n  is_dragging: {is_dragging},\n  is_loupe_visible: {is_loupe_visible},\n  loupe_visible: {loupe_visible},\n  motion_duration_ms: {},\n  class: \"{}\",\n}}",
+            "ColorHandleActualConfig {{\n  id_base: \"docs-color-handle-workbench\",\n  color: {:?},\n  aria_label: Some(\"Workbench color handle\"),\n  lang: Some(\"en-US\"),\n  dir: Some(\"ltr\"),\n  class_name: {:?},\n  motion: ColorHandleMotion {{ duration_ms: {} }},\n  state: \"{state}\",\n  x_percent: {:.1},\n  y_percent: {:.1},\n  is_disabled: {is_disabled},\n  is_focused: {is_focused},\n  is_dragging: {is_dragging},\n  is_loupe_visible: {is_loupe_visible},\n  loupe_visible: {loupe_visible},\n  motion_duration_ms: {},\n  class: \"{}\",\n}}",
+            color,
+            class_name,
+            workbench_motion_ms.get(),
             workbench_x_percent.get(),
             workbench_y_percent.get(),
             workbench_motion_ms.get(),
@@ -4250,7 +4596,7 @@ let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem;";
                 </div>
             </Playground>
 
-            <Playground title="State Matrix" code_signal=state_matrix_code>
+            <Playground title="State Variants" code_signal=state_matrix_code>
                 <div style=surface_style data-slot="color-handle-state-matrix">
                     <ColorHandle
                         id_base="docs-color-handle-idle".to_string()
@@ -4534,6 +4880,9 @@ let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem;";
                                         <ColorHandle
                                             id_base="docs-color-handle-workbench".to_string()
                                             color=color.to_string()
+                                            aria_label="Workbench color handle".to_string()
+                                            lang="en-US".to_string()
+                                            dir=A11yDirection::Ltr
                                             is_disabled=workbench_disabled.get()
                                             is_focused=workbench_focused.get()
                                             is_dragging=workbench_dragging.get()
@@ -4548,6 +4897,45 @@ let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem;";
                             </div>
                         </div>
                     </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Disabled / Focus / Drag Comparison)"
+                code_signal=state_matrix_code
+            >
+                <div style=surface_style data-slot="color-handle-state-matrix-after-workbench">
+                    <ColorHandle
+                        id_base="docs-color-handle-idle-after-workbench".to_string()
+                        color="#f59e0b".to_string()
+                        aria_label="Idle color handle".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                        x_percent=22.0
+                        y_percent=72.0
+                    />
+                    <ColorHandle
+                        id_base="docs-color-handle-focused-after-workbench".to_string()
+                        color="#10b981".to_string()
+                        aria_label="Focused color handle".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                        is_focused=true
+                        x_percent=52.0
+                        y_percent=44.0
+                    />
+                    <ColorHandle
+                        id_base="docs-color-handle-dragging-after-workbench".to_string()
+                        color="#3b82f6".to_string()
+                        aria_label="Dragging color handle".to_string()
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                        is_dragging=true
+                        x_percent=82.0
+                        y_percent=28.0
+                        class_name="docs-color-handle-custom".to_string()
+                        motion=ColorHandleMotion { duration_ms: 240 }
+                    />
                 </div>
             </Playground>
 
@@ -5018,7 +5406,7 @@ pub(super) fn color_loupe() -> AnyView {
                 </p>
                 <p>
                     "Dependency prerequisites: enable "
-                    <code>"ui-components features: component-color_loupe + inject-css"</code>
+                    <code>"ui features: component-color_loupe + inject-css"</code>
                     " and render inside "
                     <code>"UiRoot"</code>
                     " so copied snippets keep theme vars/components css injection."

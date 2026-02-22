@@ -25,7 +25,7 @@ fn ui_components_reexports_empty_state_component_crate() {
     assert!(
         lib_source.contains("#[cfg(feature = \"component-empty_state\")]")
             && lib_source.contains("pub use ui_empty_state as empty_state;"),
-        "ui-components should re-export the external ui-empty-state crate as `empty_state`.",
+        "ui should re-export the external ui-empty-state crate as `empty_state`.",
     );
     assert!(
         cargo_source.contains("component-empty_state = [\"dep:ui-empty-state\"]"),
@@ -35,7 +35,7 @@ fn ui_components_reexports_empty_state_component_crate() {
         cargo_source.contains(
             "ui-empty-state = { path = \"../../components/empty-state\", optional = true }"
         ),
-        "ui-components Cargo.toml should include the optional ui-empty-state dependency.",
+        "ui Cargo.toml should include the optional ui-empty-state dependency.",
     );
 }
 
@@ -290,7 +290,7 @@ fn empty_state_docs_playgrounds_lock_state_matrix_contract_values() {
         "is_bordered=true",
         "class_name=\"docs-empty-state-custom\".to_string()",
         "icon=move || view! { <span>\"⏸\"</span> }",
-        "variant=ui_components::ButtonVariant::Secondary",
+        "variant=ui::ButtonVariant::Secondary",
         "\"Review approvals\"",
         "title=\"Controlled vs Uncontrolled (N/A)\"",
         "EmptyState has no controlled/uncontrolled runtime axis",
@@ -432,7 +432,7 @@ fn empty_state_performance_governance_contract_is_mount_only_traceable_and_block
         load_ui_components_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = load_ui_components_source("../../docs/plan/TODO.md");
     let script_source =
-        load_ui_components_source("../../scripts/check-ui-components-performance.sh");
+        load_ui_components_source("../../scripts/check-ui-performance.sh");
     let view_source = load_empty_state_component_source("src/view.rs");
 
     for needle in [
@@ -500,10 +500,10 @@ fn empty_state_performance_governance_contract_is_mount_only_traceable_and_block
     }
 
     for needle in [
-        "cargo test -p ui-components --test empty_state_semantics --no-default-features --features component-empty_state,inject-css empty_state_performance_governance_contract_is_mount_only_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test empty_state_semantics --no-default-features --features component-empty_state,inject-css empty_state_performance_governance_contract_is_mount_only_traceable_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),

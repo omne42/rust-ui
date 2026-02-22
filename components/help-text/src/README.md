@@ -10,7 +10,7 @@
 ### Hello World（最小可用）
 
 ```rust
-use ui_components::HelpText;
+use ui::HelpText;
 
 view! {
     <HelpText description="Use at least 12 characters.".to_string() />
@@ -20,7 +20,7 @@ view! {
 ## 常见用法
 
 ```rust
-use ui_components::{HelpText, HelpTextTone};
+use ui::{HelpText, HelpTextTone};
 
 view! {
     <>

@@ -36,12 +36,12 @@
 
 满足以下全部条件才算 Phase 1 完成：
 
-- Workspace 中存在核心五层 `ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components`，并且边界清晰
+- Workspace 中存在核心五层 `ui-state-primitives/ui-headless/ui-theme/ui-motion/ui`，并且边界清晰
 - 存在可提交 demo（`apps/web-demo`），能展示：
   - Button 的 pressed/disabled/focus-visible 状态
   - Overlay v1（Popover 或 Modal）可被打开/关闭（Esc + 点击外部）
 - `cargo fmt --all -- --check`、`cargo clippy --workspace --all-targets -- -D warnings`、`cargo test --workspace` 全绿
-- `ui-headless/ui-components/web-demo/docs-app` 至少能 `wasm32-unknown-unknown` 编译通过（不要求跑浏览器）
+- `ui-headless/ui/web-demo/docs-app` 至少能 `wasm32-unknown-unknown` 编译通过（不要求跑浏览器）
 
 ### 0.4 Stop Gates（每个里程碑必须过）
 
@@ -50,7 +50,7 @@
 - Gate C（随时可跑）：`cargo test --workspace`
 - Gate D（WASM 编译验证）：
   - `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`
-  - `cargo check -p ui-components --target wasm32-unknown-unknown`
+  - `cargo check -p ui --target wasm32-unknown-unknown`
   - `cargo check -p web-demo --target wasm32-unknown-unknown`
   - `cargo check -p docs-app --target wasm32-unknown-unknown`
 - Gate E（SSR 编译验证）：
@@ -59,7 +59,7 @@
   - 在底层 package 版本矩阵下，抽样 source 组件可编译（至少 `Button` / `Select` / `Overlay`）
   - 若版本不兼容，CI 必须输出明确失败原因与迁移指引链接
 - Gate G（组件级裁剪验证）：
-  - `ui-components` 在最小特性集下可编译（示例：`component-button,component-input`）
+  - `ui` 在最小特性集下可编译（示例：`component-button,component-input`）
   - 组件 CSS 聚合结果只包含已启用特性的样式（无 `select/modal/chart` 泄漏）
 
 ## 1. 仓库结构（目标态）
@@ -72,7 +72,7 @@
 │   ├── ui-headless
 │   ├── ui-theme
 │   ├── ui-motion
-│   ├── ui-components
+│   ├── ui
 ├── apps
 │   ├── web-demo
 │   ├── docs-app
@@ -88,9 +88,9 @@
 
 - `ui-state-primitives`：纯状态（禁止 `web-sys`、禁止 DOM 假设）
 - `ui-headless`：交互/A11y（允许 `web-sys`，但要有 feature gate）
-- `ui-theme`：tokens + CSS variables（不依赖 `ui-components`）
+- `ui-theme`：tokens + CSS variables（不依赖 `ui`）
 - `ui-motion`：动效执行后端（web/ssr 分支都可编译）
-- `ui-components`：Leptos 组件（不直接使用 `web-sys`，通过 `ui-headless` 间接接触 DOM）
+- `ui`：Leptos 组件（不直接使用 `web-sys`，通过 `ui-headless` 间接接触 DOM）
 
 ## 2. Feature 策略（先简单、可演进）
 
@@ -105,7 +105,7 @@
 
 - `ui-state-primitives`：只导出“纯状态模型/状态机”，不导出任何 DOM/渲染相关类型。
 - `ui-headless`：只导出“交互/可访问性模型 + Leptos 可挂载的 handlers/attrs”，不导出具体 UI 样式与 class 名。
-- `ui-components`：只导出组件与其 props；组件对外只暴露稳定 props，不透传 headless 的内部结构体（避免锁死后续重构）。
+- `ui`：只导出组件与其 props；组件对外只暴露稳定 props，不透传 headless 的内部结构体（避免锁死后续重构）。
 - `ui-theme`：只导出 tokens 与生成的 CSS（变量名先冻结为 v0，后续增量扩展）。
 
 ## 2.2 分发模型（默认）
@@ -113,7 +113,7 @@
 采用混合分发（Hybrid Distribution）：
 
 - Package 分发：`ui-state-primitives` / `ui-headless` / `ui-theme` / `ui-motion`
-- Source 分发：`ui-components`（按需拉取组件源码，shadcn-like）
+- Source 分发：`ui`（按需拉取组件源码，shadcn-like）
 
 约束：
 
@@ -123,7 +123,7 @@
 
 ## 2.3 组件级特性切分与裁剪（目标）
 
-`ui-components` 采用“组件级 feature + 条件 CSS 聚合”策略。
+`ui` 采用“组件级 feature + 条件 CSS 聚合”策略。
 
 要求：
 
@@ -252,14 +252,14 @@
 - 验收：同 t20
 - 验证命令：同 t20
 
-### t30 - ui-components：Button v0
+### t30 - ui：Button v0
 
 - 目标：实现 `<Button>` 组件，消费 `ui-headless::use_button` 与 `ui-theme` tokens
-- 输出：`ui-components::Button`
+- 输出：`ui::Button`
 - 依赖：t22 + t11
 - 验收：
-  - `cargo check -p ui-components`
-  - `cargo check -p ui-components --target wasm32-unknown-unknown`
+  - `cargo check -p ui`
+  - `cargo check -p ui --target wasm32-unknown-unknown`
 - 验证命令：同上
 
 ### t31 - apps/web-demo：演示页 v0
@@ -271,27 +271,27 @@
   - `cargo check -p web-demo --target wasm32-unknown-unknown`
 - 验证命令：同上
 
-### t32 - ui-components：组件级 feature 裁剪（v0）
+### t32 - ui：组件级 feature 裁剪（v0）
 
 - 目标：让 package 模式具备可验证的 Tree Shaking 能力（按现有特性命名与测试现状）
 - 输出：
-  - `ui-components` 的组件级 features（至少 `component-button`、`component-input`、`component-overlay/component-select` 样例）
+  - `ui` 的组件级 features（至少 `component-button`、`component-input`、`component-overlay/component-select` 样例）
   - 条件化 `lib.rs` 模块导出与 re-export
   - 条件化 CSS 聚合（仅拼接启用组件样式）
 - 依赖：t30（先有稳定 Button 再抽 feature 边界）
 - 验收：
-  - `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,component-input,inject-css`
-  - `cargo test -p ui-components --test css`（当前仓库可执行的 CSS 聚合回归）
+  - `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,component-input,inject-css`
+  - `cargo test -p ui --test css`（当前仓库可执行的 CSS 聚合回归）
   - `cargo check -p docs-app --target wasm32-unknown-unknown`（`all-components` 场景不回归）
 - 验证命令：同上
 
 ### t40 - Overlay v1（Popover 或 Modal）
 
 - 目标：最小 overlay：Portal + topmost + Esc + click-outside + focus trap(v0)
-- 输出：`ui-components::Overlay`（或 Popover/Modal）
+- 输出：`ui::Overlay`（或 Popover/Modal）
 - 依赖：t22（Esc/交互策略）+ t31（有 demo 驱动）
 - 验收：
-  - `cargo check -p ui-components --target wasm32-unknown-unknown`
+  - `cargo check -p ui --target wasm32-unknown-unknown`
   - demo 增加一个 popover/modal 示例（编译验证）
 - 验证命令：同上
 

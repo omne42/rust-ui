@@ -113,8 +113,13 @@ pub fn Meter(
         Signal::derive(move || render_state.get().normalized_progress.unwrap_or(0.0));
     let indicator_ref = NodeRef::new();
     motion::attach_motion(indicator_ref, progress_value, motion);
-    let agent_attrs =
-        Signal::derive(move || protocol::agent_data_attrs(state, render_state.get().phase));
+    let agent_attrs = RwSignal::new(protocol::agent_data_attrs(
+        state,
+        render_state.get_untracked().phase,
+    ));
+    Effect::new(move |_| {
+        agent_attrs.set(protocol::agent_data_attrs(state, render_state.get().phase));
+    });
 
     let aria_labelledby = label.get_value().map(|_| label_id.get_value());
     let aria_label = aria_labelledby.is_none().then(|| aria_label.to_string());

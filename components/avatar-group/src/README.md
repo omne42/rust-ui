@@ -8,7 +8,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{AvatarGroup, AvatarGroupItem};
+use ui::{AvatarGroup, AvatarGroupItem};
 
 view! {
     <AvatarGroup items=Vec::<AvatarGroupItem>::new() />
@@ -21,7 +21,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{AvatarGroup, AvatarGroupItem, AvatarSize};
+use ui::{AvatarGroup, AvatarGroupItem, AvatarSize};
 
 view! {
     <AvatarGroup
@@ -40,7 +40,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{AvatarGroup, AvatarGroupItem, AvatarSize};
+use ui::{AvatarGroup, AvatarGroupItem, AvatarSize};
 
 view! {
     <AvatarGroup

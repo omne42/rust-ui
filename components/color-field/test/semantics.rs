@@ -4,6 +4,7 @@ fn load_source(path: &str) -> &'static str {
     match path {
         "mod" => include_str!("../src/mod.rs"),
         "logic" => include_str!("../src/logic.rs"),
+        "primitives" => include_str!("../../../crates/ui-state-primitives/src/color_field.rs"),
         "view" => include_str!("../src/view.rs"),
         "styles" => include_str!("../src/styles.rs"),
         _ => panic!("unsupported source path: {path}"),
@@ -162,18 +163,19 @@ fn color_field_default_value_resolution_is_centralized_in_logic() {
 #[test]
 fn color_field_state_normalization_is_centralized_in_logic_layer() {
     let logic = load_source("logic");
+    let primitives = load_source("primitives");
     let view = load_source("view");
 
     for required in [
-        "pub struct ColorFieldDerivedStateInput",
+        "ColorFieldDerivedStateInput",
         "pub fn resolve_preview_color(value: Option<String>) -> Option<String>",
         "pub fn resolve_next_value(raw_value: String) -> Option<String>",
-        "pub fn resolve_derived_state(input: ColorFieldDerivedStateInput) -> ColorFieldState",
+        "resolve_derived_state",
         "pub fn is_invalid_state(state: ColorFieldState) -> bool",
     ] {
         assert!(
-            logic.contains(required),
-            "color-field logic should own state normalization marker `{required}`."
+            logic.contains(required) || primitives.contains(required),
+            "color-field state normalization contract should stay in logic re-exports or primitives definitions: `{required}`."
         );
     }
 
@@ -205,10 +207,12 @@ fn color_field_state_normalization_is_centralized_in_logic_layer() {
 #[test]
 fn color_field_discrete_state_axis_is_type_safe_enum_contract() {
     let logic = load_source("logic");
+    let primitives = load_source("primitives");
     let view = load_source("view");
 
     assert!(
-        logic.contains("ColorFieldVisualState"),
+        logic.contains("ColorFieldVisualState")
+            || primitives.contains("pub enum ColorFieldVisualState"),
         "color-field logic should consume typed discrete state enum from primitives."
     );
 

@@ -227,7 +227,7 @@ fn number_styles_and_css_aggregation_include_stable_selectors() {
 
     assert!(
         css_source.contains("out.push_str(crate::number::styles::CSS);"),
-        "ui-components css aggregator should include number styles.",
+        "ui css aggregator should include number styles.",
     );
 }
 
@@ -299,7 +299,7 @@ fn number_docs_sliding_number_playgrounds_lock_contract_values() {
         "decimal_separator=\",\".to_string()",
         "decimal_places=30",
         "thousand_separator=\" \".to_string()",
-        "motion=ui_components::SlidingNumberMotion {",
+        "motion=ui::SlidingNumberMotion {",
         "animate: false,",
         "number=Signal::derive(|| f64::NAN)",
         "class_name=\"docs-sliding-number-custom\".to_string()",
@@ -355,7 +355,7 @@ fn number_docs_playgrounds_lock_state_matrix_contract_values() {
         "set_value.update(|v| *v += 250.0)",
         "set_value.update(|v| *v -= 100.0)",
         "title=\"Custom Separators + Motion + Class\"",
-        "motion=ui_components::SlidingNumberMotion {",
+        "motion=ui::SlidingNumberMotion {",
         "animate: false,",
         "class_name=\"docs-sliding-number-custom\".to_string()",
     ] {
@@ -456,13 +456,13 @@ fn number_tree_shaking_boundaries_stay_feature_gated() {
 
     assert!(
         lib_source.contains("pub mod text_input;"),
-        "ui-components lib boundary should expose `text_input` domain module."
+        "ui lib boundary should expose `text_input` domain module."
     );
     assert!(
         lib_source.contains("pub use text_input::number::{")
             && lib_source
                 .contains("NumberFormatOptions, SlidingNumber, SlidingNumberMotion, StaticNumber,"),
-        "ui-components lib boundary should re-export number contracts from text_input domain."
+        "ui lib boundary should re-export number contracts from text_input domain."
     );
     assert!(
         domain_mod_source.contains("#[cfg(feature = \"component-number\")]")
@@ -476,7 +476,7 @@ fn number_tree_shaking_boundaries_stay_feature_gated() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css boundary should include `{needle}` for number feature gating."
+            "ui css boundary should include `{needle}` for number feature gating."
         );
     }
 }
@@ -532,7 +532,7 @@ fn number_check2_marks_component_governance_complete() {
         "- [x] `ui-headless` 定义",
         "- [x] `ui-motion` 定义",
         "- [x] `ui-theme` 定义",
-        "- [x] `ui-components` 定义",
+        "- [x] `ui` 定义",
         "- [x] API 命名契约统一",
         "- [x] 如果无异步相关，直接打勾。",
         "- [x] 语义测试优先",

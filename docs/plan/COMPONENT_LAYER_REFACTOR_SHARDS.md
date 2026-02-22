@@ -1,6 +1,6 @@
 # 组件分层整改并发分片（30 并发）
 
-> 目标：并发修复 `ui-components` 组件分层实现，使其遵循 `logic -> (headless/a11y 组合) -> view + styles`。
+> 目标：并发修复 `ui` 组件分层实现，使其遵循 `logic -> (headless/a11y 组合) -> view + styles`。
 > 约束：子任务**禁止**运行 `cargo fmt/clippy/test/check`；统一由主编排流程集中执行。
 > 注意：本文档为分片执行历史快照，部分目录路径仍是迁移前平铺结构；当前目录落位请以 `docs/spec/component_domains.md` 为准。
 
@@ -10,7 +10,7 @@
 - 每个 shard 允许执行：`rg`、`sed`、`apply_patch`、局部静态检查。
 - 每个 shard 禁止执行任何 cargo 命令（避免并发争用）。
 - 统一收敛后只执行一次：`cargo fmt --all`、`./scripts/check.sh`。
-- 兼容命名桥接层已移除；`provider/rac/s2/story_utils/style_macro_s1/test_utils/utils` 不再作为 `ui-components` 分片范围。
+- 兼容命名桥接层已移除；`provider/rac/s2/story_utils/style_macro_s1/test_utils/utils` 不再作为 `ui` 分片范围。
 
 ## 子任务模板
 
@@ -22,7 +22,7 @@
   - 每个组件目录存在 mod.rs + logic.rs + styles.rs + view.rs（纯 facade 目录可豁免）
   - mod.rs 不再出现 mod render;
   - 组件行为逻辑不下沉到 view（状态归一化留在 logic）
-文件: crates/ui-components/src/<assigned-components>/*
+文件: crates/ui/src/<assigned-components>/*
 约束: 不运行 cargo，不修改其他 shard 文件
 ```
 
@@ -30,322 +30,322 @@
 
 ### shard-01
 
-- `crates/ui-components/src/accordion`
-- `crates/ui-components/src/checkbox`
-- `crates/ui-components/src/contextual_help`
-- `crates/ui-components/src/flex`
-- `crates/ui-components/src/label`
-- `crates/ui-components/src/pressable_feedback`
-- `crates/ui-components/src/sidebar_menu_action`
-- `crates/ui-components/src/text_field`
+- `crates/ui/src/accordion`
+- `crates/ui/src/checkbox`
+- `crates/ui/src/contextual_help`
+- `crates/ui/src/flex`
+- `crates/ui/src/label`
+- `crates/ui/src/pressable_feedback`
+- `crates/ui/src/sidebar_menu_action`
+- `crates/ui/src/text_field`
 
 ### shard-02
 
-- `crates/ui-components/src/action_bar`
-- `crates/ui-components/src/checkbox_field`
-- `crates/ui-components/src/date_field`
-- `crates/ui-components/src/flip_card`
-- `crates/ui-components/src/labeled_value`
-- `crates/ui-components/src/preview_card`
-- `crates/ui-components/src/sidebar_menu_badge`
-- `crates/ui-components/src/textarea`
+- `crates/ui/src/action_bar`
+- `crates/ui/src/checkbox_field`
+- `crates/ui/src/date_field`
+- `crates/ui/src/flip_card`
+- `crates/ui/src/labeled_value`
+- `crates/ui/src/preview_card`
+- `crates/ui/src/sidebar_menu_badge`
+- `crates/ui/src/textarea`
 
 ### shard-03
 
-- `crates/ui-components/src/action_button`
-- `crates/ui-components/src/checkbox_group`
-- `crates/ui-components/src/date_input_group`
-- `crates/ui-components/src/footer`
-- `crates/ui-components/src/layout`
-- `crates/ui-components/src/preview_link_card`
-- `crates/ui-components/src/sidebar_rail`
-- `crates/ui-components/src/textfield`
+- `crates/ui/src/action_button`
+- `crates/ui/src/checkbox_group`
+- `crates/ui/src/date_input_group`
+- `crates/ui/src/footer`
+- `crates/ui/src/layout`
+- `crates/ui/src/preview_link_card`
+- `crates/ui/src/sidebar_rail`
+- `crates/ui/src/textfield`
 
 ### shard-04
 
-- `crates/ui-components/src/action_button_group`
-- `crates/ui-components/src/chip`
-- `crates/ui-components/src/date_picker`
-- `crates/ui-components/src/form`
-- `crates/ui-components/src/legend`
-- `crates/ui-components/src/progress`
-- `crates/ui-components/src/sidebar_trigger`
+- `crates/ui/src/action_button_group`
+- `crates/ui/src/chip`
+- `crates/ui/src/date_picker`
+- `crates/ui/src/form`
+- `crates/ui/src/legend`
+- `crates/ui/src/progress`
+- `crates/ui/src/sidebar_trigger`
 - `components/theme-dark`
 
 ### shard-05
 
-- `crates/ui-components/src/action_group`
-- `crates/ui-components/src/circular_progress`
-- `crates/ui-components/src/date_range_picker`
-- `crates/ui-components/src/form_field`
-- `crates/ui-components/src/link`
-- `crates/ui-components/src/progress_bar`
-- `crates/ui-components/src/sidenav`
+- `crates/ui/src/action_group`
+- `crates/ui/src/circular_progress`
+- `crates/ui/src/date_range_picker`
+- `crates/ui/src/form_field`
+- `crates/ui/src/link`
+- `crates/ui/src/progress_bar`
+- `crates/ui/src/sidenav`
 - `components/theme-default`
 
 ### shard-06
 
-- `crates/ui-components/src/action_menu`
-- `crates/ui-components/src/clear_button`
-- `crates/ui-components/src/description`
-- `crates/ui-components/src/grid`
-- `crates/ui-components/src/link_button`
-- `crates/ui-components/src/progress_circle`
-- `crates/ui-components/src/skeleton`
+- `crates/ui/src/action_menu`
+- `crates/ui/src/clear_button`
+- `crates/ui/src/description`
+- `crates/ui/src/grid`
+- `crates/ui/src/link_button`
+- `crates/ui/src/progress_circle`
+- `crates/ui/src/skeleton`
 - `components/theme-express`
 
 ### shard-07
 
-- `crates/ui-components/src/alert`
-- `crates/ui-components/src/close_button`
-- `crates/ui-components/src/dialog`
-- `crates/ui-components/src/grid_list`
-- `crates/ui-components/src/list`
-- `crates/ui-components/src/skeleton_group`
+- `crates/ui/src/alert`
+- `crates/ui/src/close_button`
+- `crates/ui/src/dialog`
+- `crates/ui/src/grid_list`
+- `crates/ui/src/list`
+- `crates/ui/src/skeleton_group`
 - `components/theme-light`
 
 ### shard-08
 
-- `crates/ui-components/src/alert_banner`
-- `crates/ui-components/src/coachmark`
-- `crates/ui-components/src/direction`
-- `crates/ui-components/src/gridlist`
-- `crates/ui-components/src/list_box`
-- `crates/ui-components/src/slider`
+- `crates/ui/src/alert_banner`
+- `crates/ui/src/coachmark`
+- `crates/ui/src/direction`
+- `crates/ui/src/gridlist`
+- `crates/ui/src/list_box`
+- `crates/ui/src/slider`
 - `components/thumbnail`
 
 ### shard-09
 
-- `crates/ui-components/src/alert_dialog`
-- `crates/ui-components/src/code`
-- `crates/ui-components/src/disclosure`
-- `crates/ui-components/src/group`
-- `crates/ui-components/src/listbox`
-- `crates/ui-components/src/radio`
-- `crates/ui-components/src/snippet`
-- `crates/ui-components/src/time_field`
+- `crates/ui/src/alert_dialog`
+- `crates/ui/src/code`
+- `crates/ui/src/disclosure`
+- `crates/ui/src/group`
+- `crates/ui/src/listbox`
+- `crates/ui/src/radio`
+- `crates/ui/src/snippet`
+- `crates/ui/src/time_field`
 
 ### shard-10
 
-- `crates/ui-components/src/aspect_ratio`
-- `crates/ui-components/src/code_block`
-- `crates/ui-components/src/disclosure_group`
-- `crates/ui-components/src/header`
-- `crates/ui-components/src/listbox_item`
-- `crates/ui-components/src/radio_group`
-- `crates/ui-components/src/sonner`
-- `crates/ui-components/src/toast`
+- `crates/ui/src/aspect_ratio`
+- `crates/ui/src/code_block`
+- `crates/ui/src/disclosure_group`
+- `crates/ui/src/header`
+- `crates/ui/src/listbox_item`
+- `crates/ui/src/radio_group`
+- `crates/ui/src/sonner`
+- `crates/ui/src/toast`
 
 ### shard-11
 
-- `crates/ui-components/src/asset`
-- `crates/ui-components/src/collapsible`
-- `crates/ui-components/src/divider`
-- `crates/ui-components/src/heading`
-- `crates/ui-components/src/listbox_section`
-- `crates/ui-components/src/resizable`
-- `crates/ui-components/src/spacer`
-- `crates/ui-components/src/toaster`
+- `crates/ui/src/asset`
+- `crates/ui/src/collapsible`
+- `crates/ui/src/divider`
+- `crates/ui/src/heading`
+- `crates/ui/src/listbox_section`
+- `crates/ui/src/resizable`
+- `crates/ui/src/spacer`
+- `crates/ui/src/toaster`
 
 ### shard-12
 
-- `crates/ui-components/src/auto_height`
-- `crates/ui-components/src/collection`
-- `crates/ui-components/src/dnd`
-- `crates/ui-components/src/help_text`
-- `crates/ui-components/src/logic_button`
-- `crates/ui-components/src/ripple`
-- `crates/ui-components/src/spinbutton`
-- `crates/ui-components/src/toggle`
+- `crates/ui/src/auto_height`
+- `crates/ui/src/collection`
+- `crates/ui/src/dnd`
+- `crates/ui/src/help_text`
+- `crates/ui/src/logic_button`
+- `crates/ui/src/ripple`
+- `crates/ui/src/spinbutton`
+- `crates/ui/src/toggle`
 
 ### shard-13
 
-- `crates/ui-components/src/autocomplete`
-- `crates/ui-components/src/color`
-- `crates/ui-components/src/drag_and_drop`
-- `crates/ui-components/src/hidden_date_input`
-- `crates/ui-components/src/menu`
-- `crates/ui-components/src/spinner`
-- `crates/ui-components/src/toggle_button`
+- `crates/ui/src/autocomplete`
+- `crates/ui/src/color`
+- `crates/ui/src/drag_and_drop`
+- `crates/ui/src/hidden_date_input`
+- `crates/ui/src/menu`
+- `crates/ui/src/spinner`
+- `crates/ui/src/toggle_button`
 
 ### shard-14
 
-- `crates/ui-components/src/avatar`
-- `crates/ui-components/src/color_area`
-- `crates/ui-components/src/drawer`
-- `crates/ui-components/src/hover_card`
-- `crates/ui-components/src/menu_item`
-- `crates/ui-components/src/scroll_area`
-- `crates/ui-components/src/split_view`
-- `crates/ui-components/src/toggle_button_group`
+- `crates/ui/src/avatar`
+- `crates/ui/src/color_area`
+- `crates/ui/src/drawer`
+- `crates/ui/src/hover_card`
+- `crates/ui/src/menu_item`
+- `crates/ui/src/scroll_area`
+- `crates/ui/src/split_view`
+- `crates/ui/src/toggle_button_group`
 
 ### shard-15
 
-- `crates/ui-components/src/avatar_group`
-- `crates/ui-components/src/color_editor`
-- `crates/ui-components/src/drop_zone`
-- `crates/ui-components/src/icon`
-- `crates/ui-components/src/menu_section`
-- `crates/ui-components/src/scroll_shadow`
-- `crates/ui-components/src/status_light`
-- `crates/ui-components/src/toggle_group`
+- `crates/ui/src/avatar_group`
+- `crates/ui/src/color_editor`
+- `crates/ui/src/drop_zone`
+- `crates/ui/src/icon`
+- `crates/ui/src/menu_section`
+- `crates/ui/src/scroll_shadow`
+- `crates/ui/src/status_light`
+- `crates/ui/src/toggle_group`
 
 ### shard-16
 
-- `crates/ui-components/src/badge`
-- `crates/ui-components/src/color_field`
-- `crates/ui-components/src/dropdown`
-- `crates/ui-components/src/icon_button`
-- `crates/ui-components/src/menu_trigger`
-- `crates/ui-components/src/search`
-- `crates/ui-components/src/step_list`
-- `crates/ui-components/src/toolbar`
+- `crates/ui/src/badge`
+- `crates/ui/src/color_field`
+- `crates/ui/src/dropdown`
+- `crates/ui/src/icon_button`
+- `crates/ui/src/menu_trigger`
+- `crates/ui/src/search`
+- `crates/ui/src/step_list`
+- `crates/ui/src/toolbar`
 
 ### shard-17
 
-- `crates/ui-components/src/bottom_sheet`
-- `crates/ui-components/src/color_handle`
-- `crates/ui-components/src/dropdown_menu`
-- `crates/ui-components/src/icons`
-- `crates/ui-components/src/menubar`
-- `crates/ui-components/src/search_field`
-- `crates/ui-components/src/tooltip`
+- `crates/ui/src/bottom_sheet`
+- `crates/ui/src/color_handle`
+- `crates/ui/src/dropdown_menu`
+- `crates/ui/src/icons`
+- `crates/ui/src/menubar`
+- `crates/ui/src/search_field`
+- `crates/ui/src/tooltip`
 
 ### shard-18
 
-- `crates/ui-components/src/breadcrumb`
-- `crates/ui-components/src/color_loupe`
-- `crates/ui-components/src/dropzone`
-- `crates/ui-components/src/icons_ui`
-- `crates/ui-components/src/meter`
-- `crates/ui-components/src/segmented_control`
-- `crates/ui-components/src/top_nav`
+- `crates/ui/src/breadcrumb`
+- `crates/ui/src/color_loupe`
+- `crates/ui/src/dropzone`
+- `crates/ui/src/icons_ui`
+- `crates/ui/src/meter`
+- `crates/ui/src/segmented_control`
+- `crates/ui/src/top_nav`
 
 ### shard-19
 
-- `crates/ui-components/src/breadcrumbs`
-- `crates/ui-components/src/color_picker`
-- `crates/ui-components/src/empty`
-- `crates/ui-components/src/icons_workflow`
+- `crates/ui/src/breadcrumbs`
+- `crates/ui/src/color_picker`
+- `crates/ui/src/empty`
+- `crates/ui/src/icons_workflow`
 - `components/modal`
-- `crates/ui-components/src/select`
-- `crates/ui-components/src/surface`
-- `crates/ui-components/src/tray`
+- `crates/ui/src/select`
+- `crates/ui/src/surface`
+- `crates/ui/src/tray`
 
 ### shard-20
 
-- `crates/ui-components/src/button`
-- `crates/ui-components/src/color_slider`
-- `crates/ui-components/src/empty_state`
-- `crates/ui-components/src/iconset`
-- `crates/ui-components/src/native_select`
+- `crates/ui/src/button`
+- `crates/ui/src/color_slider`
+- `crates/ui/src/empty_state`
+- `crates/ui/src/iconset`
+- `crates/ui/src/native_select`
 - `components/selection-indicator`
-- `crates/ui-components/src/swatch`
-- `crates/ui-components/src/tree`
+- `crates/ui/src/swatch`
+- `crates/ui/src/tree`
 
 ### shard-21
 
-- `crates/ui-components/src/button_copy`
-- `crates/ui-components/src/color_swatch`
-- `crates/ui-components/src/error_message`
-- `crates/ui-components/src/illustrated_message`
-- `crates/ui-components/src/navigation_menu`
-- `crates/ui-components/src/separator`
-- `crates/ui-components/src/switch`
-- `crates/ui-components/src/underlay`
+- `crates/ui/src/button_copy`
+- `crates/ui/src/color_swatch`
+- `crates/ui/src/error_message`
+- `crates/ui/src/illustrated_message`
+- `crates/ui/src/navigation_menu`
+- `crates/ui/src/separator`
+- `crates/ui/src/switch`
+- `crates/ui/src/underlay`
 
 ### shard-22
 
-- `crates/ui-components/src/button_flip`
-- `crates/ui-components/src/color_swatch_picker`
-- `crates/ui-components/src/error_view`
-- `crates/ui-components/src/image`
-- `crates/ui-components/src/number`
+- `crates/ui/src/button_flip`
+- `crates/ui/src/color_swatch_picker`
+- `crates/ui/src/error_view`
+- `crates/ui/src/image`
+- `crates/ui/src/number`
 - `components/shared-element-transition`
-- `crates/ui-components/src/switch_group`
+- `crates/ui/src/switch_group`
 
 ### shard-23
 
-- `crates/ui-components/src/button_group`
-- `crates/ui-components/src/color_thumb`
+- `crates/ui/src/button_group`
+- `crates/ui/src/color_thumb`
 - `components/example-theme`
-- `crates/ui-components/src/infield_button`
-- `crates/ui-components/src/number_field`
-- `crates/ui-components/src/sheet`
-- `crates/ui-components/src/table`
-- `crates/ui-components/src/view`
+- `crates/ui/src/infield_button`
+- `crates/ui/src/number_field`
+- `crates/ui/src/sheet`
+- `crates/ui/src/table`
+- `crates/ui/src/view`
 
 ### shard-24
 
-- `crates/ui-components/src/button_search_input`
-- `crates/ui-components/src/color_wheel`
-- `crates/ui-components/src/field`
-- `crates/ui-components/src/inline_alert`
-- `crates/ui-components/src/overlay`
-- `crates/ui-components/src/sidebar`
-- `crates/ui-components/src/tabs`
-- `crates/ui-components/src/virtualizer`
+- `crates/ui/src/button_search_input`
+- `crates/ui/src/color_wheel`
+- `crates/ui/src/field`
+- `crates/ui/src/inline_alert`
+- `crates/ui/src/overlay`
+- `crates/ui/src/sidebar`
+- `crates/ui/src/tabs`
+- `crates/ui/src/virtualizer`
 
 ### shard-25
 
-- `crates/ui-components/src/button_share`
+- `crates/ui/src/button_share`
 - `components/combo-box`
-- `crates/ui-components/src/field_button`
-- `crates/ui-components/src/input`
-- `crates/ui-components/src/overlay_arrow`
-- `crates/ui-components/src/sidebar_content`
-- `crates/ui-components/src/tag`
-- `crates/ui-components/src/visually_hidden`
+- `crates/ui/src/field_button`
+- `crates/ui/src/input`
+- `crates/ui/src/overlay_arrow`
+- `crates/ui/src/sidebar_content`
+- `crates/ui/src/tag`
+- `crates/ui/src/visually_hidden`
 
 ### shard-26
 
-- `crates/ui-components/src/button_theme_toggle`
-- `crates/ui-components/src/combobox`
-- `crates/ui-components/src/field_error`
-- `crates/ui-components/src/input_group`
-- `crates/ui-components/src/overlays`
-- `crates/ui-components/src/sidebar_footer`
-- `crates/ui-components/src/tag_group`
-- `crates/ui-components/src/well`
+- `crates/ui/src/button_theme_toggle`
+- `crates/ui/src/combobox`
+- `crates/ui/src/field_error`
+- `crates/ui/src/input_group`
+- `crates/ui/src/overlays`
+- `crates/ui/src/sidebar_footer`
+- `crates/ui/src/tag_group`
+- `crates/ui/src/well`
 
 ### shard-27
 
-- `crates/ui-components/src/calendar`
-- `crates/ui-components/src/command`
-- `crates/ui-components/src/field_group`
-- `crates/ui-components/src/input_otp`
-- `crates/ui-components/src/pagination`
-- `crates/ui-components/src/sidebar_group`
-- `crates/ui-components/src/tags`
+- `crates/ui/src/calendar`
+- `crates/ui/src/command`
+- `crates/ui/src/field_group`
+- `crates/ui/src/input_otp`
+- `crates/ui/src/pagination`
+- `crates/ui/src/sidebar_group`
+- `crates/ui/src/tags`
 
 ### shard-28
 
-- `crates/ui-components/src/card`
-- `crates/ui-components/src/command_dialog`
-- `crates/ui-components/src/field_label`
-- `crates/ui-components/src/item`
-- `crates/ui-components/src/picker`
-- `crates/ui-components/src/sidebar_header`
+- `crates/ui/src/card`
+- `crates/ui/src/command_dialog`
+- `crates/ui/src/field_label`
+- `crates/ui/src/item`
+- `crates/ui/src/picker`
+- `crates/ui/src/sidebar_header`
 
 ### shard-29
 
-- `crates/ui-components/src/carousel`
-- `crates/ui-components/src/content`
-- `crates/ui-components/src/fieldset`
-- `crates/ui-components/src/kbd`
-- `crates/ui-components/src/picker_button`
-- `crates/ui-components/src/sidebar_inset`
-- `crates/ui-components/src/text`
+- `crates/ui/src/carousel`
+- `crates/ui/src/content`
+- `crates/ui/src/fieldset`
+- `crates/ui/src/kbd`
+- `crates/ui/src/picker_button`
+- `crates/ui/src/sidebar_inset`
+- `crates/ui/src/text`
 
 ### shard-30
 
-- `crates/ui-components/src/chart`
-- `crates/ui-components/src/context_menu`
-- `crates/ui-components/src/file_trigger`
-- `crates/ui-components/src/keyboard`
-- `crates/ui-components/src/popover`
-- `crates/ui-components/src/sidebar_menu`
-- `crates/ui-components/src/text_area`
+- `crates/ui/src/chart`
+- `crates/ui/src/context_menu`
+- `crates/ui/src/file_trigger`
+- `crates/ui/src/keyboard`
+- `crates/ui/src/popover`
+- `crates/ui/src/sidebar_menu`
+- `crates/ui/src/text_area`
 
 ## 集中 Gate（仅主编排执行一次）
 

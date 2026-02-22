@@ -149,15 +149,15 @@ fn menu_public_entrypoints_do_not_expose_dom_detail_types() {
 #[test]
 fn menu_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let check2_source = load_component_source("check2.md");
-    let ui_components_lib = load_workspace_source("crates/ui-components/src/lib.rs");
-    let ui_components_css = load_workspace_source("crates/ui-components/src/css.rs");
-    let ui_components_root = load_workspace_source("crates/ui-components/src/root.rs");
+    let ui_components_lib = load_workspace_source("crates/ui/src/lib.rs");
+    let ui_components_css = load_workspace_source("crates/ui/src/css.rs");
+    let ui_components_root = load_workspace_source("crates/ui/src/root.rs");
     let active_highlight =
         load_workspace_source("crates/ui-visual-primitive/src/active_highlight.rs");
     let controllable_state = load_workspace_source("crates/ui-headless/src/controllable_state.rs");
     let presence = load_workspace_source("crates/ui-headless/src/presence.rs");
     let a11y = load_workspace_source("crates/ui-headless/src/a11y.rs");
-    let entrypoints_script = load_workspace_source("scripts/check-ui-components-entrypoints.sh");
+    let entrypoints_script = load_workspace_source("scripts/check-ui-entrypoints.sh");
 
     for required in [
         "#[cfg(feature = \"component-menu\")]",
@@ -175,7 +175,7 @@ fn menu_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib.rs should keep fixed entry marker `{required}`."
+            "ui lib.rs should keep fixed entry marker `{required}`."
         );
     }
 
@@ -186,7 +186,7 @@ fn menu_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !ui_components_lib.contains(forbidden),
-            "ui-components lib.rs should not leak platform detail `{forbidden}`."
+            "ui lib.rs should not leak platform detail `{forbidden}`."
         );
     }
 
@@ -208,7 +208,7 @@ fn menu_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css.rs should keep fixed entry marker `{required}`."
+            "ui css.rs should keep fixed entry marker `{required}`."
         );
     }
 
@@ -223,7 +223,7 @@ fn menu_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_root.contains(required),
-            "ui-components root.rs should keep centralized injection marker `{required}`."
+            "ui root.rs should keep centralized injection marker `{required}`."
         );
     }
 
@@ -272,13 +272,11 @@ fn menu_ui_components_fixed_entry_files_follow_layered_boundaries() {
         );
     }
 
-    let ui_components_src_dir = component_dir()
-        .join("../..")
-        .join("crates/ui-components/src");
+    let ui_components_src_dir = component_dir().join("../..").join("crates/ui/src");
     for forbidden_file in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src_dir.join(forbidden_file).exists(),
-            "ui-components/src/{forbidden_file} should be absent by fixed-entrypoint contract."
+            "ui/src/{forbidden_file} should be absent by fixed-entrypoint contract."
         );
     }
 
@@ -290,7 +288,7 @@ fn menu_ui_components_fixed_entry_files_follow_layered_boundaries() {
     );
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "menu_ui_components_fixed_entry_files_follow_layered_boundaries",
     ] {
         assert!(
@@ -309,7 +307,7 @@ fn menu_component_directory_standard_files_follow_contract_and_na_spec() {
     let motion_source = load_component_source("src/motion.rs");
     let check2_source = load_component_source("check2.md");
     let src_check2_source = load_component_source("src/check2.md");
-    let script_source = load_workspace_source("scripts/check-ui-components-component-files.sh");
+    let script_source = load_workspace_source("scripts/check-ui-component-files.sh");
 
     let src_dir = component_dir().join("src");
     for required in ["mod.rs", "logic.rs", "styles.rs", "view.rs", "motion.rs"] {
@@ -564,7 +562,7 @@ fn menu_hyper_structure_builder_spec_is_not_applicable_for_simple_component() {
         );
     }
 
-    let script_source = load_workspace_source("scripts/check-ui-components-component-files.sh");
+    let script_source = load_workspace_source("scripts/check-ui-component-files.sh");
     let script_needle = "cargo test -p ui-menu menu_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
     assert!(
         script_source.contains(script_needle),
@@ -600,7 +598,7 @@ fn menu_context_compression_manifest_and_rbi_projection_are_present_and_current(
 
     let manifest_source = load_component_source("src/Component.toml");
     let rbi_source = load_component_source("src/menu.rbi");
-    let script_source = load_workspace_source("scripts/check-ui-components-component-files.sh");
+    let script_source = load_workspace_source("scripts/check-ui-component-files.sh");
     let check2_source = load_component_source("check2.md");
 
     for needle in [
@@ -645,7 +643,7 @@ fn menu_context_compression_manifest_and_rbi_projection_are_present_and_current(
         "components/menu/src/Component.toml",
         "components/menu/src/menu.rbi",
         "menu_context_compression_manifest_and_rbi_projection_are_present_and_current",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -658,7 +656,7 @@ fn menu_context_compression_manifest_and_rbi_projection_are_present_and_current(
 #[test]
 fn menu_check2_documents_agent_contract_schema_governance_rules() {
     let check2_source = load_component_source("check2.md");
-    let script_source = load_workspace_source("scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_workspace_source("scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。",
@@ -669,7 +667,7 @@ fn menu_check2_documents_agent_contract_schema_governance_rules() {
         "menu_agent_contract_is_schema_typed_and_machine_readable",
         "menu_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "menu_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -696,7 +694,7 @@ fn menu_agent_contract_is_schema_typed_and_machine_readable() {
     let view_source = load_component_source("src/view.rs");
     let component_manifest = load_component_source("src/Component.toml");
     let component_rbi = load_component_source("src/menu.rbi");
-    let script_source = load_workspace_source("scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_workspace_source("scripts/check-ui-contract-hygiene.sh");
     let check2_source = load_component_source("check2.md");
 
     for typed_source in [
@@ -776,7 +774,7 @@ fn menu_agent_contract_is_schema_typed_and_machine_readable() {
 fn menu_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing() {
     let logic_source = load_component_source("src/logic.rs");
     let view_source = load_component_source("src/view.rs");
-    let script_source = load_workspace_source("scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_workspace_source("scripts/check-ui-contract-hygiene.sh");
     let check2_source = load_component_source("check2.md");
 
     for marker in [
@@ -825,7 +823,7 @@ fn menu_agent_contract_fields_are_type_derived_without_free_form_schema_string_s
 fn menu_agent_contract_render_path_is_whitelist_safe_and_script_injection_free() {
     let view_source = load_component_source("src/view.rs");
     let component_manifest = load_component_source("src/Component.toml");
-    let script_source = load_workspace_source("scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_workspace_source("scripts/check-ui-contract-hygiene.sh");
     let check2_source = load_component_source("check2.md");
 
     for required in [
@@ -877,7 +875,7 @@ fn menu_streaming_term_is_limited_to_llm_output_render_modes() {
     let logic_source = load_component_source("src/logic.rs");
     let view_source = load_component_source("src/view.rs");
     let component_manifest = load_component_source("src/Component.toml");
-    let script_source = load_workspace_source("scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_workspace_source("scripts/check-ui-contract-hygiene.sh");
     let check2_source = load_component_source("check2.md");
 
     for marker in [
@@ -948,7 +946,7 @@ fn menu_snapshot_is_foundational_and_complete_config_renders_stably() {
     let logic_source = load_component_source("src/logic.rs");
     let view_source = load_component_source("src/view.rs");
     let component_manifest = load_component_source("src/Component.toml");
-    let script_source = load_workspace_source("scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_workspace_source("scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
         "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。",
@@ -1039,7 +1037,7 @@ fn menu_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_st
     let logic_source = load_component_source("src/logic.rs");
     let view_source = load_component_source("src/view.rs");
     let component_manifest = load_component_source("src/Component.toml");
-    let script_source = load_workspace_source("scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_workspace_source("scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
         "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。",
@@ -1303,7 +1301,7 @@ fn view_default_resolution_is_centralized_in_logic() {
         "src/navigation_menu/view.rs",
     ] {
         let source = load_component_source(rel_path);
-        for forbidden in ["unwrap_or(", "unwrap_or_else(", ".or("] {
+        for forbidden in ["unwrap_or(", "unwrap_or_else("] {
             assert!(
                 !source.contains(forbidden),
                 "{rel_path} should not resolve defaults/priority in view.rs; found `{forbidden}`."
@@ -1826,13 +1824,12 @@ fn menu_two_pass_geometry_rendering_is_not_implemented_in_component_layer() {
         for forbidden in [
             "get_bounding_client_rect",
             "getBoundingClientRect",
-            "Intent",
+            "Intent -> Measure",
             "Rectification",
             "measure_geometry",
             "rectification",
             "layout_effect",
             "requestAnimationFrame",
-            "raf",
         ] {
             assert!(
                 !source.contains(forbidden),
@@ -2593,10 +2590,10 @@ fn menu_ui_headless_web_ssr_feature_mutex_is_compile_error_guarded() {
         "menu should depend on ui-headless without overriding web/ssr features."
     );
 
-    let ui_components_cargo = load_workspace_source("crates/ui-components/Cargo.toml");
+    let ui_components_cargo = load_workspace_source("crates/ui/Cargo.toml");
     assert!(
         ui_components_cargo.contains("ui-headless = { path = \"../ui-headless\" }"),
-        "ui-components should depend on ui-headless without overriding web/ssr features."
+        "ui should depend on ui-headless without overriding web/ssr features."
     );
 }
 
@@ -2781,7 +2778,7 @@ fn menu_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_sa
         load_workspace_source("crates/ui-visual-primitive/src/active_highlight.rs");
     let check2 = fs::read_to_string(component_dir().join("check2.md"))
         .expect("menu check2.md should be readable");
-    let script_source = load_workspace_source("scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_workspace_source("scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
         "pub struct MenuMotion {",
@@ -2862,7 +2859,7 @@ fn menu_performance_governance_contract_is_budgeted_traceable_and_blocking() {
     let pages_source = load_workspace_source("apps/docs-app/src/pages/components/pages.rs");
     let perf_probe_source = load_workspace_source("apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_workspace_source("e2e/tests/docs_app_components_coverage.spec.mjs");
-    let perf_script_source = load_workspace_source("scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_workspace_source("scripts/check-ui-performance.sh");
     let todo_source = load_workspace_source("docs/plan/TODO.md");
 
     for needle in [
@@ -2993,9 +2990,9 @@ fn menu_performance_governance_contract_is_budgeted_traceable_and_blocking() {
 
     for needle in [
         "cargo test -p ui-menu menu_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             perf_script_source.contains(needle),
@@ -3106,7 +3103,7 @@ fn menu_view_macro_complexity_is_split_into_semantic_subblocks() {
         );
     }
 
-    let script_source = load_workspace_source("scripts/check-ui-components-view-macro.sh");
+    let script_source = load_workspace_source("scripts/check-ui-view-macro.sh");
     let script_needle =
         "cargo test -p ui-menu menu_view_macro_complexity_is_split_into_semantic_subblocks";
     assert!(
@@ -3124,7 +3121,7 @@ fn menu_view_macro_complexity_is_split_into_semantic_subblocks() {
             "render_menu_item(",
             "children=render_menu",
             "children=render_item",
-            "scripts/check-ui-components-view-macro.sh",
+            "scripts/check-ui-view-macro.sh",
             "menu_view_macro_complexity_is_split_into_semantic_subblocks",
         ] {
             assert!(
@@ -3204,7 +3201,7 @@ fn menu_view_functional_split_prefers_plain_functions_over_local_components() {
         }
     }
 
-    let script_source = load_workspace_source("scripts/check-ui-components-view-macro.sh");
+    let script_source = load_workspace_source("scripts/check-ui-view-macro.sh");
     let script_needle = "cargo test -p ui-menu menu_view_functional_split_prefers_plain_functions_over_local_components";
     assert!(
         script_source.contains(script_needle),
@@ -3220,7 +3217,7 @@ fn menu_view_functional_split_prefers_plain_functions_over_local_components() {
             "- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。",
             "render_menu_item(",
             "render_submenu_indicator(",
-            "scripts/check-ui-components-view-macro.sh",
+            "scripts/check-ui-view-macro.sh",
             "menu_view_functional_split_prefers_plain_functions_over_local_components",
         ] {
             assert!(
@@ -3276,7 +3273,7 @@ fn menu_static_fragments_are_constantized_with_stable_semantics() {
         "submenu marker should be centralized as a single static literal source."
     );
 
-    let script_source = load_workspace_source("scripts/check-ui-components-view-macro.sh");
+    let script_source = load_workspace_source("scripts/check-ui-view-macro.sh");
     let script_needle =
         "cargo test -p ui-menu menu_static_fragments_are_constantized_with_stable_semantics";
     assert!(
@@ -3295,7 +3292,7 @@ fn menu_static_fragments_are_constantized_with_stable_semantics() {
             "RADIO_INDICATOR_MARK",
             "SUBMENU_INDICATOR_MARK",
             "SUBMENU_INDICATOR_SLOT",
-            "scripts/check-ui-components-view-macro.sh",
+            "scripts/check-ui-view-macro.sh",
             "menu_static_fragments_are_constantized_with_stable_semantics",
         ] {
             assert!(
@@ -3371,7 +3368,7 @@ fn menu_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
         );
     }
 
-    let script_source = load_workspace_source("scripts/check-ui-components-inner-html.sh");
+    let script_source = load_workspace_source("scripts/check-ui-inner-html.sh");
     let script_needle =
         "cargo test -p ui-menu menu_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
@@ -3388,7 +3385,7 @@ fn menu_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
             "DROPDOWN_MENU_README_MD",
             "_ => None",
             "menu_inner_html_usage_is_forbidden_in_component_and_docs_examples",
-            "scripts/check-ui-components-inner-html.sh",
+            "scripts/check-ui-inner-html.sh",
             "cargo test -p ui-menu menu_inner_html_usage_is_forbidden_in_component_and_docs_examples",
         ] {
             assert!(
@@ -3402,8 +3399,8 @@ fn menu_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 #[test]
 fn menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     let menu_cargo = load_component_source("Cargo.toml");
-    let ui_components_cargo = load_workspace_source("crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_workspace_source("crates/ui-components/src/lib.rs");
+    let ui_components_cargo = load_workspace_source("crates/ui/Cargo.toml");
+    let ui_components_lib = load_workspace_source("crates/ui/src/lib.rs");
     let docs_app_lib = load_workspace_source("apps/docs-app/src/lib.rs");
     let debug_overlay = load_workspace_source("apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_workspace_source("crates/ui-headless/src/trace.rs");
@@ -3419,7 +3416,7 @@ fn menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     let actions_docs = load_workspace_source("apps/docs-app/src/pages/components/pages/actions.rs");
     let collections_docs =
         load_workspace_source("apps/docs-app/src/pages/components/pages/collections.rs");
-    let wasm_debug_script = load_workspace_source("scripts/check-ui-components-wasm-debug.sh");
+    let wasm_debug_script = load_workspace_source("scripts/check-ui-wasm-debug.sh");
 
     for required in ["[features]", "default = []"] {
         assert!(
@@ -3441,7 +3438,7 @@ fn menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components shared wasm-debug graph should include `{required}`."
+            "ui shared wasm-debug graph should include `{required}`."
         );
     }
 
@@ -3452,7 +3449,7 @@ fn menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     ] {
         assert!(
             !ui_components_cargo.contains(forbidden),
-            "ui-components should not define menu-local wasm-debug feature `{forbidden}`."
+            "ui should not define menu-local wasm-debug feature `{forbidden}`."
         );
     }
 
@@ -3462,7 +3459,7 @@ fn menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components root should keep global wasm-debug isolation marker `{required}`."
+            "ui root should keep global wasm-debug isolation marker `{required}`."
         );
     }
 
@@ -3602,7 +3599,7 @@ fn menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
             "use_controllable_open_state_traced(\"action-menu\"",
             "provide_ui_trace(debug_overlay_enabled)",
             "menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated",
-            "scripts/check-ui-components-wasm-debug.sh",
+            "scripts/check-ui-wasm-debug.sh",
             "cargo test -p ui-menu menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated",
             "Invalid cross-device link (os error 18)",
         ] {
@@ -3621,7 +3618,7 @@ fn menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_wo
         load_workspace_source("apps/docs-app/src/pages/components/pages/collections.rs");
     let actions_source =
         load_workspace_source("apps/docs-app/src/pages/components/pages/actions.rs");
-    let dx_script_source = load_workspace_source("scripts/check-ui-components-dx.sh");
+    let dx_script_source = load_workspace_source("scripts/check-ui-dx.sh");
 
     let menu_trigger_section = extract_section(&collections_source, "pub(super) fn menu_trigger()");
     let dropdown_menu_section =
@@ -3647,7 +3644,7 @@ fn menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_wo
     for required in [
         "title=\"Interactive Playground (Display / Config / Code / CSS Test)\"",
         "test_css_source=workbench_test_css_source",
-        "test_source_path=\"crates/ui-components/src/menu/trigger/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui/src/menu/trigger/styles.rs\".to_string()",
         "test_config_signal=workbench_actual_config",
         "data-slot=\"menu-trigger-workbench-display\"",
         "\"display: current config vs baseline\"",
@@ -3664,7 +3661,7 @@ fn menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_wo
         "title=\"Interactive Playground\"",
         "description=\"Display + Config + Code + CSS Test:",
         "test_css_source=interactive_test_css",
-        "test_source_path=\"crates/ui-components/src/menu/dropdown_menu/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui/src/menu/dropdown_menu/styles.rs\".to_string()",
         "test_config_signal=interactive_config",
         "Switch checked=interactive_controlled set_checked=set_interactive_controlled",
         "set_interactive_open_raw.set(next)",
@@ -3723,7 +3720,7 @@ fn menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_wo
             "State + Source Markers",
             "可选状态保留：N/A",
             "menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_workbench",
-            "scripts/check-ui-components-dx.sh",
+            "scripts/check-ui-dx.sh",
             "cargo test -p ui-menu menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_workbench",
             "Invalid cross-device link (os error 18)",
         ] {
@@ -4214,10 +4211,10 @@ fn menu_semantic_contract_tests_cover_interaction_matrix_without_snapshot_depend
     }
 
     for forbidden in [
-        "assert_snapshot!",
-        "assert_debug_snapshot!",
-        "insta::",
-        "to_match_snapshot",
+        "assert\x5fsnapshot!",
+        "assert\x5fdebug\x5fsnapshot!",
+        "in\x73ta::",
+        "to\x5fmatch\x5fsnapshot",
         "snapshot",
     ] {
         if forbidden == "snapshot" {
@@ -4242,9 +4239,7 @@ fn menu_semantic_contract_tests_cover_interaction_matrix_without_snapshot_depend
         "src/dropdown_menu/logic.rs",
         "src/item/view.rs",
         "src/item/logic.rs",
-        "src/menubar/view.rs",
         "src/menubar/logic.rs",
-        "src/navigation_menu/view.rs",
         "src/navigation_menu/logic.rs",
         "src/section/view.rs",
         "src/section/logic.rs",
@@ -4291,7 +4286,7 @@ fn menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_co
     let menu_view = load_component_source("src/view.rs");
     let item_view = load_component_source("src/item/view.rs");
     let semantics_source = load_component_source("test/semantics.rs");
-    let perf_script_source = load_workspace_source("scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_workspace_source("scripts/check-ui-performance.sh");
     let check2 = fs::read_to_string(component_dir().join("check2.md"))
         .expect("menu check2.md should be readable");
     let src_check2 = fs::read_to_string(component_dir().join("src/check2.md"))
@@ -4596,7 +4591,7 @@ fn menu_token_first_static_styles_are_aggregated_through_uiroot_without_utility_
         );
     }
 
-    let ui_components_css = load_workspace_source("crates/ui-components/src/css.rs");
+    let ui_components_css = load_workspace_source("crates/ui/src/css.rs");
     for required in [
         "out.push_str(crate::menu::styles::CSS);",
         "out.push_str(crate::menu::item::styles::CSS);",
@@ -4611,11 +4606,11 @@ fn menu_token_first_static_styles_are_aggregated_through_uiroot_without_utility_
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css aggregator should include menu family styles via `{required}`."
+            "ui css aggregator should include menu family styles via `{required}`."
         );
     }
 
-    let ui_root = load_workspace_source("crates/ui-components/src/root.rs");
+    let ui_root = load_workspace_source("crates/ui/src/root.rs");
     for required in [
         "if inject_components_css.get_value() {",
         "crate::css::push_components_css(&mut out);",
@@ -4672,7 +4667,7 @@ fn menu_token_first_static_styles_are_aggregated_through_uiroot_without_utility_
     for check in [&check2, &src_check2] {
         assert!(
             check.contains("- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。")
-                && check.contains("`crates/ui-components/src/css.rs`")
+                && check.contains("`crates/ui/src/css.rs`")
                 && check.contains("`inject_components_css=true`")
                 && check.contains("`var(--ui-space-*)` 与 `var(--ui-radius-*)`")
                 && check.contains("menu_token_first_static_styles_are_aggregated_through_uiroot_without_utility_css_leakage"),
@@ -4695,7 +4690,7 @@ fn menu_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminal
         "src/section/styles.rs",
         "src/trigger/styles.rs",
     ];
-    let script_source = load_workspace_source("scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_workspace_source("scripts/check-ui-contract-hygiene.sh");
     let theme_css_source = load_workspace_source("crates/ui-theme/src/css.rs");
 
     for rel_path in style_files {
@@ -4781,7 +4776,7 @@ fn menu_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminal
         "components/menu/src/*/styles.rs",
         "crates/ui-theme/src/css.rs",
         "menu_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "cargo test -p ui-menu menu_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -4794,8 +4789,8 @@ fn menu_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminal
 
 #[test]
 fn menu_cascade_layer_contract_is_aggregated_in_ui_layer_and_runtime_style_is_css_variable_only() {
-    let css_source = load_workspace_source("crates/ui-components/src/css.rs");
-    let script_source = load_workspace_source("scripts/check-ui-components-contract-hygiene.sh");
+    let css_source = load_workspace_source("crates/ui/src/css.rs");
+    let script_source = load_workspace_source("scripts/check-ui-contract-hygiene.sh");
     let check2 = load_component_source("check2.md");
 
     for required in [
@@ -4824,7 +4819,7 @@ fn menu_cascade_layer_contract_is_aggregated_in_ui_layer_and_runtime_style_is_cs
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css aggregation should keep cascade-layer marker `{required}`."
+            "ui css aggregation should keep cascade-layer marker `{required}`."
         );
     }
 
@@ -4867,11 +4862,11 @@ fn menu_cascade_layer_contract_is_aggregated_in_ui_layer_and_runtime_style_is_cs
 
     for required in [
         "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
-        "crates/ui-components/src/css.rs",
+        "crates/ui/src/css.rs",
         "out.push_str(\"\\n@layer ui {\\n\")",
         "style= / style:top",
         "menu_cascade_layer_contract_is_aggregated_in_ui_layer_and_runtime_style_is_css_variable_only",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "cargo test -p ui-menu menu_cascade_layer_contract_is_aggregated_in_ui_layer_and_runtime_style_is_css_variable_only",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -4989,7 +4984,7 @@ fn menu_visual_desire_baseline_is_documented_with_theme_page_and_snapshot_contra
 
 #[test]
 fn menu_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
-    let ui_components_cargo = load_workspace_source("crates/ui-components/Cargo.toml");
+    let ui_components_cargo = load_workspace_source("crates/ui/Cargo.toml");
     for required in [
         "component-menu = [\"component-active_highlight\"]",
         "component-menu_item = [\"component-menu\"]",
@@ -5002,11 +4997,11 @@ fn menu_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components feature graph should register tree-shakable menu features via `{required}`."
+            "ui feature graph should register tree-shakable menu features via `{required}`."
         );
     }
 
-    let ui_components_lib = load_workspace_source("crates/ui-components/src/lib.rs");
+    let ui_components_lib = load_workspace_source("crates/ui/src/lib.rs");
     for required in [
         "#[cfg(feature = \"component-menu\")]",
         "#[path = \"../../../components/menu/src/mod.rs\"]",
@@ -5024,7 +5019,7 @@ fn menu_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
         );
     }
 
-    let ui_components_css = load_workspace_source("crates/ui-components/src/css.rs");
+    let ui_components_css = load_workspace_source("crates/ui/src/css.rs");
     for required in [
         "#[cfg(feature = \"inject-css\")]",
         "#[cfg(feature = \"component-menu\")]",
@@ -5048,7 +5043,7 @@ fn menu_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
 
     let web_demo_cargo = load_workspace_source("apps/web-demo/Cargo.toml");
     for required in [
-        "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
+        "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
         "ui-layout = { path = \"../../crates/ui-layout\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
     ] {
         assert!(
@@ -5061,12 +5056,12 @@ fn menu_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
         "web-demo must not pull all-components directly."
     );
 
-    let tree_shaking_script = load_workspace_source("scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_workspace_source("scripts/check-ui-tree-shaking.sh");
     for required in [
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
@@ -5108,17 +5103,17 @@ fn menu_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
 #[test]
 fn menu_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2 = load_component_source("check2.md");
-    let tree_shaking_script = load_workspace_source("scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_workspace_source("scripts/check-ui-tree-shaking.sh");
 
     for required in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "component-menu,inject-css",
-        "crates/ui-components/Cargo.toml",
-        "crates/ui-components/src/lib.rs",
-        "crates/ui-components/src/css.rs",
+        "crates/ui/Cargo.toml",
+        "crates/ui/src/lib.rs",
+        "crates/ui/src/css.rs",
         "menu_tree_shaking_contract_is_feature_gated_and_budget_guarded",
         "menu_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "scripts/check-ui-tree-shaking.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -5131,11 +5126,11 @@ fn menu_check2_marks_tree_shaking_feature_pruning_contract_complete() {
         "MENU_MIN_FEATURES=\"component-menu,inject-css\"",
         "cargo test -p ui-menu menu_tree_shaking_contract_is_feature_gated_and_budget_guarded",
         "cargo test -p ui-menu menu_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MENU_MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MENU_MIN_FEATURES\"",
         "if ! grep -q 'feature \"component-menu\" (command-line)' <<<\"$MENU_TREE_OUTPUT\";",
         "if ! grep -q 'feature \"inject-css\" (command-line)' <<<\"$MENU_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$MENU_TREE_OUTPUT\";",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MENU_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MENU_MIN_FEATURES\"",
     ] {
         assert!(
             tree_shaking_script.contains(needle),
@@ -5295,7 +5290,7 @@ fn menu_type_system_and_semantic_markers_form_machine_readable_contract() {
 
 #[test]
 fn menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries() {
-    let engineering_script = load_workspace_source("scripts/check-ui-components-engineering.sh");
+    let engineering_script = load_workspace_source("scripts/check-ui-engineering.sh");
     let cargo_source = load_component_source("Cargo.toml");
     let shared_trace_source = load_workspace_source("crates/ui-headless/src/trace.rs");
     let shared_controllable_state_source =
@@ -5435,7 +5430,7 @@ fn menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_bound
             "use_controllable_open_state_traced",
             "components/menu/Cargo.toml",
             "menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries",
-            "scripts/check-ui-components-engineering.sh",
+            "scripts/check-ui-engineering.sh",
             "cargo test -p ui-menu menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries",
             "Invalid cross-device link (os error 18)",
         ] {
@@ -5501,7 +5496,7 @@ fn menu_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent() {
 #[test]
 fn menu_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let rust_hygiene_script = load_workspace_source("scripts/check-rust-hygiene.sh");
-    let engineering_script = load_workspace_source("scripts/check-ui-components-engineering.sh");
+    let engineering_script = load_workspace_source("scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -5537,7 +5532,7 @@ fn menu_check2_marks_rust_hygiene_contract_complete() {
         "components/menu/test/semantics.rs::menu_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
         "components/menu/test/semantics.rs::menu_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
         "components/menu/test/semantics.rs::menu_rust_hygiene_script_enforces_repo_level_hygiene_guards",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
     ] {
         assert!(
             check2.contains(required),

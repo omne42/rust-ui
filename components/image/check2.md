@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -159,8 +159,8 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 通过：`components/image/src/styles.rs` 仅承载静态样式并消费 `var(--ui-*)` token；`crates/ui-components/src/css.rs` 通过 `component-image` feature 聚合注入，`UiRoot` 统一调用 `push_components_css`；运行时仅在 `motion.rs` 写入 `--ui-image-zoom`，无业务 inline style。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 通过：`components/image/src/styles.rs` 仅承载静态样式并消费 `var(--ui-*)` token；`crates/ui/src/css.rs` 通过 `component-image` feature 聚合注入，`UiRoot` 统一调用 `push_components_css`；运行时仅在 `motion.rs` 写入 `--ui-image-zoom`，无业务 inline style。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -172,17 +172,17 @@
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
 - [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
-  - 通过：`crates/ui-components/Cargo.toml` 提供 `component-image = ["dep:ui-image"]`，且 `ui-image` 为 `optional = true`；`crates/ui-components/src/lib.rs` 对 `image` 导出使用 `#[cfg(feature = "component-image")]`；`crates/ui-components/src/css.rs` 对 image CSS 聚合使用同名 feature 门控，未启用时不进入链接与样式输出路径。
+  - 通过：`crates/ui/Cargo.toml` 提供 `component-image = ["dep:ui-image"]`，且 `ui-image` 为 `optional = true`；`crates/ui/src/lib.rs` 对 `image` 导出使用 `#[cfg(feature = "component-image")]`；`crates/ui/src/css.rs` 对 image CSS 聚合使用同名 feature 门控，未启用时不进入链接与样式输出路径。
   - 验证结果（已执行）：
-    - `cargo tree -e features -p ui-components --no-default-features --features component-image,inject-css`：特性树包含 `ui-components feature "component-image"` 与 `ui-image feature "default"`，未出现 `all-components`。
-    - `cargo tree -e features -i ui-components -p web-demo`：反向依赖链由 `web-demo-components` 拉起，未出现隐式 `all-components`。
+    - `cargo tree -e features -p ui --no-default-features --features component-image,inject-css`：特性树包含 `ui feature "component-image"` 与 `ui-image feature "default"`，未出现 `all-components`。
+    - `cargo tree -e features -i ui -p web-demo`：反向依赖链由 `web-demo-components` 拉起，未出现隐式 `all-components`。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 通过：离散状态轴使用类型约束（`ImageStatus`/`ImageRadius`/`ImageShadow` + `ImageMotionSource`/`ImageStatusSource`），`logic.rs` 统一归一与派生（`normalize_props`/`derive_view_state`），并通过稳定 `data-*` 标记（`data-state`、`data-status-source`、`data-motion-source` 等）对外暴露机器可读状态。
@@ -201,13 +201,13 @@
   - 回归保护：`components/image/test/semantics.rs` 与 `components/image/test/image_semantics.rs` 增加 Escape Hatch N/A 断言，防止后续把命令式第三方实例耦合进组件公共 API。
 - [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
   - N/A（Image 组件不生成本地 ID，不依赖 `now()`/随机 UUID 初始化逻辑；`view.rs`/`logic.rs`/`motion.rs` 仅消费显式 props 与资源事件）。
-  - 全局确定性种子边界已存在于 `UiRoot`：`id_seed` + `provide_ui_id_provider(id_seed)`（`crates/ui-components/src/root.rs`）。
+  - 全局确定性种子边界已存在于 `UiRoot`：`id_seed` + `provide_ui_id_provider(id_seed)`（`crates/ui/src/root.rs`）。
   - 回归保护：`components/image/test/semantics.rs` 与 `components/image/test/image_semantics.rs` 增加 Hydration Discontinuity N/A 断言，防止引入非确定性初始化片段。
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
   - compile-only 证据命令：
-    - web（wasm32）：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-image,inject-css`
+    - web（wasm32）：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-image,inject-css`
     - ssr（native）：`cargo check -p ui-headless --no-default-features --features ssr`
-    - 默认本地构建：`cargo check -p ui-components`
+    - 默认本地构建：`cargo check -p ui`
   - 平台分支显式 `cfg` 管理：`components/image/src/motion.rs` 使用 `#[cfg(target_arch = "wasm32")]` 与 `#[cfg(not(target_arch = "wasm32"))]` 对 `attach_zoom_motion` 分支实现。
   - non-wasm 路径不引用 `web-sys`/浏览器对象：浏览器专属类型与绑定仅位于 wasm 分支；non-wasm 分支为确定性 no-op（仅 `sanitize_motion`）。
   - 回归保护：`components/image/test/semantics.rs` 与 `components/image/test/image_semantics.rs` 增加“SSR/Cross-platform compile contract”断言，锁定 `cfg` 分支与 non-wasm 无 `web_sys` 约束。
@@ -321,7 +321,7 @@
   - 通过：组件样式不再硬编码 Hex 与裸尺寸终值（如 `999px`、`14px`、`1.12`、`0.45`、`220% 100%`、`1.3s`），对应终值已转移到 `crates/ui-theme/src/css.rs` 的 fallback 变量输出。
   - 通过：`ui-theme` 新增并统一输出 image 所需 fallback 变量（如 `--ui-fallback-image-blur`、`--ui-fallback-image-skeleton-duration`、`--ui-fallback-image-shimmer-start`、`--ui-fallback-radius-full`），组件层仅消费变量。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 通过：`crates/ui-components/src/css.rs` 的 `push_components_css` 统一以 `@layer ui` 包裹组件样式聚合，并在 `component-image` feature 下注入 `crate::image::styles::CSS`。
+  - 通过：`crates/ui/src/css.rs` 的 `push_components_css` 统一以 `@layer ui` 包裹组件样式聚合，并在 `component-image` feature 下注入 `crate::image::styles::CSS`。
   - 通过：`components/image/src/view.rs` 未输出普通 inline style；组件视觉状态变更在运行时仅通过 `motion.rs` 的 `set_property(\"--ui-image-zoom\", ...)` 写入 CSS Custom Property。
   - 通过：`motion.rs` 不写入 `top/left/width/height` 等业务布局内联样式属性，保持“运行时只调 custom property”的边界。
   - 回归保护：`components/image/test/semantics.rs` 与 `components/image/test/image_semantics.rs` 新增 `image_declares_cascade_layer_contract` 断言，锁定 `@layer ui` 聚合与 inline-style 禁止规则。
@@ -331,12 +331,12 @@
   - 通过：wasm 分支在 `attach_zoom_motion` 中显式尊重 `ui_motion::web::prefers_reduced_motion()`，reduced-motion 下强制 `--ui-image-zoom=1` 并跳过动画 attach。
   - 通过：non-wasm/SSR 分支保持 deterministic no-op（`std::hint::black_box(sanitize_motion(motion))`），不触发浏览器 API 或 panic。
   - 回归保护：`components/image/test/semantics.rs` 与 `components/image/test/image_semantics.rs` 新增 `image_declares_motion_contractization` 断言，锁定参数合同、attach 路径、reduced-motion 与 non-wasm no-op 约束。
-- [x] `ui-components` 固定入口文件落点正确。
-  - 通过：`crates/ui-components/src/lib.rs` 保持总模块出口，`image` 导出受 `#[cfg(feature = "component-image")]` 约束；未暴露 `web-sys`/DOM 细节类型作为 image 公共 API。
-  - 通过：`crates/ui-components/src/css.rs` 保持 `push_components_css` 聚合入口；image 样式注入受 `component-image` feature 门控，未出现无条件聚合。
-  - 通过：`crates/ui-components/src/root.rs` 的 `UiRoot` 统一注入 base css + theme vars + optional components css，并集中提供 `UiI18n`/`provide_ui_id_provider` 全局上下文。
+- [x] `ui` 固定入口文件落点正确。
+  - 通过：`crates/ui/src/lib.rs` 保持总模块出口，`image` 导出受 `#[cfg(feature = "component-image")]` 约束；未暴露 `web-sys`/DOM 细节类型作为 image 公共 API。
+  - 通过：`crates/ui/src/css.rs` 保持 `push_components_css` 聚合入口；image 样式注入受 `component-image` feature 门控，未出现无条件聚合。
+  - 通过：`crates/ui/src/root.rs` 的 `UiRoot` 统一注入 base css + theme vars + optional components css，并集中提供 `UiI18n`/`provide_ui_id_provider` 全局上下文。
   - 通过：`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮样式与 motion 驱动（`ActiveHighlightMotion + attach_active_highlight_motion`），未承载 image 业务语义。
-  - 通过：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在；对应能力分别固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
+  - 通过：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 均不存在；对应能力分别固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
   - 回归保护：`components/image/test/semantics.rs` 与 `components/image/test/image_semantics.rs` 新增 `image_declares_ui_components_fixed_entry_contract` 断言，锁定固定入口文件落点与 headless 归属边界。
 - [x] 组件目录标准文件落点正确。
   - 通过：`components/image/src/` 具备标准文件集合 `mod.rs + logic.rs + styles.rs + view.rs + motion.rs`，并包含组件协议文件 `protocol.rs`；不存在 `render.rs` 漂移文件。
@@ -394,10 +394,10 @@
   - 验证命令已执行：`./scripts/check-rust-hygiene.sh`。
   - 当前环境阻塞说明：脚本在本容器因 `ripgrep` 缺少 `PCRE2` 支持并触发仓库级 `api-contract baseline drift` 失败；该失败为工具链/仓库全局问题，非 `components/image` 源码新增违规。
   - 回归保护：`components/image/test/semantics.rs` 与 `components/image/test/image_semantics.rs` 新增 `image_declares_rust_hygiene_contract` 断言，锁定 hygiene 与 `Cow<'static, str>` 合同。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 通过：`crates/ui-components/Cargo.toml` 已注册 `component-image = ["dep:ui-image"]`，且 `ui-image` 为 `optional = true`，满足组件级特性剪裁入口。
-  - 通过：`crates/ui-components/src/lib.rs` 中 image 导出受 `#[cfg(feature = "component-image")]` 门控；未启用该特性时 image 模块不进入可达路径。
-  - 通过：`crates/ui-components/src/css.rs` 中 image 样式聚合受同名 feature 门控（`#[cfg(feature = "component-image")] out.push_str(crate::image::styles::CSS);`），不存在无条件注入。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 通过：`crates/ui/Cargo.toml` 已注册 `component-image = ["dep:ui-image"]`，且 `ui-image` 为 `optional = true`，满足组件级特性剪裁入口。
+  - 通过：`crates/ui/src/lib.rs` 中 image 导出受 `#[cfg(feature = "component-image")]` 门控；未启用该特性时 image 模块不进入可达路径。
+  - 通过：`crates/ui/src/css.rs` 中 image 样式聚合受同名 feature 门控（`#[cfg(feature = "component-image")] out.push_str(crate::image::styles::CSS);`），不存在无条件注入。
   - 回归保护：`components/image/test/semantics.rs` 与 `components/image/test/image_semantics.rs` 的 `image_tree_shaking_contract_is_feature_gated_and_css_is_prunable` 断言已覆盖 Cargo feature 树、`lib.rs` 导出门控与 `css.rs` 门控聚合。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 通过：`components/image/test/semantics.rs` 与 `components/image/test/image_semantics.rs` 的 `image_semantic_test_matrix_is_contract_first_and_snapshot_free` 已覆盖 `aria-*`、`data-*`、指针路径与“非快照优先”断言（禁用 `assert_snapshot/insta`）。
@@ -469,9 +469,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

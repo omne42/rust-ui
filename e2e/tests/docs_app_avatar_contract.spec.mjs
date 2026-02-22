@@ -135,7 +135,7 @@ test("docs-app avatar source-first section exposes copy-ready starter and source
   await expect(copyButton).toBeVisible();
 
   await expect(sourceFirst.locator('[data-slot="snippet-pre"]').first()).toContainText(
-    "use ui_components::{Avatar, AvatarSize};"
+    "use ui::{Avatar, AvatarSize};"
   );
   await expect(sourceFirst.locator('[data-slot="snippet-pre"]').first()).toContainText(
     '<Avatar name="Ada Lovelace".to_string() size=AvatarSize::Md />'

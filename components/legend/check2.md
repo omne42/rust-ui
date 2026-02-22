@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -130,8 +130,8 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`Legend` 样式规则集中在 `src/styles.rs` 且视觉值基于 `var(--ui-*)` token 变量；`crates/ui-components/src/css.rs` 在 `component-legend` feature 下聚合 `crate::legend::styles::CSS`，由 `UiRoot` 的 `push_components_css` 注入；运行时 `style` 仅传 `--ui-legend-motion-duration` CSS 变量，不承载业务样式逻辑；组件层未引入 Utility-First 或 CSS-in-Rust 范式。回归：`components/legend/test/legend_semantics.rs::legend_token_first_static_style_contract_is_enforced`。）
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`Legend` 样式规则集中在 `src/styles.rs` 且视觉值基于 `var(--ui-*)` token 变量；`crates/ui/src/css.rs` 在 `component-legend` feature 下聚合 `crate::legend::styles::CSS`，由 `UiRoot` 的 `push_components_css` 注入；运行时 `style` 仅传 `--ui-legend-motion-duration` CSS 变量，不承载业务样式逻辑；组件层未引入 Utility-First 或 CSS-in-Rust 范式。回归：`components/legend/test/legend_semantics.rs::legend_token_first_static_style_contract_is_enforced`。）
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -140,14 +140,14 @@
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`Legend` 已按组件级 feature 门控：`crates/ui-components/Cargo.toml` 通过 `component-legend = ["dep:ui-legend"]` 声明可裁剪入口，`src/lib.rs` 与 `src/css.rs` 仅在 `#[cfg(feature = "component-legend")]` 下导出/聚合 `legend` 与其 CSS；`components/legend/Cargo.toml` 为独立 crate 且 `default = []`，source 模式天然按需引入。验证命令：`cargo tree -e features -p ui-components --no-default-features --features component-legend,inject-css` 仅拉起 `ui-legend` 分支；`cargo tree -e features -i ui-components -p web-demo` 显示由 `web-demo-components` 选择性拉起而非 `all-components` 隐式全量。体积预算阻断属于仓库级 CI 治理，`Legend` 侧已保证不引入破坏裁剪的无条件聚合。回归：`components/legend/test/legend_semantics.rs::legend_tree_shaking_contract_is_feature_gated_end_to_end`。）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`Legend` 已按组件级 feature 门控：`crates/ui/Cargo.toml` 通过 `component-legend = ["dep:ui-legend"]` 声明可裁剪入口，`src/lib.rs` 与 `src/css.rs` 仅在 `#[cfg(feature = "component-legend")]` 下导出/聚合 `legend` 与其 CSS；`components/legend/Cargo.toml` 为独立 crate 且 `default = []`，source 模式天然按需引入。验证命令：`cargo tree -e features -p ui --no-default-features --features component-legend,inject-css` 仅拉起 `ui-legend` 分支；`cargo tree -e features -i ui -p web-demo` 显示由 `web-demo-components` 选择性拉起而非 `all-components` 隐式全量。体积预算阻断属于仓库级 CI 治理，`Legend` 侧已保证不引入破坏裁剪的无条件聚合。回归：`components/legend/test/legend_semantics.rs::legend_tree_shaking_contract_is_feature_gated_end_to_end`。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`Legend` 的离散状态轴 `tone` 由 `LegendTone` 枚举建模，状态输入通过 `LegendStateInput` 与 `LegendNormalizeInput` 在 `logic.rs` 统一归一化，避免字符串协议与布尔爆炸；关键状态与来源通过稳定 `data-*`/`data-ui-*` 标记对外暴露（如 `data-state/data-required/data-disabled/data-required-source/data-disabled-source/data-ui-schema`），可供测试与 Agent 消费；回归链路已覆盖 primitive + logic + semantics，可直接定位契约破坏点。回归：`components/legend/test/legend_semantics.rs::legend_type_system_and_semantic_markers_form_machine_readable_contract`。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -202,7 +202,7 @@
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（`Legend` 侧已满足组件级 DX 边界：样式集中在 `components/legend/src/styles.rs` 并通过 `ui-components/src/css.rs` 的 `component-legend` feature-gated 聚合注入，避免把样式逻辑散入交互代码；docs-app 保留 `legend` 专属 playground 作为隔离演练入口。上下文保持/状态保留对 `Legend` 为 N/A：组件无内部交互状态机与事件链，不存在热开发时“本地复杂状态丢失”问题。回归：`components/legend/test/legend_semantics.rs::legend_dx_hot_reload_and_workbench_contract_is_covered_for_low_interaction_component`。）
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（`Legend` 侧已满足组件级 DX 边界：样式集中在 `components/legend/src/styles.rs` 并通过 `ui/src/css.rs` 的 `component-legend` feature-gated 聚合注入，避免把样式逻辑散入交互代码；docs-app 保留 `legend` 专属 playground 作为隔离演练入口。上下文保持/状态保留对 `Legend` 为 N/A：组件无内部交互状态机与事件链，不存在热开发时“本地复杂状态丢失”问题。回归：`components/legend/test/legend_semantics.rs::legend_dx_hot_reload_and_workbench_contract_is_covered_for_low_interaction_component`。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
@@ -213,16 +213,16 @@
 
 ### 5. 样式与动效（Theme & Motion）
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（`Legend` 样式已收敛为 defensive 变量链：新增 `--ui-legend-strong-letter-spacing/--ui-legend-underline-offset/--ui-legend-outline-width/--ui-legend-outline-offset` 并统一消费 `var(--ui-*, var(--ui-fallback-*))`；原裸终值 `1px/2px/0.01em/0.12em/1ms` 已移除。fallback SSOT 由 `ui-theme/src/css.rs` 输出（如 `--ui-fallback-command-group-heading-letter-spacing`、`--ui-fallback-action-bar-clear-underline-offset`、`--ui-fallback-button-focus-outline-*`）。回归：`components/legend/test/legend_semantics.rs::legend_defensive_variable_chain_is_enforced_without_literal_size_fallbacks`。）
-- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`ui-components/src/css.rs` 的 `push_components_css` 以 `@layer ui` 包裹组件样式聚合，`Legend` CSS 通过 `component-legend` 分支注入该层；`Legend` 运行时仅在 `view.rs` 通过 `style=motion_style` 挂载，且 `motion.rs` 仅生成 `--ui-legend-motion-duration` 这类 CSS Custom Property，不输出 `top/left/width/position` 等普通内联样式。回归：`components/legend/test/legend_semantics.rs::legend_css_cascade_layer_and_runtime_style_payload_are_constrained`。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`ui/src/css.rs` 的 `push_components_css` 以 `@layer ui` 包裹组件样式聚合，`Legend` CSS 通过 `component-legend` 分支注入该层；`Legend` 运行时仅在 `view.rs` 通过 `style=motion_style` 挂载，且 `motion.rs` 仅生成 `--ui-legend-motion-duration` 这类 CSS Custom Property，不输出 `top/left/width/position` 等普通内联样式。回归：`components/legend/test/legend_semantics.rs::legend_css_cascade_layer_and_runtime_style_payload_are_constrained`。）
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（`components/legend/src/motion.rs` 已将 `LegendMotion` 扩展为 `duration_ms + spring(SpringConfig)` 组件 Contract，并在 `sanitize_motion` 中通过 `ui_motion::spring::sanitize_config` 归一化 `stiffness/damping/mass/precision`；`attach_motion` 通过 `resolve_effective_motion` 在 `prefers-reduced-motion` 下把 `duration_ms` 收敛为 `1ms`，并仅输出 `--ui-legend-motion-*` CSS 变量（含 `stiffness/damping/mass/precision/reduced`）。`components/legend/src/view.rs` 维持 `motion::attach_motion` 单点挂载；non-wasm/SSR 降级依赖 `crates/ui-motion/src/lib.rs` 的 `web::prefers_reduced_motion()->true` 与 `animate` no-op/stub，路径安全可预测。回归：`components/legend/test/motion.rs::resolve_effective_motion_respects_reduced_motion_branch`、`components/legend/test/motion.rs::attach_motion_outputs_contract_css_variables`、`components/legend/test/legend_semantics.rs::legend_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`。）
-- [x] `ui-components` 固定入口文件落点正确。（`crates/ui-components/src/lib.rs` 维持总入口与 `component-*` feature gate（含 `component-legend -> pub use ui_legend as legend`）并仅导出稳定 API（`pub use root::UiRoot`），未暴露 `web_sys/wasm_bindgen` 平台细节；`crates/ui-components/src/css.rs` 通过 `push_components_css` 在 `inject-css` 下按组件 feature 条件聚合并注入 `@layer ui`，不存在无条件全量 CSS 注入；`crates/ui-components/src/root.rs` 统一注入 `BASE_CSS + theme vars + optional components css`，并集中提供 `provide_ui_i18n/provide_ui_id_provider`；`crates/ui-visual-primitive/src/active_highlight.rs` 保持共享高亮样式与 spring driver 能力，不承载具体组件业务语义。文件落点约束满足：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在。回归：`components/legend/test/legend_semantics.rs::legend_ui_components_entrypoints_follow_layered_contract_boundaries`。）
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。（`crates/ui/src/lib.rs` 维持总入口与 `component-*` feature gate（含 `component-legend -> pub use ui_legend as legend`）并仅导出稳定 API（`pub use root::UiRoot`），未暴露 `web_sys/wasm_bindgen` 平台细节；`crates/ui/src/css.rs` 通过 `push_components_css` 在 `inject-css` 下按组件 feature 条件聚合并注入 `@layer ui`，不存在无条件全量 CSS 注入；`crates/ui/src/root.rs` 统一注入 `BASE_CSS + theme vars + optional components css`，并集中提供 `provide_ui_i18n/provide_ui_id_provider`；`crates/ui-visual-primitive/src/active_highlight.rs` 保持共享高亮样式与 spring driver 能力，不承载具体组件业务语义。文件落点约束满足：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 均不存在。回归：`components/legend/test/legend_semantics.rs::legend_ui_components_entrypoints_follow_layered_contract_boundaries`。）
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。（`components/legend/src/` 已按标准落位为 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`，且 `render.rs/spec.rs` 缺席；`mod.rs` 仅保留最小稳定导出面（`Legend`、`LegendMotion` 与必要逻辑类型导出），未过度暴露内部实现。`logic.rs` 聚焦 props 归一/状态派生/来源标记，未承载 DOM/样式分支；`styles.rs` 为静态 token-first CSS（`var(--ui-*)`）；`view.rs` 仅做 Leptos 结构与 headless 语义挂载；`motion.rs` 保持 `LegendMotion + attach_motion` 合同映射，不重写通用动效引擎。回归：`components/legend/test/legend_semantics.rs::legend_component_directory_standard_files_are_present_and_layer_scoped`、`components/legend/test/legend_semantics.rs::legend_component_file_responsibilities_are_strictly_layered`、`components/legend/test/legend_semantics.rs::legend_avoids_spec_rs_sprawl_and_keeps_contract_in_protocol_module`。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -254,10 +254,10 @@
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`legend` 非测试实现已满足约束：`logic/view/styles/motion/mod/protocol` 无 `.unwrap/.expect/let _ =`；`components/legend/src/logic.rs` 的 `compose_class_name` 已从多处 `\"...\".to_string()` 收敛为 `Vec<Cow<'static, str>>`（`Cow::Borrowed` + `Cow::Owned`）以降低字符串复制。回归：`components/legend/test/legend_semantics.rs::legend_rust_hygiene_contract_is_enforced_in_component_scope`。已执行 `./scripts/check-rust-hygiene.sh`，当前命令在仓库级被 `scripts/check-api-contracts.sh` 的 baseline drift（以及环境 `rg` 无 PCRE2）阻断，非 legend 单组件回归。）
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`Legend` 已完成端到端 feature 门控：`crates/ui-components/Cargo.toml` 声明 `component-legend = ["dep:ui-legend"]` 且 `ui-legend` 为 `optional`；`crates/ui-components/src/lib.rs` 仅在 `#[cfg(feature = "component-legend")]` 下导出 `pub use ui_legend as legend;`；`crates/ui-components/src/css.rs` 仅在 `#[cfg(feature = "component-legend")]` 下注入 `crate::legend::styles::CSS`，不存在无条件聚合；`components/legend/Cargo.toml` 保持 `default = []` 以支持 source 模式天然裁剪；`apps/web-demo/Cargo.toml` 以 `default-features = false` + 显式特性切片接入，未隐式拉起 `all-components`。回归：`components/legend/test/legend_semantics.rs::legend_tree_shaking_contract_is_feature_gated_end_to_end`。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`Legend` 已完成端到端 feature 门控：`crates/ui/Cargo.toml` 声明 `component-legend = ["dep:ui-legend"]` 且 `ui-legend` 为 `optional`；`crates/ui/src/lib.rs` 仅在 `#[cfg(feature = "component-legend")]` 下导出 `pub use ui_legend as legend;`；`crates/ui/src/css.rs` 仅在 `#[cfg(feature = "component-legend")]` 下注入 `crate::legend::styles::CSS`，不存在无条件聚合；`components/legend/Cargo.toml` 保持 `default = []` 以支持 source 模式天然裁剪；`apps/web-demo/Cargo.toml` 以 `default-features = false` + 显式特性切片接入，未隐式拉起 `all-components`。回归：`components/legend/test/legend_semantics.rs::legend_tree_shaking_contract_is_feature_gated_end_to_end`。）
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（`Legend` 已有语义回归覆盖 `aria-* + data-*`：`components/legend/test/legend_semantics.rs::legend_state_observability_markers_are_stable_and_enumerable`、`components/legend/test/legend_semantics.rs::legend_emits_baseline_style_state_data_attributes`、`components/legend/test/semantics.rs::legend_view_mounts_headless_semantic_attrs`；并通过 `components/legend/test/legend_semantics.rs::legend_semantic_contract_tests_cover_matrix_without_snapshot_lock_in` 明确“非快照驱动”断言。焦点流转对 `Legend` 为 N/A（组件为非交互语义节点），已由 `components/legend/test/legend_semantics.rs::legend_semantic_contract_tests_cover_matrix_without_snapshot_lock_in`（无键盘/指针交互路径）与 `components/legend/test/legend_semantics.rs::legend_focus_stack_gc_is_not_applicable_and_stays_outside_overlay_focus_manager`（焦点栈职责留在 headless）锁定。性能回归方面，`Legend` 非高频/重型组件，不适用强制 `render_count`；已提供等价可重复预算证据：`components/legend/test/legend_semantics.rs::legend_performance_budget_has_reproducible_static_baseline`（无内部 reactive loop、单 `view!` 入口、开销可归因）。）
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `Legend` 变更未引入跨大版本 API 破坏升级；协议仍保持 `components/legend/src/protocol.rs` 的 `LegendComponentSchemaVersion::V1` + `LegendComponentSpec`，`components/legend/src/Component.toml` 仍为 `schema_version = "1"`，未触发 Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/legend/test/legend_semantics.rs::legend_version_deprecation_migration_is_na_without_major_breaking_upgrade`。）
-- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::legend()` 已覆盖：`Hello World`、`Required Legend`、`Tone + Custom Indicator + Disabled`（状态矩阵）与 `Controlled vs Default (Comparison)`（受控/非受控对照）；文档显式声明 `Streaming Optional; fallback=snapshot` 与 `Snapshot mode`；并在 copy-ready 文案中声明 snippets 自动补全 imports（`use ui_components::{Legend, LegendTone, Switch};`）及源码落点。回归：`components/legend/test/legend_semantics.rs::legend_docs_page_covers_primary_playgrounds`、`components/legend/test/legend_semantics.rs::legend_docs_playgrounds_lock_state_matrix_contract_values`、`components/legend/test/legend_semantics.rs::legend_docs_copy_paste_ready_stream_snapshot_and_controlled_comparison_are_explicit`。）
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::legend()` 已覆盖：`Hello World`、`Required Legend`、`Tone + Custom Indicator + Disabled`（状态矩阵）与 `Controlled vs Default (Comparison)`（受控/非受控对照）；文档显式声明 `Streaming Optional; fallback=snapshot` 与 `Snapshot mode`；并在 copy-ready 文案中声明 snippets 自动补全 imports（`use ui::{Legend, LegendTone, Switch};`）及源码落点。回归：`components/legend/test/legend_semantics.rs::legend_docs_page_covers_primary_playgrounds`、`components/legend/test/legend_semantics.rs::legend_docs_playgrounds_lock_state_matrix_contract_values`、`components/legend/test/legend_semantics.rs::legend_docs_copy_paste_ready_stream_snapshot_and_controlled_comparison_are_explicit`。）
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`Legend` 已由 `components/legend/test/legend_semantics.rs` 提供专门 `*_semantics` 契约回归：`legend_semantics_testing_prioritizes_role_aria_data_and_source_contracts` 锁定 `role(<legend>) + aria-disabled + data-state/data-required/data-disabled + data-*-source`，并显式禁止 `assert_snapshot/insta` 的视觉快照依赖；`legend_state_observability_markers_are_stable_and_enumerable`、`legend_a11y_i18n_l10n_contracts_are_wired_through_headless` 补齐状态来源与可访问语义路径覆盖。新增/变更语义字段需同步补测约束由该语义套件中的固定断言锚点持续守护。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
@@ -282,7 +282,7 @@
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::legend()` 已输出 copy-ready 与 source-first 信息：`data-slot="legend-copy-ready"`（说明 snippets 自动补全 imports）、`data-slot="legend-source-paths"`（真实源码落点 `components/legend/src/{mod,logic,view,styles,motion}.rs`）、`data-slot="legend-source-prerequisites"`（`component-legend` + 可选 `inject-css` 依赖前提）；Playground 复制能力复用统一机制 `apps/docs-app/src/playground.rs::compose_copy_ready_code` + `CodeBlock` 的 `data-copyable`。E2E 已补 `e2e/tests/docs_app_legend_contract.spec.mjs::docs-app legend source-first snippets are copy-paste ready and traceable`，断言复制面板 `data-copyable`、可运行 imports（`use leptos::prelude::*; use ui_components::*;`）及源码/依赖提示可见，防止示例漂移。回归锁定：`components/legend/test/legend_semantics.rs::legend_source_first_docs_are_copy_paste_ready_and_traceable`。）
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::legend()` 已输出 copy-ready 与 source-first 信息：`data-slot="legend-copy-ready"`（说明 snippets 自动补全 imports）、`data-slot="legend-source-paths"`（真实源码落点 `components/legend/src/{mod,logic,view,styles,motion}.rs`）、`data-slot="legend-source-prerequisites"`（`component-legend` + 可选 `inject-css` 依赖前提）；Playground 复制能力复用统一机制 `apps/docs-app/src/playground.rs::compose_copy_ready_code` + `CodeBlock` 的 `data-copyable`。E2E 已补 `e2e/tests/docs_app_legend_contract.spec.mjs::docs-app legend source-first snippets are copy-paste ready and traceable`，断言复制面板 `data-copyable`、可运行 imports（`use leptos::prelude::*; use ui::*;`）及源码/依赖提示可见，防止示例漂移。回归锁定：`components/legend/test/legend_semantics.rs::legend_source_first_docs_are_copy_paste_ready_and_traceable`。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
@@ -298,9 +298,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

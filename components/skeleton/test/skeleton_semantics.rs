@@ -760,7 +760,7 @@ fn skeleton_token_first_styles_are_static_and_aggregated_via_ui_root_css_pipelin
     }
 
     for required in [
-        "样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。",
+        "样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。",
         "Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。",
         "CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。",
     ] {
@@ -850,7 +850,7 @@ fn skeleton_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo features should include `{needle}` for tree-shaking boundaries."
+            "ui Cargo features should include `{needle}` for tree-shaking boundaries."
         );
     }
 
@@ -878,7 +878,7 @@ fn skeleton_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components."
+        "web-demo should consume ui via web-demo-components, not all-components."
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -889,15 +889,15 @@ fn skeleton_tree_shaking_keeps_component_feature_and_css_boundaries() {
 
 #[test]
 fn skeleton_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
@@ -924,16 +924,16 @@ fn skeleton_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
 
 #[test]
 fn skeleton_platform_script_covers_default_ssr_and_wasm_compile_only_paths() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
     let headless_lib_source = load_source("../ui-headless/src/lib.rs");
 
     for needle in [
         "compile-only: default native path",
-        "cargo check -p ui-components",
+        "cargo check -p ui",
         "compile-only: ssr native path",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "compile-only: web wasm path",
-        "cargo check -p ui-components --target wasm32-unknown-unknown",
+        "cargo check -p ui --target wasm32-unknown-unknown",
         "compile guard: ui-headless web+ssr must fail",
         "cargo check -p ui-headless --no-default-features --features web,ssr",
     ] {
@@ -957,7 +957,7 @@ fn skeleton_platform_script_covers_default_ssr_and_wasm_compile_only_paths() {
 #[test]
 fn skeleton_ui_headless_web_ssr_mutex_contract_is_guarded() {
     let headless_lib_source = load_source("../ui-headless/src/lib.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "#[cfg(all(feature = \"web\", feature = \"ssr\"))]",
@@ -986,7 +986,7 @@ fn skeleton_ui_headless_web_ssr_mutex_contract_is_guarded() {
 fn skeleton_ui_motion_non_wasm_stub_contract_is_guarded() {
     let motion_lib_source = load_source("../ui-motion/src/lib.rs");
     let motion_stub_test_source = load_source("../ui-motion/tests/non_wasm_stub.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let skeleton_mod_source = load_source("src/skeleton/mod.rs");
     let skeleton_view_source = load_source("src/skeleton/view.rs");
     let skeleton_group_mod_source = load_source("src/skeleton/group/mod.rs");
@@ -1122,7 +1122,7 @@ fn skeleton_performance_governance_has_static_equivalent_evidence_and_blocking_c
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("src/skeleton/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let skeleton_logic_source = load_source("src/skeleton/logic.rs");
     let skeleton_view_source = load_source("src/skeleton/view.rs");
     let skeleton_group_logic_source = load_source("src/skeleton/group/logic.rs");
@@ -1259,10 +1259,10 @@ fn skeleton_performance_governance_has_static_equivalent_evidence_and_blocking_c
     }
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1422,7 +1422,7 @@ fn skeleton_inner_html_contract_rejects_untrusted_injection_and_keeps_a11y_seman
 fn skeleton_wasm_debug_capability_stays_feature_isolated_and_non_polluting() {
     let cargo_source = load_source("Cargo.toml");
     let crate_root_source = load_source("src/lib.rs");
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
     let combined = [
         load_source("src/skeleton/mod.rs"),
         load_source("src/skeleton/logic.rs"),
@@ -1438,7 +1438,7 @@ fn skeleton_wasm_debug_capability_stays_feature_isolated_and_non_polluting() {
     for needle in ["macro_rules! wasm_debug_proxy"] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components should keep wasm debug capability isolated via `{needle}`."
+            "ui should keep wasm debug capability isolated via `{needle}`."
         );
     }
 
@@ -1448,7 +1448,7 @@ fn skeleton_wasm_debug_capability_stays_feature_isolated_and_non_polluting() {
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
+            "ui Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
         );
     }
 
@@ -1477,8 +1477,8 @@ fn skeleton_wasm_debug_capability_stays_feature_isolated_and_non_polluting() {
     }
 
     for needle in [
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
-        "cargo test -p ui-components --test button_semantics button_wasm_debug_contract_is_feature_gated_and_dev_only",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
+        "cargo test -p ui --test button_semantics button_wasm_debug_contract_is_feature_gated_and_dev_only",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1785,7 +1785,7 @@ fn skeleton_engineering_contract_keeps_tracing_semantics_unified_without_compone
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -1804,8 +1804,8 @@ fn skeleton_engineering_contract_keeps_tracing_semantics_unified_without_compone
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::skeleton::",
-        "target: \"ui_components::skeleton_group::",
+        "target: \"ui::skeleton::",
+        "target: \"ui::skeleton_group::",
         "const SKELETON_TRACE_TARGET",
         "const SKELETON_GROUP_TRACE_TARGET",
     ] {
@@ -1894,7 +1894,7 @@ fn skeleton_ui_components_entry_points_stay_correct() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep `{needle}`.",
+            "ui lib entry should keep `{needle}`.",
         );
     }
 
@@ -1914,7 +1914,7 @@ fn skeleton_ui_components_entry_points_stay_correct() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css entry should keep `{needle}`.",
+            "ui css entry should keep `{needle}`.",
         );
     }
 
@@ -1959,7 +1959,7 @@ fn skeleton_ui_components_entry_points_stay_correct() {
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !manifest_dir.join(forbidden).exists(),
-            "ui-components root should not host `{forbidden}`.",
+            "ui root should not host `{forbidden}`.",
         );
     }
 
@@ -2004,19 +2004,19 @@ fn skeleton_check2_marks_ui_components_entry_points_complete() {
     let check2_source = load_source("src/skeleton/check2.md");
 
     for needle in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
-        "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
-        "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
-        "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
+        "- [x] `ui` 固定入口文件落点正确。",
+        "`crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
+        "`crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
+        "`crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
         "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
-        "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
-        "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
-        "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
+        "`crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
+        "`crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
+        "`crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
         "skeleton_ui_components_entry_points_stay_correct",
     ] {
         assert!(
             check2_source.contains(needle),
-            "Skeleton checklist should keep ui-components entry-point completion evidence `{needle}`.",
+            "Skeleton checklist should keep ui entry-point completion evidence `{needle}`.",
         );
     }
 }
@@ -3160,8 +3160,8 @@ fn skeleton_docs_source_first_are_copy_paste_ready_and_traceable() {
     );
 
     for needle in [
-        "test_source_path=\"crates/ui-components/src/skeleton/view.rs\".to_string()",
-        "test_source_path=\"crates/ui-components/src/skeleton/group/view.rs\".to_string()",
+        "test_source_path=\"crates/ui/src/skeleton/view.rs\".to_string()",
+        "test_source_path=\"crates/ui/src/skeleton/group/view.rs\".to_string()",
     ] {
         assert!(
             docs_display.contains(needle) || docs_display_extra.contains(needle),
@@ -3184,7 +3184,7 @@ fn skeleton_docs_source_first_are_copy_paste_ready_and_traceable() {
         "docs-app skeleton playground source is copy-paste ready",
         "toHaveAttribute(\"data-copyable\", \"true\")",
         "toContainText(\"use leptos::prelude::*;\")",
-        "toContainText(\"use ui_components::*;\")",
+        "toContainText(\"use ui::*;\")",
     ] {
         assert!(
             e2e_source.contains(needle),
@@ -3347,10 +3347,10 @@ fn skeleton_merge_gate_items_are_fully_marked_complete_with_verification_evidenc
 
     for needle in [
         "/root/.cargo/bin/cargo fmt --all -- --check",
-        "/root/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-skeleton_group,inject-css --lib -- -D warnings",
-        "/root/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-skeleton_group,inject-css --test skeleton_semantics -- -D warnings",
-        "/root/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-skeleton_group,inject-css --test skeleton_group_semantics -- -D warnings",
-        "/root/.cargo/bin/cargo test -p ui-components --no-default-features --features component-skeleton_group,inject-css --test skeleton_semantics --test skeleton_group_semantics",
+        "/root/.cargo/bin/cargo clippy -p ui --no-default-features --features component-skeleton_group,inject-css --lib -- -D warnings",
+        "/root/.cargo/bin/cargo clippy -p ui --no-default-features --features component-skeleton_group,inject-css --test skeleton_semantics -- -D warnings",
+        "/root/.cargo/bin/cargo clippy -p ui --no-default-features --features component-skeleton_group,inject-css --test skeleton_group_semantics -- -D warnings",
+        "/root/.cargo/bin/cargo test -p ui --no-default-features --features component-skeleton_group,inject-css --test skeleton_semantics --test skeleton_group_semantics",
         "bash ./scripts/smoke-csr.sh apps/docs-app \"body:not(:has(#boot))\"",
     ] {
         assert!(

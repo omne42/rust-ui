@@ -79,16 +79,8 @@ pub fn attach_motion(
 
         let disable_motion = !motion.enabled || ui_motion::web::prefers_reduced_motion();
         if disable_motion || is_dragging.get() {
-            ui_observability::set_css_property_observed_auto!(
-                &(style),
-                "--ui-resizable-runtime-panel-duration",
-                "1ms"
-            );
-            ui_observability::set_css_property_observed_auto!(
-                &(style),
-                "--ui-resizable-runtime-handle-duration",
-                "1ms"
-            );
+            drop(style.set_property("--ui-resizable-runtime-panel-duration", "1ms"));
+            drop(style.set_property("--ui-resizable-runtime-handle-duration", "1ms"));
         } else {
             drop(style.remove_property("--ui-resizable-runtime-panel-duration"));
             drop(style.remove_property("--ui-resizable-runtime-handle-duration"));

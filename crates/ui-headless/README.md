@@ -2,7 +2,7 @@
 
 `ui-headless` provides interaction + accessibility primitives (无障碍基线 analogue).
 
-It outputs **handlers + attrs** structs, which `ui-components` (or your app) explicitly mounts onto DOM elements.
+It outputs **handlers + attrs** structs, which `ui` (or your app) explicitly mounts onto DOM elements.
 
 ## Goals
 

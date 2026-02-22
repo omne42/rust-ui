@@ -156,7 +156,7 @@ fn status_light_component_layer_keeps_assembly_boundaries_and_public_api() {
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components public API should gate and export StatusLight stably; missing `{required}`."
+            "ui public API should gate and export StatusLight stably; missing `{required}`."
         );
     }
 }
@@ -756,7 +756,7 @@ fn status_light_respects_ui_components_entrypoint_contracts() {
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib.rs should expose StatusLight behind feature gate; missing `{required}`."
+            "ui lib.rs should expose StatusLight behind feature gate; missing `{required}`."
         );
     }
 
@@ -766,7 +766,7 @@ fn status_light_respects_ui_components_entrypoint_contracts() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css.rs should aggregate StatusLight CSS via feature-gated push; missing `{required}`."
+            "ui css.rs should aggregate StatusLight CSS via feature-gated push; missing `{required}`."
         );
     }
 
@@ -785,7 +785,7 @@ fn status_light_respects_ui_components_entrypoint_contracts() {
         let path = manifest_dir.join(forbidden);
         assert!(
             !path.exists(),
-            "ui-components should not host `{forbidden}` root helper; contract belongs to ui-headless."
+            "ui should not host `{forbidden}` root helper; contract belongs to ui-headless."
         );
     }
 }
@@ -1019,7 +1019,7 @@ fn status_light_docs_are_newcomer_friendly_with_default_path_first() {
 fn status_light_performance_governance_contract_is_budgeted_traceable_and_blocking() {
     let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let e2e_coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/status_light/view.rs");
 
     for needle in [
@@ -1049,9 +1049,9 @@ fn status_light_performance_governance_contract_is_budgeted_traceable_and_blocki
     }
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             perf_script_source.contains(needle),
@@ -1154,7 +1154,7 @@ fn status_light_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep shared wasm-debug marker `{needle}`."
+            "ui Cargo features should keep shared wasm-debug marker `{needle}`."
         );
     }
     assert!(
@@ -1168,7 +1168,7 @@ fn status_light_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_
     ] {
         assert!(
             ui_components_lib_source.contains(needle),
-            "ui-components root should keep wasm-debug isolation marker `{needle}`."
+            "ui root should keep wasm-debug isolation marker `{needle}`."
         );
     }
 
@@ -1368,7 +1368,7 @@ fn status_light_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
     let e2e_source = load_source("../../e2e/tests/docs_app_status_light_contract.spec.mjs");
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String {",
         "return compose_copy_ready_code(&dynamic_code.get(), &code_imports.get_value());",
         "Source: {path}",
@@ -1380,7 +1380,7 @@ fn status_light_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
     }
 
     for needle in [
-        "let import_text = format!(\"use ui_components::{title};\");",
+        "let import_text = format!(\"use ui::{title};\");",
         "label=\"Import\".to_string()",
     ] {
         assert!(

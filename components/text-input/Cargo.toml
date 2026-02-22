@@ -12,4 +12,4 @@ default = []
 
 [dependencies]
 ui-observability = { path = "../../crates/ui-observability" }
-ui-components = { path = "../../crates/ui-components", default-features = false, features = ["component-domain-text_input"] }
+ui = { path = "../../crates/ui", default-features = false, features = ["component-domain-text_input"] }

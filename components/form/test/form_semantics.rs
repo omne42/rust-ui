@@ -69,7 +69,7 @@ fn ui_components_does_not_reexport_form_motion() {
 
     assert!(
         !source.contains("FormMotion"),
-        "`ui-components` should not re-export a placeholder `FormMotion` type."
+        "`ui` should not re-export a placeholder `FormMotion` type."
     );
 }
 

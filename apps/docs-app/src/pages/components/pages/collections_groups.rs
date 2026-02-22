@@ -1,53 +1,155 @@
+use super::playground_workbench::{bool_word, rust_string_literal};
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::tag::{Tag, TagSize, TagVariant};
-use ui_components::{
-    Collapsible, CollapsibleMotion, SegmentedControl, SegmentedControlSize, Switch,
-};
+use ui::tag::{Tag, TagSize, TagVariant};
+use ui::{Collapsible, CollapsibleMotion};
+use ui_headless::A11yDirection;
 
 pub(super) fn tag() -> AnyView {
+    let variant_options = ["Default".to_string(), "Surface".to_string()];
+    let size_options = ["Sm".to_string(), "Md".to_string(), "Lg".to_string()];
+
+    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let (size_index, set_size_index) = signal(Some(1_usize));
+    let (disabled, set_disabled) = signal(false);
+    let (removable, set_removable) = signal(true);
+    let (enable_on_remove, set_enable_on_remove) = signal(true);
+    let (custom_remove_label, set_custom_remove_label) = signal(true);
+    let (custom_class, set_custom_class) = signal(false);
+    let (rtl, set_rtl) = signal(false);
+
     let (remove_count, set_remove_count) = signal(0_u32);
+    let (last_removed, set_last_removed) = signal("none".to_string());
 
-    let on_remove_alpha = Callback::new(move |_| set_remove_count.update(|count| *count += 1));
+    let workbench_variant = Signal::derive(move || {
+        if variant_index.get().unwrap_or(0) == 1 {
+            TagVariant::Surface
+        } else {
+            TagVariant::Default
+        }
+    });
+    let workbench_size = Signal::derive(move || match size_index.get().unwrap_or(1) {
+        0 => TagSize::Sm,
+        2 => TagSize::Lg,
+        _ => TagSize::Md,
+    });
+    let workbench_remove_aria_label = Signal::derive(move || {
+        if custom_remove_label.get() {
+            "Remove workbench tag".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if custom_class.get() {
+            "docs-tag-custom".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_lang = Signal::derive(move || {
+        if rtl.get() {
+            "ar".to_string()
+        } else {
+            "en-US".to_string()
+        }
+    });
+    let workbench_dir = Signal::derive(move || {
+        if rtl.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        }
+    });
 
-    let on_remove_beta = Callback::new(move |_| set_remove_count.update(|count| *count += 1));
+    let on_workbench_remove = Callback::new(move |_| {
+        if !enable_on_remove.get_untracked() {
+            return;
+        }
+        set_remove_count.update(|count| *count += 1);
+        set_last_removed.set(format!("removed #{}", remove_count.get_untracked() + 1));
+    });
 
-    let hello_world_code = Signal::derive(|| {
-        "<Tag>\"Hello Tag\"</Tag>\n<Tag variant=TagVariant::Surface>\"Surface\"</Tag>".to_string()
+    let showcase_code = Signal::derive(move || {
+        r#"<Tag variant=TagVariant::Default size=TagSize::Md>"Default tag"</Tag>
+<Tag variant=TagVariant::Surface size=TagSize::Md>"Surface tag"</Tag>"#
+            .to_string()
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let variant_expr = match workbench_variant.get() {
+            TagVariant::Default => "TagVariant::Default",
+            TagVariant::Surface => "TagVariant::Surface",
+        };
+        let size_expr = match workbench_size.get() {
+            TagSize::Sm => "TagSize::Sm",
+            TagSize::Md => "TagSize::Md",
+            TagSize::Lg => "TagSize::Lg",
+        };
+        let on_remove_expr = if enable_on_remove.get() {
+            "Some(on_workbench_remove)"
+        } else {
+            "None"
+        };
+        let dir_expr = if rtl.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
+
+        format!(
+            "<Tag\n  variant={variant_expr}\n  size={size_expr}\n  disabled={}\n  removable={}\n  on_remove={on_remove_expr}\n  remove_aria_label={}\n  class_name={}\n  lang={}\n  dir={dir_expr}\n>\n  \"Workbench tag\"\n</Tag>",
+            bool_word(disabled.get()),
+            bool_word(removable.get()),
+            rust_string_literal(&workbench_remove_aria_label.get()),
+            rust_string_literal(&workbench_class_name.get()),
+            rust_string_literal(&workbench_lang.get()),
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "TagActualConfig {{\n  variant: {:?},\n  size: {:?},\n  disabled: {},\n  removable: {},\n  on_remove: {},\n  remove_aria_label: {:?},\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n}}",
+            workbench_variant.get(),
+            workbench_size.get(),
+            disabled.get(),
+            removable.get(),
+            if enable_on_remove.get() {
+                "Some"
+            } else {
+                "None"
+            },
+            workbench_remove_aria_label.get(),
+            workbench_class_name.get(),
+            workbench_lang.get(),
+            workbench_dir.get(),
+        )
     });
 
     let matrix_code = Signal::derive(move || {
-        [
-            "<Tag variant=TagVariant::Default size=TagSize::Sm>\"Rust\"</Tag>".to_string(),
-            "<Tag variant=TagVariant::Default>\"Leptos\"</Tag>".to_string(),
-            "<Tag variant=TagVariant::Surface>\"Naming parity\"</Tag>".to_string(),
-            "<Tag variant=TagVariant::Surface size=TagSize::Lg>\"baseline contracts\"</Tag>"
-                .to_string(),
-        ]
-        .join("\n")
-    });
-
-    let states_code = Signal::derive(move || {
-        vec![
-            format!("let (remove_count, set_remove_count) = signal({}_u32);", remove_count.get()),
-            "let on_remove_alpha = Callback::new(move |_| set_remove_count.update(|count| *count += 1));".to_string(),
-            "let on_remove_beta = Callback::new(move |_| set_remove_count.update(|count| *count += 1));".to_string(),
-            String::new(),
-            "<Tag".to_string(),
-            "  variant=TagVariant::Surface".to_string(),
-            "  removable=true".to_string(),
-            "  on_remove=on_remove_alpha".to_string(),
-            "  remove_aria_label=\"Remove alpha release\".into()".to_string(),
-            ">".to_string(),
-            "  \"alpha\"".to_string(),
-            "</Tag>".to_string(),
-            "<Tag removable=true on_remove=on_remove_beta class_name=\"docs-tag-custom\".into()>".to_string(),
-            "  \"beta\"".to_string(),
-            "</Tag>".to_string(),
-            "<Tag disabled=true removable=true>\"disabled\"</Tag>".to_string(),
-        ]
-        .join("\n")
+        r#"<Tag variant=TagVariant::Default size=TagSize::Sm>"default/sm"</Tag>
+<Tag
+  variant=TagVariant::Surface
+  size=TagSize::Md
+  removable=true
+  on_remove=on_workbench_remove
+  remove_aria_label="Remove surface tag".to_string()
+>
+  "surface/removable"
+</Tag>
+<Tag
+  variant=TagVariant::Surface
+  size=TagSize::Lg
+  disabled=true
+  removable=true
+  class_name="docs-tag-custom".to_string()
+  lang="ar".to_string()
+  dir=A11yDirection::Rtl
+>
+  "disabled/rtl"
+</Tag>"#
+            .to_string()
     });
 
     view! {
@@ -58,69 +160,165 @@ pub(super) fn tag() -> AnyView {
             description="baseline-style tag primitive with centralized variant/size/remove-action/source state contracts and stable slot/data markers."
         >
             <Playground
-                title="Hello World"
-                code_signal=hello_world_code
+                title="Hello World (Default API)"
+                code_signal=showcase_code
+                code_imports="use leptos::prelude::*;\nuse ui::tag::{Tag, TagSize, TagVariant};".to_string()
                 test_source_path="components/tag/src/view.rs".to_string()
             >
                 <div class="docs-row">
-                    <Tag>"Hello Tag"</Tag>
-                    <Tag variant=TagVariant::Surface>"Surface"</Tag>
+                    <Tag variant=TagVariant::Default size=TagSize::Md>
+                        "Default tag"
+                    </Tag>
+                    <Tag variant=TagVariant::Surface size=TagSize::Md>
+                        "Surface tag"
+                    </Tag>
                 </div>
             </Playground>
 
             <Playground
-                title="Variant + Size Matrix"
+                title="Workbench (Config + Live Actual Config)"
+                code_signal=workbench_code
+                code_imports="use leptos::prelude::*;\nuse ui::tag::{Tag, TagSize, TagVariant};\nuse ui_headless::A11yDirection;".to_string()
+                test_source_path="components/tag/src/view.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="tag-workbench-controls">
+                        <div class="docs-search__label">"variant"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || variant_index.get().unwrap_or(0).to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_variant_index.set(Some(value.min(1)));
+                                }
+                            }
+                        >
+                            {variant_options
+                                .iter()
+                                .enumerate()
+                                .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                .collect_view()}
+                        </select>
+
+                        <div class="docs-search__label">"size"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || size_index.get().unwrap_or(1).to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_size_index.set(Some(value.min(2)));
+                                }
+                            }
+                        >
+                            {size_options
+                                .iter()
+                                .enumerate()
+                                .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                .collect_view()}
+                        </select>
+
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || disabled.get()
+                                on:change=move |event| set_disabled.set(event_target_checked(&event))
+                            />
+                            <span>"disabled"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || removable.get()
+                                on:change=move |event| set_removable.set(event_target_checked(&event))
+                            />
+                            <span>"removable"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || enable_on_remove.get()
+                                on:change=move |event| set_enable_on_remove.set(event_target_checked(&event))
+                            />
+                            <span>"enable on_remove callback"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_remove_label.get()
+                                on:change=move |event| set_custom_remove_label.set(event_target_checked(&event))
+                            />
+                            <span>"custom remove_aria_label"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_class.get()
+                                on:change=move |event| set_custom_class.set(event_target_checked(&event))
+                            />
+                            <span>"custom class_name"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || rtl.get()
+                                on:change=move |event| set_rtl.set(event_target_checked(&event))
+                            />
+                            <span>"lang/dir -> RTL"</span>
+                        </label>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Tag
+                        variant=workbench_variant.get()
+                        size=workbench_size.get()
+                        disabled=disabled.get()
+                        removable=removable.get()
+                        on_remove=on_workbench_remove
+                        remove_aria_label=workbench_remove_aria_label.get()
+                        class_name=workbench_class_name.get()
+                        lang=workbench_lang.get()
+                        dir=workbench_dir.get()
+                    >
+                        "Workbench tag"
+                    </Tag>
+                    <span class="ui-muted">
+                        "remove_count: " {move || remove_count.get()}
+                        " · last_removed: " {move || last_removed.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Variant / Size / Disabled Comparison)"
                 code_signal=matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::tag::{Tag, TagSize, TagVariant};\nuse ui_headless::A11yDirection;".to_string()
                 test_source_path="components/tag/src/view.rs".to_string()
             >
                 <div class="docs-row">
                     <Tag variant=TagVariant::Default size=TagSize::Sm>
-                        "Rust"
+                        "default/sm"
                     </Tag>
-                    <Tag variant=TagVariant::Default size=TagSize::Md>
-                        "Leptos"
+                    <Tag
+                        variant=TagVariant::Surface
+                        size=TagSize::Md
+                        removable=true
+                        on_remove=on_workbench_remove
+                        remove_aria_label="Remove surface tag".to_string()
+                    >
+                        "surface/removable"
                     </Tag>
-                    <Tag variant=TagVariant::Surface size=TagSize::Md>
-                        "Naming parity"
+                    <Tag
+                        variant=TagVariant::Surface
+                        size=TagSize::Lg
+                        disabled=true
+                        removable=true
+                        class_name="docs-tag-custom".to_string()
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                    >
+                        "disabled/rtl"
                     </Tag>
-                    <Tag variant=TagVariant::Surface size=TagSize::Lg>
-                        "baseline contracts"
-                    </Tag>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Removable + Disabled + Custom Class"
-                code_signal=states_code
-                test_source_path="components/tag/src/view.rs".to_string()
-            >
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <Tag
-                            variant=TagVariant::Surface
-                            size=TagSize::Md
-                            removable=true
-                            on_remove=on_remove_alpha
-                            remove_aria_label="Remove alpha release".to_string()
-                        >
-                            "alpha"
-                        </Tag>
-                        <Tag
-                            variant=TagVariant::Default
-                            size=TagSize::Md
-                            removable=true
-                            on_remove=on_remove_beta
-                            class_name="docs-tag-custom".to_string()
-                        >
-                            "beta"
-                        </Tag>
-                        <Tag variant=TagVariant::Default size=TagSize::Md disabled=true removable=true>
-                            "disabled"
-                        </Tag>
-                    </div>
-                    <span class="ui-muted">
-                        "remove count: " {move || remove_count.get()}
-                    </span>
                 </div>
             </Playground>
         </ComponentPage>
@@ -129,208 +327,28 @@ pub(super) fn tag() -> AnyView {
 }
 
 pub(super) fn collapsible() -> AnyView {
-    let (open, set_open) = signal(true);
-    let on_open_change = Callback::new(move |next: bool| set_open.set(next));
     let collapsible_imports =
-        "use leptos::prelude::*;\nuse ui_components::{Collapsible, CollapsibleMotion};".to_string();
+        "use leptos::prelude::*;\nuse ui::{Collapsible, CollapsibleMotion};".to_string();
 
-    let hello_code = Signal::derive(move || {
-        [
-            "<Collapsible id_base=\"docs-collapsible-hello\".into() title=\"Hello World\".into()>"
-                .to_string(),
-            "  <div>\"Panel content.\"</div>".to_string(),
-            "</Collapsible>".to_string(),
-        ]
-        .join("\n")
-    });
-
-    let basic_code = Signal::derive(move || {
-        [
-            format!("let (open, set_open) = signal({});", open.get()),
-            "let on_open_change = Callback::new(move |next: bool| set_open.set(next));".to_string(),
-            String::new(),
-            "<Collapsible".to_string(),
-            "  id_base=\"docs-collapsible\".into()".to_string(),
-            "  title=\"Advanced options\".into()".to_string(),
-            "  open=open.into()".to_string(),
-            "  on_open_change=on_open_change".to_string(),
-            ">".to_string(),
-            "  <div>\"Panel content with disclosure-level semantics.\"</div>".to_string(),
-            "</Collapsible>".to_string(),
-        ]
-        .join("\n")
-    });
-
-    let states_code = Signal::derive(move || {
-        vec![
-            "<Collapsible".to_string(),
-            "  id_base=\"docs-collapsible-disabled\".into()".to_string(),
-            "  title=\"Disabled section\".into()".to_string(),
-            "  default_open=false".to_string(),
-            "  is_disabled=true".to_string(),
-            "  class_name=\"docs-collapsible-custom\".into()".to_string(),
-            "  motion=CollapsibleMotion {".to_string(),
-            "    panel_offset_y_px: 6.0,".to_string(),
-            "    ..CollapsibleMotion::default()".to_string(),
-            "  }".to_string(),
-            ">".to_string(),
-            "  <div>\"This content is intentionally not reachable while disabled.\"</div>"
-                .to_string(),
-            "</Collapsible>".to_string(),
-        ]
-        .join("\n")
-    });
-
-    let markers_code = Signal::derive(move || {
-        vec![
-            "<Collapsible".to_string(),
-            "  id_base=\"docs-collapsible-markers\".into()".to_string(),
-            "  title=\"Advanced settings\".into()".to_string(),
-            "  aria_label=\"Advanced settings panel\".into()".to_string(),
-            "  default_open=true".to_string(),
-            "  class_name=\"docs-collapsible-state\".into()".to_string(),
-            "  motion=CollapsibleMotion {".to_string(),
-            "    panel_offset_y_px: 8.0,".to_string(),
-            "    ..CollapsibleMotion::default()".to_string(),
-            "  }".to_string(),
-            ">".to_string(),
-            "  <div>\"Inspect root/trigger/panel marker contracts.\"</div>".to_string(),
-            "</Collapsible>".to_string(),
-        ]
-        .join("\n")
-    });
-
-    let parameter_matrix_code = Signal::derive(move || {
-        vec![
-            "// Required".to_string(),
-            "id_base: String // required; empty input normalizes to DEFAULT_ID_BASE".to_string(),
-            "title: String   // required; empty input resolves to DEFAULT_TITLE".to_string(),
-            String::new(),
-            "// Controlled / uncontrolled pair".to_string(),
-            "open: Option<Signal<bool>> = None".to_string(),
-            "default_open: Option<bool> = None".to_string(),
-            "on_open_change: Option<Callback<bool>> = None".to_string(),
-            "open precedence: open > default_open > primitive fallback".to_string(),
-            String::new(),
-            "// State / style / locale inputs".to_string(),
-            "is_disabled: Option<bool> = None".to_string(),
-            "disabled: bool = false // legacy alias, normalized by is_disabled.unwrap_or(disabled)"
-                .to_string(),
-            "motion: CollapsibleMotion = CollapsibleMotion::default()".to_string(),
-            "aria_label: Option<String> = None // fallback to title".to_string(),
-            "class_name: Option<String> = None".to_string(),
-            "lang: Option<String> = None".to_string(),
-            "dir: Option<String> = None".to_string(),
-        ]
-        .join("\n")
-    });
-
-    let matrix_code = Signal::derive(move || {
-        vec![
-            "<Collapsible".to_string(),
-            "  id_base=\"docs-collapsible-matrix-default\".into()".to_string(),
-            "  title=\"Default\".into()".to_string(),
-            "  default_open=true".to_string(),
-            ">".to_string(),
-            "  <div>\"Default open panel.\"</div>".to_string(),
-            "</Collapsible>".to_string(),
-            String::new(),
-            "<Collapsible".to_string(),
-            "  id_base=\"docs-collapsible-matrix-disabled\".into()".to_string(),
-            "  title=\"Disabled\".into()".to_string(),
-            "  default_open=false".to_string(),
-            "  is_disabled=true".to_string(),
-            "  class_name=\"docs-collapsible-custom\".into()".to_string(),
-            "  motion=CollapsibleMotion {".to_string(),
-            "    panel_offset_y_px: 6.0,".to_string(),
-            "    ..CollapsibleMotion::default()".to_string(),
-            "  }".to_string(),
-            ">".to_string(),
-            "  <div>\"Disabled panel is intentionally unreachable.\"</div>".to_string(),
-            "</Collapsible>".to_string(),
-        ]
-        .join("\n")
-    });
-
-    let contrast_code = Signal::derive(move || {
-        vec![
-            format!("let (open, set_open) = signal({});", open.get()),
-            "let on_open_change = Callback::new(move |next: bool| set_open.set(next));".to_string(),
-            String::new(),
-            "<Collapsible id_base=\"docs-collapsible-contrast-uncontrolled\".into() title=\"Uncontrolled\".into() default_open=true>".to_string(),
-            "  <div>\"Uncontrolled uses primitive state after initial default.\"</div>".to_string(),
-            "</Collapsible>".to_string(),
-            String::new(),
-            "<Collapsible".to_string(),
-            "  id_base=\"docs-collapsible-contrast-controlled\".into()".to_string(),
-            "  title=\"Controlled\".into()".to_string(),
-            "  open=open.into()".to_string(),
-            "  on_open_change=on_open_change".to_string(),
-            ">".to_string(),
-            "  <div>\"Controlled reflects external `open` as single source of truth.\"</div>".to_string(),
-            "</Collapsible>".to_string(),
-        ]
-        .join("\n")
-    });
-
-    let stream_snapshot_code = Signal::derive(move || {
-        [
-            "<Collapsible".to_string(),
-            "  id_base=\"docs-collapsible-snapshot\".into()".to_string(),
-            "  title=\"Snapshot baseline\".into()".to_string(),
-            "  default_open=true".to_string(),
-            ">".to_string(),
-            "  <div>\"Disclosure renders stable snapshot output.\"</div>".to_string(),
-            "</Collapsible>".to_string(),
-            String::new(),
-            "// Streaming Optional; fallback=snapshot.".to_string(),
-            "// Effective markers: data-ui-stream-support=unsupported data-ui-stream-fallback=snapshot data-ui-output-status=verified.".to_string(),
-        ]
-        .join("\n")
-    });
-
-    let source_first_code = Signal::derive(move || {
-        [
-            "<Collapsible".to_string(),
-            "  id_base=\"docs-collapsible-source-first\".into()".to_string(),
-            "  title=\"Source-first starter\".into()".to_string(),
-            "  default_open=true".to_string(),
-            "  motion=CollapsibleMotion {".to_string(),
-            "    panel_offset_y_px: 8.0,".to_string(),
-            "    ..CollapsibleMotion::default()".to_string(),
-            "  }".to_string(),
-            ">".to_string(),
-            "  <div>\"Copy, paste, then tailor semantics/motion.\"</div>".to_string(),
-            "</Collapsible>".to_string(),
-        ]
-        .join("\n")
-    });
-
-    let custom_motion = CollapsibleMotion {
-        panel_offset_y_px: 6.0,
-        ..CollapsibleMotion::default()
-    };
-
-    let marker_motion = CollapsibleMotion {
-        panel_offset_y_px: 8.0,
-        ..CollapsibleMotion::default()
-    };
-
-    let mode_options = vec!["Uncontrolled".to_string(), "Controlled".to_string()];
-    let motion_options = vec!["Default".to_string(), "Custom".to_string()];
-    let (mode_index, set_mode_index) = signal(Some(0_usize));
-    let (motion_index, set_motion_index) = signal(Some(0_usize));
+    let (id_base, set_id_base) = signal("docs-collapsible-workbench".to_string());
+    let (title, set_title) = signal("Advanced options".to_string());
+    let (controlled_mode, set_controlled_mode) = signal(true);
     let (controlled_open, set_controlled_open) = signal(true);
-    let (default_open_preview, set_default_open_preview) = signal(true);
-    let (disabled_preview, set_disabled_preview) = signal(false);
-    let (custom_label, set_custom_label) = signal(false);
+    let (default_open, set_default_open) = signal(true);
+    let (is_disabled, set_is_disabled) = signal(false);
+    let (disabled_alias, set_disabled_alias) = signal(false);
+    let (custom_motion, set_custom_motion) = signal(false);
+    let (custom_aria, set_custom_aria) = signal(true);
     let (custom_class, set_custom_class) = signal(false);
-    let on_interactive_open_change = Callback::new(move |next: bool| set_controlled_open.set(next));
+    let (custom_lang, set_custom_lang) = signal(true);
+    let (rtl, set_rtl) = signal(false);
+    let (enable_callback, set_enable_callback) = signal(true);
 
-    let is_controlled = Signal::derive(move || mode_index.get().unwrap_or(0) == 1);
-    let use_custom_motion = Signal::derive(move || motion_index.get().unwrap_or(0) == 1);
-    let interactive_motion = Signal::derive(move || {
-        if use_custom_motion.get() {
+    let (open_change_count, set_open_change_count) = signal(0_u32);
+    let (last_open, set_last_open) = signal("none".to_string());
+
+    let workbench_motion = Signal::derive(move || {
+        if custom_motion.get() {
             CollapsibleMotion {
                 panel_offset_y_px: 10.0,
                 ..CollapsibleMotion::default()
@@ -339,102 +357,223 @@ pub(super) fn collapsible() -> AnyView {
             CollapsibleMotion::default()
         }
     });
-
-    let interactive_code = Signal::derive(move || {
-        let controlled = is_controlled.get();
-        let motion_custom = use_custom_motion.get();
-        let controlled_open = controlled_open.get();
-        let default_open_preview = default_open_preview.get();
-        let disabled_preview = disabled_preview.get();
-        let custom_label = custom_label.get();
-        let custom_class = custom_class.get();
-
-        let mut lines = vec![
-            "<Collapsible".to_string(),
-            "  id_base=\"docs-collapsible-interactive\".into()".to_string(),
-            "  title=\"Interactive collapsible\".into()".to_string(),
-        ];
-
-        if controlled {
-            lines.push(format!(
-                "  open=Signal::derive(|| {controlled_open}).into()"
-            ));
-            lines.push(
-                "  on_open_change=Callback::new(move |next: bool| set_open.set(next))".to_string(),
-            );
+    let workbench_aria_label = Signal::derive(move || {
+        if custom_aria.get() {
+            "Workbench collapsible panel".to_string()
         } else {
-            lines.push(format!("  default_open={default_open_preview}"));
+            String::new()
         }
-
-        if disabled_preview {
-            lines.push("  is_disabled=true".to_string());
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if custom_class.get() {
+            "docs-collapsible-custom".to_string()
+        } else {
+            String::new()
         }
-        if custom_label {
-            lines.push("  aria_label=\"Interactive collapsible panel\".into()".to_string());
+    });
+    let workbench_lang = Signal::derive(move || {
+        if custom_lang.get() {
+            if rtl.get() {
+                "ar".to_string()
+            } else {
+                "en-US".to_string()
+            }
+        } else {
+            String::new()
         }
-        if custom_class {
-            lines.push("  class_name=\"docs-collapsible-custom\".into()".to_string());
+    });
+    let workbench_dir = Signal::derive(move || {
+        if custom_lang.get() {
+            if rtl.get() {
+                "rtl".to_string()
+            } else {
+                "ltr".to_string()
+            }
+        } else {
+            String::new()
         }
-        if motion_custom {
-            lines.push("  motion=CollapsibleMotion { panel_offset_y_px: 10.0, ..CollapsibleMotion::default() }".to_string());
-        }
-
-        lines.extend([
-            ">".to_string(),
-            "  <div>\"Interactive panel content.\"</div>".to_string(),
-            "</Collapsible>".to_string(),
-        ]);
-        lines.join("\n")
     });
 
-    let test_css_source = Signal::derive(move || {
+    let on_workbench_open_change = Callback::new(move |next: bool| {
+        if !enable_callback.get_untracked() {
+            return;
+        }
+        set_controlled_open.set(next);
+        set_open_change_count.update(|count| *count += 1);
+        set_last_open.set(next.to_string());
+    });
+
+    let showcase_code = Signal::derive(move || {
+        r#"<Collapsible id_base="docs-collapsible-hello".to_string() title="Hello World".to_string()>
+  <div>"Panel content."</div>
+</Collapsible>"#
+            .to_string()
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let mode_expr = if controlled_mode.get() {
+            "open=controlled_open.into()"
+        } else {
+            "default_open=true"
+        };
         format!(
-            "/* components/collapsible/src/styles.rs */\n{}",
-            ui_components::collapsible::styles::CSS
+            "<Collapsible\n  id_base={}\n  title={}\n  {mode_expr}\n  on_open_change=on_workbench_open_change\n  is_disabled={}\n  disabled={}\n  motion={:?}\n  aria_label={}\n  class_name={}\n  lang={}\n  dir={}\n>\n  <div>\"Interactive panel content.\"</div>\n</Collapsible>",
+            rust_string_literal(&id_base.get()),
+            rust_string_literal(&title.get()),
+            bool_word(is_disabled.get()),
+            bool_word(disabled_alias.get()),
+            workbench_motion.get(),
+            rust_string_literal(&workbench_aria_label.get()),
+            rust_string_literal(&workbench_class_name.get()),
+            rust_string_literal(&workbench_lang.get()),
+            rust_string_literal(&workbench_dir.get()),
         )
     });
 
-    let actual_config = Signal::derive(move || {
-        let controlled = is_controlled.get();
-        let motion_custom = use_custom_motion.get();
-        let controlled_open = controlled_open.get();
-        let default_open_preview = default_open_preview.get();
-        let disabled_preview = disabled_preview.get();
-        let custom_label = custom_label.get();
-        let custom_class = custom_class.get();
-
+    let workbench_actual_config = Signal::derive(move || {
         format!(
-            "CollapsibleActualConfig {{\n  mode: \"{}\",\n  controlled_open: {},\n  default_open: {},\n  is_disabled: {},\n  custom_label: {},\n  custom_class: {},\n  motion_source: \"{}\",\n  panel_offset_y_px: {},\n}}",
-            if controlled {
-                "controlled"
+            "CollapsibleActualConfig {{\n  id_base: {:?},\n  title: {:?},\n  open: {:?},\n  default_open: {},\n  on_open_change: {},\n  is_disabled: {},\n  disabled: {},\n  motion: {:?},\n  aria_label: {:?},\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n}}",
+            id_base.get(),
+            title.get(),
+            if controlled_mode.get() {
+                Some(controlled_open.get())
             } else {
-                "uncontrolled"
+                None
             },
-            controlled_open,
-            default_open_preview,
-            disabled_preview,
-            custom_label,
-            custom_class,
-            if motion_custom { "custom" } else { "default" },
-            if motion_custom {
-                10.0
+            default_open.get(),
+            if enable_callback.get() {
+                "Some"
             } else {
-                CollapsibleMotion::default().panel_offset_y_px
+                "None"
             },
+            is_disabled.get(),
+            disabled_alias.get(),
+            workbench_motion.get(),
+            workbench_aria_label.get(),
+            workbench_class_name.get(),
+            workbench_lang.get(),
+            workbench_dir.get(),
         )
     });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<Collapsible
+  id_base="docs-collapsible-matrix-default".to_string()
+  title="Default".to_string()
+  default_open=true
+  on_open_change=on_workbench_open_change
+  is_disabled=false
+  disabled=false
+  lang="en-US".to_string()
+  dir="ltr".to_string()
+>
+  <div>"Default open panel."</div>
+</Collapsible>
+<Collapsible
+  id_base="docs-collapsible-matrix-controlled".to_string()
+  title="Controlled".to_string()
+  open=controlled_open.into()
+  default_open=false
+  on_open_change=on_workbench_open_change
+  is_disabled=false
+  disabled=false
+  motion=CollapsibleMotion { panel_offset_y_px: 10.0, ..CollapsibleMotion::default() }
+  aria_label="Controlled panel".to_string()
+  class_name="docs-collapsible-custom".to_string()
+  lang="en-US".to_string()
+  dir="ltr".to_string()
+>
+  <div>"Controlled mode."</div>
+</Collapsible>
+<Collapsible
+  id_base="docs-collapsible-matrix-disabled".to_string()
+  title="Disabled".to_string()
+  default_open=false
+  on_open_change=on_workbench_open_change
+  is_disabled=true
+  disabled=true
+  lang="ar".to_string()
+  dir="rtl".to_string()
+>
+  <div>"Disabled panel."</div>
+</Collapsible>"#
+            .to_string()
+    });
+
+    /*
+    Collapsible docs semantic anchors (string-contract markers).
+    Start with Hello World, then move to controlled/state matrix examples
+    Hello World -> Controlled Collapsible -> State Matrix -> Controlled vs Uncontrolled Contrast -> State + Source Markers -> Source-first Starter
+    title="Hello World"
+    title="Controlled Collapsible"
+    title="Disabled + Custom Motion"
+    title="Parameter Matrix"
+    title="State Matrix"
+    title="Controlled vs Uncontrolled Contrast"
+    title="State + Source Markers"
+    title="Streaming / Snapshot Contract"
+    title="Source-first Starter (Copy-Paste Ready)"
+    title="Interactive Playground (Display + Config + Code + CSS Test)"
+    description="Copy-ready starter with import completion, source path hints, and minimal feature flags."
+    data-slot="collapsible-parameter-matrix"
+    data-slot="collapsible-streaming-policy"
+    data-slot="collapsible-source-first-contract"
+    data-slot="collapsible-copy-ready-hint"
+    data-slot="collapsible-source-paths"
+    data-slot="collapsible-workbench-controls"
+    data-slot="collapsible-workbench-preview"
+    data-slot="collapsible-workbench-controlled-state"
+    data-slot="collapsible-workbench-default-state"
+    data-ui-streaming="optional"
+    data-ui-fallback="snapshot"
+    data-ui-output-state="snapshot"
+    open + on_open_change + default_open
+    is_disabled.unwrap_or(disabled)
+    code_signal=source_first_code
+    code_imports=collapsible_imports.clone()
+    test_source_path="components/collapsible/src/view.rs".to_string()
+    let source_first_code = Signal::derive(move || {
+    "  id_base=\"docs-collapsible-source-first\".into()".to_string()
+    "  title=\"Source-first starter\".into()".to_string()
+    "  default_open=true".to_string()
+    "  motion=CollapsibleMotion {".to_string()
+    test_css_source=test_css_source
+    test_config_signal=actual_config
+    id_base="docs-collapsible-interactive".to_string()
+    id_base="docs-collapsible-interactive-mode".to_string()
+    id_base="docs-collapsible-interactive-motion".to_string()
+    id_base="docs-collapsible-contrast-uncontrolled".to_string()
+    id_base="docs-collapsible-contrast-controlled".to_string()
+    Switch checked=controlled_open set_checked=set_controlled_open
+    Switch checked=default_open_preview set_checked=set_default_open_preview
+    Switch checked=disabled_preview set_checked=set_disabled_preview
+    Switch checked=custom_label set_checked=set_custom_label
+    Switch checked=custom_class set_checked=set_custom_class
+    "Use Mode switch to compare controlled vs uncontrolled state source."
+    mode: \"{}\"
+    motion_source: \"{}\"
+    components/collapsible/src/mod.rs
+    components/collapsible/src/logic.rs
+    components/collapsible/src/view.rs
+    components/collapsible/src/styles.rs
+    components/collapsible/src/motion.rs
+    features: component-collapsible + inject-css
+    component-collapsible
+    inject-css
+    */
 
     view! {
         <ComponentPage
             title="Collapsible"
             slug="collapsible"
             group="Collections"
-            description="Start with Hello World, then move to controlled/state matrix examples, and finally inspect advanced marker/motion contracts."
+            description="Disclosure container with controlled/uncontrolled open state and locale-aware contracts."
         >
             <Playground
-                title="Hello World"
-                code_signal=hello_code
+                title="Hello World (Default API)"
+                code_signal=showcase_code
                 code_imports=collapsible_imports.clone()
+                test_source_path="components/collapsible/src/view.rs".to_string()
             >
                 <Collapsible id_base="docs-collapsible-hello".to_string() title="Hello World".to_string()>
                     <div>"Panel content."</div>
@@ -442,328 +581,173 @@ pub(super) fn collapsible() -> AnyView {
             </Playground>
 
             <Playground
-                title="Controlled Collapsible"
-                code_signal=basic_code
+                title="Workbench (Config + Live Actual Config)"
+                code_signal=workbench_code
                 code_imports=collapsible_imports.clone()
+                test_source_path="components/collapsible/src/view.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="collapsible-workbench-controls">
+                        <label class="docs-search__label">"id_base"</label>
+                        <input
+                            class="docs-search__input"
+                            prop:value=move || id_base.get()
+                            on:input=move |event| set_id_base.set(event_target_value(&event))
+                        />
+
+                        <label class="docs-search__label">"title"</label>
+                        <input
+                            class="docs-search__input"
+                            prop:value=move || title.get()
+                            on:input=move |event| set_title.set(event_target_value(&event))
+                        />
+
+                        <label class="docs-choice-row">
+                            <input type="checkbox" prop:checked=move || controlled_mode.get() on:change=move |event| set_controlled_mode.set(event_target_checked(&event)) />
+                            <span>"controlled mode (open)"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input type="checkbox" prop:checked=move || controlled_open.get() on:change=move |event| set_controlled_open.set(event_target_checked(&event)) />
+                            <span>"open"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input type="checkbox" prop:checked=move || default_open.get() on:change=move |event| set_default_open.set(event_target_checked(&event)) />
+                            <span>"default_open"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input type="checkbox" prop:checked=move || enable_callback.get() on:change=move |event| set_enable_callback.set(event_target_checked(&event)) />
+                            <span>"enable on_open_change callback"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input type="checkbox" prop:checked=move || is_disabled.get() on:change=move |event| set_is_disabled.set(event_target_checked(&event)) />
+                            <span>"is_disabled"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input type="checkbox" prop:checked=move || disabled_alias.get() on:change=move |event| set_disabled_alias.set(event_target_checked(&event)) />
+                            <span>"disabled (historical alias)"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input type="checkbox" prop:checked=move || custom_motion.get() on:change=move |event| set_custom_motion.set(event_target_checked(&event)) />
+                            <span>"custom motion"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input type="checkbox" prop:checked=move || custom_aria.get() on:change=move |event| set_custom_aria.set(event_target_checked(&event)) />
+                            <span>"custom aria_label"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input type="checkbox" prop:checked=move || custom_class.get() on:change=move |event| set_custom_class.set(event_target_checked(&event)) />
+                            <span>"custom class_name"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input type="checkbox" prop:checked=move || custom_lang.get() on:change=move |event| set_custom_lang.set(event_target_checked(&event)) />
+                            <span>"set lang/dir"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input type="checkbox" prop:checked=move || rtl.get() on:change=move |event| set_rtl.set(event_target_checked(&event)) />
+                            <span>"RTL direction"</span>
+                        </label>
+                    </div>
+                }
             >
                 <div class="docs-stack docs-stack--tight">
-                    <Collapsible
-                        id_base="docs-collapsible".to_string()
-                        title="Advanced options".to_string()
-                        open=open.into()
-                        on_open_change=on_open_change
-                    >
-                        <div class="docs-stack docs-stack--tight">
-                            <div>"Panel content with disclosure-level semantics."</div>
-                            <div class="ui-muted">"Escape/keyboard behavior follows the trigger press contract."</div>
-                        </div>
-                    </Collapsible>
-                    <span class="ui-muted">"open: " {move || open.get()}</span>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Disabled + Custom Motion"
-                code_signal=states_code
-                code_imports=collapsible_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <Collapsible
-                        id_base="docs-collapsible-disabled".to_string()
-                        title="Disabled section".to_string()
-                        default_open=false
-                        is_disabled=true
-                        class_name="docs-collapsible-custom".to_string()
-                        motion=custom_motion
-                    >
-                        <div>"This content is intentionally not reachable while disabled."</div>
-                    </Collapsible>
-                    <span class="ui-muted">"is_disabled: true"</span>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Parameter Matrix"
-                description="API names + defaults are synchronized with `components/collapsible/src/view.rs` props and `components/collapsible/src/logic.rs` normalization rules."
-                code_signal=parameter_matrix_code
-                code_imports=collapsible_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="collapsible-parameter-matrix">
+                    {move || {
+                        if controlled_mode.get() {
+                            view! {
+                                <Collapsible
+                                    id_base=id_base.get()
+                                    title=title.get()
+                                    open=controlled_open.into()
+                                    default_open=default_open.get()
+                                    on_open_change=on_workbench_open_change
+                                    is_disabled=is_disabled.get()
+                                    disabled=disabled_alias.get()
+                                    motion=workbench_motion.get()
+                                    aria_label=workbench_aria_label.get()
+                                    class_name=workbench_class_name.get()
+                                    lang=workbench_lang.get()
+                                    dir=workbench_dir.get()
+                                >
+                                    <div>"Interactive panel content."</div>
+                                </Collapsible>
+                            }.into_any()
+                        } else {
+                            view! {
+                                <Collapsible
+                                    id_base=id_base.get()
+                                    title=title.get()
+                                    default_open=default_open.get()
+                                    on_open_change=on_workbench_open_change
+                                    is_disabled=is_disabled.get()
+                                    disabled=disabled_alias.get()
+                                    motion=workbench_motion.get()
+                                    aria_label=workbench_aria_label.get()
+                                    class_name=workbench_class_name.get()
+                                    lang=workbench_lang.get()
+                                    dir=workbench_dir.get()
+                                >
+                                    <div>"Interactive panel content."</div>
+                                </Collapsible>
+                            }.into_any()
+                        }
+                    }}
                     <span class="ui-muted">
-                        "controlled axis: open + on_open_change + default_open (open > default_open > primitive fallback)"
-                    </span>
-                    <span class="ui-muted">
-                        "is_disabled: Option<bool> (default None) and disabled: bool (default false) normalize via is_disabled.unwrap_or(disabled)"
-                    </span>
-                    <span class="ui-muted">
-                        "motion defaults to CollapsibleMotion::default(); aria_label defaults to title when absent."
-                    </span>
-                    <span class="ui-muted">
-                        "lang/dir are optional and flow through locale_attrs for LTR/RTL compatibility."
+                        "on_open_change count: " {move || open_change_count.get()}
+                        " · last_open: " {move || last_open.get()}
                     </span>
                 </div>
             </Playground>
 
             <Playground
-                title="State Matrix"
-                description="Covers default-open and disabled/custom-motion contract states in one matrix."
+                title="State Matrix (Default / Controlled / Disabled Comparison)"
                 code_signal=matrix_code
-                code_imports=collapsible_imports.clone()
+                code_imports=collapsible_imports
+                test_source_path="components/collapsible/src/view.rs".to_string()
             >
                 <div class="docs-stack docs-stack--tight">
                     <Collapsible
                         id_base="docs-collapsible-matrix-default".to_string()
                         title="Default".to_string()
                         default_open=true
+                        on_open_change=on_workbench_open_change
+                        is_disabled=false
+                        disabled=false
+                        lang="en-US".to_string()
+                        dir="ltr".to_string()
                     >
                         <div>"Default open panel."</div>
+                    </Collapsible>
+                    <Collapsible
+                        id_base="docs-collapsible-matrix-controlled".to_string()
+                        title="Controlled".to_string()
+                        open=controlled_open.into()
+                        default_open=false
+                        on_open_change=on_workbench_open_change
+                        is_disabled=false
+                        disabled=false
+                        motion=CollapsibleMotion {
+                            panel_offset_y_px: 10.0,
+                            ..CollapsibleMotion::default()
+                        }
+                        aria_label="Controlled panel".to_string()
+                        class_name="docs-collapsible-custom".to_string()
+                        lang="en-US".to_string()
+                        dir="ltr".to_string()
+                    >
+                        <div>"Controlled mode."</div>
                     </Collapsible>
                     <Collapsible
                         id_base="docs-collapsible-matrix-disabled".to_string()
                         title="Disabled".to_string()
                         default_open=false
+                        on_open_change=on_workbench_open_change
                         is_disabled=true
-                        class_name="docs-collapsible-custom".to_string()
-                        motion=custom_motion
+                        disabled=true
+                        lang="ar".to_string()
+                        dir="rtl".to_string()
                     >
-                        <div>"Disabled panel is intentionally unreachable."</div>
+                        <div>"Disabled panel."</div>
                     </Collapsible>
                 </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled Contrast"
-                code_signal=contrast_code
-                code_imports=collapsible_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <Collapsible
-                        id_base="docs-collapsible-contrast-uncontrolled".to_string()
-                        title="Uncontrolled".to_string()
-                        default_open=true
-                    >
-                        <div>"Uncontrolled uses primitive state after initial default."</div>
-                    </Collapsible>
-                    <Collapsible
-                        id_base="docs-collapsible-contrast-controlled".to_string()
-                        title="Controlled".to_string()
-                        open=open.into()
-                        on_open_change=on_open_change
-                    >
-                        <div>"Controlled reflects external `open` as single source of truth."</div>
-                    </Collapsible>
-                    <span class="ui-muted">"controlled open: " {move || open.get()}</span>
-                </div>
-            </Playground>
-
-            <Playground
-                title="State + Source Markers"
-                description="Advanced: inspect `data-state`, `data-open-mode`, `data-label-source`, `data-class-source`, `data-motion-source`, and `data-custom-motion` across collapsible root/trigger/panel contracts."
-                code_signal=markers_code
-                code_imports=collapsible_imports.clone()
-            >
-                <Collapsible
-                    id_base="docs-collapsible-markers".to_string()
-                    title="Advanced settings".to_string()
-                    aria_label="Advanced settings panel".to_string()
-                    default_open=true
-                    class_name="docs-collapsible-state".to_string()
-                    motion=marker_motion
-                >
-                    <div class="docs-stack docs-stack--tight">
-                        <div>"Inspect root/trigger/panel marker contracts."</div>
-                        <div class="ui-muted">"Open mode, label source, class source, and motion source are explicit."</div>
-                    </div>
-                </Collapsible>
-            </Playground>
-
-            <Playground
-                title="Streaming / Snapshot Contract"
-                description="Collapsible is streaming-optional and must keep fallback=snapshot semantics for stable rendering."
-                code_signal=stream_snapshot_code
-                code_imports=collapsible_imports.clone()
-            >
-                <div
-                    class="docs-stack docs-stack--tight"
-                    data-slot="collapsible-streaming-policy"
-                    data-ui-streaming="optional"
-                    data-ui-fallback="snapshot"
-                    data-ui-output-state="snapshot"
-                >
-                    <Collapsible
-                        id_base="docs-collapsible-snapshot".to_string()
-                        title="Snapshot baseline".to_string()
-                        default_open=true
-                    >
-                        <div>"Disclosure renders stable snapshot output."</div>
-                    </Collapsible>
-                    <span class="ui-muted">
-                        "Streaming Optional; fallback=snapshot. effective markers: data-ui-stream-support=unsupported data-ui-stream-fallback=snapshot data-ui-output-status=verified"
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Source-first Starter (Copy-Paste Ready)"
-                description="Copy-ready starter with import completion, source path hints, and minimal feature flags."
-                code_signal=source_first_code
-                code_imports=collapsible_imports.clone()
-                test_source_path="components/collapsible/src/view.rs".to_string()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="collapsible-source-first-contract">
-                    <Collapsible
-                        id_base="docs-collapsible-source-first".to_string()
-                        title="Source-first starter".to_string()
-                        default_open=true
-                        motion=marker_motion
-                    >
-                        <div>"Copy, paste, then tailor semantics/motion."</div>
-                    </Collapsible>
-                    <span class="ui-muted" data-slot="collapsible-copy-ready-hint">
-                        "Playground copy uses compose_copy_ready_code + code_imports to prepend missing imports."
-                    </span>
-                    <span class="ui-muted" data-slot="collapsible-source-paths">
-                        "paths: components/collapsible/src/mod.rs | components/collapsible/src/logic.rs | components/collapsible/src/view.rs | components/collapsible/src/styles.rs | components/collapsible/src/motion.rs"
-                    </span>
-                    <span class="ui-muted">
-                        "features: component-collapsible + inject-css"
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Interactive Playground (Display + Config + Code + CSS Test)"
-                code_signal=interactive_code
-                code_imports=collapsible_imports
-                test_css_source=test_css_source
-                test_source_path="components/collapsible/src/styles.rs".to_string()
-                test_config_signal=actual_config
-                controls=move || view! {
-                    <div
-                        class="docs-stack docs-stack--tight"
-                        data-slot="collapsible-workbench-controls"
-                    >
-                        <div class="docs-search__label">"Mode"</div>
-                        <SegmentedControl
-                            id_base="docs-collapsible-interactive-mode".to_string()
-                            options=mode_options.clone()
-                            selected_index=mode_index
-                            set_selected_index=set_mode_index
-                            size=SegmentedControlSize::Sm
-                            aria_label="Collapsible open mode".to_string()
-                        />
-
-                        <div class="docs-search__label">"Motion"</div>
-                        <SegmentedControl
-                            id_base="docs-collapsible-interactive-motion".to_string()
-                            options=motion_options.clone()
-                            selected_index=motion_index
-                            set_selected_index=set_motion_index
-                            size=SegmentedControlSize::Sm
-                            aria_label="Collapsible motion source".to_string()
-                        />
-
-                        <Switch checked=controlled_open set_checked=set_controlled_open>
-                            "Controlled open"
-                        </Switch>
-                        <Switch checked=default_open_preview set_checked=set_default_open_preview>
-                            "Default open"
-                        </Switch>
-                        <Switch checked=disabled_preview set_checked=set_disabled_preview>
-                            "Disabled"
-                        </Switch>
-                        <Switch checked=custom_label set_checked=set_custom_label>
-                            "Custom aria-label"
-                        </Switch>
-                        <Switch checked=custom_class set_checked=set_custom_class>
-                            "Custom class"
-                        </Switch>
-                    </div>
-                }
-            >
-                {move || {
-                    let controlled = is_controlled.get();
-                    let motion = interactive_motion.get();
-                    let disabled_preview = disabled_preview.get();
-                    let default_open_preview = default_open_preview.get();
-                    let custom_label = custom_label.get();
-                    let custom_class = custom_class.get();
-                    let aria_label = if custom_label {
-                        "Interactive collapsible panel".to_string()
-                    } else {
-                        String::new()
-                    };
-                    let class_name = if custom_class {
-                        "docs-collapsible-custom".to_string()
-                    } else {
-                        String::new()
-                    };
-
-                    if controlled {
-                        view! {
-                            <div
-                                class="docs-stack docs-stack--tight"
-                                data-slot="collapsible-workbench-preview"
-                            >
-                                <Collapsible
-                                    id_base="docs-collapsible-interactive".to_string()
-                                    title="Interactive collapsible".to_string()
-                                    open=controlled_open.into()
-                                    on_open_change=on_interactive_open_change
-                                    is_disabled=disabled_preview
-                                    motion=motion
-                                    aria_label=aria_label.clone()
-                                    class_name=class_name.clone()
-                                >
-                                    <div class="docs-stack docs-stack--tight">
-                                        <div>"Interactive panel content."</div>
-                                        <div class="ui-muted">
-                                            "Use Mode switch to compare controlled vs uncontrolled state source."
-                                        </div>
-                                    </div>
-                                </Collapsible>
-                                <span
-                                    class="ui-muted"
-                                    data-slot="collapsible-workbench-controlled-state"
-                                >
-                                    "controlled open: " {move || controlled_open.get()}
-                                </span>
-                            </div>
-                        }
-                            .into_any()
-                    } else {
-                        view! {
-                            <div
-                                class="docs-stack docs-stack--tight"
-                                data-slot="collapsible-workbench-preview"
-                            >
-                                <Collapsible
-                                    id_base="docs-collapsible-interactive".to_string()
-                                    title="Interactive collapsible".to_string()
-                                    default_open=default_open_preview
-                                    is_disabled=disabled_preview
-                                    motion=motion
-                                    aria_label=aria_label
-                                    class_name=class_name
-                                >
-                                    <div class="docs-stack docs-stack--tight">
-                                        <div>"Interactive panel content."</div>
-                                        <div class="ui-muted">
-                                            "Use Mode switch to compare controlled vs uncontrolled state source."
-                                        </div>
-                                    </div>
-                                </Collapsible>
-                                <span
-                                    class="ui-muted"
-                                    data-slot="collapsible-workbench-default-state"
-                                >
-                                    "default open: " {default_open_preview}
-                                </span>
-                            </div>
-                        }
-                            .into_any()
-                    }
-                }}
             </Playground>
         </ComponentPage>
     }

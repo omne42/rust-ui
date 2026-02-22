@@ -212,7 +212,7 @@ impl std::fmt::Display for ButtonSchemaError {
 impl std::error::Error for ButtonSchemaError {}
 
 #[cfg(feature = "button-wasm-debug")]
-const BUTTON_SPEC_TRACE_TARGET: &str = "ui_components::button::spec";
+const BUTTON_SPEC_TRACE_TARGET: &str = "ui::button::spec";
 
 #[cfg(feature = "button-wasm-debug")]
 fn trace_button_spec_event(

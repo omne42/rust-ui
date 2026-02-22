@@ -144,7 +144,7 @@ fn ui_root_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "title=\"Usage\"",
-        "use ui_components::{UiRoot, Theme};",
+        "use ui::{UiRoot, Theme};",
         "<UiRoot theme=theme safe_area=true inject_components_css=true>",
         "safe_area=true adds the safe-area inset contract",
         "title=\"State Contract\"",

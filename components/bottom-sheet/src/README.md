@@ -83,9 +83,9 @@
   description="Advanced contract with footer and custom motion.".to_string()
   footer=move || view! { <div>"Footer actions"</div> }
   motion=BottomSheetMotion {
-    sheet: ui_components::SheetMotion {
+    sheet: ui::SheetMotion {
       initial_offset_px: 64.0,
-      ..ui_components::SheetMotion::default()
+      ..ui::SheetMotion::default()
     }
   }
   is_detached=true

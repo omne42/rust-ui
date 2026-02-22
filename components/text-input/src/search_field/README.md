@@ -10,7 +10,7 @@
 ## Hello World
 
 ```rust
-use ui_components::SearchField;
+use ui::SearchField;
 
 view! { <SearchField id="search".to_string() label="Search".to_string() default_value="rust".to_string() /> }
 ```
@@ -19,7 +19,7 @@ view! { <SearchField id="search".to_string() label="Search".to_string() default_
 
 ```rust
 use leptos::prelude::*;
-use ui_components::SearchField;
+use ui::SearchField;
 
 let (value_raw, set_value_raw) = signal(String::new());
 let value = Signal::derive(move || value_raw.get());

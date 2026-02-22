@@ -133,7 +133,7 @@ fn meter_is_exported_from_module_and_crate_root() {
     );
     assert!(
         cargo_source.contains("ui-meter = { path = \"../../components/meter\", optional = true }"),
-        "ui-components Cargo.toml should include optional ui-meter dependency.",
+        "ui Cargo.toml should include optional ui-meter dependency.",
     );
 }
 
@@ -310,7 +310,7 @@ fn meter_docs_playgrounds_lock_state_matrix_contract_values() {
         "id=\"docs-meter-custom\".to_string()",
         "aria_label=\"Background sync\".to_string()",
         "value_label=\"64 complete\".to_string()",
-        "motion=ui_components::MeterMotion::fast()",
+        "motion=ui::MeterMotion::fast()",
         "id=\"docs-meter-fallback\".to_string()",
         "label=\"   \".to_string()",
         "id=\"docs-meter-indeterminate\".to_string()",

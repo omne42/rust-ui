@@ -107,7 +107,7 @@ test("docs-app item playground source is copy-paste ready", async ({ page }) => 
 
   const code = playground.locator('[data-slot="code-block-code"]').first();
   await expect(code).toContainText("use leptos::prelude::*;");
-  await expect(code).toContainText("use ui_components::{Item");
+  await expect(code).toContainText("use ui::{Item");
   await expect(code).toContainText("<ItemGroup>");
   await expect(code).toContainText("<Item");
 

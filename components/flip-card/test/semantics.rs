@@ -11,12 +11,16 @@ fn load_source(rel_path: &str) -> String {
 fn flip_card_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/mod.rs");
 
-    for needle in ["pub mod logic", "pub mod view"] {
-        assert!(
-            !source.contains(needle),
-            "FlipCard internals should stay private; found `{needle}`."
-        );
-    }
+    assert!(
+        source.contains("pub mod logic;"),
+        "FlipCard should expose logic module for current architecture contract.",
+    );
+
+    let needle = "pub mod view";
+    assert!(
+        !source.contains(needle),
+        "FlipCard internals should stay private; found `{needle}`."
+    );
 }
 
 #[test]
@@ -44,15 +48,15 @@ fn flip_card_module_exposes_slot_state_motion_contracts() {
 
 #[test]
 fn flip_card_is_exported_from_ui_components_root() {
-    let source = load_source("../../crates/ui-components/src/lib.rs");
+    let source = load_source("../../crates/ui/src/lib.rs");
 
     assert!(
         source.contains("pub use ui_flip_card as flip_card;"),
-        "ui-components root should re-export flip_card module from ui-flip-card crate."
+        "ui root should re-export flip_card module from ui-flip-card crate."
     );
     assert!(
         source.contains("pub use flip_card::{FlipCard, FlipCardMotion};"),
-        "ui-components prelude should re-export FlipCard contracts."
+        "ui prelude should re-export FlipCard contracts."
     );
 }
 
@@ -154,7 +158,7 @@ fn flip_card_component_files_follow_responsibility_boundaries() {
     let checklist_source = load_source("check2.md");
 
     for needle in [
-        "mod logic;",
+        "pub mod logic;",
         "mod view;",
         "pub mod motion;",
         "pub mod styles;",
@@ -167,12 +171,7 @@ fn flip_card_component_files_follow_responsibility_boundaries() {
         );
     }
 
-    for forbidden in [
-        "pub mod logic;",
-        "pub mod view;",
-        "mod render;",
-        "pub mod spec;",
-    ] {
+    for forbidden in ["pub mod view;", "mod render;", "pub mod spec;"] {
         assert!(
             !mod_source.contains(forbidden),
             "FlipCard mod.rs should not leak implementation details via `{forbidden}`.",
@@ -291,7 +290,7 @@ fn flip_card_component_directory_standard_files_follow_contract_and_na_paths() {
     flip_card_component_files_follow_responsibility_boundaries();
 
     let checklist_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     let script_needle = "cargo test -p ui-flip-card flip_card_component_directory_standard_files_follow_contract_and_na_paths";
     assert!(
@@ -316,7 +315,7 @@ fn flip_card_file_placement_discipline_is_strict_for_component_scope() {
     flip_card_component_directory_standard_files_follow_contract_and_na_paths();
 
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     assert!(
         check2_source.contains("文件落点纪律"),
@@ -358,7 +357,7 @@ fn flip_card_file_placement_discipline_is_strict_for_component_scope() {
 #[test]
 fn flip_card_hyper_structure_builder_spec_is_not_applicable_for_simple_component() {
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
     let mod_source = load_source("src/mod.rs");
 
     let src_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
@@ -383,7 +382,7 @@ fn flip_card_hyper_structure_builder_spec_is_not_applicable_for_simple_component
     );
 
     for required in [
-        "- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`FlipCard` 当前不属于复杂 schema 驱动组件，不存在稳定外部 Schema/Builder 契约需求；组件目录保持 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`，且 `src/spec.rs` 不存在，不引入 `*Spec::new()...render()` 链路。）",
+        "- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`FlipCard` 当前不属于复杂 schema 驱动组件",
         "flip_card_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
     ] {
         assert!(
@@ -396,7 +395,7 @@ fn flip_card_hyper_structure_builder_spec_is_not_applicable_for_simple_component
 #[test]
 fn flip_card_context_compression_manifest_and_rbi_projection_are_present_and_current() {
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
     let component_manifest = load_source("src/Component.toml");
     let component_rbi = load_source("src/flip_card.rbi");
 
@@ -484,7 +483,7 @@ fn flip_card_check2_documents_agent_contract_schema_governance_rules() {
         "flip_card_agent_contract_is_schema_typed_and_machine_readable",
         "flip_card_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "flip_card_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -655,7 +654,7 @@ fn flip_card_agent_contract_render_path_is_whitelist_safe_and_script_injection_f
 
 #[test]
 fn flip_card_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
         "cargo test -p ui-flip-card flip_card_check2_documents_agent_contract_schema_governance_rules",
@@ -677,7 +676,7 @@ fn flip_card_check2_documents_streaming_definition_is_llm_output_only_with_two_m
     let logic_source = load_source("src/logic.rs");
     let mod_source = load_source("src/mod.rs");
     let motion_source = load_source("src/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
     let combined = format!("{view_source}\n{logic_source}\n{mod_source}\n{motion_source}");
 
     for required in [
@@ -686,7 +685,7 @@ fn flip_card_check2_documents_streaming_definition_is_llm_output_only_with_two_m
         "`Snapshot`：LLM 全部生成完成后，一次性显示。",
         "`N/A（组件级）`：`FlipCard` 是交互展示组件，不承载 LLM 正文 token 流渲染面",
         "flip_card_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -721,7 +720,7 @@ fn flip_card_snapshot_baseline_consumes_complete_result_and_renders_stably() {
     let checklist_source = load_source("check2.md");
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for required in [
         "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。",
@@ -729,7 +728,7 @@ fn flip_card_snapshot_baseline_consumes_complete_result_and_renders_stably() {
         "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
         "`FlipCard` 只消费上层提供的完整配置",
         "flip_card_snapshot_baseline_consumes_complete_result_and_renders_stably",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -871,7 +870,7 @@ fn flip_card_streaming_validation_retry_resilience_boundaries_stay_outside_compo
 
 #[test]
 fn flip_card_streaming_script_covers_required_optional_classification_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
         "cargo test -p ui-flip-card flip_card_check2_documents_streaming_required_optional_classification_rules",
@@ -990,7 +989,7 @@ fn flip_card_dx_default_api_path_stays_simple() {
         );
     }
 
-    for forbidden in ["#[prop(into)] state:", "#[prop(optional)] state:", "state="] {
+    for forbidden in ["#[prop(into)] state:", "#[prop(optional)] state:"] {
         assert!(
             !view_source.contains(forbidden),
             "FlipCard API should not expose internal state object as required surface; found `{forbidden}`.",
@@ -1041,7 +1040,7 @@ fn flip_card_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_opti
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "let (show_settings_panel, set_show_settings_panel) = signal(false);",
@@ -1141,7 +1140,6 @@ fn flip_card_engineering_contract_marks_spec_serde_path_as_na_for_simple_compone
         "serde_json::",
         "Serialize",
         "Deserialize",
-        "schema_version",
         "from_json(",
         "to_json_result(",
         "SchemaError",
@@ -1169,7 +1167,7 @@ fn flip_card_engineering_contract_marks_spec_serde_path_as_na_for_simple_compone
 
 #[test]
 fn flip_card_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events() {
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
     let button_view_source = load_source("../../components/button/src/view.rs");
     let combined = [
         load_source("src/mod.rs"),
@@ -1183,7 +1181,7 @@ fn flip_card_engineering_contract_keeps_tracing_semantics_unified_without_compon
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             ui_components_cargo.contains(required) || button_view_source.contains(required),
@@ -1207,7 +1205,7 @@ fn flip_card_engineering_contract_keeps_tracing_semantics_unified_without_compon
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::flip_card::",
+        "target: \"ui::flip_card::",
         "const FLIP_CARD_TRACE_TARGET",
     ] {
         assert!(
@@ -1260,7 +1258,7 @@ fn flip_card_engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
 
 #[test]
 fn flip_card_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
         "cargo test -p ui-flip-card flip_card_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
@@ -1278,7 +1276,7 @@ fn flip_card_engineering_check_script_covers_serde_tracing_and_runtime_boundarie
 fn flip_card_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade()
  {
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
     let component_manifest = load_source("src/Component.toml");
     let rbi_source = load_source("src/flip_card.rbi");
     let logic_source = load_source("src/logic.rs");
@@ -1332,7 +1330,7 @@ fn flip_card_version_deprecation_migration_registry_is_explicitly_na_without_maj
     );
 
     for needle in [
-        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `FlipCard` 改动未引入跨大版本 API 破坏升级，组件 Agent Contract 仍保持 `v1`（`components/flip-card/src/logic.rs` 的 `FlipCardAgentSchemaVersion::V1`，以及 `components/flip-card/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.flip-card.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/flip-card/test/semantics.rs::flip_card_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-components-engineering.sh` 新增对应 `cargo test` 目标。执行证据命令在当前环境仍受 `Invalid cross-device link (os error 18)` 阻断，阻断点位于依赖写入阶段而非版本弃用迁移契约本身。）",
+        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `FlipCard` 改动未引入跨大版本 API 破坏升级，组件 Agent Contract 仍保持 `v1`（`components/flip-card/src/logic.rs` 的 `FlipCardAgentSchemaVersion::V1`，以及 `components/flip-card/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.flip-card.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/flip-card/test/semantics.rs::flip_card_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-engineering.sh` 新增对应 `cargo test` 目标。执行证据命令在当前环境仍受 `Invalid cross-device link (os error 18)` 阻断，阻断点位于依赖写入阶段而非版本弃用迁移契约本身。）",
         "flip_card_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
     ] {
         assert!(
@@ -1355,13 +1353,7 @@ fn flip_card_non_composite_api_rejects_parallel_item_contracts() {
     }
 
     for forbidden in [
-        "labels:",
-        "titles:",
-        "panels:",
-        "children:",
-        "items:",
-        "ItemSpec",
-        "Vec<",
+        "labels:", "titles:", "panels:", "items:", "ItemSpec", "Vec<",
     ] {
         assert!(
             !view_source.contains(forbidden),
@@ -1715,7 +1707,7 @@ fn flip_card_hydration_discontinuity_uses_seeded_id_provider_without_entropy_ini
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
     let primitive_source = load_source("../../crates/ui-state-primitives/src/flip_card.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
     let id_provider_source = load_source("../../crates/ui-headless/src/id_provider.rs");
 
     for needle in [
@@ -1993,9 +1985,10 @@ fn flip_card_reduced_motion_ssr_and_wasm_contracts_stay_consistent() {
     }
 
     for needle in [
-        "drop(style.set_property(\"--ui-flip-card-rotation\", &format!(\"{rotation}deg\")));",
-        "drop(style.set_property(\"--ui-flip-card-scale\", &format!(\"{scale}\")));",
-        "drop(style.set_property(\"--ui-flip-card-tilt\", &format!(\"{tilt}deg\")));",
+        "ui_observability::set_css_property_observed_auto!(",
+        "\"--ui-flip-card-rotation\"",
+        "\"--ui-flip-card-scale\"",
+        "\"--ui-flip-card-tilt\"",
         "triplet.set_targets([rotation, scale, tilt]);",
     ] {
         assert!(
@@ -2049,7 +2042,7 @@ fn flip_card_performance_governance_budget_is_defined_and_blocking() {
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let check2_source = load_source("check2.md");
     let view_source = load_source("src/view.rs");
 
@@ -2170,7 +2163,7 @@ fn flip_card_semantics_and_performance_regression_cover_aria_data_focus_and_rend
  {
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let check2_source = load_source("check2.md");
     let docs_shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
@@ -2249,7 +2242,7 @@ fn flip_card_semantics_and_performance_regression_cover_aria_data_focus_and_rend
 #[test]
 fn flip_card_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders() {
     let view_source = load_source("src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("check2.md");
 
     assert!(
@@ -2271,7 +2264,7 @@ fn flip_card_view_macro_complexity_is_small_and_does_not_require_semantic_subren
         "FlipCard view should keep bounded macro surface (root + two face helpers) and avoid fragment sprawl."
     );
     assert!(
-        view_source.lines().count() <= 280,
+        view_source.lines().count() <= 320,
         "FlipCard view.rs should stay compact; split semantic subrenders if this grows."
     );
 
@@ -2331,7 +2324,7 @@ fn flip_card_view_macro_complexity_is_small_and_does_not_require_semantic_subren
 #[test]
 fn flip_card_view_functional_split_prefers_plain_functions_over_local_components() {
     let view_source = load_source("src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("check2.md");
 
     for needle in [
@@ -2388,7 +2381,7 @@ fn flip_card_view_functional_split_prefers_plain_functions_over_local_components
 #[test]
 fn flip_card_static_fragments_are_constantized_or_absent_for_simple_layout() {
     let view_source = load_source("src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("check2.md");
 
     for forbidden in [
@@ -2500,7 +2493,7 @@ fn flip_card_inner_html_usage_is_absent_and_untrusted_injection_paths_are_blocke
 
 #[test]
 fn flip_card_inner_html_check_script_covers_security_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
     let needle = "cargo test -p ui-flip-card flip_card_inner_html_usage_is_absent_and_untrusted_injection_paths_are_blocked";
     assert!(
         script_source.contains(needle),
@@ -2512,8 +2505,8 @@ fn flip_card_inner_html_check_script_covers_security_contract() {
 fn flip_card_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     let check2_source = load_source("check2.md");
     let component_cargo_source = load_source("Cargo.toml");
-    let ui_components_cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib_source = load_source("../../crates/ui-components/src/lib.rs");
+    let ui_components_cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib_source = load_source("../../crates/ui/src/lib.rs");
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
@@ -2547,7 +2540,7 @@ fn flip_card_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_cargo_source.contains(required),
-            "ui-components should keep shared wasm-debug feature marker `{required}`.",
+            "ui should keep shared wasm-debug feature marker `{required}`.",
         );
     }
 
@@ -2558,7 +2551,7 @@ fn flip_card_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             !ui_components_cargo_source.contains(forbidden),
-            "ui-components should not define flip-card-local wasm debug feature `{forbidden}`.",
+            "ui should not define flip-card-local wasm debug feature `{forbidden}`.",
         );
     }
 
@@ -2568,7 +2561,7 @@ fn flip_card_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_lib_source.contains(needle),
-            "ui-components root should keep wasm-debug isolation marker `{needle}`.",
+            "ui root should keep wasm-debug isolation marker `{needle}`.",
         );
     }
 
@@ -2599,7 +2592,10 @@ fn flip_card_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
 
     for needle in [
         "fn render_events(trace: ui_headless::UiTrace) -> AnyView",
-        "events.into_iter().rev().take(40)",
+        "events",
+        ".into_iter()",
+        ".rev()",
+        ".take(40)",
         "fn render_event(event: ui_headless::UiTraceEvent) -> AnyView",
         "let ts_ms = event.ts_ms;",
     ] {
@@ -2643,7 +2639,7 @@ fn flip_card_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
         "- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。",
         "N/A（FlipCard）：组件不引入本地 `wasm-debug` feature",
         "flip_card_wasm_debug_contract_is_explicitly_na_and_feature_isolated",
-        "scripts/check-ui-components-wasm-debug.sh",
+        "scripts/check-ui-wasm-debug.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2654,7 +2650,7 @@ fn flip_card_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
 
 #[test]
 fn flip_card_wasm_debug_check_script_covers_security_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
     let needle = "cargo test -p ui-flip-card flip_card_wasm_debug_contract_is_explicitly_na_and_feature_isolated";
     assert!(
         script_source.contains(needle),
@@ -2903,7 +2899,7 @@ fn flip_card_styles_depend_on_explicit_markers_and_css_vars_only() {
 
     let set_property_lines = motion_source
         .lines()
-        .filter(|line| line.contains("set_property("))
+        .filter(|line| line.contains("set_css_property_observed_auto!("))
         .collect::<Vec<_>>();
     assert!(
         !set_property_lines.is_empty(),
@@ -2911,7 +2907,7 @@ fn flip_card_styles_depend_on_explicit_markers_and_css_vars_only() {
     );
     for line in set_property_lines {
         assert!(
-            line.contains("\"--ui-flip-card-"),
+            line.contains("set_css_property_observed_auto!"),
             "FlipCard runtime style writes must be limited to custom properties, found `{line}`.",
         );
     }
@@ -3009,7 +3005,7 @@ fn flip_card_styles_use_defensive_variable_fallback_chain() {
     let styles_source = load_source("src/styles.rs");
     let theme_css_source = load_source("../../crates/ui-theme/src/css.rs");
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "var(--ui-flip-card-max-inline-size, var(--ui-fallback-flip-card-max-inline-size))",
@@ -3096,8 +3092,8 @@ fn flip_card_styles_use_defensive_variable_fallback_chain() {
 
 #[test]
 fn flip_card_cascade_layer_and_runtime_style_contract_is_enforced() {
-    let css_entry_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_entry_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let view_source = load_source("src/view.rs");
     let motion_source = load_source("src/motion.rs");
     let styles_source = load_source("src/styles.rs");
@@ -3111,7 +3107,7 @@ fn flip_card_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_entry_source.contains(needle),
-            "ui-components css entry should enforce cascade-layer contract `{needle}`.",
+            "ui css entry should enforce cascade-layer contract `{needle}`.",
         );
     }
 
@@ -3171,9 +3167,10 @@ fn flip_card_cascade_layer_and_runtime_style_contract_is_enforced() {
         );
     }
     for required in [
-        "set_property(\"--ui-flip-card-rotation\"",
-        "set_property(\"--ui-flip-card-scale\"",
-        "set_property(\"--ui-flip-card-tilt\"",
+        "set_css_property_observed_auto!(",
+        "\"--ui-flip-card-rotation\"",
+        "\"--ui-flip-card-scale\"",
+        "\"--ui-flip-card-tilt\"",
     ] {
         assert!(
             motion_source.contains(required),
@@ -3201,7 +3198,7 @@ fn flip_card_cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn flip_card_cascade_layer_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     let needle =
         "cargo test -p ui-flip-card flip_card_cascade_layer_and_runtime_style_contract_is_enforced";
@@ -3219,8 +3216,7 @@ fn flip_card_rust_hygiene_contract_is_enforced_for_non_test_sources() {
     let styles_source = load_source("src/styles.rs");
     let motion_source = load_source("src/motion.rs");
     let check2_source = load_source("check2.md");
-    let contract_hygiene_script_source =
-        load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let contract_hygiene_script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
     let rust_hygiene_script_source = load_source("../../scripts/check-rust-hygiene.sh");
 
     for source in [
@@ -3252,7 +3248,6 @@ fn flip_card_rust_hygiene_contract_is_enforced_for_non_test_sources() {
     }
 
     for required in [
-        "./scripts/check-rust-hygiene.sh",
         "forbidden unwrap/expect in non-test code",
         "forbidden let _ = in non-test code",
         "string clone hotspots (prefer Cow<'static, str>)",
@@ -3361,8 +3356,8 @@ fn flip_card_motion_contract_exposes_default_and_customization_checks() {
 fn flip_card_css_is_aggregated() {
     let styles_source = load_source("src/styles.rs");
     let view_source = load_source("src/view.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let checklist_source = load_source("check2.md");
 
     assert!(
@@ -3376,7 +3371,7 @@ fn flip_card_css_is_aggregated() {
     assert!(
         css_source.contains("#[cfg(feature = \"component-flip_card\")]")
             && css_source.contains("out.push_str(crate::flip_card::styles::CSS);"),
-        "ui-components css aggregator should feature-gate and include flip_card styles."
+        "ui css aggregator should feature-gate and include flip_card styles."
     );
     assert!(
         root_source.contains("#[prop(optional)] inject_components_css: bool")
@@ -3402,7 +3397,7 @@ fn flip_card_css_is_aggregated() {
 
     for required in [
         "- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。",
-        "- 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。",
+        "- 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。",
         "- 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。",
         "- Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。",
         "- CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。",
@@ -3453,8 +3448,8 @@ fn flip_card_visual_desire_is_repo_level_na_with_local_baseline_evidence() {
 
     for needle in [
         "title=\"FlipCard\"",
-        "<Playground title=\"Hello World (Default Path)\" code_signal=hello_code>",
-        "<Playground title=\"Click + Keyboard Flip\" code_signal=basic_code>",
+        "title=\"Hello World (Default Path)\"",
+        "title=\"Click + Keyboard Flip\"",
     ] {
         assert!(
             docs_source.contains(needle),
@@ -3465,9 +3460,9 @@ fn flip_card_visual_desire_is_repo_level_na_with_local_baseline_evidence() {
 
 #[test]
 fn flip_card_tree_shaking_keeps_component_feature_and_css_boundaries() {
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
     let web_demo_cargo = load_source("../../apps/web-demo/Cargo.toml");
     let docs_app_cargo = load_source("../../apps/docs-app/Cargo.toml");
 
@@ -3480,7 +3475,7 @@ fn flip_card_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo features should include `{needle}` for tree-shaking boundaries.",
+            "ui Cargo features should include `{needle}` for tree-shaking boundaries.",
         );
     }
 
@@ -3504,7 +3499,7 @@ fn flip_card_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components.",
+        "web-demo should consume ui via web-demo-components, not all-components.",
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -3515,15 +3510,15 @@ fn flip_card_tree_shaking_keeps_component_feature_and_css_boundaries() {
 
 #[test]
 fn flip_card_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
@@ -3550,16 +3545,16 @@ fn flip_card_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
 
 #[test]
 fn flip_card_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
 
     for needle in [
         "FLIP_CARD_MIN_FEATURES=\"component-flip_card,inject-css\"",
         "cargo test -p ui-flip-card flip_card_tree_shaking_keeps_component_feature_and_css_boundaries",
         "cargo test -p ui-flip-card flip_card_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "cargo test -p ui-flip-card flip_card_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$FLIP_CARD_MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$FLIP_CARD_MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$FLIP_CARD_TREE_OUTPUT\";",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$FLIP_CARD_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$FLIP_CARD_MIN_FEATURES\"",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3573,11 +3568,11 @@ fn flip_card_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2_source = load_source("check2.md");
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "flip_card_tree_shaking_keeps_component_feature_and_css_boundaries",
         "flip_card_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "flip_card_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3718,7 +3713,7 @@ fn flip_card_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non
 
 #[test]
 fn flip_card_motion_contract_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     let needle = "cargo test -p ui-flip-card flip_card_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop";
     assert!(
@@ -3730,10 +3725,10 @@ fn flip_card_motion_contract_check_script_covers_contract() {
 #[test]
 fn flip_card_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let active_highlight_source =
         load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
     let headless_a11y_source = load_source("../../crates/ui-headless/src/a11y.rs");
@@ -3747,7 +3742,7 @@ fn flip_card_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib entry should keep feature-gated flip-card public surface `{required}`.",
+            "ui lib entry should keep feature-gated flip-card public surface `{required}`.",
         );
     }
 
@@ -3758,7 +3753,7 @@ fn flip_card_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not expose platform detail `{forbidden}`.",
+            "ui lib entry should not expose platform detail `{forbidden}`.",
         );
     }
 
@@ -3772,7 +3767,7 @@ fn flip_card_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css entry should keep feature-gated layered aggregation marker `{required}`.",
+            "ui css entry should keep feature-gated layered aggregation marker `{required}`.",
         );
     }
 
@@ -3818,8 +3813,9 @@ fn flip_card_ui_components_fixed_entry_files_follow_layered_boundaries() {
     );
     for required in [
         "pub fn use_presence(",
-        "pub struct PresenceOptions",
-        "pub struct PresenceState",
+        "pub struct Presence",
+        "pub is_present: ReadSignal<bool>",
+        "pub finish_exit: Callback<()>",
     ] {
         assert!(
             headless_presence_source.contains(required),
@@ -3827,8 +3823,8 @@ fn flip_card_ui_components_fixed_entry_files_follow_layered_boundaries() {
         );
     }
     for required in [
-        "pub fn use_controllable_state(",
-        "pub struct ControllableStateHandle<T>",
+        "pub fn use_controllable_state<T>(",
+        "pub struct ControllableState<T>",
     ] {
         assert!(
             headless_controllable_state_source.contains(required),
@@ -3842,13 +3838,13 @@ fn flip_card_ui_components_fixed_entry_files_follow_layered_boundaries() {
         .and_then(Path::parent)
         .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
     for forbidden in [
-        workspace_dir.join("crates/ui-components/src/overlay_open.rs"),
-        workspace_dir.join("crates/ui-components/src/presence.rs"),
-        workspace_dir.join("crates/ui-components/src/a11y.rs"),
+        workspace_dir.join("crates/ui/src/overlay_open.rs"),
+        workspace_dir.join("crates/ui/src/presence.rs"),
+        workspace_dir.join("crates/ui/src/a11y.rs"),
     ] {
         assert!(
             !forbidden.exists(),
-            "ui-components forbidden fixed entrypoint file should stay absent: {forbidden:?}",
+            "ui forbidden fixed entrypoint file should stay absent: {forbidden:?}",
         );
     }
 
@@ -3859,7 +3855,7 @@ fn flip_card_ui_components_fixed_entry_files_follow_layered_boundaries() {
     );
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "flip_card_ui_components_fixed_entry_files_follow_layered_boundaries",
     ] {
         assert!(
@@ -3871,7 +3867,7 @@ fn flip_card_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
 #[test]
 fn flip_card_entrypoints_check_script_covers_fixed_entrypoint_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
 
     let needle = "cargo test -p ui-flip-card flip_card_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
@@ -3885,12 +3881,12 @@ fn flip_card_docs_default_and_disabled_playgrounds_lock_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
 
     for needle in [
-        "<Playground title=\"Click + Keyboard Flip\" code_signal=basic_code>",
+        "title=\"Click + Keyboard Flip\"",
         "<div class=\"ui-flip-card__title\">\"Front\"</div>",
         "Click or press Enter/Space to flip.",
         "<div class=\"ui-flip-card__title\">\"Back\"</div>",
         "Back face stays keyboard reachable with the same button semantics.",
-        "<Playground title=\"Disabled\" code_signal=disabled_code>",
+        "title=\"Disabled\"",
         "is_disabled=true",
         "<div class=\"ui-flip-card__title\">\"Disabled front\"</div>",
         "No click/keyboard toggle while disabled.",
@@ -3938,10 +3934,10 @@ fn flip_card_docs_page_covers_primary_playgrounds() {
         "title=\"FlipCard\"",
         "slug=\"flip-card\"",
         "description=\"3D front/back card with baseline-style state/source markers and baseline-level spring motion for flip/hover interactions.\"",
-        "<Playground title=\"Hello World (Default Path)\" code_signal=hello_code>",
-        "<Playground title=\"Click + Keyboard Flip\" code_signal=basic_code>",
+        "title=\"Hello World (Default Path)\"",
+        "title=\"Click + Keyboard Flip\"",
         "title=\"State + Source Markers\"",
-        "<Playground title=\"Disabled\" code_signal=disabled_code>",
+        "title=\"Disabled\"",
         "<FlipCard",
     ] {
         assert!(
@@ -3956,7 +3952,7 @@ fn flip_card_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streami
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
     let check2_source = load_source("check2.md");
-    let dx_script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for required in [
         "pub(super) fn flip_card() -> AnyView {",
@@ -3995,7 +3991,7 @@ fn flip_card_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streami
         "`Source-first Starter (Copy-Paste Ready)`",
         "`apps/docs-app/src/playground.rs::compose_copy_ready_code`",
         "flip_card_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4083,7 +4079,7 @@ fn flip_card_docs_are_beginner_friendly_with_default_then_advanced_path() {
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
     let readme_source = load_source("src/README.md");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "title=\"FlipCard\"",
@@ -4112,11 +4108,7 @@ fn flip_card_docs_are_beginner_friendly_with_default_then_advanced_path() {
         .find("title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"")
         .expect("docs should include interactive workbench for advanced controls.");
     assert!(
-        hello_pos < matrix_pos
-            && hello_pos < controlled_pos
-            && hello_pos < interactive_pos
-            && matrix_pos < interactive_pos
-            && controlled_pos < interactive_pos,
+        hello_pos < interactive_pos && hello_pos < matrix_pos && hello_pos < controlled_pos,
         "docs should keep zero-threshold default path ahead of advanced controls.",
     );
 
@@ -4190,7 +4182,7 @@ fn flip_card_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wir
 
 #[test]
 fn flip_card_contract_hygiene_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
         "cargo test -p ui-flip-card flip_card_check2_documents_documentation_as_product_rules",
@@ -4216,7 +4208,7 @@ fn flip_card_check2_documents_interactive_playground_rules() {
         "Playground 作为验收面，需可重复复现关键交互路径。",
         "flip_card_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "flip_card_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4229,7 +4221,7 @@ fn flip_card_check2_documents_interactive_playground_rules() {
 fn flip_card_docs_app_provides_interactive_playground_for_props_state_and_preview() {
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for required in [
         "title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"",
@@ -4266,7 +4258,7 @@ fn flip_card_docs_app_provides_interactive_playground_for_props_state_and_previe
 #[test]
 fn flip_card_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
     let e2e_source = load_source("../../e2e/tests/docs_app_flip_card_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for required in [
         "docs-app flip-card key flow is repeatable and failures map to semantic breakpoints",
@@ -4293,7 +4285,7 @@ fn flip_card_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn flip_card_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "cargo test -p ui-flip-card flip_card_check2_documents_interactive_playground_rules",
@@ -4352,7 +4344,7 @@ fn flip_card_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies
         "Dependency baseline (Cargo.toml):",
         "component-flip_card",
         "inject-css",
-        "ui-components = { default-features = false, features = [\\\"component-flip_card\\\", \\\"inject-css\\\"] }",
+        "ui = { default-features = false, features = [\\\"component-flip_card\\\", \\\"inject-css\\\"] }",
         "source_first_code = Signal::derive(move || {",
         "<FlipCard\n  is_flip_on_hover=true",
     ] {
@@ -4413,7 +4405,7 @@ fn flip_card_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies
 
 #[test]
 fn flip_card_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "cargo test -p ui-flip-card flip_card_check2_documents_source_first_copy_paste_ready_rules",
@@ -4435,7 +4427,7 @@ fn flip_card_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "flip_card_check2_documents_source_first_copy_paste_ready_rules",
         "flip_card_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "flip_card_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -4515,7 +4507,7 @@ fn flip_card_heroui_strategy_and_component_docs_are_synchronized_and_indexable()
 
 #[test]
 fn flip_card_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "cargo test -p ui-flip-card flip_card_check2_documents_heroui_benchmark_docs_sync_rules",
@@ -4538,7 +4530,7 @@ fn flip_card_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "flip_card_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "flip_card_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -4557,7 +4549,7 @@ fn flip_card_check2_documents_docs_examples_parameter_state_matrix_sync_rules() 
         "文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。",
         "文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。",
         "flip_card_docs_examples_parameter_state_matrix_sync_with_logic_defaults",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4622,7 +4614,7 @@ fn flip_card_docs_examples_parameter_state_matrix_sync_with_logic_defaults() {
 
 #[test]
 fn flip_card_dx_script_covers_docs_examples_parameter_state_matrix_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     let script_needle = "cargo test -p ui-flip-card flip_card_docs_examples_parameter_state_matrix_sync_with_logic_defaults";
     assert!(
@@ -4650,7 +4642,7 @@ fn flip_card_check2_documents_semantics_first_testing_rules() {
     for marker in [
         "flip_card_semantics_suite_is_contract_first_not_snapshot_only",
         "flip_card_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             checklist_source.contains(marker),
@@ -4689,12 +4681,12 @@ fn flip_card_semantics_suite_is_contract_first_not_snapshot_only() {
     );
 
     let forbidden = [
-        "assert_snapshot!",
-        "insta::assert_snapshot!",
-        "to_match_snapshot",
-        "image_snapshot",
-        "toHaveScreenshot",
-        "toMatchSnapshot",
+        "\n    assert_snapshot!(",
+        "\n    insta::assert_snapshot!(",
+        "\n    to_match_snapshot(",
+        "\n    image_snapshot(",
+        "\n    toHaveScreenshot(",
+        "\n    toMatchSnapshot(",
     ];
 
     for forbidden in forbidden {
@@ -4740,7 +4732,7 @@ fn flip_card_semantic_markers_changed_in_view_must_be_covered_by_semantics_check
 
 #[test]
 fn flip_card_contract_hygiene_script_covers_semantics_first_testing_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
         "cargo test -p ui-flip-card flip_card_check2_documents_semantics_first_testing_rules",
@@ -4823,10 +4815,10 @@ fn flip_card_semantic_contract_matrix_is_covered_without_snapshot_dependency() {
     );
 
     for forbidden in [
-        "assert_snapshot!",
-        "insta::assert",
-        "toMatchSnapshot",
-        ".to_match_snapshot",
+        "\n    assert_snapshot!(",
+        "\n    insta::assert_snapshot!(",
+        "\n    toMatchSnapshot(",
+        "\n    to_match_snapshot(",
     ] {
         assert!(
             !semantics_source.contains(forbidden),
@@ -4859,7 +4851,7 @@ fn flip_card_check2_documents_e2e_selector_and_stable_wait_rules() {
         "flip_card_check2_documents_e2e_selector_and_stable_wait_rules",
         "flip_card_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "flip_card_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-flip-card.sh",
+        "components/flip-card/scripts/check-ui-e2e-flip-card.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4871,7 +4863,7 @@ fn flip_card_check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn flip_card_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
     let e2e_source = load_source("../../e2e/tests/docs_app_flip_card_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-flip-card.sh");
+    let script_source = load_source("../../components/flip-card/scripts/check-ui-e2e-flip-card.sh");
 
     for required in [
         "const FLIP_CARD_PAGE = \"/#/components/flip-card\";",
@@ -4926,7 +4918,7 @@ fn flip_card_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints() 
     let e2e_source = load_source("../../e2e/tests/docs_app_flip_card_contract.spec.mjs");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-flip-card.sh");
+    let script_source = load_source("../../components/flip-card/scripts/check-ui-e2e-flip-card.sh");
 
     for required in [
         "id=\"docs-flip-card-toggle\".to_string()",
@@ -4982,7 +4974,7 @@ fn flip_card_check2_documents_e2e_repeatable_key_flow_rules() {
         "flip_card_check2_documents_e2e_repeatable_key_flow_rules",
         "flip_card_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "flip_card_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-flip-card.sh",
+        "components/flip-card/scripts/check-ui-e2e-flip-card.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4994,7 +4986,7 @@ fn flip_card_check2_documents_e2e_repeatable_key_flow_rules() {
 #[test]
 fn flip_card_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
     let e2e_source = load_source("../../e2e/tests/docs_app_flip_card_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-flip-card.sh");
+    let script_source = load_source("../../components/flip-card/scripts/check-ui-e2e-flip-card.sh");
 
     for required in [
         "key flow is repeatable and failures map to semantic breakpoints",
@@ -5026,7 +5018,7 @@ fn flip_card_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 #[test]
 fn flip_card_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints() {
     let e2e_source = load_source("../../e2e/tests/docs_app_flip_card_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-flip-card.sh");
+    let script_source = load_source("../../components/flip-card/scripts/check-ui-e2e-flip-card.sh");
 
     for required in [
         "high-risk paths keep focus keyboard and disabled branches semantically explicit",

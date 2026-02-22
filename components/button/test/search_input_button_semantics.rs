@@ -216,7 +216,7 @@ fn search_input_button_state_primitive_source_stays_in_status_primitives_and_no_
     ] {
         assert!(
             button_logic_source.contains(needle),
-            "Button logic should bridge from ui-components to ui-state-primitives via `{needle}`."
+            "Button logic should bridge from ui to ui-state-primitives via `{needle}`."
         );
     }
 

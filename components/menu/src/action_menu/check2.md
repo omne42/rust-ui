@@ -10,7 +10,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 大骨架（架构边界与层职责）
-- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`ActionMenu` 的稳定状态归一/派生已下沉到 `crates/ui-state-primitives/src/action_menu.rs`：`state_attr/item_attr/action_attr/open_mode_attr/normalize_* /resolve_trigger_* /resolve_id_pair`；组件侧 `crates/ui-components/src/menu/action_menu/logic.rs` 仅做委托与装配映射，且由 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_state_primitives_are_sourced_from_ui_state_primitives` 约束不回流）
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`ActionMenu` 的稳定状态归一/派生已下沉到 `crates/ui-state-primitives/src/action_menu.rs`：`state_attr/item_attr/action_attr/open_mode_attr/normalize_* /resolve_trigger_* /resolve_id_pair`；组件侧 `crates/ui/src/menu/action_menu/logic.rs` 仅做委托与装配映射，且由 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_state_primitives_are_sourced_from_ui_state_primitives` 约束不回流）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -31,22 +31,22 @@
   - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`ActionMenu` 的 `crates/ui-components/src/menu/action_menu/motion.rs` 仅保留 `ActionMenuMotion` contract 与对 `crate::popover::motion::sanitize_motion` 的语义映射；执行器仍在 `ui-motion`/`Popover` 层（`crates/ui-components/src/popover/motion.rs` 调用 `ui_motion::spring::SpringAnimator`）；`ui-motion` 非 wasm no-op/stub 由 `crates/ui-motion/src/lib.rs` 提供并由 `non_wasm_web_backend_is_predictable_noop` 覆盖；语义回归见 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_motion_layering_delegates_to_popover_and_ui_motion_backends`）
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`ActionMenu` 的 `crates/ui/src/menu/action_menu/motion.rs` 仅保留 `ActionMenuMotion` contract 与对 `crate::popover::motion::sanitize_motion` 的语义映射；执行器仍在 `ui-motion`/`Popover` 层（`crates/ui/src/popover/motion.rs` 调用 `ui_motion::spring::SpringAnimator`）；`ui-motion` 非 wasm no-op/stub 由 `crates/ui-motion/src/lib.rs` 提供并由 `non_wasm_web_backend_is_predictable_noop` 覆盖；语义回归见 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_motion_layering_delegates_to_popover_and_ui_motion_backends`）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（主题三轴与 token/变量链路已固定在 `crates/ui-theme/src/tokens.rs` + `crates/ui-theme/src/theme.rs` + `crates/ui-theme/src/css.rs`，并由 `crates/ui-components/src/root.rs` 统一注入 `theme.get().to_css_variables()`；`ActionMenu` 仅在 `crates/ui-components/src/menu/action_menu/styles.rs` 消费 `var(--ui-*)`（如 `var(--ui-shadow-sm)`），不在组件内重建主题；回归由 `crates/ui-theme/tests/token_scale_baseline.rs`、`crates/ui-theme/tests/wcag_contrast.rs` 与 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_theme_layering_uses_ui_theme_tokens_without_local_theme_rebuild` 覆盖）
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（主题三轴与 token/变量链路已固定在 `crates/ui-theme/src/tokens.rs` + `crates/ui-theme/src/theme.rs` + `crates/ui-theme/src/css.rs`，并由 `crates/ui/src/root.rs` 统一注入 `theme.get().to_css_variables()`；`ActionMenu` 仅在 `crates/ui/src/menu/action_menu/styles.rs` 消费 `var(--ui-*)`（如 `var(--ui-shadow-sm)`），不在组件内重建主题；回归由 `crates/ui-theme/tests/token_scale_baseline.rs`、`crates/ui-theme/tests/wcag_contrast.rs` 与 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_theme_layering_uses_ui_theme_tokens_without_local_theme_rebuild` 覆盖）
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`ActionMenu` 已按文件职责拆分：`logic.rs` 消费 `ui_state_primitives::action_menu` 做归一/派生，`view.rs` 挂载 `ui_headless` 契约（controllable open state + menu trigger key model + presence），`styles.rs` 仅 token-first 静态样式，`motion.rs` 仅动效 contract 映射；crate 对外仅导出 `ActionMenu`/`ActionMenuMotion`，不暴露 `web-sys`/DOM 细节类型；回归由 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_ui_components_layer_assembles_four_layers_without_public_dom_leakage` 约束）
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`ActionMenu` 已按文件职责拆分：`logic.rs` 消费 `ui_state_primitives::action_menu` 做归一/派生，`view.rs` 挂载 `ui_headless` 契约（controllable open state + menu trigger key model + presence），`styles.rs` 仅 token-first 静态样式，`motion.rs` 仅动效 contract 映射；crate 对外仅导出 `ActionMenu`/`ActionMenuMotion`，不暴露 `web-sys`/DOM 细节类型；回归由 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_ui_components_layer_assembles_four_layers_without_public_dom_leakage` 约束）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -60,19 +60,19 @@
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`ActionMenu` 的默认值与别名优先级已集中到 `crates/ui-components/src/menu/action_menu/logic.rs` 的 `normalize_discrete_props`（`is_disabled` 优先于 `disabled`，`is_close_on_action` 优先于 `close_on_action`，缺省回落到 `DEFAULT_*` 并映射为离散 enum 轴）；`crates/ui-components/src/menu/action_menu/view.rs` 仅消费 `normalize_props` 输出；回归由 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_default_values_have_single_source_in_logic_layer` 与 `crates/ui-components/src/menu/action_menu/logic.rs` 的 `discrete_props_defaults_and_alias_priority_are_centralized` 覆盖）
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`ActionMenu` 的默认值与别名优先级已集中到 `crates/ui/src/menu/action_menu/logic.rs` 的 `normalize_discrete_props`（`is_disabled` 优先于 `disabled`，`is_close_on_action` 优先于 `close_on_action`，缺省回落到 `DEFAULT_*` 并映射为离散 enum 轴）；`crates/ui/src/menu/action_menu/view.rs` 仅消费 `normalize_props` 输出；回归由 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_default_values_have_single_source_in_logic_layer` 与 `crates/ui/src/menu/action_menu/logic.rs` 的 `discrete_props_defaults_and_alias_priority_are_centralized` 覆盖）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`ActionMenu` 已在 `crates/ui-components/src/menu/action_menu/logic.rs` 引入类型化输入/输出 `ActionMenuNormalizeInput` 与 `ActionMenuNormalizedProps`，由 `normalize_props` 统一完成 id/disabled_indices/item_kinds/class/aria/bool props/placement/open-mode/source flags 归一化，并将事件分支规则集中到 `resolve_trigger_press`、`resolve_action_open_change`；`crates/ui-components/src/menu/action_menu/view.rs` 仅消费这些结果并触发 `request_open_change` 写回；回归由 `crates/ui-components/src/menu/action_menu/logic.rs` 的 `normalize_props_centralizes_state_derivation`、`trigger_press_state_machine_is_centralized` 与 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_state_normalization_is_centralized_in_logic_layer` 覆盖）
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`ActionMenu` 已在 `crates/ui/src/menu/action_menu/logic.rs` 引入类型化输入/输出 `ActionMenuNormalizeInput` 与 `ActionMenuNormalizedProps`，由 `normalize_props` 统一完成 id/disabled_indices/item_kinds/class/aria/bool props/placement/open-mode/source flags 归一化，并将事件分支规则集中到 `resolve_trigger_press`、`resolve_action_open_change`；`crates/ui/src/menu/action_menu/view.rs` 仅消费这些结果并触发 `request_open_change` 写回；回归由 `crates/ui/src/menu/action_menu/logic.rs` 的 `normalize_props_centralizes_state_derivation`、`trigger_press_state_machine_is_centralized` 与 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_state_normalization_is_centralized_in_logic_layer` 覆盖）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`ActionMenu` 新增离散状态轴 `ActionMenuDisabledState` 与 `ActionMenuActionMode`（`crates/ui-components/src/menu/action_menu/mod.rs`），组件输入新增 `disabled_state`/`action_mode` 并在 `crates/ui-components/src/menu/action_menu/logic.rs` 的 `normalize_discrete_props` 统一映射（兼容 `is_disabled`/`disabled` 与 `is_close_on_action`/`close_on_action`），`view.rs` 仅消费枚举态并挂载；回归由 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_discrete_state_axes_use_enum_contracts`、`action_menu_state_normalization_is_centralized_in_logic_layer` 覆盖）
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`ActionMenu` 新增离散状态轴 `ActionMenuDisabledState` 与 `ActionMenuActionMode`（`crates/ui/src/menu/action_menu/mod.rs`），组件输入新增 `disabled_state`/`action_mode` 并在 `crates/ui/src/menu/action_menu/logic.rs` 的 `normalize_discrete_props` 统一映射（兼容 `is_disabled`/`disabled` 与 `is_close_on_action`/`close_on_action`），`view.rs` 仅消费枚举态并挂载；回归由 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_discrete_state_axes_use_enum_contracts`、`action_menu_state_normalization_is_centralized_in_logic_layer` 覆盖）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`ActionMenu` 的状态归一化已固定由 `crates/ui-state-primitives/src/action_menu.rs` 提供（含 `normalize_boolean_props`），组件侧 `crates/ui-components/src/menu/action_menu/logic.rs` 仅通过 `use ui_state_primitives::action_menu as action_menu_state` 做委托与装配映射；`view.rs`/`logic.rs` 不依赖业务 store 类型；回归由 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_state_primitives_are_sourced_from_ui_state_primitives` 与 `action_menu_component_uses_state_primitive_boundary_without_business_store_binding` 覆盖）
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`ActionMenu` 的状态归一化已固定由 `crates/ui-state-primitives/src/action_menu.rs` 提供（含 `normalize_boolean_props`），组件侧 `crates/ui/src/menu/action_menu/logic.rs` 仅通过 `use ui_state_primitives::action_menu as action_menu_state` 做委托与装配映射；`view.rs`/`logic.rs` 不依赖业务 store 类型；回归由 `components/menu/test/action_menu_semantics.rs` 的 `action_menu_state_primitives_are_sourced_from_ui_state_primitives` 与 `action_menu_component_uses_state_primitive_boundary_without_business_store_binding` 覆盖）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
@@ -86,7 +86,7 @@
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（`ActionMenu` 新增 `ActionMenuItemSpec`（`crates/ui-components/src/menu/action_menu/mod.rs`）把 item 标题/语义/disabled 绑定到同一结构；`logic.rs` 通过 `normalize_menu_items` 将 `item_specs` 映射为渲染语义树并仅在缺省时桥接 legacy 并行数组；docs 推荐路径统一为 `item_specs=...`，契约回归：`components/menu/test/action_menu_semantics.rs` 的 `action_menu_docs_prefer_typed_item_specs_over_parallel_arrays`、`action_menu_docs_playgrounds_lock_state_matrix_contract_values`、`crates/ui-components/src/menu/action_menu/logic.rs` 的 `item_specs_become_single_typed_source_of_item_semantics`）
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（`ActionMenu` 新增 `ActionMenuItemSpec`（`crates/ui/src/menu/action_menu/mod.rs`）把 item 标题/语义/disabled 绑定到同一结构；`logic.rs` 通过 `normalize_menu_items` 将 `item_specs` 映射为渲染语义树并仅在缺省时桥接 legacy 并行数组；docs 推荐路径统一为 `item_specs=...`，契约回归：`components/menu/test/action_menu_semantics.rs` 的 `action_menu_docs_prefer_typed_item_specs_over_parallel_arrays`、`action_menu_docs_playgrounds_lock_state_matrix_contract_values`、`crates/ui/src/menu/action_menu/logic.rs` 的 `item_specs_become_single_typed_source_of_item_semantics`）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
@@ -102,7 +102,7 @@
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`ActionMenu` 样式选择器以 `data-state/data-items/data-action-mode/data-open-mode/data-motion-source` 与稳定 class 为主（`crates/ui-components/src/menu/action_menu/styles.rs`），不依赖 `:nth-child` 等结构猜测；运行时 `view.rs` 不使用 inline 业务样式分支。契约回归：`components/menu/test/action_menu_semantics.rs` 的 `action_menu_styles_depend_on_explicit_state_markers_not_dom_guessing` 与 `action_menu_styles_include_state_and_source_markers`）
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`ActionMenu` 样式选择器以 `data-state/data-items/data-action-mode/data-open-mode/data-motion-source` 与稳定 class 为主（`crates/ui/src/menu/action_menu/styles.rs`），不依赖 `:nth-child` 等结构猜测；运行时 `view.rs` 不使用 inline 业务样式分支。契约回归：`components/menu/test/action_menu_semantics.rs` 的 `action_menu_styles_depend_on_explicit_state_markers_not_dom_guessing` 与 `action_menu_styles_include_state_and_source_markers`）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
@@ -121,7 +121,7 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -135,9 +135,9 @@
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -188,7 +188,7 @@
   - N/A 说明：`components/menu/src/action_menu/*` 与 docs `ActionMenu` 示例不使用 `inner_html`/`set_inner_html`/`dangerously_set_inner_html`，保持零注入面。
   - 白名单边界：`apps/docs-app/src/pages/components/shell.rs` 的 `inner_html=html` 仅用于 `component_readme_markdown(slug)` + `include_str!` 常量白名单，menu 仅映射 `"dropdown-menu" => Some(DROPDOWN_MENU_README_MD)`，其余 `_ => None`。
   - 语义与安全回归：`components/menu/test/semantics.rs::menu_inner_html_usage_is_forbidden_in_component_and_docs_examples`。
-  - 门禁脚本：`scripts/check-ui-components-inner-html.sh` 已纳入 `cargo test -p ui-menu menu_inner_html_usage_is_forbidden_in_component_and_docs_examples`。
+  - 门禁脚本：`scripts/check-ui-inner-html.sh` 已纳入 `cargo test -p ui-menu menu_inner_html_usage_is_forbidden_in_component_and_docs_examples`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
@@ -199,7 +199,7 @@
   - 可视化入口证据：`apps/docs-app/src/lib.rs` 在 `cfg!(debug_assertions)` 下调用 `provide_ui_trace(debug_overlay_enabled)`；`apps/docs-app/src/debug_overlay.rs` 提供 `data-slot="ui-debug-overlay-event"` 与毫秒时间显示。
   - 回放路径证据：`apps/docs-app/src/pages/components/pages/actions.rs` 的 `ActionMenu` 已提供 `State + Source Markers`，并暴露 `"open: ... · last action: ..."` 最小可复现读数。
   - feature 隔离证据：`components/menu/Cargo.toml` 不包含 `wasm-debug/dep:tracing`，`ActionMenu` 公共 API 不暴露 debug prop 或 tracing 类型。
-  - 门禁脚本：`scripts/check-ui-components-wasm-debug.sh` 已纳入 `cargo test -p ui-menu menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。
+  - 门禁脚本：`scripts/check-ui-wasm-debug.sh` 已纳入 `cargo test -p ui-menu menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。
   - 回归：`components/menu/test/semantics.rs::menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
@@ -209,7 +209,7 @@
   - 上下文保持证据：`apps/docs-app/src/pages/components/pages/actions.rs::action_menu()` 提供 `State + Source Markers` 画布，保留 `"open: ... · last action: ..."` 连续观测路径。
   - 热样式反馈证据：menu 家族复用 `apps/docs-app/src/playground.rs` 的 `compose_scoped_css` 与 `data-slot="playground-test"`；`menu_trigger` 页面接入 `test_css_source=workbench_test_css_source`，`dropdown_menu` 页面接入 `test_css_source=interactive_test_css`，用于快速样式迭代。
   - 可选状态保留：N/A（当前 `action_menu` workbench 未引入 `localStorage/sessionStorage`；避免示例态跨页面污染）。
-  - 门禁脚本：`scripts/check-ui-components-dx.sh` 已纳入 `cargo test -p ui-menu menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_workbench`。
+  - 门禁脚本：`scripts/check-ui-dx.sh` 已纳入 `cargo test -p ui-menu menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_workbench`。
   - 回归：`components/menu/test/semantics.rs::menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_workbench`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 - [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
@@ -217,21 +217,22 @@
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
   - serde 协议证据：`components/menu/src/action_menu/protocol.rs` 与 `components/menu/src/*/protocol.rs` 统一定义 `*ComponentSchemaVersion + *ComponentSpec`，并使用 `serde::{Serialize, Deserialize}` + `#[serde(default)]` 保持 schema 演进兼容。
+  - 总协议入口证据：`components/menu/src/protocol.rs`。
   - tracing 语义证据：`ActionMenu` open 轴通过 `use_controllable_open_state_traced` 回收至共享链路（`crates/ui-headless/src/trace.rs`、`crates/ui-headless/src/controllable_state.rs`），组件源码不定义私有 `tracing::span!`/`tracing::event!`/`#[tracing::instrument]`。
   - runtime 边界证据：`components/menu/Cargo.toml` 不定义 `tokio`/`async-std`/`dep:tracing`，`ActionMenu` 公共 API 不暴露具体运行时类型。
   - 回归：`components/menu/test/semantics.rs::menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`。
-  - 门禁脚本：`scripts/check-ui-components-engineering.sh` 已纳入 `cargo test -p ui-menu menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`。
+  - 门禁脚本：`scripts/check-ui-engineering.sh` 已纳入 `cargo test -p ui-menu menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`。
   - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 
 ### 5. 文件落点检查（必须提及）
-- [ ] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [ ] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [ ] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。

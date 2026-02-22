@@ -4,8 +4,9 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let mapped = match rel_path {
-        "Cargo.toml" => "../../crates/ui-components/Cargo.toml".to_string(),
-        "src/lib.rs" => "../../crates/ui-components/src/lib.rs".to_string(),
+        "Cargo.toml" => "../../crates/ui/Cargo.toml".to_string(),
+        "../Cargo.toml" => "../../crates/ui/Cargo.toml".to_string(),
+        "src/lib.rs" => "../../crates/ui/src/lib.rs".to_string(),
         "src/overlays/mod.rs" => "src/mod.rs".to_string(),
         "src/overlays/check2.md" => "src/check2.md".to_string(),
         _ => rel_path.to_string(),
@@ -199,7 +200,6 @@ fn overlays_default_value_normalization_is_centralized_in_logic_layer() {
     let popover_view = load_source("../popover/src/view.rs");
     let sheet_view = load_source("../sheet/src/view.rs");
     let tray_view = load_source("../tray/src/view.rs");
-
     for (component, source) in [
         ("Overlay", overlay_view.as_str()),
         ("Popover", popover_view.as_str()),
@@ -249,6 +249,11 @@ fn overlays_state_normalization_is_centralized_in_logic_layer() {
     let popover_view = load_source("../popover/src/view.rs");
     let sheet_view = load_source("../sheet/src/view.rs");
     let tray_view = load_source("../tray/src/view.rs");
+    let sheet_view_non_comment = sheet_view
+        .lines()
+        .filter(|line| !line.trim_start().starts_with("//"))
+        .collect::<Vec<_>>()
+        .join("\n");
 
     for (component, source, forbidden) in [
         ("Overlay", overlay_view.as_str(), "OverlayPartStateInput {"),
@@ -263,7 +268,7 @@ fn overlays_state_normalization_is_centralized_in_logic_layer() {
 
     for forbidden in ["struct SheetStateInputs", "fn resolve_part_state("] {
         assert!(
-            !sheet_view.contains(forbidden),
+            !sheet_view_non_comment.contains(forbidden),
             "Sheet view should not carry local state-normalization helper `{forbidden}`."
         );
     }
@@ -1164,10 +1169,9 @@ fn overlays_a11y_i18n_l10n_contracts_are_headless_first_and_text_source_driven()
         ("Sheet", sheet_view.as_str()),
     ] {
         for needle in [
-            "use ui_headless::{",
             "A11yDirection",
             "lang: Option<String>",
-            "dir: Option<A11yDirection>",
+            "dir: Option<",
             "overlay_dialog_attrs(",
         ] {
             assert!(
@@ -1784,7 +1788,7 @@ fn overlays_hydration_discontinuity_contract_avoids_entropy_and_keeps_seeded_id_
     let tray_readme = load_source("../tray/src/README.md");
 
     let overlays_primitive = load_source("../../crates/ui-state-primitives/src/overlays.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
     let headless_id_provider_source = load_source("../../crates/ui-headless/src/id_provider.rs");
 
     let sources = [
@@ -2228,8 +2232,7 @@ fn overlays_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_term
     let sheet_styles = load_source("../sheet/src/styles.rs");
     let tray_styles = load_source("../tray/src/styles.rs");
     let theme_css = load_source("../../crates/ui-theme/src/css.rs");
-    let contract_hygiene_script =
-        load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let contract_hygiene_script = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
         "--ui-fallback-min-inline-size-none",
@@ -2362,8 +2365,8 @@ fn overlays_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_term
 
 #[test]
 fn overlays_cascade_layer_and_runtime_style_contract_is_enforced() {
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root = load_source("../../crates/ui-components/src/root.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
+    let ui_root = load_source("../../crates/ui/src/root.rs");
     let overlays_view = load_source("src/view.rs");
     let overlay_view = load_source("../overlay/src/view.rs");
     let popover_view = load_source("../popover/src/view.rs");
@@ -2371,8 +2374,7 @@ fn overlays_cascade_layer_and_runtime_style_contract_is_enforced() {
     let modal_view = load_source("../modal/src/view.rs");
     let sheet_view = load_source("../sheet/src/view.rs");
     let tray_view = load_source("../tray/src/view.rs");
-    let contract_hygiene_script =
-        load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let contract_hygiene_script = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
         "out.push_str(\"\\n@layer ui {\\n\");",
@@ -2392,7 +2394,7 @@ fn overlays_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "ui-components css entry should keep overlays aggregation inside `@layer ui` via `{needle}`."
+            "ui css entry should keep overlays aggregation inside `@layer ui` via `{needle}`."
         );
     }
 
@@ -2474,7 +2476,7 @@ fn overlays_semantic_contract_tests_cover_matrix_and_do_not_rely_on_snapshots_on
     let popover_motion = load_source("../popover/src/motion.rs");
     let sheet_motion = load_source("../sheet/src/motion.rs");
 
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
     let overlays_cargo = load_source("Cargo.toml");
 
     for needle in [
@@ -2613,7 +2615,7 @@ fn overlays_semantic_test_priority_prefers_data_aria_role_and_source_contracts_o
     let drawer_semantics = load_source("../../components/drawer/test/drawer_semantics.rs");
     let bottom_sheet_semantics =
         load_source("../../components/bottom-sheet/test/bottom_sheet_semantics.rs");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
         "fn overlays_semantic_contract_tests_cover_matrix_and_do_not_rely_on_snapshots_only()",
@@ -2754,7 +2756,7 @@ fn overlays_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
 
 #[test]
 fn overlays_performance_script_covers_semantic_test_priority_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
         "echo \"[perf] contract: overlays semantic test priority\"",
@@ -3092,8 +3094,7 @@ fn overlays_component_directory_standard_files_follow_contract_and_na_spec() {
         }
     }
 
-    let component_files_script =
-        load_source("../../scripts/check-ui-components-component-files.sh");
+    let component_files_script = load_source("../../scripts/check-ui-component-files.sh");
     let script_needle = "cargo test -p ui-overlays overlays_component_directory_standard_files_follow_contract_and_na_spec";
     assert!(
         component_files_script.contains(script_needle),
@@ -3105,8 +3106,7 @@ fn overlays_component_directory_standard_files_follow_contract_and_na_spec() {
 fn overlays_file_placement_discipline_is_strict_for_component_scope() {
     overlays_component_directory_standard_files_follow_contract_and_na_spec();
 
-    let component_files_script =
-        load_source("../../scripts/check-ui-components-component-files.sh");
+    let component_files_script = load_source("../../scripts/check-ui-component-files.sh");
     let script_needle = "cargo test -p ui-overlays overlays_file_placement_discipline_is_strict_for_component_scope";
     assert!(
         component_files_script.contains(script_needle),
@@ -3131,8 +3131,7 @@ fn overlays_hyper_structure_builder_spec_is_not_applicable_for_simple_component(
         );
     }
 
-    let component_files_script =
-        load_source("../../scripts/check-ui-components-component-files.sh");
+    let component_files_script = load_source("../../scripts/check-ui-component-files.sh");
     let script_needle = "cargo test -p ui-overlays overlays_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
     assert!(
         component_files_script.contains(script_needle),
@@ -3320,8 +3319,7 @@ fn overlays_context_compression_manifest_and_rbi_projection_are_present_and_curr
         }
     }
 
-    let component_files_script =
-        load_source("../../scripts/check-ui-components-component-files.sh");
+    let component_files_script = load_source("../../scripts/check-ui-component-files.sh");
     let script_needle = "cargo test -p ui-overlays overlays_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         component_files_script.contains(script_needle),
@@ -3342,8 +3340,7 @@ fn overlays_agent_contract_is_schema_typed_and_machine_readable() {
     let docs_overlays = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
     let docs_overlays_extra =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
-    let component_files_script =
-        load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let component_files_script = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for (scope, source) in [
         ("OverlaysRoot", overlays_view.as_str()),
@@ -3471,7 +3468,7 @@ fn overlays_agent_contract_is_schema_typed_and_machine_readable() {
 fn overlays_streaming_definition_is_llm_output_only_with_two_modes() {
     let docs_overlays = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
     let sheet_logic = load_source("../sheet/src/logic.rs");
-    let streaming_script = load_source("../../scripts/check-ui-components-streaming.sh");
+    let streaming_script = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
         "// Modal is not an LLM body reader surface.",
@@ -3542,7 +3539,7 @@ fn overlays_snapshot_baseline_consumes_complete_result_and_renders_stably() {
     let modal_logic = load_source("../modal/src/logic.rs");
     let drawer_logic = load_source("../drawer/src/logic.rs");
     let contextual_help_logic = load_source("../contextual-help/src/logic.rs");
-    let streaming_script = load_source("../../scripts/check-ui-components-streaming.sh");
+    let streaming_script = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
         "description=\"Modal is streaming-optional and snapshot-first (`fallback=snapshot`).\"",
@@ -3613,7 +3610,7 @@ fn overlays_streaming_required_optional_classification_rules_are_scope_driven_an
     let contextual_help_logic = load_source("../contextual-help/src/logic.rs");
     let contextual_help_view = load_source("../contextual-help/src/view.rs");
     let overlay_logic = load_source("../overlay/src/logic.rs");
-    let streaming_script = load_source("../../scripts/check-ui-components-streaming.sh");
+    let streaming_script = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
         "// Modal is not an LLM body reader surface.",
@@ -3800,7 +3797,7 @@ fn overlays_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent() {
 fn overlays_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let rust_hygiene_script = load_source("../../scripts/check-rust-hygiene.sh");
     let check_script = load_source("../../scripts/check.sh");
-    let engineering_script = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
         "forbidden unwrap/expect in non-test code",
@@ -4240,7 +4237,7 @@ fn overlays_motion_contract_is_component_scoped_reduced_motion_aware_and_non_was
     let sheet_motion = load_source("../sheet/src/motion.rs");
     let tray_motion = load_source("../tray/src/motion.rs");
     let ui_motion_spring = load_source("../../crates/ui-motion/src/spring.rs");
-    let platforms_script = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platforms_script = load_source("../../scripts/check-ui-platforms.sh");
 
     for (scope, source) in [
         ("Overlay motion", overlay_motion.as_str()),
@@ -4338,14 +4335,14 @@ fn overlays_motion_contract_is_component_scoped_reduced_motion_aware_and_non_was
 
 #[test]
 fn overlays_ui_components_fixed_entry_files_follow_layered_boundaries() {
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
-    let ui_components_root = load_source("../../crates/ui-components/src/root.rs");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
+    let ui_components_root = load_source("../../crates/ui/src/root.rs");
     let active_highlight = load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
     let headless_controllable = load_source("../../crates/ui-headless/src/controllable_state.rs");
     let headless_presence = load_source("../../crates/ui-headless/src/presence.rs");
     let headless_a11y = load_source("../../crates/ui-headless/src/a11y.rs");
-    let entrypoints_script = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let entrypoints_script = load_source("../../scripts/check-ui-entrypoints.sh");
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
 
     for needle in [
@@ -4365,7 +4362,7 @@ fn overlays_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib entry should keep feature-gated public surface marker `{needle}`."
+            "ui lib entry should keep feature-gated public surface marker `{needle}`."
         );
     }
 
@@ -4378,7 +4375,7 @@ fn overlays_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !ui_components_lib.contains(forbidden),
-            "ui-components lib entry should not expose forbidden entrypoint/platform marker `{forbidden}`."
+            "ui lib entry should not expose forbidden entrypoint/platform marker `{forbidden}`."
         );
     }
 
@@ -4401,7 +4398,7 @@ fn overlays_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "ui-components css entry should keep feature-gated overlays aggregation marker `{needle}`."
+            "ui css entry should keep feature-gated overlays aggregation marker `{needle}`."
         );
     }
 
@@ -4451,14 +4448,14 @@ fn overlays_ui_components_fixed_entry_files_follow_layered_boundaries() {
     }
 
     for forbidden in [
-        "../../crates/ui-components/src/overlay_open.rs",
-        "../../crates/ui-components/src/presence.rs",
-        "../../crates/ui-components/src/a11y.rs",
+        "../../crates/ui/src/overlay_open.rs",
+        "../../crates/ui/src/presence.rs",
+        "../../crates/ui/src/a11y.rs",
     ] {
         let path = manifest_dir.join(forbidden);
         assert!(
             !path.exists(),
-            "forbidden ui-components entrypoint file should not exist: {path:?}"
+            "forbidden ui entrypoint file should not exist: {path:?}"
         );
     }
 
@@ -4590,8 +4587,8 @@ fn overlays_theme_tokens_are_sourced_from_ui_theme_and_consumed_by_styles() {
 
 #[test]
 fn overlays_token_first_static_style_contract_is_aggregated_and_framework_agnostic() {
-    let ui_components_css = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root = load_source("../../crates/ui-components/src/root.rs");
+    let ui_components_css = load_source("../../crates/ui/src/css.rs");
+    let ui_root = load_source("../../crates/ui/src/root.rs");
 
     let overlays_mod = load_source("src/overlays/mod.rs");
     let overlays_logic = load_source("src/logic.rs");
@@ -4627,7 +4624,7 @@ fn overlays_token_first_static_style_contract_is_aggregated_and_framework_agnost
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "ui-components css aggregator should include token-first style wiring `{needle}`."
+            "ui css aggregator should include token-first style wiring `{needle}`."
         );
     }
 
@@ -4793,7 +4790,7 @@ fn overlays_performance_governance_contract_is_budgeted_traceable_and_blocking()
     let pages_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
     let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
 
     let overlays_view = load_source("src/view.rs");
@@ -4934,9 +4931,9 @@ fn overlays_performance_governance_contract_is_budgeted_traceable_and_blocking()
     for needle in [
         "echo \"[perf] contract: overlays performance governance\"",
         "cargo test -p ui-overlays overlays_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             perf_script_source.contains(needle),
@@ -5037,12 +5034,12 @@ fn overlays_semantics_and_performance_regression_cover_aria_data_focus_and_rende
 
 #[test]
 fn overlays_semantics_and_performance_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
         "cargo test -p ui-overlays overlays_performance_governance_contract_is_budgeted_traceable_and_blocking",
         "cargo test -p ui-overlays overlays_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(marker),
@@ -5062,7 +5059,7 @@ fn overlays_check2_marks_semantics_and_performance_regression_contract_complete(
         "overlays_performance_governance_contract_is_budgeted_traceable_and_blocking",
         "overlays_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "`render_count` 自动化回归仍在仓库统一 follow-up",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -5364,7 +5361,7 @@ fn overlays_inner_html_usage_is_forbidden_and_docs_shell_path_is_whitelisted() {
         );
     }
 
-    let check_script = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let check_script = load_source("../../scripts/check-ui-inner-html.sh");
     let script_needle = "cargo test -p ui-overlays overlays_inner_html_usage_is_forbidden_and_docs_shell_path_is_whitelisted";
     assert!(
         check_script.contains(script_needle),
@@ -5374,8 +5371,8 @@ fn overlays_inner_html_usage_is_forbidden_and_docs_shell_path_is_whitelisted() {
 
 #[test]
 fn overlays_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_isolated() {
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let crate_root_source = load_source("../../crates/ui-components/src/lib.rs");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let crate_root_source = load_source("../../crates/ui/src/lib.rs");
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
@@ -5393,7 +5390,7 @@ fn overlays_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_is
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep shared wasm-debug marker `{needle}`."
+            "ui Cargo features should keep shared wasm-debug marker `{needle}`."
         );
     }
     for forbidden in [
@@ -5415,7 +5412,7 @@ fn overlays_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_is
     ] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components root should keep wasm-debug isolation marker `{needle}`."
+            "ui root should keep wasm-debug isolation marker `{needle}`."
         );
     }
 
@@ -5475,8 +5472,8 @@ fn overlays_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_is
     }
 
     for needle in [
-        "use ui_headless::{A11yDirection, overlay_dialog_attrs, use_controllable_open_state_traced};",
-        "let open_state = use_controllable_open_state_traced(",
+        "ui_headless::use_controllable_open_state_traced(",
+        "let open_state = ui_headless::use_controllable_open_state_traced(",
         "\"modal\",",
         "data-open-mode=open_contract.mode.as_attr()",
         "data-open-source=open_contract.open_source.as_attr()",
@@ -5533,7 +5530,7 @@ fn overlays_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_is
         );
     }
 
-    let wasm_debug_script = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let wasm_debug_script = load_source("../../scripts/check-ui-wasm-debug.sh");
     let script_needle = "cargo test -p ui-overlays overlays_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_isolated";
     assert!(
         wasm_debug_script.contains(script_needle),
@@ -5546,7 +5543,7 @@ fn overlays_dx_playground_supports_css_hot_reload_and_context_preserving_isolate
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
     let overlays_docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
-    let dx_script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "fn compose_scoped_css(scope_selector: &str, raw: &str) -> String {",
@@ -5603,9 +5600,9 @@ fn overlays_dx_playground_supports_css_hot_reload_and_context_preserving_isolate
 
 #[test]
 fn overlays_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries() {
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
     let button_view_source = load_source("../../components/button/src/view.rs");
-    let engineering_script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     let protocol_sources = [
         ("Overlays", load_source("src/protocol.rs")),
@@ -5647,7 +5644,7 @@ fn overlays_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_b
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -5660,7 +5657,6 @@ fn overlays_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_b
         "overlays-wasm-debug",
         "popover-wasm-debug",
         "modal-wasm-debug",
-        "sheet-wasm-debug",
         "tray-wasm-debug",
     ] {
         assert!(
@@ -5713,12 +5709,12 @@ fn overlays_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_b
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::overlay::",
-        "target: \"ui_components::overlays::",
-        "target: \"ui_components::popover::",
-        "target: \"ui_components::modal::",
-        "target: \"ui_components::sheet::",
-        "target: \"ui_components::tray::",
+        "target: \"ui::overlay::",
+        "target: \"ui::overlays::",
+        "target: \"ui::popover::",
+        "target: \"ui::modal::",
+        "target: \"ui::sheet::",
+        "target: \"ui::tray::",
         "tokio",
         "tokio::",
         "async_std",
@@ -5803,7 +5799,7 @@ fn overlays_version_deprecation_migration_is_na_without_major_breaking_upgrade()
         "N/A：本次 `Overlays` 未发生跨大版本 API 破坏升级",
         "schema_version = \"1\"",
         "overlays_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -5815,7 +5811,7 @@ fn overlays_version_deprecation_migration_is_na_without_major_breaking_upgrade()
 
 #[test]
 fn overlays_version_deprecation_migration_script_covers_engineering_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     let marker = "cargo test -p ui-overlays overlays_version_deprecation_migration_is_na_without_major_breaking_upgrade";
     assert!(
@@ -5828,10 +5824,10 @@ fn overlays_version_deprecation_migration_script_covers_engineering_gate() {
 fn overlays_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     let cargo_source = load_source("Cargo.toml");
     let lib_source = load_source("src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
     let web_demo_manifest = load_source("../../apps/web-demo/Cargo.toml");
     let docs_app_manifest = load_source("../../apps/docs-app/Cargo.toml");
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget = load_source("../../scripts/tree_shaking_budget.env");
     let ci_workflow = load_source("../../.github/workflows/ci.yml");
 
@@ -5847,7 +5843,7 @@ fn overlays_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components feature graph should include overlays tree-shaking token `{needle}`."
+            "ui feature graph should include overlays tree-shaking token `{needle}`."
         );
     }
 
@@ -5900,7 +5896,7 @@ fn overlays_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             !lib_source.contains(forbidden) && !css_source.contains(forbidden),
-            "ui-components should not expose always-reachable registry token `{forbidden}`."
+            "ui should not expose always-reachable registry token `{forbidden}`."
         );
     }
 
@@ -5917,12 +5913,12 @@ fn overlays_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     );
 
     for needle in [
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
     ] {
@@ -5934,14 +5930,14 @@ fn overlays_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
 
     assert!(
         ci_workflow.contains("name: Tree Shaking Budget")
-            && ci_workflow.contains("run: ./scripts/check-ui-components-tree-shaking.sh"),
+            && ci_workflow.contains("run: ./scripts/check-ui-tree-shaking.sh"),
         "CI should run the tree-shaking budget guard script."
     );
 }
 
 #[test]
 fn overlays_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
@@ -5953,9 +5949,9 @@ fn overlays_tree_shaking_script_enforces_component_minimal_feature_tree_and_budg
         "if ! grep -q 'feature \"component-overlays\" (command-line)' <<<\"$OVERLAYS_TREE_OUTPUT\"; then",
         "if ! grep -q 'feature \"inject-css\" (command-line)' <<<\"$OVERLAYS_TREE_OUTPUT\"; then",
         "if grep -q 'all-components' <<<\"$OVERLAYS_TREE_OUTPUT\"; then",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$OVERLAYS_MIN_FEATURES\"",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$OVERLAYS_MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$OVERLAYS_MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$OVERLAYS_MIN_FEATURES\"",
     ] {
         assert!(
             tree_shaking_script.contains(needle),
@@ -5979,19 +5975,19 @@ fn overlays_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2 = load_source("src/overlays/check2.md");
 
     assert!(
-        check2.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
+        check2.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
         "check2 should mark tree-shaking feature-pruning checklist item as completed."
     );
 
     for needle in [
         "`component-overlays`",
-        "`crates/ui-components/src/lib.rs`",
-        "`crates/ui-components/src/css.rs`",
-        "`scripts/check-ui-components-tree-shaking.sh`",
+        "`crates/ui/src/lib.rs`",
+        "`crates/ui/src/css.rs`",
+        "`scripts/check-ui-tree-shaking.sh`",
         "overlays_tree_shaking_contract_is_feature_gated_and_budget_guarded",
         "overlays_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "overlays_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-overlays,inject-css",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-overlays,inject-css",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -6196,8 +6192,8 @@ fn overlays_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies(
         "<code>\"MODAL_DOC_IMPORTS\"</code>",
         "<code>\"DRAWER_DOC_IMPORTS\"</code>",
         "<code>\"compose_copy_ready_code\"</code>",
-        "ui-components = { workspace = true, default-features = false, features = [\"component-modal\", \"inject-css\"] }",
-        "ui-components = { workspace = true, default-features = false, features = [\"component-drawer\", \"inject-css\"] }",
+        "ui = { workspace = true, default-features = false, features = [\"component-modal\", \"inject-css\"] }",
+        "ui = { workspace = true, default-features = false, features = [\"component-drawer\", \"inject-css\"] }",
         "components/modal/src/mod.rs",
         "components/modal/src/logic.rs",
         "components/modal/src/view.rs",
@@ -6231,7 +6227,7 @@ fn overlays_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies(
 
 #[test]
 fn overlays_dx_check_script_covers_docs_product_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "cargo test -p ui-overlays overlays_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",

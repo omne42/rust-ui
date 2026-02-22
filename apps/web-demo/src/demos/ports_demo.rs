@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     ActionButton, ActionButtonGroup, ActionButtonSize, ActionMenu, Autocomplete, Button,
     ButtonCopy, ButtonSize, ButtonVariant, CodeBlock, DropdownMenu, FlipButton, FlipDirection,
     Form, Input, InputSize, InputVariant, MenuItemKind, SearchInputButton, ShareButton,

@@ -2161,7 +2161,7 @@ fn scroll_shadow_docs_source_first_copy_paste_ready_with_imports_source_paths_an
         .map(|tail| tail.split("\npub(super) fn ").next().unwrap_or(tail))
         .unwrap_or_else(|| panic!("layout docs page should define scroll_shadow() section"));
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
-    let code_block_source = load_source("../ui-components/src/code_block/view.rs");
+    let code_block_source = load_source("../ui/src/code_block/view.rs");
     let view_source = load_source("src/scroll_shadow/view.rs");
     let logic_source = load_source("src/scroll_shadow/logic.rs");
 
@@ -2193,11 +2193,11 @@ fn scroll_shadow_docs_source_first_copy_paste_ready_with_imports_source_paths_an
 
     assert!(
         playground_source.contains(
-            "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";"
+            "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";"
         ) || playground_source.contains(
             "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_layout::*;\";"
         ),
-        "Playground default imports should keep copy-ready root import (`ui_components` global default or `ui_layout` explicit)."
+        "Playground default imports should keep copy-ready root import (`ui` global default or `ui_layout` explicit)."
     );
 
     for needle in [

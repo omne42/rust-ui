@@ -845,9 +845,9 @@ fn bottom_sheet_styles_use_defensive_variable_fallback_chain() {
 
 #[test]
 fn bottom_sheet_defensive_variables_check_script_covers_style_fallback_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_styles_use_defensive_variable_fallback_chain";
+    let needle = "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`.",
@@ -1236,9 +1236,9 @@ fn bottom_sheet_motion_contract_is_component_scoped_reduced_motion_aware_and_non
 
 #[test]
 fn bottom_sheet_motion_contract_check_script_covers_platform_guard() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
-    let needle = "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
+    let needle = "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
     assert!(
         script_source.contains(needle),
         "platform check script should enforce `{needle}`.",
@@ -1251,7 +1251,7 @@ fn bottom_sheet_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::bottom_sheet::styles::CSS);"),
-        "ui-components css aggregator should include bottom_sheet styles."
+        "ui css aggregator should include bottom_sheet styles."
     );
 }
 
@@ -1270,7 +1270,7 @@ fn bottom_sheet_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_entry_source.contains(needle),
-            "ui-components css entry should keep cascade-layer contract marker `{needle}`.",
+            "ui css entry should keep cascade-layer contract marker `{needle}`.",
         );
     }
 
@@ -1334,9 +1334,9 @@ fn bottom_sheet_cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn bottom_sheet_cascade_layer_check_script_covers_layer_and_inline_style_guard() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_cascade_layer_and_runtime_style_contract_is_enforced";
+    let needle = "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`.",
@@ -1431,7 +1431,7 @@ fn bottom_sheet_tree_shaking_contract_is_feature_gated_end_to_end() {
     ] {
         assert!(
             ui_components_manifest.contains(needle),
-            "ui-components feature manifest should keep tree-shaking entry `{needle}`.",
+            "ui feature manifest should keep tree-shaking entry `{needle}`.",
         );
     }
 
@@ -1460,8 +1460,8 @@ fn bottom_sheet_tree_shaking_contract_is_feature_gated_end_to_end() {
     );
 
     assert!(
-        web_demo_manifest.contains("ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"),
-        "web-demo should consume ui-components through explicit minimal features.",
+        web_demo_manifest.contains("ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"),
+        "web-demo should consume ui through explicit minimal features.",
     );
     assert!(
         !web_demo_manifest.contains("all-components"),
@@ -1471,18 +1471,18 @@ fn bottom_sheet_tree_shaking_contract_is_feature_gated_end_to_end() {
 
 #[test]
 fn bottom_sheet_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
 
     for needle in [
         "BOTTOM_SHEET_MIN_FEATURES=\"component-bottom_sheet,inject-css\"",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_tree_shaking_contract_is_feature_gated_end_to_end",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "BOTTOM_SHEET_TREE_OUTPUT=\"$(cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$BOTTOM_SHEET_MIN_FEATURES\")\"",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_tree_shaking_contract_is_feature_gated_end_to_end",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "BOTTOM_SHEET_TREE_OUTPUT=\"$(cargo tree -e features -i ui -p ui --no-default-features --features \"$BOTTOM_SHEET_MIN_FEATURES\")\"",
         "if ! grep -q 'feature \"component-bottom_sheet\" (command-line)' <<<\"$BOTTOM_SHEET_TREE_OUTPUT\"",
         "if ! grep -q 'feature \"inject-css\" (command-line)' <<<\"$BOTTOM_SHEET_TREE_OUTPUT\"",
         "if grep -q 'all-components' <<<\"$BOTTOM_SHEET_TREE_OUTPUT\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$BOTTOM_SHEET_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$BOTTOM_SHEET_MIN_FEATURES\"",
     ] {
         assert!(
             tree_shaking_script.contains(needle),
@@ -1496,14 +1496,14 @@ fn bottom_sheet_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2_source = load_source("../../components/bottom-sheet/check2.md");
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "bottom_sheet_tree_shaking_contract_is_feature_gated_end_to_end",
         "bottom_sheet_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "bottom_sheet_check2_marks_tree_shaking_feature_pruning_contract_complete",
         "`component-bottom_sheet = [\"component-sheet\", \"component-button\"]`",
         "`#[cfg(feature = \"component-bottom_sheet\")]`",
         "`out.push_str(crate::bottom_sheet::styles::CSS);`",
-        "`scripts/check-ui-components-tree-shaking.sh`",
+        "`scripts/check-ui-tree-shaking.sh`",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1557,7 +1557,7 @@ fn bottom_sheet_visual_quality_gate_is_backed_by_theme_visual_baseline_docs() {
         "Includes Button/Input/Overlay for visual regression snapshots.",
         "hierarchy, spacing rhythm, contrast layers, and interactive feedback",
         "Default theme should feel trustworthy at first glance",
-        "use ui_components::{Button, ButtonVariant, Input, OnPress, Overlay};",
+        "use ui::{Button, ButtonVariant, Input, OnPress, Overlay};",
         "<Button variant=ButtonVariant::Accent>",
         "<Input",
         "<Overlay",
@@ -2201,7 +2201,7 @@ fn bottom_sheet_performance_governance_contract_is_mount_only_traceable_and_bloc
     let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/bottom_sheet/view.rs");
 
     for needle in [
@@ -2293,11 +2293,11 @@ fn bottom_sheet_performance_governance_contract_is_mount_only_traceable_and_bloc
     }
 
     for needle in [
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_performance_governance_contract_is_mount_only_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_performance_governance_contract_is_mount_only_traceable_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2552,7 +2552,7 @@ fn bottom_sheet_docs_custom_motion_playground_locks_contract_values() {
         "title=\"Custom Motion Contract\"",
         "let custom_motion_code = Signal::derive(move || {",
         "motion=BottomSheetMotion {",
-        "sheet: ui_components::SheetMotion {",
+        "sheet: ui::SheetMotion {",
         "initial_offset_px: 64.0",
         "id_base=\"docs-bottom-sheet-motion\".to_string()",
         "motion=BottomSheetMotion {",
@@ -2641,13 +2641,13 @@ fn bottom_sheet_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolat
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
     let debug_overlay_e2e = load_source("../../e2e/tests/docs_app_debug_overlay.spec.mjs");
-    let wasm_debug_script = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let wasm_debug_script = load_source("../../scripts/check-ui-wasm-debug.sh");
     let check2_source = load_source("../../components/bottom-sheet/check2.md");
 
     for needle in ["macro_rules! wasm_debug_proxy"] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components should keep wasm debug capability isolated via `{needle}`.",
+            "ui should keep wasm debug capability isolated via `{needle}`.",
         );
     }
 
@@ -2658,7 +2658,7 @@ fn bottom_sheet_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolat
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep explicit wasm-debug opt-in marker `{needle}`.",
+            "ui Cargo features should keep explicit wasm-debug opt-in marker `{needle}`.",
         );
     }
 
@@ -2777,7 +2777,7 @@ fn bottom_sheet_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolat
         );
     }
 
-    let wasm_debug_needle = "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
+    let wasm_debug_needle = "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
     assert!(
         wasm_debug_script.contains(wasm_debug_needle),
         "wasm-debug check script should enforce `{wasm_debug_needle}`.",
@@ -2993,7 +2993,7 @@ fn bottom_sheet_engineering_contract_keeps_tracing_semantics_unified_without_com
         "info_span!(",
         "debug_span!(",
         "const BOTTOM_SHEET_TRACE_TARGET",
-        "target: \"ui_components::bottom_sheet::",
+        "target: \"ui::bottom_sheet::",
     ] {
         assert!(
             !combined.contains(forbidden),
@@ -3062,7 +3062,7 @@ fn bottom_sheet_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep stable export/gate marker `{needle}`."
+            "ui lib entry should keep stable export/gate marker `{needle}`."
         );
     }
 
@@ -3075,7 +3075,7 @@ fn bottom_sheet_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not expose internal platform/details marker `{forbidden}`."
+            "ui lib entry should not expose internal platform/details marker `{forbidden}`."
         );
     }
 
@@ -3126,19 +3126,19 @@ fn bottom_sheet_ui_components_fixed_entry_files_follow_layered_boundaries() {
         manifest_dir
             .join("../ui-visual-primitive/src/active_highlight.rs")
             .exists(),
-        "ui-components should keep shared `../ui-visual-primitive/src/active_highlight.rs` entry."
+        "ui should keep shared `../ui-visual-primitive/src/active_highlight.rs` entry."
     );
     assert!(
         !manifest_dir.join("src/overlay_open.rs").exists(),
-        "ui-components should not define `src/overlay_open.rs`; open-state primitive belongs to ui-headless."
+        "ui should not define `src/overlay_open.rs`; open-state primitive belongs to ui-headless."
     );
     assert!(
         !manifest_dir.join("src/presence.rs").exists(),
-        "ui-components should not define `src/presence.rs`; presence primitive belongs to ui-headless."
+        "ui should not define `src/presence.rs`; presence primitive belongs to ui-headless."
     );
     assert!(
         !manifest_dir.join("src/a11y.rs").exists(),
-        "ui-components should not define `src/a11y.rs`; shared a11y helpers belong to ui-headless."
+        "ui should not define `src/a11y.rs`; shared a11y helpers belong to ui-headless."
     );
 
     for needle in [
@@ -3156,14 +3156,14 @@ fn bottom_sheet_ui_components_fixed_entry_files_follow_layered_boundaries() {
     }
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
-        "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
-        "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
-        "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
+        "- [x] `ui` 固定入口文件落点正确。",
+        "`crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
+        "`crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
+        "`crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
         "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
-        "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
-        "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
-        "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
+        "`crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
+        "`crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
+        "`crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -3308,15 +3308,15 @@ fn bottom_sheet_component_directory_standard_file_layout_is_enforced() {
 
 #[test]
 fn bottom_sheet_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_ui_components_fixed_entry_files_follow_layered_boundaries",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_component_directory_standard_file_layout_is_enforced",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_version_deprecation_migration_is_na_without_major_breaking_upgrade",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_ui_components_fixed_entry_files_follow_layered_boundaries",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_component_directory_standard_file_layout_is_enforced",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3381,7 +3381,7 @@ fn bottom_sheet_file_placement_discipline_contract_is_explicit_for_interactive_c
         "- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。",
         "`protocol.rs` 与 `lib.rs` 仅作为协议/入口辅助文件",
         "bottom_sheet_file_placement_discipline_contract_is_explicit_for_interactive_component_scope",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -3389,8 +3389,8 @@ fn bottom_sheet_file_placement_discipline_contract_is_explicit_for_interactive_c
         );
     }
 
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
-    let script_command = "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_file_placement_discipline_contract_is_explicit_for_interactive_component_scope";
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
+    let script_command = "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_file_placement_discipline_contract_is_explicit_for_interactive_component_scope";
     assert!(
         script_source.contains(script_command),
         "component-files check script should enforce `{script_command}`."
@@ -3399,9 +3399,9 @@ fn bottom_sheet_file_placement_discipline_contract_is_explicit_for_interactive_c
 
 #[test]
 fn bottom_sheet_component_files_check_script_covers_hyper_structure_builder_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
-    let script_command = "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_component";
+    let script_command = "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_component";
     assert!(
         script_source.contains(script_command),
         "component-files check script should enforce `{script_command}`."
@@ -3515,9 +3515,9 @@ fn bottom_sheet_context_compression_manifest_and_rbi_projection_are_present_and_
 
 #[test]
 fn bottom_sheet_component_files_check_script_covers_context_compression_manifest_rbi_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
-    let script_command = "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let script_command = "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         script_source.contains(script_command),
         "component-files check script should enforce `{script_command}`."
@@ -3534,7 +3534,7 @@ fn bottom_sheet_check2_marks_context_compression_manifest_rbi_item_complete() {
         "components/bottom-sheet/src/bottom_sheet.rbi",
         "bottom_sheet_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "bottom_sheet_component_files_check_script_covers_context_compression_manifest_rbi_contract",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -3700,13 +3700,13 @@ fn bottom_sheet_agent_contract_render_path_is_whitelist_safe_and_script_injectio
 
 #[test]
 fn bottom_sheet_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_agent_contract_schema_governance_rules",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(required),
@@ -3791,11 +3791,11 @@ fn bottom_sheet_streaming_display_modes_are_limited_to_streaming_and_snapshot() 
 
 #[test]
 fn bottom_sheet_streaming_script_covers_two_mode_definition_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for required in [
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_streaming_display_modes_are_limited_to_streaming_and_snapshot",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_streaming_display_modes_are_limited_to_streaming_and_snapshot",
     ] {
         assert!(
             script_source.contains(required),
@@ -3813,7 +3813,7 @@ fn bottom_sheet_check2_marks_streaming_two_mode_definition_complete() {
         "bottom_sheet_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
         "bottom_sheet_streaming_display_modes_are_limited_to_streaming_and_snapshot",
         "bottom_sheet_streaming_script_covers_two_mode_definition_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3877,11 +3877,11 @@ fn bottom_sheet_snapshot_baseline_consumes_complete_result_and_renders_stably() 
 
 #[test]
 fn bottom_sheet_streaming_script_covers_snapshot_baseline_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for required in [
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(required),
@@ -3899,7 +3899,7 @@ fn bottom_sheet_check2_marks_snapshot_baseline_capability_complete() {
         "bottom_sheet_check2_documents_snapshot_as_default_baseline_capability",
         "bottom_sheet_snapshot_baseline_consumes_complete_result_and_renders_stably",
         "bottom_sheet_streaming_script_covers_snapshot_baseline_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3988,12 +3988,12 @@ fn bottom_sheet_streaming_validation_retry_resilience_boundaries_stay_outside_co
 
 #[test]
 fn bottom_sheet_streaming_script_covers_streaming_responsibility_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for required in [
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(required),
@@ -4012,7 +4012,7 @@ fn bottom_sheet_check2_marks_streaming_scope_as_optional_with_snapshot_fallback(
         "bottom_sheet_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
         "bottom_sheet_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
         "bottom_sheet_streaming_script_covers_streaming_responsibility_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4073,7 +4073,7 @@ fn bottom_sheet_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent
 #[test]
 fn bottom_sheet_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let script_source = load_source("../../scripts/check-rust-hygiene.sh");
-    let engineering_script = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = load_source("../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -4088,9 +4088,9 @@ fn bottom_sheet_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for required in [
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(required),
@@ -4109,7 +4109,7 @@ fn bottom_sheet_check2_marks_rust_hygiene_contract_complete() {
         "bottom_sheet_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
         "bottom_sheet_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
         "bottom_sheet_rust_hygiene_script_enforces_repo_level_hygiene_guards",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -4126,7 +4126,7 @@ fn bottom_sheet_semantics_and_performance_regression_cover_aria_data_focus_and_r
     let sheet_view_source = load_source("src/sheet/view.rs");
     let focus_trap_source = load_source("../../crates/ui-headless/src/focus_trap.rs");
     let check2_source = load_source("../../components/bottom-sheet/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
 
     for required_test in [
@@ -4187,9 +4187,9 @@ fn bottom_sheet_semantics_and_performance_regression_cover_aria_data_focus_and_r
     }
 
     for marker in [
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_performance_governance_contract_is_mount_only_traceable_and_blocking",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_performance_governance_contract_is_mount_only_traceable_and_blocking",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4204,7 +4204,7 @@ fn bottom_sheet_semantics_and_performance_regression_cover_aria_data_focus_and_r
         "bottom_sheet_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "render_count",
         "等价证据",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4220,7 +4220,7 @@ fn bottom_sheet_semantic_test_priority_prefers_data_aria_role_and_source_contrac
     let bottom_sheet_view_source = load_source("src/bottom_sheet/view.rs");
     let sheet_view_source = load_source("src/sheet/view.rs");
     let semantics_source = load_source("tests/bottom_sheet_semantics.rs");
-    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
         "data-state=state.state_attr",
@@ -4272,7 +4272,7 @@ fn bottom_sheet_semantic_test_priority_prefers_data_aria_role_and_source_contrac
         "BottomSheet semantic-priority path should avoid snapshot-only assertions.",
     );
 
-    let script_needle = "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         perf_script_source.contains(script_needle),
         "performance script should include semantic-priority gate `{script_needle}`."
@@ -4281,11 +4281,11 @@ fn bottom_sheet_semantic_test_priority_prefers_data_aria_role_and_source_contrac
 
 #[test]
 fn bottom_sheet_performance_script_covers_semantic_test_priority_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
         "echo \"[perf] contract: bottom-sheet semantic test priority\"",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4356,7 +4356,7 @@ fn bottom_sheet_version_deprecation_migration_is_na_without_major_breaking_upgra
         "N/A：本次 `BottomSheet` 未发生跨大版本 API 破坏升级",
         "schema_version = \"1\"",
         "bottom_sheet_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4368,8 +4368,8 @@ fn bottom_sheet_version_deprecation_migration_is_na_without_major_breaking_upgra
 
 #[test]
 fn bottom_sheet_version_deprecation_migration_script_covers_engineering_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
-    let marker = "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_version_deprecation_migration_is_na_without_major_breaking_upgrade";
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
+    let marker = "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_version_deprecation_migration_is_na_without_major_breaking_upgrade";
 
     assert!(
         script_source.contains(marker),
@@ -4423,8 +4423,8 @@ fn bottom_sheet_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stre
 
 #[test]
 fn bottom_sheet_dx_check_script_covers_docs_product_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
-    let marker = "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
+    let marker = "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
 
     assert!(
         script_source.contains(marker),
@@ -4447,7 +4447,7 @@ fn bottom_sheet_check2_marks_docs_product_copy_paste_ready_contract_complete() {
         "compose_copy_ready_code",
         "bottom_sheet_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
         "bottom_sheet_dx_check_script_covers_docs_product_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4546,7 +4546,7 @@ fn bottom_sheet_docs_examples_and_state_matrix_sync_with_logic_api_names_and_def
         "apps/docs-app/src/pages/components/pages/overlays_extra.rs::bottom_sheet",
         "bottom_sheet_check2_documents_docs_sync_and_state_matrix_rules",
         "bottom_sheet_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -4557,12 +4557,12 @@ fn bottom_sheet_docs_examples_and_state_matrix_sync_with_logic_api_names_and_def
 
 #[test]
 fn bottom_sheet_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "echo \"[dx] contract: bottom-sheet docs examples + api/state matrix sync with logic API/defaults\"",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4593,7 +4593,7 @@ fn bottom_sheet_check2_marks_docs_sync_and_state_matrix_item_complete() {
         "bottom_sheet_check2_documents_docs_sync_and_state_matrix_rules",
         "bottom_sheet_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "bottom_sheet_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4681,12 +4681,12 @@ fn bottom_sheet_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn bottom_sheet_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "echo \"[dx] contract: bottom-sheet documentation-as-product keeps beginner-first docs entry\"",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4713,7 +4713,7 @@ fn bottom_sheet_check2_marks_documentation_as_product_item_complete() {
         "bottom_sheet_check2_documents_documentation_as_product_rules",
         "bottom_sheet_documentation_entry_exists_with_beginner_first_progression",
         "bottom_sheet_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4818,13 +4818,13 @@ fn bottom_sheet_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn bottom_sheet_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "echo \"[dx] contract: bottom-sheet interactive playground docs acceptance surface\"",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4853,7 +4853,7 @@ fn bottom_sheet_check2_marks_interactive_playground_item_complete() {
         "bottom_sheet_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "bottom_sheet_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "bottom_sheet_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4922,12 +4922,12 @@ fn bottom_sheet_docs_source_first_copy_paste_ready_with_real_paths_and_dependenc
 
 #[test]
 fn bottom_sheet_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "echo \"[dx] contract: bottom-sheet source-first docs are copy-paste-ready with real paths and deps\"",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4953,7 +4953,7 @@ fn bottom_sheet_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "bottom_sheet_check2_documents_source_first_copy_paste_ready_rules",
         "bottom_sheet_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "bottom_sheet_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -5036,12 +5036,12 @@ fn bottom_sheet_heroui_strategy_and_component_docs_are_synchronized_and_indexabl
 
 #[test]
 fn bottom_sheet_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
         "echo \"[dx] contract: bottom-sheet heroui benchmark strategy + docs entry synchronization\"",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(marker),
@@ -5060,7 +5060,7 @@ fn bottom_sheet_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "bottom_sheet_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "bottom_sheet_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -5085,7 +5085,7 @@ fn bottom_sheet_check2_marks_semantic_test_priority_item_complete() {
         "components/bottom-sheet/test/bottom_sheet_semantics.rs::bottom_sheet_semantic_contract_matrix_covers_interaction_paths_without_snapshot_only_assertions",
         "components/bottom-sheet/test/bottom_sheet_semantics.rs::bottom_sheet_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "components/bottom-sheet/test/bottom_sheet_semantics.rs::bottom_sheet_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -5199,12 +5199,12 @@ fn bottom_sheet_e2e_contract_covers_ready_and_settled_conditions_for_overlay_pat
 
 #[test]
 fn bottom_sheet_e2e_script_covers_selector_and_ready_settled_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-bottom-sheet.sh");
+    let script_source = load_source("../../components/bottom-sheet/scripts/check-ui-e2e-bottom-sheet.sh");
 
     for marker in [
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
     ] {
         assert!(
             script_source.contains(marker),
@@ -5232,7 +5232,7 @@ fn bottom_sheet_check2_marks_e2e_selector_stability_item_complete() {
         "ready/settled",
         "bottom_sheet_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "bottom_sheet_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
-        "scripts/check-ui-components-e2e-bottom-sheet.sh",
+        "components/bottom-sheet/scripts/check-ui-e2e-bottom-sheet.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -5312,12 +5312,12 @@ fn bottom_sheet_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_br
 
 #[test]
 fn bottom_sheet_e2e_check_script_covers_repeatable_key_flow_contracts() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-bottom-sheet.sh");
+    let script_source = load_source("../../components/bottom-sheet/scripts/check-ui-e2e-bottom-sheet.sh");
 
     for marker in [
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_e2e_repeatable_key_flow_rules",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "cargo test -p ui-components --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_check2_documents_e2e_repeatable_key_flow_rules",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test bottom_sheet_semantics --no-default-features --features component-bottom_sheet,inject-css bottom_sheet_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(marker),
@@ -5344,7 +5344,7 @@ fn bottom_sheet_check2_marks_replayable_e2e_critical_flow_item_complete() {
         "async N/A",
         "bottom_sheet_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "bottom_sheet_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-bottom-sheet.sh",
+        "components/bottom-sheet/scripts/check-ui-e2e-bottom-sheet.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(

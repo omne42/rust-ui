@@ -2602,7 +2602,7 @@ fn separator_source_first_docs_are_copy_paste_ready_with_imports_and_sync() {
     let check2_source = load_source("src/separator/check2.md");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
-    let code_block_source = load_source("../ui-components/src/code_block/view.rs");
+    let code_block_source = load_source("../ui/src/code_block/view.rs");
 
     for needle in [
         "const DEFAULT_PLAYGROUND_IMPORTS",
@@ -2619,11 +2619,11 @@ fn separator_source_first_docs_are_copy_paste_ready_with_imports_and_sync() {
 
     assert!(
         playground_source.contains(
-            "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";"
+            "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";"
         ) || playground_source.contains(
             "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_layout::*;\";"
         ),
-        "Playground default imports should keep copy-ready root import (`ui_components` global default or `ui_layout` explicit)."
+        "Playground default imports should keep copy-ready root import (`ui` global default or `ui_layout` explicit)."
     );
 
     for needle in [

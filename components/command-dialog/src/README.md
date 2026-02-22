@@ -6,7 +6,7 @@
 
 ```rust
 use std::sync::Arc;
-use ui_components::{CommandDialog, CommandGroup, CommandItem};
+use ui::{CommandDialog, CommandGroup, CommandItem};
 
 let groups: Arc<[CommandGroup]> = Arc::from(vec![
     CommandGroup::new("Navigation", vec![CommandItem::new("go-home", "Go Home")]),
@@ -20,7 +20,7 @@ view! { <CommandDialog groups=groups /> }
 ```rust
 use leptos::prelude::*;
 use std::sync::Arc;
-use ui_components::{CommandDialog, CommandGroup, CommandItem};
+use ui::{CommandDialog, CommandGroup, CommandItem};
 
 let groups: Arc<[CommandGroup]> = Arc::from(vec![
     CommandGroup::new("Actions", vec![CommandItem::new("run-tests", "Run Tests")]),

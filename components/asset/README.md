@@ -13,7 +13,7 @@ Start here. No `ui-state-primitives` or `ui-headless` wiring is required.
 
 ```rust
 use leptos::prelude::*;
-use ui_components::Asset;
+use ui::Asset;
 
 view! { <Asset /> }
 ```
@@ -24,7 +24,7 @@ Use built-in variants first.
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{Asset, AssetSize, AssetVariant};
+use ui::{Asset, AssetSize, AssetVariant};
 
 view! {
     <div>
@@ -44,7 +44,7 @@ Use these only for explicit requirements (custom media, locale metadata, class h
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{Asset, AssetSize, AssetVariant};
+use ui::{Asset, AssetSize, AssetVariant};
 
 view! {
     <Asset

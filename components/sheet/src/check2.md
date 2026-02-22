@@ -33,20 +33,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`sheet/motion.rs` 仅做 `open/placement -> ui_motion spring` 映射与 attach，包含 wasm/non-wasm 与 reduced-motion 分支；未在组件层自实现通用动画引擎。回归：`components/*/test/*sheet_semantics.rs::sheet_motion_contract_exposes_default_custom_and_direction_checks`、`sheet_reduced_motion_ssr_wasm_branches_are_covered_without_semantic_split`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（Sheet 样式已改为消费主题 Overlay 变量：`crates/ui-components/src/sheet/styles.rs` 使用 `--ui-overlay-z-index`、`--ui-overlay-panel-min-width`、`--ui-overlay-viewport-inset`，并移除硬编码 `z-index: 1000`/`90vh`/`420px`；语义回归由 `components/*/test/*sheet_semantics.rs::sheet_styles_consume_ui_theme_overlay_tokens` 覆盖，且对齐 `crates/ui-theme/src/tokens.rs`、`crates/ui-theme/src/theme.rs`、`crates/ui-theme/src/css.rs` 与 `docs/spec/styling.md`。）
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（Sheet 样式已改为消费主题 Overlay 变量：`crates/ui/src/sheet/styles.rs` 使用 `--ui-overlay-z-index`、`--ui-overlay-panel-min-width`、`--ui-overlay-viewport-inset`，并移除硬编码 `z-index: 1000`/`90vh`/`420px`；语义回归由 `components/*/test/*sheet_semantics.rs::sheet_styles_consume_ui_theme_overlay_tokens` 覆盖，且对齐 `crates/ui-theme/src/tokens.rs`、`crates/ui-theme/src/theme.rs`、`crates/ui-theme/src/css.rs` 与 `docs/spec/styling.md`。）
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`sheet` 维持 `logic/view/styles/motion` 分层：`logic` 归一与来源标记，`view` 结构与 headless 挂载，`styles` token-first 静态 CSS，`motion` attach；公共 API 未泄露 web-sys 类型。回归：`components/*/test/*sheet_semantics.rs::sheet_component_files_respect_layered_responsibilities`、`sheet_engineering_and_entry_boundaries_stay_consistent`。）
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`sheet` 维持 `logic/view/styles/motion` 分层：`logic` 归一与来源标记，`view` 结构与 headless 挂载，`styles` token-first 静态 CSS，`motion` attach；公共 API 未泄露 web-sys 类型。回归：`components/*/test/*sheet_semantics.rs::sheet_component_files_respect_layered_responsibilities`、`sheet_engineering_and_entry_boundaries_stay_consistent`。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -127,7 +127,7 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`styles.rs` 继续以静态 `CSS` 常量承载样式并消费 `var(--ui-*)`；`css.rs` 以 `component-sheet` feature gate 聚合 `sheet::styles::CSS`；`UiRoot` 通过 `push_components_css` 注入；`view.rs` 无 `style=`/`set_property` 内联业务样式。回归见 `components/*/test/*sheet_semantics.rs::sheet_token_first_static_css_contract_is_wired_through_ui_root`。）
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -136,14 +136,14 @@
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`Cargo.toml` 已提供组件级特性（含 `component-sheet`）；`lib.rs` 与 `css.rs` 对 `sheet` 均是 `#[cfg(feature = "component-sheet")]` 条件导出/聚合。Tree-shaking 门禁脚本与预算文件已存在并通过：`scripts/check-ui-components-tree-shaking.sh` + `scripts/tree_shaking_budget.env`。本次实测命令：`/root/.cargo/bin/cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`、`/root/.cargo/bin/cargo tree -e features -i ui-components -p web-demo`、`/root/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`、`bash scripts/check-ui-components-tree-shaking.sh`；结果无 `all-components` 误拉起，且预算 `current=3326332 <= max=3806222`。回归见 `components/*/test/*sheet_semantics.rs::sheet_tree_shaking_contract_is_feature_gated_and_budgeted`。）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`Cargo.toml` 已提供组件级特性（含 `component-sheet`）；`lib.rs` 与 `css.rs` 对 `sheet` 均是 `#[cfg(feature = "component-sheet")]` 条件导出/聚合。Tree-shaking 门禁脚本与预算文件已存在并通过：`scripts/check-ui-tree-shaking.sh` + `scripts/tree_shaking_budget.env`。本次实测命令：`/root/.cargo/bin/cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`、`/root/.cargo/bin/cargo tree -e features -i ui -p web-demo`、`/root/.cargo/bin/cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`、`bash scripts/check-ui-tree-shaking.sh`；结果无 `all-components` 误拉起，且预算 `current=3326332 <= max=3806222`。回归见 `components/*/test/*sheet_semantics.rs::sheet_tree_shaking_contract_is_feature_gated_and_budgeted`。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`logic.rs` 以 `SheetPlacement`/`SheetSlot` 等类型化状态轴建模，离散输入未使用字符串协议；无效输入在 `normalize_optional_text` + `resolve_state` 统一归一并有单测；`view.rs` 稳定输出 `data-state/data-placement/data-dismiss/data-keyboard-dismiss` 与 `data-*-source` 机器可读标记；回归见 `components/*/test/*sheet_semantics.rs::sheet_type_system_and_semantic_markers_define_machine_readable_contracts`，并联 `resolve_state_tracks_source_markers` / `sheet_state_markers_are_observable_queryable_and_closed_set` 定位契约破坏点。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -152,15 +152,15 @@
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
-- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（本次 compile-only 实测三条路径：`/root/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-sheet,inject-css`（web wasm）、`/root/.cargo/bin/cargo check -p ui-headless --no-default-features --features ssr`（ssr native）、`/root/.cargo/bin/cargo check -p ui-components --no-default-features --features component-sheet,inject-css`（默认本地）均通过。`sheet/motion.rs` 与 `sheet/view.rs` 均含显式 `#[cfg(target_arch = "wasm32")]` / `#[cfg(not(target_arch = "wasm32"))]` 分支；`sheet` 非 wasm 文件（`mod.rs/logic.rs/styles.rs/view.rs`）不引用 `web_sys/wasm_bindgen/js_sys`。回归见 `components/*/test/*sheet_semantics.rs::sheet_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_web_sys_usage`。）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（本次 compile-only 实测三条路径：`/root/.cargo/bin/cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-sheet,inject-css`（web wasm）、`/root/.cargo/bin/cargo check -p ui-headless --no-default-features --features ssr`（ssr native）、`/root/.cargo/bin/cargo check -p ui --no-default-features --features component-sheet,inject-css`（默认本地）均通过。`sheet/motion.rs` 与 `sheet/view.rs` 均含显式 `#[cfg(target_arch = "wasm32")]` / `#[cfg(not(target_arch = "wasm32"))]` 分支；`sheet` 非 wasm 文件（`mod.rs/logic.rs/styles.rs/view.rs`）不引用 `web_sys/wasm_bindgen/js_sys`。回归见 `components/*/test/*sheet_semantics.rs::sheet_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_web_sys_usage`。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（`crates/ui-headless/src/lib.rs` 保持 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)` 互斥保护；`sheet/view.rs` 明确接入 `ui_headless::{use_focus_trap,use_modal,use_overlay_stack_registration}` 且未绕开该约束。实测命令：`/root/.cargo/bin/cargo check -p ui-headless --no-default-features --features ssr`、`/root/.cargo/bin/cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`、`/root/.cargo/bin/cargo check -p ui-components --no-default-features --features component-sheet,inject-css` 均通过；`/root/.cargo/bin/cargo check -p ui-headless --no-default-features --features web,ssr` 按预期失败并命中 “mutually exclusive”。回归见 `components/*/test/*sheet_semantics.rs::sheet_headless_web_ssr_mutex_guard_is_preserved`。）
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（`crates/ui-headless/src/lib.rs` 保持 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)` 互斥保护；`sheet/view.rs` 明确接入 `ui_headless::{use_focus_trap,use_modal,use_overlay_stack_registration}` 且未绕开该约束。实测命令：`/root/.cargo/bin/cargo check -p ui-headless --no-default-features --features ssr`、`/root/.cargo/bin/cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`、`/root/.cargo/bin/cargo check -p ui --no-default-features --features component-sheet,inject-css` 均通过；`/root/.cargo/bin/cargo check -p ui-headless --no-default-features --features web,ssr` 按预期失败并命中 “mutually exclusive”。回归见 `components/*/test/*sheet_semantics.rs::sheet_headless_web_ssr_mutex_guard_is_preserved`。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(...)` no-op；`crates/ui-motion/tests/non_wasm_stub.rs` 覆盖可预测行为。`sheet/motion.rs` non-wasm `attach_motion` 分支仅做 `sanitize_motion` 与可预测 `finish_exit` 回调，不依赖动画句柄。实测命令：`/root/.cargo/bin/cargo check -p ui-motion`、`/root/.cargo/bin/cargo test -p ui-motion --test non_wasm_stub`、`/root/.cargo/bin/cargo check -p ui-components --no-default-features --features component-sheet,inject-css` 均通过。回归见 `components/*/test/*sheet_semantics.rs::sheet_ui_motion_non_wasm_stub_contract_is_predictable_and_tooling_safe`。）
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(...)` no-op；`crates/ui-motion/tests/non_wasm_stub.rs` 覆盖可预测行为。`sheet/motion.rs` non-wasm `attach_motion` 分支仅做 `sanitize_motion` 与可预测 `finish_exit` 回调，不依赖动画句柄。实测命令：`/root/.cargo/bin/cargo check -p ui-motion`、`/root/.cargo/bin/cargo test -p ui-motion --test non_wasm_stub`、`/root/.cargo/bin/cargo check -p ui --no-default-features --features component-sheet,inject-css` 均通过。回归见 `components/*/test/*sheet_semantics.rs::sheet_ui_motion_non_wasm_stub_contract_is_predictable_and_tooling_safe`。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
@@ -168,7 +168,7 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`docs-app` 通过 `ComponentPage` 统一挂载 `UiPerfProbe` 与 `component_page_perf_budget`，且显式包含 `button/input` 预算；`Sheet` 页面经 `component_doc!(\"Sheet\", \"sheet\", ...)` 进入同一预算探针链路。`UiPerfProbe` 暴露 `data-perf-*` 机器可读字段，`e2e/tests/docs_app_components_coverage.spec.mjs` 对 `data-perf-mount-ms/data-perf-budget-ms/data-perf-observability/data-perf-violation` 做阻断断言。当前框架下 `render_count` 仍以 TODO 跟踪（`docs/plan/TODO.md` 保留“建立 render_count 自动化回归（Button/Input/Accordion）”），并由 `scripts/check-ui-components-performance.sh` 持续校验 button/input/perf-probe 与 follow-up。本次回归见 `components/*/test/*sheet_semantics.rs::sheet_performance_governance_contract_is_budgeted_traceable_and_blocking`。）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`docs-app` 通过 `ComponentPage` 统一挂载 `UiPerfProbe` 与 `component_page_perf_budget`，且显式包含 `button/input` 预算；`Sheet` 页面经 `component_doc!(\"Sheet\", \"sheet\", ...)` 进入同一预算探针链路。`UiPerfProbe` 暴露 `data-perf-*` 机器可读字段，`e2e/tests/docs_app_components_coverage.spec.mjs` 对 `data-perf-mount-ms/data-perf-budget-ms/data-perf-observability/data-perf-violation` 做阻断断言。当前框架下 `render_count` 仍以 TODO 跟踪（`docs/plan/TODO.md` 保留“建立 render_count 自动化回归（Button/Input/Accordion）”），并由 `scripts/check-ui-performance.sh` 持续校验 button/input/perf-probe 与 follow-up。本次回归见 `components/*/test/*sheet_semantics.rs::sheet_performance_governance_contract_is_budgeted_traceable_and_blocking`。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
@@ -191,7 +191,7 @@
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（docs-app 在 `debug_assertions` 下启用 `UiDebugOverlay` + `provide_ui_trace`；E2E `e2e/tests/docs_app_debug_overlay.spec.mjs` 锁定 trace 事件可见性；`ui-components` 新增 `sheet-wasm-debug` feature（依赖 `dep:tracing`）作为隔离开关，默认不进入生产产物。回归见 `components/*/test/*sheet_semantics.rs::sheet_wasm_debug_contract_has_trace_entry_and_feature_isolation`。）
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（docs-app 在 `debug_assertions` 下启用 `UiDebugOverlay` + `provide_ui_trace`；E2E `e2e/tests/docs_app_debug_overlay.spec.mjs` 锁定 trace 事件可见性；`ui` 新增 `sheet-wasm-debug` feature（依赖 `dep:tracing`）作为隔离开关，默认不进入生产产物。回归见 `components/*/test/*sheet_semantics.rs::sheet_wasm_debug_contract_has_trace_entry_and_feature_isolation`。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
@@ -199,20 +199,20 @@
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`ui-components/Cargo.toml` 保持 `serde`/`tracing` 可选统一入口；sheet 公共边界未暴露 tokio/async-std 运行时类型；本组件无 spec/config 序列化输入，按 N/A 处理。回归见 `components/*/test/*sheet_semantics.rs::sheet_engineering_and_entry_boundaries_stay_consistent`。）
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`ui/Cargo.toml` 保持 `serde`/`tracing` 可选统一入口；sheet 公共边界未暴露 tokio/async-std 运行时类型；本组件无 spec/config 序列化输入，按 N/A 处理。回归见 `components/*/test/*sheet_semantics.rs::sheet_engineering_and_entry_boundaries_stay_consistent`。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 文件落点检查（必须提及）
-- [x] `ui-components` 固定入口文件落点正确。（`lib.rs` 对 `sheet` 保持 feature gate + `pub use`；`css.rs` 条件聚合 `sheet::styles::CSS`；`root.rs` 统一注入 base/theme/components css 与 i18n；`active_highlight.rs` 仍为共享高亮能力；`overlay_open.rs`/`presence.rs`/`a11y.rs` 顶层文件不存在。回归见 `components/*/test/*sheet_semantics.rs::sheet_engineering_and_entry_boundaries_stay_consistent`。）
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。（`lib.rs` 对 `sheet` 保持 feature gate + `pub use`；`css.rs` 条件聚合 `sheet::styles::CSS`；`root.rs` 统一注入 base/theme/components css 与 i18n；`active_highlight.rs` 仍为共享高亮能力；`overlay_open.rs`/`presence.rs`/`a11y.rs` 顶层文件不存在。回归见 `components/*/test/*sheet_semantics.rs::sheet_engineering_and_entry_boundaries_stay_consistent`。）
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。（`sheet` 目录保持 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 五件套，`mod.rs` 最小导出；`view.rs` 无 `render.rs` 漂移；`spec.rs` 未引入。回归见 `components/*/test/*sheet_semantics.rs::sheet_component_files_respect_layered_responsibilities`、`sheet_does_not_define_spec_module_for_simple_component_scope`、`sheet_engineering_and_entry_boundaries_stay_consistent`。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -306,4 +306,4 @@
 - [x] 暴露必要语义标记。（证据：`sheet_state_markers_are_observable_queryable_and_closed_set`、`sheet_agent_contract_and_streaming_snapshot_markers_are_explicit`。）
 - [x] 覆盖 reduced-motion / SSR / wasm 分支。（证据：`sheet_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_web_sys_usage`、`sheet_ui_motion_non_wasm_stub_contract_is_predictable_and_tooling_safe`、`sheet_wasm_debug_contract_has_trace_entry_and_feature_isolation`。）
 - [x] 文档与示例同步更新。（证据：`sheet_docs_page_covers_primary_playgrounds`、`sheet_source_first_docs_are_copy_paste_ready_and_traceable`、`sheet_heroui_strategy_and_component_docs_stay_synced`。）
-- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（本轮按 sheet 责任范围实测通过：`/root/.cargo/bin/rustfmt --check crates/ui-components/src/sheet/view.rs crates/ui-components/src/sheet/motion.rs components/*/test/*sheet_semantics.rs`、`/root/.cargo/bin/cargo clippy -p ui-components --no-deps --test sheet_semantics --no-default-features --features component-sheet,inject-css -- -D warnings`、`/root/.cargo/bin/cargo test -p ui-components --test sheet_semantics --no-default-features --features component-sheet,inject-css`、`/root/.cargo/bin/cargo check -p ui-components --no-default-features --features component-sheet,inject-css`、`/root/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-sheet,inject-css`、手动 smoke（`apps/web-demo`：Trunk + Playwright `body:not(:has(#boot))`）通过。）
+- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（本轮按 sheet 责任范围实测通过：`/root/.cargo/bin/rustfmt --check crates/ui/src/sheet/view.rs crates/ui/src/sheet/motion.rs components/*/test/*sheet_semantics.rs`、`/root/.cargo/bin/cargo clippy -p ui --no-deps --test sheet_semantics --no-default-features --features component-sheet,inject-css -- -D warnings`、`/root/.cargo/bin/cargo test -p ui --test sheet_semantics --no-default-features --features component-sheet,inject-css`、`/root/.cargo/bin/cargo check -p ui --no-default-features --features component-sheet,inject-css`、`/root/.cargo/bin/cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-sheet,inject-css`、手动 smoke（`apps/web-demo`：Trunk + Playwright `body:not(:has(#boot))`）通过。）

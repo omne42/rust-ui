@@ -401,7 +401,7 @@ fn dropdown_menu_docs_include_interactive_playground_contract_panels() {
         "test_css_source=interactive_test_css",
         "test_config_signal=interactive_config",
         "controls=move || view!",
-        "test_source_path=\"crates/ui-components/src/menu/dropdown_menu/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui/src/menu/dropdown_menu/styles.rs\".to_string()",
     ] {
         assert!(
             docs_source.contains(needle),

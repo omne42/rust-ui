@@ -1,3 +1,7 @@
+#[cfg(target_arch = "wasm32")]
+use leptos::web_sys as browser_sys;
+#[cfg(target_arch = "wasm32")]
+use ui_observability as obs;
 use ui_theme::default_slider_motion_tokens;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -70,11 +74,11 @@ pub fn attach_motion(
             return;
         }
 
-        let element: leptos::web_sys::HtmlElement = root.unchecked_into();
+        let element: browser_sys::HtmlElement = root.unchecked_into();
         let style = element.style();
         let initial = sanitize_percent(visual_percent.get());
 
-        ui_observability::set_css_property_observed_auto!(
+        obs::set_css_property_observed_auto!(
             &(style),
             "--ui-slider-visual-percent",
             &format!("{initial:.4}")
@@ -86,7 +90,7 @@ pub fn attach_motion(
 
         let animator = ui_motion::spring::SpringAnimator::new(initial, motion.spring, move |v| {
             let v = sanitize_percent(v);
-            ui_observability::set_css_property_observed_auto!(
+            obs::set_css_property_observed_auto!(
                 &(style),
                 "--ui-slider-visual-percent",
                 &format!("{v:.4}")
@@ -108,14 +112,14 @@ pub fn attach_motion(
             return;
         };
 
-        let element: leptos::web_sys::HtmlElement = root.unchecked_into();
+        let element: browser_sys::HtmlElement = root.unchecked_into();
         let style = element.style();
 
         let target = sanitize_percent(visual_percent.get());
         let motion = motion.get_value();
 
         if !motion.enabled || ui_motion::web::prefers_reduced_motion() {
-            ui_observability::set_css_property_observed_auto!(
+            obs::set_css_property_observed_auto!(
                 &(style),
                 "--ui-slider-visual-percent",
                 &format!("{target:.4}")

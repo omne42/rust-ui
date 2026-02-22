@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -142,11 +142,11 @@
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
   - N/A 说明：`components/command-dialog/src` 当前无 `spec.rs`，该组件未引入稳定外部 Schema 契约，文档留在 `check2.md` 与 `src/README.md`。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-  - 覆盖依据：`components/command-dialog/src/styles.rs` 使用 `var(--ui-*)` token；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-command_dialog")]` 聚合 `command_dialog::styles::CSS`；`crates/ui-components/src/root.rs` 中 `UiRoot` 通过 `crate::css::push_components_css` 注入组件样式。
+  - 覆盖依据：`components/command-dialog/src/styles.rs` 使用 `var(--ui-*)` token；`crates/ui/src/css.rs` 通过 `#[cfg(feature = "component-command_dialog")]` 聚合 `command_dialog::styles::CSS`；`crates/ui/src/root.rs` 中 `UiRoot` 通过 `crate::css::push_components_css` 注入组件样式。
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
@@ -158,11 +158,11 @@
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-  - 覆盖依据：`crates/ui-components/Cargo.toml` 定义 `component-command_dialog = ["component-command", "component-modal"]`；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 对 `command_dialog` 导出/样式聚合均受 `#[cfg(feature = "component-command_dialog")]` 门控；`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-command_dialog,inject-css` 显示仅最小链路（含 `component-command_dialog`、`component-command`、`component-modal`、`inject-css`）；`cargo tree -e features -i ui-components -p web-demo` 未出现 `all-components`（`NO all-components`）；CI `Tree Shaking Budget`（`.github/workflows/ci.yml`）执行 `scripts/check-ui-components-tree-shaking.sh`，并通过 `scripts/tree_shaking_budget.env` 做体积预算门禁。
+  - 覆盖依据：`crates/ui/Cargo.toml` 定义 `component-command_dialog = ["component-command", "component-modal"]`；`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 对 `command_dialog` 导出/样式聚合均受 `#[cfg(feature = "component-command_dialog")]` 门控；`cargo tree -e features -i ui -p ui --no-default-features --features component-command_dialog,inject-css` 显示仅最小链路（含 `component-command_dialog`、`component-command`、`component-modal`、`inject-css`）；`cargo tree -e features -i ui -p web-demo` 未出现 `all-components`（`NO all-components`）；CI `Tree Shaking Budget`（`.github/workflows/ci.yml`）执行 `scripts/check-ui-tree-shaking.sh`，并通过 `scripts/tree_shaking_budget.env` 做体积预算门禁。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
@@ -176,19 +176,19 @@
 - [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
   - N/A 说明：`CommandDialog` 当前未集成 ECharts/Map 等命令式第三方实例；组件 API 仅暴露声明式 props/callback（如 `open/default_open/on_open_change/on_action`），不存在第三方实例向公共 API 外泄或反向污染状态机的路径。
 - [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-  - N/A 说明（组件内随机 ID 分配）：`CommandDialog` 当前不使用 `now()/UUID/rand` 初始化 ID；`id_base` 由显式输入或 `DEFAULT_ID_BASE` 纯函数归一化（`components/command-dialog/src/logic.rs`），并在 `view.rs` 通过确定性字符串拼接派生子节点 ID（如 `format!("{id_base}-command")`），不存在 SSR/Hydration 熵源漂移。全局确定性种子注入入口由 `UiRoot` 提供（`crates/ui-components/src/root.rs`：`provide_ui_id_provider(id_seed)`），底层 provider 在 `crates/ui-headless/src/id_provider.rs`。
+  - N/A 说明（组件内随机 ID 分配）：`CommandDialog` 当前不使用 `now()/UUID/rand` 初始化 ID；`id_base` 由显式输入或 `DEFAULT_ID_BASE` 纯函数归一化（`components/command-dialog/src/logic.rs`），并在 `view.rs` 通过确定性字符串拼接派生子节点 ID（如 `format!("{id_base}-command")`），不存在 SSR/Hydration 熵源漂移。全局确定性种子注入入口由 `UiRoot` 提供（`crates/ui/src/root.rs`：`provide_ui_id_provider(id_seed)`），底层 provider 在 `crates/ui-headless/src/id_provider.rs`。
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-  - 覆盖依据：`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-command_dialog")]` + `#[path = "../../../components/command-dialog/src/mod.rs"]` 挂载组件；`crates/ui-components/src/css.rs` 仅在同 feature 下聚合 `command_dialog::styles::CSS`。`components/command-dialog/src/*` 未直接引用 `web-sys`，浏览器对象仅在 `components/overlay/src/motion.rs` 的 `#[cfg(target_arch = "wasm32")]` 分支使用，`#[cfg(not(target_arch = "wasm32"))]` 提供可预测降级。
-  - compile-only 记录：已执行 `cargo check -p ui-components --no-default-features --features component-command_dialog,inject-css`、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-command_dialog,inject-css`、`cargo check -p ui-headless --no-default-features --features ssr`；当前容器环境统一因 `Invalid cross-device link (os error 18)` 失败，非代码语义问题。
+  - 覆盖依据：`crates/ui/src/lib.rs` 通过 `#[cfg(feature = "component-command_dialog")]` + `#[path = "../../../components/command-dialog/src/mod.rs"]` 挂载组件；`crates/ui/src/css.rs` 仅在同 feature 下聚合 `command_dialog::styles::CSS`。`components/command-dialog/src/*` 未直接引用 `web-sys`，浏览器对象仅在 `components/overlay/src/motion.rs` 的 `#[cfg(target_arch = "wasm32")]` 分支使用，`#[cfg(not(target_arch = "wasm32"))]` 提供可预测降级。
+  - compile-only 记录：已执行 `cargo check -p ui --no-default-features --features component-command_dialog,inject-css`、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-command_dialog,inject-css`、`cargo check -p ui-headless --no-default-features --features ssr`；当前容器环境统一因 `Invalid cross-device link (os error 18)` 失败，非代码语义问题。
 - [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
   - 覆盖依据：`crates/ui-headless/src/lib.rs` 顶部存在 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)`；`crates/ui-headless/Cargo.toml` 中 `web = ["leptos/csr"]`、`ssr = ["leptos/ssr"]` 明确为互斥运行形态。
-  - 组件接入边界：`components/command-dialog/src/view.rs` 仅通过 `use ui_headless::{UiTraceEventKind, use_presence, use_ui_trace};` 消费能力，不在组件层重定义 headless feature；`crates/ui-components/Cargo.toml` 对 `ui-headless` 仅声明路径依赖，未引入破坏互斥的双 feature 绑定。
+  - 组件接入边界：`components/command-dialog/src/view.rs` 仅通过 `use ui_headless::{UiTraceEventKind, use_presence, use_ui_trace};` 消费能力，不在组件层重定义 headless feature；`crates/ui/Cargo.toml` 对 `ui-headless` 仅声明路径依赖，未引入破坏互斥的双 feature 绑定。
   - 验证记录：已执行 `cargo check -p ui-headless --no-default-features --features web,ssr`（用于互斥回归探测）与单路径构建命令；当前容器环境统一因 `Invalid cross-device link (os error 18)` 失败，属于环境问题，非互斥契约回归。
 - [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
@@ -214,7 +214,7 @@
   - 覆盖依据：`apps/docs-app/src/pages/components/pages/collections_command.rs` 的 `command_dialog` 页面通过 `<ComponentPage title="CommandDialog" slug="command-dialog" ...>` 接入统一探针；`apps/docs-app/src/pages/components/shell.rs` 统一以 `component_page_perf_budget(slug)` + `<UiPerfProbe name=perf_name budget=perf_budget>` 输出预算与观测，未显式配置 slug 时走 `_ => UiPerfBudget::mount_only(120.0)`，形成可重复阈值基线。
   - 阻断与观测：`apps/docs-app/src/perf_probe.rs` 提供稳定 `data-perf-mount-ms/data-perf-budget-ms/data-perf-budget-update-ms/data-perf-budget-heap-kb/data-perf-violation/data-perf-observability`；`e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言预算属性存在且 `data-perf-violation != true`。
   - 归因路径：`components/command-dialog/src/view.rs` 暴露 `data-state/data-open-mode/data-action-source/data-open-change-source/data-command-motion-source/data-overlay-motion-source`，可将回归归因到状态/语义/动效通道。
-  - 自动化证据：`components/command-dialog/test/command_dialog_semantics.rs` 新增 `command_dialog_performance_governance_contract_is_mount_only_traceable_and_blocking`；门禁脚本 `scripts/check-ui-components-performance.sh` 新增命令 `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_performance_governance_contract_is_mount_only_traceable_and_blocking`，并保持 `docs_perf_probe_budgets_are_wired_for_component_pages` 与 `perf_render_count_follow_up_is_tracked_in_plan`。
+  - 自动化证据：`components/command-dialog/test/command_dialog_semantics.rs` 新增 `command_dialog_performance_governance_contract_is_mount_only_traceable_and_blocking`；门禁脚本 `scripts/check-ui-performance.sh` 新增命令 `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_performance_governance_contract_is_mount_only_traceable_and_blocking`，并保持 `docs_perf_probe_budgets_are_wired_for_component_pages` 与 `perf_render_count_follow_up_is_tracked_in_plan`。
   - 现状说明：当前测试框架尚未提供通用精确 `render_count` 计数，按清单采用可重复 `UiPerfProbe + data-perf-*` 等价证据；`docs/plan/TODO.md` 持续跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
@@ -229,7 +229,7 @@
   - 实现依据：`components/command-dialog/src/view.rs` 将渲染片段下沉为普通函数 `fn render_dialog_view(...) -> impl IntoView`，`#[component]` 仅保留 `CommandDialog` 一个公共边界。
   - 语义稳定：拆分后关键标记仍由同一渲染函数挂载（`data-slot/data-state/data-ui-*` 等），未引入额外语义漂移。
   - 回归锁定：`components/command-dialog/test/command_dialog_semantics.rs` 新增 `command_dialog_prefers_functional_view_split_over_extra_local_components`，约束“单 `#[component]` + 函数式渲染拆分 + 关键语义标记仍存在”。
-  - 验证记录：尝试执行 `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_prefers_functional_view_split_over_extra_local_components`，当前容器环境统一受 `Invalid cross-device link (os error 18)` 影响未能完成编译，属环境阻塞。
+  - 验证记录：尝试执行 `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_prefers_functional_view_split_over_extra_local_components`，当前容器环境统一受 `Invalid cross-device link (os error 18)` 影响未能完成编译，属环境阻塞。
 - [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
@@ -237,14 +237,14 @@
   - N/A 说明：`CommandDialog` 组件实现不包含复杂 SVG、页脚模板、长静态说明文本或 `inner_html` 注入，渲染主体为轻量语义壳层 + 子组件装配。
   - 现有静态文本落点：默认静态兜底集中在 `components/command-dialog/src/logic.rs` 的 `DEFAULT_ID_BASE/DEFAULT_TITLE` 与 `resolve_text_with_empty_default`；`view.rs` 仅消费归一化结果（`description_text/placeholder_text/empty_label_text/aria_label_text`）。
   - 回归锁定：`components/command-dialog/test/command_dialog_semantics.rs` 新增 `command_dialog_static_fragment_constantization_is_not_applicable_for_lightweight_markup`，断言无重静态片段并锁定文本归一化消费路径。
-  - 验证记录：执行 `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_static_fragment_constantization_is_not_applicable_for_lightweight_markup`，当前容器因 `Invalid cross-device link (os error 18)` 环境问题未完成编译。
+  - 验证记录：执行 `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_static_fragment_constantization_is_not_applicable_for_lightweight_markup`，当前容器因 `Invalid cross-device link (os error 18)` 环境问题未完成编译。
 - [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
   - N/A 说明：`CommandDialog` 当前无 `inner_html` 使用点（组件实现、文档示例、e2e 脚本均未出现），因此不存在“仅允许静态白名单注入”的运行路径。
   - 安全回归：`components/command-dialog/test/command_dialog_semantics.rs` 新增 `command_dialog_forbids_inner_html_injection_paths`，锁定禁止 `inner_html/set_inner_html/insert_adjacent_html/dangerously_set_inner_html/<script`，并要求语义标记 `data-ui-schema/data-ui-schema-version/data-ui-intent` 仍稳定存在。
-  - 验证记录：执行 `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_forbids_inner_html_injection_paths`，当前容器因 `Invalid cross-device link (os error 18)` 环境问题未完成编译。
+  - 验证记录：执行 `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_forbids_inner_html_injection_paths`，当前容器因 `Invalid cross-device link (os error 18)` 环境问题未完成编译。
 - [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
@@ -252,19 +252,19 @@
   - 状态追踪依据：`components/command-dialog/src/view.rs` 使用 `use_ui_trace`，在 `request_open_change` 中以 `current -> next` 判定后发射 `UiTraceEventKind::OpenChange { open: next }`；同时暴露 `data-ui-state/data-open-mode/data-open-change-source` 标记用于来源与前后状态比对。
   - 时间轴与可视化入口：全局 trace 时间戳来自 `crates/ui-headless/src/trace.rs` 的 `UiTraceEvent { ts_ms, component, kind }`；`apps/docs-app/src/lib.rs` 在 `debug_assertions` 下启用 `provide_ui_trace(debug_overlay_enabled)` 并挂载 `<debug_overlay::UiDebugOverlay enabled=true />`；`apps/docs-app/src/debug_overlay.rs` 渲染 `OpenChange/Inspect/Note` 事件时间线。
   - 最小可回放链路：`e2e/tests/docs_app_command_dialog.spec.mjs` 固化键盘/点击事件顺序与状态转移（受控路径 `open -> close`、marker 路径 `open -> keep-open`），可复现关键交互。
-  - feature 隔离：`crates/ui-components/Cargo.toml` 仅存在共享 `accordion-wasm-debug/button-wasm-debug` 开关，未引入 `command-dialog-wasm-debug` 私有特性，避免污染生产 API/包体。
-  - 回归锁定：`components/command-dialog/test/command_dialog_semantics.rs` 新增 `command_dialog_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isolated`；`scripts/check-ui-components-wasm-debug.sh` 新增对应门禁命令。
-  - 验证记录：执行 `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isolated`，当前容器因 `Invalid cross-device link (os error 18)` 环境问题未完成编译。
+  - feature 隔离：`crates/ui/Cargo.toml` 仅存在共享 `accordion-wasm-debug/button-wasm-debug` 开关，未引入 `command-dialog-wasm-debug` 私有特性，避免污染生产 API/包体。
+  - 回归锁定：`components/command-dialog/test/command_dialog_semantics.rs` 新增 `command_dialog_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isolated`；`scripts/check-ui-wasm-debug.sh` 新增对应门禁命令。
+  - 验证记录：执行 `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isolated`，当前容器因 `Invalid cross-device link (os error 18)` 环境问题未完成编译。
 - [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
   - Workbench 落地：`apps/docs-app/src/pages/components/pages/collections_command.rs` 的 `command_dialog()` 新增 `<Playground title="Workbench (Display + Config + Code + CSS Test)">`，包含 `code_signal + test_css_source + test_source_path + test_config_signal + controls` 完整链路。
-  - 样式热重载依据：Workbench 显式绑定 `test_css_source=workbench_test_css_source`（来源 `ui_components::command_dialog::styles::CSS`）和 `test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/command-dialog/src/styles.rs"`，走 Playground 测试面板即时样式反馈路径，无需改动组件逻辑重新编译 wasm。
+  - 样式热重载依据：Workbench 显式绑定 `test_css_source=workbench_test_css_source`（来源 `ui::command_dialog::styles::CSS`）和 `test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/command-dialog/src/styles.rs"`，走 Playground 测试面板即时样式反馈路径，无需改动组件逻辑重新编译 wasm。
   - 上下文保留（可选）依据：新增 `workbench_preserve_context` 开关；当关闭时 `Effect` 在场景切换后回收 `open/last_action`，当开启时保持当前会话上下文，满足“可选状态保留”而非强制持久化。
   - 隔离画布依据：新增稳定标记 `data-slot=\"command-dialog-workbench-controls\"`、`data-slot=\"command-dialog-workbench\"`、`data-slot=\"command-dialog-workbench-actions\"`、`data-slot=\"command-dialog-workbench-canvas\"`，避免和其他示例互相干扰。
   - 回归锁定：`components/command-dialog/test/command_dialog_semantics.rs` 新增 `command_dialog_dx_workbench_supports_optional_state_persistence_and_isolated_canvas` 与 `command_dialog_dx_check_script_covers_hot_reload_and_workbench_contract`。
-  - 门禁命令：`scripts/check-ui-components-dx.sh` 新增 `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_dx_workbench_supports_optional_state_persistence_and_isolated_canvas`。
+  - 门禁命令：`scripts/check-ui-dx.sh` 新增 `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_dx_workbench_supports_optional_state_persistence_and_isolated_canvas`。
   - 验证记录：执行上述 `cargo test` 命令，当前容器环境返回 `Invalid cross-device link (os error 18)`，属于环境阻塞，非该改动语义回归。
 - [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
@@ -278,8 +278,8 @@
     `command_dialog_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`、
     `command_dialog_engineering_contract_avoids_runtime_leaks_in_public_api_surface`、
     `command_dialog_engineering_check_script_covers_serde_tracing_and_runtime_boundaries`。
-  - 门禁命令：`scripts/check-ui-components-engineering.sh` 新增三条 `command_dialog` 工程能力契约测试命令（serde/spec N/A、tracing 统一、runtime 边界）。
-  - 验证记录：执行 `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope`，当前容器因 `Invalid cross-device link (os error 18)` 环境问题未完成编译。
+  - 门禁命令：`scripts/check-ui-engineering.sh` 新增三条 `command_dialog` 工程能力契约测试命令（serde/spec N/A、tracing 统一、runtime 边界）。
+  - 验证记录：执行 `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope`，当前容器因 `Invalid cross-device link (os error 18)` 环境问题未完成编译。
 
 ### 5. 样式与动效（Theme & Motion）
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
@@ -289,19 +289,19 @@
     `command_dialog_styles_use_defensive_variable_fallback_chain`、
     `command_dialog_defensive_variables_check_script_covers_style_fallback_contract`、
     `command_dialog_check2_marks_defensive_variables_contract_complete`。
-  - 门禁命令：`scripts/check-ui-components-contract-hygiene.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_styles_use_defensive_variable_fallback_chain`。
+  - 门禁命令：`scripts/check-ui-contract-hygiene.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_styles_use_defensive_variable_fallback_chain`。
   - 验证记录：执行上述 `cargo test` 命令，当前容器环境返回 `Invalid cross-device link (os error 18)`，属于环境阻塞，非本次样式契约回归。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 级联层依据：`crates/ui-components/src/css.rs` 保持 `out.push_str("\n@layer ui {\n"); ... out.push_str("\n}\n");`，且 `#[cfg(feature = "component-command_dialog")]` 下聚合 `crate::command_dialog::styles::CSS`，满足组件 CSS 默认进入 `@layer ui`。
-  - 注入边界依据：`crates/ui-components/src/root.rs` 继续通过 `crate::css::push_components_css(&mut out)` + `<style>{move || css_text.get()}</style>` 统一注入，不在组件层分散注入样式。
+  - 级联层依据：`crates/ui/src/css.rs` 保持 `out.push_str("\n@layer ui {\n"); ... out.push_str("\n}\n");`，且 `#[cfg(feature = "component-command_dialog")]` 下聚合 `crate::command_dialog::styles::CSS`，满足组件 CSS 默认进入 `@layer ui`。
+  - 注入边界依据：`crates/ui/src/root.rs` 继续通过 `crate::css::push_components_css(&mut out)` + `<style>{move || css_text.get()}</style>` 统一注入，不在组件层分散注入样式。
   - 运行时样式依据：`components/command-dialog/src/view.rs` 未出现 `style="top/left/width/height"` 等普通内联样式；若未来出现 `style:` 语法，回归约束要求仅允许 `style:--*` 自定义属性路径。
   - 回归锁定：`components/command-dialog/test/command_dialog_semantics.rs` 新增
     `command_dialog_cascade_layer_and_runtime_style_contract_is_enforced`、
     `command_dialog_cascade_layer_check_script_covers_contract`、
     `command_dialog_check2_marks_cascade_layer_contract_complete`。
-  - 门禁命令：`scripts/check-ui-components-contract-hygiene.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_cascade_layer_and_runtime_style_contract_is_enforced`。
+  - 门禁命令：`scripts/check-ui-contract-hygiene.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_cascade_layer_and_runtime_style_contract_is_enforced`。
   - 验证记录：执行上述 `cargo test` 命令，当前容器环境返回 `Invalid cross-device link (os error 18)`，属于环境阻塞，非本次级联层契约回归。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 组件 Contract 依据：`components/command-dialog/src/motion.rs` 提供 `CommandDialogMotion` + `sanitize_motion` -> `overlay::motion::sanitize_motion`；`sanitize_command_spring` 对 `stiffness/damping/mass/precision` 执行有限正值归一，避免无效参数穿透到运行时。
@@ -311,28 +311,28 @@
     `command_dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`、
     `command_dialog_motion_contract_platform_script_covers_guard`、
     `command_dialog_check2_marks_motion_contractualization_complete`。
-  - 门禁命令：`scripts/check-ui-components-platforms.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`。
+  - 门禁命令：`scripts/check-ui-platforms.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`。
   - 验证记录：执行上述 `cargo test` 命令，当前容器环境返回 `Invalid cross-device link (os error 18)`，属于环境阻塞，非本次 motion 契约回归。
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-  - 落点依据：`crates/ui-components/src/lib.rs` 保持 `mod css;` + `pub mod root;` + `pub use root::UiRoot;`，并通过 `#[cfg(feature = "component-command_dialog")] pub mod command_dialog;` 与 `pub use command_dialog::CommandDialog;` 暴露公共 API；未暴露 `web_sys/wasm_bindgen` 平台细节类型。
-  - CSS 入口依据：`crates/ui-components/src/css.rs` 在 `#[cfg(feature = "inject-css")] pub fn push_components_css` 中按 feature 聚合样式，`#[cfg(feature = "component-command_dialog")] out.push_str(crate::command_dialog::styles::CSS);`，并保持 `#[cfg(not(feature = "inject-css"))]` no-op，未无条件聚合全部 CSS。
-  - UiRoot 依据：`crates/ui-components/src/root.rs` 统一执行 `out.push_str(css::BASE_CSS)` + `theme.to_css_variables()` + `if inject_components_css { crate::css::push_components_css(&mut out); ui_layout::push_components_css(&mut out); }`，并集中注入 `provide_ui_i18n(i18n)` 与 `provide_ui_id_provider(id_seed)`。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - 落点依据：`crates/ui/src/lib.rs` 保持 `mod css;` + `pub mod root;` + `pub use root::UiRoot;`，并通过 `#[cfg(feature = "component-command_dialog")] pub mod command_dialog;` 与 `pub use command_dialog::CommandDialog;` 暴露公共 API；未暴露 `web_sys/wasm_bindgen` 平台细节类型。
+  - CSS 入口依据：`crates/ui/src/css.rs` 在 `#[cfg(feature = "inject-css")] pub fn push_components_css` 中按 feature 聚合样式，`#[cfg(feature = "component-command_dialog")] out.push_str(crate::command_dialog::styles::CSS);`，并保持 `#[cfg(not(feature = "inject-css"))]` no-op，未无条件聚合全部 CSS。
+  - UiRoot 依据：`crates/ui/src/root.rs` 统一执行 `out.push_str(css::BASE_CSS)` + `theme.to_css_variables()` + `if inject_components_css { crate::css::push_components_css(&mut out); ui_layout::push_components_css(&mut out); }`，并集中注入 `provide_ui_i18n(i18n)` 与 `provide_ui_id_provider(id_seed)`。
   - 共享 primitive 依据：`crates/ui-visual-primitive/src/active_highlight.rs` 保持通用 `ActiveHighlightMotion + attach_active_highlight_motion`，未出现 `CommandDialog` 组件语义、`aria-*` 或业务 slot 标记。
-  - 禁止文件依据：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 不存在；对应 canonical 原语位于 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
+  - 禁止文件依据：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 不存在；对应 canonical 原语位于 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
   - 回归锁定：`components/command-dialog/test/command_dialog_semantics.rs` 新增
     `command_dialog_ui_components_fixed_entry_files_follow_layered_boundaries`、
     `command_dialog_entrypoints_check_script_covers_fixed_entrypoint_contract`、
     `command_dialog_check2_marks_ui_components_fixed_entry_files_contract_complete`。
-  - 门禁命令：`scripts/check-ui-components-entrypoints.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_ui_components_fixed_entry_files_follow_layered_boundaries`。
+  - 门禁命令：`scripts/check-ui-entrypoints.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_ui_components_fixed_entry_files_follow_layered_boundaries`。
   - 验证记录：执行上述 `cargo test` 命令，当前容器环境返回 `Invalid cross-device link (os error 18)`，属于环境阻塞，非本次入口文件落点契约回归。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
@@ -351,8 +351,8 @@
     `command_dialog_component_directory_standard_files_follow_contract_and_na_paths`、
     `command_dialog_component_files_check_script_covers_standard_directory_contract`、
     `command_dialog_check2_marks_component_directory_standard_files_contract_complete`。
-  - 门禁命令：`scripts/check-ui-components-component-files.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_component_directory_standard_files_follow_contract_and_na_paths`。
+  - 门禁命令：`scripts/check-ui-component-files.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_component_directory_standard_files_follow_contract_and_na_paths`。
   - 验证记录：执行上述 `cargo test` 命令，当前容器环境返回 `Invalid cross-device link (os error 18)`，属于环境阻塞，非本次目录职责契约回归。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
@@ -361,18 +361,18 @@
   - 回归锁定：`components/command-dialog/test/command_dialog_semantics.rs` 新增
     `command_dialog_file_placement_discipline_is_strict_for_component_scope`，并复用
     `command_dialog_component_directory_standard_files_follow_contract_and_na_paths` 作为事实来源。
-  - 脚本门禁：`scripts/check-ui-components-component-files.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_file_placement_discipline_is_strict_for_component_scope`。
+  - 脚本门禁：`scripts/check-ui-component-files.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_file_placement_discipline_is_strict_for_component_scope`。
   - 验证记录：执行上述 `cargo test` 命令，当前容器环境返回 `Invalid cross-device link (os error 18)`，属于环境阻塞，非本次文件落点纪律契约回归。
 - [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
   - N/A-by-design：`command-dialog` 当前为简单组件装配（`Modal + Command + overlay_trigger + presence`），不存在稳定外部 schema 契约与版本迁移需求，因此不引入 `spec.rs`。
-  - 约束依据：`components/command-dialog/src/spec.rs` 与 `crates/ui-components/src/command_dialog/spec.rs` 均不存在；`components/command-dialog/src/mod.rs` 未导出 `spec` 模块；`components/command-dialog/src/README.md` 不暴露 `Spec::new()...render()` 入口。
-  - 复杂组件锚点：`crates/ui-components/src/button/spec.rs` 仍存在，保持 “仅复杂组件引入 spec.rs” 的边界。
+  - 约束依据：`components/command-dialog/src/spec.rs` 与 `crates/ui/src/command_dialog/spec.rs` 均不存在；`components/command-dialog/src/mod.rs` 未导出 `spec` 模块；`components/command-dialog/src/README.md` 不暴露 `Spec::new()...render()` 入口。
+  - 复杂组件锚点：`crates/ui/src/button/spec.rs` 仍存在，保持 “仅复杂组件引入 spec.rs” 的边界。
   - 回归锁定：`components/command-dialog/test/command_dialog_semantics.rs` 新增
     `command_dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component`、
     `command_dialog_check2_marks_hyper_structure_builder_item_complete`。
-  - 脚本门禁：`scripts/check-ui-components-component-files.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component`。
+  - 脚本门禁：`scripts/check-ui-component-files.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component`。
   - 验证记录：执行上述 `cargo test` 命令，当前容器环境返回 `Invalid cross-device link (os error 18)`，属于环境阻塞，非本次 Hyper-Structure Builder 契约回归。
 - [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
   - 落点依据：新增 `components/command-dialog/src/Component.toml` 与 `components/command-dialog/src/command_dialog.rbi`，明确 `CommandDialog` 能力清单、输入输出轴与公开接口签名投影，避免 AI 检索使用过期契约。
@@ -382,8 +382,8 @@
     `command_dialog_context_compression_manifest_and_rbi_projection_are_present_and_current`、
     `command_dialog_component_files_script_covers_context_compression_manifest_contract`、
     `command_dialog_check2_marks_context_compression_manifest_and_rbi_contract_complete`。
-  - 脚本门禁：`scripts/check-ui-components-component-files.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_context_compression_manifest_and_rbi_projection_are_present_and_current`。
+  - 脚本门禁：`scripts/check-ui-component-files.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_context_compression_manifest_and_rbi_projection_are_present_and_current`。
   - 验证记录：执行上述 `cargo test` 命令，当前容器环境返回 `Invalid cross-device link (os error 18)`，属于环境阻塞，非本次 Manifest + RBI 契约回归。
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
@@ -401,11 +401,11 @@
     `command_dialog_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`、
     `command_dialog_contract_hygiene_script_covers_agent_contract_schema_guards`、
     `command_dialog_check2_marks_agent_contract_schema_governance_complete`。
-  - 脚本门禁：`scripts/check-ui-components-contract-hygiene.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_agent_contract_schema_governance_rules`、
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_agent_contract_is_schema_typed_and_machine_readable`、
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`、
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`。
+  - 脚本门禁：`scripts/check-ui-contract-hygiene.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_agent_contract_schema_governance_rules`、
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_agent_contract_is_schema_typed_and_machine_readable`、
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`、
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`。
   - 验证记录：执行上述 `cargo test` 命令，当前容器环境返回 `Invalid cross-device link (os error 18)`，属于环境阻塞，非本次 Agent Contract 契约回归。
 - [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
@@ -419,9 +419,9 @@
     `command_dialog_streaming_display_modes_are_limited_to_streaming_and_snapshot`、
     `command_dialog_streaming_script_covers_two_mode_definition_contract`、
     `command_dialog_check2_marks_streaming_two_mode_definition_complete`。
-  - 脚本门禁：`scripts/check-ui-components-streaming.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`、
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_streaming_display_modes_are_limited_to_streaming_and_snapshot`。
+  - 脚本门禁：`scripts/check-ui-streaming.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`、
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_streaming_display_modes_are_limited_to_streaming_and_snapshot`。
   - 验证记录：执行上述 `cargo test` 命令，当前容器环境返回 `Invalid cross-device link (os error 18)`，属于环境阻塞，非本次“流式两种显示模式”契约回归。
 - [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
@@ -433,9 +433,9 @@
     `command_dialog_snapshot_baseline_consumes_complete_result_and_renders_stably`、
     `command_dialog_streaming_script_covers_snapshot_baseline_contract`、
     `command_dialog_check2_marks_snapshot_baseline_capability_complete`。
-  - 脚本门禁：`scripts/check-ui-components-streaming.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_snapshot_as_default_baseline_capability`、
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_snapshot_baseline_consumes_complete_result_and_renders_stably`。
+  - 脚本门禁：`scripts/check-ui-streaming.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_snapshot_as_default_baseline_capability`、
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_snapshot_baseline_consumes_complete_result_and_renders_stably`。
   - 验证记录：执行上述 `cargo test` 命令，当前容器环境返回 `Invalid cross-device link (os error 18)`，属于环境阻塞，非本次 Snapshot 基线能力契约回归。
 - [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
@@ -452,10 +452,10 @@
     `command_dialog_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`、
     `command_dialog_streaming_script_covers_required_optional_classification_contract`、
     `command_dialog_check2_marks_streaming_required_optional_classification_complete`。
-  - 脚本门禁：`scripts/check-ui-components-streaming.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_streaming_required_optional_classification_rules`、
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`。
+  - 脚本门禁：`scripts/check-ui-streaming.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_streaming_required_optional_classification_rules`、
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`。
   - 验证记录：执行上述 `cargo test` 命令，当前容器环境返回 `Invalid cross-device link (os error 18)`，属于环境阻塞，非本次 Streaming Required/Optional 职责分类契约回归。
 
 ### 7. 测试、门禁与交付
@@ -469,43 +469,43 @@
     `command_dialog_check2_marks_rust_hygiene_contract_complete`。
   - 脚本门禁：`./scripts/check-rust-hygiene.sh`。
   - 验证记录：执行 `./scripts/check-rust-hygiene.sh`，当前容器环境输出 `PCRE2 is not available in this build of ripgrep`，随后在 `check-api-contracts` 阶段因仓库级 baseline drift 失败（非 command-dialog 局部回归）；组件局部 hygiene 由上述语义回归测试与源码扫描锁定。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 特性树注册依据：`crates/ui-components/Cargo.toml` 保持 `component-command_dialog = ["component-command", "component-modal"]`，组件能力不通过全量注册表硬绑定。
-  - `lib.rs` 门控依据：`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-command_dialog")]` + `#[path = "../../../components/command-dialog/src/mod.rs"]` 声明 `pub mod command_dialog;`，避免无条件导出。
-  - `css.rs` 门控依据：`crates/ui-components/src/css.rs` 仅在 `#[cfg(feature = "component-command_dialog")]` 下聚合 `out.push_str(crate::command_dialog::styles::CSS);`，未出现无条件 command-dialog CSS 注入。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 特性树注册依据：`crates/ui/Cargo.toml` 保持 `component-command_dialog = ["component-command", "component-modal"]`，组件能力不通过全量注册表硬绑定。
+  - `lib.rs` 门控依据：`crates/ui/src/lib.rs` 通过 `#[cfg(feature = "component-command_dialog")]` + `#[path = "../../../components/command-dialog/src/mod.rs"]` 声明 `pub mod command_dialog;`，避免无条件导出。
+  - `css.rs` 门控依据：`crates/ui/src/css.rs` 仅在 `#[cfg(feature = "component-command_dialog")]` 下聚合 `out.push_str(crate::command_dialog::styles::CSS);`，未出现无条件 command-dialog CSS 注入。
   - 回归锁定：`components/command-dialog/test/command_dialog_semantics.rs` 新增
     `command_dialog_tree_shaking_feature_registration_and_gated_aggregates`、
     `command_dialog_tree_shaking_script_covers_command_dialog_minimal_feature_chain`、
     `command_dialog_check2_marks_tree_shaking_feature_gating_complete`。
-  - 脚本门禁：`scripts/check-ui-components-tree-shaking.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_tree_shaking_feature_registration_and_gated_aggregates`，
+  - 脚本门禁：`scripts/check-ui-tree-shaking.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_tree_shaking_feature_registration_and_gated_aggregates`，
     并新增 `COMMAND_DIALOG_MIN_FEATURES="component-command_dialog,inject-css"` 的最小特性树检查，显式阻断 `all-components` 被隐式拉起。
   - 验证记录：已执行
-    `cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-command_dialog,inject-css`（仅出现 `component-command_dialog/component-command/component-modal/inject-css`，未出现 `all-components`）、
-    `cargo tree -e features -i ui-components -p web-demo`（未出现 `all-components`，出现 `web-demo-components`）、
-    `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-command_dialog,inject-css`（当前容器环境 `Invalid cross-device link (os error 18)`）。
-  - 脚本执行记录：`bash ./scripts/check-ui-components-tree-shaking.sh` 已进入 command-dialog tree-shaking 检查路径，随后在 wasm 编译阶段同样受 `Invalid cross-device link (os error 18)` 环境阻塞，非本次特性门控契约回归。
+    `cargo tree -e features -i ui -p ui --no-default-features --features component-command_dialog,inject-css`（仅出现 `component-command_dialog/component-command/component-modal/inject-css`，未出现 `all-components`）、
+    `cargo tree -e features -i ui -p web-demo`（未出现 `all-components`，出现 `web-demo-components`）、
+    `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-command_dialog,inject-css`（当前容器环境 `Invalid cross-device link (os error 18)`）。
+  - 脚本执行记录：`bash ./scripts/check-ui-tree-shaking.sh` 已进入 command-dialog tree-shaking 检查路径，随后在 wasm 编译阶段同样受 `Invalid cross-device link (os error 18)` 环境阻塞，非本次特性门控契约回归。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 语义断言覆盖：`components/command-dialog/test/command_dialog_semantics.rs` 通过 `command_dialog_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous` 与 `command_dialog_e2e_spec_covers_controlled_and_persistent_paths` 锁定 `role/aria/data-*` 路径；`e2e/tests/docs_app_command_dialog.spec.mjs` 显式覆盖 `focus()->Enter` 打开流程与 `data-state/data-ui-schema/data-stream-mode/data-output-status` 断言。
   - 非快照依赖：`e2e/tests/docs_app_command_dialog.spec.mjs` 仅使用语义选择器和 `toHaveAttribute`/`toHaveCount`，不依赖 `toHaveScreenshot` 或 `toMatchSnapshot`。
   - 性能回归覆盖：`components/command-dialog/test/command_dialog_semantics.rs` 的 `command_dialog_performance_governance_contract_is_mount_only_traceable_and_blocking` 持续校验 `UiPerfProbe` 的 `data-perf-*` 指标接线、预算阈值与阻断路径；新增 `command_dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 将语义断言与性能证据合并为单条契约门禁。
   - `render_count` 策略：当前框架仍采用 `mount-only` 等价证据，仓库级 follow-up 在 `docs/plan/TODO.md` 维持 `render_count` 自动化回归计划（Button/Input/Accordion）以替换等价证据，符合清单“暂不支持精确计数时给出可重复测量并跟踪补齐”的要求。
-  - 脚本门禁：`scripts/check-ui-components-performance.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`，
+  - 脚本门禁：`scripts/check-ui-performance.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`，
     并保留 `command_dialog_performance_governance_contract_is_mount_only_traceable_and_blocking`。
   - 验证记录：执行
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`，
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`，
     当前容器环境返回 `Invalid cross-device link (os error 18)`，属环境阻塞，非本次语义/性能契约回归。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `CommandDialog` 未发生跨大版本 API 破坏升级）
   - N/A 判定依据：`components/command-dialog/src/Component.toml` 保持 `schema_version = "1"`；`components/command-dialog/src/command_dialog.rbi` 的 `CommandDialog(...)` 公共签名未发生破坏性移除/重命名；`components/command-dialog/src/{mod.rs,logic.rs,view.rs,styles.rs,motion.rs,protocol.rs}` 未引入 `migrate_v1_to_v2`/`deprecation_window`/`SchemaRegistry`/`contract.v2`。
   - 回归锁定：`components/command-dialog/test/command_dialog_semantics.rs` 新增
     `command_dialog_version_deprecation_migration_is_na_without_major_breaking_upgrade`，
     断言当前为稳定 v1 且禁止虚假迁移层漂移。
-  - 脚本门禁：`scripts/check-ui-components-engineering.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_version_deprecation_migration_is_na_without_major_breaking_upgrade`，
+  - 脚本门禁：`scripts/check-ui-engineering.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_version_deprecation_migration_is_na_without_major_breaking_upgrade`，
     并由 `command_dialog_engineering_check_script_covers_serde_tracing_and_runtime_boundaries` 反向校验脚本已挂接。
   - 验证记录：执行
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_version_deprecation_migration_is_na_without_major_breaking_upgrade`，
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_version_deprecation_migration_is_na_without_major_breaking_upgrade`，
     当前容器环境返回 `Invalid cross-device link (os error 18)`，属环境阻塞，非本次版本迁移契约回归。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
   - docs-app 落地：`apps/docs-app/src/pages/components/pages/collections_command.rs` 的 `command_dialog()` 已补齐 `Hello World (Default API)`、`State Matrix`、`Controlled vs Uncontrolled`、`Streaming / Snapshot Contract` 四类 Playground，并保留既有 `Controlled Open + Action Close` / `State + Source Markers` / `Workbench` 验收面。
@@ -514,10 +514,10 @@
   - 回归锁定：`components/command-dialog/test/command_dialog_semantics.rs` 新增
     `command_dialog_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract`、
     `command_dialog_check2_marks_docs_product_copy_paste_ready_contract_complete`，并扩展 `command_dialog_docs_page_covers_primary_playgrounds` / `command_dialog_docs_playgrounds_lock_state_matrix_contract_values` 覆盖新增 Playground 矩阵。
-  - 脚本门禁：`scripts/check-ui-components-dx.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract`。
+  - 脚本门禁：`scripts/check-ui-dx.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract`。
   - 验证记录：执行
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract`，
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract`，
     当前容器环境返回 `Invalid cross-device link (os error 18)`，属环境阻塞，非本次 docs-product 契约回归。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 语义契约覆盖：`components/command-dialog/test/command_dialog_semantics.rs` 已通过
@@ -526,13 +526,13 @@
   - 非快照优先：新增 `command_dialog_semantics_suite_is_contract_first_not_snapshot_only`，显式禁止 `toHaveScreenshot`/`toMatchSnapshot`/`*_snapshot` 作为主断言路径。
   - 字段变更联动：新增 `command_dialog_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks`，要求 `view.rs` 关键 `data-*` marker 与 `*_semantics.rs` 断言同步更新，防止语义字段漂移后漏测。
   - 规则落盘：新增 `command_dialog_check2_documents_semantics_first_testing_rules`，锁定本条 checklist 文本与验收口径。
-  - 脚本门禁：`scripts/check-ui-components-contract-hygiene.sh` 新增
+  - 脚本门禁：`scripts/check-ui-contract-hygiene.sh` 新增
     `command_dialog_check2_documents_semantics_first_testing_rules`、
     `command_dialog_semantics_suite_is_contract_first_not_snapshot_only`、
     `command_dialog_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks`
     三条命令，并由 `command_dialog_contract_hygiene_script_covers_semantics_first_contract_guards` 反向校验脚本已挂接。
   - 验证记录：执行
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_semantics_suite_is_contract_first_not_snapshot_only`，
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_semantics_suite_is_contract_first_not_snapshot_only`，
     当前容器环境返回 `Invalid cross-device link (os error 18)`，属环境阻塞，非本次语义契约回归。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
@@ -546,9 +546,9 @@
     `command_dialog_check2_documents_e2e_selector_and_stable_wait_rules`、
     `command_dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits`、
     `command_dialog_e2e_check_script_covers_selector_contract`。
-  - 脚本门禁：新增 `scripts/check-ui-components-e2e-command-dialog.sh`，挂接上述两条契约测试命令。
+  - 脚本门禁：新增 `components/command-dialog/scripts/check-ui-e2e-command-dialog.sh`，挂接上述两条契约测试命令。
   - 验证记录：执行
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits`，
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits`，
     当前容器环境返回 `Invalid cross-device link (os error 18)`，属环境阻塞，非本次 E2E 语义契约回归。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
@@ -564,10 +564,10 @@
     `command_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、
     `command_dialog_e2e_check_script_covers_selector_and_key_flow_contracts`、
     `command_dialog_check2_marks_e2e_repeatable_key_flow_contract_complete`。
-  - 脚本门禁：`scripts/check-ui-components-e2e-command-dialog.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`。
+  - 脚本门禁：`components/command-dialog/scripts/check-ui-e2e-command-dialog.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`。
   - 验证记录：执行
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`，
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`，
     当前容器环境返回 `Invalid cross-device link (os error 18)`，属环境阻塞，非本次可重复 key-flow 契约回归。
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
@@ -581,11 +581,11 @@
     `command_dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、
     `command_dialog_dx_check_script_covers_docs_sync_state_matrix_contract`、
     `command_dialog_check2_marks_docs_sync_and_state_matrix_contract_complete`。
-  - 脚本门禁：`scripts/check-ui-components-dx.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_docs_sync_and_state_matrix_rules`、
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`。
+  - 脚本门禁：`scripts/check-ui-dx.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_docs_sync_and_state_matrix_rules`、
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`。
   - 验证记录：执行
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`，
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`，
     当前容器环境返回 `Invalid cross-device link (os error 18)`，属环境阻塞，非本次 docs/state-matrix 同步契约回归。
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
@@ -599,11 +599,11 @@
     `command_dialog_documentation_entry_exists_with_beginner_first_progression`、
     `command_dialog_dx_check_script_covers_documentation_as_product_contract`、
     `command_dialog_check2_marks_documentation_as_product_contract_complete`。
-  - 脚本门禁：`scripts/check-ui-components-dx.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_documentation_as_product_rules`、
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_documentation_entry_exists_with_beginner_first_progression`。
+  - 脚本门禁：`scripts/check-ui-dx.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_documentation_as_product_rules`、
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_documentation_entry_exists_with_beginner_first_progression`。
   - 验证记录：执行
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_documentation_entry_exists_with_beginner_first_progression`，
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_documentation_entry_exists_with_beginner_first_progression`，
     当前容器环境返回 `Invalid cross-device link (os error 18)`，属环境阻塞，非本次 Documentation-as-Product 契约回归。
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
@@ -617,11 +617,11 @@
     `command_dialog_interactive_playground_reuses_repeatable_semantic_e2e_flow`、
     `command_dialog_dx_check_script_covers_interactive_playground_contract`、
     `command_dialog_check2_marks_interactive_playground_contract_complete`。
-  - 脚本门禁：`scripts/check-ui-components-dx.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_app_provides_interactive_playground_for_props_state_and_preview`、
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_interactive_playground_reuses_repeatable_semantic_e2e_flow`。
+  - 脚本门禁：`scripts/check-ui-dx.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_app_provides_interactive_playground_for_props_state_and_preview`、
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_interactive_playground_reuses_repeatable_semantic_e2e_flow`。
   - 验证记录：执行
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_app_provides_interactive_playground_for_props_state_and_preview`，
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_app_provides_interactive_playground_for_props_state_and_preview`，
     当前容器环境返回 `Invalid cross-device link (os error 18)`，属环境阻塞，非本次 Interactive Playground 契约回归。
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
@@ -632,16 +632,16 @@
   - Source-first 文档落点与依赖前提：docs 页面新增 `data-slot="command-dialog-source-first"` 与 `data-slot="command-dialog-source-paths"`，明确源码文件
     `components/command-dialog/src/{mod,logic,view,styles,motion}.rs`，
     并声明依赖前提
-    `ui-components = { workspace = true, default-features = false, features = ["component-command_dialog", "inject-css"] }`。
+    `ui = { workspace = true, default-features = false, features = ["component-command_dialog", "inject-css"] }`。
   - 回归锁定：`components/command-dialog/test/command_dialog_semantics.rs` 新增
     `command_dialog_check2_documents_source_first_copy_paste_ready_rules`、
     `command_dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、
     `command_dialog_dx_check_script_covers_source_first_copy_paste_ready_contract`。
-  - 脚本门禁：`scripts/check-ui-components-dx.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_source_first_copy_paste_ready_rules`、
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`。
+  - 脚本门禁：`scripts/check-ui-dx.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_documents_source_first_copy_paste_ready_rules`、
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`。
   - 验证记录：执行
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`，
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`，
     当前容器环境返回 `Invalid cross-device link (os error 18)`，属环境阻塞，非本次 Source-first 文档契约回归。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
@@ -664,11 +664,11 @@
     `command_dialog_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes`、
     `command_dialog_check2_marks_heroui_strategy_and_component_docs_sync_complete`、
     `command_dialog_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract`。
-  - 脚本门禁：`scripts/check-ui-components-contract-hygiene.sh` 新增
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes`、
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_marks_heroui_strategy_and_component_docs_sync_complete`。
+  - 脚本门禁：`scripts/check-ui-contract-hygiene.sh` 新增
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes`、
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_check2_marks_heroui_strategy_and_component_docs_sync_complete`。
   - 验证记录：执行
-    `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes`，
+    `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes`，
     当前容器环境返回 `Invalid cross-device link (os error 18)`，属环境阻塞，非本次 HeroUI/doc-sync 契约回归。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
@@ -681,9 +681,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

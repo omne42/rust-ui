@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{Accordion, AccordionItem, AccordionSelectionMode, Disclosure, open_set};
+use ui::{Accordion, AccordionItem, AccordionSelectionMode, Disclosure, open_set};
 
 #[component]
 pub fn DisclosureDemo() -> impl IntoView {

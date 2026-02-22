@@ -1,7 +1,7 @@
 # UI Components Domain Grouping（同功能同域）
 
 > Status: Draft  
-> Scope: `crates/ui-components` 目录域收敛与兼容导出策略
+> Scope: `crates/ui` 目录域收敛与兼容导出策略
 
 ## 0. 核心判断
 
@@ -79,8 +79,8 @@
 
 建议门禁：
 
-- `cargo check -p ui-components`
-- `cargo check -p ui-components --features all-components`
+- `cargo check -p ui`
+- `cargo check -p ui --features all-components`
 - 受影响时再加：`cargo check -p docs-app`
 
 ## 5. 风险与回滚

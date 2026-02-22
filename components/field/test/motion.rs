@@ -15,12 +15,19 @@ fn default_motion_is_stable() {
 
 #[test]
 fn sanitize_motion_clamps_values() {
+    let expected_spring_from_default_input = ui_motion::spring::sanitize_config(
+        ui_motion::spring::SpringConfig::default(),
+        FieldMotion::default().spring,
+    );
     assert_eq!(
         sanitize_motion(FieldMotion {
             duration_ms: f64::NAN,
             spring: ui_motion::spring::SpringConfig::default(),
         }),
-        FieldMotion::default()
+        FieldMotion {
+            duration_ms: FieldMotion::default().duration_ms,
+            spring: expected_spring_from_default_input,
+        }
     );
     assert_eq!(
         sanitize_motion(FieldMotion {

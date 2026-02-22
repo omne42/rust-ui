@@ -552,7 +552,7 @@ fn dropdown_docs_entry_has_readme_streaming_policy_and_source_paths() {
         "fallback=snapshot",
         "## Hello World",
         "## Source-first",
-        "crates/ui-components/src/menu/dropdown/{mod,logic,view,styles,motion}.rs",
+        "crates/ui/src/menu/dropdown/{mod,logic,view,styles,motion}.rs",
         "crates/ui-state-primitives/src/dropdown.rs",
     ] {
         assert!(

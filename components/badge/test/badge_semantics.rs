@@ -31,7 +31,7 @@ fn ui_components_reexports_badge_component_crate() {
     assert!(
         lib_source.contains("#[cfg(feature = \"component-badge\")]")
             && lib_source.contains("pub use ui_badge as badge;"),
-        "ui-components should re-export the external ui-badge crate as `badge`.",
+        "ui should re-export the external ui-badge crate as `badge`.",
     );
     assert!(
         cargo_source.contains("component-badge = [\"dep:ui-badge\"]"),
@@ -39,13 +39,13 @@ fn ui_components_reexports_badge_component_crate() {
     );
     assert!(
         cargo_source.contains("ui-badge = { path = \"../../components/badge\", optional = true }"),
-        "ui-components Cargo.toml should include the optional ui-badge dependency.",
+        "ui Cargo.toml should include the optional ui-badge dependency.",
     );
     assert!(
         css_source.contains("#[cfg(feature = \"inject-css\")]")
             && css_source.contains("#[cfg(feature = \"component-badge\")]")
             && css_source.contains("out.push_str(crate::badge::styles::CSS);"),
-        "ui-components css aggregation for badge should be guarded by inject-css + component-badge.",
+        "ui css aggregation for badge should be guarded by inject-css + component-badge.",
     );
 }
 
@@ -261,7 +261,7 @@ fn badge_readme_keeps_beginner_first_doc_path() {
         "Badge Workbench (Display + Config + Code + CSS Test)",
         "## Source-first（Copy-Paste Ready）",
         "use leptos::prelude::*;",
-        "use ui_components::*;",
+        "use ui::*;",
         "components/badge/src/view.rs",
         "components/badge/src/logic.rs",
         "components/badge/src/styles.rs",
@@ -349,7 +349,7 @@ fn badge_e2e_contract_file_exists_and_uses_semantic_selectors() {
         "data-class-source",
         "button[data-slot=\"button\"]:not([data-icon-only=\"true\"])",
         "use leptos::prelude::*;",
-        "use ui_components::*;",
+        "use ui::*;",
     ] {
         assert!(
             source.contains(needle),

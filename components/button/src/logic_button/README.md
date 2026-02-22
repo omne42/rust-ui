@@ -33,7 +33,7 @@ docs-app `logic-button` 页面对比展示：
 
 ## css test
 
-- 样式来源：`crates/ui-components/src/button/logic_button/styles.rs`
+- 样式来源：`crates/ui/src/button/logic_button/styles.rs`
 - docs Playground 可进行 CSS test，对比 variant 与 disabled 组合下的状态样式。
 
 ## docs-app 入口

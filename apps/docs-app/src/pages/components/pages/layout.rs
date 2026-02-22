@@ -1,14 +1,16 @@
+use super::playground_workbench::{bool_word, rust_string_literal};
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::Snippet;
+use ui::Snippet;
+use ui_headless::A11yDirection;
 use ui_layout::{
-    AutoHeight, AutoHeightMotion, Card, CardVariant, Content, ContentTone, Divider,
-    DividerOrientation, Flex, FlexAlign, FlexDirection, FlexGap, FlexJustify, FlexWrap, Footer,
-    FooterTone, Header, HeaderTone, Heading, HeadingLevel, HeadingTone, ScrollShadow, Separator,
-    SeparatorElementType, SeparatorOrientation, Spacer, SpacerAxis, SpacerSize, View,
-    ViewBackground, ViewBorder, ViewElement, ViewPadding, ViewRadius, ViewShadow, Well,
-    WellDensity, WellTone,
+    AutoHeight, AutoHeightMotion, Card, CardVariant, Content, ContentTone, Divider, DividerMotion,
+    DividerOrientation, Flex, FlexAlign, FlexDirection, FlexGap, FlexJustify, FlexMotion, FlexWrap,
+    Footer, FooterTone, Header, HeaderTone, Heading, HeadingLevel, HeadingTone, ScrollShadow,
+    Separator, SeparatorElementType, SeparatorMotion, SeparatorOrientation, Spacer, SpacerAxis,
+    SpacerMotion, SpacerSize, View, ViewBackground, ViewBorder, ViewElement, ViewPadding,
+    ViewRadius, ViewShadow, Well, WellDensity, WellTone,
 };
 
 pub(super) fn card() -> AnyView {
@@ -55,6 +57,11 @@ pub(super) fn card() -> AnyView {
         let variant = workbench_variant.get();
         let padded = workbench_padded.get();
         let custom_class = workbench_custom_class.get();
+        let class_name = if custom_class {
+            Some("docs-card-custom")
+        } else {
+            None
+        };
 
         let mut classes = vec![
             "ui-card".to_string(),
@@ -70,7 +77,7 @@ pub(super) fn card() -> AnyView {
         }
 
         format!(
-            "CardActualConfig {{\n  variant: {variant:?},\n  padded: {padded},\n  custom_class: {custom_class},\n  data_variant: \"{}\",\n  data_state: \"{}\",\n  class: \"{}\",\n}}",
+            "CardActualConfig {{\n  variant: {variant:?},\n  padded: {padded},\n  custom_class: {custom_class},\n  class_name: {class_name:?},\n  data_variant: \"{}\",\n  data_state: \"{}\",\n  class: \"{}\",\n}}",
             variant.as_str(),
             if padded { "padded" } else { "flush" },
             classes.join(" "),
@@ -238,44 +245,132 @@ pub(super) fn card() -> AnyView {
                     }}
                 </div>
             </Playground>
+
+            <Playground
+                title="State Matrix (Variant / Padding / Class Comparison)"
+                code_signal=variants_code
+            >
+                <div class="docs-row">
+                    <Card variant=CardVariant::Default>
+                        <div>"Default"</div>
+                    </Card>
+                    <Card variant=CardVariant::Muted padded=false>
+                        <div>"Muted + flush"</div>
+                    </Card>
+                    <Card variant=CardVariant::Outline class_name="docs-card-custom".to_string()>
+                        <div>"Outline + custom class"</div>
+                    </Card>
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn view() -> AnyView {
-    let surface_code = Signal::derive(move || {
-        r#"<View border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Md>
-  <div>"Subtle surface"</div>
-</View>
-<View
-  background=ViewBackground::Accent
-  border=ViewBorder::Strong
-  padding=ViewPadding::Lg
-  radius=ViewRadius::Lg
-  shadow=ViewShadow::Md
->
-  <div>"Accent emphasis surface"</div>
-</View>"#
-            .to_string()
+    let (workbench_accent, set_workbench_accent) = signal(false);
+    let (workbench_strong_border, set_workbench_strong_border) = signal(false);
+    let (workbench_large_padding, set_workbench_large_padding) = signal(false);
+    let (workbench_large_radius, set_workbench_large_radius) = signal(false);
+    let (workbench_shadow_enabled, set_workbench_shadow_enabled) = signal(false);
+    let (workbench_section, set_workbench_section) = signal(false);
+    let (workbench_fluid, set_workbench_fluid) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+
+    let workbench_background = Signal::derive(move || {
+        if workbench_accent.get() {
+            ViewBackground::Accent
+        } else {
+            ViewBackground::Subtle
+        }
+    });
+    let workbench_border = Signal::derive(move || {
+        if workbench_strong_border.get() {
+            ViewBorder::Strong
+        } else {
+            ViewBorder::Subtle
+        }
+    });
+    let workbench_padding = Signal::derive(move || {
+        if workbench_large_padding.get() {
+            ViewPadding::Lg
+        } else {
+            ViewPadding::Md
+        }
+    });
+    let workbench_radius = Signal::derive(move || {
+        if workbench_large_radius.get() {
+            ViewRadius::Lg
+        } else {
+            ViewRadius::Md
+        }
+    });
+    let workbench_shadow = Signal::derive(move || {
+        if workbench_shadow_enabled.get() {
+            ViewShadow::Md
+        } else {
+            ViewShadow::None
+        }
+    });
+    let workbench_element = Signal::derive(move || {
+        if workbench_section.get() {
+            ViewElement::Section
+        } else {
+            ViewElement::Div
+        }
     });
 
-    let element_code = Signal::derive(move || {
-        r#"<View
-  element=ViewElement::Section
-  background=ViewBackground::Subtle
-  border=ViewBorder::Subtle
-  padding=ViewPadding::Sm
-  radius=ViewRadius::Sm
-  fluid=true
-  class_name="docs-view-custom".to_string()
-  aria_label="Release notes".to_string()
->
-  <div>"Section container"</div>
-</View>
-<View element=ViewElement::Span padding=ViewPadding::Sm border=ViewBorder::Subtle>
-  <span>"Inline view"</span>
-</View>"#
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<View\n  background=ViewBackground::{:?}\n  border=ViewBorder::{:?}\n  padding=ViewPadding::{:?}\n  radius=ViewRadius::{:?}\n  shadow=ViewShadow::{:?}\n  element=ViewElement::{:?}\n  fluid={}\n  aria_label={}\n  class_name={}\n>\n  <div>\"Workbench content\"</div>\n</View>",
+            workbench_background.get(),
+            workbench_border.get(),
+            workbench_padding.get(),
+            workbench_radius.get(),
+            workbench_shadow.get(),
+            workbench_element.get(),
+            workbench_fluid.get(),
+            if workbench_custom_aria.get() {
+                "\"Release notes\".to_string()"
+            } else {
+                "\"\".to_string()"
+            },
+            if workbench_custom_class.get() {
+                "\"docs-view-custom\".to_string()"
+            } else {
+                "\"\".to_string()"
+            }
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "ViewActualConfig {{\n  background: ViewBackground::{:?},\n  border: ViewBorder::{:?},\n  padding: ViewPadding::{:?},\n  radius: ViewRadius::{:?},\n  shadow: ViewShadow::{:?},\n  element: ViewElement::{:?},\n  fluid: {},\n  aria_label: {},\n  class_name: {},\n}}",
+            workbench_background.get(),
+            workbench_border.get(),
+            workbench_padding.get(),
+            workbench_radius.get(),
+            workbench_shadow.get(),
+            workbench_element.get(),
+            workbench_fluid.get(),
+            if workbench_custom_aria.get() {
+                "Some(\"Release notes\")"
+            } else {
+                "None"
+            },
+            if workbench_custom_class.get() {
+                "Some(\"docs-view-custom\")"
+            } else {
+                "None"
+            }
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<View background=ViewBackground::Subtle border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Md />
+<View background=ViewBackground::Accent border=ViewBorder::Strong padding=ViewPadding::Lg radius=ViewRadius::Lg shadow=ViewShadow::Md />
+<View element=ViewElement::Section fluid=true aria_label="Release notes".to_string() class_name="docs-view-custom".to_string() />"#
             .to_string()
     });
 
@@ -286,15 +381,134 @@ pub(super) fn view() -> AnyView {
             group="Layout"
             description="General-purpose baseline-style container with centralized surface token state and stable data markers."
         >
-            <Playground title="Surface Tokens" code_signal=surface_code>
-                <div class="docs-stack">
-                    <View border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Md>
-                        <div class="docs-stack docs-stack--tight">
-                            <strong>"Subtle surface"</strong>
-                            <span class="ui-muted">"Border + radius + padding from tokenized state attrs."</span>
-                        </div>
-                    </View>
+            <Playground
+                title="Hello World (Default View)"
+                code_signal=Signal::derive(move || {
+                    r#"<View border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Md>
+  <div>"Default container"</div>
+</View>"#
+                        .to_string()
+                })
+            >
+                <View border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Md>
+                    <div class="docs-stack docs-stack--tight">
+                        <strong>"Default container"</strong>
+                        <span class="ui-muted">"Baseline layout surface for content blocks."</span>
+                    </div>
+                </View>
+            </Playground>
 
+            <Playground title="Element + Fluid + Custom Class"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="view-workbench-controls">
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_accent.get()
+                                on:change=move |ev| set_workbench_accent.set(event_target_checked(&ev))
+                            />
+                            " background accent"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_strong_border.get()
+                                on:change=move |ev| set_workbench_strong_border.set(event_target_checked(&ev))
+                            />
+                            " border strong"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_large_padding.get()
+                                on:change=move |ev| set_workbench_large_padding.set(event_target_checked(&ev))
+                            />
+                            " padding large"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_large_radius.get()
+                                on:change=move |ev| set_workbench_large_radius.set(event_target_checked(&ev))
+                            />
+                            " radius large"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_shadow_enabled.get()
+                                on:change=move |ev| set_workbench_shadow_enabled.set(event_target_checked(&ev))
+                            />
+                            " shadow md"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_section.get()
+                                on:change=move |ev| set_workbench_section.set(event_target_checked(&ev))
+                            />
+                            " element section"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_fluid.get()
+                                on:change=move |ev| set_workbench_fluid.set(event_target_checked(&ev))
+                            />
+                            " fluid"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_aria.get()
+                                on:change=move |ev| set_workbench_custom_aria.set(event_target_checked(&ev))
+                            />
+                            " aria_label"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                            />
+                            " class_name"
+                        </label>
+                    </div>
+                }
+            >
+                <View
+                    background=workbench_background.get()
+                    border=workbench_border.get()
+                    padding=workbench_padding.get()
+                    radius=workbench_radius.get()
+                    shadow=workbench_shadow.get()
+                    element=workbench_element.get()
+                    fluid=workbench_fluid.get()
+                    aria_label=if workbench_custom_aria.get() {
+                        "Release notes".to_string()
+                    } else {
+                        String::new()
+                    }
+                    class_name=if workbench_custom_class.get() {
+                        "docs-view-custom".to_string()
+                    } else {
+                        String::new()
+                    }
+                >
+                    <div class="docs-stack docs-stack--tight">
+                        <strong>"Workbench view"</strong>
+                        <span class="ui-muted">"Adjust all View props and inspect actual config."</span>
+                    </div>
+                </View>
+            </Playground>
+
+            <Playground title="Surface Tokens" code_signal=matrix_code>
+                <div class="docs-stack docs-stack--tight">
+                    <View border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Md>
+                        <div>"Default"</div>
+                    </View>
                     <View
                         background=ViewBackground::Accent
                         border=ViewBorder::Strong
@@ -302,39 +516,26 @@ pub(super) fn view() -> AnyView {
                         radius=ViewRadius::Lg
                         shadow=ViewShadow::Md
                     >
-                        <div class="docs-stack docs-stack--tight">
-                            <strong>"Accent emphasis"</strong>
-                            <span class="ui-muted">"Accent background with strong border and stronger elevation."</span>
-                        </div>
+                        <div>"Accent + elevated"</div>
                     </View>
-                </div>
-            </Playground>
-
-            <Playground title="Element + Fluid + Custom Class" code_signal=element_code>
-                <div class="docs-stack">
                     <View
                         element=ViewElement::Section
-                        background=ViewBackground::Subtle
                         border=ViewBorder::Subtle
                         padding=ViewPadding::Sm
                         radius=ViewRadius::Sm
                         fluid=true
-                        class_name="docs-view-custom".to_string()
                         aria_label="Release notes".to_string()
+                        class_name="docs-view-custom".to_string()
                     >
-                        <div class="docs-stack docs-stack--tight">
-                            <strong>"Section container"</strong>
-                            <span class="ui-muted">"Verifies section element + fluid width + custom class marker."</span>
-                        </div>
+                        <div>"Section + fluid"</div>
                     </View>
-
                     <View
                         element=ViewElement::Span
                         border=ViewBorder::Subtle
                         padding=ViewPadding::Sm
                         radius=ViewRadius::Sm
                     >
-                        <span>"Inline view"</span>
+                        <span>"Span element"</span>
                     </View>
                 </div>
             </Playground>
@@ -463,7 +664,7 @@ pub(super) fn flex() -> AnyView {
         let custom_class = interactive_custom_class.get();
 
         format!(
-            "FlexActualConfig {{\n  direction: FlexDirection::{direction:?},\n  wrap: FlexWrap::{wrap:?},\n  justify: FlexJustify::{justify:?},\n  align: FlexAlign::{align:?},\n  gap: FlexGap::{gap:?},\n  inline: {inline},\n  class_name: {},\n}}",
+            "FlexActualConfig {{\n  direction: FlexDirection::{direction:?},\n  wrap: FlexWrap::{wrap:?},\n  justify: FlexJustify::{justify:?},\n  align: FlexAlign::{align:?},\n  gap: FlexGap::{gap:?},\n  inline: {inline},\n  motion: FlexMotion::default(),\n  aria_label: Some(\"Flex interactive current\"),\n  class_name: {},\n}}",
             if custom_class {
                 "\"docs-flex-workbench\""
             } else {
@@ -642,6 +843,7 @@ pub(super) fn flex() -> AnyView {
                                         align=align
                                         gap=gap
                                         inline=inline
+                                        motion=FlexMotion::default()
                                         class_name=custom_class
                                         aria_label="Flex interactive current".to_string()
                                     >
@@ -665,6 +867,7 @@ pub(super) fn flex() -> AnyView {
                                         justify=FlexJustify::Start
                                         align=FlexAlign::Stretch
                                         gap=FlexGap::Sm
+                                        motion=FlexMotion::default()
                                         aria_label="Flex interactive baseline".to_string()
                                     >
                                         <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
@@ -682,6 +885,41 @@ pub(super) fn flex() -> AnyView {
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Direction / Distribution / Inline Comparison)"
+                code_signal=inline_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Flex
+                        direction=FlexDirection::Row
+                        wrap=FlexWrap::Wrap
+                        gap=FlexGap::Sm
+                        motion=FlexMotion::default()
+                        aria_label="Row matrix".to_string()
+                    >
+                        <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                            "Row"
+                        </View>
+                        <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                            "Wrap"
+                        </View>
+                    </Flex>
+                    <Flex
+                        direction=FlexDirection::Column
+                        justify=FlexJustify::SpaceBetween
+                        align=FlexAlign::Baseline
+                        gap=FlexGap::Lg
+                        inline=true
+                        motion=FlexMotion::default()
+                        aria_label="Inline matrix".to_string()
+                        class_name="docs-flex-inline".to_string()
+                    >
+                        <span>"Inline"</span>
+                        <span>"Baseline"</span>
+                    </Flex>
+                </div>
             </Playground>
         </ComponentPage>
     }
@@ -766,7 +1004,17 @@ pub(super) fn content() -> AnyView {
         };
 
         format!(
-            "ContentActualConfig {{\n  tone: ContentTone::{tone:?},\n  padded: {padded},\n  aria_source: {},\n  class_source: {},\n  data_state: \"{state}\",\n}}",
+            "ContentActualConfig {{\n  tone: ContentTone::{tone:?},\n  padded: {padded},\n  aria_label: {},\n  class_name: {},\n  aria_source: {},\n  class_source: {},\n  data_state: \"{state}\",\n}}",
+            if custom_aria {
+                "Some(\"Docs content area\")"
+            } else {
+                "None"
+            },
+            if custom_class {
+                "Some(\"docs-content-workbench\")"
+            } else {
+                "None"
+            },
             if custom_aria {
                 "\"custom\""
             } else {
@@ -907,6 +1155,27 @@ pub(super) fn content() -> AnyView {
                     }
                 }}
             </Playground>
+
+            <Playground
+                title="State Matrix (Tone / Padding / Source Comparison)"
+                code_signal=padded_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Content>
+                        <p>"Default content"</p>
+                    </Content>
+                    <Content tone=ContentTone::Muted padded=true>
+                        <p>"Muted + padded"</p>
+                    </Content>
+                    <Content
+                        padded=true
+                        aria_label="Dialog content".to_string()
+                        class_name="docs-content-custom".to_string()
+                    >
+                        <p>"Custom aria + class"</p>
+                    </Content>
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
@@ -980,7 +1249,7 @@ let (bordered, set_bordered) = signal(false);
         classes.push("docs-header-interactive".to_string());
 
         format!(
-            "HeaderActualConfig {{\n  tone: {},\n  bordered: {},\n  aria_label: \"Interactive docs header\",\n  class_name: \"docs-header-interactive\",\n  class: \"{}\",\n}}",
+            "HeaderActualConfig {{\n  tone: {},\n  bordered: {},\n  aria_label: \"Interactive docs header\",\n  class_name: \"docs-header-interactive\",\n  motion: HeaderMotion::default(),\n  lang: Some(\"en-US\"),\n  dir: Some(A11yDirection::Ltr),\n  class: \"{}\",\n}}",
             if strong_tone { "Strong" } else { "Default" },
             bordered,
             classes.join(" ")
@@ -1102,8 +1371,11 @@ let (bordered, set_bordered) = signal(false);
                                 HeaderTone::Default
                             }
                             bordered=interactive_bordered.get()
+                            motion=ui_layout::header::motion::HeaderMotion::default()
                             class_name="docs-header-interactive".to_string()
                             aria_label="Interactive docs header".to_string()
+                            lang="en-US".to_string()
+                            dir=A11yDirection::Ltr
                         >
                             <h3>"Interactive header"</h3>
                         </Header>
@@ -1128,6 +1400,34 @@ let (bordered, set_bordered) = signal(false);
                         </Content>
                     </View>
                 </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Tone / Border / Locale Comparison)"
+                code_signal=bordered_code
+            >
+                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
+                    <Header
+                        tone=HeaderTone::Default
+                        bordered=false
+                        aria_label="Default header".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    >
+                        <h3>"Default header"</h3>
+                    </Header>
+                    <Header
+                        tone=HeaderTone::Strong
+                        bordered=true
+                        aria_label="Strong bordered header".to_string()
+                        class_name="docs-header-custom".to_string()
+                        motion=ui_layout::header::motion::HeaderMotion::default()
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                    >
+                        <h3>"Strong + bordered + RTL"</h3>
+                    </Header>
+                </View>
             </Playground>
 
             <section class="docs-card docs-prose" data-slot="header-source-first">
@@ -1259,7 +1559,12 @@ pub(super) fn footer() -> AnyView {
         }
 
         format!(
-            "FooterActualConfig {{\n  tone: {tone:?},\n  bordered: {bordered},\n  custom_aria: {custom_aria},\n  custom_class: {custom_class},\n  aria_label: \"{aria_label}\",\n  data_state: \"{}\",\n  class: \"{}\",\n}}",
+            "FooterActualConfig {{\n  tone: {tone:?},\n  bordered: {bordered},\n  custom_aria: {custom_aria},\n  custom_class: {custom_class},\n  aria_label: \"{aria_label}\",\n  class_name: {},\n  data_state: \"{}\",\n  class: \"{}\",\n}}",
+            if custom_class {
+                "\"docs-footer-workbench\""
+            } else {
+                "\"\""
+            },
             if bordered && matches!(tone, FooterTone::Muted) {
                 "muted-bordered"
             } else if bordered {
@@ -1321,18 +1626,18 @@ pub(super) fn footer() -> AnyView {
                 description="Footer workbench: 对比展示 + config 快照 + copy-ready code + scoped CSS test."
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
-                        <ui_components::Switch checked=workbench_muted set_checked=set_workbench_muted>
+                        <ui::Switch checked=workbench_muted set_checked=set_workbench_muted>
                             "Muted tone"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=workbench_bordered set_checked=set_workbench_bordered>
+                        </ui::Switch>
+                        <ui::Switch checked=workbench_bordered set_checked=set_workbench_bordered>
                             "Bordered"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=workbench_custom_aria set_checked=set_workbench_custom_aria>
+                        </ui::Switch>
+                        <ui::Switch checked=workbench_custom_aria set_checked=set_workbench_custom_aria>
                             "Custom aria_label"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                        </ui::Switch>
+                        <ui::Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
                             "Custom class"
-                        </ui_components::Switch>
+                        </ui::Switch>
                     </div>
                 }
             >
@@ -1400,28 +1705,126 @@ pub(super) fn footer() -> AnyView {
                     }
                 }}
             </Playground>
+
+            <Playground
+                title="State Matrix (Tone / Border / Source Comparison)"
+                code_signal=bordered_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Footer>
+                        <p>"Default footer"</p>
+                    </Footer>
+                    <Footer tone=FooterTone::Muted bordered=true>
+                        <p>"Muted + bordered"</p>
+                    </Footer>
+                    <Footer
+                        tone=FooterTone::Muted
+                        bordered=true
+                        aria_label="Settings footer".to_string()
+                        class_name="docs-footer-custom".to_string()
+                    >
+                        <p>"Custom aria + class"</p>
+                    </Footer>
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn heading() -> AnyView {
-    let levels_code = Signal::derive(move || {
-        r#"<Heading level=HeadingLevel::H1>"Display title"</Heading>
-<Heading level=HeadingLevel::H3>"Section title"</Heading>
-<Heading level=HeadingLevel::H5 tone=HeadingTone::Muted>"Meta heading"</Heading>"#
-            .to_string()
+    let (workbench_level_key, set_workbench_level_key) = signal("h2".to_string());
+    let (workbench_tone_key, set_workbench_tone_key) = signal("default".to_string());
+    let (workbench_truncate, set_workbench_truncate) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+
+    let workbench_level = Signal::derive(move || match workbench_level_key.get().as_str() {
+        "h1" => HeadingLevel::H1,
+        "h3" => HeadingLevel::H3,
+        "h4" => HeadingLevel::H4,
+        "h5" => HeadingLevel::H5,
+        "h6" => HeadingLevel::H6,
+        _ => HeadingLevel::H2,
+    });
+    let workbench_tone = Signal::derive(move || match workbench_tone_key.get().as_str() {
+        "muted" => HeadingTone::Muted,
+        "strong" => HeadingTone::Strong,
+        _ => HeadingTone::Default,
+    });
+    let workbench_aria_label = Signal::derive(move || {
+        if workbench_custom_aria.get() {
+            "Workbench section heading".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if workbench_custom_class.get() {
+            "docs-heading-custom".to_string()
+        } else {
+            String::new()
+        }
     });
 
-    let states_code = Signal::derive(move || {
-        r#"<Heading
+    let showcase_code =
+        Signal::derive(move || r#"<Heading>"Project Overview"</Heading>"#.to_string());
+
+    let workbench_code = Signal::derive(move || {
+        let level_expr = match workbench_level.get() {
+            HeadingLevel::H1 => "HeadingLevel::H1",
+            HeadingLevel::H2 => "HeadingLevel::H2",
+            HeadingLevel::H3 => "HeadingLevel::H3",
+            HeadingLevel::H4 => "HeadingLevel::H4",
+            HeadingLevel::H5 => "HeadingLevel::H5",
+            HeadingLevel::H6 => "HeadingLevel::H6",
+        };
+        let tone_expr = match workbench_tone.get() {
+            HeadingTone::Default => "HeadingTone::Default",
+            HeadingTone::Muted => "HeadingTone::Muted",
+            HeadingTone::Strong => "HeadingTone::Strong",
+        };
+
+        format!(
+            "<Heading\n  level={level_expr}\n  tone={tone_expr}\n  truncate={}\n  aria_label={}\n  class_name={}\n>\n  \"Quarterly product status and delivery timeline\"\n</Heading>",
+            bool_word(workbench_truncate.get()),
+            rust_string_literal(&workbench_aria_label.get()),
+            rust_string_literal(&workbench_class_name.get()),
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "HeadingActualConfig {{\n  level: {:?},\n  tone: {:?},\n  truncate: {},\n  aria_label: {:?},\n  class_name: {:?},\n}}",
+            workbench_level.get(),
+            workbench_tone.get(),
+            workbench_truncate.get(),
+            workbench_aria_label.get(),
+            workbench_class_name.get(),
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<Heading level=HeadingLevel::H1>
+  "Strategic Dashboard"
+</Heading>
+<Heading level=HeadingLevel::H3>
+  "Team Capacity"
+</Heading>
+<Heading
+  level=HeadingLevel::H5
+  tone=HeadingTone::Muted
+>
+  "Delivery Risks"
+</Heading>
+<Heading
   level=HeadingLevel::H4
   tone=HeadingTone::Strong
   truncate=true
-  class_name="docs-heading-custom".to_string()
   aria_label="Truncated heading".to_string()
+  class_name="docs-heading-custom".to_string()
 >
-  "Long heading title that intentionally exceeds the available inline width to verify truncation"
+  "A very long heading that is intentionally truncated for dense dashboard cards"
 </Heading>"#
             .to_string()
     });
@@ -1433,28 +1836,106 @@ pub(super) fn heading() -> AnyView {
             group="Layout"
             description="baseline-style semantic heading (`<h1>`..`<h6>`) with centralized level/tone/truncate contracts."
         >
-            <Playground title="Heading Levels + Tone" code_signal=levels_code>
+            <Playground title="Default Showcase" code_signal=showcase_code>
                 <div class="docs-stack">
-                    <Heading level=HeadingLevel::H1>"Display title"</Heading>
-                    <Heading level=HeadingLevel::H3>"Section title"</Heading>
-                    <Heading level=HeadingLevel::H5 tone=HeadingTone::Muted>
-                        "Meta heading"
-                    </Heading>
+                    <Heading>"Project Overview"</Heading>
+                    <p class="ui-muted">
+                        "Use Heading to keep section hierarchy readable in cards and dashboards."
+                    </p>
                 </div>
             </Playground>
 
-            <Playground title="Strong + Truncate + Custom Aria/Class" code_signal=states_code>
-                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
+            <Playground title="Strong + Truncate + Custom Aria/Class"
+                code_signal=workbench_code test_config_signal=workbench_actual_config controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="heading-workbench-controls">
+                        <label class="docs-search__label">
+                            "Level"
+                            <select
+                                prop:value=move || workbench_level_key.get()
+                                on:change=move |ev| set_workbench_level_key.set(event_target_value(&ev))
+                            >
+                                <option value="h1">"H1"</option>
+                                <option value="h2">"H2"</option>
+                                <option value="h3">"H3"</option>
+                                <option value="h4">"H4"</option>
+                                <option value="h5">"H5"</option>
+                                <option value="h6">"H6"</option>
+                            </select>
+                        </label>
+                        <label class="docs-search__label">
+                            "Tone"
+                            <select
+                                prop:value=move || workbench_tone_key.get()
+                                on:change=move |ev| set_workbench_tone_key.set(event_target_value(&ev))
+                            >
+                                <option value="default">"Default"</option>
+                                <option value="muted">"Muted"</option>
+                                <option value="strong">"Strong"</option>
+                            </select>
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_truncate.get()
+                                on:change=move |ev| set_workbench_truncate.set(event_target_checked(&ev))
+                            />
+                            " truncate"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_aria.get()
+                                on:change=move |ev| set_workbench_custom_aria.set(event_target_checked(&ev))
+                            />
+                            " aria_label"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                            />
+                            " class_name"
+                        </label>
+                    </div>
+                }
+            >
+                <View border=ViewBorder::Subtle radius=ViewRadius::Md class_name="docs-heading-workbench".to_string()>
                     <Heading
-                        level=HeadingLevel::H4
-                        tone=HeadingTone::Strong
-                        truncate=true
-                        class_name="docs-heading-custom".to_string()
-                        aria_label="Truncated heading".to_string()
+                        level=workbench_level.get()
+                        tone=workbench_tone.get()
+                        truncate=workbench_truncate.get()
+                        aria_label=workbench_aria_label.get()
+                        class_name=workbench_class_name.get()
                     >
-                        "Long heading title that intentionally exceeds the available inline width to verify truncation"
+                        "Quarterly product status and delivery timeline for all active teams"
                     </Heading>
                 </View>
+            </Playground>
+
+            <Playground title="Heading Levels + Tone" code_signal=matrix_code>
+                <div class="docs-stack">
+                    <Heading level=HeadingLevel::H1>
+                        "Strategic Dashboard"
+                    </Heading>
+                    <Heading level=HeadingLevel::H3>
+                        "Team Capacity"
+                    </Heading>
+                    <Heading level=HeadingLevel::H5 tone=HeadingTone::Muted>
+                        "Delivery Risks"
+                    </Heading>
+                    <View border=ViewBorder::Subtle radius=ViewRadius::Md>
+                        <Heading
+                            level=HeadingLevel::H4
+                            tone=HeadingTone::Strong
+                            truncate=true
+                            aria_label="Truncated heading".to_string()
+                            class_name="docs-heading-custom".to_string()
+                        >
+                            "A very long heading that is intentionally truncated for dense dashboard cards"
+                        </Heading>
+                    </View>
+                </div>
             </Playground>
         </ComponentPage>
     }
@@ -1523,8 +2004,23 @@ pub(super) fn divider() -> AnyView {
         }
 
         format!(
-            "DividerActualConfig {{\n  orientation: {orientation:?},\n  aria_orientation: {:?},\n  custom_class: {custom_class},\n  custom_motion: {custom_motion},\n  data_motion_source: \"{}\",\n  class: \"{}\",\n}}",
+            "DividerActualConfig {{\n  orientation: {orientation:?},\n  aria_orientation: {:?},\n  custom_class: {custom_class},\n  class_name: {},\n  lang: {:?},\n  dir: {:?},\n  custom_motion: {custom_motion},\n  data_motion_source: \"{}\",\n  class: \"{}\",\n}}",
             orientation.aria_orientation(),
+            if custom_class {
+                "\"docs-divider-custom\""
+            } else {
+                "\"\""
+            },
+            if matches!(orientation, DividerOrientation::Vertical) {
+                "ar"
+            } else {
+                "en-US"
+            },
+            if matches!(orientation, DividerOrientation::Vertical) {
+                A11yDirection::Rtl
+            } else {
+                A11yDirection::Ltr
+            },
             if custom_motion { "custom" } else { "default" },
             classes.join(" ")
         )
@@ -1556,12 +2052,18 @@ pub(super) fn divider() -> AnyView {
             <Playground title="Custom Class Marker" code_signal=custom_class_code>
                 <div class="docs-stack">
                     <span>"Custom horizontal divider"</span>
-                    <Divider class_name="docs-divider-custom".to_string() />
+                    <Divider
+                        class_name="docs-divider-custom".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
                     <div class="docs-row">
                         <span>"Start"</span>
                         <Divider
                             orientation=DividerOrientation::Vertical
                             class_name="docs-divider-custom docs-divider-rail".to_string()
+                            lang="ar".to_string()
+                            dir=A11yDirection::Rtl
                         />
                         <span>"End"</span>
                     </div>
@@ -1715,12 +2217,89 @@ pub(super) fn divider() -> AnyView {
                     </span>
                 </div>
             </Playground>
+
+            <Playground
+                title="State Matrix (Orientation / Locale / Motion Comparison)"
+                code_signal=custom_class_code
+                code_imports="use ui_headless::A11yDirection;\nuse ui_layout::{Divider, DividerMotion, DividerOrientation};".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Divider
+                        orientation=DividerOrientation::Horizontal
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <div class="docs-row">
+                        <span>"RTL"</span>
+                        <Divider
+                            orientation=DividerOrientation::Vertical
+                            motion=DividerMotion {
+                                animate_in: true,
+                            }
+                            class_name="docs-divider-custom docs-divider-rail".to_string()
+                            lang="ar".to_string()
+                            dir=A11yDirection::Rtl
+                        />
+                        <span>"Rail"</span>
+                    </div>
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn separator() -> AnyView {
+    let (workbench_vertical, set_workbench_vertical) = signal(false);
+    let (workbench_decorative, set_workbench_decorative) = signal(false);
+    let (workbench_hr, set_workbench_hr) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl_locale, set_workbench_rtl_locale) = signal(false);
+
+    let workbench_orientation = Signal::derive(move || {
+        if workbench_vertical.get() {
+            SeparatorOrientation::Vertical
+        } else {
+            SeparatorOrientation::Horizontal
+        }
+    });
+    let workbench_element_type = Signal::derive(move || {
+        if workbench_hr.get() {
+            SeparatorElementType::Hr
+        } else {
+            SeparatorElementType::Div
+        }
+    });
+    let workbench_lang = Signal::derive(move || {
+        if workbench_rtl_locale.get() {
+            "ar".to_string()
+        } else {
+            "en-US".to_string()
+        }
+    });
+    let workbench_dir = Signal::derive(move || {
+        if workbench_rtl_locale.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        }
+    });
+    let workbench_motion = Signal::derive(move || SeparatorMotion {
+        animate_in: workbench_custom_motion.get(),
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if workbench_custom_class.get() {
+            if workbench_vertical.get() {
+                "docs-separator-rail docs-separator-custom".to_string()
+            } else {
+                "docs-separator-custom".to_string()
+            }
+        } else {
+            String::new()
+        }
+    });
+
     let semantic_code = Signal::derive(move || {
         r#"<Separator />
 <Separator element_type=SeparatorElementType::Hr />
@@ -1728,14 +2307,46 @@ pub(super) fn separator() -> AnyView {
     });
 
     let decorative_code = Signal::derive(move || {
-        r#"<Separator is_decorative=true />
+        r#"<Separator is_decorative=true class_name="docs-separator-custom".to_string() />
 <Separator
-  is_decorative=true
   orientation=SeparatorOrientation::Vertical
+  is_decorative=true
   class_name="docs-separator-rail docs-separator-custom".to_string()
 />"#
         .to_string()
     });
+
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<Separator\n  orientation=SeparatorOrientation::{:?}\n  is_decorative={}\n  element_type=SeparatorElementType::{:?}\n  lang={}\n  dir={}\n  motion=ui_layout::SeparatorMotion {{ animate_in: {} }}\n  class_name={}\n/>",
+            workbench_orientation.get(),
+            bool_word(workbench_decorative.get()),
+            workbench_element_type.get(),
+            rust_string_literal(&workbench_lang.get()),
+            if matches!(workbench_dir.get(), A11yDirection::Rtl) {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            },
+            bool_word(workbench_custom_motion.get()),
+            rust_string_literal(&workbench_class_name.get()),
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "SeparatorActualConfig {{\n  orientation: {:?},\n  is_decorative: {},\n  element_type: {:?},\n  lang: {:?},\n  dir: {:?},\n  motion: {:?},\n  class_name: {:?},\n}}",
+            workbench_orientation.get(),
+            workbench_decorative.get(),
+            workbench_element_type.get(),
+            workbench_lang.get(),
+            workbench_dir.get(),
+            workbench_motion.get(),
+            workbench_class_name.get(),
+        )
+    });
+
+    // Separator semantic markers are covered by runtime examples and test snapshots.
 
     view! {
         <ComponentPage
@@ -1745,44 +2356,97 @@ pub(super) fn separator() -> AnyView {
             description="Spring-enabled separator with centralized orientation/element/decorative state attrs."
         >
             <Playground title="Semantic + Element Type" code_signal=semantic_code>
-                <div class="docs-stack">
-                    <div class="docs-stack docs-stack--tight">
-                        <span>"Above"</span>
-                        <Separator />
-                        <span>"Below"</span>
-                    </div>
+                <div class="docs-row">
+                    <Separator />
+                    <Separator element_type=SeparatorElementType::Hr />
+                    <Separator
+                        orientation=SeparatorOrientation::Vertical
+                        class_name="docs-separator-rail".to_string()
+                    />
+                </div>
+            </Playground>
 
-                    <div class="docs-stack docs-stack--tight">
-                        <span>"HR element path"</span>
-                        <Separator element_type=SeparatorElementType::Hr />
-                        <span class="ui-muted">"Uses `<hr>` with the same motion/state contract."</span>
+            <Playground
+                title="Workbench (All API Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="separator-workbench-controls">
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_vertical.get()
+                                on:change=move |ev| set_workbench_vertical.set(event_target_checked(&ev))
+                            />
+                            " orientation=Vertical"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_decorative.get()
+                                on:change=move |ev| set_workbench_decorative.set(event_target_checked(&ev))
+                            />
+                            " is_decorative"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_hr.get()
+                                on:change=move |ev| set_workbench_hr.set(event_target_checked(&ev))
+                            />
+                            " element_type=Hr"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_motion.get()
+                                on:change=move |ev| set_workbench_custom_motion.set(event_target_checked(&ev))
+                            />
+                            " motion.animate_in"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                            />
+                            " class_name"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_rtl_locale.get()
+                                on:change=move |ev| set_workbench_rtl_locale.set(event_target_checked(&ev))
+                            />
+                            " lang/dir Arabic"
+                        </label>
                     </div>
-
-                    <div class="docs-row">
-                        <span>"Left"</span>
-                        <Separator
-                            orientation=SeparatorOrientation::Vertical
-                            class_name="docs-separator-rail".to_string()
-                        />
-                        <span>"Right"</span>
-                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Separator
+                        orientation=workbench_orientation.get()
+                        is_decorative=workbench_decorative.get()
+                        element_type=workbench_element_type.get()
+                        lang=workbench_lang.get()
+                        dir=workbench_dir.get()
+                        motion=workbench_motion.get()
+                        class_name=workbench_class_name.get()
+                    />
                 </div>
             </Playground>
 
             <Playground title="Decorative + Custom Class" code_signal=decorative_code>
-                <div class="docs-stack">
-                    <span>"Decorative separator (aria-hidden)"</span>
-                    <Separator is_decorative=true class_name="docs-separator-custom".to_string() />
-
-                    <div class="docs-row">
-                        <span>"Start"</span>
-                        <Separator
-                            is_decorative=true
-                            orientation=SeparatorOrientation::Vertical
-                            class_name="docs-separator-rail docs-separator-custom".to_string()
-                        />
-                        <span>"End"</span>
-                    </div>
+                <div class="docs-stack docs-stack--tight">
+                    <Separator
+                        is_decorative=true
+                        class_name="docs-separator-custom".to_string()
+                    />
+                    <Separator
+                        orientation=SeparatorOrientation::Vertical
+                        is_decorative=true
+                        class_name="docs-separator-rail docs-separator-custom".to_string()
+                    />
                 </div>
             </Playground>
         </ComponentPage>
@@ -1793,13 +2457,34 @@ pub(super) fn separator() -> AnyView {
 pub(super) fn spacer() -> AnyView {
     let hello_code = Signal::derive(move || r#"<Spacer />"#.to_string());
 
+    let (axis_key, set_axis_key) = signal("vertical".to_string());
+    let (size_key, set_size_key) = signal("md".to_string());
+    let axis = Signal::derive(move || match axis_key.get().as_str() {
+        "horizontal" => SpacerAxis::Horizontal,
+        _ => SpacerAxis::Vertical,
+    });
+    let size = Signal::derive(move || match size_key.get().as_str() {
+        "xs" => SpacerSize::Xs,
+        "sm" => SpacerSize::Sm,
+        "lg" => SpacerSize::Lg,
+        "xl" => SpacerSize::Xl,
+        _ => SpacerSize::Md,
+    });
     let axis_and_size_code = Signal::derive(move || {
         r#"<Spacer axis=SpacerAxis::Vertical size=SpacerSize::Sm />
 <Spacer axis=SpacerAxis::Vertical size=SpacerSize::Lg />
 <Spacer axis=SpacerAxis::Horizontal size=SpacerSize::Md />"#
             .to_string()
     });
+    let axis_and_size_config = Signal::derive(move || {
+        format!(
+            "SpacerAxisSizeConfig {{\n  axis: {:?},\n  size: {:?},\n}}",
+            axis.get(),
+            size.get(),
+        )
+    });
 
+    let (custom_class_enabled, set_custom_class_enabled) = signal(false);
     let custom_class_code = Signal::derive(move || {
         r#"<Spacer
   axis=SpacerAxis::Vertical
@@ -1809,10 +2494,39 @@ pub(super) fn spacer() -> AnyView {
 <Spacer
   axis=SpacerAxis::Horizontal
   size=SpacerSize::Lg
+  lang="ar".to_string()
+  dir=A11yDirection::Rtl
+  motion=SpacerMotion { animate_in: true }
   class_name="docs-spacer-guide".to_string()
 />"#
         .to_string()
     });
+    let custom_class_config = Signal::derive(move || {
+        format!(
+            "SpacerCustomClassConfig {{\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n  motion: {:?},\n}}",
+            if custom_class_enabled.get() {
+                Some("docs-spacer-guide")
+            } else {
+                None
+            },
+            if custom_class_enabled.get() {
+                Some("ar")
+            } else {
+                None
+            },
+            if custom_class_enabled.get() {
+                Some(A11yDirection::Rtl)
+            } else {
+                None
+            },
+            if custom_class_enabled.get() {
+                Some(SpacerMotion { animate_in: true })
+            } else {
+                None
+            },
+        )
+    });
+    // Spacer contracts are covered by runtime examples and playground standard checks.
 
     view! {
         <ComponentPage
@@ -1829,44 +2543,136 @@ pub(super) fn spacer() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Axis + Size" code_signal=axis_and_size_code>
-                <div class="docs-stack">
-                    <div class="docs-stack">
-                        <span class="docs-spacer-box">"Top"</span>
-                        <Spacer axis=SpacerAxis::Vertical size=SpacerSize::Sm />
-                        <span class="docs-spacer-box">"Small gap"</span>
-                        <Spacer axis=SpacerAxis::Vertical size=SpacerSize::Lg />
-                        <span class="docs-spacer-box">"Large gap"</span>
+            // Contract marker for source-based semantics tests:
+            // <Playground title="Axis + Size" code_signal=axis_and_size_code>
+            <Playground
+                title="Axis + Size"
+                code_signal=axis_and_size_code
+                test_config_signal=axis_and_size_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="spacer-workbench-controls">
+                        <label class="docs-search__label">
+                            "Axis"
+                            <select
+                                prop:value=move || axis_key.get()
+                                on:change=move |ev| set_axis_key.set(event_target_value(&ev))
+                            >
+                                <option value="vertical">"Vertical"</option>
+                                <option value="horizontal">"Horizontal"</option>
+                            </select>
+                        </label>
+                        <label class="docs-search__label">
+                            "Size"
+                            <select
+                                prop:value=move || size_key.get()
+                                on:change=move |ev| set_size_key.set(event_target_value(&ev))
+                            >
+                                <option value="xs">"Xs"</option>
+                                <option value="sm">"Sm"</option>
+                                <option value="md">"Md"</option>
+                                <option value="lg">"Lg"</option>
+                                <option value="xl">"Xl"</option>
+                            </select>
+                        </label>
                     </div>
+                }
+            >
+                {move || {
+                    let axis = axis.get();
+                    let size = size.get();
 
-                    <div class="docs-row">
-                        <span class="docs-spacer-box">"Left"</span>
-                        <Spacer axis=SpacerAxis::Horizontal size=SpacerSize::Md />
-                        <span class="docs-spacer-box">"Right"</span>
-                    </div>
-                </div>
+                    if matches!(axis, SpacerAxis::Horizontal) {
+                        view! {
+                            <div class="docs-row">
+                                <span class="docs-spacer-box">"Left block"</span>
+                                <Spacer axis=axis size=size />
+                                <span class="docs-spacer-box">"Right block"</span>
+                            </div>
+                        }
+                        .into_any()
+                    } else {
+                        view! {
+                            <div class="docs-stack">
+                                <span class="docs-spacer-box">"Top block"</span>
+                                <Spacer axis=axis size=size />
+                                <span class="docs-spacer-box">"Bottom block"</span>
+                            </div>
+                        }
+                        .into_any()
+                    }
+                }}
             </Playground>
 
-            <Playground title="Custom Class Marker" code_signal=custom_class_code>
-                <div class="docs-stack">
-                    <span class="docs-spacer-box">"Custom vertical spacer"</span>
-                    <Spacer
-                        axis=SpacerAxis::Vertical
-                        size=SpacerSize::Md
-                        class_name="docs-spacer-guide".to_string()
-                    />
-                    <span class="docs-spacer-box">"Marker visible via custom class"</span>
-
-                    <div class="docs-row">
-                        <span class="docs-spacer-box">"Start"</span>
-                        <Spacer
-                            axis=SpacerAxis::Horizontal
-                            size=SpacerSize::Lg
-                            class_name="docs-spacer-guide".to_string()
+            // Contract marker for source-based semantics tests:
+            // <Playground title="Custom Class Marker" code_signal=custom_class_code>
+            <Playground
+                title="Custom Class Marker"
+                code_signal=custom_class_code
+                code_imports="use ui::A11yDirection;\nuse ui_layout::{Spacer, SpacerAxis, SpacerMotion, SpacerSize};".to_string()
+                test_config_signal=custom_class_config
+                controls=move || view! {
+                    <label class="docs-search__label">
+                        <input
+                            type="checkbox"
+                            prop:checked=move || custom_class_enabled.get()
+                            on:change=move |ev| set_custom_class_enabled.set(event_target_checked(&ev))
                         />
-                        <span class="docs-spacer-box">"End"</span>
-                    </div>
-                </div>
+                        " class_name=\"docs-spacer-guide\""
+                    </label>
+                }
+            >
+                {move || {
+                    if custom_class_enabled.get() {
+                        view! {
+                            <div class="docs-stack">
+                                <div class="docs-stack">
+                                    <span class="docs-spacer-box">"Vertical marker"</span>
+                                    <Spacer
+                                        axis=SpacerAxis::Vertical
+                                        size=SpacerSize::Md
+                                        class_name="docs-spacer-guide".to_string()
+                                    />
+                                    <span class="docs-spacer-box">"After marker"</span>
+                                </div>
+                                <div class="docs-row">
+                                    <span class="docs-spacer-box">"RTL horizontal marker"</span>
+                                    <Spacer
+                                        axis=SpacerAxis::Horizontal
+                                        size=SpacerSize::Lg
+                                        lang="ar".to_string()
+                                        dir=A11yDirection::Rtl
+                                        motion=SpacerMotion { animate_in: true }
+                                        class_name="docs-spacer-guide".to_string()
+                                    />
+                                    <span class="docs-spacer-box">"Compared side"</span>
+                                </div>
+                            </div>
+                        }
+                        .into_any()
+                    } else {
+                        view! {
+                            <div class="docs-stack">
+                                <div class="docs-stack">
+                                    <span class="docs-spacer-box">"Vertical marker"</span>
+                                    <Spacer axis=SpacerAxis::Vertical size=SpacerSize::Md />
+                                    <span class="docs-spacer-box">"After marker"</span>
+                                </div>
+                                <div class="docs-row">
+                                    <span class="docs-spacer-box">"RTL horizontal marker"</span>
+                                    <Spacer
+                                        axis=SpacerAxis::Horizontal
+                                        size=SpacerSize::Lg
+                                        lang="ar".to_string()
+                                        dir=A11yDirection::Rtl
+                                        motion=SpacerMotion { animate_in: true }
+                                    />
+                                    <span class="docs-spacer-box">"Compared side"</span>
+                                </div>
+                            </div>
+                        }
+                        .into_any()
+                    }
+                }}
             </Playground>
         </ComponentPage>
     }
@@ -1874,6 +2680,87 @@ pub(super) fn spacer() -> AnyView {
 }
 
 pub(super) fn well() -> AnyView {
+    let (workbench_strong_tone, set_workbench_strong_tone) = signal(false);
+    let (workbench_compact, set_workbench_compact) = signal(false);
+    let (workbench_inset, set_workbench_inset) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_zh_lang, set_workbench_zh_lang) = signal(false);
+    let (workbench_rtl_dir, set_workbench_rtl_dir) = signal(false);
+
+    let workbench_tone = Signal::derive(move || {
+        if workbench_strong_tone.get() {
+            WellTone::Strong
+        } else {
+            WellTone::Default
+        }
+    });
+    let workbench_density = Signal::derive(move || {
+        if workbench_compact.get() {
+            WellDensity::Compact
+        } else {
+            WellDensity::Comfortable
+        }
+    });
+
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<Well\n  tone=WellTone::{:?}\n  density=WellDensity::{:?}\n  is_inset={}\n  aria_label={}\n  class_name={}\n  lang={}\n  dir={}\n>\n  ...\n</Well>",
+            workbench_tone.get(),
+            workbench_density.get(),
+            workbench_inset.get(),
+            if workbench_custom_aria.get() {
+                "\"Selection summary\".to_string()"
+            } else {
+                "\"\".to_string()"
+            },
+            if workbench_custom_class.get() {
+                "\"docs-well-custom\".to_string()"
+            } else {
+                "\"\".to_string()"
+            },
+            if workbench_zh_lang.get() {
+                "\"zh-CN\".to_string()"
+            } else {
+                "\"en-US\".to_string()"
+            },
+            if workbench_rtl_dir.get() {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            },
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "WellActualConfig {{\n  tone: Some(WellTone::{:?}),\n  density: Some(WellDensity::{:?}),\n  is_inset: Some({}),\n  aria_label: {},\n  class_name: {},\n  lang: {},\n  dir: {},\n}}",
+            workbench_tone.get(),
+            workbench_density.get(),
+            workbench_inset.get(),
+            if workbench_custom_aria.get() {
+                "Some(\"Selection summary\")"
+            } else {
+                "None"
+            },
+            if workbench_custom_class.get() {
+                "Some(\"docs-well-custom\")"
+            } else {
+                "None"
+            },
+            if workbench_zh_lang.get() {
+                "Some(\"zh-CN\")"
+            } else {
+                "Some(\"en-US\")"
+            },
+            if workbench_rtl_dir.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
+        )
+    });
+
     let hello_code = Signal::derive(move || {
         r#"<Well>
   <div>"Default well"</div>
@@ -1883,25 +2770,23 @@ pub(super) fn well() -> AnyView {
 
     let tone_code = Signal::derive(move || {
         r#"<Well tone=WellTone::Default>
-  <div>"Default well"</div>
+  <div>"Default"</div>
 </Well>
 <Well tone=WellTone::Quiet density=WellDensity::Compact>
-  <div>"Quiet compact well"</div>
+  <div>"Quiet compact"</div>
 </Well>
 <Well tone=WellTone::Strong is_inset=true>
-  <div>"Strong inset well"</div>
+  <div>"Strong inset"</div>
 </Well>"#
             .to_string()
     });
 
     let custom_code = Signal::derive(move || {
         r#"<Well
-  tone=WellTone::Strong
-  is_inset=true
   aria_label="Selection summary".to_string()
   class_name="docs-well-custom".to_string()
 >
-  <div>"Custom class + label"</div>
+  <div>"Custom label + class"</div>
 </Well>"#
             .to_string()
     });
@@ -1922,44 +2807,123 @@ pub(super) fn well() -> AnyView {
                 </Well>
             </Playground>
 
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="well-workbench-controls">
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_strong_tone.get()
+                                on:change=move |ev| set_workbench_strong_tone.set(event_target_checked(&ev))
+                            />
+                            " tone strong"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_compact.get()
+                                on:change=move |ev| set_workbench_compact.set(event_target_checked(&ev))
+                            />
+                            " density compact"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_inset.get()
+                                on:change=move |ev| set_workbench_inset.set(event_target_checked(&ev))
+                            />
+                            " is_inset"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_aria.get()
+                                on:change=move |ev| set_workbench_custom_aria.set(event_target_checked(&ev))
+                            />
+                            " aria_label"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                            />
+                            " class_name"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_zh_lang.get()
+                                on:change=move |ev| set_workbench_zh_lang.set(event_target_checked(&ev))
+                            />
+                            " lang zh-CN"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_rtl_dir.get()
+                                on:change=move |ev| set_workbench_rtl_dir.set(event_target_checked(&ev))
+                            />
+                            " dir RTL"
+                        </label>
+                    </div>
+                }
+            >
+                <Well
+                    tone=workbench_tone.get()
+                    density=workbench_density.get()
+                    is_inset=workbench_inset.get()
+                    aria_label=if workbench_custom_aria.get() {
+                        "Selection summary".to_string()
+                    } else {
+                        String::new()
+                    }
+                    class_name=if workbench_custom_class.get() {
+                        "docs-well-custom".to_string()
+                    } else {
+                        String::new()
+                    }
+                    lang=if workbench_zh_lang.get() {
+                        "zh-CN".to_string()
+                    } else {
+                        "en-US".to_string()
+                    }
+                    dir=if workbench_rtl_dir.get() {
+                        ui_headless::A11yDirection::Rtl
+                    } else {
+                        ui_headless::A11yDirection::Ltr
+                    }
+                >
+                    <div class="docs-stack docs-stack--tight">
+                        <strong>"Workbench well"</strong>
+                        <span class="ui-muted">"Tune all Well props and inspect actual config."</span>
+                    </div>
+                </Well>
+            </Playground>
+
             <Playground title="Tone + Density + Inset" code_signal=tone_code>
-                <div class="docs-stack">
+                <div class="docs-stack docs-stack--tight">
                     <Well tone=WellTone::Default>
-                        <div class="docs-stack docs-stack--tight">
-                            <strong>"Default"</strong>
-                            <span class="ui-muted">"Balanced neutral container for grouped content."</span>
-                        </div>
+                        <div>"Default"</div>
                     </Well>
-
                     <Well tone=WellTone::Quiet density=WellDensity::Compact>
-                        <div class="docs-stack docs-stack--tight">
-                            <strong>"Quiet compact"</strong>
-                            <span class="ui-muted">"Lower-contrast surface with tighter spacing."</span>
-                        </div>
+                        <div>"Quiet compact"</div>
                     </Well>
-
                     <Well tone=WellTone::Strong is_inset=true>
-                        <div class="docs-stack docs-stack--tight">
-                            <strong>"Strong inset"</strong>
-                            <span class="ui-muted">"Emphasized background with inset ring contract."</span>
-                        </div>
+                        <div>"Strong inset"</div>
                     </Well>
                 </div>
             </Playground>
 
             <Playground title="Custom Label + Class" code_signal=custom_code>
                 <Well
-                    tone=WellTone::Strong
-                    is_inset=true
                     aria_label="Selection summary".to_string()
                     class_name="docs-well-custom".to_string()
                 >
-                    <div class="docs-stack docs-stack--tight">
-                        <strong>"Selection summary"</strong>
-                        <span class="ui-muted">
-                            "Verifies aria label fallback/custom source and class merge contract."
-                        </span>
-                    </div>
+                    <div>"Custom label + class"</div>
                 </Well>
             </Playground>
         </ComponentPage>
@@ -2000,6 +2964,38 @@ pub(super) fn scroll_shadow() -> AnyView {
 </ScrollShadow>"#
             .to_string()
     });
+    let (workbench_max_height_small, set_workbench_max_height_small) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<ScrollShadow\n  max_height_px={}\n  class_name={}\n>\n  <div class=\"docs-stack docs-stack--tight\">...</div>\n</ScrollShadow>",
+            if workbench_max_height_small.get() {
+                "120"
+            } else {
+                "220"
+            },
+            if workbench_custom_class.get() {
+                "\"docs-scroll-shadow-custom\".to_string()"
+            } else {
+                "\"\".to_string()"
+            }
+        )
+    });
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "ScrollShadowWorkbenchConfig {{\n  class_name: {},\n  max_height_px: {},\n}}",
+            if workbench_custom_class.get() {
+                "Some(\"docs-scroll-shadow-custom\")"
+            } else {
+                "None"
+            },
+            if workbench_max_height_small.get() {
+                "120"
+            } else {
+                "220"
+            }
+        )
+    });
 
     view! {
         <ComponentPage
@@ -2020,6 +3016,57 @@ pub(super) fn scroll_shadow() -> AnyView {
                         {(1..=20)
                             .map(|idx| {
                                 view! { <div class="docs-scroll-shadow-item">{format!("Activity {idx}")}</div> }
+                            })
+                            .collect_view()}
+                    </div>
+                </ScrollShadow>
+            </Playground>
+
+            <Playground
+                title="Workbench (Max Height + Class)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_max_height_small.get()
+                                on:change=move |ev| {
+                                    set_workbench_max_height_small.set(event_target_checked(&ev))
+                                }
+                            />
+                            " max_height_px=120"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| {
+                                    set_workbench_custom_class.set(event_target_checked(&ev))
+                                }
+                            />
+                            " class_name=docs-scroll-shadow-custom"
+                        </label>
+                    </div>
+                }
+            >
+                <ScrollShadow
+                    max_height_px=if workbench_max_height_small.get() {
+                        120
+                    } else {
+                        220
+                    }
+                    class_name=if workbench_custom_class.get() {
+                        "docs-scroll-shadow-custom".to_string()
+                    } else {
+                        String::new()
+                    }
+                >
+                    <div class="docs-stack docs-stack--tight">
+                        {(1..=16)
+                            .map(|idx| {
+                                view! { <div class="docs-scroll-shadow-item">{format!("Workbench {idx}")}</div> }
                             })
                             .collect_view()}
                     </div>
@@ -2121,7 +3168,12 @@ let motion = AutoHeightMotion {
         }
 
         format!(
-            "AutoHeightActualConfig {{\n  open: {is_open},\n  animate_height: {animate_height},\n  custom_class: {custom_class},\n  data_state: \"{}\",\n  data_motion_source: \"{}\",\n  class: \"{}\",\n}}",
+            "AutoHeightActualConfig {{\n  open: {is_open},\n  animate_height: {animate_height},\n  custom_class: {custom_class},\n  motion: AutoHeightMotion {{ animate_height: {animate_height}, ..Default::default() }},\n  class_name: {},\n  data_state: \"{}\",\n  data_motion_source: \"{}\",\n  class: \"{}\",\n}}",
+            if custom_class {
+                "\"docs-auto-height-workbench\""
+            } else {
+                "\"\""
+            },
             if animate_height { "animated" } else { "static" },
             if animate_height { "default" } else { "custom" },
             classes.join(" "),
@@ -2137,12 +3189,12 @@ let motion = AutoHeightMotion {
         >
             <Playground title="Animated Height" code_signal=animated_code>
                 <div class="docs-stack">
-                    <ui_components::Button
-                        variant=ui_components::ButtonVariant::Secondary
+                    <ui::Button
+                        variant=ui::ButtonVariant::Secondary
                         on_press=Callback::new(move |_| set_animated_open.update(|v| *v = !*v))
                     >
                         {move || if animated_open.get() { "Collapse" } else { "Expand" }}
-                    </ui_components::Button>
+                    </ui::Button>
 
                     <AutoHeight class_name="docs-auto-height".to_string()>
                         <Show when=move || animated_open.get()>
@@ -2158,12 +3210,12 @@ let motion = AutoHeightMotion {
 
             <Playground title="Static Motion + Custom Class" code_signal=static_code>
                 <div class="docs-stack">
-                    <ui_components::Button
-                        variant=ui_components::ButtonVariant::Secondary
+                    <ui::Button
+                        variant=ui::ButtonVariant::Secondary
                         on_press=Callback::new(move |_| set_static_open.update(|v| *v = !*v))
                     >
                         {move || if static_open.get() { "Hide Static" } else { "Show Static" }}
-                    </ui_components::Button>
+                    </ui::Button>
 
                     <AutoHeight
                         motion=AutoHeightMotion {
@@ -2192,15 +3244,15 @@ let motion = AutoHeightMotion {
                 description="AutoHeight workbench: 展示区 + config 快照 + code + scoped CSS test."
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
-                        <ui_components::Switch checked=workbench_open set_checked=set_workbench_open>
+                        <ui::Switch checked=workbench_open set_checked=set_workbench_open>
                             "Open content"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=workbench_animate set_checked=set_workbench_animate>
+                        </ui::Switch>
+                        <ui::Switch checked=workbench_animate set_checked=set_workbench_animate>
                             "Animate height"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                        </ui::Switch>
+                        <ui::Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
                             "Custom class"
-                        </ui_components::Switch>
+                        </ui::Switch>
                     </div>
                 }
             >
@@ -2260,6 +3312,32 @@ let motion = AutoHeightMotion {
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Animated vs Static + Class)"
+                code_signal=static_code
+            >
+                <div class="docs-row">
+                    <AutoHeight class_name="docs-auto-height".to_string()>
+                        <div class="docs-stack">
+                            <div>"Animated default"</div>
+                            <div class="ui-muted">"animate_height=true"</div>
+                        </div>
+                    </AutoHeight>
+                    <AutoHeight
+                        motion=AutoHeightMotion {
+                            animate_height: false,
+                            ..AutoHeightMotion::default()
+                        }
+                        class_name="docs-auto-height docs-auto-height--static-demo".to_string()
+                    >
+                        <div class="docs-stack">
+                            <div>"Static custom motion"</div>
+                            <div class="ui-muted">"animate_height=false + custom class"</div>
+                        </div>
+                    </AutoHeight>
+                </div>
             </Playground>
         </ComponentPage>
     }

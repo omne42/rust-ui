@@ -4,7 +4,7 @@ use std::{collections::HashSet, fs, path::Path};
 
 fn component_module_slugs() -> Vec<String> {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let lib_rs = manifest_dir.join("../../crates/ui-components/src/lib.rs");
+    let lib_rs = manifest_dir.join("../../crates/ui/src/lib.rs");
     let source = fs::read_to_string(&lib_rs)
         .unwrap_or_else(|err| panic!("failed to read {}: {err}", lib_rs.display()));
 

@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{Button, Tooltip};
+use ui::{Button, Tooltip};
 
 #[component]
 pub fn TooltipDemo() -> impl IntoView {

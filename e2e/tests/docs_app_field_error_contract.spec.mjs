@@ -140,7 +140,7 @@ test("docs-app field-error source-first docs are copy-paste ready", async ({ pag
   await expect(codeBlock.first()).toHaveAttribute("data-copyable", "true");
   const code = codeBlock.first().locator('[data-slot="code-block-code"]').first();
   await expect(code).toContainText("use leptos::prelude::*;");
-  await expect(code).toContainText("use ui_components::{FieldError, FieldErrorTone};");
+  await expect(code).toContainText("use ui::{FieldError, FieldErrorTone};");
   await expect(code).toContainText("<FieldError");
 
   const copyButton = codeBlock.first().locator('[data-slot="button"]').first();

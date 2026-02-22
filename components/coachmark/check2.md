@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -169,12 +169,12 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - `Coachmark` 样式规则统一位于 `components/coachmark/src/styles.rs`，并由 `crates/ui-components/src/css.rs` 在 `component-coachmark` feature 下聚合，`UiRoot` 通过 `crate::css::push_components_css` 注入。
+  - `Coachmark` 样式规则统一位于 `components/coachmark/src/styles.rs`，并由 `crates/ui/src/css.rs` 在 `component-coachmark` feature 下聚合，`UiRoot` 通过 `crate::css::push_components_css` 注入。
   - 组件视觉值使用 `var(--ui-*)` token（如 `--ui-space-*`、`--ui-fg-*`、`--ui-accent`、`--ui-border`），未引入平行私有 token 体系。
   - 组件层未采用 Utility-First/CSS-in-Rust 作为默认范式；`view.rs` 无 utility class 组合，亦无 `style!`/`stylist` 路径。
   - 运行时样式仅在 overlay 链路通过 CSS 变量传递必要几何值（`--ui-popover-top/left/anchor-width`），不在 `Coachmark` 业务视图内联样式分支。
   - 语义回归已新增：`components/coachmark/test/semantics.rs` 的 `coachmark_token_first_static_style_contract_is_aggregated_and_injected`。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -188,20 +188,20 @@
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
 - [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
-  - package 模式具备组件级 feature：`crates/ui-components/Cargo.toml` 定义 `component-coachmark`，并将 `coachmark` 导出与样式聚合均置于 `#[cfg(feature = "component-coachmark")]`（`crates/ui-components/src/lib.rs`、`crates/ui-components/src/css.rs`）。
+  - package 模式具备组件级 feature：`crates/ui/Cargo.toml` 定义 `component-coachmark`，并将 `coachmark` 导出与样式聚合均置于 `#[cfg(feature = "component-coachmark")]`（`crates/ui/src/lib.rs`、`crates/ui/src/css.rs`）。
   - source 模式保持天然裁剪：`coachmark` 通过 `#[cfg(feature = "component-coachmark")] #[path = "../../../components/coachmark/src/mod.rs"]` 挂载，不存在无条件全组件中央注册入口。
-  - 反向依赖验证通过：`cargo tree -e features -i ui-components -p web-demo` 输出仅显示 `web-demo-components`，未出现 `all-components` 隐式全量拉起。
-  - 最小特性链验证通过：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-coachmark,inject-css` 仅显示 `component-coachmark` 及其依赖链（asset/button/contextual_help/popover）与 `inject-css`。
-  - CI 最小特性编译门禁已覆盖：新增 `scripts/check-ui-components-platforms.sh` 对 `component-coachmark,inject-css` 的 native/wasm compile-only 检查与 non-wasm `web_sys` 源码守卫。
-  - CI 体积预算门禁已接入：`.github/workflows/ci.yml` 运行 `scripts/check-ui-components-tree-shaking.sh`，并读取 `scripts/tree_shaking_budget.env`（`TREE_SHAKING_BASELINE_RLIB_BYTES` / `TREE_SHAKING_MAX_RATIO_PERCENT`）阻断体积回归。
+  - 反向依赖验证通过：`cargo tree -e features -i ui -p web-demo` 输出仅显示 `web-demo-components`，未出现 `all-components` 隐式全量拉起。
+  - 最小特性链验证通过：`cargo tree -e features -i ui -p ui --no-default-features --features component-coachmark,inject-css` 仅显示 `component-coachmark` 及其依赖链（asset/button/contextual_help/popover）与 `inject-css`。
+  - CI 最小特性编译门禁已覆盖：新增 `scripts/check-ui-platforms.sh` 对 `component-coachmark,inject-css` 的 native/wasm compile-only 检查与 non-wasm `web_sys` 源码守卫。
+  - CI 体积预算门禁已接入：`.github/workflows/ci.yml` 运行 `scripts/check-ui-tree-shaking.sh`，并读取 `scripts/tree_shaking_budget.env`（`TREE_SHAKING_BASELINE_RLIB_BYTES` / `TREE_SHAKING_MAX_RATIO_PERCENT`）阻断体积回归。
   - 语义回归已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_tree_shaking_contract_is_component_feature_gated_and_budgeted_in_ci`，锁定上述契约与门禁配置。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入已类型化：`CoachmarkCtaMode`、`CoachmarkAssetSource`、`CoachmarkVariant`、`CoachmarkAssetVariant`、`PopoverPlacement` 均为 `enum` 轴；未使用字符串协议承载互斥状态。
@@ -224,21 +224,21 @@
   - 组件对外 API 保持纯语义回调（如 `on_open_change/on_primary/on_secondary`），未暴露第三方实例句柄或 JS runtime 类型，避免反向污染状态机。
   - 回归测试已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_escape_hatches_are_not_applicable_and_no_foreign_zone_surface_leaks`，锁定“无第三方实例接入 + 无 YieldControl/CleanupForeign 协议外泄”。
 - [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-  - `UiRoot` 已提供确定性种子注入：`crates/ui-components/src/root.rs` 通过 `#[prop(optional, default = 1)] id_seed` + `provide_ui_id_provider(id_seed)` 将 ID 生成器挂载为上下文。
+  - `UiRoot` 已提供确定性种子注入：`crates/ui/src/root.rs` 通过 `#[prop(optional, default = 1)] id_seed` + `provide_ui_id_provider(id_seed)` 将 ID 生成器挂载为上下文。
   - `ContextualHelp` 自动 ID 已改为消费 headless provider：`components/contextual-help/src/view.rs` 使用 `use_ui_id_provider().map(|provider| provider.next_prefixed_id("ui-contextual-help"))`，不再依赖本地计数器。
   - 已移除本地 `thread_local next_id` 路径，且未引入 `now()/UUID/rand` 非确定性来源，满足 SSR/Hydration 稳定性约束。
   - 语义回归已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_ssr_hydration_ids_use_deterministic_id_provider_seed` 锁定上述契约。
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
-  - compile-only 证据已接入统一脚本：`scripts/check-ui-components-platforms.sh` 包含 `default native`（`cargo check -p ui-components`）、`ssr native`（`cargo check -p ui-headless --no-default-features --features ssr`）、`coachmark wasm`（`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-coachmark,inject-css`）三条路径。
+  - compile-only 证据已接入统一脚本：`scripts/check-ui-platforms.sh` 包含 `default native`（`cargo check -p ui`）、`ssr native`（`cargo check -p ui-headless --no-default-features --features ssr`）、`coachmark wasm`（`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-coachmark,inject-css`）三条路径。
   - 平台分支差异显式受 `cfg` 管理：`components/popover/src/view.rs` 与 `components/overlay/src/view.rs` 均包含 `#[cfg(target_arch = "wasm32")]` / `#[cfg(not(target_arch = "wasm32"))]` 分支。
-  - non-wasm `web_sys` 源码守卫已覆盖 coachmark 组件：`scripts/check-ui-components-platforms.sh` 对 `components/coachmark/src/{mod,logic,motion,styles,view}.rs` 执行 `web_sys` 禁用扫描并在违规时失败。
+  - non-wasm `web_sys` 源码守卫已覆盖 coachmark 组件：`scripts/check-ui-platforms.sh` 对 `components/coachmark/src/{mod,logic,motion,styles,view}.rs` 执行 `web_sys` 禁用扫描并在违规时失败。
   - 语义回归已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_platform_checks_cover_web_ssr_wasm_and_non_wasm_guards` 锁定上述契约。
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
 - [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
   - 互斥保护已存在：`crates/ui-headless/src/lib.rs` 使用 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)`，在同启 `web+ssr` 时编译期硬失败。
-  - 双路径 compile-only 已落地：`scripts/check-ui-components-platforms.sh` 分别执行 `ui-headless --features ssr`（native）与 `ui-headless --features web`（wasm32）编译检查。
+  - 双路径 compile-only 已落地：`scripts/check-ui-platforms.sh` 分别执行 `ui-headless --features ssr`（native）与 `ui-headless --features web`（wasm32）编译检查。
   - 互斥失败门禁已落地：同脚本显式执行 `ui-headless --features web,ssr` 并要求错误日志包含 `mutually exclusive`，若意外编译通过或报错原因不符即失败。
   - 语义回归已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_headless_web_ssr_feature_mutex_is_guarded_by_compile_error` 锁定上述契约。
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
@@ -247,7 +247,7 @@
 - [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
   - `ui-motion` 已提供 non-wasm no-op backend：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下导出 `web::prefers_reduced_motion() -> true` 与 `web::animate(...) {}` 空实现，SSR/tooling 可直接编译。
   - no-op 可预测性回归已存在：`crates/ui-motion/tests/non_wasm_stub.rs` 覆盖 `prefers_reduced_motion` 与 `animate_is_safe_noop`，确保 non-wasm 行为稳定且不依赖浏览器对象。
-  - 平台门禁已接入：`scripts/check-ui-components-platforms.sh` 包含 `cargo check -p ui-motion`（native）、`cargo check -p ui-motion --target wasm32-unknown-unknown`（wasm）和 `cargo test -p ui-motion --test non_wasm_stub`（stub 回归）。
+  - 平台门禁已接入：`scripts/check-ui-platforms.sh` 包含 `cargo check -p ui-motion`（native）、`cargo check -p ui-motion --target wasm32-unknown-unknown`（wasm）和 `cargo test -p ui-motion --test non_wasm_stub`（stub 回归）。
   - 组件降级路径可预测：`components/popover/src/motion.rs` 的 `#[cfg(not(target_arch = "wasm32"))] attach_motion` 仅在关闭态触发 `on_exit_complete`，无动画句柄依赖与 panic 分支。
   - 语义回归已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_ui_motion_non_wasm_stub_keeps_ssr_tooling_compile_safe` 锁定上述契约。
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
@@ -258,14 +258,14 @@
   - `Popover` 动效实现覆盖 wasm/non-wasm 双分支：`components/popover/src/motion.rs` 提供 `#[cfg(target_arch = "wasm32")]` 弹簧增强路径与 `#[cfg(not(target_arch = "wasm32"))]` no-op 退出回调路径，SSR/tooling 下行为可预测。
   - 首帧语义稳定性受保护：`components/popover/src/motion.rs` 在 wasm 分支显式以 closed 初始值挂载（`Always initialize in the closed state...`），避免 hydration 首帧错位。
   - 交互语义在平台分支不分裂：`components/popover/src/view.rs` 对 wasm/non-wasm 差异仅限输入细节分支，`components/contextual-help/src/view.rs` 持续挂载同一 `role/aria-*` 语义契约。
-  - 平台门禁已接入：`scripts/check-ui-components-platforms.sh` 新增 `coachmark reduced-motion/ssr/wasm contract`，执行 `cargo test -p ui-components --lib coachmark_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`，并保留 coachmark native/wasm compile-only 检查。
+  - 平台门禁已接入：`scripts/check-ui-platforms.sh` 新增 `coachmark reduced-motion/ssr/wasm contract`，执行 `cargo test -p ui --lib coachmark_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`，并保留 coachmark native/wasm compile-only 检查。
   - 语义回归已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_reduced_motion_ssr_wasm_branches_keep_semantics_consistent` 锁定上述契约。
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
   - docs 性能预算已显式覆盖本组件：`apps/docs-app/src/pages/components/shell.rs` 在 `component_page_perf_budget` 中新增 `"coachmark" => UiPerfBudget { max_mount_ms: 36.0, max_update_ms: Some(12.0), max_heap_kb: Some(640.0) }`，不再依赖 `mount_only` 默认兜底。
-  - 回归检测具备稳定阈值与阻断脚本：`scripts/check-ui-components-performance.sh` 新增 `cargo test -p ui-components --lib coachmark_performance_governance_budget_is_defined_traceable_and_blocking`，并与 `button/input` 预算契约测试和 perf probe 契约测试同批执行。
+  - 回归检测具备稳定阈值与阻断脚本：`scripts/check-ui-performance.sh` 新增 `cargo test -p ui --lib coachmark_performance_governance_budget_is_defined_traceable_and_blocking`，并与 `button/input` 预算契约测试和 perf probe 契约测试同批执行。
   - 可观测与归因链路已落地：`apps/docs-app/src/perf_probe.rs` 输出 `data-perf-*` 指标（mount/budget/update/heap/violation/observability），`apps/docs-app/src/debug_overlay.rs` 保留 trace 事件展示，覆盖“状态/渲染/样式/动效路径可归因”。
   - 自动化验证可复现：`e2e/tests/docs_app_components_coverage.spec.mjs` 对 perf probe 标记断言；`components/coachmark/test/semantics.rs` 新增 `coachmark_performance_governance_budget_is_defined_traceable_and_blocking` 锁定预算、归因和门禁脚本契约。
   - `render_count` 当前仍为 follow-up 管理：`docs/plan/TODO.md` 持续跟踪“建立 render_count 自动化回归（Button/Input/Accordion）”，在测试框架尚未支持精确计数前，沿用 perf probe + trace 的等价证据路径。
@@ -309,8 +309,8 @@
   - 调试可视化入口已接入且仅开发态启用：`apps/docs-app/src/lib.rs` 通过 `let debug_overlay_enabled = cfg!(debug_assertions);` + `provide_ui_trace(debug_overlay_enabled)` + `<Show when=move || debug_overlay_enabled>` 挂载 `UiDebugOverlay`，默认不进入生产路径。
   - 状态追踪链路可观测：`ui-headless` 的 `use_controllable_open_state_traced` 为开合变更写入 `UiTraceEventKind::OpenChange`；`contextual-help` 同步暴露 `open_interaction_source`（`trigger-press`/`dismiss-press`/`external-sync`）与 `previous/current` 状态收敛逻辑，满足来源与前后值追踪。
   - 最小可复现回放证据存在：`apps/docs-app/src/debug_overlay.rs` 以时间序列渲染 `events.into_iter().rev().take(40)`，包含 `ts_ms`、`component`、`kind` 维度，可复盘关键交互事件顺序与状态转移。
-  - feature 隔离保持：`components/coachmark/Cargo.toml` 仅 `default = []`，`crates/ui-components/Cargo.toml` 未引入 `coachmark-wasm-debug` 专属开关，调试基础设施停留在共享层，不污染 coachmark 公共 API。
-  - 语义回归与门禁已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`；`scripts/check-ui-components-wasm-debug.sh` 新增对应阻断命令。
+  - feature 隔离保持：`components/coachmark/Cargo.toml` 仅 `default = []`，`crates/ui/Cargo.toml` 未引入 `coachmark-wasm-debug` 专属开关，调试基础设施停留在共享层，不污染 coachmark 公共 API。
+  - 语义回归与门禁已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`；`scripts/check-ui-wasm-debug.sh` 新增对应阻断命令。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
@@ -318,7 +318,7 @@
   - 样式热重载路径已接入 `Playground`：`apps/docs-app/src/playground.rs` 使用 `compose_scoped_css` + `test_css` 输入链路（`on:input`/`Restore original CSS`），可在 docs 侧直接调样式而不依赖完整 wasm 重编译。
   - 组件调试上下文可保持：`apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs` 提供 `Config + Code + CSS Test Workbench`，通过受控 `workbench_open` 与可切换配置信号保持同一实例上下文。
   - 隔离演练画布已具备：`Playground` 使用 `data-playground-scope` + `playground__preview-stage` 实现 scoped canvas，`Show code`/`Show test` 面板可并行观察配置、代码与样式效果。
-  - 语义回归与门禁已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_dx_playground_supports_hot_reload_context_and_isolated_workbench`；`scripts/check-ui-components-dx.sh` 新增对应阻断命令。
+  - 语义回归与门禁已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_dx_playground_supports_hot_reload_context_and_isolated_workbench`；`scripts/check-ui-dx.sh` 新增对应阻断命令。
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
@@ -326,7 +326,7 @@
   - `serde` 结构化协议路径已固化：`components/coachmark/src/protocol.rs` 定义 `CoachmarkComponentSchemaVersion + CoachmarkComponentSpec`，并通过 `#[serde(rename_all = "snake_case")]` 与 `#[serde(default)]` 维持可迁移默认反序列化契约；`components/coachmark/Cargo.toml` 明确依赖 `serde(derive)`。
   - tracing 语义已统一复用共享总线：开合路径复用 `ui_headless::use_controllable_open_state_traced`（`components/contextual-help/src/view.rs`），全局观测由 `apps/docs-app/src/lib.rs` 的 `provide_ui_trace` + `apps/docs-app/src/debug_overlay.rs` 事件面板承载，coachmark 组件层未新增本地 tracing 目标或私有 wasm-debug feature。
   - runtime 泄漏已被约束：`components/coachmark/src/lib.rs`、`components/coachmark/src/mod.rs` 及 `components/coachmark/src/{logic,view,styles,motion}.rs` 公共路径不暴露 `tokio/async-std/runtime` 类型与 API。
-  - 语义回归与门禁已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_engineering_contract_uses_serde_protocol_and_structured_schema_defaults`、`coachmark_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`、`coachmark_engineering_contract_avoids_runtime_leaks_in_public_api_surface`、`coachmark_engineering_check_script_covers_serde_tracing_and_runtime_boundaries`；`scripts/check-ui-components-engineering.sh` 已接入三条 coachmark 阻断命令。
+  - 语义回归与门禁已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_engineering_contract_uses_serde_protocol_and_structured_schema_defaults`、`coachmark_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`、`coachmark_engineering_contract_avoids_runtime_leaks_in_public_api_surface`、`coachmark_engineering_check_script_covers_serde_tracing_and_runtime_boundaries`；`scripts/check-ui-engineering.sh` 已接入三条 coachmark 阻断命令。
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
@@ -336,28 +336,28 @@
   - `components/coachmark/src/styles.rs` 已切换为 defensive 双层回退链：间距/字号/行高/语义色与组件尺寸入口均使用 `var(--ui-*, var(--ui-fallback-*))`（如 `--ui-space-sm`、`--ui-font-size-150`、`--ui-component-height-100`、`--ui-accent`）。
   - 已移除组件内裸尺寸终值回退（如 `14px/20px/12px/16px` 与 `5.25rem`），改为 `ui-theme` fallback token 驱动；未引入 Hex/RGB/HSL 硬编码色值。
   - `crates/ui-theme/src/css.rs` 已提供本组件所用 fallback 终值（`--ui-fallback-space-*`、`--ui-fallback-font-size-*`、`--ui-fallback-line-height-*`、`--ui-fallback-component-height-100`、`--ui-fallback-fg*`、`--ui-fallback-accent`），维持 SSOT。
-  - 语义回归与门禁已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals`；`scripts/check-ui-components-contract-hygiene.sh` 已接入对应阻断命令。
+  - 语义回归与门禁已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals`；`scripts/check-ui-contract-hygiene.sh` 已接入对应阻断命令。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 组件 CSS 聚合路径已落在 `@layer ui`：`crates/ui-components/src/css.rs` 在 `push_components_css` 中统一 `out.push_str("\\n@layer ui {\\n")`，并通过 `#[cfg(feature = "component-coachmark")] out.push_str(crate::coachmark::styles::CSS);` 条件注入，最后闭合 `out.push_str("\\n}\\n")`。
+  - 组件 CSS 聚合路径已落在 `@layer ui`：`crates/ui/src/css.rs` 在 `push_components_css` 中统一 `out.push_str("\\n@layer ui {\\n")`，并通过 `#[cfg(feature = "component-coachmark")] out.push_str(crate::coachmark::styles::CSS);` 条件注入，最后闭合 `out.push_str("\\n}\\n")`。
   - coachmark 组合层未引入普通 inline style：`components/coachmark/src/view.rs` 与 `components/contextual-help/src/view.rs` 不包含 `style=\"top:*\"`/`style:top=*` 等业务样式内联。
   - 运行时数值调整仅经 CSS 自定义属性通道：`components/popover/src/view.rs` 仅挂载 `style=panel_vars`，`components/popover/src/logic.rs::compose_panel_vars` 仅输出 `--ui-popover-top/--ui-popover-left/--ui-popover-anchor-width` 三个 CSS 变量。
-  - 语义回归与门禁已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_cascade_layer_and_runtime_style_contract_is_enforced`；`scripts/check-ui-components-contract-hygiene.sh` 已接入对应阻断命令。
+  - 语义回归与门禁已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_cascade_layer_and_runtime_style_contract_is_enforced`；`scripts/check-ui-contract-hygiene.sh` 已接入对应阻断命令。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 组件 contract 已显式化：`components/coachmark/src/motion.rs` 新增 `CoachmarkMotion { popover: PopoverMotion }`，并通过 `sanitize_motion -> resolve_motion` 把组件语义动效映射到 `ContextualHelpMotion`，不在组件层重写通用引擎。
   - `stiffness/damping` 合同来源固定：`components/popover/src/motion.rs` 的 `PopoverMotion::default()` 内置 spring 参数（`stiffness: 300.0`, `damping: 25.0`），且经 `sanitize_motion` 归一；`Coachmark` 只消费该 contract。
   - attach 挂载链路明确：`Coachmark` 在 `view.rs` 先 `motion::resolve_motion(motion)`，再传入 `ContextualHelp`；最终由 `components/popover/src/motion.rs::attach_motion` 在 wasm/non-wasm 分支执行挂载与安全降级。
   - `prefers-reduced-motion` 与 non-wasm no-op 已闭环：`crates/ui-motion/src/spring.rs` 在 reduced-motion 时立即收敛并触发 `on_rest`；`components/popover/src/motion.rs` 的 non-wasm `attach_motion` 仅执行可预测 `on_exit_complete`，无动画句柄假设。
-  - 语义回归与门禁已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`；`scripts/check-ui-components-platforms.sh` 已接入对应阻断命令。
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+  - 语义回归与门禁已补齐：`components/coachmark/test/semantics.rs` 新增 `coachmark_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`；`scripts/check-ui-platforms.sh` 已接入对应阻断命令。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-  - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_ui_components_fixed_entry_files_follow_layered_boundaries`，覆盖 `lib.rs/css.rs/root.rs` 三入口、`active_highlight` 通用边界、以及 `ui-components/src/{overlay_open.rs,presence.rs,a11y.rs}` 缺失约束。
-  - 门禁已接入：`scripts/check-ui-components-entrypoints.sh` 新增命令 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_ui_components_fixed_entry_files_follow_layered_boundaries`。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_ui_components_fixed_entry_files_follow_layered_boundaries`，覆盖 `lib.rs/css.rs/root.rs` 三入口、`active_highlight` 通用边界、以及 `ui/src/{overlay_open.rs,presence.rs,a11y.rs}` 缺失约束。
+  - 门禁已接入：`scripts/check-ui-entrypoints.sh` 新增命令 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_ui_components_fixed_entry_files_follow_layered_boundaries`。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -367,22 +367,22 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_component_directory_standard_files_follow_contract_and_na_paths`，覆盖 `mod/logic/styles/view/motion` 必需文件存在、`render.rs/spec.rs` 缺失、以及五文件职责边界约束。
   - `motion` 挂载链路按分层执行：`components/coachmark/src/motion.rs` 仅做 `CoachmarkMotion -> ContextualHelpMotion` 契约映射，实际 `attach_motion` 由 `components/popover/src/motion.rs` 统一承载。
-  - 门禁已接入：`scripts/check-ui-components-component-files.sh` 新增命令 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_component_directory_standard_files_follow_contract_and_na_paths`。
+  - 门禁已接入：`scripts/check-ui-component-files.sh` 新增命令 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_component_directory_standard_files_follow_contract_and_na_paths`。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
 - [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_file_placement_discipline_contract_is_explicit_for_interactive_component_scope`，显式约束 `mod/logic/styles/view/motion` 五文件存在，`render.rs/spec.rs` 缺失，且 `mod.rs` 保持最小模块边界。
   - 职责锚点已固化：`logic.rs` 保留 `resolve_view_model` 归一入口，`styles.rs` 保留 `CSS` 静态 token 输出，`view.rs` 保留 `#[component]` 渲染入口，`motion.rs` 保留 `CoachmarkMotion` 契约映射。
-  - 门禁已接入：`scripts/check-ui-components-component-files.sh` 新增命令 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_file_placement_discipline_contract_is_explicit_for_interactive_component_scope`。
+  - 门禁已接入：`scripts/check-ui-component-files.sh` 新增命令 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_file_placement_discipline_contract_is_explicit_for_interactive_component_scope`。
 - [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
   - N/A-by-design：`Coachmark` 当前不属于复杂 schema-builder 组件，组件职责以 `logic/view/styles/motion` 装配为主；`protocol.rs` 仅承载轻量序列化协议，不引入 `spec.rs` builder 面。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_component`，约束 `src/spec.rs` 不存在且组件公开面无 `Spec::new()...render()` 痕迹。
-  - 门禁已接入：`scripts/check-ui-components-component-files.sh` 新增命令 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_component`。
+  - 门禁已接入：`scripts/check-ui-component-files.sh` 新增命令 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_component`。
 - [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
   - 组件目录已补齐上下文压缩文件：`components/coachmark/src/Component.toml` 与 `components/coachmark/src/coachmark.rbi`，覆盖受控开合轴（`open/on_open_change/default_open`）、语义与本地化输入（`variant/placement/motion/lang/dir`）及能力标记（`context_compression_manifest`、`rbi_signature_projection`）。
   - `Component.toml` 作为能力清单，`coachmark.rbi` 作为接口签名投影，保证 Agent 侧可稳定检索组件 API 与状态轴，避免仅靠源码全文扫描。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_context_compression_manifest_and_rbi_are_present_and_consistent`，约束两文件存在、关键字段完整、并与 checklist/脚本门禁联动。
-  - 门禁已接入：`scripts/check-ui-components-component-files.sh` 新增命令 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_context_compression_manifest_and_rbi_are_present_and_consistent`。
+  - 门禁已接入：`scripts/check-ui-component-files.sh` 新增命令 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_context_compression_manifest_and_rbi_are_present_and_consistent`。
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
@@ -390,19 +390,19 @@
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_agent_contract_is_schema_typed_and_machine_readable_locally` 与 `components/coachmark/test/semantics.rs::coachmark_agent_contract_render_path_is_whitelist_safe_and_script_injection_free_locally`，覆盖类型化 schema 派生、`data-ui-*` 挂载、白名单能力边界与脚本注入禁用约束。
   - Manifest 已补齐：`components/coachmark/src/Component.toml` 增加 `[[agent_contract]]`、`[[agent_contract_markers]]` 与 `[[agent_contract_whitelist]]`，将 render path 收敛到显式白名单能力边界。
-  - 门禁已接入：`scripts/check-ui-components-contract-hygiene.sh` 新增命令 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_agent_contract_is_schema_typed_and_machine_readable_locally` 与 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_agent_contract_render_path_is_whitelist_safe_and_script_injection_free_locally`。
+  - 门禁已接入：`scripts/check-ui-contract-hygiene.sh` 新增命令 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_agent_contract_is_schema_typed_and_machine_readable_locally` 与 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_agent_contract_render_path_is_whitelist_safe_and_script_injection_free_locally`。
 - [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
   - N/A：`Coachmark` 不是 LLM 正文渲染组件；当前组件职责是引导提示装配，不承载 token 级正文流式渲染，运行时仅保留 `snapshot` 基线路径与显式 fallback 标记。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_check2_documents_streaming_definition_is_llm_output_only_with_two_modes` 与 `components/coachmark/test/semantics.rs::coachmark_streaming_script_covers_two_mode_definition_contract`，约束“术语仅限 LLM 输出渲染”与“两种显示模式”定义不漂移。
-  - 门禁已接入：`scripts/check-ui-components-streaming.sh` 新增命令 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`。
+  - 门禁已接入：`scripts/check-ui-streaming.sh` 新增命令 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`。
 - [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
   - N/A：`Coachmark` 不直接渲染 LLM 正文；但组件仍需默认支持 `snapshot` 完整配置消费，并稳定输出语义与结构。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_check2_documents_snapshot_as_default_baseline_capability` 与 `components/coachmark/test/semantics.rs::coachmark_snapshot_baseline_consumes_complete_result_and_renders_stably`，覆盖基线声明、完整配置消费与稳定渲染约束。
-  - 门禁已接入：`scripts/check-ui-components-streaming.sh` 新增命令 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_check2_documents_snapshot_as_default_baseline_capability` 与 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_snapshot_baseline_consumes_complete_result_and_renders_stably`。
+  - 门禁已接入：`scripts/check-ui-streaming.sh` 新增命令 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_check2_documents_snapshot_as_default_baseline_capability` 与 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_snapshot_baseline_consumes_complete_result_and_renders_stably`。
 - [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
@@ -410,41 +410,41 @@
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
   - N/A：`Coachmark` 归类为 `Streaming Optional`，组件本体不是 LLM 正文阅读面；当前实现显式 `fallback=snapshot`，并通过 `data-ui-output-status` / `data-output-status` 暴露输出状态。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_check2_documents_streaming_required_optional_classification_rules`、`components/coachmark/test/semantics.rs::coachmark_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/coachmark/test/semantics.rs::coachmark_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`，覆盖职责分级、语义连续性与边界隔离。
-  - 门禁已接入：`scripts/check-ui-components-streaming.sh` 新增命令 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_check2_documents_streaming_required_optional_classification_rules`、`cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`。
+  - 门禁已接入：`scripts/check-ui-streaming.sh` 新增命令 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_check2_documents_streaming_required_optional_classification_rules`、`cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`。
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
   - 非测试源码约束满足：`components/coachmark/src/mod.rs`、`components/coachmark/src/logic.rs`、`components/coachmark/src/styles.rs`、`components/coachmark/src/view.rs`、`components/coachmark/src/motion.rs` 中不存在 `.unwrap(` / `.expect(` / `.unwrap_err(` 与 `let _ = ...`。
   - 字符串热点已收敛：`components/coachmark/src/logic.rs::resolve_asset_alt` 使用 `Cow<'_, str>` 承接 fallback（`Cow::Owned`/`Cow::Borrowed`）并统一 `into_owned`，移除 `asset_label.to_string()` 克隆热点。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/coachmark/test/semantics.rs::coachmark_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/coachmark/test/semantics.rs::coachmark_rust_hygiene_script_enforces_repo_level_hygiene_guards`。
-  - 门禁已接入：`scripts/check-ui-components-engineering.sh` 新增命令 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_rust_hygiene_script_enforces_repo_level_hygiene_guards`。
+  - 门禁已接入：`scripts/check-ui-engineering.sh` 新增命令 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_rust_hygiene_script_enforces_repo_level_hygiene_guards`。
   - 执行记录：`./scripts/check-rust-hygiene.sh` 已执行；当前失败项来自仓库其他模块（如 `crates/ui-headless/src/test/*`、`apps/docs-app/src/pages/components/pages/*`、`crates/ui-state-primitives/src/*`），不属于 `coachmark` 改动范围。组件级定向验证使用 `RUST_HYGIENE_FILES="components/coachmark/src/mod.rs components/coachmark/src/logic.rs components/coachmark/src/styles.rs components/coachmark/src/view.rs components/coachmark/src/motion.rs" ./scripts/check-rust-hygiene.sh`，结果为 `OK`。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 特性树与聚合门控已核对：`crates/ui-components/Cargo.toml` 定义 `component-coachmark` 并纳入 `all-components`；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 均通过 `#[cfg(feature = "component-coachmark")]` 条件导出/注入，未见无条件全量聚合。
-  - 最小特性链实测：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-coachmark,inject-css` 输出仅包含 `component-coachmark`、其必要依赖链（asset/button/contextual_help/popover）与 `inject-css` 命令行特性，未出现 `all-components`。
-  - 反向依赖实测：`cargo tree -e features -i ui-components -p web-demo` 输出显示 `web-demo-components` 路径，未出现 `all-components` 隐式拉起。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 特性树与聚合门控已核对：`crates/ui/Cargo.toml` 定义 `component-coachmark` 并纳入 `all-components`；`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 均通过 `#[cfg(feature = "component-coachmark")]` 条件导出/注入，未见无条件全量聚合。
+  - 最小特性链实测：`cargo tree -e features -i ui -p ui --no-default-features --features component-coachmark,inject-css` 输出仅包含 `component-coachmark`、其必要依赖链（asset/button/contextual_help/popover）与 `inject-css` 命令行特性，未出现 `all-components`。
+  - 反向依赖实测：`cargo tree -e features -i ui -p web-demo` 输出显示 `web-demo-components` 路径，未出现 `all-components` 隐式拉起。
   - 语义回归已补齐：`components/coachmark/test/semantics.rs::coachmark_tree_shaking_contract_is_component_feature_gated_and_budgeted_in_ci`、`components/coachmark/test/semantics.rs::coachmark_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget`、`components/coachmark/test/semantics.rs::coachmark_check2_marks_tree_shaking_feature_pruning_contract_complete`。
-  - 门禁已接入：`scripts/check-ui-components-tree-shaking.sh` 新增命令 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_tree_shaking_contract_is_component_feature_gated_and_budgeted_in_ci`、`cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget`、`cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_check2_marks_tree_shaking_feature_pruning_contract_complete`，并新增 `COACHMARK_MIN_FEATURES` 的最小特性树/wasm 检查段。
+  - 门禁已接入：`scripts/check-ui-tree-shaking.sh` 新增命令 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_tree_shaking_contract_is_component_feature_gated_and_budgeted_in_ci`、`cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget`、`cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_check2_marks_tree_shaking_feature_pruning_contract_complete`，并新增 `COACHMARK_MIN_FEATURES` 的最小特性树/wasm 检查段。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 语义契约覆盖已落地：`components/coachmark/test/semantics.rs::coachmark_semantics_tests_cover_key_contract_paths_not_visual_snapshot_only` 与 `components/coachmark/test/semantics.rs::coachmark_overlay_focus_restoration_uses_global_focus_stack_not_component_noderef_cache` 断言 `role/aria/data-*`、键盘/指针路径与全局焦点栈恢复，不依赖视觉快照。
   - 性能回归覆盖已落地：`components/coachmark/test/semantics.rs::coachmark_performance_governance_budget_is_defined_traceable_and_blocking` 与 `components/coachmark/test/semantics.rs::coachmark_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 约束预算可观测、语义+性能联动回归与阻断脚本接入。
   - `render_count` 现状按等价证据执行：当前通过 docs perf probe 与预算标记（`data-perf-*`）提供可重复基线；`docs/plan/TODO.md` 已跟踪自动化 `render_count` 补齐任务（Button/Input/Accordion），避免长期漂移。
-  - 门禁已接入：`scripts/check-ui-components-performance.sh` 已包含 `cargo test -p ui-components --lib coachmark_performance_governance_budget_is_defined_traceable_and_blocking` 与 `cargo test -p ui-components --lib coachmark_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
+  - 门禁已接入：`scripts/check-ui-performance.sh` 已包含 `cargo test -p ui --lib coachmark_performance_governance_budget_is_defined_traceable_and_blocking` 与 `cargo test -p ui --lib coachmark_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - N/A：本次 `Coachmark` 未发生跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/coachmark/src/protocol.rs` 的 `CoachmarkComponentSchemaVersion::V1`，`components/coachmark/src/logic.rs` 的 `COACHMARK_AGENT_SCHEMA = "ui.coachmark.agent-contract.v1"` 与 `CoachmarkAgentSchemaVersion::V1`，以及 `components/coachmark/src/Component.toml` 的 `schema_version = "1"`）。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade` 与 `components/coachmark/test/semantics.rs::coachmark_version_deprecation_migration_script_covers_engineering_gate`。
-  - 门禁已接入：`scripts/check-ui-components-engineering.sh` 新增命令 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css coachmark_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`。
+  - 门禁已接入：`scripts/check-ui-engineering.sh` 新增命令 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css coachmark_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`。
   - 执行证据：当前环境运行上述 `cargo test` 仍会被 `Invalid cross-device link (os error 18)` 阻断，阻断点在依赖编译写入阶段，非版本弃用迁移契约失败。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
   - docs 页面已补齐验收矩阵：`apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs` 现包含 `Hello World`、`State Matrix`、`Controlled vs Uncontrolled`、`Streaming Optional / Snapshot` 四类 Playground，并通过 `data-slot="coachmark-state-matrix" / "coachmark-controlled-vs-uncontrolled" / "coachmark-streaming-modes"` 固定语义落点。
   - imports 自动补全与一键复制链路已显式落地：各 Playground 使用 `code_imports`（`COACHMARK_DOC_IMPORTS` / `COACHMARK_CONTROLLED_IMPORTS`），Source-first 区块通过 `Snippet(copyable=true)` 提供最小可运行 starter，并明确依赖前提（`component-coachmark` / `UiRoot` / `inject-css`）与源码路径（`components/coachmark/src/{mod,logic,view,styles,motion,protocol}.rs`）。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`components/coachmark/test/semantics.rs::coachmark_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync`、`components/coachmark/test/semantics.rs::coachmark_check2_documents_docs_product_copy_paste_ready_rules`、`components/coachmark/test/semantics.rs::coachmark_dx_check_script_covers_docs_product_copy_paste_ready_contract`。
-  - 门禁已接入：`scripts/check-ui-components-dx.sh` 新增 coachmark docs-product 段落，执行上述 4 条 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css ...` 命令。
+  - 门禁已接入：`scripts/check-ui-dx.sh` 新增 coachmark docs-product 段落，执行上述 4 条 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css ...` 命令。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 已以 `*_semantics.rs` 为主回归面固定交互语义：`components/coachmark/test/semantics.rs::coachmark_semantics_tests_cover_key_contract_paths_not_visual_snapshot_only`、`components/coachmark/test/semantics.rs::coachmark_semantics_suite_is_contract_first_not_snapshot_only` 覆盖 `data-* / aria-* / role / source` 关键轴与键盘/指针路径。
   - 已显式防止“快照替代语义断言”：`components/coachmark/test/semantics.rs::coachmark_semantics_suite_is_contract_first_not_snapshot_only` 持续约束禁用 `insta/assert_snapshot/to_match_snapshot` 等快照主导断言。
   - 已补“语义字段变更必须同步测试”守卫：`components/coachmark/test/semantics.rs::coachmark_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks` 将 `view.rs/contextual_help view` 的关键语义标记与本地语义测试双向绑定。
-  - 门禁已接入：`scripts/check-ui-components-contract-hygiene.sh` 新增 coachmark 语义优先段，执行 `coachmark_check2_documents_semantics_first_testing_rules`、`coachmark_semantics_suite_is_contract_first_not_snapshot_only`、`coachmark_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks`。
+  - 门禁已接入：`scripts/check-ui-contract-hygiene.sh` 新增 coachmark 语义优先段，执行 `coachmark_check2_documents_semantics_first_testing_rules`、`coachmark_semantics_suite_is_contract_first_not_snapshot_only`、`coachmark_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks`。
   - 执行证据：当前环境运行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断，阻断点在依赖编译写入阶段，非语义契约断言失败。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
@@ -454,7 +454,7 @@
   - WASM 稳定等待已显式接入：用 `body:not(:has(#boot))` 作为 ready 门槛，并通过 `waitForCoachmarkReady`/`waitForCoachmarkSettled` 覆盖 ready + settled 条件（无 `waitForTimeout` 固定 sleep）。
   - 异步/动画相关 settled 断点已覆盖：交互后与 reload 后都断言 `data-ui-output-status` / `data-output-status` 与流式回退语义，避免“可见即通过”的偶然成功。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_check2_documents_e2e_selector_and_stable_wait_rules`、`components/coachmark/test/semantics.rs::coachmark_e2e_selector_contract_uses_semantic_markers_and_settled_waits`、`components/coachmark/test/semantics.rs::coachmark_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths`、`components/coachmark/test/semantics.rs::coachmark_e2e_check_script_covers_selector_and_settled_wait_contract`、`components/coachmark/test/semantics.rs::coachmark_check2_marks_e2e_selector_stability_item_complete`。
-  - 门禁已接入：新增 `scripts/check-ui-components-e2e-coachmark.sh`，执行上述 3 条 E2E selector/stable-wait 相关 `cargo test` 契约命令。
+  - 门禁已接入：新增 `components/coachmark/scripts/check-ui-e2e-coachmark.sh`，执行上述 3 条 E2E selector/stable-wait 相关 `cargo test` 契约命令。
   - 执行证据：当前环境运行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断，阻断点在依赖编译写入阶段，非 E2E 语义契约断言失败。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
@@ -464,7 +464,7 @@
   - 失败定位到语义契约断点而非页面快照：用 `data-open-interaction-source`（`trigger-press`/`dismiss-press`）、`data-ui-action`（`toggle-open`/`dismiss`）、`data-slot="popover"` / `data-slot="popover-panel"` / `data-slot="contextual-help-panel"`、`data-ui-output-status=verified` 作为断言锚点。
   - 高风险路径已优先覆盖：overlay（`popover` open/close 生命周期）、focus（`popover-panel` focus 后处理键盘事件）、keyboard（`Escape` 关闭与 `Enter` 重开）、async/settled（复用 `waitForCoachmarkReady` / `waitForCoachmarkSettled` 语义等待）。
   - 语义回归守卫已新增：`components/coachmark/test/semantics.rs::coachmark_check2_documents_repeatable_key_flow_e2e_regression_rules`、`components/coachmark/test/semantics.rs::coachmark_e2e_key_flow_regression_covers_overlay_focus_keyboard_with_semantic_breakpoints`、`components/coachmark/test/semantics.rs::coachmark_e2e_check_script_covers_repeatable_key_flow_regression_contract`、`components/coachmark/test/semantics.rs::coachmark_check2_marks_repeatable_key_flow_e2e_item_complete`。
-  - 门禁已接入：`scripts/check-ui-components-e2e-coachmark.sh` 新增上述关键流程契约测试命令。
+  - 门禁已接入：`components/coachmark/scripts/check-ui-e2e-coachmark.sh` 新增上述关键流程契约测试命令。
   - 执行证据：当前环境运行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断，阻断点在依赖编译写入阶段，非关键流程语义契约断言失败。
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
@@ -474,7 +474,7 @@
   - 参数矩阵覆盖已具备：示例明确覆盖 `open/on_open_change/default_open`（受控/非受控）、`is_disabled`、`variant`、`asset_variant/asset_src` 等关键 API 轴。
   - API 默认值对齐已文档化：新增 `data-slot="coachmark-defaults-contract"` 区块，显式声明 `variant=CoachmarkVariant::Help`、`default_open=false`、`is_disabled=false`，并引用 `resolve_default_open(default_open.unwrap_or(false))` 与 `resolve_is_disabled(is_disabled.or(disabled).unwrap_or(false))` 对齐 `components/coachmark/src/logic.rs`。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_check2_documents_docs_sync_and_state_matrix_rules`、`components/coachmark/test/semantics.rs::coachmark_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`components/coachmark/test/semantics.rs::coachmark_dx_check_script_covers_docs_sync_and_state_matrix_contract`、`components/coachmark/test/semantics.rs::coachmark_check2_marks_docs_sync_and_state_matrix_item_complete`。
-  - 门禁已接入：`scripts/check-ui-components-dx.sh` 新增 coachmark docs-sync 段落，执行上述 3 条 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css ...` 契约命令。
+  - 门禁已接入：`scripts/check-ui-dx.sh` 新增 coachmark docs-sync 段落，执行上述 3 条 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css ...` 契约命令。
   - 执行证据：当前环境运行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断，阻断点在依赖编译写入阶段，非 docs-sync 语义契约断言失败。
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
@@ -484,7 +484,7 @@
   - 新手路径已显式：README 采用 `## Hello World（最小可用） -> ## 先用起来，再进阶 -> ## 常见用法 -> ### Controlled Example（高级入口）` 顺序，避免先暴露复杂控制面。
   - docs-app 页面保持“先默认、后进阶”：`apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs` 按 `Hello World -> State Matrix -> Controlled vs Uncontrolled -> Config + Code + CSS Test Workbench` 组织示例，支持直接上手后再进入高级配置。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_check2_documents_documentation_as_product_rules`、`components/coachmark/test/semantics.rs::coachmark_documentation_entry_exists_with_beginner_first_progression`、`components/coachmark/test/semantics.rs::coachmark_dx_check_script_covers_documentation_as_product_contract`、`components/coachmark/test/semantics.rs::coachmark_check2_marks_documentation_as_product_item_complete`。
-  - 门禁已接入：`scripts/check-ui-components-dx.sh` 新增 coachmark documentation-as-product 段落，执行上述 3 条 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css ...` 契约命令。
+  - 门禁已接入：`scripts/check-ui-dx.sh` 新增 coachmark documentation-as-product 段落，执行上述 3 条 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css ...` 契约命令。
   - 执行证据：当前环境运行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断，阻断点在依赖编译写入阶段，非文档契约断言失败。
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
@@ -495,7 +495,7 @@
   - AI Spec 输入与预览输出联动已落地：新增 `data-slot="coachmark-interactive-spec-linkage"`，并通过 `test_config_signal=workbench_actual_config` 暴露 `CoachmarkWorkbenchConfig`（Spec-like input projection）与预览输出同步关系；渲染结果保持 `data-ui-schema` 等机器可读语义。
   - 可重复关键交互路径复用已固化：E2E 合同 `e2e/tests/docs_app_coachmark_contract.spec.mjs` 复用 `Controlled vs Uncontrolled` 的稳定语义锚点，覆盖 `open -> interact -> dismiss -> reopen -> reload` 流程。
   - 语义回归已新增：`components/coachmark/test/semantics.rs::coachmark_check2_documents_interactive_playground_rules`、`components/coachmark/test/semantics.rs::coachmark_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/coachmark/test/semantics.rs::coachmark_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/coachmark/test/semantics.rs::coachmark_dx_check_script_covers_interactive_playground_contract`、`components/coachmark/test/semantics.rs::coachmark_check2_marks_interactive_playground_item_complete`。
-  - 门禁已接入：`scripts/check-ui-components-dx.sh` 新增 coachmark interactive-playground 段落，执行上述 4 条 `cargo test -p ui-components --lib --no-default-features --features component-coachmark,inject-css ...` 契约命令。
+  - 门禁已接入：`scripts/check-ui-dx.sh` 新增 coachmark interactive-playground 段落，执行上述 4 条 `cargo test -p ui --lib --no-default-features --features component-coachmark,inject-css ...` 契约命令。
   - 执行证据：当前环境运行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断，阻断点在依赖编译写入阶段，非 interactive-playground 契约断言失败。
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
@@ -505,7 +505,7 @@
   - 可复制代码与 imports/依赖提示已闭环：文档显式声明 `component-coachmark`、`UiRoot`、`inject-css` 前提，复制链路由 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 统一注入 imports，避免“复制即报错”。
   - 源码落点与实现同步可追溯：文档固定列出 `components/coachmark/src/{mod,logic,view,styles,motion,protocol}.rs`，并通过语义测试约束这些路径与复制片段长期存在。
   - 语义回归已覆盖：`components/coachmark/test/semantics.rs::coachmark_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync`、`components/coachmark/test/semantics.rs::coachmark_check2_documents_source_first_copy_paste_ready_rules`、`components/coachmark/test/semantics.rs::coachmark_dx_check_script_covers_source_first_copy_paste_ready_contract`、`components/coachmark/test/semantics.rs::coachmark_check2_marks_source_first_copy_paste_ready_item_complete`。
-  - 门禁已接入：`scripts/check-ui-components-dx.sh` 新增 source-first checklist 段落，执行 `coachmark_check2_documents_source_first_copy_paste_ready_rules` 与 `coachmark_dx_check_script_covers_source_first_copy_paste_ready_contract`，并复用 `coachmark_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync`。
+  - 门禁已接入：`scripts/check-ui-dx.sh` 新增 source-first checklist 段落，执行 `coachmark_check2_documents_source_first_copy_paste_ready_rules` 与 `coachmark_dx_check_script_covers_source_first_copy_paste_ready_contract`，并复用 `coachmark_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync`。
   - 执行证据：当前环境运行 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断，阻断点在依赖编译写入阶段，非 source-first 语义断言失败。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
@@ -515,7 +515,7 @@
   - docs 入口可索引：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Coachmark", "coachmark", "Overlays", overlays_extra_coachmark::coachmark)` 暴露入口，页面函数 `apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs::coachmark()` 保持 `title="Coachmark"` + `slug="coachmark"`。
   - 等价文档入口可访问：`components/coachmark/src/README.md` 提供 `Hello World（最小可用）` 与进阶路径，满足 docs-app 页面之外的组件文档入口要求。
   - 语义回归已覆盖：`components/coachmark/test/semantics.rs::coachmark_check2_documents_heroui_benchmark_docs_sync_rules`、`components/coachmark/test/semantics.rs::coachmark_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/coachmark/test/semantics.rs::coachmark_dx_check_script_covers_heroui_benchmark_docs_sync_contract`、`components/coachmark/test/semantics.rs::coachmark_check2_marks_heroui_benchmark_docs_sync_contract_complete`。
-  - 门禁已接入：`scripts/check-ui-components-dx.sh` 新增 coachmark heroui-docs-sync 段落，执行上述对标与入口同步契约测试。
+  - 门禁已接入：`scripts/check-ui-dx.sh` 新增 coachmark heroui-docs-sync 段落，执行上述对标与入口同步契约测试。
   - 执行证据：当前环境运行相关 `cargo test` 仍受 `Invalid cross-device link (os error 18)` 阻断，阻断点在依赖编译写入阶段，非 heroui-docs-sync 契约断言失败。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
@@ -528,9 +528,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

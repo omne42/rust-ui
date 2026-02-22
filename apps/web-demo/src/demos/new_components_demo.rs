@@ -1,5 +1,5 @@
 use leptos::{html, prelude::*};
-use ui_components::{
+use ui::{
     Button, InputOtp, Meter, MotionRipple, NumberField, OnPress, Progress, ProgressCircle,
     RippleMotion, SegmentedControl, SegmentedControlSize, Sheet, SheetPlacement, SlidingNumber,
     StaticNumber,
@@ -48,7 +48,7 @@ pub fn NewComponentsDemo() -> impl IntoView {
     // Ripple demo surface
     let ripple_ref: NodeRef<html::Span> = NodeRef::new();
     let on_ripple_click = move |_| {
-        ui_components::ripple::trigger_ripple(ripple_ref, RippleMotion::default());
+        ui::ripple::trigger_ripple(ripple_ref, RippleMotion::default());
     };
 
     view! {
@@ -190,7 +190,7 @@ pub fn NewComponentsDemo() -> impl IntoView {
                     <div class="demo-stack">
                         <div class="demo-kv">"AutoHeight"</div>
                         <Button
-                            variant=ui_components::ButtonVariant::Secondary
+                            variant=ui::ButtonVariant::Secondary
                             on_press=Callback::new(move |_| set_auto_height_open.update(|v| *v = !*v))
                         >
                             {move || if auto_height_open.get() { "Collapse" } else { "Expand" }}
@@ -227,13 +227,13 @@ pub fn NewComponentsDemo() -> impl IntoView {
                         <div class="demo-kv">"SlidingNumber"</div>
                         <div class="demo-row">
                             <Button
-                                variant=ui_components::ButtonVariant::Secondary
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| set_sliding_value.update(|v| *v -= 1.0))
                             >
                                 "-1"
                             </Button>
                             <Button
-                                variant=ui_components::ButtonVariant::Secondary
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| set_sliding_value.update(|v| *v += 1.0))
                             >
                                 "+1"

@@ -1,3 +1,4 @@
+use super::playground_workbench::{bool_word, rust_string_literal};
 #[path = "layout_extra_sidebar_content.rs"]
 mod layout_extra_sidebar_content;
 #[path = "layout_extra_sidebar_footer.rs"]
@@ -27,14 +28,15 @@ pub(super) const SCROLL_AREA_DOC: ComponentDoc = ComponentDoc {
 };
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
-    Sidebar, SidebarCollapsible, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuSubItem,
-    SidebarSide, SidebarVariant, Snippet,
+use ui::{
+    A11yDirection, SegmentedControl, SegmentedControlSize, Sidebar, SidebarCollapsible,
+    SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuMotion, SidebarMenuSubItem,
+    SidebarSide, SidebarVariant, Snippet, Switch,
 };
 use ui_layout::{
     AspectRatio, AspectRatioPreset, AspectRatioRadius, Grid, GridAlign, GridColumns, GridGap,
-    GridJustify, GridRows, Resizable, ResizableOrientation, ScrollArea, ScrollAreaOrientation,
-    View, ViewBackground, ViewBorder, ViewPadding, ViewRadius,
+    GridJustify, GridRows, Resizable, ResizableMotion, ResizableOrientation, ScrollArea,
+    ScrollAreaOrientation, View, ViewBackground, ViewBorder, ViewPadding, ViewRadius,
 };
 
 pub(super) fn aspect_ratio() -> AnyView {
@@ -92,6 +94,7 @@ pub(super) fn aspect_ratio() -> AnyView {
     let (workbench_fill, set_workbench_fill) = signal(true);
     let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
 
     let workbench_code = Signal::derive(move || {
         let ratio = workbench_ratio.get();
@@ -102,7 +105,7 @@ pub(super) fn aspect_ratio() -> AnyView {
         let custom_class = workbench_custom_class.get();
 
         format!(
-            "<AspectRatio\n  ratio=AspectRatioPreset::{ratio:?}\n  radius=AspectRatioRadius::{radius:?}\n  bordered={bordered}\n  fill={fill}\n  aria_label={}\n  class_name={}\n>\n  <View background=ViewBackground::Accent border=ViewBorder::None padding=ViewPadding::Sm radius=ViewRadius::None>\n    \"Workbench preview\"\n  </View>\n</AspectRatio>",
+            "<AspectRatio\n  ratio=AspectRatioPreset::{ratio:?}\n  radius=AspectRatioRadius::{radius:?}\n  bordered={bordered}\n  fill={fill}\n  aria_label={}\n  class_name={}\n  lang={}\n  dir={}\n>\n  <View background=ViewBackground::Accent border=ViewBorder::None padding=ViewPadding::Sm radius=ViewRadius::None>\n    \"Workbench preview\"\n  </View>\n</AspectRatio>",
             if custom_aria {
                 "\"Workbench media region\".into()"
             } else {
@@ -112,7 +115,17 @@ pub(super) fn aspect_ratio() -> AnyView {
                 "\"docs-aspect-ratio-custom\".into()"
             } else {
                 "\"\".into()"
-            }
+            },
+            if workbench_rtl.get() {
+                "\"ar\".to_string()"
+            } else {
+                "\"en-US\".to_string()"
+            },
+            if workbench_rtl.get() {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            },
         )
     });
 
@@ -158,7 +171,23 @@ pub(super) fn aspect_ratio() -> AnyView {
         };
 
         format!(
-            "AspectRatioActualConfig {{\n  ratio: {ratio:?},\n  radius: {radius:?},\n  bordered: {bordered},\n  fill: {fill},\n  aria_source: \"{}\",\n  class_source: \"{}\",\n  data_state: \"{state_attr}\",\n  class: \"{}\",\n}}",
+            "AspectRatioActualConfig {{\n  ratio: {ratio:?},\n  radius: {radius:?},\n  bordered: {bordered},\n  fill: {fill},\n  aria_label: {:?},\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n  aria_source: \"{}\",\n  class_source: \"{}\",\n  data_state: \"{state_attr}\",\n  class: \"{}\",\n}}",
+            if custom_aria {
+                "Workbench media region"
+            } else {
+                ""
+            },
+            if custom_class {
+                "docs-aspect-ratio-custom"
+            } else {
+                ""
+            },
+            if workbench_rtl.get() { "ar" } else { "en-US" },
+            if workbench_rtl.get() {
+                A11yDirection::Rtl
+            } else {
+                A11yDirection::Ltr
+            },
             if custom_aria { "custom" } else { "default" },
             if custom_class { "custom" } else { "default" },
             classes.join(" ")
@@ -302,6 +331,15 @@ pub(super) fn aspect_ratio() -> AnyView {
                         >
                             "Toggle custom class"
                         </button>
+                        <button
+                            type="button"
+                            data-action="toggle-rtl-config"
+                            on:click=move |_| {
+                                set_workbench_rtl.update(|value| *value = !*value);
+                            }
+                        >
+                            "Toggle RTL locale"
+                        </button>
                         <p class="ui-muted" data-slot="aspect-ratio-config-summary">
                             {move || {
                                 format!(
@@ -351,6 +389,16 @@ pub(super) fn aspect_ratio() -> AnyView {
                                 } else {
                                     "".to_string()
                                 }
+                                lang=if workbench_rtl.get() {
+                                    "ar".to_string()
+                                } else {
+                                    "en-US".to_string()
+                                }
+                                dir=if workbench_rtl.get() {
+                                    A11yDirection::Rtl
+                                } else {
+                                    A11yDirection::Ltr
+                                }
                             >
                                 <View
                                     background=ViewBackground::Accent
@@ -379,36 +427,175 @@ pub(super) fn aspect_ratio() -> AnyView {
                     </span>
                 </div>
             </Playground>
+
+            <Playground title="State Matrix (Preset / Border / Locale Comparison)" code_signal=framed_code>
+                <div class="docs-stack">
+                    <AspectRatio
+                        ratio=AspectRatioPreset::Square
+                        radius=AspectRatioRadius::Sm
+                        fill=true
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    >
+                        <View
+                            background=ViewBackground::Subtle
+                            border=ViewBorder::Subtle
+                            padding=ViewPadding::Sm
+                            radius=ViewRadius::None
+                        >
+                            "1:1"
+                        </View>
+                    </AspectRatio>
+                    <AspectRatio
+                        ratio=AspectRatioPreset::UltraWide
+                        radius=AspectRatioRadius::Lg
+                        bordered=true
+                        fill=true
+                        aria_label="Release trailer preview".to_string()
+                        class_name="docs-aspect-ratio-custom".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    >
+                        <View
+                            background=ViewBackground::Accent
+                            border=ViewBorder::None
+                            padding=ViewPadding::Md
+                            radius=ViewRadius::None
+                        >
+                            "21:9 framed media"
+                        </View>
+                    </AspectRatio>
+                    <AspectRatio
+                        ratio=AspectRatioPreset::Portrait
+                        radius=AspectRatioRadius::Md
+                        bordered=false
+                        fill=true
+                        aria_label="Arabic preview".to_string()
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                    >
+                        <View
+                            background=ViewBackground::Subtle
+                            border=ViewBorder::Subtle
+                            padding=ViewPadding::Sm
+                            radius=ViewRadius::None
+                        >
+                            "3:4"
+                        </View>
+                    </AspectRatio>
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn grid() -> AnyView {
+    let (workbench_auto_fit, set_workbench_auto_fit) = signal(false);
+    let (workbench_equal_rows, set_workbench_equal_rows) = signal(false);
+    let (workbench_dense, set_workbench_dense) = signal(false);
+    let (workbench_inline, set_workbench_inline) = signal(false);
+    let (workbench_stretch, set_workbench_stretch) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+
+    let workbench_columns = Signal::derive(move || {
+        if workbench_auto_fit.get() {
+            GridColumns::AutoFit
+        } else {
+            GridColumns::Three
+        }
+    });
+    let workbench_rows = Signal::derive(move || {
+        if workbench_equal_rows.get() {
+            GridRows::Equal
+        } else {
+            GridRows::Auto
+        }
+    });
+    let workbench_gap = Signal::derive(move || {
+        if workbench_stretch.get() {
+            GridGap::Lg
+        } else {
+            GridGap::Md
+        }
+    });
+    let workbench_justify = Signal::derive(move || {
+        if workbench_stretch.get() {
+            GridJustify::Stretch
+        } else {
+            GridJustify::Start
+        }
+    });
+    let workbench_align = Signal::derive(move || {
+        if workbench_stretch.get() {
+            GridAlign::Stretch
+        } else {
+            GridAlign::Start
+        }
+    });
+
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<Grid\n  columns=GridColumns::{:?}\n  rows=GridRows::{:?}\n  gap=GridGap::{:?}\n  justify=GridJustify::{:?}\n  align=GridAlign::{:?}\n  dense={}\n  inline={}\n  aria_label={}\n  class_name={}\n>\n  ...\n</Grid>",
+            workbench_columns.get(),
+            workbench_rows.get(),
+            workbench_gap.get(),
+            workbench_justify.get(),
+            workbench_align.get(),
+            workbench_dense.get(),
+            workbench_inline.get(),
+            if workbench_custom_aria.get() {
+                "\"Overview cards grid\".to_string()"
+            } else {
+                "\"\".to_string()"
+            },
+            if workbench_custom_class.get() {
+                "\"docs-grid-adaptive\".to_string()"
+            } else {
+                "\"\".to_string()"
+            },
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "GridActualConfig {{\n  columns: GridColumns::{:?},\n  rows: GridRows::{:?},\n  gap: GridGap::{:?},\n  justify: GridJustify::{:?},\n  align: GridAlign::{:?},\n  dense: {},\n  inline: {},\n  aria_label: {},\n  class_name: {},\n}}",
+            workbench_columns.get(),
+            workbench_rows.get(),
+            workbench_gap.get(),
+            workbench_justify.get(),
+            workbench_align.get(),
+            workbench_dense.get(),
+            workbench_inline.get(),
+            if workbench_custom_aria.get() {
+                "Some(\"Overview cards grid\")"
+            } else {
+                "None"
+            },
+            if workbench_custom_class.get() {
+                "Some(\"docs-grid-adaptive\")"
+            } else {
+                "None"
+            },
+        )
+    });
+
     let columns_code = Signal::derive(move || {
         r#"<Grid columns=GridColumns::Three gap=GridGap::Md>
   <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"A"</View>
   <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"B"</View>
   <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"C"</View>
-  <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"D"</View>
 </Grid>"#
             .to_string()
     });
 
     let adaptive_code = Signal::derive(move || {
-        r#"<Grid
-  columns=GridColumns::AutoFit
-  rows=GridRows::Equal
-  gap=GridGap::Lg
-  justify=GridJustify::Stretch
-  align=GridAlign::Stretch
-  dense=true
-  class_name="docs-grid-adaptive".to_string()
->
-  <View background=ViewBackground::Subtle border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Sm>"Revenue"</View>
-  <View background=ViewBackground::Subtle border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Sm>"Users"</View>
-  <View background=ViewBackground::Subtle border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Sm>"Latency"</View>
-</Grid>"#.to_string()
+        r#"<Grid columns=GridColumns::AutoFit rows=GridRows::Equal gap=GridGap::Lg justify=GridJustify::Stretch align=GridAlign::Stretch dense=true aria_label="Overview cards grid".to_string()>
+  <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"Dense"</View>
+  <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"Equal rows"</View>
+</Grid>"#
+            .to_string()
     });
 
     view! {
@@ -419,7 +606,7 @@ pub(super) fn grid() -> AnyView {
             description="baseline-style grid layout primitive with centralized columns/rows/gap/alignment normalization and stable state-marker contracts."
         >
             <Playground title="Columns + Gap" code_signal=columns_code>
-                <Grid columns=GridColumns::Three gap=GridGap::Md aria_label="Overview cards grid".to_string()>
+                <Grid columns=GridColumns::Three gap=GridGap::Md>
                     <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
                         "A"
                     </View>
@@ -429,61 +616,145 @@ pub(super) fn grid() -> AnyView {
                     <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
                         "C"
                     </View>
+                </Grid>
+            </Playground>
+
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="grid-workbench-controls">
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_auto_fit.get()
+                                on:change=move |ev| set_workbench_auto_fit.set(event_target_checked(&ev))
+                            />
+                            " columns auto-fit"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_equal_rows.get()
+                                on:change=move |ev| set_workbench_equal_rows.set(event_target_checked(&ev))
+                            />
+                            " rows equal"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_stretch.get()
+                                on:change=move |ev| set_workbench_stretch.set(event_target_checked(&ev))
+                            />
+                            " justify/align stretch"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_dense.get()
+                                on:change=move |ev| set_workbench_dense.set(event_target_checked(&ev))
+                            />
+                            " dense"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_inline.get()
+                                on:change=move |ev| set_workbench_inline.set(event_target_checked(&ev))
+                            />
+                            " inline"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_aria.get()
+                                on:change=move |ev| set_workbench_custom_aria.set(event_target_checked(&ev))
+                            />
+                            " aria_label"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                            />
+                            " class_name"
+                        </label>
+                    </div>
+                }
+            >
+                <Grid
+                    columns=workbench_columns.get()
+                    rows=workbench_rows.get()
+                    gap=workbench_gap.get()
+                    justify=workbench_justify.get()
+                    align=workbench_align.get()
+                    dense=workbench_dense.get()
+                    inline=workbench_inline.get()
+                    aria_label=if workbench_custom_aria.get() {
+                        "Overview cards grid".to_string()
+                    } else {
+                        String::new()
+                    }
+                    class_name=if workbench_custom_class.get() {
+                        "docs-grid-adaptive".to_string()
+                    } else {
+                        String::new()
+                    }
+                >
                     <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
-                        "D"
+                        "Revenue"
                     </View>
                     <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
-                        "E"
+                        "Users"
                     </View>
                     <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
-                        "F"
+                        "Latency"
+                    </View>
+                    <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                        "Errors"
                     </View>
                 </Grid>
             </Playground>
 
             <Playground title="AutoFit + Dense + Equal Rows" code_signal=adaptive_code>
-                <Grid
-                    columns=GridColumns::AutoFit
-                    rows=GridRows::Equal
-                    gap=GridGap::Lg
-                    justify=GridJustify::Stretch
-                    align=GridAlign::Stretch
-                    dense=true
-                    class_name="docs-grid-adaptive".to_string()
-                >
-                    <View
-                        background=ViewBackground::Subtle
-                        border=ViewBorder::Subtle
-                        padding=ViewPadding::Md
-                        radius=ViewRadius::Sm
+                <div class="docs-stack docs-stack--tight">
+                    <Grid columns=GridColumns::Three rows=GridRows::Auto gap=GridGap::Md>
+                        <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                            "Basic"
+                        </View>
+                        <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                            "Three"
+                        </View>
+                    </Grid>
+                    <Grid
+                        columns=GridColumns::AutoFit
+                        rows=GridRows::Equal
+                        gap=GridGap::Lg
+                        justify=GridJustify::Stretch
+                        align=GridAlign::Stretch
+                        dense=true
                     >
-                        "Revenue"
-                    </View>
-                    <View
-                        background=ViewBackground::Subtle
-                        border=ViewBorder::Subtle
-                        padding=ViewPadding::Md
-                        radius=ViewRadius::Sm
+                        <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                            "Dense"
+                        </View>
+                        <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                            "Equal rows"
+                        </View>
+                    </Grid>
+                    <Grid
+                        columns=GridColumns::Three
+                        rows=GridRows::Auto
+                        gap=GridGap::Md
+                        inline=true
+                        class_name="docs-grid-adaptive".to_string()
                     >
-                        "Users"
-                    </View>
-                    <View
-                        background=ViewBackground::Subtle
-                        border=ViewBorder::Subtle
-                        padding=ViewPadding::Md
-                        radius=ViewRadius::Sm
-                    >
-                        "Latency"
-                    </View>
-                    <View
-                        background=ViewBackground::Subtle
-                        border=ViewBorder::Subtle
-                        padding=ViewPadding::Md
-                        radius=ViewRadius::Sm
-                    >
-                        "Errors"
-                    </View>
-                </Grid>
+                        <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                            "Inline"
+                        </View>
+                    </Grid>
+                </div>
             </Playground>
         </ComponentPage>
     }
@@ -707,8 +978,8 @@ let (marker_has_custom_aria, set_marker_has_custom_aria) = signal(false);
 
                     <div class="docs-row" data-slot="scroll-area-marker-controls">
                         <div data-slot="scroll-area-toggle-orientation">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_marker_orientation.update(|value| {
                                         *value = match *value {
@@ -727,12 +998,12 @@ let (marker_has_custom_aria, set_marker_has_custom_aria) = signal(false);
                                     ScrollAreaOrientation::Horizontal => "horizontal",
                                     ScrollAreaOrientation::Both => "both",
                                 })}
-                            </ui_components::Button>
+                            </ui::Button>
                         </div>
 
                         <div data-slot="scroll-area-toggle-disabled">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_marker_is_disabled.update(|value| *value = !*value)
                                 })
@@ -742,12 +1013,12 @@ let (marker_has_custom_aria, set_marker_has_custom_aria) = signal(false);
                                 } else {
                                     "Set disabled"
                                 }}
-                            </ui_components::Button>
+                            </ui::Button>
                         </div>
 
                         <div data-slot="scroll-area-toggle-max-height">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_marker_has_custom_max_height.update(|value| *value = !*value)
                                 })
@@ -757,12 +1028,12 @@ let (marker_has_custom_aria, set_marker_has_custom_aria) = signal(false);
                                 } else {
                                     "Use custom max height"
                                 }}
-                            </ui_components::Button>
+                            </ui::Button>
                         </div>
 
                         <div data-slot="scroll-area-toggle-class">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_marker_has_custom_class.update(|value| *value = !*value)
                                 })
@@ -772,12 +1043,12 @@ let (marker_has_custom_aria, set_marker_has_custom_aria) = signal(false);
                                 } else {
                                     "Set custom class"
                                 }}
-                            </ui_components::Button>
+                            </ui::Button>
                         </div>
 
                         <div data-slot="scroll-area-toggle-aria">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_marker_has_custom_aria.update(|value| *value = !*value)
                                 })
@@ -787,7 +1058,7 @@ let (marker_has_custom_aria, set_marker_has_custom_aria) = signal(false);
                                 } else {
                                     "Use custom aria label"
                                 }}
-                            </ui_components::Button>
+                            </ui::Button>
                         </div>
                     </div>
 
@@ -915,11 +1186,45 @@ let (marker_has_custom_aria, set_marker_has_custom_aria) = signal(false);
 }
 
 pub(super) fn resizable() -> AnyView {
+    let (workbench_split_raw, set_workbench_split_raw) = signal(58.0_f64);
+    let workbench_value: Signal<f64> = Signal::derive(move || workbench_split_raw.get());
+    let workbench_split_percent: Signal<f64> = Signal::derive(move || workbench_split_raw.get());
+    let (last_value_change, set_last_value_change) = signal("58.0".to_string());
+    let (last_split_change, set_last_split_change) = signal("58.0".to_string());
+    let on_value_change = Callback::new(move |next: f64| {
+        set_last_value_change.set(format!("{next:.1}"));
+        set_workbench_split_raw.set(next);
+    });
+    let on_split_percent_change = Callback::new(move |next: f64| {
+        set_last_split_change.set(format!("{next:.1}"));
+        set_workbench_split_raw.set(next);
+    });
+
+    let (workbench_orientation_key, set_workbench_orientation_key) =
+        signal("horizontal".to_string());
+    let workbench_orientation = Signal::derive(move || {
+        if workbench_orientation_key.get() == "vertical" {
+            ResizableOrientation::Vertical
+        } else {
+            ResizableOrientation::Horizontal
+        }
+    });
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_with_handle, set_workbench_with_handle) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_min, set_workbench_min) = signal(25.0_f64);
+    let (workbench_max, set_workbench_max) = signal(80.0_f64);
+
+    let (split_raw, set_split_raw) = signal(58.0_f64);
+    let split: Signal<f64> = Signal::derive(move || split_raw.get());
+    let on_split_change = Callback::new(move |next: f64| set_split_raw.set(next));
+
     let horizontal_code = Signal::derive(move || {
         r#"<Resizable
   orientation=ResizableOrientation::Horizontal
-  default_value=36.0
-  is_with_handle=true
+  default_value=40.0
   first=move || view! { <div>"Sidebar"</div> }
   second=move || view! { <div>"Content"</div> }
 />"#
@@ -927,27 +1232,102 @@ pub(super) fn resizable() -> AnyView {
     });
 
     let vertical_code = Signal::derive(move || {
-        r#"let (split_raw, set_split_raw) = signal(58.0_f64);
-let split: Signal<f64> = Signal::derive(move || split_raw.get());
-
-<Resizable
+        r#"<Resizable
   orientation=ResizableOrientation::Vertical
   value=split
-  on_value_change=Callback::new(move |next| set_split_raw.set(next))
+  on_value_change=on_split_change
   min_split_percent=25.0
   max_split_percent=80.0
   is_with_handle=true
+  aria_label="Deployment regions split".to_string()
   class_name="docs-resizable-custom".to_string()
-  first=move || view! { <div>"Header"</div> }
-  second=move || view! { <div>"Body"</div> }
+  first=move || view! { <div>\"Left\"</div> }
+  second=move || view! { <div>\"Right\"</div> }
 />"#
         .to_string()
     });
 
-    let (split_raw, set_split_raw) = signal(58.0_f64);
-    let split: Signal<f64> = Signal::derive(move || split_raw.get());
-    let on_split_change = Callback::new(move |next: f64| {
-        set_split_raw.set(next);
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<Resizable\n  orientation={}\n  value=value\n  split_percent=split_percent\n  default_value=58.0\n  default_split_percent=58.0\n  on_value_change=on_value_change\n  on_split_percent_change=on_split_percent_change\n  min_split_percent={:.1}\n  max_split_percent={:.1}\n  is_disabled={}\n  disabled={}\n  is_with_handle={}\n  with_handle={}\n  aria_label=\"Workspace split\".to_string()\n  class_name={}\n  lang={}\n  dir={}\n  motion={}\n  first=move || view! {{ <div>\"Primary panel\"</div> }}\n  second=move || view! {{ <div>\"Secondary panel\"</div> }}\n/>",
+            if workbench_orientation.get() == ResizableOrientation::Vertical {
+                "ResizableOrientation::Vertical"
+            } else {
+                "ResizableOrientation::Horizontal"
+            },
+            workbench_min.get(),
+            workbench_max.get(),
+            workbench_disabled.get(),
+            workbench_disabled.get(),
+            workbench_with_handle.get(),
+            workbench_with_handle.get(),
+            if workbench_custom_class.get() {
+                "\"docs-resizable-workbench\".to_string()"
+            } else {
+                "String::new()"
+            },
+            if workbench_rtl.get() {
+                "\"ar\".to_string()"
+            } else {
+                "\"en\".to_string()"
+            },
+            if workbench_rtl.get() {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            },
+            if workbench_custom_motion.get() {
+                "ResizableMotion { enabled: true, panel_duration_ms: 120, handle_duration_ms: 120 }"
+            } else {
+                "ResizableMotion::default()"
+            }
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "ResizableWorkbenchConfig {{\n  orientation: {},\n  value: {:.1},\n  split_percent: {:.1},\n  default_value: Some(58.0),\n  default_split_percent: Some(58.0),\n  on_value_change: Some(\"Callback<f64>\"),\n  on_split_percent_change: Some(\"Callback<f64>\"),\n  min_split_percent: {:.1},\n  max_split_percent: {:.1},\n  is_disabled: Some({}),\n  disabled: {},\n  is_with_handle: Some({}),\n  with_handle: {},\n  aria_label: Some(\"Workspace split\"),\n  class_name: {},\n  lang: {},\n  dir: {},\n  motion: {},\n  first: \"ViewFn(primary)\",\n  second: \"ViewFn(secondary)\",\n}}",
+            if workbench_orientation.get() == ResizableOrientation::Vertical {
+                "Vertical"
+            } else {
+                "Horizontal"
+            },
+            workbench_split_raw.get(),
+            workbench_split_raw.get(),
+            workbench_min.get(),
+            workbench_max.get(),
+            workbench_disabled.get(),
+            workbench_disabled.get(),
+            workbench_with_handle.get(),
+            workbench_with_handle.get(),
+            if workbench_custom_class.get() {
+                "Some(\"docs-resizable-workbench\")"
+            } else {
+                "None"
+            },
+            if workbench_rtl.get() {
+                "Some(\"ar\")"
+            } else {
+                "Some(\"en\")"
+            },
+            if workbench_rtl.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
+            if workbench_custom_motion.get() {
+                "ResizableMotion::custom"
+            } else {
+                "ResizableMotion::default"
+            }
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<Resizable orientation=ResizableOrientation::Horizontal default_value=40.0 first=move || view! { <div>"Sidebar"</div> } second=move || view! { <div>"Content"</div> } />
+<Resizable orientation=ResizableOrientation::Vertical default_value=60.0 is_with_handle=true first=move || view! { <div>"Header"</div> } second=move || view! { <div>"Body"</div> } />
+<Resizable orientation=ResizableOrientation::Horizontal default_value=35.0 is_disabled=true first=move || view! { <div>"Disabled left"</div> } second=move || view! { <div>"Disabled right"</div> } />"#
+            .to_string()
     });
 
     view! {
@@ -970,10 +1350,7 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
                                 padding=ViewPadding::Md
                                 radius=ViewRadius::None
                             >
-                                <div class="docs-stack docs-stack--tight">
-                                    <strong>"Sidebar"</strong>
-                                    <span class="ui-muted">"Drag handle or Arrow keys to resize."</span>
-                                </div>
+                                <strong>"Sidebar"</strong>
                             </View>
                         }
                     }
@@ -985,10 +1362,7 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
                                 padding=ViewPadding::Md
                                 radius=ViewRadius::None
                             >
-                                <div class="docs-stack docs-stack--tight">
-                                    <strong>"Content"</strong>
-                                    <span class="ui-muted">"Resizable panel body with scroll-safe overflow."</span>
-                                </div>
+                                <strong>"Content"</strong>
                             </View>
                         }
                     }
@@ -1006,6 +1380,103 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
                         is_with_handle=true
                         aria_label="Deployment regions split".to_string()
                         class_name="docs-resizable-custom".to_string()
+                        first=move || view! { <div>"Header"</div> }
+                        second=move || view! { <div>"Body"</div> }
+                    />
+                    <span class="ui-muted">
+                        "controlled split: "
+                        {move || format!("{:.1}%", split_raw.get())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Config Workbench"
+                description="Covers full Resizable API with callback feedback."
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="resizable-workbench-controls">
+                        <label class="docs-choice-row">
+                            <span>"Orientation"</span>
+                            <select
+                                class="docs-select"
+                                on:change=move |ev| set_workbench_orientation_key.set(event_target_value(&ev))
+                            >
+                                <option value="horizontal" selected=move || workbench_orientation_key.get() == "horizontal">"Horizontal"</option>
+                                <option value="vertical" selected=move || workbench_orientation_key.get() == "vertical">"Vertical"</option>
+                            </select>
+                        </label>
+                        <label class="docs-choice-row">
+                            <span>"Min"</span>
+                            <input
+                                type="number"
+                                prop:value=move || workbench_min.get().to_string()
+                                on:change=move |ev| {
+                                    let next = event_target_value(&ev).parse::<f64>().ok().unwrap_or(25.0);
+                                    set_workbench_min.set(next);
+                                }
+                            />
+                        </label>
+                        <label class="docs-choice-row">
+                            <span>"Max"</span>
+                            <input
+                                type="number"
+                                prop:value=move || workbench_max.get().to_string()
+                                on:change=move |ev| {
+                                    let next = event_target_value(&ev).parse::<f64>().ok().unwrap_or(80.0);
+                                    set_workbench_max.set(next);
+                                }
+                            />
+                        </label>
+                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>"Disabled"</Switch>
+                        <Switch checked=workbench_with_handle set_checked=set_workbench_with_handle>"With handle"</Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>"Custom class"</Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>"RTL"</Switch>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>"Custom motion"</Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="resizable-workbench-preview">
+                    <Resizable
+                        orientation=workbench_orientation.get()
+                        value=workbench_value
+                        split_percent=workbench_split_percent
+                        default_value=58.0
+                        default_split_percent=58.0
+                        on_value_change=on_value_change
+                        on_split_percent_change=on_split_percent_change
+                        min_split_percent=workbench_min.get()
+                        max_split_percent=workbench_max.get()
+                        is_disabled=workbench_disabled.get()
+                        disabled=workbench_disabled.get()
+                        is_with_handle=workbench_with_handle.get()
+                        with_handle=workbench_with_handle.get()
+                        aria_label="Workspace split".to_string()
+                        class_name=if workbench_custom_class.get() {
+                            "docs-resizable-workbench".to_string()
+                        } else {
+                            String::new()
+                        }
+                        lang=if workbench_rtl.get() {
+                            "ar".to_string()
+                        } else {
+                            "en".to_string()
+                        }
+                        dir=if workbench_rtl.get() {
+                            A11yDirection::Rtl
+                        } else {
+                            A11yDirection::Ltr
+                        }
+                        motion=if workbench_custom_motion.get() {
+                            ResizableMotion {
+                                enabled: true,
+                                panel_duration_ms: 120,
+                                handle_duration_ms: 120,
+                            }
+                        } else {
+                            ResizableMotion::default()
+                        }
                         first=move || {
                             view! {
                                 <View
@@ -1014,7 +1485,7 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
                                     padding=ViewPadding::Md
                                     radius=ViewRadius::None
                                 >
-                                    <strong>"Header"</strong>
+                                    <strong>"Primary panel"</strong>
                                 </View>
                             }
                         }
@@ -1026,99 +1497,69 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
                                     padding=ViewPadding::Md
                                     radius=ViewRadius::None
                                 >
-                                    <strong>"Body"</strong>
+                                    <strong>"Secondary panel"</strong>
                                 </View>
                             }
                         }
                     />
                     <span class="ui-muted">
-                        "controlled split: "
-                        {move || format!("{:.1}%", split_raw.get())}
+                        "split=" {move || format!("{:.1}", workbench_split_raw.get())}
+                        " · on_value_change=" {move || last_value_change.get()}
+                        " · on_split_percent_change=" {move || last_split_change.get()}
                     </span>
                 </div>
             </Playground>
 
-            <section class="docs-card docs-prose" data-slot="resizable-api-matrix">
+            <Playground title="State Matrix" code_signal=matrix_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Resizable
+                        orientation=ResizableOrientation::Horizontal
+                        default_value=40.0
+                        first=move || view! { <div>"Sidebar"</div> }
+                        second=move || view! { <div>"Content"</div> }
+                    />
+                    <Resizable
+                        orientation=ResizableOrientation::Vertical
+                        default_value=60.0
+                        is_with_handle=true
+                        first=move || view! { <div>"Header"</div> }
+                        second=move || view! { <div>"Body"</div> }
+                    />
+                    <Resizable
+                        orientation=ResizableOrientation::Horizontal
+                        default_value=35.0
+                        is_disabled=true
+                        first=move || view! { <div>"Disabled left"</div> }
+                        second=move || view! { <div>"Disabled right"</div> }
+                    />
+                </div>
+            </Playground>
+
+            <section class="docs-stack docs-stack--tight" data-slot="resizable-api-matrix">
                 <h3>"API Matrix"</h3>
                 <ul data-slot="resizable-api-rows">
-                    <li>
-                        <code>"orientation: ResizableOrientation"</code>
-                        " horizontal | vertical"
-                    </li>
-                    <li>
-                        <code>"value + on_value_change + default_value"</code>
-                        " canonical controlled/uncontrolled split axis"
-                    </li>
-                    <li>
-                        <code>"split_percent + on_split_percent_change + default_split_percent"</code>
-                        " legacy aliases supported for migration"
-                    </li>
-                    <li>
-                        <code>"min_split_percent / max_split_percent"</code>
-                        " bounded normalization in logic/primitive layer"
-                    </li>
-                    <li>
-                        <code>"is_disabled / is_with_handle"</code>
-                        " prefixed accessibility + presentation switches"
-                    </li>
-                    <li>
-                        <code>"lang / dir / aria_label / class_name / motion"</code>
-                        " locale + semantics + visual contract inputs"
-                    </li>
+                    <li><code>"orientation / value / on_value_change / min_split_percent / max_split_percent"</code></li>
+                    <li><code>"is_with_handle / is_disabled / aria_label / class_name"</code></li>
                 </ul>
             </section>
 
-            <section class="docs-card docs-prose" data-slot="resizable-state-matrix">
+            <section class="docs-stack docs-stack--tight" data-slot="resizable-state-matrix">
                 <h3>"State Matrix"</h3>
                 <ul data-slot="resizable-state-rows">
-                    <li>
-                        <code>"data-state"</code>
-                        " = idle | dragging | disabled"
-                    </li>
-                    <li>
-                        <code>"data-orientation"</code>
-                        " = horizontal | vertical"
-                    </li>
-                    <li>
-                        <code>"data-control-mode / data-value-source / data-default-value-source"</code>
-                        " controlled/uncontrolled and source provenance markers"
-                    </li>
-                    <li>
-                        <code>"data-value-change-source / data-disabled-source / data-handle-source"</code>
-                        " source markers for update + disabled + handle decision paths"
-                    </li>
-                    <li>
-                        <code>"data-ui-schema / data-ui-intent / data-ui-stream-* / data-ui-output-status"</code>
-                        " machine-readable agent contract + snapshot fallback policy"
-                    </li>
+                    <li><code>"idle / dragging / disabled"</code></li>
+                    <li><code>"controlled / uncontrolled split state"</code></li>
                 </ul>
             </section>
 
-            <section class="docs-card docs-prose" data-slot="resizable-source-first">
+            <section class="docs-stack docs-stack--tight" data-slot="resizable-source-first">
                 <h3>"Source-first / Copy-Paste Ready"</h3>
-                <p>
-                    "Each playground supports "
-                    <code>"Show code"</code>
-                    " and copy action. Snippets are import-ready through "
-                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
-                    "."
-                </p>
-                <Snippet
-                    text="use leptos::prelude::*;\nuse ui_layout::{Resizable, ResizableOrientation};\n\n<Resizable\n  orientation=ResizableOrientation::Horizontal\n  default_value=40.0\n  first=move || view! { <div>\"Left\"</div> }\n  second=move || view! { <div>\"Right\"</div> }\n/>".to_string()
-                    label="Copy starter".to_string()
-                    copyable=true
-                    class_name="docs-resizable-source-copy".to_string()
-                />
+                <p>"Copy starter"</p>
                 <ul data-slot="resizable-source-paths">
-                    <li><code>"crates/ui-layout/src/resizable/mod.rs"</code></li>
-                    <li><code>"crates/ui-layout/src/resizable/logic.rs"</code></li>
+                    <li><code>"component-resizable"</code></li>
                     <li><code>"crates/ui-layout/src/resizable/view.rs"</code></li>
-                    <li><code>"crates/ui-layout/src/resizable/styles.rs"</code></li>
-                    <li><code>"crates/ui-layout/src/resizable/motion.rs"</code></li>
                 </ul>
                 <ul data-slot="resizable-source-prerequisites">
-                    <li><code>"component-resizable"</code></li>
-                    <li><code>"inject-css"</code></li>
+                    <li><code>"compose_copy_ready_code"</code></li>
                 </ul>
             </section>
         </ComponentPage>
@@ -1127,51 +1568,147 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
 }
 
 pub(super) fn sidebar() -> AnyView {
-    let basic_code = Signal::derive(move || {
+    let showcase_code = Signal::derive(move || {
         r#"<Sidebar
   side=SidebarSide::Left
   variant=SidebarVariant::Sidebar
   collapsible=SidebarCollapsible::Offcanvas
+  aria_label="Project navigation".to_string()
 >
   <div class="ui-sidebar__header"><strong>"Workspace"</strong></div>
-  <div class="ui-sidebar__content">
-    <span>"Dashboard"</span>
-    <span>"Analytics"</span>
-    <span>"Settings"</span>
-  </div>
-  <div class="ui-sidebar__footer"><span>"Free plan"</span></div>
+  <div class="ui-sidebar__content"><span>"Dashboard"</span><span>"Analytics"</span><span>"Settings"</span></div>
 </Sidebar>"#
             .to_string()
     });
 
-    let controlled_code = Signal::derive(move || {
-        r#"let (open_raw, set_open_raw) = signal(true);
-let open: Signal<bool> = Signal::derive(move || open_raw.get());
-let on_open_change = Callback::new(move |next| set_open_raw.set(next));
+    let side_options = vec!["Left".to_string(), "Right".to_string()];
+    let variant_options = vec![
+        "Sidebar".to_string(),
+        "Floating".to_string(),
+        "Inset".to_string(),
+    ];
+    let collapsible_options = vec![
+        "Offcanvas".to_string(),
+        "Icon".to_string(),
+        "None".to_string(),
+    ];
 
-<button class="ui-button" on:click=move |_| set_open_raw.update(|open| *open = !*open)>
-  "Toggle right sidebar"
-</button>
-
-<Sidebar
-  open=open
-  on_open_change=on_open_change
-  side=SidebarSide::Right
-  variant=SidebarVariant::Inset
-  collapsible=SidebarCollapsible::Icon
-  show_trigger=false
-  class_name="docs-sidebar-custom".to_string()
->
-  <div class="ui-sidebar__header"><strong>"Inspector"</strong></div>
-  <div class="ui-sidebar__content"><span>"Layers"</span><span>"Tokens"</span></div>
-  <div class="ui-sidebar__footer"><span>"Ctrl+B / Cmd+B"</span></div>
-</Sidebar>"#
-            .to_string()
+    let (workbench_open_raw, set_workbench_open_raw) = signal(true);
+    let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
+    let (workbench_open_change_count, set_workbench_open_change_count) = signal(0_u32);
+    let (workbench_last_open, set_workbench_last_open) = signal(true);
+    let on_workbench_open_change = Callback::new(move |next: bool| {
+        set_workbench_open_raw.set(next);
+        set_workbench_last_open.set(next);
+        set_workbench_open_change_count.update(|count| *count += 1);
     });
 
-    let (open_raw, set_open_raw) = signal(true);
-    let open: Signal<bool> = Signal::derive(move || open_raw.get());
-    let on_open_change = Callback::new(move |next: bool| set_open_raw.set(next));
+    let (workbench_side_index, set_workbench_side_index) = signal(Some(0_usize));
+    let workbench_side = Signal::derive(move || match workbench_side_index.get().unwrap_or(0) {
+        1 => SidebarSide::Right,
+        _ => SidebarSide::Left,
+    });
+    let (workbench_variant_index, set_workbench_variant_index) = signal(Some(0_usize));
+    let workbench_variant =
+        Signal::derive(move || match workbench_variant_index.get().unwrap_or(0) {
+            1 => SidebarVariant::Floating,
+            2 => SidebarVariant::Inset,
+            _ => SidebarVariant::Sidebar,
+        });
+    let (workbench_collapsible_index, set_workbench_collapsible_index) = signal(Some(0_usize));
+    let workbench_collapsible =
+        Signal::derive(
+            move || match workbench_collapsible_index.get().unwrap_or(0) {
+                1 => SidebarCollapsible::Icon,
+                2 => SidebarCollapsible::None,
+                _ => SidebarCollapsible::Offcanvas,
+            },
+        );
+    let (workbench_default_open, set_workbench_default_open) = signal(true);
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_show_trigger, set_workbench_show_trigger) = signal(true);
+    let (workbench_enable_shortcut, set_workbench_enable_shortcut) = signal(true);
+    let (workbench_custom_shortcut, set_workbench_custom_shortcut) = signal(false);
+    let (workbench_custom_trigger_label, set_workbench_custom_trigger_label) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+
+    let workbench_code = Signal::derive(move || {
+        let side = match workbench_side.get() {
+            SidebarSide::Right => "SidebarSide::Right",
+            SidebarSide::Left => "SidebarSide::Left",
+        };
+        let variant = match workbench_variant.get() {
+            SidebarVariant::Floating => "SidebarVariant::Floating",
+            SidebarVariant::Inset => "SidebarVariant::Inset",
+            SidebarVariant::Sidebar => "SidebarVariant::Sidebar",
+        };
+        let collapsible = match workbench_collapsible.get() {
+            SidebarCollapsible::Icon => "SidebarCollapsible::Icon",
+            SidebarCollapsible::None => "SidebarCollapsible::None",
+            SidebarCollapsible::Offcanvas => "SidebarCollapsible::Offcanvas",
+        };
+
+        format!(
+            "let (open_raw, set_open_raw) = signal({});\nlet open = Signal::derive(move || open_raw.get());\nlet on_open_change = Callback::new(move |next: bool| set_open_raw.set(next));\n\n<Sidebar\n  open=open\n  default_open={}\n  on_open_change=on_open_change\n  side={side}\n  variant={variant}\n  collapsible={collapsible}\n  disabled={}\n  show_trigger={}\n  enable_shortcut={}\n  shortcut_key={}.to_string()\n  trigger_label={}.to_string()\n  aria_label=\"Project navigation sidebar\".to_string()\n  class_name={}\n/>",
+            bool_word(workbench_open_raw.get()),
+            bool_word(workbench_default_open.get()),
+            bool_word(workbench_disabled.get()),
+            bool_word(workbench_show_trigger.get()),
+            bool_word(workbench_enable_shortcut.get()),
+            rust_string_literal(if workbench_custom_shortcut.get() {
+                "j"
+            } else {
+                "b"
+            }),
+            rust_string_literal(if workbench_custom_trigger_label.get() {
+                "Toggle nav panel"
+            } else {
+                "Toggle sidebar"
+            }),
+            if workbench_custom_class.get() {
+                "\"docs-sidebar-workbench\".to_string()"
+            } else {
+                "String::new()"
+            },
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "SidebarWorkbenchActualConfig {{\n  open: Some({}),\n  default_open: Some({}),\n  on_open_change: \"count={}, last={}\",\n  side: {:?},\n  variant: {:?},\n  collapsible: {:?},\n  disabled: {},\n  show_trigger: {},\n  enable_shortcut: {},\n  shortcut_key: Some({:?}),\n  trigger_label: Some({:?}),\n  aria_label: Some(\"Project navigation sidebar\"),\n  class_name: {:?},\n}}",
+            bool_word(workbench_open_raw.get()),
+            bool_word(workbench_default_open.get()),
+            workbench_open_change_count.get(),
+            bool_word(workbench_last_open.get()),
+            workbench_side.get(),
+            workbench_variant.get(),
+            workbench_collapsible.get(),
+            bool_word(workbench_disabled.get()),
+            bool_word(workbench_show_trigger.get()),
+            bool_word(workbench_enable_shortcut.get()),
+            if workbench_custom_shortcut.get() {
+                "j"
+            } else {
+                "b"
+            },
+            if workbench_custom_trigger_label.get() {
+                "Toggle nav panel"
+            } else {
+                "Toggle sidebar"
+            },
+            if workbench_custom_class.get() {
+                Some("docs-sidebar-workbench")
+            } else {
+                None
+            },
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<Sidebar side=SidebarSide::Left variant=SidebarVariant::Sidebar collapsible=SidebarCollapsible::Offcanvas aria_label="Left default".to_string() />
+<Sidebar side=SidebarSide::Right variant=SidebarVariant::Floating collapsible=SidebarCollapsible::Icon show_trigger=false aria_label="Right floating".to_string() />
+<Sidebar side=SidebarSide::Left variant=SidebarVariant::Inset collapsible=SidebarCollapsible::None disabled=true enable_shortcut=false trigger_label="Disabled".to_string() aria_label="Disabled sidebar".to_string() />"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1180,90 +1717,159 @@ let on_open_change = Callback::new(move |next| set_open_raw.set(next));
             group="Layout"
             description="baseline-compatible sidebar primitive with controlled/uncontrolled open state, side+variant+collapsible contracts, keyboard shortcut toggle, and baseline-style data markers."
         >
-            <Playground title="Offcanvas + Slot Markers" code_signal=basic_code>
+            <Playground title="Hello World (Default Sidebar)" code_signal=showcase_code>
                 <Sidebar
                     side=SidebarSide::Left
                     variant=SidebarVariant::Sidebar
                     collapsible=SidebarCollapsible::Offcanvas
-                    aria_label="Project navigation sidebar".to_string()
+                    aria_label="Project navigation".to_string()
                 >
                     <div class="ui-sidebar__header">
-                        <div class="docs-stack docs-stack--tight">
-                            <strong>"Workspace"</strong>
-                            <span class="ui-muted">"Navigation + quick status"</span>
-                        </div>
+                        <strong>"Workspace"</strong>
                     </div>
-
                     <div class="ui-sidebar__content">
-                        <View
-                            background=ViewBackground::Subtle
-                            border=ViewBorder::Subtle
-                            padding=ViewPadding::Sm
-                            radius=ViewRadius::Sm
-                        >
-                            "Dashboard"
-                        </View>
-                        <View
-                            background=ViewBackground::Subtle
-                            border=ViewBorder::Subtle
-                            padding=ViewPadding::Sm
-                            radius=ViewRadius::Sm
-                        >
-                            "Analytics"
-                        </View>
-                        <View
-                            background=ViewBackground::Subtle
-                            border=ViewBorder::Subtle
-                            padding=ViewPadding::Sm
-                            radius=ViewRadius::Sm
-                        >
-                            "Settings"
-                        </View>
-                    </div>
-
-                    <div class="ui-sidebar__footer">
-                        <span class="ui-muted">"Free plan · 2 seats"</span>
+                        <span>"Dashboard"</span>
+                        <span>"Analytics"</span>
+                        <span>"Settings"</span>
                     </div>
                 </Sidebar>
             </Playground>
 
-            <Playground title="Controlled + Right Inset/Icon" code_signal=controlled_code>
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="sidebar-workbench-controls">
+                        <SegmentedControl
+                            id_base="docs-sidebar-workbench-side".to_string()
+                            options=side_options.clone()
+                            selected_index=workbench_side_index
+                            set_selected_index=set_workbench_side_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Sidebar side".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-sidebar-workbench-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=workbench_variant_index
+                            set_selected_index=set_workbench_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Sidebar variant".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-sidebar-workbench-collapsible".to_string()
+                            options=collapsible_options.clone()
+                            selected_index=workbench_collapsible_index
+                            set_selected_index=set_workbench_collapsible_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Sidebar collapsible".to_string()
+                        />
+                        <Switch checked=workbench_default_open set_checked=set_workbench_default_open>
+                            "default_open"
+                        </Switch>
+                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
+                            "disabled"
+                        </Switch>
+                        <Switch checked=workbench_show_trigger set_checked=set_workbench_show_trigger>
+                            "show_trigger"
+                        </Switch>
+                        <Switch checked=workbench_enable_shortcut set_checked=set_workbench_enable_shortcut>
+                            "enable_shortcut"
+                        </Switch>
+                        <Switch checked=workbench_custom_shortcut set_checked=set_workbench_custom_shortcut>
+                            "custom shortcut_key"
+                        </Switch>
+                        <Switch checked=workbench_custom_trigger_label set_checked=set_workbench_custom_trigger_label>
+                            "custom trigger_label"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "class_name"
+                        </Switch>
+                        <button
+                            type="button"
+                            on:click=move |_| set_workbench_open_raw.update(|open| *open = !*open)
+                        >
+                            "Toggle open"
+                        </button>
+                    </div>
+                }
+            >
                 <div class="docs-stack docs-stack--tight">
-                    <button
-                        class="ui-button"
-                        type="button"
-                        on:click=move |_| set_open_raw.update(|open| *open = !*open)
-                    >
-                        "Toggle right sidebar"
-                    </button>
-
                     <Sidebar
-                        open=open
-                        on_open_change=on_open_change
-                        side=SidebarSide::Right
-                        variant=SidebarVariant::Inset
-                        collapsible=SidebarCollapsible::Icon
-                        show_trigger=false
-                        class_name="docs-sidebar-custom".to_string()
-                        aria_label="Inspector sidebar".to_string()
+                        open=workbench_open
+                        default_open=workbench_default_open.get()
+                        on_open_change=on_workbench_open_change
+                        side=workbench_side.get()
+                        variant=workbench_variant.get()
+                        collapsible=workbench_collapsible.get()
+                        disabled=workbench_disabled.get()
+                        show_trigger=workbench_show_trigger.get()
+                        enable_shortcut=workbench_enable_shortcut.get()
+                        shortcut_key=if workbench_custom_shortcut.get() {
+                            "j".to_string()
+                        } else {
+                            "b".to_string()
+                        }
+                        trigger_label=if workbench_custom_trigger_label.get() {
+                            "Toggle nav panel".to_string()
+                        } else {
+                            "Toggle sidebar".to_string()
+                        }
+                        aria_label="Project navigation sidebar".to_string()
+                        class_name=if workbench_custom_class.get() {
+                            "docs-sidebar-workbench".to_string()
+                        } else {
+                            String::new()
+                        }
                     >
                         <div class="ui-sidebar__header">
-                            <strong>"Inspector"</strong>
+                            <strong>"Workbench"</strong>
                         </div>
                         <div class="ui-sidebar__content">
-                            <span>"Layers"</span>
-                            <span>"Tokens"</span>
-                            <span>"Motion"</span>
-                        </div>
-                        <div class="ui-sidebar__footer">
-                            <span class="ui-muted">"Ctrl+B / Cmd+B"</span>
+                            <span>"Inbox"</span>
+                            <span>"Projects"</span>
+                            <span>"Reports"</span>
                         </div>
                     </Sidebar>
-
                     <span class="ui-muted">
-                        "controlled open: "
-                        {move || if open_raw.get() { "true" } else { "false" }}
+                        "open: " {move || bool_word(workbench_open_raw.get())}
+                        " · on_open_change count: " {move || workbench_open_change_count.get()}
+                        " · last: " {move || bool_word(workbench_last_open.get())}
                     </span>
+                </div>
+            </Playground>
+
+            <Playground title="State Matrix (Left / Right / Disabled)" code_signal=matrix_code>
+                <div class="docs-row">
+                    <Sidebar
+                        side=SidebarSide::Left
+                        variant=SidebarVariant::Sidebar
+                        collapsible=SidebarCollapsible::Offcanvas
+                        aria_label="Left default".to_string()
+                    >
+                        <div class="ui-sidebar__content"><span>"Default"</span></div>
+                    </Sidebar>
+                    <Sidebar
+                        side=SidebarSide::Right
+                        variant=SidebarVariant::Floating
+                        collapsible=SidebarCollapsible::Icon
+                        show_trigger=false
+                        aria_label="Right floating".to_string()
+                    >
+                        <div class="ui-sidebar__content"><span>"Right/Floating"</span></div>
+                    </Sidebar>
+                    <Sidebar
+                        side=SidebarSide::Left
+                        variant=SidebarVariant::Inset
+                        collapsible=SidebarCollapsible::None
+                        disabled=true
+                        enable_shortcut=false
+                        trigger_label="Disabled".to_string()
+                        aria_label="Disabled sidebar".to_string()
+                    >
+                        <div class="ui-sidebar__content"><span>"Disabled"</span></div>
+                    </Sidebar>
                 </div>
             </Playground>
         </ComponentPage>
@@ -1292,6 +1898,42 @@ pub(super) fn sidebar_header() -> AnyView {
             .to_string()
     });
 
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<SidebarHeader\n  disabled={}\n  aria_label={}\n  class_name={}\n>\n  <strong>\"Inspector\"</strong>\n  <span class=\"ui-muted\">\"Read-only mode\"</span>\n</SidebarHeader>",
+            bool_word(workbench_disabled.get()),
+            rust_string_literal(if workbench_custom_aria.get() {
+                "Workbench inspector header"
+            } else {
+                ""
+            }),
+            rust_string_literal(if workbench_custom_class.get() {
+                "docs-sidebar-header-custom"
+            } else {
+                ""
+            }),
+        )
+    });
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "SidebarHeaderActualConfig {{\n  disabled: {},\n  aria_label: {},\n  class_name: {},\n}}",
+            bool_word(workbench_disabled.get()),
+            if workbench_custom_aria.get() {
+                "Some(\"Workbench inspector header\")"
+            } else {
+                "None"
+            },
+            if workbench_custom_class.get() {
+                "Some(\"docs-sidebar-header-custom\")"
+            } else {
+                "None"
+            },
+        )
+    });
+
     view! {
         <ComponentPage
             title="SidebarHeader"
@@ -1299,7 +1941,7 @@ pub(super) fn sidebar_header() -> AnyView {
             group="Layout"
             description="baseline-compatible sidebar header region primitive with centralized disabled/source-state contracts and baseline-style data markers."
         >
-            <Playground title="Default Header Region" code_signal=basic_code>
+            <Playground title="Hello World (Default Header Region)" code_signal=basic_code>
                 <Sidebar
                     side=SidebarSide::Left
                     variant=SidebarVariant::Sidebar
@@ -1319,7 +1961,66 @@ pub(super) fn sidebar_header() -> AnyView {
                 </Sidebar>
             </Playground>
 
-            <Playground title="Disabled + Custom Class" code_signal=disabled_code>
+            <Playground
+                title="Workbench (Disabled + Aria + Class)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_disabled.get()
+                                on:change=move |ev| set_workbench_disabled.set(event_target_checked(&ev))
+                            />
+                            " disabled"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_aria.get()
+                                on:change=move |ev| set_workbench_custom_aria.set(event_target_checked(&ev))
+                            />
+                            " aria_label"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                            />
+                            " class_name"
+                        </label>
+                    </div>
+                }
+            >
+                <Sidebar
+                    side=SidebarSide::Left
+                    variant=SidebarVariant::Inset
+                    collapsible=SidebarCollapsible::Icon
+                    show_trigger=false
+                    aria_label="Workbench header sidebar".to_string()
+                >
+                    <SidebarHeader
+                        disabled=workbench_disabled.get()
+                        aria_label=if workbench_custom_aria.get() {
+                            "Workbench inspector header".to_string()
+                        } else {
+                            String::new()
+                        }
+                        class_name=if workbench_custom_class.get() {
+                            "docs-sidebar-header-custom".to_string()
+                        } else {
+                            String::new()
+                        }
+                    >
+                        <strong>"Inspector"</strong>
+                        <span class="ui-muted">"Read-only mode"</span>
+                    </SidebarHeader>
+                </Sidebar>
+            </Playground>
+
+            <Playground title="State Matrix (Disabled + Custom Class)" code_signal=disabled_code>
                 <Sidebar
                     side=SidebarSide::Left
                     variant=SidebarVariant::Inset
@@ -1379,45 +2080,12 @@ pub(super) fn sidebar_menu_badge() -> AnyView {
 }
 
 pub(super) fn sidebar_menu() -> AnyView {
-    let badge_items = vec![
-        SidebarMenuItem {
-            id: "projects".to_string(),
-            label: "Projects".to_string(),
-            href: Some("/projects".to_string()),
-            badge: Some("24".to_string()),
-            action_label: Some("Project actions".to_string()),
-            disabled: false,
-            sub_items: vec![],
-            default_sub_open: false,
-        },
-        SidebarMenuItem {
-            id: "support".to_string(),
-            label: "Support".to_string(),
-            href: Some("/support".to_string()),
-            badge: Some("3".to_string()),
-            action_label: Some("Support actions".to_string()),
-            disabled: false,
-            sub_items: vec![],
-            default_sub_open: false,
-        },
-        SidebarMenuItem {
-            id: "billing".to_string(),
-            label: "Billing".to_string(),
-            href: Some("/billing".to_string()),
-            badge: Some("1".to_string()),
-            action_label: Some("Billing actions".to_string()),
-            disabled: false,
-            sub_items: vec![],
-            default_sub_open: false,
-        },
-    ];
-
-    let collapsible_items = vec![
+    let items = vec![
         SidebarMenuItem {
             id: "workspace".to_string(),
             label: "Workspace".to_string(),
             href: None,
-            badge: None,
+            badge: Some("6".to_string()),
             action_label: Some("Workspace actions".to_string()),
             disabled: false,
             sub_items: vec![
@@ -1440,7 +2108,7 @@ pub(super) fn sidebar_menu() -> AnyView {
             id: "releases".to_string(),
             label: "Releases".to_string(),
             href: None,
-            badge: None,
+            badge: Some("2".to_string()),
             action_label: Some("Release actions".to_string()),
             disabled: false,
             sub_items: vec![SidebarMenuSubItem {
@@ -1452,101 +2120,114 @@ pub(super) fn sidebar_menu() -> AnyView {
             default_sub_open: false,
         },
     ];
+    let showcase_items = items.clone();
+    let workbench_items = items.clone();
+    let matrix_items_first = items.clone();
+    let matrix_items_second = items.clone();
+    let matrix_items_third = items;
 
-    let (last_action, set_last_action) = signal("none".to_string());
-    let on_action = Callback::new(move |id: String| set_last_action.set(id));
-
-    let (last_item_action, set_last_item_action) = signal("none".to_string());
-    let on_item_action = Callback::new(move |id: String| set_last_item_action.set(id));
-
-    let (active_raw, set_active_raw) = signal(Some("tokens".to_string()));
-    let active: Signal<Option<String>> = Signal::derive(move || active_raw.get());
-    let on_active_change = Callback::new(move |next: Option<String>| set_active_raw.set(next));
-
-    let badge_code = Signal::derive(move || {
-        r#"let (last_action, set_last_action) = signal("none".to_string());
-let (last_item_action, set_last_item_action) = signal("none".to_string());
-
-<SidebarMenu
-  items=vec![
-    SidebarMenuItem {
-      id: "activity".to_string(),
-      label: "Activity".to_string(),
-      href: Some("/activity".to_string()),
-      badge: Some("4".to_string()),
-      action_label: Some("Activity actions".to_string()),
-      disabled: false,
-      sub_items: vec![],
-      default_sub_open: false,
-    },
-    SidebarMenuItem {
-      id: "billing".to_string(),
-      label: "Billing".to_string(),
-      href: Some("/billing".to_string()),
-      badge: Some("1".to_string()),
-      action_label: Some("Billing actions".to_string()),
-      disabled: false,
-      sub_items: vec![],
-      default_sub_open: false,
-    },
-  ]
-  on_action=Callback::new(move |id: String| set_last_action.set(id))
-  on_item_action=Callback::new(move |id: String| set_last_item_action.set(id))
-/>
-<span class="ui-muted">"Action: " {move || last_action.get()} " · Item action: " {move || last_item_action.get()}</span>"#.to_string()
+    let (active_id_raw, set_active_id_raw) = signal(Some("tokens".to_string()));
+    let active_id: Signal<Option<String>> = Signal::derive(move || active_id_raw.get());
+    let (on_active_id_change_runs, set_on_active_id_change_runs) = signal(0_u32);
+    let on_active_id_change = Callback::new(move |next: Option<String>| {
+        set_active_id_raw.set(next);
+        set_on_active_id_change_runs.update(|count| *count += 1);
     });
 
-    let controlled_code = Signal::derive(move || {
-        r#"let (active_raw, set_active_raw) = signal(Some("tokens".to_string()));
+    let (last_action, set_last_action) = signal("none".to_string());
+    let (on_action_runs, set_on_action_runs) = signal(0_u32);
+    let on_action = Callback::new(move |id: String| {
+        set_last_action.set(id);
+        set_on_action_runs.update(|count| *count += 1);
+    });
 
-<SidebarMenu
-  items=vec![
-    SidebarMenuItem {
-      id: "workspace".to_string(),
-      label: "Workspace".to_string(),
-      href: None,
-      badge: None,
-      action_label: Some("Workspace actions".to_string()),
-      disabled: false,
-      sub_items: vec![
-        SidebarMenuSubItem {
-          id: "overview".to_string(),
-          label: "Overview".to_string(),
-          href: Some("/workspace/overview".to_string()),
-          disabled: false,
-        },
-        SidebarMenuSubItem {
-          id: "tokens".to_string(),
-          label: "Design tokens".to_string(),
-          href: Some("/workspace/tokens".to_string()),
-          disabled: false,
-        },
-      ],
-      default_sub_open: true,
-    },
-    SidebarMenuItem {
-      id: "releases".to_string(),
-      label: "Releases".to_string(),
-      href: None,
-      badge: None,
-      action_label: Some("Release actions".to_string()),
-      disabled: false,
-      sub_items: vec![SidebarMenuSubItem {
-        id: "changelog".to_string(),
-        label: "Changelog".to_string(),
-        href: Some("/releases/changelog".to_string()),
-        disabled: false,
-      }],
-      default_sub_open: false,
-    },
-  ]
-  active_id=Signal::derive(move || active_raw.get())
-  on_active_id_change=Callback::new(move |next| set_active_raw.set(next))
-  allow_submenu_collapse=true
-  show_badges=false
-  show_actions=true
-/>
-<span class="ui-muted">"active: " {move || active_raw.get().unwrap_or_else(|| "none".to_string())}</span>"#.to_string()
+    let (last_item_action, set_last_item_action) = signal("none".to_string());
+    let (on_item_action_runs, set_on_item_action_runs) = signal(0_u32);
+    let on_item_action = Callback::new(move |id: String| {
+        set_last_item_action.set(id);
+        set_on_item_action_runs.update(|count| *count += 1);
+    });
+
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_show_badges, set_workbench_show_badges) = signal(true);
+    let (workbench_show_actions, set_workbench_show_actions) = signal(true);
+    let (workbench_allow_submenu_collapse, set_workbench_allow_submenu_collapse) = signal(true);
+    let (workbench_enable_shortcut, set_workbench_enable_shortcut) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+
+    let hello_code = Signal::derive(move || {
+        r#"<SidebarMenu
+  items=vec![SidebarMenuItem::new("workspace", "Workspace"), SidebarMenuItem::new("releases", "Releases")]
+  id_base="docs-sidebar-menu-hello".to_string()
+/>"#
+        .to_string()
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let class_name = if workbench_custom_class.get() {
+            "docs-sidebar-menu-custom"
+        } else {
+            ""
+        };
+        let motion = "SidebarMenuMotion::default()";
+        [
+            "<SidebarMenu".to_string(),
+            "  items=vec![SidebarMenuItem::new(\"workspace\", \"Workspace\"), SidebarMenuItem::new(\"releases\", \"Releases\")]".to_string(),
+            "  id_base=\"docs-sidebar-menu-workbench\".to_string()".to_string(),
+            "  active_id=active_id".to_string(),
+            "  default_active_id=\"tokens\".to_string()".to_string(),
+            "  on_active_id_change=on_active_id_change".to_string(),
+            "  on_action=on_action".to_string(),
+            "  on_item_action=on_item_action".to_string(),
+            format!("  disabled={}", bool_word(workbench_disabled.get())),
+            format!("  show_badges={}", bool_word(workbench_show_badges.get())),
+            format!("  show_actions={}", bool_word(workbench_show_actions.get())),
+            format!(
+                "  allow_submenu_collapse={}",
+                bool_word(workbench_allow_submenu_collapse.get())
+            ),
+            format!(
+                "  enable_keyboard_shortcut={}",
+                bool_word(workbench_enable_shortcut.get())
+            ),
+            "  keyboard_shortcut_key=\"k\".to_string()".to_string(),
+            format!("  motion={motion}"),
+            "  aria_label=\"Workspace menu\".to_string()".to_string(),
+            format!("  class_name={}", rust_string_literal(class_name)),
+            "/>".to_string(),
+        ]
+        .join("\n")
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let class_name = if workbench_custom_class.get() {
+            Some("docs-sidebar-menu-custom")
+        } else {
+            None
+        };
+        let motion = SidebarMenuMotion::default();
+
+        format!(
+            "SidebarMenuActualConfig {{\n  items: \"sample_items(len=2)\",\n  id_base: Some(\"docs-sidebar-menu-workbench\"),\n  active_id: {:?},\n  default_active_id: Some(\"tokens\"),\n  on_active_id_change: \"runs={}\",\n  on_action: \"runs={},last={:?}\",\n  on_item_action: \"runs={},last={:?}\",\n  disabled: {},\n  show_badges: {},\n  show_actions: {},\n  allow_submenu_collapse: {},\n  enable_keyboard_shortcut: {},\n  keyboard_shortcut_key: Some(\"k\"),\n  motion: {motion:?},\n  aria_label: Some(\"Workspace menu\"),\n  class_name: {class_name:?},\n}}",
+            active_id_raw.get(),
+            on_active_id_change_runs.get(),
+            on_action_runs.get(),
+            last_action.get(),
+            on_item_action_runs.get(),
+            last_item_action.get(),
+            bool_word(workbench_disabled.get()),
+            bool_word(workbench_show_badges.get()),
+            bool_word(workbench_show_actions.get()),
+            bool_word(workbench_allow_submenu_collapse.get()),
+            bool_word(workbench_enable_shortcut.get()),
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<SidebarMenu items=vec![SidebarMenuItem::new("workspace", "Workspace"), SidebarMenuItem::new("releases", "Releases")] id_base="menu-default".to_string() default_active_id="tokens".to_string() />
+<SidebarMenu items=vec![SidebarMenuItem::new("workspace", "Workspace"), SidebarMenuItem::new("releases", "Releases")] id_base="menu-badges-off".to_string() show_badges=false show_actions=true allow_submenu_collapse=true />
+<SidebarMenu items=vec![SidebarMenuItem::new("workspace", "Workspace"), SidebarMenuItem::new("releases", "Releases")] id_base="menu-disabled".to_string() disabled=true enable_keyboard_shortcut=false motion=SidebarMenuMotion::default() />"#.to_string()
     });
 
     view! {
@@ -1554,66 +2235,144 @@ let (last_item_action, set_last_item_action) = signal("none".to_string());
             title="SidebarMenu"
             slug="sidebar-menu"
             group="Layout"
-            description="baseline-compatible sidebar menu primitive with badges/actions/sub-items, controlled active-id flow, collapsible submenu behavior, baseline-style data contracts, and baseline-level active-highlight motion."
+            description="SidebarMenu playground with full API workbench and callback feedback."
         >
-            <Playground title="Badge + Item Action" code_signal=badge_code>
-                <div class="docs-stack docs-stack--tight">
-                    <Sidebar
-                        side=SidebarSide::Left
-                        variant=SidebarVariant::Sidebar
-                        collapsible=SidebarCollapsible::Offcanvas
-                        show_trigger=false
-                        aria_label="Menu playground sidebar".to_string()
-                    >
-                        <div class="ui-sidebar__header">
-                            <strong>"Primary navigation"</strong>
-                        </div>
-                        <SidebarMenu
-                            id_base="docs-sidebar-menu-badge".to_string()
-                            items=badge_items
-                            on_action=on_action
-                            on_item_action=on_item_action
-                            aria_label="Primary menu".to_string()
-                        />
-                        <div class="ui-sidebar__footer">
-                            <span class="ui-muted">"Action: " {move || last_action.get()} " · Item action: " {move || last_item_action.get()}</span>
-                        </div>
-                    </Sidebar>
-                </div>
+            <Playground title="Hello World (Default Sidebar Menu)" code_signal=hello_code>
+                <Sidebar
+                    side=SidebarSide::Left
+                    variant=SidebarVariant::Sidebar
+                    collapsible=SidebarCollapsible::Offcanvas
+                    show_trigger=false
+                    aria_label="Sidebar menu hello".to_string()
+                >
+                    <SidebarMenu
+                        items=showcase_items
+                        id_base="docs-sidebar-menu-hello".to_string()
+                    />
+                </Sidebar>
             </Playground>
 
-            <Playground title="Controlled + Collapsible Submenu" code_signal=controlled_code>
-                <div class="docs-stack docs-stack--tight">
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="sidebar-menu-workbench-controls">
+                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
+                            "disabled"
+                        </Switch>
+                        <Switch checked=workbench_show_badges set_checked=set_workbench_show_badges>
+                            "show_badges"
+                        </Switch>
+                        <Switch checked=workbench_show_actions set_checked=set_workbench_show_actions>
+                            "show_actions"
+                        </Switch>
+                        <Switch
+                            checked=workbench_allow_submenu_collapse
+                            set_checked=set_workbench_allow_submenu_collapse
+                        >
+                            "allow_submenu_collapse"
+                        </Switch>
+                        <Switch checked=workbench_enable_shortcut set_checked=set_workbench_enable_shortcut>
+                            "enable_keyboard_shortcut"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "Custom class_name"
+                        </Switch>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>
+                            "Custom motion"
+                        </Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="sidebar-menu-workbench-preview">
                     <Sidebar
                         side=SidebarSide::Left
                         variant=SidebarVariant::Inset
                         collapsible=SidebarCollapsible::Icon
                         show_trigger=false
-                        aria_label="Controlled menu sidebar".to_string()
+                        aria_label="Sidebar menu workbench".to_string()
                     >
-                        <div class="ui-sidebar__header">
-                            <strong>"Workspace sections"</strong>
-                        </div>
                         <SidebarMenu
-                            id_base="docs-sidebar-menu-controlled".to_string()
-                            items=collapsible_items
-                            active_id=active
-                            on_active_id_change=on_active_change
+                            items=workbench_items
+                            id_base="docs-sidebar-menu-workbench".to_string()
+                            active_id=active_id
+                            default_active_id="tokens".to_string()
+                            on_active_id_change=on_active_id_change
                             on_action=on_action
                             on_item_action=on_item_action
-                            allow_submenu_collapse=true
+                            disabled=workbench_disabled.get()
+                            show_badges=workbench_show_badges.get()
+                            show_actions=workbench_show_actions.get()
+                            allow_submenu_collapse=workbench_allow_submenu_collapse.get()
+                            enable_keyboard_shortcut=workbench_enable_shortcut.get()
+                            keyboard_shortcut_key="k".to_string()
+                            motion=SidebarMenuMotion::default()
+                            aria_label="Workspace menu".to_string()
+                            class_name=if workbench_custom_class.get() {
+                                "docs-sidebar-menu-custom".to_string()
+                            } else {
+                                String::new()
+                            }
+                        />
+                    </Sidebar>
+                    <span class="ui-muted" data-slot="sidebar-menu-workbench-feedback">
+                        "active_id: "
+                        {move || active_id_raw.get().unwrap_or_else(|| "none".to_string())}
+                        " · on_active_id_change: " {move || on_active_id_change_runs.get()}
+                        " · on_action: " {move || on_action_runs.get()}
+                        " · on_item_action: " {move || on_item_action_runs.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Default / Badges Off / Disabled)"
+                code_signal=matrix_code
+            >
+                <div class="docs-row" data-slot="sidebar-menu-state-matrix">
+                    <Sidebar
+                        side=SidebarSide::Left
+                        variant=SidebarVariant::Inset
+                        collapsible=SidebarCollapsible::Icon
+                        show_trigger=false
+                        aria_label="Sidebar default".to_string()
+                    >
+                        <SidebarMenu
+                            items=matrix_items_first
+                            id_base="docs-sidebar-menu-matrix-default".to_string()
+                            default_active_id="tokens".to_string()
+                        />
+                    </Sidebar>
+                    <Sidebar
+                        side=SidebarSide::Left
+                        variant=SidebarVariant::Inset
+                        collapsible=SidebarCollapsible::Icon
+                        show_trigger=false
+                        aria_label="Sidebar no badges".to_string()
+                    >
+                        <SidebarMenu
+                            items=matrix_items_second
+                            id_base="docs-sidebar-menu-matrix-badges-off".to_string()
                             show_badges=false
                             show_actions=true
-                            keyboard_shortcut_key="k".to_string()
-                            aria_label="Workspace menu".to_string()
-                            class_name="docs-sidebar-menu-custom".to_string()
+                            allow_submenu_collapse=true
                         />
-                        <div class="ui-sidebar__footer">
-                            <span class="ui-muted">
-                                "active: "
-                                {move || active_raw.get().unwrap_or_else(|| "none".to_string())}
-                            </span>
-                        </div>
+                    </Sidebar>
+                    <Sidebar
+                        side=SidebarSide::Left
+                        variant=SidebarVariant::Inset
+                        collapsible=SidebarCollapsible::Icon
+                        show_trigger=false
+                        aria_label="Sidebar disabled".to_string()
+                    >
+                        <SidebarMenu
+                            items=matrix_items_third
+                            id_base="docs-sidebar-menu-matrix-disabled".to_string()
+                            disabled=true
+                            enable_keyboard_shortcut=false
+                            motion=SidebarMenuMotion::default()
+                        />
                     </Sidebar>
                 </div>
             </Playground>

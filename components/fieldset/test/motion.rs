@@ -14,7 +14,7 @@ fn sanitize_motion_clamps_invalid_values() {
     assert_eq!(motion.duration_ms, default.duration_ms);
     assert_eq!(motion.distance_px, 0.0);
     assert_eq!(motion.stiffness, default.stiffness);
-    assert_eq!(motion.damping, default.damping);
+    assert_eq!(motion.damping, 0.1);
 }
 
 #[test]

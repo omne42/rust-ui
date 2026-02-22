@@ -77,17 +77,34 @@ fi
 max_rs_lines=1000
 offenders=()
 
-# Only enforce the line limit on staged Rust changes, so the repository can
-# gradually pay down existing large files.
-staged_rs_files="$(git diff --cached --name-only --diff-filter=ACMR || true)"
-while IFS= read -r path; do
-  [[ -z "$path" ]] && continue
-  [[ "$path" == *.rs ]] || continue
-  lines="$(git show ":$path" 2>/dev/null | awk 'END{print NR}')"
-  if [[ "${lines:-0}" -ge "$max_rs_lines" ]]; then
-    offenders+=("$path ($lines)")
-  fi
-done <<<"$staged_rs_files"
+if [[ "${RUST_UI_ALLOW_OVERSIZED_RS:-}" != "1" ]]; then
+  # Enforce only on newly oversized files, or when an already-oversized file grows.
+  # This keeps a strict ceiling for new debt while allowing staged refactors to
+  # gradually pay down existing oversized modules.
+  staged_rs_files="$(git diff --cached --name-only --diff-filter=ACMR || true)"
+  while IFS= read -r path; do
+    [[ -z "$path" ]] && continue
+    [[ "$path" == *.rs ]] || continue
+    lines="$(git show ":$path" 2>/dev/null | awk 'END{print NR}')"
+    [[ "${lines:-0}" -ge "$max_rs_lines" ]] || continue
+
+    head_lines=0
+    if git cat-file -e "HEAD:$path" 2>/dev/null; then
+      head_lines="$(git show "HEAD:$path" 2>/dev/null | awk 'END{print NR}')"
+    fi
+
+    if [[ "${head_lines:-0}" -ge "$max_rs_lines" ]]; then
+      # Existing oversized file: only block if this commit grows it further.
+      if [[ "${lines:-0}" -gt "${head_lines:-0}" ]]; then
+        offenders+=("$path (${head_lines} -> ${lines})")
+      fi
+      continue
+    fi
+
+    # New oversized file, or file that crossed from below-threshold to oversized.
+    offenders+=("$path (${head_lines} -> ${lines})")
+  done <<<"$staged_rs_files"
+fi
 
 if [[ "${#offenders[@]}" -gt 0 ]]; then
   cat >&2 <<EOF
@@ -95,8 +112,11 @@ pre-commit: refusing to commit oversized Rust files.
 
 一个良好的代码仓库不应该有达到或超过 ${max_rs_lines} 行的 Rust 文件，这意味着复杂度过度或没有良好的领域分割；请拆分模块，否则禁止提交。
 
-以下 Rust 文件达到或超过 ${max_rs_lines} 行：
+以下 Rust 文件为“新超限”或“继续增长”的超限文件（>= ${max_rs_lines} 行）：
 $(printf '  - %s\n' "${offenders[@]}")
+
+如为迁移批次且已评估风险，可显式豁免本规则后重试：
+  RUST_UI_ALLOW_OVERSIZED_RS=1 git commit ...
 EOF
   exit 1
 fi

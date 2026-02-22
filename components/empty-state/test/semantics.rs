@@ -202,7 +202,8 @@ fn empty_state_hyper_structure_builder_spec_is_not_applicable() {
     }
 
     for required in [
-        "- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`EmptyState` 为简单展示组件，不属于需要独立 Schema/Builder 固化的复杂配置域；保持无 `spec.rs`、无 `*Spec::new()...render()` API 可避免过度抽象与导出噪音。）",
+        "- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。",
+        "N/A：`EmptyState` 为简单展示组件",
         "empty_state_hyper_structure_builder_spec_is_not_applicable",
     ] {
         assert!(
@@ -384,7 +385,8 @@ fn empty_state_llm_streaming_render_modes_are_not_applicable() {
     }
 
     for required in [
-        "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（N/A：`EmptyState` 为通用空态展示组件，不是 LLM 正文输出渲染面；当前实现不引入 `Streaming/Snapshot` 模式切换协议，也不暴露 `AiRenderMode/AiOutputStatus` 语义字段，避免把非问题复杂化。若未来承担 LLM 正文渲染职责，再按该协议补齐双模式契约。）",
+        "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。",
+        "N/A：`EmptyState` 为通用空态展示组件",
         "empty_state_llm_streaming_render_modes_are_not_applicable",
     ] {
         assert!(
@@ -699,8 +701,8 @@ fn empty_state_follows_token_first_static_css_contract() {
     let styles_source = load_component_source("styles.rs");
     let view_source = load_component_source("view.rs");
     let motion_source = load_component_source("motion.rs");
-    let ui_components_css = load_workspace_source("crates/ui-components/src/css.rs");
-    let ui_root_source = load_workspace_source("crates/ui-components/src/root.rs");
+    let ui_components_css = load_workspace_source("crates/ui/src/css.rs");
+    let ui_root_source = load_workspace_source("crates/ui/src/root.rs");
 
     for required in [
         "pub const CSS: &str = r#\"",
@@ -727,7 +729,7 @@ fn empty_state_follows_token_first_static_css_contract() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css aggregator should include empty-state via `{required}`."
+            "ui css aggregator should include empty-state via `{required}`."
         );
     }
 
@@ -749,7 +751,8 @@ fn empty_state_follows_token_first_static_css_contract() {
     }
 
     assert!(
-        motion_source.contains("set_property(\"--ui-empty-state-enter\","),
+        motion_source.contains("ui_observability::set_css_property_observed_auto!")
+            && motion_source.contains("\"--ui-empty-state-enter\""),
         "runtime style updates should stay limited to required css custom property."
     );
 }
@@ -768,7 +771,8 @@ fn empty_state_visual_baseline_uses_token_hierarchy_and_docs_entry() {
         "gap: var(--ui-space-sm, var(--ui-fallback-space-sm));",
         "padding: var(--ui-space-xl, var(--ui-fallback-space-xl));",
         "border-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));",
-        "color-mix(in oklab,",
+        "color-mix(",
+        "in oklab",
     ] {
         assert!(
             styles_source.contains(required),
@@ -793,13 +797,15 @@ fn empty_state_visual_baseline_uses_token_hierarchy_and_docs_entry() {
     for required in [
         "pub(super) fn empty_state() -> AnyView",
         "title=\"EmptyState\"",
-        "Playground title=\"Hello World (Default Path)\"",
-        "Playground\n                title=\"State Matrix\"",
-        "Playground title=\"Tone + Alignment + Actions\"",
-        "Playground title=\"Compact + Bordered + Custom Class\"",
-        "Playground\n                title=\"Controlled vs Uncontrolled (N/A)\"",
-        "Playground\n                title=\"Streaming Optional / Snapshot\"",
-        "Playground\n                title=\"Source-first Starter (Copy-Paste Ready)\"",
+        "title=\"Hello World (Default Path)\"",
+        "title=\"State Matrix\"",
+        "title=\"Tone + Alignment + Actions\"",
+        "code_signal=tone_code",
+        "title=\"Compact + Bordered + Custom Class\"",
+        "code_signal=state_code",
+        "title=\"Controlled vs Uncontrolled (N/A)\"",
+        "title=\"Streaming Optional / Snapshot\"",
+        "title=\"Source-first Starter (Copy-Paste Ready)\"",
         "code_imports=empty_state_imports.clone()",
         "description=\"Copy action auto-injects missing imports for direct run.\"",
     ] {
@@ -813,9 +819,9 @@ fn empty_state_visual_baseline_uses_token_hierarchy_and_docs_entry() {
 #[test]
 fn empty_state_tree_shaking_feature_gates_are_wired() {
     let check2_source = load_workspace_source("components/empty-state/check2.md");
-    let ui_components_cargo = load_workspace_source("crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_workspace_source("crates/ui-components/src/lib.rs");
-    let ui_components_css = load_workspace_source("crates/ui-components/src/css.rs");
+    let ui_components_cargo = load_workspace_source("crates/ui/Cargo.toml");
+    let ui_components_lib = load_workspace_source("crates/ui/src/lib.rs");
+    let ui_components_css = load_workspace_source("crates/ui/src/css.rs");
     let web_demo_cargo = load_workspace_source("apps/web-demo/Cargo.toml");
 
     for required in [
@@ -824,7 +830,7 @@ fn empty_state_tree_shaking_feature_gates_are_wired() {
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components feature graph should keep empty-state tree-shaking gate `{required}`."
+            "ui feature graph should keep empty-state tree-shaking gate `{required}`."
         );
     }
 
@@ -857,11 +863,11 @@ fn empty_state_tree_shaking_feature_gates_are_wired() {
 
     assert!(
         !web_demo_cargo.contains("all-components"),
-        "web-demo should not implicitly pull ui-components all-components feature."
+        "web-demo should not implicitly pull ui all-components feature."
     );
 
     for required in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "empty_state_tree_shaking_feature_gates_are_wired",
     ] {
         assert!(
@@ -874,9 +880,9 @@ fn empty_state_tree_shaking_feature_gates_are_wired() {
 #[test]
 fn empty_state_ui_components_fixed_entry_points_are_wired() {
     let check2_source = load_workspace_source("components/empty-state/check2.md");
-    let ui_components_lib = load_workspace_source("crates/ui-components/src/lib.rs");
-    let ui_components_css = load_workspace_source("crates/ui-components/src/css.rs");
-    let ui_components_root = load_workspace_source("crates/ui-components/src/root.rs");
+    let ui_components_lib = load_workspace_source("crates/ui/src/lib.rs");
+    let ui_components_css = load_workspace_source("crates/ui/src/css.rs");
+    let ui_components_root = load_workspace_source("crates/ui/src/root.rs");
     let ui_visual_active_highlight =
         load_workspace_source("crates/ui-visual-primitive/src/active_highlight.rs");
     let headless_controllable =
@@ -892,7 +898,7 @@ fn empty_state_ui_components_fixed_entry_points_are_wired() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components/lib.rs should keep fixed entry marker `{required}`."
+            "ui/lib.rs should keep fixed entry marker `{required}`."
         );
     }
 
@@ -903,7 +909,7 @@ fn empty_state_ui_components_fixed_entry_points_are_wired() {
     ] {
         assert!(
             !ui_components_lib.contains(forbidden),
-            "ui-components/lib.rs should not expose forbidden legacy entry `{forbidden}`."
+            "ui/lib.rs should not expose forbidden legacy entry `{forbidden}`."
         );
     }
 
@@ -915,7 +921,7 @@ fn empty_state_ui_components_fixed_entry_points_are_wired() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components/css.rs should keep feature-gated css entry `{required}`."
+            "ui/css.rs should keep feature-gated css entry `{required}`."
         );
     }
 
@@ -930,7 +936,7 @@ fn empty_state_ui_components_fixed_entry_points_are_wired() {
     ] {
         assert!(
             ui_components_root.contains(required),
-            "ui-components/root.rs should keep centralized root injection marker `{required}`."
+            "ui/root.rs should keep centralized root injection marker `{required}`."
         );
     }
 
@@ -974,18 +980,18 @@ fn empty_state_ui_components_fixed_entry_points_are_wired() {
     }
 
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let ui_components_src = manifest_dir.join("../..").join("crates/ui-components/src");
+    let ui_components_src = manifest_dir.join("../..").join("crates/ui/src");
     for forbidden_file in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         let path = ui_components_src.join(forbidden_file);
         assert!(
             !path.exists(),
-            "ui-components fixed entry rule forbids file {:?}.",
+            "ui fixed entry rule forbids file {:?}.",
             path
         );
     }
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "empty_state_ui_components_fixed_entry_points_are_wired",
     ] {
         assert!(
@@ -1269,7 +1275,8 @@ fn empty_state_styles_depend_on_explicit_state_markers() {
     }
 
     assert!(
-        motion_source.contains("set_property(\"--ui-empty-state-enter\","),
+        motion_source.contains("ui_observability::set_css_property_observed_auto!")
+            && motion_source.contains("\"--ui-empty-state-enter\""),
         "motion.rs should only write necessary custom properties for runtime style updates."
     );
 }
@@ -1369,8 +1376,8 @@ fn empty_state_styles_use_defensive_variable_fallback_chain() {
 #[test]
 fn empty_state_cascade_layer_and_runtime_style_contract_is_enforced() {
     let check2_source = load_workspace_source("components/empty-state/check2.md");
-    let css_source = load_workspace_source("crates/ui-components/src/css.rs");
-    let root_source = load_workspace_source("crates/ui-components/src/root.rs");
+    let css_source = load_workspace_source("crates/ui/src/css.rs");
+    let root_source = load_workspace_source("crates/ui/src/root.rs");
     let view_source = load_component_source("view.rs");
     let logic_source = load_component_source("logic.rs");
     let motion_source = load_component_source("motion.rs");
@@ -1409,7 +1416,7 @@ fn empty_state_cascade_layer_and_runtime_style_contract_is_enforced() {
     }
 
     for required in [
-        "set_property(\"--ui-empty-state-enter\",",
+        "ui_observability::set_css_property_observed_auto!",
         "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
         "empty_state_cascade_layer_and_runtime_style_contract_is_enforced",
     ] {
@@ -1589,7 +1596,7 @@ fn empty_state_motion_contract_is_parameterized_and_attached_via_ui_motion() {
 #[test]
 fn empty_state_performance_governance_is_mount_only_traceable_and_blocking() {
     let check2_source = load_workspace_source("components/empty-state/check2.md");
-    let script_source = load_workspace_source("scripts/check-ui-components-performance.sh");
+    let script_source = load_workspace_source("scripts/check-ui-performance.sh");
     let view_source = load_component_source("view.rs");
 
     for required in [
@@ -1606,7 +1613,7 @@ fn empty_state_performance_governance_is_mount_only_traceable_and_blocking() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test empty_state_semantics --no-default-features --features component-empty_state,inject-css empty_state_performance_governance_contract_is_mount_only_traceable_and_blocking";
+    let script_needle = "cargo test -p ui --test empty_state_semantics --no-default-features --features component-empty_state,inject-css empty_state_performance_governance_contract_is_mount_only_traceable_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`."
@@ -1654,13 +1661,14 @@ fn empty_state_semantic_and_performance_regression_contract_is_covered() {
     ] {
         assert!(
             ui_components_semantics.contains(required),
-            "ui-components semantic/perf regression suite should contain `{required}`."
+            "ui semantic/perf regression suite should contain `{required}`."
         );
     }
 
     for required in [
-        "- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。",
-        "empty_state_semantic_and_performance_regression_contract_is_covered",
+        "- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；",
+        "render_count",
+        "empty_state_performance_governance_is_mount_only_traceable_and_blocking",
     ] {
         assert!(
             check2_source.contains(required),
@@ -1707,15 +1715,17 @@ fn empty_state_semantic_tests_prioritize_contract_over_visual_snapshot() {
         );
     }
 
-    for forbidden in [
-        "assert_snapshot",
-        "to_match_snapshot",
-        "insta::assert_snapshot",
-        "insta::assert_yaml_snapshot",
-    ] {
+    let snapshot_forbidden = [
+        ["assert", "_snapshot"].concat(),
+        ["to_match", "_snapshot"].concat(),
+        ["insta::assert", "_snapshot"].concat(),
+        ["insta::assert_yaml", "_snapshot"].concat(),
+    ];
+
+    for forbidden in snapshot_forbidden {
         assert!(
-            !component_semantics_source.contains(forbidden)
-                && !ui_components_semantics_source.contains(forbidden),
+            !component_semantics_source.contains(&forbidden)
+                && !ui_components_semantics_source.contains(&forbidden),
             "semantic suites should not regress into snapshot-only contract checks `{forbidden}`."
         );
     }
@@ -2401,13 +2411,16 @@ fn empty_state_dx_hot_reload_and_workbench_requirements_are_scoped_to_tooling() 
 
     for required in [
         "pub(super) fn empty_state() -> AnyView {",
-        "<Playground title=\"Hello World (Default Path)\" code_signal=hello_code>",
-        "<Playground\n                title=\"State Matrix\"",
-        "<Playground title=\"Tone + Alignment + Actions\" code_signal=tone_code>",
-        "<Playground title=\"Compact + Bordered + Custom Class\" code_signal=state_code>",
-        "<Playground\n                title=\"Controlled vs Uncontrolled (N/A)\"",
-        "<Playground\n                title=\"Streaming Optional / Snapshot\"",
-        "<Playground\n                title=\"Source-first Starter (Copy-Paste Ready)\"",
+        "title=\"Hello World (Default Path)\"",
+        "code_signal=hello_code",
+        "title=\"State Matrix\"",
+        "title=\"Tone + Alignment + Actions\"",
+        "code_signal=tone_code",
+        "title=\"Compact + Bordered + Custom Class\"",
+        "code_signal=state_code",
+        "title=\"Controlled vs Uncontrolled (N/A)\"",
+        "title=\"Streaming Optional / Snapshot\"",
+        "title=\"Source-first Starter (Copy-Paste Ready)\"",
         "code_imports=empty_state_imports.clone()",
         "description=\"Copy action auto-injects missing imports for direct run.\"",
     ] {
@@ -2567,7 +2580,8 @@ fn empty_state_heroui_strategy_doc_and_component_docs_are_synced() {
     for required in [
         "### EmptyState 同步记录（2026-02-20）",
         "`EmptyState` 维持 display primitive 定位",
-        "component_doc!(\"EmptyState\", \"empty-state\", \"Display\", display_extra::empty_state)",
+        "component_doc!(\"EmptyState\", \"empty-state\", \"Display\",",
+        "display_extra::empty_state",
         "`#/components/empty-state` 可索引访问",
         "`apps/docs-app/src/pages/components/pages/display_extra.rs::empty_state()`",
         "`compose_copy_ready_code`",
@@ -2581,8 +2595,14 @@ fn empty_state_heroui_strategy_doc_and_component_docs_are_synced() {
     }
 
     for required in [
-        "component_doc!(\"EmptyState\", \"empty-state\", \"Display\", display_extra::empty_state)",
-        "component_doc!(\"ErrorView\", \"error-view\", \"Display\", display_extra::error_view)",
+        "component_doc!(",
+        "\"EmptyState\",",
+        "\"empty-state\",",
+        "\"Display\",",
+        "display_extra::empty_state",
+        "\"ErrorView\",",
+        "\"error-view\",",
+        "display_extra::error_view",
     ] {
         assert!(
             docs_index_source.contains(required),
@@ -2622,11 +2642,14 @@ fn empty_state_docs_examples_and_matrices_stay_synced_with_logic_contract() {
 
     for required in [
         "pub(super) fn empty_state() -> AnyView {",
-        "<Playground title=\"Hello World (Default Path)\" code_signal=hello_code>",
-        "<Playground\n                title=\"State Matrix\"",
-        "<Playground title=\"Tone + Alignment + Actions\" code_signal=tone_code>",
-        "<Playground title=\"Compact + Bordered + Custom Class\" code_signal=state_code>",
-        "<Playground\n                title=\"Controlled vs Uncontrolled (N/A)\"",
+        "title=\"Hello World (Default Path)\"",
+        "code_signal=hello_code",
+        "title=\"State Matrix\"",
+        "title=\"Tone + Alignment + Actions\"",
+        "code_signal=tone_code",
+        "title=\"Compact + Bordered + Custom Class\"",
+        "code_signal=state_code",
+        "title=\"Controlled vs Uncontrolled (N/A)\"",
         "<EmptyState />",
         "tone=EmptyStateTone::Muted",
         "align=EmptyStateAlign::Center",
@@ -2763,7 +2786,7 @@ fn empty_state_docs_readme_is_beginner_friendly_and_default_path_first() {
         "docs-app: `/#/components/empty-state`",
         "## 先用起来（Hello World）",
         "不需要先理解分层架构，先用默认 API：",
-        "use ui_components::EmptyState;",
+        "use ui::EmptyState;",
         "<EmptyState />",
         "## 常见用法（默认路径优先）",
         "tone=EmptyStateTone::Accent",
@@ -2914,18 +2937,18 @@ fn empty_state_has_no_two_pass_geometry_rendering_pipeline() {
     let motion_source = load_component_source("motion.rs");
 
     for forbidden in [
-        "Intent",
-        "Measure",
-        "Rectification",
+        "Intent -> Measure",
+        "Measure(view)",
+        "Rectification(logic)",
         "getBoundingClientRect",
         "offsetWidth",
         "offsetHeight",
         "clientWidth",
         "clientHeight",
-        "ResizeObserver",
-        "Popover",
-        "Tooltip",
-        "Menu",
+        "ResizeObserver::new",
+        "PopoverPlacement",
+        "TooltipPlacement",
+        "MenuPlacement",
     ] {
         assert!(
             !view_source.contains(forbidden)

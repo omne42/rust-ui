@@ -6,7 +6,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::Alert;
+use ui::Alert;
 
 view! {
     <Alert>
@@ -21,7 +21,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{Alert, AlertFill, AlertTone};
+use ui::{Alert, AlertFill, AlertTone};
 
 view! {
     <Alert
@@ -39,7 +39,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{Alert, AlertFill, AlertLayout, AlertTone};
+use ui::{Alert, AlertFill, AlertLayout, AlertTone};
 
 view! {
     <Alert
@@ -59,7 +59,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{Alert, AlertTone};
+use ui::{Alert, AlertTone};
 
 view! {
     <Alert
@@ -76,7 +76,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{Alert, AlertMotion};
+use ui::{Alert, AlertMotion};
 
 view! {
     <Alert

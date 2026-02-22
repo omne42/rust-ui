@@ -835,7 +835,7 @@ fn spinner_ui_components_entry_points_stay_correct() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should include `{needle}`."
+            "ui lib entry should include `{needle}`."
         );
     }
 
@@ -845,7 +845,7 @@ fn spinner_ui_components_entry_points_stay_correct() {
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo entry should include `{needle}`."
+            "ui Cargo entry should include `{needle}`."
         );
     }
 
@@ -878,7 +878,7 @@ fn spinner_ui_components_entry_points_stay_correct() {
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !manifest_dir.join(forbidden).exists(),
-            "ui-components root should not host `{forbidden}`."
+            "ui root should not host `{forbidden}`."
         );
     }
 }

@@ -1357,7 +1357,7 @@ fn accordion_engineering_contract_uses_tracing_and_avoids_runtime_leaks() {
 
     for needle in [
         "tracing::event!(",
-        "target: \"ui_components::accordion::state_change\"",
+        "target: \"ui::accordion::state_change\"",
         "source = source.as_str()",
         "before = %format_indices(before)",
         "after = %format_indices(after)",
@@ -1512,7 +1512,7 @@ fn ui_components_entry_file_locations_follow_contract() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep `{needle}`."
+            "ui lib entry should keep `{needle}`."
         );
     }
 
@@ -1523,7 +1523,7 @@ fn ui_components_entry_file_locations_follow_contract() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css entry should keep `{needle}`."
+            "ui css entry should keep `{needle}`."
         );
     }
 
@@ -1535,7 +1535,7 @@ fn ui_components_entry_file_locations_follow_contract() {
     ] {
         assert!(
             root_source.contains(needle),
-            "ui-components root entry should keep `{needle}`."
+            "ui root entry should keep `{needle}`."
         );
     }
 
@@ -1543,7 +1543,7 @@ fn ui_components_entry_file_locations_follow_contract() {
         let path = manifest_dir.join(forbidden);
         assert!(
             !path.exists(),
-            "ui-components should not host `{forbidden}`; capability belongs to ui-headless."
+            "ui should not host `{forbidden}`; capability belongs to ui-headless."
         );
     }
 }
@@ -1556,7 +1556,7 @@ fn accordion_directory_standard_files_follow_contract() {
 
     assert!(
         !legacy_accordion_dir.exists(),
-        "Legacy ui-components accordion directory should be removed after split."
+        "Legacy ui accordion directory should be removed after split."
     );
 
     for required in ["mod.rs", "logic.rs", "styles.rs", "view.rs", "motion.rs"] {

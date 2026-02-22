@@ -1,7 +1,9 @@
 use crate::pages::components::ComponentPage;
+use crate::pages::components::pages::playground_workbench::{bool_word, rust_string_literal};
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
+use ui::color_swatch_picker::ColorSwatchPickerMotion;
+use ui::{
     Chart, ChartKind, ChartPoint, ColorSwatch, ColorSwatchPicker, ColorSwatchPickerItem,
     ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize, EmptyState, EmptyStateAlign,
     EmptyStateTone, ErrorView, ErrorViewMotion, ErrorViewTone, FlipCard, FlipCardMotion, Icon,
@@ -9,8 +11,9 @@ use ui_components::{
     LabeledValueTone, PressableFeedback, PressableFeedbackEffect, PressableFeedbackMotion,
     PressableFeedbackTone, RippleMotion, SegmentedControl, SegmentedControlSize, Skeleton,
     SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant,
-    SkeletonVariant, Switch, Text, TextAlign, TextElement, TextTone, TextWeight,
+    SkeletonVariant, Switch, TextAlign, TextElement, TextTone, TextWeight,
 };
+use ui_headless::A11yDirection;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct ChartWorkbenchState {
@@ -130,7 +133,7 @@ pub(super) fn labeled_value() -> AnyView {
         "Strong".to_string(),
     ];
     let labeled_value_imports =
-        "use leptos::prelude::*;\nuse ui_components::{LabeledValue, LabeledValueOrientation, LabeledValueTone};"
+        "use leptos::prelude::*;\nuse ui::{LabeledValue, LabeledValueOrientation, LabeledValueTone};"
             .to_string();
     let (orientation_index, set_orientation_index) = signal(Some(0_usize));
     let (tone_index, set_tone_index) = signal(Some(0_usize));
@@ -373,6 +376,37 @@ pub(super) fn labeled_value() -> AnyView {
             </Playground>
 
             <Playground
+                title="State Matrix (Tone / Compact / Bordered Comparison)"
+                code_signal=state_matrix_code
+                code_imports=labeled_value_imports.clone()
+            >
+                <div class="docs-stack">
+                    <EmptyState />
+                    <EmptyState
+                        title="Nothing matched".to_string()
+                        description="Try a different query or clear filters.".to_string()
+                        tone=EmptyStateTone::Muted
+                        align=EmptyStateAlign::Center
+                        motion=ui::empty_state::EmptyStateMotion::default()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <EmptyState
+                        title="Deployments paused".to_string()
+                        description="Approvals are required before resuming this environment.".to_string()
+                        tone=EmptyStateTone::Accent
+                        is_compact=true
+                        is_bordered=true
+                        aria_label="Deployments paused".to_string()
+                        class_name="docs-empty-state-custom".to_string()
+                        motion=ui::empty_state::EmptyStateMotion::default()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                </div>
+            </Playground>
+
+            <Playground
                 title="Source-first Starter (Copy-Paste Ready)"
                 description="Copy action auto-injects missing imports for direct run."
                 code_signal=source_first_code
@@ -505,8 +539,7 @@ pub(super) fn labeled_value() -> AnyView {
 }
 
 pub(super) fn keyboard() -> AnyView {
-    let keyboard_imports =
-        "use leptos::prelude::*;\nuse ui_components::{Keyboard, KeyboardTone};".to_string();
+    let keyboard_imports = "use leptos::prelude::*;\nuse ui::{Keyboard, KeyboardTone};".to_string();
     let tone_options = vec!["default".to_string(), "muted".to_string()];
     let key_options = vec![
         "⌘K".to_string(),
@@ -585,7 +618,7 @@ pub(super) fn keyboard() -> AnyView {
     let keyboard_test_css_source = Signal::derive(move || {
         format!(
             "/* components/keyboard/src/styles.rs */\n{}",
-            ui_components::keyboard::styles::CSS
+            ui::keyboard::styles::CSS
         )
     });
 
@@ -815,25 +848,134 @@ pub(super) fn keyboard() -> AnyView {
 }
 
 pub(super) fn text() -> AnyView {
-    let tone_code = Signal::derive(move || {
-        r#"<Text text="Primary body copy".to_string() />
-<Text text="Subtle metadata".to_string() tone=TextTone::Subtle />
-<Text text="Strong headline".to_string() tone=TextTone::Strong weight=TextWeight::Bold />"#
-            .to_string()
+    let text_imports =
+        "use leptos::prelude::*;\nuse ui::{Text, TextAlign, TextElement, TextTone, TextWeight};"
+            .to_string();
+
+    let (tone_index, set_tone_index) = signal(0usize);
+    let (align_index, set_align_index) = signal(0usize);
+    let (weight_index, set_weight_index) = signal(1usize);
+    let (element_index, set_element_index) = signal(1usize);
+    let (disabled, set_disabled) = signal(false);
+    let (truncate, set_truncate) = signal(false);
+    let (custom_aria, set_custom_aria) = signal(false);
+    let (custom_class, set_custom_class) = signal(false);
+    let (custom_slot, set_custom_slot) = signal(false);
+
+    let workbench_tone = Signal::derive(move || match tone_index.get() {
+        1 => TextTone::Subtle,
+        2 => TextTone::Strong,
+        _ => TextTone::Default,
+    });
+    let workbench_align = Signal::derive(move || match align_index.get() {
+        1 => TextAlign::Center,
+        2 => TextAlign::End,
+        _ => TextAlign::Start,
+    });
+    let workbench_weight = Signal::derive(move || match weight_index.get() {
+        0 => TextWeight::Regular,
+        2 => TextWeight::Bold,
+        _ => TextWeight::Semibold,
+    });
+    let workbench_element = Signal::derive(move || match element_index.get() {
+        0 => TextElement::Span,
+        2 => TextElement::Div,
+        _ => TextElement::Paragraph,
+    });
+    let workbench_aria_label = Signal::derive(move || {
+        if custom_aria.get() {
+            "Release summary text".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if custom_class.get() {
+            "docs-text-custom".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_slot = Signal::derive(move || {
+        if custom_slot.get() {
+            "body".to_string()
+        } else {
+            String::new()
+        }
     });
 
-    let states_code = Signal::derive(move || {
-        r#"<Text
-  text="Centered label".to_string()
+    let showcase_code =
+        Signal::derive(move || r#"<Text text=\"Primary body copy\".into() />"#.to_string());
+
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<Text\n  text=\"{}\".into()\n  tone=TextTone::{:?}\n  align=TextAlign::{:?}\n  weight=TextWeight::{:?}\n  disabled={}\n  truncate={}\n  element=TextElement::{:?}\n  aria_label={}\n  class_name={}\n  slot={}\n/>",
+            if disabled.get() {
+                "Read-only release summary"
+            } else {
+                "Release summary"
+            },
+            workbench_tone.get(),
+            workbench_align.get(),
+            workbench_weight.get(),
+            if disabled.get() { "true" } else { "false" },
+            if truncate.get() { "true" } else { "false" },
+            workbench_element.get(),
+            rust_string_literal(&workbench_aria_label.get()),
+            rust_string_literal(&workbench_class_name.get()),
+            rust_string_literal(&workbench_slot.get()),
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<Text text=\"Primary body copy\".into() />
+<Text
+  text=\"Centered metadata\".into()
+  tone=TextTone::Subtle
   align=TextAlign::Center
-  element=TextElement::Div
+  weight=TextWeight::Semibold
+  element=TextElement::Paragraph
 />
 <Text
-  text="Long text that truncates when width is constrained by the container around it".to_string()
+  text=\"Critical long status message that truncates in compact cards\".into()
+  tone=TextTone::Strong
+  align=TextAlign::End
+  weight=TextWeight::Bold
+  disabled=true
   truncate=true
-  class_name="docs-text-custom".to_string()
+  element=TextElement::Div
+  aria_label=\"Release status\".into()
+  class_name=\"docs-text-custom\".into()
+  slot=\"body\".into()
 />"#
         .to_string()
+    });
+
+    let workbench_test_css_source = Signal::derive(move || {
+        format!(
+            "/* components/text/src/styles.rs */\\n{}",
+            ui::text::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "TextActualConfig {{\\n  text: {:?},\\n  tone: {:?},\\n  align: {:?},\\n  weight: {:?},\\n  disabled: {},\\n  truncate: {},\\n  element: {:?},\\n  aria_label: {:?},\\n  class_name: {:?},\\n  slot: {:?},\\n}}",
+            if disabled.get() {
+                "Read-only release summary"
+            } else {
+                "Release summary"
+            },
+            workbench_tone.get(),
+            workbench_align.get(),
+            workbench_weight.get(),
+            disabled.get(),
+            truncate.get(),
+            workbench_element.get(),
+            workbench_aria_label.get(),
+            workbench_class_name.get(),
+            workbench_slot.get(),
+        )
     });
 
     view! {
@@ -841,33 +983,176 @@ pub(super) fn text() -> AnyView {
             title="Text"
             slug="text"
             group="Display"
-            description="Typography primitive with centralized tone/alignment/weight/source state contracts and baseline-style data markers."
+            description="Typography primitive with full API workbench and state matrix."
         >
-            <Playground title="Tone + Weight Matrix" code_signal=tone_code>
-                <div class="docs-stack">
-                    <Text text="Primary body copy".to_string() />
-                    <Text text="Subtle metadata".to_string() tone=TextTone::Subtle />
-                    <Text
-                        text="Strong headline".to_string()
-                        tone=TextTone::Strong
-                        weight=TextWeight::Bold
-                    />
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=showcase_code
+                code_imports=text_imports.clone()
+            >
+                <div class="ui-text">"Primary body copy"</div>
+            </Playground>
+
+            <Playground
+                title="Workbench (Config + Live Actual Config)"
+                code_signal=workbench_code
+                code_imports=text_imports.clone()
+                test_css_source=workbench_test_css_source
+                test_source_path="components/text/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="text-workbench-controls">
+                        <div class="docs-search__label">"Tone"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || tone_index.get().to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_tone_index.set(value.min(2));
+                                }
+                            }
+                        >
+                            <option value="0">"Default"</option>
+                            <option value="1">"Subtle"</option>
+                            <option value="2">"Strong"</option>
+                        </select>
+
+                        <div class="docs-search__label">"Align"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || align_index.get().to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_align_index.set(value.min(2));
+                                }
+                            }
+                        >
+                            <option value="0">"Start"</option>
+                            <option value="1">"Center"</option>
+                            <option value="2">"End"</option>
+                        </select>
+
+                        <div class="docs-search__label">"Weight"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || weight_index.get().to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_weight_index.set(value.min(2));
+                                }
+                            }
+                        >
+                            <option value="0">"Regular"</option>
+                            <option value="1">"Semibold"</option>
+                            <option value="2">"Bold"</option>
+                        </select>
+
+                        <div class="docs-search__label">"Element"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || element_index.get().to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_element_index.set(value.min(2));
+                                }
+                            }
+                        >
+                            <option value="0">"span"</option>
+                            <option value="1">"paragraph"</option>
+                            <option value="2">"div"</option>
+                        </select>
+
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || disabled.get()
+                                on:change=move |event| set_disabled.set(event_target_checked(&event))
+                            />
+                            <span>"Disabled"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || truncate.get()
+                                on:change=move |event| set_truncate.set(event_target_checked(&event))
+                            />
+                            <span>"Truncate"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_aria.get()
+                                on:change=move |event| set_custom_aria.set(event_target_checked(&event))
+                            />
+                            <span>"Custom aria label"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_class.get()
+                                on:change=move |event| set_custom_class.set(event_target_checked(&event))
+                            />
+                            <span>"Custom class"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_slot.get()
+                                on:change=move |event| set_custom_slot.set(event_target_checked(&event))
+                            />
+                            <span>"Named slot"</span>
+                        </label>
+                    </div>
+                }
+            >
+                <div
+                    class=move || {
+                        if workbench_class_name.get().is_empty() {
+                            "ui-text".to_string()
+                        } else {
+                            format!("ui-text {}", workbench_class_name.get())
+                        }
+                    }
+                    aria-label=move || workbench_aria_label.get()
+                    slot=move || workbench_slot.get()
+                    data-text-tone=move || format!("{:?}", workbench_tone.get())
+                    data-text-align=move || format!("{:?}", workbench_align.get())
+                    data-text-weight=move || format!("{:?}", workbench_weight.get())
+                    data-text-element=move || format!("{:?}", workbench_element.get())
+                    data-text-disabled=move || bool_word(disabled.get())
+                    data-text-truncate=move || bool_word(truncate.get())
+                >
+                    {move || {
+                        if disabled.get() {
+                            "Read-only release summary".to_string()
+                        } else {
+                            "Release summary".to_string()
+                        }
+                    }}
                 </div>
             </Playground>
 
-            <Playground title="Alignment + Truncate + Element" code_signal=states_code>
-                <div class="docs-stack">
-                    <Text
-                        text="Centered label".to_string()
-                        align=TextAlign::Center
-                        weight=TextWeight::Semibold
-                        element=TextElement::Div
-                    />
-                    <Text
-                        text="Long text that truncates when width is constrained by the container around it".to_string()
-                        truncate=true
-                        class_name="docs-text-custom".to_string()
-                    />
+            <Playground
+                title="State Matrix (Tone / Align / Truncate Comparison)"
+                code_signal=matrix_code
+                code_imports=text_imports
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div class="ui-text">"Primary body copy"</div>
+                    <p class="ui-text" data-text-tone="Subtle" data-text-align="Center">
+                        "Centered metadata"
+                    </p>
+                    <div
+                        class="ui-text docs-text-custom"
+                        data-text-tone="Strong"
+                        data-text-align="End"
+                        data-text-disabled="true"
+                        data-text-truncate="true"
+                        aria-label="Release status"
+                        slot="body"
+                    >
+                        "Critical long status message that truncates in compact cards"
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>
@@ -878,7 +1163,7 @@ pub(super) fn text() -> AnyView {
 pub(super) fn icon() -> AnyView {
     let hello_code = Signal::derive(move || r#"<Icon>"✓"</Icon>"#.to_string());
     let icon_code_imports =
-        "use leptos::prelude::*;\nuse ui_components::{Icon, IconSize, IconTone};".to_string();
+        "use leptos::prelude::*;\nuse ui::{Icon, IconSize, IconTone};".to_string();
 
     let matrix_code = Signal::derive(move || {
         r#"<Icon size=IconSize::Sm tone=IconTone::Default is_decorative=true>"✓"</Icon>
@@ -947,6 +1232,8 @@ pub(super) fn icon() -> AnyView {
     let (workbench_disabled, set_workbench_disabled) = signal(false);
     let (workbench_decorative, set_workbench_decorative) = signal(true);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_slot, set_workbench_slot) = signal(String::new());
+    let (workbench_rtl_locale, set_workbench_rtl_locale) = signal(false);
     let (workbench_label, set_workbench_label) = signal("Status icon".to_string());
 
     let workbench_code = Signal::derive(move || {
@@ -956,18 +1243,29 @@ pub(super) fn icon() -> AnyView {
         let disabled = workbench_disabled.get();
         let decorative = workbench_decorative.get();
         let custom_class = workbench_custom_class.get();
+        let slot = workbench_slot.get();
         let class_line = if custom_class {
             "  class_name=\"docs-icon-custom\".into()\n".to_string()
         } else {
             String::new()
+        };
+        let slot_line = if slot.trim().is_empty() {
+            String::new()
+        } else {
+            format!("  slot={:?}.into()\n", slot.trim())
         };
         let aria_line = if decorative {
             String::new()
         } else {
             format!("  aria_label=\"{}\".into()\n", workbench_label.get().trim())
         };
+        let locale_lines = if workbench_rtl_locale.get() {
+            "  lang=\"ar\".into()\n  dir=A11yDirection::Rtl\n".to_string()
+        } else {
+            "  lang=\"en-US\".into()\n  dir=A11yDirection::Ltr\n".to_string()
+        };
         format!(
-            "<Icon\n  size=IconSize::{}\n  tone=IconTone::{}\n  is_disabled={disabled}\n  is_decorative={decorative}\n{aria_line}{class_line}>\n  \"{glyph}\"\n</Icon>",
+            "<Icon\n  size=IconSize::{}\n  tone=IconTone::{}\n  is_disabled={disabled}\n  is_decorative={decorative}\n{aria_line}{class_line}{slot_line}{locale_lines}>\n  \"{glyph}\"\n</Icon>",
             match size.as_str() {
                 "sm" => "Sm",
                 "lg" => "Lg",
@@ -984,8 +1282,8 @@ pub(super) fn icon() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/icon/styles.rs */\n{}",
-            ui_components::icon::styles::CSS
+            "/* crates/ui/src/icon/styles.rs */\n{}",
+            ui::icon::styles::CSS
         )
     });
 
@@ -1006,6 +1304,27 @@ pub(super) fn icon() -> AnyView {
         let disabled = workbench_disabled.get();
         let decorative = workbench_decorative.get();
         let custom_class = workbench_custom_class.get();
+        let class_name = if custom_class {
+            "docs-icon-custom".to_string()
+        } else {
+            String::new()
+        };
+        let aria_label = if decorative {
+            String::new()
+        } else {
+            workbench_label.get().trim().chars().collect::<String>()
+        };
+        let slot = workbench_slot.get();
+        let lang = if workbench_rtl_locale.get() {
+            "ar".to_string()
+        } else {
+            "en-US".to_string()
+        };
+        let dir = if workbench_rtl_locale.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        };
         let data_state = if disabled {
             "disabled"
         } else if decorative {
@@ -1027,11 +1346,16 @@ pub(super) fn icon() -> AnyView {
         }
 
         format!(
-            "IconActualConfig {{\n  size: \"{}\",\n  tone: \"{}\",\n  disabled: {},\n  decorative: {},\n  glyph: \"{}\",\n  aria_source: \"{}\",\n  class_source: \"{}\",\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
+            "IconActualConfig {{\n  size: \"{}\",\n  tone: \"{}\",\n  is_disabled: {},\n  is_decorative: {},\n  aria_label: {:?},\n  class_name: {:?},\n  slot: {:?},\n  lang: {:?},\n  dir: {:?},\n  glyph: \"{}\",\n  aria_source: \"{}\",\n  class_source: \"{}\",\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
             size_key,
             tone_key,
             disabled,
             decorative,
+            aria_label,
+            class_name,
+            slot,
+            lang,
+            dir,
             workbench_glyph.get(),
             if decorative { "n/a" } else { "custom" },
             if custom_class { "custom" } else { "default" },
@@ -1126,7 +1450,7 @@ pub(super) fn icon() -> AnyView {
 
             <Playground
                 title="Source-first Starter (Copy-Paste Ready)"
-                description="Copy action auto-injects missing imports for direct run; requires `ui_components` dependency in Cargo.toml."
+                description="Copy action auto-injects missing imports for direct run; requires `ui` dependency in Cargo.toml."
                 code_signal=source_first_code
                 code_imports=icon_code_imports.clone()
             >
@@ -1204,6 +1528,25 @@ pub(super) fn icon() -> AnyView {
                             " Custom class"
                         </label>
                         <label class="docs-search__label">
+                            "Slot"
+                            <select
+                                prop:value=move || workbench_slot.get()
+                                on:change=move |ev| set_workbench_slot.set(event_target_value(&ev))
+                            >
+                                <option value="">"None"</option>
+                                <option value="leading">"leading"</option>
+                                <option value="status">"status"</option>
+                            </select>
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_rtl_locale.get()
+                                on:change=move |ev| set_workbench_rtl_locale.set(event_target_checked(&ev))
+                            />
+                            " lang/dir Arabic"
+                        </label>
+                        <label class="docs-search__label">
                             "Aria label"
                             <input
                                 type="text"
@@ -1250,6 +1593,16 @@ pub(super) fn icon() -> AnyView {
                                 } else {
                                     workbench_label.get()
                                 };
+                                let lang = if workbench_rtl_locale.get() {
+                                    "ar".to_string()
+                                } else {
+                                    "en-US".to_string()
+                                };
+                                let dir = if workbench_rtl_locale.get() {
+                                    A11yDirection::Rtl
+                                } else {
+                                    A11yDirection::Ltr
+                                };
                                 view! {
                                     <Icon
                                         size=size
@@ -1258,6 +1611,8 @@ pub(super) fn icon() -> AnyView {
                                         is_decorative=decorative
                                         aria_label=aria_label
                                         class_name=class_name
+                                        lang=lang
+                                        dir=dir
                                     >
                                         {workbench_glyph.get()}
                                     </Icon>
@@ -1273,6 +1628,45 @@ pub(super) fn icon() -> AnyView {
                     </div>
                 </div>
             </Playground>
+
+            <Playground
+                title="State Matrix (Tone / Accessibility / Slot Comparison)"
+                code_signal=matrix_code
+                code_imports=icon_code_imports
+            >
+                <div class="docs-row">
+                    <Icon
+                        size=IconSize::Sm
+                        tone=IconTone::Default
+                        is_decorative=true
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    >
+                        "✓"
+                    </Icon>
+                    <Icon
+                        size=IconSize::Md
+                        tone=IconTone::Accent
+                        is_decorative=false
+                        aria_label="Status icon".to_string()
+                        class_name="docs-icon-custom".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    >
+                        "★"
+                    </Icon>
+                    <Icon
+                        size=IconSize::Lg
+                        tone=IconTone::Danger
+                        is_disabled=true
+                        is_decorative=true
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                    >
+                        "⚠"
+                    </Icon>
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
@@ -1280,7 +1674,7 @@ pub(super) fn icon() -> AnyView {
 
 pub(super) fn empty_state() -> AnyView {
     let empty_state_imports =
-        "use leptos::prelude::*;\nuse ui_components::{Button, ButtonVariant, EmptyState, EmptyStateAlign, EmptyStateTone};"
+        "use leptos::prelude::*;\nuse ui::{Button, ButtonVariant, EmptyState, EmptyStateAlign, EmptyStateTone};"
             .to_string();
     let hello_code = Signal::derive(move || r#"<EmptyState />"#.to_string());
 
@@ -1309,7 +1703,7 @@ pub(super) fn empty_state() -> AnyView {
   tone=EmptyStateTone::Default
   icon=move || view! { <span>"📁"</span> }
   actions=move || view! {
-    <ui_components::Button>"Create project"</ui_components::Button>
+    <ui::Button>"Create project"</ui::Button>
   }
 />
 <EmptyState
@@ -1331,9 +1725,9 @@ pub(super) fn empty_state() -> AnyView {
   class_name="docs-empty-state-custom".to_string()
   icon=move || view! { <span>"⏸"</span> }
   actions=move || view! {
-    <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+    <ui::Button variant=ui::ButtonVariant::Secondary>
       "Review approvals"
-    </ui_components::Button>
+    </ui::Button>
   }
 />"#
         .to_string()
@@ -1431,12 +1825,9 @@ pub(super) fn empty_state() -> AnyView {
         }
         if workbench_with_actions.get() {
             lines.push("  actions=move || view! {".to_string());
-            lines.push(
-                "    <ui_components::Button variant=ui_components::ButtonVariant::Secondary>"
-                    .to_string(),
-            );
+            lines.push("    <ui::Button variant=ui::ButtonVariant::Secondary>".to_string());
             lines.push("      \"Retry\"".to_string());
-            lines.push("    </ui_components::Button>".to_string());
+            lines.push("    </ui::Button>".to_string());
             lines.push("  }".to_string());
         }
 
@@ -1455,11 +1846,20 @@ pub(super) fn empty_state() -> AnyView {
             _ => "Start",
         };
         format!(
-            "EmptyStateActualConfig {{\n  tone: {tone_variant},\n  align: {align_variant},\n  is_compact: {},\n  is_bordered: {},\n  with_icon: {},\n  with_actions: {},\n  custom_class: {},\n  title: \"{}\",\n  description: \"{}\",\n  marker_expectations: [\"data-tone\", \"data-align\", \"data-state\", \"data-icon\", \"data-actions\", \"data-title-source\", \"data-description-source\"],\n}}",
+            "EmptyStateActualConfig {{\n  tone: {tone_variant},\n  align: {align_variant},\n  is_compact: {},\n  is_bordered: {},\n  with_icon: {},\n  with_actions: {},\n  aria_label: {:?},\n  class_name: {:?},\n  motion: {:?},\n  lang: {:?},\n  dir: {:?},\n  custom_class: {},\n  title: \"{}\",\n  description: \"{}\",\n  marker_expectations: [\"data-tone\", \"data-align\", \"data-state\", \"data-icon\", \"data-actions\", \"data-title-source\", \"data-description-source\"],\n}}",
             workbench_is_compact.get(),
             workbench_is_bordered.get(),
             workbench_with_icon.get(),
             workbench_with_actions.get(),
+            "Empty state region",
+            if workbench_custom_class.get() {
+                "docs-empty-state-workbench"
+            } else {
+                ""
+            },
+            ui::empty_state::EmptyStateMotion::default(),
+            "en-US",
+            A11yDirection::Ltr,
             workbench_custom_class.get(),
             workbench_title.get(),
             workbench_description.get(),
@@ -1482,7 +1882,7 @@ pub(super) fn empty_state() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix"
+                title="State Gallery"
                 code_signal=state_matrix_code
                 code_imports=empty_state_imports.clone()
             >
@@ -1517,9 +1917,9 @@ pub(super) fn empty_state() -> AnyView {
                         icon=move || view! { <span>"📁"</span> }
                         actions=move || {
                             view! {
-                                <ui_components::Button>
+                                <ui::Button>
                                     "Create project"
-                                </ui_components::Button>
+                                </ui::Button>
                             }
                         }
                     />
@@ -1547,9 +1947,9 @@ pub(super) fn empty_state() -> AnyView {
                     icon=move || view! { <span>"⏸"</span> }
                     actions=move || {
                         view! {
-                            <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+                            <ui::Button variant=ui::ButtonVariant::Secondary>
                                 "Review approvals"
-                            </ui_components::Button>
+                            </ui::Button>
                         }
                     }
                 />
@@ -1690,6 +2090,10 @@ pub(super) fn empty_state() -> AnyView {
                         let description = workbench_description.get();
                         let is_compact = workbench_is_compact.get();
                         let is_bordered = workbench_is_bordered.get();
+                        let aria_label = "Empty state region".to_string();
+                        let motion = ui::empty_state::EmptyStateMotion::default();
+                        let lang = "en-US".to_string();
+                        let dir = A11yDirection::Ltr;
 
                         if workbench_with_icon.get() && workbench_with_actions.get() {
                             view! {
@@ -1700,13 +2104,17 @@ pub(super) fn empty_state() -> AnyView {
                                     align=align
                                     is_compact=is_compact
                                     is_bordered=is_bordered
+                                    aria_label=aria_label.clone()
                                     class_name=class_name
+                                    motion=motion
+                                    lang=lang.clone()
+                                    dir=dir
                                     icon=move || view! { <span>"🧭"</span> }
                                     actions=move || {
                                         view! {
-                                            <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+                                            <ui::Button variant=ui::ButtonVariant::Secondary>
                                                 "Retry"
-                                            </ui_components::Button>
+                                            </ui::Button>
                                         }
                                     }
                                 />
@@ -1721,7 +2129,11 @@ pub(super) fn empty_state() -> AnyView {
                                     align=align
                                     is_compact=is_compact
                                     is_bordered=is_bordered
+                                    aria_label=aria_label.clone()
                                     class_name=class_name
+                                    motion=motion
+                                    lang=lang.clone()
+                                    dir=dir
                                     icon=move || view! { <span>"🧭"</span> }
                                 />
                             }
@@ -1735,12 +2147,16 @@ pub(super) fn empty_state() -> AnyView {
                                     align=align
                                     is_compact=is_compact
                                     is_bordered=is_bordered
+                                    aria_label=aria_label.clone()
                                     class_name=class_name
+                                    motion=motion
+                                    lang=lang.clone()
+                                    dir=dir
                                     actions=move || {
                                         view! {
-                                            <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+                                            <ui::Button variant=ui::ButtonVariant::Secondary>
                                                 "Retry"
-                                            </ui_components::Button>
+                                            </ui::Button>
                                         }
                                     }
                                 />
@@ -1755,7 +2171,11 @@ pub(super) fn empty_state() -> AnyView {
                                     align=align
                                     is_compact=is_compact
                                     is_bordered=is_bordered
+                                    aria_label=aria_label
                                     class_name=class_name
+                                    motion=motion
+                                    lang=lang
+                                    dir=dir
                                 />
                             }
                                 .into_any()
@@ -1797,7 +2217,7 @@ pub(super) fn empty_state() -> AnyView {
                 <p>"Dependency baseline (Cargo.toml):"</p>
                 <pre data-slot="empty-state-source-first-deps">
                     <code>
-                        "[dependencies]\nui-components = { default-features = false, features = [\"component-empty_state\", \"inject-css\"] }\n# Mount under UiRoot to inject base/theme/components CSS."
+                        "[dependencies]\nui = { default-features = false, features = [\"component-empty_state\", \"inject-css\"] }\n# Mount under UiRoot to inject base/theme/components CSS."
                     </code>
                 </pre>
             </section>
@@ -1808,161 +2228,150 @@ pub(super) fn empty_state() -> AnyView {
 
 pub(super) fn error_view() -> AnyView {
     let error_view_imports =
-        "use leptos::prelude::*;\nuse ui_components::{ErrorView, ErrorViewMotion, ErrorViewTone, Icon, IconSize, IconTone};"
+        "use leptos::prelude::*;\nuse ui::{ErrorView, ErrorViewMotion, ErrorViewTone, Icon, IconSize, IconTone};"
             .to_string();
-    let workbench_tone_options = vec!["Negative".to_string(), "Neutral".to_string()];
-    let workbench_message_options = vec!["Email".to_string(), "Retry".to_string()];
-    let (workbench_tone_index, set_workbench_tone_index) = signal(Some(0_usize));
-    let (workbench_message_index, set_workbench_message_index) = signal(Some(0_usize));
-    let (workbench_is_invalid, set_workbench_is_invalid) = signal(true);
-    let (workbench_is_compact, set_workbench_is_compact) = signal(false);
-    let (workbench_is_bordered, set_workbench_is_bordered) = signal(false);
+    let tone_options = ["Negative".to_string(), "Neutral".to_string()];
+    let message_options = ["Email".to_string(), "Retry".to_string()];
+    let (tone_index, set_tone_index) = signal(Some(0_usize));
+    let (message_index, set_message_index) = signal(Some(0_usize));
+    let (is_invalid, set_is_invalid) = signal(true);
+    let (is_compact, set_is_compact) = signal(false);
+    let (is_bordered, set_is_bordered) = signal(false);
+    let (custom_motion, set_custom_motion) = signal(false);
+    let (custom_aria, set_custom_aria) = signal(true);
+    let (custom_class, set_custom_class) = signal(false);
+    let (with_icon, set_with_icon) = signal(true);
+    let (with_actions, set_with_actions) = signal(false);
+    let (rtl, set_rtl) = signal(false);
 
-    let hello_code = Signal::derive(move || {
+    let workbench_tone = Signal::derive(move || match tone_index.get().unwrap_or(0) {
+        1 => ErrorViewTone::Neutral,
+        _ => ErrorViewTone::Negative,
+    });
+    let workbench_message = Signal::derive(move || match message_index.get().unwrap_or(0) {
+        1 => "Retry request failed. Try again.".to_string(),
+        _ => "Please enter a valid email address".to_string(),
+    });
+    let workbench_motion = Signal::derive(move || {
+        if custom_motion.get() {
+            ErrorViewMotion {
+                hidden_translate_px: 12.0,
+                hidden_opacity: 0.0,
+                hidden_scale: 0.95,
+                ..ErrorViewMotion::default()
+            }
+        } else {
+            ErrorViewMotion::default()
+        }
+    });
+    let workbench_aria_label = Signal::derive(move || {
+        if custom_aria.get() {
+            "Validation feedback".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if custom_class.get() {
+            "docs-error-view-custom".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_lang = Signal::derive(move || {
+        if rtl.get() {
+            "ar".to_string()
+        } else {
+            "en-US".to_string()
+        }
+    });
+    let workbench_dir = Signal::derive(move || {
+        if rtl.get() {
+            ui_headless::A11yDirection::Rtl
+        } else {
+            ui_headless::A11yDirection::Ltr
+        }
+    });
+
+    let showcase_code = Signal::derive(move || {
         r#"<ErrorView
   is_invalid=true
   message="Please enter a valid email address".to_string()
-/>"#
-        .to_string()
-    });
-
-    let state_matrix_code = Signal::derive(move || {
-        r#"<ErrorView
-  is_invalid=true
-  message="Please enter a valid email address".to_string()
-/>
-<ErrorView
-  is_invalid=true
-  tone=ErrorViewTone::Neutral
-  is_compact=true
-  message="Compact neutral tone contract".to_string()
-/>
-<ErrorView
-  is_invalid=true
-  tone=ErrorViewTone::Neutral
-  is_compact=true
-  is_bordered=true
-  message="Compact + bordered source markers".to_string()
-/>"#
-        .to_string()
-    });
-
-    let basic_code = Signal::derive(move || {
-        r#"<ErrorView
-  is_invalid=true
-  message="Please enter a valid email address".to_string()
-/>
-<ErrorView
-  is_invalid=false
-  message="This error stays hidden until the field becomes invalid.".to_string()
-/>"#
-        .to_string()
-    });
-
-    let state_code = Signal::derive(move || {
-        r#"<ErrorView
-  is_invalid=true
-  tone=ErrorViewTone::Neutral
-  is_compact=true
-  is_bordered=true
-  class_name="docs-error-view-custom".to_string()
-  motion=ErrorViewMotion {
-    hidden_translate_px: 12.0,
-    hidden_opacity: 0.0,
-    hidden_scale: 0.95,
-    ..ErrorViewMotion::default()
-  }
-  icon=move || view! {
-    <Icon size=IconSize::Sm tone=IconTone::Danger is_decorative=true>"⚠"</Icon>
-  }
-  actions=move || view! {
-    <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
-      "Retry"
-    </ui_components::Button>
-  }
->
-  <span>"Validation failed. Check highlighted fields and retry."</span>
-</ErrorView>"#
-            .to_string()
-    });
-
-    let controlled_contrast_code = Signal::derive(move || {
-        r#"<ErrorView
-  is_invalid=true
-  message="Default path".to_string()
-/>
-<ErrorView
-  is_invalid=true
-  tone=ErrorViewTone::Neutral
-  message="ErrorView has no controllable state axis; parent state maps into props.".to_string()
-/>"#
-        .to_string()
-    });
-
-    let stream_snapshot_code = Signal::derive(move || {
-        r#"<ErrorView
-  is_invalid=true
-  message="Snapshot baseline: complete config renders in one pass.".to_string()
-/>
-<ErrorView
-  is_invalid=true
-  tone=ErrorViewTone::Neutral
-  message="Streaming is optional and falls back to snapshot for ErrorView.".to_string()
-/>"#
-        .to_string()
-    });
-
-    let source_first_code = Signal::derive(move || {
-        r#"<ErrorView
-  is_invalid=true
-  tone=ErrorViewTone::Neutral
-  message="Copy-ready starter".to_string()
+  lang="en-US".to_string()
+  dir=ui_headless::A11yDirection::Ltr
 />"#
         .to_string()
     });
 
     let workbench_code = Signal::derive(move || {
-        let tone_variant = match workbench_tone_index.get().unwrap_or(0) {
-            1 => "ErrorViewTone::Neutral",
-            _ => "ErrorViewTone::Negative",
-        };
-        let message = match workbench_message_index.get().unwrap_or(0) {
-            1 => "Retry request failed. Try again.",
-            _ => "Please enter a valid email address",
-        };
-        let compact_line = if workbench_is_compact.get() {
-            "  is_compact=true\n"
-        } else {
-            ""
-        };
-        let bordered_line = if workbench_is_bordered.get() {
-            "  is_bordered=true\n"
-        } else {
-            ""
-        };
-
         format!(
-            "<ErrorView\n  is_invalid={}\n  tone={tone_variant}\n{compact_line}{bordered_line}  message=\"{message}\".to_string()\n/>",
-            workbench_is_invalid.get(),
+            "<ErrorView\n  is_invalid={}\n  tone={:?}\n  is_compact={}\n  is_bordered={}\n  motion={:?}\n  message={}\n  aria_label={}\n  class_name={}\n  icon={}\n  actions={}\n  lang={}\n  dir={:?}\n/>",
+            bool_word(is_invalid.get()),
+            workbench_tone.get(),
+            bool_word(is_compact.get()),
+            bool_word(is_bordered.get()),
+            workbench_motion.get(),
+            rust_string_literal(&workbench_message.get()),
+            rust_string_literal(&workbench_aria_label.get()),
+            rust_string_literal(&workbench_class_name.get()),
+            if with_icon.get() {
+                "Some(icon)"
+            } else {
+                "None"
+            },
+            if with_actions.get() {
+                "Some(actions)"
+            } else {
+                "None"
+            },
+            rust_string_literal(&workbench_lang.get()),
+            workbench_dir.get(),
         )
     });
 
     let workbench_actual_config = Signal::derive(move || {
-        let tone = match workbench_tone_index.get().unwrap_or(0) {
-            1 => "neutral",
-            _ => "negative",
-        };
-        let message = match workbench_message_index.get().unwrap_or(0) {
-            1 => "retry",
-            _ => "email",
-        };
-
         format!(
-            "ErrorViewWorkbenchConfig {{\n  is_invalid: {},\n  tone: \"{tone}\",\n  is_compact: {},\n  is_bordered: {},\n  message_preset: \"{message}\",\n}}",
-            workbench_is_invalid.get(),
-            workbench_is_compact.get(),
-            workbench_is_bordered.get(),
+            "ErrorViewActualConfig {{\n  is_invalid: {},\n  tone: {:?},\n  is_compact: {},\n  is_bordered: {},\n  motion: {:?},\n  message: {:?},\n  aria_label: {:?},\n  class_name: {:?},\n  icon: {},\n  actions: {},\n  lang: {:?},\n  dir: {:?},\n}}",
+            is_invalid.get(),
+            workbench_tone.get(),
+            is_compact.get(),
+            is_bordered.get(),
+            workbench_motion.get(),
+            workbench_message.get(),
+            workbench_aria_label.get(),
+            workbench_class_name.get(),
+            if with_icon.get() { "Some" } else { "None" },
+            if with_actions.get() { "Some" } else { "None" },
+            workbench_lang.get(),
+            workbench_dir.get(),
         )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<ErrorView
+  is_invalid=true
+  tone=ErrorViewTone::Negative
+  is_compact=false
+  is_bordered=false
+  message="Email format invalid".to_string()
+  lang="en-US".to_string()
+  dir=ui_headless::A11yDirection::Ltr
+/>
+<ErrorView
+  is_invalid=true
+  tone=ErrorViewTone::Neutral
+  is_compact=true
+  is_bordered=true
+  motion=ErrorViewMotion { hidden_translate_px: 12.0, hidden_opacity: 0.0, hidden_scale: 0.95, ..ErrorViewMotion::default() }
+  message="Retry request failed".to_string()
+  aria_label="Validation feedback".to_string()
+  class_name="docs-error-view-custom".to_string()
+  icon=move || view! { <Icon size=IconSize::Sm tone=IconTone::Danger is_decorative=true>"⚠"</Icon> }
+  actions=move || view! { <ui::Button variant=ui::ButtonVariant::Secondary>"Retry"</ui::Button> }
+  lang="ar".to_string()
+  dir=ui_headless::A11yDirection::Rtl
+/>"#
+            .to_string()
     });
 
     view! {
@@ -1970,315 +2379,350 @@ pub(super) fn error_view() -> AnyView {
             title="ErrorView"
             slug="error-view"
             group="Display"
-            description="baseline-style validation error container with centralized visibility/content/source state contracts and spring-driven motion markers."
+            description="Validation error container with tone/layout/message/motion and slot actions."
         >
             <Playground
-                title="Hello World"
-                description="Default API sync: tone defaults to negative, is_compact/is_bordered default to false; message shown here is an explicit override."
-                code_signal=hello_code
+                title="Hello World (Default API)"
+                code_signal=showcase_code
                 code_imports=error_view_imports.clone()
+                test_source_path="components/error-view/src/view.rs".to_string()
             >
                 <ErrorView
                     is_invalid=true
                     message="Please enter a valid email address".to_string()
+                    lang="en-US".to_string()
+                    dir=ui_headless::A11yDirection::Ltr
                 />
             </Playground>
 
             <Playground
-                title="State Matrix (Tone / Compact / Source Markers)"
-                code_signal=state_matrix_code
+                title="Workbench (Config + Live Actual Config)"
+                code_signal=workbench_code
                 code_imports=error_view_imports.clone()
+                test_source_path="components/error-view/src/view.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="error-view-workbench-controls">
+                            <div class="docs-search__label">"Tone"</div>
+                            <select
+                                class="docs-search__input"
+                                prop:value=move || tone_index.get().unwrap_or(0).to_string()
+                                on:change=move |event| {
+                                    if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                        set_tone_index.set(Some(value.min(1)));
+                                    }
+                                }
+                            >
+                                {tone_options
+                                    .iter()
+                                    .enumerate()
+                                    .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                    .collect_view()}
+                            </select>
+
+                            <div class="docs-search__label">"Message"</div>
+                            <select
+                                class="docs-search__input"
+                                prop:value=move || message_index.get().unwrap_or(0).to_string()
+                                on:change=move |event| {
+                                    if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                        set_message_index.set(Some(value.min(1)));
+                                    }
+                                }
+                            >
+                                {message_options
+                                    .iter()
+                                    .enumerate()
+                                    .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                    .collect_view()}
+                            </select>
+
+                            <label class="docs-choice-row"><input type="checkbox" prop:checked=move || is_invalid.get() on:change=move |event| set_is_invalid.set(event_target_checked(&event)) /><span>"is_invalid"</span></label>
+                            <label class="docs-choice-row"><input type="checkbox" prop:checked=move || is_compact.get() on:change=move |event| set_is_compact.set(event_target_checked(&event)) /><span>"is_compact"</span></label>
+                            <label class="docs-choice-row"><input type="checkbox" prop:checked=move || is_bordered.get() on:change=move |event| set_is_bordered.set(event_target_checked(&event)) /><span>"is_bordered"</span></label>
+                            <label class="docs-choice-row"><input type="checkbox" prop:checked=move || custom_motion.get() on:change=move |event| set_custom_motion.set(event_target_checked(&event)) /><span>"custom motion"</span></label>
+                            <label class="docs-choice-row"><input type="checkbox" prop:checked=move || custom_aria.get() on:change=move |event| set_custom_aria.set(event_target_checked(&event)) /><span>"custom aria_label"</span></label>
+                            <label class="docs-choice-row"><input type="checkbox" prop:checked=move || custom_class.get() on:change=move |event| set_custom_class.set(event_target_checked(&event)) /><span>"custom class_name"</span></label>
+                            <label class="docs-choice-row"><input type="checkbox" prop:checked=move || with_icon.get() on:change=move |event| set_with_icon.set(event_target_checked(&event)) /><span>"with icon"</span></label>
+                            <label class="docs-choice-row"><input type="checkbox" prop:checked=move || with_actions.get() on:change=move |event| set_with_actions.set(event_target_checked(&event)) /><span>"with actions"</span></label>
+                            <label class="docs-choice-row"><input type="checkbox" prop:checked=move || rtl.get() on:change=move |event| set_rtl.set(event_target_checked(&event)) /><span>"RTL locale"</span></label>
+                        </div>
+                    }
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    {move || {
+                        let common = (
+                            is_invalid.get(),
+                            workbench_tone.get(),
+                            is_compact.get(),
+                            is_bordered.get(),
+                            workbench_motion.get(),
+                            workbench_message.get(),
+                            workbench_aria_label.get(),
+                            workbench_class_name.get(),
+                            workbench_lang.get(),
+                            workbench_dir.get(),
+                        );
+
+                        if with_icon.get() && with_actions.get() {
+                            view! {
+                                <ErrorView
+                                    is_invalid=common.0
+                                    tone=common.1
+                                    is_compact=common.2
+                                    is_bordered=common.3
+                                    motion=common.4
+                                    message=common.5
+                                    aria_label=common.6
+                                    class_name=common.7
+                                    icon=move || view! { <Icon size=IconSize::Sm tone=IconTone::Danger is_decorative=true>"⚠"</Icon> }
+                                    actions=move || view! { <ui::Button variant=ui::ButtonVariant::Secondary>"Retry"</ui::Button> }
+                                    lang=common.8
+                                    dir=common.9
+                                />
+                            }.into_any()
+                        } else if with_icon.get() {
+                            view! {
+                                <ErrorView
+                                    is_invalid=common.0
+                                    tone=common.1
+                                    is_compact=common.2
+                                    is_bordered=common.3
+                                    motion=common.4
+                                    message=common.5
+                                    aria_label=common.6
+                                    class_name=common.7
+                                    icon=move || view! { <Icon size=IconSize::Sm tone=IconTone::Danger is_decorative=true>"⚠"</Icon> }
+                                    lang=common.8
+                                    dir=common.9
+                                />
+                            }.into_any()
+                        } else if with_actions.get() {
+                            view! {
+                                <ErrorView
+                                    is_invalid=common.0
+                                    tone=common.1
+                                    is_compact=common.2
+                                    is_bordered=common.3
+                                    motion=common.4
+                                    message=common.5
+                                    aria_label=common.6
+                                    class_name=common.7
+                                    actions=move || view! { <ui::Button variant=ui::ButtonVariant::Secondary>"Retry"</ui::Button> }
+                                    lang=common.8
+                                    dir=common.9
+                                />
+                            }.into_any()
+                        } else {
+                            view! {
+                                <ErrorView
+                                    is_invalid=common.0
+                                    tone=common.1
+                                    is_compact=common.2
+                                    is_bordered=common.3
+                                    motion=common.4
+                                    message=common.5
+                                    aria_label=common.6
+                                    class_name=common.7
+                                    lang=common.8
+                                    dir=common.9
+                                />
+                            }.into_any()
+                        }
+                    }}
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Tone / Layout / Slots Comparison)"
+                code_signal=matrix_code
+                code_imports=error_view_imports
+                test_source_path="components/error-view/src/view.rs".to_string()
             >
                 <div class="docs-stack docs-stack--tight">
                     <ErrorView
                         is_invalid=true
-                        message="Please enter a valid email address".to_string()
-                    />
-                    <ErrorView
-                        is_invalid=true
-                        tone=ErrorViewTone::Neutral
-                        is_compact=true
-                        message="Compact neutral tone contract".to_string()
+                        tone=ErrorViewTone::Negative
+                        is_compact=false
+                        is_bordered=false
+                        message="Email format invalid".to_string()
+                        lang="en-US".to_string()
+                        dir=ui_headless::A11yDirection::Ltr
                     />
                     <ErrorView
                         is_invalid=true
                         tone=ErrorViewTone::Neutral
                         is_compact=true
                         is_bordered=true
-                        message="Compact + bordered source markers".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Interactive Playground"
-                description="在线切换 tone / invalid / compact / bordered / message，并实时预览语义状态与反馈。"
-                code_signal=workbench_code
-                code_imports=error_view_imports.clone()
-                test_config_signal=workbench_actual_config
-                controls=move || {
-                    view! {
-                        <div class="docs-stack docs-stack--tight" data-slot="error-view-workbench-controls">
-                            <div data-slot="error-view-workbench-tone">
-                                <div class="docs-search__label">"Tone"</div>
-                                <SegmentedControl
-                                    id_base="docs-error-view-workbench-tone".to_string()
-                                    options=workbench_tone_options.clone()
-                                    selected_index=workbench_tone_index
-                                    set_selected_index=set_workbench_tone_index
-                                    size=SegmentedControlSize::Sm
-                                    aria_label="ErrorView workbench tone".to_string()
-                                />
-                            </div>
-
-                            <div data-slot="error-view-workbench-message">
-                                <div class="docs-search__label">"Message preset"</div>
-                                <SegmentedControl
-                                    id_base="docs-error-view-workbench-message".to_string()
-                                    options=workbench_message_options.clone()
-                                    selected_index=workbench_message_index
-                                    set_selected_index=set_workbench_message_index
-                                    size=SegmentedControlSize::Sm
-                                    aria_label="ErrorView workbench message".to_string()
-                                />
-                            </div>
-
-                            <div data-slot="error-view-workbench-toggle-invalid">
-                                <Switch checked=workbench_is_invalid set_checked=set_workbench_is_invalid>
-                                    "Invalid"
-                                </Switch>
-                            </div>
-                            <div data-slot="error-view-workbench-toggle-compact">
-                                <Switch checked=workbench_is_compact set_checked=set_workbench_is_compact>
-                                    "Compact"
-                                </Switch>
-                            </div>
-                            <div data-slot="error-view-workbench-toggle-bordered">
-                                <Switch checked=workbench_is_bordered set_checked=set_workbench_is_bordered>
-                                    "Bordered"
-                                </Switch>
-                            </div>
-                        </div>
-                    }
-                }
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="error-view-workbench">
-                    {move || {
-                        let tone = match workbench_tone_index.get().unwrap_or(0) {
-                            1 => ErrorViewTone::Neutral,
-                            _ => ErrorViewTone::Negative,
-                        };
-                        let message = match workbench_message_index.get().unwrap_or(0) {
-                            1 => "Retry request failed. Try again.".to_string(),
-                            _ => "Please enter a valid email address".to_string(),
-                        };
-
-                        view! {
-                            <ErrorView
-                                is_invalid=workbench_is_invalid.get()
-                                tone=tone
-                                is_compact=workbench_is_compact.get()
-                                is_bordered=workbench_is_bordered.get()
-                                message=message
-                            />
+                        motion=ErrorViewMotion {
+                            hidden_translate_px: 12.0,
+                            hidden_opacity: 0.0,
+                            hidden_scale: 0.95,
+                            ..ErrorViewMotion::default()
                         }
-                        .into_any()
-                    }}
-
-                    <div class="ui-muted" data-slot="error-view-workbench-feedback">
-                        {move || {
-                            let tone = match workbench_tone_index.get().unwrap_or(0) {
-                                1 => "neutral",
-                                _ => "negative",
-                            };
-                            let message = match workbench_message_index.get().unwrap_or(0) {
-                                1 => "retry",
-                                _ => "email",
-                            };
-                            format!(
-                                "feedback: invalid={}, tone={tone}, compact={}, bordered={}, message={message}",
-                                workbench_is_invalid.get(),
-                                workbench_is_compact.get(),
-                                workbench_is_bordered.get(),
-                            )
-                        }}
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Invalid Visibility"
-                code_signal=basic_code
-                code_imports=error_view_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <ErrorView
-                        is_invalid=true
-                        message="Please enter a valid email address".to_string()
-                    />
-                    <ErrorView
-                        is_invalid=false
-                        message="This error stays hidden until the field becomes invalid.".to_string()
+                        message="Retry request failed".to_string()
+                        aria_label="Validation feedback".to_string()
+                        class_name="docs-error-view-custom".to_string()
+                        icon=move || view! { <Icon size=IconSize::Sm tone=IconTone::Danger is_decorative=true>"⚠"</Icon> }
+                        actions=move || view! { <ui::Button variant=ui::ButtonVariant::Secondary>"Retry"</ui::Button> }
+                        lang="ar".to_string()
+                        dir=ui_headless::A11yDirection::Rtl
                     />
                 </div>
             </Playground>
-
-            <Playground
-                title="Custom Content + Motion + Actions"
-                code_signal=state_code
-                code_imports=error_view_imports.clone()
-            >
-                <ErrorView
-                    is_invalid=true
-                    tone=ErrorViewTone::Neutral
-                    is_compact=true
-                    is_bordered=true
-                    class_name="docs-error-view-custom".to_string()
-                    motion=ErrorViewMotion {
-                        hidden_translate_px: 12.0,
-                        hidden_opacity: 0.0,
-                        hidden_scale: 0.95,
-                        ..ErrorViewMotion::default()
-                    }
-                    icon=move || {
-                        view! {
-                            <Icon size=IconSize::Sm tone=IconTone::Danger is_decorative=true>
-                                "⚠"
-                            </Icon>
-                        }
-                    }
-                    actions=move || {
-                        view! {
-                            <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
-                                "Retry"
-                            </ui_components::Button>
-                        }
-                    }
-                >
-                    <span>
-                        "Validation failed. Check highlighted fields and retry."
-                    </span>
-                </ErrorView>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled Contrast (N/A for ErrorView)"
-                description="ErrorView has no controlled/uncontrolled state axis; compare default usage and app-state mapped props."
-                code_signal=controlled_contrast_code
-                code_imports=error_view_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <ErrorView
-                        is_invalid=true
-                        message="Default path".to_string()
-                    />
-                    <ErrorView
-                        is_invalid=true
-                        tone=ErrorViewTone::Neutral
-                        message="ErrorView has no controllable state axis; parent state maps into props.".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming / Snapshot Contract"
-                description="ErrorView is not an LLM body reader surface: streaming is optional and falls back to snapshot rendering."
-                code_signal=stream_snapshot_code
-                code_imports=error_view_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <ErrorView
-                        is_invalid=true
-                        message="Snapshot baseline: complete config renders in one pass.".to_string()
-                    />
-                    <ErrorView
-                        is_invalid=true
-                        tone=ErrorViewTone::Neutral
-                        message="Streaming is optional and falls back to snapshot for ErrorView.".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Source-first Starter (Copy-Paste Ready)"
-                description="Copy action auto-injects missing imports for direct run."
-                code_signal=source_first_code
-                code_imports=error_view_imports
-            >
-                <ErrorView
-                    is_invalid=true
-                    tone=ErrorViewTone::Neutral
-                    message="Copy-ready starter".to_string()
-                />
-            </Playground>
-
-            <section class="docs-card docs-prose" data-slot="error-view-source-first-contract">
-                <h3>"Source-first / Copy-Paste Ready Contract"</h3>
-                <p>
-                    "Open "
-                    <code>"Show code"</code>
-                    " in any playground, then use the code block copy action. Copied snippets are auto-normalized by "
-                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
-                    " so required imports are included."
-                </p>
-                <p>"Real component sources:"</p>
-                <ul data-slot="error-view-source-paths">
-                    <li><code>"components/error-view/src/mod.rs"</code></li>
-                    <li><code>"components/error-view/src/logic.rs"</code></li>
-                    <li><code>"components/error-view/src/view.rs"</code></li>
-                    <li><code>"components/error-view/src/styles.rs"</code></li>
-                    <li><code>"components/error-view/src/motion.rs"</code></li>
-                </ul>
-                <p>"Dependency baseline (Cargo.toml):"</p>
-                <pre data-slot="error-view-source-first-deps">
-                    <code>
-                        "[dependencies]\nui-components = { default-features = false, features = [\"component-error_view\", \"inject-css\"] }\n# Mount under UiRoot to inject base/theme/components CSS."
-                    </code>
-                </pre>
-            </section>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn pressable_feedback() -> AnyView {
-    let (press_count, set_press_count) = signal(0u32);
-    let on_press_count = Callback::new(move |_| {
-        set_press_count.update(|count| *count += 1);
+    let effect_options = [
+        "Scale".to_string(),
+        "Highlight".to_string(),
+        "Ripple".to_string(),
+        "HighlightRipple".to_string(),
+    ];
+    let tone_options = [
+        "Default".to_string(),
+        "Neutral".to_string(),
+        "Accent".to_string(),
+    ];
+
+    let (effect_index, set_effect_index) = signal(Some(0_usize));
+    let (tone_index, set_tone_index) = signal(Some(2_usize));
+    let (bounded, set_bounded) = signal(true);
+    let (is_disabled, set_is_disabled) = signal(false);
+    let (custom_motion, set_custom_motion) = signal(false);
+    let (custom_aria, set_custom_aria) = signal(true);
+    let (custom_class, set_custom_class) = signal(false);
+    let (enable_on_press, set_enable_on_press) = signal(true);
+
+    let (press_count, set_press_count) = signal(0_u32);
+    let (last_press_feedback, set_last_press_feedback) = signal("none".to_string());
+
+    let workbench_effect = Signal::derive(move || match effect_index.get().unwrap_or(0) {
+        1 => PressableFeedbackEffect::Highlight,
+        2 => PressableFeedbackEffect::Ripple,
+        3 => PressableFeedbackEffect::HighlightRipple,
+        _ => PressableFeedbackEffect::Scale,
+    });
+    let workbench_tone = Signal::derive(move || match tone_index.get().unwrap_or(2) {
+        0 => PressableFeedbackTone::Default,
+        1 => PressableFeedbackTone::Neutral,
+        _ => PressableFeedbackTone::Accent,
+    });
+    let workbench_motion = Signal::derive(move || {
+        if custom_motion.get() {
+            PressableFeedbackMotion {
+                pressed_scale: 0.94,
+                highlight_opacity: 0.2,
+                ripple: RippleMotion {
+                    duration_ms: 720,
+                    ..RippleMotion::default()
+                },
+                ..PressableFeedbackMotion::default()
+            }
+        } else {
+            PressableFeedbackMotion::default()
+        }
+    });
+    let workbench_aria_label = Signal::derive(move || {
+        if custom_aria.get() {
+            "Workbench pressable surface".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if custom_class.get() {
+            "docs-pressable-feedback-custom".to_string()
+        } else {
+            String::new()
+        }
     });
 
-    let basic_code = Signal::derive(move || {
-        r#"<PressableFeedback
-  effect=PressableFeedbackEffect::Highlight
-  tone=PressableFeedbackTone::Accent
-  on_press=on_press_count
->
-  <div class="docs-ripple-surface">"Press me"</div>
+    let on_workbench_press = Callback::new(move |_| {
+        if !enable_on_press.get_untracked() {
+            return;
+        }
+        set_press_count.update(|count| *count += 1);
+        set_last_press_feedback.set(format!("pressed #{}", press_count.get_untracked() + 1));
+    });
+
+    let showcase_code = Signal::derive(move || {
+        r#"<PressableFeedback effect=PressableFeedbackEffect::Highlight tone=PressableFeedbackTone::Accent on_press=on_press>
+  <div class="docs-ripple-surface">"Hello feedback"</div>
 </PressableFeedback>"#
             .to_string()
     });
 
-    let custom_code = Signal::derive(move || {
-        r#"<PressableFeedback
+    let workbench_code = Signal::derive(move || {
+        let effect_variant = match workbench_effect.get() {
+            PressableFeedbackEffect::Scale => "PressableFeedbackEffect::Scale",
+            PressableFeedbackEffect::Highlight => "PressableFeedbackEffect::Highlight",
+            PressableFeedbackEffect::Ripple => "PressableFeedbackEffect::Ripple",
+            PressableFeedbackEffect::HighlightRipple => "PressableFeedbackEffect::HighlightRipple",
+        };
+        let tone_variant = match workbench_tone.get() {
+            PressableFeedbackTone::Default => "PressableFeedbackTone::Default",
+            PressableFeedbackTone::Neutral => "PressableFeedbackTone::Neutral",
+            PressableFeedbackTone::Accent => "PressableFeedbackTone::Accent",
+        };
+        let motion_expr = if custom_motion.get() {
+            "PressableFeedbackMotion { pressed_scale: 0.94, highlight_opacity: 0.2, ripple: RippleMotion { duration_ms: 720, ..RippleMotion::default() }, ..PressableFeedbackMotion::default() }"
+        } else {
+            "PressableFeedbackMotion::default()"
+        };
+        let on_press_expr = if enable_on_press.get() {
+            "Some(on_workbench_press)"
+        } else {
+            "None"
+        };
+
+        format!(
+            "<PressableFeedback\n  effect={effect_variant}\n  tone={tone_variant}\n  bounded={}\n  is_disabled={}\n  motion={motion_expr}\n  aria_label={}\n  class_name={}\n  on_press={on_press_expr}\n>\n  <div class=\"docs-ripple-surface\">\"Interactive surface\"</div>\n</PressableFeedback>",
+            bool_word(bounded.get()),
+            bool_word(is_disabled.get()),
+            rust_string_literal(&workbench_aria_label.get()),
+            rust_string_literal(&workbench_class_name.get()),
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "PressableFeedbackActualConfig {{\n  effect: {:?},\n  tone: {:?},\n  bounded: {},\n  is_disabled: {},\n  motion: {:?},\n  aria_label: {:?},\n  class_name: {:?},\n  on_press: {},\n}}",
+            workbench_effect.get(),
+            workbench_tone.get(),
+            bounded.get(),
+            is_disabled.get(),
+            workbench_motion.get(),
+            workbench_aria_label.get(),
+            workbench_class_name.get(),
+            if enable_on_press.get() {
+                "Some"
+            } else {
+                "None"
+            },
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<PressableFeedback effect=PressableFeedbackEffect::Scale tone=PressableFeedbackTone::Default>
+  <div class="docs-ripple-surface docs-ripple-surface--static">"Scale"</div>
+</PressableFeedback>
+<PressableFeedback effect=PressableFeedbackEffect::Highlight tone=PressableFeedbackTone::Accent bounded=true>
+  <div class="docs-ripple-surface">"Highlight"</div>
+</PressableFeedback>
+<PressableFeedback
   effect=PressableFeedbackEffect::HighlightRipple
   tone=PressableFeedbackTone::Neutral
   bounded=false
-  motion=PressableFeedbackMotion {
-    pressed_scale: 0.94,
-    highlight_opacity: 0.2,
-    ripple: RippleMotion {
-      duration_ms: 720,
-      ..RippleMotion::default()
-    },
-    ..PressableFeedbackMotion::default()
-  }
+  is_disabled=true
   class_name="docs-pressable-feedback-custom".to_string()
 >
-  <div class="docs-ripple-surface docs-ripple-surface--accent">"Custom feedback"</div>
-</PressableFeedback>
-
-<PressableFeedback is_disabled=true effect=PressableFeedbackEffect::Highlight>
-  <div class="docs-ripple-surface docs-ripple-surface--static">"Disabled"</div>
+  <div class="docs-ripple-surface docs-ripple-surface--accent">"Disabled custom"</div>
 </PressableFeedback>"#
             .to_string()
     });
@@ -2290,52 +2734,170 @@ pub(super) fn pressable_feedback() -> AnyView {
             group="Display"
             description="baseline-style press feedback container with centralized effect/tone/boundary/source contracts, spring-driven scale/highlight motion, and optional ripple composition."
         >
-            <Playground title="Scale + Highlight" code_signal=basic_code>
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=showcase_code
+                code_imports="use leptos::prelude::*;\nuse ui::{PressableFeedback, PressableFeedbackEffect, PressableFeedbackTone};".to_string()
+                test_source_path="components/pressable-feedback/src/view.rs".to_string()
+            >
                 <div class="docs-stack docs-stack--tight">
                     <PressableFeedback
                         effect=PressableFeedbackEffect::Highlight
                         tone=PressableFeedbackTone::Accent
-                        on_press=on_press_count
+                        on_press=on_workbench_press
                     >
                         <div class="docs-ripple-surface">
-                            "Press me"
+                            "Hello feedback"
                         </div>
                     </PressableFeedback>
-
-                    <div class="ui-muted">
-                        {move || format!("Press count: {}", press_count.get())}
-                    </div>
                 </div>
             </Playground>
 
-            <Playground title="Highlight + Ripple + Custom Motion" code_signal=custom_code>
+            <Playground
+                title="Workbench (Config + Live Actual Config)"
+                code_signal=workbench_code
+                code_imports="use leptos::prelude::*;\nuse ui::{PressableFeedback, PressableFeedbackEffect, PressableFeedbackMotion, PressableFeedbackTone, RippleMotion};".to_string()
+                test_source_path="components/pressable-feedback/src/view.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="pressable-feedback-workbench-controls">
+                        <div class="docs-search__label">"Effect"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || effect_index.get().unwrap_or(0).to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_effect_index.set(Some(value.min(3)));
+                                }
+                            }
+                        >
+                            {effect_options
+                                .iter()
+                                .enumerate()
+                                .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                .collect_view()}
+                        </select>
+
+                        <div class="docs-search__label">"Tone"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || tone_index.get().unwrap_or(2).to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_tone_index.set(Some(value.min(2)));
+                                }
+                            }
+                        >
+                            {tone_options
+                                .iter()
+                                .enumerate()
+                                .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                .collect_view()}
+                        </select>
+
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || bounded.get()
+                                on:change=move |event| set_bounded.set(event_target_checked(&event))
+                            />
+                            <span>"bounded"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || is_disabled.get()
+                                on:change=move |event| set_is_disabled.set(event_target_checked(&event))
+                            />
+                            <span>"is_disabled"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_motion.get()
+                                on:change=move |event| set_custom_motion.set(event_target_checked(&event))
+                            />
+                            <span>"custom motion"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_aria.get()
+                                on:change=move |event| set_custom_aria.set(event_target_checked(&event))
+                            />
+                            <span>"custom aria_label"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_class.get()
+                                on:change=move |event| set_custom_class.set(event_target_checked(&event))
+                            />
+                            <span>"custom class_name"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || enable_on_press.get()
+                                on:change=move |event| set_enable_on_press.set(event_target_checked(&event))
+                            />
+                            <span>"enable on_press callback"</span>
+                        </label>
+                    </div>
+                }
+            >
                 <div class="docs-stack docs-stack--tight">
+                    <PressableFeedback
+                        effect=workbench_effect.get()
+                        tone=workbench_tone.get()
+                        bounded=bounded.get()
+                        is_disabled=is_disabled.get()
+                        motion=workbench_motion.get()
+                        aria_label=workbench_aria_label.get()
+                        class_name=workbench_class_name.get()
+                        on_press=on_workbench_press
+                    >
+                        <div class="docs-ripple-surface">
+                            "Interactive surface"
+                        </div>
+                    </PressableFeedback>
+                    <span class="ui-muted">
+                        "press_count: " {move || press_count.get()}
+                        " · last_event: " {move || last_press_feedback.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Effect / Tone / Disabled Comparison)"
+                code_signal=matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::{PressableFeedback, PressableFeedbackEffect, PressableFeedbackTone};".to_string()
+                test_source_path="components/pressable-feedback/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <PressableFeedback effect=PressableFeedbackEffect::Scale tone=PressableFeedbackTone::Default>
+                        <div class="docs-ripple-surface docs-ripple-surface--static">
+                            "Scale"
+                        </div>
+                    </PressableFeedback>
+                    <PressableFeedback
+                        effect=PressableFeedbackEffect::Highlight
+                        tone=PressableFeedbackTone::Accent
+                        bounded=true
+                    >
+                        <div class="docs-ripple-surface">
+                            "Highlight"
+                        </div>
+                    </PressableFeedback>
                     <PressableFeedback
                         effect=PressableFeedbackEffect::HighlightRipple
                         tone=PressableFeedbackTone::Neutral
                         bounded=false
-                        motion=PressableFeedbackMotion {
-                            pressed_scale: 0.94,
-                            highlight_opacity: 0.2,
-                            ripple: RippleMotion {
-                                duration_ms: 720,
-                                ..RippleMotion::default()
-                            },
-                            ..PressableFeedbackMotion::default()
-                        }
+                        is_disabled=true
                         class_name="docs-pressable-feedback-custom".to_string()
                     >
                         <div class="docs-ripple-surface docs-ripple-surface--accent">
-                            "Custom feedback"
-                        </div>
-                    </PressableFeedback>
-
-                    <PressableFeedback
-                        is_disabled=true
-                        effect=PressableFeedbackEffect::Highlight
-                    >
-                        <div class="docs-ripple-surface docs-ripple-surface--static">
-                            "Disabled"
+                            "Disabled custom"
                         </div>
                     </PressableFeedback>
                 </div>
@@ -2346,7 +2908,7 @@ pub(super) fn pressable_feedback() -> AnyView {
 }
 
 pub(super) fn color_swatch() -> AnyView {
-    let color_swatch_imports = "use leptos::prelude::*;\nuse ui_components::{ColorSwatch, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize};".to_string();
+    let color_swatch_imports = "use leptos::prelude::*;\nuse ui::{ColorSwatch, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize};".to_string();
 
     let size_options = vec![
         "xs".to_string(),
@@ -2502,8 +3064,8 @@ pub(super) fn color_swatch() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/color/swatch/styles.rs */\n{}",
-            ui_components::color::swatch::styles::CSS
+            "/* crates/ui/src/color/swatch/styles.rs */\n{}",
+            ui::color::swatch::styles::CSS
         )
     });
 
@@ -2570,7 +3132,7 @@ pub(super) fn color_swatch() -> AnyView {
                 code_signal=workbench_code
                 code_imports=color_swatch_imports.clone()
                 test_css_source=workbench_test_css
-                test_source_path="crates/ui-components/src/color/swatch/styles.rs".to_string()
+                test_source_path="crates/ui/src/color/swatch/styles.rs".to_string()
                 test_config_signal=workbench_config
                 description="切换尺寸/形状/圆角/透明度/边框/装饰模式，并实时查看 config + code + scoped css test。"
                 controls=move || {
@@ -2780,7 +3342,7 @@ pub(super) fn color_swatch() -> AnyView {
 
             <Playground
                 title="Source-first Starter (Copy-Paste Ready)"
-                description="Copy action auto-injects missing imports for direct run. Source: components/color-swatch/src/{mod,logic,view,styles,motion}.rs. Dependency baseline: ui-components = { default-features = false, features = [\"component-color_swatch\", \"inject-css\"] } + mount under UiRoot."
+                description="Copy action auto-injects missing imports for direct run. Source: components/color-swatch/src/{mod,logic,view,styles,motion}.rs. Dependency baseline: ui = { default-features = false, features = [\"component-color_swatch\", \"inject-css\"] } + mount under UiRoot."
                 code_signal=source_first_code
                 code_imports=color_swatch_imports.clone()
             >
@@ -2793,7 +3355,7 @@ pub(super) fn color_swatch() -> AnyView {
                     <span class="ui-muted">
                         "Dependency baseline (Cargo.toml): "
                         <code>
-                            "ui-components = { default-features = false, features = [\"component-color_swatch\", \"inject-css\"] }"
+                            "ui = { default-features = false, features = [\"component-color_swatch\", \"inject-css\"] }"
                         </code>
                     </span>
                     <ul class="ui-muted" data-slot="color-swatch-source-paths">
@@ -2839,7 +3401,7 @@ pub(super) fn color_swatch() -> AnyView {
 }
 
 pub(super) fn color_swatch_picker() -> AnyView {
-    let color_swatch_picker_imports = "use leptos::prelude::*;\nuse ui_components::{ColorSwatchPicker, ColorSwatchPickerItem, ColorSwatchRounding, ColorSwatchShape};".to_string();
+    let color_swatch_picker_imports = "use leptos::prelude::*;\nuse ui::{ColorSwatchPicker, ColorSwatchPickerItem, ColorSwatchRounding, ColorSwatchShape};".to_string();
     let swatches = vec![
         ColorSwatchPickerItem::named("#A00", "Red"),
         ColorSwatchPickerItem::named("#f80", "Orange"),
@@ -2849,6 +3411,8 @@ pub(super) fn color_swatch_picker() -> AnyView {
     let swatches_for_basic = swatches.clone();
     let swatches_for_matrix = swatches.clone();
     let swatches_for_controlled = swatches.clone();
+    let swatches_for_matrix_final = swatches.clone();
+    let swatches_for_controlled_matrix = swatches.clone();
     let swatches_for_stream = swatches.clone();
     let swatches_for_source = swatches.clone();
 
@@ -2860,6 +3424,7 @@ pub(super) fn color_swatch_picker() -> AnyView {
     ];
     let disabled_swatches_for_state = disabled_swatches.clone();
     let disabled_swatches_for_matrix = disabled_swatches.clone();
+    let disabled_swatches_for_matrix_final = disabled_swatches.clone();
     let (controlled_selected_color, set_controlled_selected_color) =
         signal(Some("#A00".to_string()));
 
@@ -2972,6 +3537,7 @@ pub(super) fn color_swatch_picker() -> AnyView {
             .to_string()
     });
 
+    let workbench_size_options = vec!["Sm".to_string(), "Md".to_string(), "Lg".to_string()];
     let workbench_shape_options = vec!["Default".to_string(), "Wide".to_string()];
     let workbench_rounding_options = vec!["Default".to_string(), "Full".to_string()];
     let workbench_selected_options = vec![
@@ -2981,6 +3547,7 @@ pub(super) fn color_swatch_picker() -> AnyView {
         "Green".to_string(),
         "Blue".to_string(),
     ];
+    let (workbench_size_index, set_workbench_size_index) = signal(Some(1_usize));
     let (workbench_shape_index, set_workbench_shape_index) = signal(Some(0_usize));
     let (workbench_rounding_index, set_workbench_rounding_index) = signal(Some(0_usize));
     let (workbench_selected_index, set_workbench_selected_index) = signal(Some(2_usize));
@@ -2991,6 +3558,7 @@ pub(super) fn color_swatch_picker() -> AnyView {
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
     let (workbench_custom_aria, set_workbench_custom_aria) = signal(true);
     let (workbench_lang_zh, set_workbench_lang_zh) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
     let (workbench_last_selected, set_workbench_last_selected) = signal(Some("#f80".to_string()));
 
     let workbench_swatches_base = swatches.clone();
@@ -3020,9 +3588,14 @@ pub(super) fn color_swatch_picker() -> AnyView {
         });
 
     let workbench_code = Signal::derive(move || {
+        let size_variant = match workbench_size_index.get().unwrap_or(1) {
+            0 => "ColorSwatchSize::Sm",
+            2 => "ColorSwatchSize::Lg",
+            _ => "ColorSwatchSize::Md",
+        };
         let shape_variant = match workbench_shape_index.get().unwrap_or(0) {
             1 => "ColorSwatchShape::Wide",
-            _ => "ColorSwatchShape::Default",
+            _ => "ColorSwatchShape::Square",
         };
         let rounding_variant = match workbench_rounding_index.get().unwrap_or(0) {
             1 => "ColorSwatchRounding::Full",
@@ -3073,49 +3646,81 @@ pub(super) fn color_swatch_picker() -> AnyView {
         } else {
             ""
         };
+        let dir_line = if workbench_rtl.get() {
+            "  dir=ui_headless::A11yDirection::Rtl\n"
+        } else {
+            "  dir=ui_headless::A11yDirection::Ltr\n"
+        };
         format!(
-            "<ColorSwatchPicker\n  swatches={swatch_vector}\n  shape={shape_variant}\n  rounding={rounding_variant}\n  is_disabled={}\n  is_bordered={}\n{selection_lines}{class_line}{aria_line}{lang_line}/>",
+            "<ColorSwatchPicker\n  swatches={swatch_vector}\n  is_disabled={}\n  size={size_variant}\n  rounding={rounding_variant}\n  shape={shape_variant}\n  is_bordered={}\n{selection_lines}  id_base=\"docs-color-swatch-picker-workbench\".to_string()\n{aria_line}{class_line}{lang_line}{dir_line}  motion=ui::ColorSwatchPickerMotion::default()\n/>",
             workbench_is_disabled.get(),
             workbench_is_bordered.get(),
         )
     });
 
     let workbench_actual_config = Signal::derive(move || {
-        let selected = workbench_selected_color
-            .get()
-            .unwrap_or_else(|| "none".to_string());
+        let selected = workbench_selected_color.get();
+        let default_selected = if workbench_use_controlled.get() {
+            None
+        } else {
+            selected.clone()
+        };
         format!(
-            "mode={}\nshape={}\nrounding={}\npalette={}\nselected={}\nis_disabled={}\nis_bordered={}\ncustom_class={}\ncustom_aria={}\nlang={}",
-            if workbench_use_controlled.get() {
-                "controlled"
+            "ColorSwatchPickerActualConfig {{\n  swatches: {:?},\n  is_disabled: {},\n  size: {:?},\n  rounding: {:?},\n  shape: {:?},\n  is_bordered: {},\n  selected_color: {:?},\n  default_selected_color: {:?},\n  on_selected_change: \"updates(last_selected)\",\n  id_base: Some(\"docs-color-swatch-picker-workbench\"),\n  aria_label: {:?},\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n  motion: ColorSwatchPickerMotion::default(),\n}}",
+            if workbench_use_disabled_palette.get() {
+                vec![
+                    "#A00".to_string(),
+                    "rgba(14, 116, 144, 0.4)".to_string(),
+                    "rgba(255, 0, 0, 0)".to_string(),
+                    "#08f".to_string(),
+                ]
             } else {
-                "uncontrolled"
+                vec![
+                    "#A00".to_string(),
+                    "#f80".to_string(),
+                    "#080".to_string(),
+                    "#08f".to_string(),
+                ]
             },
-            if workbench_shape_index.get().unwrap_or(0) == 1 {
-                "wide"
-            } else {
-                "default"
+            workbench_is_disabled.get(),
+            match workbench_size_index.get().unwrap_or(1) {
+                0 => ColorSwatchSize::Sm,
+                2 => ColorSwatchSize::Lg,
+                _ => ColorSwatchSize::Md,
             },
             if workbench_rounding_index.get().unwrap_or(0) == 1 {
-                "full"
+                ColorSwatchRounding::Full
             } else {
-                "default"
+                ColorSwatchRounding::Default
             },
-            if workbench_use_disabled_palette.get() {
-                "disabled+transparent"
+            if workbench_shape_index.get().unwrap_or(0) == 1 {
+                ColorSwatchShape::Wide
             } else {
-                "base"
+                ColorSwatchShape::Square
             },
-            selected,
-            workbench_is_disabled.get(),
             workbench_is_bordered.get(),
-            workbench_custom_class.get(),
-            workbench_custom_aria.get(),
+            if workbench_use_controlled.get() {
+                selected.clone()
+            } else {
+                None
+            },
+            default_selected,
+            if workbench_custom_aria.get() {
+                Some("Workbench fill color")
+            } else {
+                None
+            },
+            if workbench_custom_class.get() {
+                Some("docs-color-swatch-picker-custom")
+            } else {
+                None
+            },
             if workbench_lang_zh.get() {
                 "zh-CN"
             } else {
-                "inherit"
+                "en-US"
             },
+            if workbench_rtl.get() { "rtl" } else { "ltr" },
         )
     });
 
@@ -3162,21 +3767,64 @@ pub(super) fn color_swatch_picker() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix"
+                title="Variant Gallery"
                 code_signal=matrix_code
                 code_imports=color_swatch_picker_imports.clone()
             >
                 <div class="docs-stack docs-stack--tight">
                     <ColorSwatchPicker
+                        swatches=signal(swatches_for_matrix_final).0
+                        default_selected_color="#f80".to_string()
+                    />
+                    <ColorSwatchPicker
+                        swatches=signal(disabled_swatches_for_matrix_final).0
+                        shape=ColorSwatchShape::Wide
+                        rounding=ColorSwatchRounding::Default
+                        class_name="docs-color-swatch-picker-custom".to_string()
+                        aria_label="Fill color".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                code_signal=matrix_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="color-swatch-picker-state-matrix">
+                    <ColorSwatchPicker
                         swatches=signal(swatches_for_matrix).0
                         default_selected_color="#f80".to_string()
+                        id_base="docs-color-swatch-picker-matrix-default".to_string()
+                        size=ColorSwatchSize::Md
+                        lang="en-US".to_string()
+                        dir=ui_headless::A11yDirection::Ltr
+                        motion=ColorSwatchPickerMotion::default()
                     />
                     <ColorSwatchPicker
                         swatches=signal(disabled_swatches_for_matrix).0
                         shape=ColorSwatchShape::Wide
                         rounding=ColorSwatchRounding::Default
+                        id_base="docs-color-swatch-picker-matrix-disabled".to_string()
+                        is_disabled=true
                         class_name="docs-color-swatch-picker-custom".to_string()
                         aria_label="Fill color".to_string()
+                        lang="zh-CN".to_string()
+                        dir=ui_headless::A11yDirection::Rtl
+                        motion=ColorSwatchPickerMotion::default()
+                    />
+                    <ColorSwatchPicker
+                        swatches=signal(swatches_for_controlled_matrix.clone()).0
+                        id_base="docs-color-swatch-picker-matrix-controlled".to_string()
+                        size=ColorSwatchSize::Lg
+                        selected_color=controlled_selected_color
+                        on_selected_change=Callback::new(move |next| {
+                            set_controlled_selected_color.set(next);
+                        })
+                        aria_label="Controlled swatch picker".to_string()
+                        lang="en-US".to_string()
+                        dir=ui_headless::A11yDirection::Ltr
+                        motion=ColorSwatchPickerMotion::default()
                     />
                 </div>
             </Playground>
@@ -3240,6 +3888,17 @@ pub(super) fn color_swatch_picker() -> AnyView {
                 controls=move || {
                     view! {
                         <div class="docs-stack docs-stack--tight" data-slot="color-swatch-picker-workbench-controls">
+                            <div data-slot="color-swatch-picker-workbench-size-control">
+                                <div class="docs-search__label">"Size"</div>
+                                <SegmentedControl
+                                    id_base="docs-color-swatch-picker-workbench-size".to_string()
+                                    options=workbench_size_options.clone()
+                                    selected_index=workbench_size_index
+                                    set_selected_index=set_workbench_size_index
+                                    size=SegmentedControlSize::Sm
+                                    aria_label="ColorSwatchPicker size".to_string()
+                                />
+                            </div>
                             <div data-slot="color-swatch-picker-workbench-shape-control">
                                 <div class="docs-search__label">"Shape"</div>
                                 <SegmentedControl
@@ -3311,12 +3970,22 @@ pub(super) fn color_swatch_picker() -> AnyView {
                                     "Lang=zh-CN"
                                 </Switch>
                             </div>
+                            <div data-slot="color-swatch-picker-workbench-dir-switch">
+                                <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                                    "dir=rtl"
+                                </Switch>
+                            </div>
                         </div>
                     }
                 }
             >
                 <div class="docs-stack docs-stack--tight" data-slot="color-swatch-picker-workbench-canvas">
                     {move || {
+                        let size = match workbench_size_index.get().unwrap_or(1) {
+                            0 => ColorSwatchSize::Sm,
+                            2 => ColorSwatchSize::Lg,
+                            _ => ColorSwatchSize::Md,
+                        };
                         let shape = match workbench_shape_index.get().unwrap_or(0) {
                             1 => ColorSwatchShape::Wide,
                             _ => ColorSwatchShape::Square,
@@ -3346,13 +4015,20 @@ pub(super) fn color_swatch_picker() -> AnyView {
                         let lang = if workbench_lang_zh.get() {
                             "zh-CN".to_string()
                         } else {
-                            String::new()
+                            "en-US".to_string()
+                        };
+                        let dir = if workbench_rtl.get() {
+                            ui_headless::A11yDirection::Rtl
+                        } else {
+                            ui_headless::A11yDirection::Ltr
                         };
 
                         if workbench_use_controlled.get() {
                             view! {
                                 <ColorSwatchPicker
                                     swatches=workbench_swatches
+                                    id_base="docs-color-swatch-picker-workbench".to_string()
+                                    size=size
                                     selected_color=workbench_selected_color
                                     on_selected_change=Callback::new(move |next: Option<String>| {
                                         set_workbench_last_selected.set(next.clone());
@@ -3372,6 +4048,8 @@ pub(super) fn color_swatch_picker() -> AnyView {
                                     class_name=class_name
                                     aria_label=aria_label
                                     lang=lang
+                                    dir=dir
+                                    motion=ColorSwatchPickerMotion::default()
                                 />
                             }
                             .into_any()
@@ -3379,6 +4057,8 @@ pub(super) fn color_swatch_picker() -> AnyView {
                             view! {
                                 <ColorSwatchPicker
                                     swatches=workbench_swatches
+                                    id_base="docs-color-swatch-picker-workbench".to_string()
+                                    size=size
                                     default_selected_color=default_selected_color
                                     on_selected_change=Callback::new(move |next| {
                                         set_workbench_last_selected.set(next);
@@ -3390,6 +4070,8 @@ pub(super) fn color_swatch_picker() -> AnyView {
                                     class_name=class_name
                                     aria_label=aria_label
                                     lang=lang
+                                    dir=dir
+                                    motion=ColorSwatchPickerMotion::default()
                                 />
                             }
                             .into_any()
@@ -3441,7 +4123,7 @@ pub(super) fn color_swatch_picker() -> AnyView {
                     <span class="ui-muted" data-slot="color-swatch-picker-source-prerequisites">
                         "Dependency baseline (Cargo.toml): "
                         <code>
-                            "ui-components = { default-features = false, features = [\"component-color_swatch_picker\", \"inject-css\"] }"
+                            "ui = { default-features = false, features = [\"component-color_swatch_picker\", \"inject-css\"] }"
                         </code>
                     </span>
                     <ul class="ui-muted" data-slot="color-swatch-picker-source-paths">
@@ -3464,31 +4146,126 @@ pub(super) fn color_swatch_picker() -> AnyView {
 }
 
 pub(super) fn skeleton_group() -> AnyView {
-    let loading_code = Signal::derive(move || {
-        r#"<SkeletonGroup
-  is_loading=true
-  variant=SkeletonGroupVariant::Shimmer
-  layout=SkeletonGroupLayout::Vertical
->
-  <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line".to_string() />
-  <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line docs-skeleton-line--short".to_string() />
-</SkeletonGroup>"#.to_string()
+    let variant_options = [
+        "Shimmer".to_string(),
+        "Pulse".to_string(),
+        "None".to_string(),
+    ];
+    let layout_options = ["Vertical".to_string(), "Horizontal".to_string()];
+    let density_options = ["Comfortable".to_string(), "Compact".to_string()];
+
+    let (workbench_variant_index, set_workbench_variant_index) = signal(Some(0_usize));
+    let (workbench_layout_index, set_workbench_layout_index) = signal(Some(0_usize));
+    let (workbench_density_index, set_workbench_density_index) = signal(Some(0_usize));
+    let (workbench_is_loading, set_workbench_is_loading) = signal(true);
+    let (workbench_is_skeleton_only, set_workbench_is_skeleton_only) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+
+    let workbench_variant =
+        Signal::derive(move || match workbench_variant_index.get().unwrap_or(0) {
+            1 => SkeletonGroupVariant::Pulse,
+            2 => SkeletonGroupVariant::None,
+            _ => SkeletonGroupVariant::Shimmer,
+        });
+    let workbench_layout =
+        Signal::derive(move || match workbench_layout_index.get().unwrap_or(0) {
+            1 => SkeletonGroupLayout::Horizontal,
+            _ => SkeletonGroupLayout::Vertical,
+        });
+    let workbench_density =
+        Signal::derive(move || match workbench_density_index.get().unwrap_or(0) {
+            1 => SkeletonGroupDensity::Compact,
+            _ => SkeletonGroupDensity::Comfortable,
+        });
+    let workbench_aria_label = Signal::derive(move || {
+        if workbench_custom_aria.get() {
+            "Workbench skeleton group".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if workbench_custom_class.get() {
+            "docs-skeleton-group-custom".to_string()
+        } else {
+            String::new()
+        }
     });
 
-    let state_code = Signal::derive(move || {
-        r#"<SkeletonGroup
-  is_loading=false
-  is_skeleton_only=false
-  variant=SkeletonGroupVariant::None
->
-  <div class="ui-muted">"Loaded content rendered by parent group."</div>
-</SkeletonGroup>
+    let showcase_code = Signal::derive(move || {
+        r#"<SkeletonGroup is_loading=true variant=SkeletonGroupVariant::Shimmer layout=SkeletonGroupLayout::Vertical density=SkeletonGroupDensity::Comfortable>
+  <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line".to_string() />
+  <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line docs-skeleton-line--short".to_string() />
+</SkeletonGroup>"#
+            .to_string()
+    });
 
+    let workbench_code = Signal::derive(move || {
+        let variant_expr = match workbench_variant.get() {
+            SkeletonGroupVariant::Shimmer => "SkeletonGroupVariant::Shimmer",
+            SkeletonGroupVariant::Pulse => "SkeletonGroupVariant::Pulse",
+            SkeletonGroupVariant::None => "SkeletonGroupVariant::None",
+        };
+        let layout_expr = match workbench_layout.get() {
+            SkeletonGroupLayout::Vertical => "SkeletonGroupLayout::Vertical",
+            SkeletonGroupLayout::Horizontal => "SkeletonGroupLayout::Horizontal",
+        };
+        let density_expr = match workbench_density.get() {
+            SkeletonGroupDensity::Comfortable => "SkeletonGroupDensity::Comfortable",
+            SkeletonGroupDensity::Compact => "SkeletonGroupDensity::Compact",
+        };
+
+        format!(
+            "<SkeletonGroup\n  is_loading={}\n  is_skeleton_only={}\n  variant={variant_expr}\n  layout={layout_expr}\n  density={density_expr}\n  aria_label={}\n  class_name={}\n>\n  <Skeleton variant=SkeletonVariant::Rect class_name=\"docs-skeleton-line\".to_string() />\n  <Skeleton variant=SkeletonVariant::Rect class_name=\"docs-skeleton-line docs-skeleton-line--short\".to_string() />\n</SkeletonGroup>",
+            bool_word(workbench_is_loading.get()),
+            bool_word(workbench_is_skeleton_only.get()),
+            rust_string_literal(&workbench_aria_label.get()),
+            rust_string_literal(&workbench_class_name.get()),
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "SkeletonGroupActualConfig {{\n  is_loading: {},\n  is_skeleton_only: {},\n  variant: {:?},\n  layout: {:?},\n  density: {:?},\n  aria_label: {:?},\n  class_name: {:?},\n}}",
+            workbench_is_loading.get(),
+            workbench_is_skeleton_only.get(),
+            workbench_variant.get(),
+            workbench_layout.get(),
+            workbench_density.get(),
+            workbench_aria_label.get(),
+            workbench_class_name.get(),
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<SkeletonGroup
+  is_loading=true
+  is_skeleton_only=false
+  variant=SkeletonGroupVariant::Shimmer
+  layout=SkeletonGroupLayout::Vertical
+  density=SkeletonGroupDensity::Comfortable
+>
+  <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line".to_string() />
+</SkeletonGroup>
+<SkeletonGroup
+  is_loading=true
+  is_skeleton_only=false
+  variant=SkeletonGroupVariant::Pulse
+  layout=SkeletonGroupLayout::Horizontal
+  density=SkeletonGroupDensity::Compact
+  aria_label="Profile placeholders".to_string()
+  class_name="docs-skeleton-group-custom".to_string()
+>
+  <Skeleton variant=SkeletonVariant::Circle is_shimmer=false class_name="docs-skeleton-avatar".to_string() />
+  <Skeleton variant=SkeletonVariant::Rect is_shimmer=false class_name="docs-skeleton-line".to_string() />
+</SkeletonGroup>
 <SkeletonGroup
   is_loading=false
   is_skeleton_only=true
-  variant=SkeletonGroupVariant::Pulse
-  class_name="docs-skeleton-group-custom".to_string()
+  variant=SkeletonGroupVariant::None
+  layout=SkeletonGroupLayout::Vertical
+  density=SkeletonGroupDensity::Comfortable
 >
   <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line".to_string() />
 </SkeletonGroup>"#
@@ -3503,16 +4280,131 @@ pub(super) fn skeleton_group() -> AnyView {
             description="baseline-style skeleton coordination container with centralized loading/layout/variant visibility contracts and stable slot/data-state markers."
         >
             <Playground
-                title="Shimmer + Pulse Layout"
-                code_signal=loading_code
-                test_source_path="crates/ui-components/src/skeleton/group/view.rs".to_string()
+                title="Hello World (Default API)"
+                code_signal=showcase_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Skeleton, SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant, SkeletonVariant};".to_string()
+                test_source_path="crates/ui/src/skeleton/group/view.rs".to_string()
             >
-                <div class="docs-stack">
+                <SkeletonGroup
+                    is_loading=true
+                    variant=SkeletonGroupVariant::Shimmer
+                    layout=SkeletonGroupLayout::Vertical
+                    density=SkeletonGroupDensity::Comfortable
+                >
+                    <Skeleton
+                        variant=SkeletonVariant::Rect
+                        class_name="docs-skeleton-line".to_string()
+                    />
+                    <Skeleton
+                        variant=SkeletonVariant::Rect
+                        class_name="docs-skeleton-line docs-skeleton-line--short".to_string()
+                    />
+                </SkeletonGroup>
+            </Playground>
+
+            <Playground
+                title="Workbench (Config + Live Actual Config)"
+                code_signal=workbench_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Skeleton, SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant, SkeletonVariant};".to_string()
+                test_source_path="crates/ui/src/skeleton/group/view.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="skeleton-group-workbench-controls">
+                        <div class="docs-search__label">"variant"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || workbench_variant_index.get().unwrap_or(0).to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_workbench_variant_index.set(Some(value.min(2)));
+                                }
+                            }
+                        >
+                            {variant_options
+                                .iter()
+                                .enumerate()
+                                .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                .collect_view()}
+                        </select>
+
+                        <div class="docs-search__label">"layout"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || workbench_layout_index.get().unwrap_or(0).to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_workbench_layout_index.set(Some(value.min(1)));
+                                }
+                            }
+                        >
+                            {layout_options
+                                .iter()
+                                .enumerate()
+                                .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                .collect_view()}
+                        </select>
+
+                        <div class="docs-search__label">"density"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || workbench_density_index.get().unwrap_or(0).to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_workbench_density_index.set(Some(value.min(1)));
+                                }
+                            }
+                        >
+                            {density_options
+                                .iter()
+                                .enumerate()
+                                .map(|(index, label)| view! { <option value=index.to_string()>{label.clone()}</option> })
+                                .collect_view()}
+                        </select>
+
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_is_loading.get()
+                                on:change=move |event| set_workbench_is_loading.set(event_target_checked(&event))
+                            />
+                            <span>"is_loading"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_is_skeleton_only.get()
+                                on:change=move |event| set_workbench_is_skeleton_only.set(event_target_checked(&event))
+                            />
+                            <span>"is_skeleton_only"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_aria.get()
+                                on:change=move |event| set_workbench_custom_aria.set(event_target_checked(&event))
+                            />
+                            <span>"custom aria_label"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |event| set_workbench_custom_class.set(event_target_checked(&event))
+                            />
+                            <span>"custom class_name"</span>
+                        </label>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
                     <SkeletonGroup
-                        is_loading=true
-                        variant=SkeletonGroupVariant::Shimmer
-                        layout=SkeletonGroupLayout::Vertical
-                        density=SkeletonGroupDensity::Comfortable
+                        is_loading=workbench_is_loading.get()
+                        is_skeleton_only=workbench_is_skeleton_only.get()
+                        variant=workbench_variant.get()
+                        layout=workbench_layout.get()
+                        density=workbench_density.get()
+                        aria_label=workbench_aria_label.get()
+                        class_name=workbench_class_name.get()
                     >
                         <Skeleton
                             variant=SkeletonVariant::Rect
@@ -3523,9 +4415,37 @@ pub(super) fn skeleton_group() -> AnyView {
                             class_name="docs-skeleton-line docs-skeleton-line--short".to_string()
                         />
                     </SkeletonGroup>
+                    <span class="ui-muted">
+                        "state: loading="
+                        {move || workbench_is_loading.get().to_string()}
+                        ", skeleton_only="
+                        {move || workbench_is_skeleton_only.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
 
+            <Playground
+                title="State Matrix (Loading / Layout / Hidden Comparison)"
+                code_signal=matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Skeleton, SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant, SkeletonVariant};".to_string()
+                test_source_path="crates/ui/src/skeleton/group/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
                     <SkeletonGroup
                         is_loading=true
+                        is_skeleton_only=false
+                        variant=SkeletonGroupVariant::Shimmer
+                        layout=SkeletonGroupLayout::Vertical
+                        density=SkeletonGroupDensity::Comfortable
+                    >
+                        <Skeleton
+                            variant=SkeletonVariant::Rect
+                            class_name="docs-skeleton-line".to_string()
+                        />
+                    </SkeletonGroup>
+                    <SkeletonGroup
+                        is_loading=true
+                        is_skeleton_only=false
                         variant=SkeletonGroupVariant::Pulse
                         layout=SkeletonGroupLayout::Horizontal
                         density=SkeletonGroupDensity::Compact
@@ -3542,50 +4462,19 @@ pub(super) fn skeleton_group() -> AnyView {
                             is_shimmer=false
                             class_name="docs-skeleton-line".to_string()
                         />
-                        <Skeleton
-                            variant=SkeletonVariant::Rect
-                            is_shimmer=false
-                            class_name="docs-skeleton-line docs-skeleton-line--short".to_string()
-                        />
                     </SkeletonGroup>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Loaded + Skeleton Only"
-                code_signal=state_code
-                test_source_path="crates/ui-components/src/skeleton/group/view.rs".to_string()
-            >
-                <div class="docs-stack">
-                    <SkeletonGroup
-                        is_loading=false
-                        is_skeleton_only=false
-                        variant=SkeletonGroupVariant::None
-                    >
-                        <div class="ui-muted">
-                            "Loaded content rendered by parent group."
-                        </div>
-                    </SkeletonGroup>
-
                     <SkeletonGroup
                         is_loading=false
                         is_skeleton_only=true
-                        variant=SkeletonGroupVariant::Pulse
-                        class_name="docs-skeleton-group-custom".to_string()
+                        variant=SkeletonGroupVariant::None
+                        layout=SkeletonGroupLayout::Vertical
+                        density=SkeletonGroupDensity::Comfortable
                     >
                         <Skeleton
                             variant=SkeletonVariant::Rect
                             class_name="docs-skeleton-line".to_string()
                         />
-                        <Skeleton
-                            variant=SkeletonVariant::Rect
-                            class_name="docs-skeleton-line docs-skeleton-line--short".to_string()
-                        />
                     </SkeletonGroup>
-
-                    <div class="ui-muted">
-                        "When `is_skeleton_only=true` and loading is finished, the skeleton group hides itself."
-                    </div>
                 </div>
             </Playground>
         </ComponentPage>
@@ -3600,7 +4489,7 @@ pub(super) fn flip_card() -> AnyView {
         "dramatic".to_string(),
     ];
     let flip_card_imports =
-        "use leptos::prelude::*;\nuse ui_components::{FlipCard, FlipCardMotion};".to_string();
+        "use leptos::prelude::*;\nuse ui::{FlipCard, FlipCardMotion};".to_string();
     let (workbench_motion_index, set_workbench_motion_index) = signal(Some(0_usize));
     let (workbench_default_is_flipped, set_workbench_default_is_flipped) = signal(false);
     let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
@@ -3674,8 +4563,20 @@ pub(super) fn flip_card() -> AnyView {
         let default_is_flipped = workbench_default_is_flipped.get();
         let is_disabled = workbench_is_disabled.get();
         let is_flip_on_hover = workbench_is_flip_on_hover.get();
+        let flip_mode = if is_flip_on_hover {
+            "FlipCardFlipMode::Hover"
+        } else {
+            "FlipCardFlipMode::Toggle"
+        };
+        let lang = "en-US";
+        let dir = A11yDirection::Ltr;
         let custom_id = workbench_custom_id.get();
         let custom_class = workbench_custom_class.get();
+        let class_name = if custom_class {
+            "docs-flip-card-state"
+        } else {
+            ""
+        };
         let motion = workbench_motion.get();
 
         let mut classes = vec![
@@ -3708,7 +4609,9 @@ pub(super) fn flip_card() -> AnyView {
         }
 
         format!(
-            "FlipCardActualConfig {{\n  default_is_flipped: {default_is_flipped},\n  is_disabled: {is_disabled},\n  is_flip_on_hover: {is_flip_on_hover},\n  custom_id: {custom_id},\n  custom_class: {custom_class},\n  motion: {{ hover_scale: {:.2}, hover_tilt_deg: {:.1} }},\n  class: \"{}\",\n  markers: [\"data-state\", \"data-visible\", \"data-flip-mode\", \"data-motion-source\", \"data-id-source\"],\n}}",
+            "FlipCardActualConfig {{\n  default_is_flipped: {default_is_flipped},\n  default_flipped: {default_is_flipped},\n  flip_mode: {flip_mode},\n  class_name: {:?},\n  front: \"Workbench front\",\n  back: \"Workbench back\",\n  on_is_flipped_change: true,\n  lang: {lang:?},\n  dir: {:?},\n  is_disabled: {is_disabled},\n  is_flip_on_hover: {is_flip_on_hover},\n  custom_id: {custom_id},\n  custom_class: {custom_class},\n  motion: {{ hover_scale: {:.2}, hover_tilt_deg: {:.1} }},\n  class: \"{}\",\n  markers: [\"data-state\", \"data-visible\", \"data-flip-mode\", \"data-motion-source\", \"data-id-source\"],\n}}",
+            class_name,
+            dir,
             motion.hover_scale,
             motion.hover_tilt_deg,
             classes.join(" ")
@@ -3718,7 +4621,7 @@ pub(super) fn flip_card() -> AnyView {
     let flip_card_test_css_source = Signal::derive(move || {
         format!(
             "/* components/flip-card/src/styles.rs */\n{}",
-            ui_components::flip_card::styles::CSS
+            ui::flip_card::styles::CSS
         )
     });
 
@@ -3830,6 +4733,10 @@ let (is_flipped, set_is_flipped) = signal(false);
             >
                 <div class="docs-row">
                     <FlipCard
+                        default_flipped=false
+                        flip_mode=ui::flip_card::FlipCardFlipMode::Toggle
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
                         front=move || view! { <div class="ui-flip-card__title">"Front"</div> }
                         back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
                     />
@@ -4261,7 +5168,7 @@ let (is_flipped, set_is_flipped) = signal(false);
                 <p>"Dependency baseline (Cargo.toml):"</p>
                 <pre data-slot="flip-card-source-first-deps">
                     <code>
-                        "[dependencies]\nui-components = { default-features = false, features = [\"component-flip_card\", \"inject-css\"] }\n# Mount under UiRoot to inject base/theme/components CSS."
+                        "[dependencies]\nui = { default-features = false, features = [\"component-flip_card\", \"inject-css\"] }\n# Mount under UiRoot to inject base/theme/components CSS."
                     </code>
                 </pre>
             </section>
@@ -4364,6 +5271,11 @@ pub(super) fn chart() -> AnyView {
     let (workbench_custom_class, set_workbench_custom_class) =
         signal(initial_workbench_state.custom_class);
     let (workbench_lang, set_workbench_lang) = signal(initial_workbench_state.lang);
+    let (workbench_rtl_dir, set_workbench_rtl_dir) = signal(false);
+    let (workbench_active_raw, set_workbench_active_raw) = signal(0_usize);
+    let workbench_active_signal: Signal<usize> = Signal::derive(move || workbench_active_raw.get());
+    let workbench_on_active_index_change =
+        Callback::new(move |next: usize| set_workbench_active_raw.set(next));
     let (workbench_last_action, set_workbench_last_action) = signal("none".to_string());
     let (workbench_persist_state, set_workbench_persist_state) =
         signal(has_persisted_workbench_state);
@@ -4413,6 +5325,12 @@ pub(super) fn chart() -> AnyView {
         let is_show_grid = workbench_is_show_grid.get();
         let custom_class = workbench_custom_class.get();
         let lang = workbench_lang.get();
+        let dir = if workbench_rtl_dir.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
+        let active_index = workbench_active_raw.get();
 
         let mut out = vec![
             "<Chart".to_string(),
@@ -4420,6 +5338,12 @@ pub(super) fn chart() -> AnyView {
             format!("  // dataset: {dataset}"),
             "  points=/* see preview dataset */".to_string(),
             format!("  kind=ChartKind::{kind:?}"),
+            format!("  active_index=Signal::derive(move || {active_index})"),
+            "  default_active_index=Some(1)".to_string(),
+            "  on_active_index_change=Callback::new(move |next| { /* set active */ })".to_string(),
+            "  aria_label=\"Revenue trend chart\".into()".to_string(),
+            format!("  dir={dir}"),
+            "  motion=ChartMotion::default()".to_string(),
         ];
 
         if is_disabled {
@@ -4443,10 +5367,17 @@ pub(super) fn chart() -> AnyView {
     let workbench_config = Signal::derive(move || {
         let kind = workbench_kind.get();
         let dataset = workbench_dataset_name.get();
+        let points = workbench_points.get();
         let is_disabled = workbench_is_disabled.get();
         let is_show_grid = workbench_is_show_grid.get();
         let custom_class = workbench_custom_class.get();
         let lang = workbench_lang.get();
+        let dir = if workbench_rtl_dir.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
+        let active_index = workbench_active_raw.get();
 
         let mut class_tokens = vec![
             "ui-chart".to_string(),
@@ -4469,16 +5400,21 @@ pub(super) fn chart() -> AnyView {
         }
 
         format!(
-            "ChartActualConfig {{\n  dataset: \"{dataset}\",\n  kind: {kind:?},\n  is_disabled: {is_disabled},\n  is_show_grid: {is_show_grid},\n  custom_class: {custom_class},\n  lang: {},\n  class: \"{}\",\n  marker_expectations: [\"data-kind\", \"data-state\", \"data-active-index\", \"data-motion-source\"],\n}}",
-            if lang { "\"en-US\"" } else { "None" },
-            class_tokens.join(" ")
+            "ChartActualConfig {{\n  points: {points:?},\n  id_base: Some(\"docs-chart-workbench\"),\n  kind: {kind:?},\n  active_index: Some({active_index}),\n  default_active_index: Some(1),\n  on_active_index_change: Some(\"workbench_on_active_index_change\"),\n  on_action: Some(\"workbench_on_action\"),\n  is_disabled: {is_disabled},\n  is_show_grid: {is_show_grid},\n  motion: ChartMotion::default(),\n  aria_label: Some(\"Revenue trend chart\"),\n  class_name: {class_name},\n  lang: {lang_value},\n  dir: Some({dir}),\n  dataset: \"{dataset}\",\n  class: \"{class_tokens}\",\n  marker_expectations: [\"data-kind\", \"data-state\", \"data-active-index\", \"data-motion-source\"],\n}}",
+            class_name = if custom_class {
+                "Some(\"docs-chart-custom\")"
+            } else {
+                "None"
+            },
+            lang_value = if lang { "Some(\"en-US\")" } else { "None" },
+            class_tokens = class_tokens.join(" "),
         )
     });
 
     let chart_test_css_source = Signal::derive(move || {
         format!(
             "/* components/chart/src/styles.rs */\n{}",
-            ui_components::chart::styles::CSS
+            ui::chart::styles::CSS
         )
     });
 
@@ -4528,7 +5464,7 @@ pub(super) fn chart() -> AnyView {
     });
 
     let chart_imports =
-        "use leptos::prelude::*;\nuse ui_components::{Chart, ChartKind, ChartPoint};".to_string();
+        "use leptos::prelude::*;\nuse ui::{Chart, ChartKind, ChartPoint};".to_string();
 
     let controlled_contrast_code = Signal::derive(move || {
         r#"let (active_raw, set_active_raw) = signal(1_usize);
@@ -4651,6 +5587,11 @@ pub(super) fn chart() -> AnyView {
                                     "Lang=en-US"
                                 </Switch>
                             </div>
+                            <div data-slot="chart-workbench-toggle-rtl">
+                                <Switch checked=workbench_rtl_dir set_checked=set_workbench_rtl_dir>
+                                    "Dir=rtl"
+                                </Switch>
+                            </div>
                             <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
                                 "Persist workbench state"
                             </Switch>
@@ -4668,6 +5609,11 @@ pub(super) fn chart() -> AnyView {
                             .get()
                             .then_some("docs-chart-custom".to_string());
                         let lang = workbench_lang.get().then_some("en-US".to_string());
+                        let dir = if workbench_rtl_dir.get() {
+                            ui::A11yDirection::Rtl
+                        } else {
+                            ui::A11yDirection::Ltr
+                        };
                         let persist = workbench_persist_state.get();
 
                         view! {
@@ -4680,10 +5626,16 @@ pub(super) fn chart() -> AnyView {
                                     id_base="docs-chart-workbench".to_string()
                                     points=points
                                     kind=kind
+                                    active_index=workbench_active_signal
+                                    default_active_index=1
+                                    on_active_index_change=workbench_on_active_index_change
                                     is_disabled=disabled
                                     is_show_grid=is_show_grid
+                                    motion=ui::ChartMotion::default()
+                                    aria_label="Revenue trend chart".to_string()
                                     class_name=class_name.unwrap_or_default()
                                     lang=lang.unwrap_or_default()
+                                    dir=dir
                                     on_action=workbench_on_action
                                 />
                             </div>
@@ -4692,6 +5644,8 @@ pub(super) fn chart() -> AnyView {
                     <span class="ui-muted">
                         "workbench last action: "
                         {move || workbench_last_action.get()}
+                        " · active: "
+                        {move || workbench_active_raw.get()}
                     </span>
                 </div>
             </Playground>
@@ -4836,7 +5790,7 @@ pub(super) fn chart() -> AnyView {
 
             <Playground
                 title="Source-first Starter (Copy-Paste Ready)"
-                description="Copy action auto-injects imports for direct run. Source: components/chart/src/{mod,logic,view,styles,motion}.rs. Dependency baseline: ui-components = { default-features = false, features = [\"component-chart\", \"inject-css\"] } + mount under UiRoot."
+                description="Copy action auto-injects imports for direct run. Source: components/chart/src/{mod,logic,view,styles,motion}.rs. Dependency baseline: ui = { default-features = false, features = [\"component-chart\", \"inject-css\"] } + mount under UiRoot."
                 code_signal=source_first_code
                 code_imports=chart_imports
             >
@@ -4850,7 +5804,7 @@ pub(super) fn chart() -> AnyView {
                     <span class="ui-muted">
                         "Dependency baseline (Cargo.toml): "
                         <code>
-                            "ui-components = { default-features = false, features = [\"component-chart\", \"inject-css\"] }"
+                            "ui = { default-features = false, features = [\"component-chart\", \"inject-css\"] }"
                         </code>
                     </span>
                     <ul class="ui-muted" data-slot="chart-source-paths">

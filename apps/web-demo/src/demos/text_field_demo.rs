@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{SearchField, TextField};
+use ui::{SearchField, TextField};
 
 #[component]
 pub fn TextFieldDemo() -> impl IntoView {

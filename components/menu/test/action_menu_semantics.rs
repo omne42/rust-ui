@@ -154,7 +154,7 @@ fn action_menu_state_primitives_are_sourced_from_ui_state_primitives() {
     ] {
         assert!(
             !source.contains(forbidden),
-            "ActionMenu should not reimplement state primitive logic in ui-components: `{forbidden}`."
+            "ActionMenu should not reimplement state primitive logic in ui: `{forbidden}`."
         );
     }
 }
@@ -528,7 +528,7 @@ fn action_menu_open_key_model_is_delegated_to_ui_headless() {
     ] {
         assert!(
             !view_source.contains(forbidden) && !mod_source.contains(forbidden),
-            "ActionMenu should not reimplement open key semantics in ui-components: `{forbidden}`."
+            "ActionMenu should not reimplement open key semantics in ui: `{forbidden}`."
         );
     }
 }
@@ -851,7 +851,7 @@ fn action_menu_theme_layering_uses_ui_theme_tokens_without_local_theme_rebuild()
         "data-theme-scale",
         "token_scale_baselines_are_regression_testable",
         "semantic_colors_meet_wcag_21_aa_for_text_pairs",
-        "Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。",
+        "Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。",
     ] {
         assert!(
             ui_theme_tokens_source.contains(needle)
@@ -1188,8 +1188,8 @@ fn action_menu_docs_custom_motion_playground_locks_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
-        "let marker_motion = ui_components::ActionMenuMotion {",
-        "popover: ui_components::PopoverMotion {",
+        "let marker_motion = ui::ActionMenuMotion {",
+        "popover: ui::PopoverMotion {",
         "initial_scale: 0.93",
         "offset_y_px: 8.0",
         "title=\"State + Source Markers\"",

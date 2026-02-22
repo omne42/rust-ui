@@ -79,7 +79,7 @@ let (checked, set_checked) = signal(false);
 - docs-app `Playground` 自带复制按钮，并自动补齐导入（`apps/docs-app/src/playground.rs`）。
 - 默认导入为：
   - `use leptos::prelude::*;`
-  - `use ui_components::*;`
+  - `use ui::*;`
 - 真实源码落点：
   - `components/radio/src/mod.rs`
   - `components/radio/src/logic.rs`

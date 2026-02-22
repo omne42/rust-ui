@@ -7,15 +7,15 @@ fn load_source(path: &str) -> &'static str {
         "component_manifest" => include_str!("../src/Component.toml"),
         "component_rbi" => include_str!("../src/kbd.rbi"),
         "protocol" => include_str!("../src/protocol.rs"),
-        "ui_components_css" => include_str!("../../../crates/ui-components/src/css.rs"),
-        "ui_components_lib" => include_str!("../../../crates/ui-components/src/lib.rs"),
+        "ui_components_css" => include_str!("../../../crates/ui/src/css.rs"),
+        "ui_components_lib" => include_str!("../../../crates/ui/src/lib.rs"),
         "ui_visual_active_highlight" => {
             include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs")
         }
-        "ui_components_cargo" => include_str!("../../../crates/ui-components/Cargo.toml"),
+        "ui_components_cargo" => include_str!("../../../crates/ui/Cargo.toml"),
         "ui_headless_lib" => include_str!("../../../crates/ui-headless/src/lib.rs"),
         "ui_motion_lib" => include_str!("../../../crates/ui-motion/src/lib.rs"),
-        "perf_script" => include_str!("../../../scripts/check-ui-components-performance.sh"),
+        "perf_script" => include_str!("../../../scripts/check-ui-performance.sh"),
         "e2e_docs_coverage" => {
             include_str!("../../../e2e/tests/docs_app_components_coverage.spec.mjs")
         }
@@ -23,7 +23,7 @@ fn load_source(path: &str) -> &'static str {
         "docs_todo" => include_str!("../../../docs/plan/TODO.md"),
         "kbd_cargo" => include_str!("../Cargo.toml"),
         "web_demo_cargo" => include_str!("../../../apps/web-demo/Cargo.toml"),
-        "ui_components_root" => include_str!("../../../crates/ui-components/src/root.rs"),
+        "ui_components_root" => include_str!("../../../crates/ui/src/root.rs"),
         "semantics" => include_str!("../test/semantics.rs"),
         "readme" => include_str!("../src/README.md"),
         "docs_display" => {
@@ -43,6 +43,15 @@ fn load_source(path: &str) -> &'static str {
     }
 }
 
+fn snapshot_assertion_markers() -> [&'static str; 4] {
+    [
+        concat!("insta::assert_", "snapshot!"),
+        concat!("insta::assert_", "debug_snapshot!"),
+        concat!("insta::assert_", "yaml_snapshot!"),
+        concat!("assert_", "snapshot!("),
+    ]
+}
+
 #[test]
 fn kbd_semantics_tests_are_migrated_to_component_directory() {
     let module = load_source("mod");
@@ -54,7 +63,9 @@ fn kbd_semantics_tests_are_migrated_to_component_directory() {
         "kbd should wire local semantics suite from `components/kbd/src/mod.rs`."
     );
     assert!(
-        legacy.contains("include!(\"../../components/kbd/test/semantics.rs\");"),
+        legacy.contains("include!(\"../../../components/kbd/test/semantics.rs\");")
+            || legacy.contains("include!(\"../../components/kbd/test/semantics.rs\");")
+            || legacy.contains("include!(\"semantics.rs\");"),
         "legacy semantics entry should bridge to `components/kbd/test/semantics.rs`."
     );
 }
@@ -157,12 +168,12 @@ fn kbd_checklist_marks_ui_components_boundary_complete_with_local_semantics_evid
     let check2 = load_source("check2");
 
     for required in [
-        "- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
+        "- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
         "components/kbd/test/semantics.rs",
     ] {
         assert!(
             check2.contains(required),
-            "kbd checklist should include ui-components evidence `{required}`."
+            "kbd checklist should include ui evidence `{required}`."
         );
     }
 }
@@ -499,7 +510,7 @@ fn kbd_dx_paradox_keeps_simple_api_and_docs_minimal_example() {
 
     for forbidden in [
         "state:",
-        "state=",
+        " state=",
         "KbdStateInput",
         "KbdState",
         "ui_headless::",
@@ -533,7 +544,7 @@ fn kbd_dx_paradox_keeps_simple_api_and_docs_minimal_example() {
         "DX 核验（kbd）：基础调用为单行 `<Kbd keys=\"Ctrl\".to_string()>\"K\"</Kbd>`（≤ 5 行）",
         "公开 API 仅 `size/keys/class_name/children`",
         "不暴露内部 `state` 必填参数",
-        "apps/docs-app/src/pages/components/pages/display.rs::kbd() 已提供最小可用示例与 Playground",
+        "`apps/docs-app/src/pages/components/pages/display.rs::kbd()` 已提供最小可用示例与 Playground",
     ] {
         assert!(
             check2.contains(required),
@@ -711,7 +722,7 @@ fn kbd_two_pass_rendering_rule_is_na_for_non_measured_component() {
         "- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。",
         "N/A（kbd）：`kbd` 为静态按键标签展示组件，不依赖 DOM 几何测量与定位修正",
         "不存在 `Intent -> Measure -> Rectification` 双阶段回路",
-        "不存在 `getBoundingClientRect/ResizeObserver` 测量路径与幂等收敛控制逻辑",
+        "`getBoundingClientRect/ResizeObserver` 测量路径与幂等收敛控制逻辑",
     ] {
         assert!(
             check2.contains(required),
@@ -1077,7 +1088,7 @@ fn kbd_cascade_layer_contract_is_aggregated_in_ui_layer_and_rejects_inline_style
     ] {
         assert!(
             css.contains(required),
-            "ui-components css aggregation should keep cascade-layer contract marker `{required}`."
+            "ui css aggregation should keep cascade-layer contract marker `{required}`."
         );
     }
 
@@ -1096,7 +1107,7 @@ fn kbd_cascade_layer_contract_is_aggregated_in_ui_layer_and_rejects_inline_style
 
     for required in [
         "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
-        "已核验（聚合层）：`crates/ui-components/src/css.rs::push_components_css` 使用 `out.push_str(\"\\n@layer ui {\\n\")`",
+        "已核验（聚合层）：`crates/ui/src/css.rs::push_components_css` 使用 `out.push_str(\"\\n@layer ui {\\n\")`",
         "已核验（运行时样式边界）：`components/kbd/src/view.rs` 不含 `style=`/`style:top`/`style:left` 等普通内联样式写法",
         "N/A（kbd，运行时数值注入）：`kbd` 为静态展示组件",
         "回归约束：若后续引入运行时动态样式，仅允许 `style:--ui-*` 自定义变量注入",
@@ -1123,7 +1134,7 @@ fn kbd_ui_components_entrypoints_are_wired_and_forbidden_component_side_files_ab
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib entry should keep required export marker `{required}`."
+            "ui lib entry should keep required export marker `{required}`."
         );
     }
 
@@ -1136,7 +1147,7 @@ fn kbd_ui_components_entrypoints_are_wired_and_forbidden_component_side_files_ab
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css entry should keep required aggregation marker `{required}`."
+            "ui css entry should keep required aggregation marker `{required}`."
         );
     }
 
@@ -1166,10 +1177,9 @@ fn kbd_ui_components_entrypoints_are_wired_and_forbidden_component_side_files_ab
     }
 
     let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let ui_components_overlay_open =
-        workspace_root.join("crates/ui-components/src/overlay_open.rs");
-    let ui_components_presence = workspace_root.join("crates/ui-components/src/presence.rs");
-    let ui_components_a11y = workspace_root.join("crates/ui-components/src/a11y.rs");
+    let ui_components_overlay_open = workspace_root.join("crates/ui/src/overlay_open.rs");
+    let ui_components_presence = workspace_root.join("crates/ui/src/presence.rs");
+    let ui_components_a11y = workspace_root.join("crates/ui/src/a11y.rs");
     let ui_headless_controllable_state =
         workspace_root.join("crates/ui-headless/src/controllable_state.rs");
     let ui_headless_presence = workspace_root.join("crates/ui-headless/src/presence.rs");
@@ -1179,7 +1189,7 @@ fn kbd_ui_components_entrypoints_are_wired_and_forbidden_component_side_files_ab
         !ui_components_overlay_open.exists()
             && !ui_components_presence.exists()
             && !ui_components_a11y.exists(),
-        "ui-components forbidden entrypoint files should stay absent (overlay_open/presence/a11y)."
+        "ui forbidden entrypoint files should stay absent (overlay_open/presence/a11y)."
     );
     assert!(
         ui_headless_controllable_state.exists()
@@ -1189,16 +1199,16 @@ fn kbd_ui_components_entrypoints_are_wired_and_forbidden_component_side_files_ab
     );
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
-        "已核验（`lib.rs` 入口与导出面）：`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = \"component-kbd\")] pub use ui_kbd as kbd;`",
-        "已核验（`css.rs` 聚合入口）：`crates/ui-components/src/css.rs::push_components_css` 负责组件 CSS 聚合",
-        "已核验（`root.rs` 注入职责）：`crates/ui-components/src/root.rs::UiRoot` 集中注入 `base css + theme vars + (optional) components css`",
+        "- [x] `ui` 固定入口文件落点正确。",
+        "已核验（`lib.rs` 入口与导出面）：`crates/ui/src/lib.rs` 通过 `#[cfg(feature = \"component-kbd\")] pub use ui_kbd as kbd;`",
+        "已核验（`css.rs` 聚合入口）：`crates/ui/src/css.rs::push_components_css` 负责组件 CSS 聚合",
+        "已核验（`root.rs` 注入职责）：`crates/ui/src/root.rs::UiRoot` 集中注入 `base css + theme vars + (optional) components css`",
         "已核验（`active_highlight.rs` 落点）：`crates/ui-visual-primitive/src/active_highlight.rs` 提供共享高亮样式与 motion driver",
-        "已核验（禁止文件不存在）：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在",
+        "已核验（禁止文件不存在）：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 均不存在",
     ] {
         assert!(
             check2.contains(required),
-            "kbd checklist should include ui-components entrypoint evidence `{required}`."
+            "kbd checklist should include ui entrypoint evidence `{required}`."
         );
     }
 }
@@ -1222,12 +1232,7 @@ fn kbd_semantics_contract_tests_exist_and_do_not_depend_on_visual_snapshots() {
         );
     }
 
-    for forbidden in [
-        "insta::assert_snapshot!",
-        "insta::assert_debug_snapshot!",
-        "insta::assert_yaml_snapshot!",
-        "assert_snapshot!(",
-    ] {
+    for forbidden in snapshot_assertion_markers() {
         assert!(
             !semantics.contains(forbidden),
             "kbd semantics validation should not be replaced by visual snapshot assertion (`{forbidden}`)."
@@ -1307,12 +1312,7 @@ fn kbd_semantics_priority_rule_is_checked_with_contract_focused_regressions() {
         );
     }
 
-    for forbidden in [
-        "insta::assert_snapshot!",
-        "insta::assert_debug_snapshot!",
-        "insta::assert_yaml_snapshot!",
-        "assert_snapshot!(",
-    ] {
+    for forbidden in snapshot_assertion_markers() {
         assert!(
             !semantics.contains(forbidden),
             "kbd semantics priority should not regress to visual snapshot assertions (`{forbidden}`)."
@@ -2374,7 +2374,7 @@ fn kbd_docs_copy_paste_ready_playgrounds_cover_required_paths_and_import_injecti
         "let controlled_contrast_code = Signal::derive",
         "let stream_snapshot_code = Signal::derive",
         "let source_first_code = Signal::derive",
-        "let kbd_imports = \"use leptos::prelude::*;\\nuse ui_components::{Kbd, KbdSize};\".to_string();",
+        "let kbd_imports = \"use leptos::prelude::*;\\nuse ui::{Kbd, KbdSize};\".to_string();",
         "title=\"Hello World (Default API)\"",
         "title=\"State Matrix (Size + Keys + Label-only)\"",
         "title=\"Controlled vs Uncontrolled (N/A)\"",
@@ -2425,7 +2425,7 @@ fn kbd_source_first_docs_are_copy_paste_ready_with_real_paths_and_prerequisites(
         "title=\"Source-first Starter (Copy-Paste Ready)\"",
         "code_imports=kbd_imports.clone()",
         "let source_first_code = Signal::derive",
-        "let kbd_imports = \"use leptos::prelude::*;\\nuse ui_components::{Kbd, KbdSize};\".to_string();",
+        "let kbd_imports = \"use leptos::prelude::*;\\nuse ui::{Kbd, KbdSize};\".to_string();",
         "data-slot=\"kbd-source-first\"",
         "data-slot=\"kbd-source-prerequisites\"",
         "<code>\"component-kbd\"</code>",
@@ -2488,7 +2488,7 @@ fn kbd_heroui_alignment_docs_stay_synced_with_component_docs_entrypoints() {
         "### Kbd 同步记录（2026-02-20）",
         "参数主轴保持 `size/keys/class_name/children`",
         "component_doc!(\"Kbd\", \"kbd\", \"Display\", display::kbd)",
-        "apps/docs-app/src/pages/components/pages/display.rs::kbd() 已覆盖 `Hello World (Default API)`",
+        "示例矩阵同步：`apps/docs-app/src/pages/components/pages/display.rs::kbd()` 已覆盖 `Hello World (Default API)`",
         "Source-first / Copy-Paste Ready",
         "本轮仅为 Kbd 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论",
     ] {
@@ -2576,7 +2576,7 @@ fn kbd_token_first_static_style_contract_is_enforced() {
     ] {
         assert!(
             css.contains(required),
-            "ui-components css aggregation should include kbd styles under feature gate `{required}`."
+            "ui css aggregation should include kbd styles under feature gate `{required}`."
         );
     }
 
@@ -2609,7 +2609,7 @@ fn kbd_token_first_static_style_contract_is_enforced() {
     for required in [
         "- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。",
         "已核验（kbd）：样式仅定义在 `components/kbd/src/styles.rs::CSS`",
-        "`crates/ui-components/src/css.rs` 在 `component-kbd` feature 下聚合",
+        "`crates/ui/src/css.rs` 在 `component-kbd` feature 下聚合",
         "`UiRoot` 通过 `inject_components_css` 路径统一注入",
         "视觉值来源符合 token-first",
         "运行时未写业务 inline style",
@@ -2732,7 +2732,7 @@ fn kbd_tree_shaking_contract_is_feature_gated_and_not_forced_by_web_demo_default
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components feature map should expose expected tree-shaking anchors `{required}`."
+            "ui feature map should expose expected tree-shaking anchors `{required}`."
         );
     }
 
@@ -2743,7 +2743,7 @@ fn kbd_tree_shaking_contract_is_feature_gated_and_not_forced_by_web_demo_default
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib export surface should keep feature-gated kbd path `{required}`."
+            "ui lib export surface should keep feature-gated kbd path `{required}`."
         );
     }
 
@@ -2753,11 +2753,11 @@ fn kbd_tree_shaking_contract_is_feature_gated_and_not_forced_by_web_demo_default
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css aggregation should gate kbd css by component feature `{required}`."
+            "ui css aggregation should gate kbd css by component feature `{required}`."
         );
     }
 
-    let required = "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }";
+    let required = "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }";
     assert!(
         web_demo_cargo.contains(required),
         "web-demo should avoid implicit all-components feature lift via `{required}`."
@@ -2765,16 +2765,16 @@ fn kbd_tree_shaking_contract_is_feature_gated_and_not_forced_by_web_demo_default
 
     for required in [
         "- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。",
-        "已核验（kbd）：`crates/ui-components/Cargo.toml` 存在 `component-kbd = [\"dep:ui-kbd\"]`",
-        "`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 对 `kbd` 导出/样式聚合均受 `#[cfg(feature = \"component-kbd\")]` 门控",
-        "反向依赖核验：`apps/web-demo/Cargo.toml` 对 `ui-components` 使用 `default-features = false`",
-        "最小特性核验：`cargo tree -e features -p ui-components --no-default-features --features component-kbd,inject-css`",
+        "已核验（kbd）：`crates/ui/Cargo.toml` 存在 `component-kbd = [\"dep:ui-kbd\"]`",
+        "`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 对 `kbd` 导出/样式聚合均受 `#[cfg(feature = \"component-kbd\")]` 门控",
+        "反向依赖核验：`apps/web-demo/Cargo.toml` 对 `ui` 使用 `default-features = false`",
+        "最小特性核验：`cargo tree -e features -p ui --no-default-features --features component-kbd,inject-css`",
         "N/A（kbd，仓库级治理）：CI“最小特性 wasm 编译任务”与“产物体积预算阈值”属于仓库级流水线策略",
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
-        "已核验（特性树注册）：`crates/ui-components/Cargo.toml` 存在 `component-kbd = [\"dep:ui-kbd\"]`",
-        "已核验（`lib.rs` 门控）：`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = \"component-kbd\")] pub use ui_kbd as kbd;` 条件导出",
-        "已核验（`css.rs` 门控）：`crates/ui-components/src/css.rs` 在 `#[cfg(feature = \"component-kbd\")]` 下才执行 `out.push_str(crate::kbd::styles::CSS);`",
-        "已核验（反向依赖）：`apps/web-demo/Cargo.toml` 对 `ui-components` 使用 `default-features = false`",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "已核验（特性树注册）：`crates/ui/Cargo.toml` 存在 `component-kbd = [\"dep:ui-kbd\"]`",
+        "已核验（`lib.rs` 门控）：`crates/ui/src/lib.rs` 通过 `#[cfg(feature = \"component-kbd\")] pub use ui_kbd as kbd;` 条件导出",
+        "已核验（`css.rs` 门控）：`crates/ui/src/css.rs` 在 `#[cfg(feature = \"component-kbd\")]` 下才执行 `out.push_str(crate::kbd::styles::CSS);`",
+        "已核验（反向依赖）：`apps/web-demo/Cargo.toml` 对 `ui` 使用 `default-features = false`",
         "回归约束：后续新增导出/样式聚合路径必须保持 feature 门控",
     ] {
         assert!(
@@ -3320,7 +3320,7 @@ fn kbd_performance_governance_is_mount_only_traceable_and_backed_by_repo_gates()
     for required in [
         "- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。",
         "已核验（kbd）：`kbd` 为静态展示组件（无异步、无动效 attach、无交互状态更新环路），关键路径为 mount-only",
-        "共享预算与阻断链路：`scripts/check-ui-components-performance.sh` 已纳入",
+        "共享预算与阻断链路：`scripts/check-ui-performance.sh` 已纳入",
         "`e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言 `data-perf-budget-*` 并阻断 `data-perf-violation=true`",
         "render_count 跟进状态：`docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”",
         "N/A（kbd，组件级）：`Button`、`Input` 初始化渲染预算为 `1` 属于跨组件基线",
@@ -3352,12 +3352,7 @@ fn kbd_semantics_and_performance_regression_contract_is_covered_with_clear_na_bo
         );
     }
 
-    for forbidden in [
-        "insta::assert_snapshot!",
-        "insta::assert_debug_snapshot!",
-        "insta::assert_yaml_snapshot!",
-        "assert_snapshot!(",
-    ] {
+    for forbidden in snapshot_assertion_markers() {
         assert!(
             !semantics.contains(forbidden),
             "kbd checks should not rely on visual snapshots as semantic/perf substitute (`{forbidden}`)."

@@ -22,7 +22,7 @@
 ### Hello World（零门槛）
 
 ```rust
-use ui_components::{NativeSelect, NativeSelectOption};
+use ui::{NativeSelect, NativeSelectOption};
 
 view! {
     <NativeSelect
@@ -67,7 +67,7 @@ view! {
 - 展示区：`Primary` 当前状态 + `对比矩阵`（required/invalid、disabled 等组合）。
 - Config 区：切换 size、selected 模式、is_required、is_invalid、is_disabled、placeholder、custom class、compare matrix。
 - Code 区：输出当前配置对应的 `NativeSelect` 代码片段。
-- CSS Test 区：展示 `crates/ui-components/src/native_select/styles.rs` 的 `CSS` 常量，并输出当前配置快照。
+- CSS Test 区：展示 `crates/ui/src/native_select/styles.rs` 的 `CSS` 常量，并输出当前配置快照。
 
 ## 多场景对比（对比矩阵）
 
@@ -100,5 +100,5 @@ view! {
 ## Docs and Feature
 
 - docs-app entry: `apps/docs-app/src/pages/components/pages/forms_native.rs::native_select()`
-- source: `crates/ui-components/src/native_select/{mod,logic,view,styles}.rs`
+- source: `crates/ui/src/native_select/{mod,logic,view,styles}.rs`
 - feature: `component-native_select`（可选 `inject-css`）

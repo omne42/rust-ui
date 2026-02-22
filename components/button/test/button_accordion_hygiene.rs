@@ -41,7 +41,7 @@ fn component_sources() -> Vec<PathBuf> {
         collect_rs_files(&accordion_legacy, &mut files);
     }
 
-    // Accordion was moved out of ui-components during workspace split.
+    // Accordion was moved out of ui during workspace split.
     let accordion_component = manifest_root.join("../../components/accordion/src");
     if accordion_component.exists() {
         collect_rs_files(&accordion_component, &mut files);

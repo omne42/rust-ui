@@ -36,7 +36,7 @@ Workbench 控制项：
 
 ## css test
 
-- 样式来源：`crates/ui-components/src/button/picker_button/styles.rs`
+- 样式来源：`crates/ui/src/button/picker_button/styles.rs`
 - docs Playground 支持 CSS test，结合 `data-state` 与 source markers 做回归验证。
 
 ## docs-app 入口

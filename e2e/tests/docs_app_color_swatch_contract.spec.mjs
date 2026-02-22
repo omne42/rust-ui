@@ -111,6 +111,6 @@ test("docs-app color-swatch playground source is copy-paste ready", async ({ pag
   await expect(codeBlock.first()).toHaveAttribute("data-copyable", "true");
   const code = playground.locator('[data-slot="code-block-code"]').first();
   await expect(code).toContainText("use leptos::prelude::*;");
-  await expect(code).toContainText("use ui_components::*;");
+  await expect(code).toContainText("use ui::*;");
   await expect(code).toContainText("<ColorSwatch");
 });

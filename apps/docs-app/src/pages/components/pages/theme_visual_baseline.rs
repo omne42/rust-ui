@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{Button, ButtonVariant, Input, OnPress, Overlay};
+use ui::{Button, ButtonVariant, Input, OnPress, Overlay};
 use ui_layout::{
     Card, Flex, FlexAlign, FlexDirection, FlexGap, FlexJustify, Heading, HeadingLevel,
 };

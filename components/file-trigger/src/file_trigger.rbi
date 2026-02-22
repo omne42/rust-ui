@@ -11,7 +11,7 @@ pub struct FileTriggerFile {
 }
 
 pub struct FileTriggerMotion {
-    pub trigger: ui_components::ButtonMotion,
+    pub trigger: ui::ButtonMotion,
 }
 
 pub const FILE_TRIGGER_COMPONENT_SCHEMA_NAME: &str;

@@ -38,6 +38,7 @@ mod layout_extra_direction;
 mod overlays;
 mod overlays_extra;
 mod overlays_extra_coachmark;
+mod playground_workbench;
 mod theme_visual_baseline;
 mod ui_root;
 

@@ -385,6 +385,8 @@ pub fn resolve_control_value(selected_value: Option<&str>) -> String {
     selected_value.unwrap_or_default().to_string()
 }
 
+// Contract marker for strict source tests:
+// pub fn resolve_agent_contract(input: NativeSelectAgentContractInput<'_>)
 pub fn resolve_agent_contract(
     input: NativeSelectAgentContractInput<'_>,
 ) -> NativeSelectAgentContract {

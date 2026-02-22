@@ -11,11 +11,11 @@ fn resolve_path(rel_path: &str) -> std::path::PathBuf {
     if let Some(suffix) = rel_path.strip_prefix("src/tag/") {
         workspace_dir.join("components/tag/src").join(suffix)
     } else if rel_path == "src/lib.rs" {
-        workspace_dir.join("crates/ui-components/src/lib.rs")
+        workspace_dir.join("crates/ui/src/lib.rs")
     } else if rel_path == "src/css.rs" {
-        workspace_dir.join("crates/ui-components/src/css.rs")
+        workspace_dir.join("crates/ui/src/css.rs")
     } else if rel_path == "Cargo.toml" {
-        workspace_dir.join("crates/ui-components/Cargo.toml")
+        workspace_dir.join("crates/ui/Cargo.toml")
     } else if let Some(suffix) = rel_path.strip_prefix("../ui-state-primitives/") {
         workspace_dir
             .join("crates/ui-state-primitives")
@@ -387,12 +387,12 @@ fn tag_platform_guards_keep_non_wasm_paths_browser_object_free() {
 
 #[test]
 fn tag_platform_check_script_covers_native_ssr_and_wasm_compile_paths() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
-        "cargo check -p ui-components",
-        "cargo check -p ui-components --no-default-features --features component-tag,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-tag,inject-css",
+        "cargo check -p ui",
+        "cargo check -p ui --no-default-features --features component-tag,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-tag,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
         "components/tag/src/view.rs",
@@ -422,7 +422,7 @@ fn tag_ui_headless_feature_mutex_compile_error_guard_is_present() {
 
 #[test]
 fn tag_platform_script_enforces_ui_headless_web_ssr_mutex() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "cargo check -p ui-headless --no-default-features --features web,ssr",
@@ -442,7 +442,7 @@ fn tag_platform_script_enforces_ui_headless_web_ssr_mutex() {
 fn tag_motion_contract_uses_ui_motion_non_wasm_stub_and_keeps_component_safe_without_motion() {
     let ui_motion_source = load_source("../../crates/ui-motion/src/lib.rs");
     let non_wasm_stub_test = load_source("../../crates/ui-motion/tests/non_wasm_stub.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let view_source = load_source("src/tag/view.rs");
     let logic_source = load_source("src/tag/logic.rs");
 
@@ -500,11 +500,11 @@ fn tag_reduced_motion_ssr_wasm_contract_is_n_a_but_semantics_stay_platform_stabl
     let logic_source = load_source("src/tag/logic.rs");
     let view_source = load_source("src/tag/view.rs");
     let styles_source = load_source("src/tag/styles.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
-        "cargo check -p ui-components --no-default-features --features component-tag,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-tag,inject-css",
+        "cargo check -p ui --no-default-features --features component-tag,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-tag,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
     ] {
@@ -599,7 +599,7 @@ fn tag_performance_governance_budget_is_defined_and_blocking() {
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("src/tag/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/tag/view.rs");
 
     for needle in [
@@ -683,7 +683,7 @@ fn tag_performance_governance_budget_is_defined_and_blocking() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_performance_governance_budget_is_defined_and_blocking";
+    let script_needle = "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_performance_governance_budget_is_defined_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`."
@@ -693,7 +693,7 @@ fn tag_performance_governance_budget_is_defined_and_blocking() {
 #[test]
 fn tag_view_macro_complexity_is_split_into_semantic_subrenders() {
     let view_source = load_source("src/tag/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "fn render_tag_content(children: Children) -> impl IntoView",
@@ -715,7 +715,7 @@ fn tag_view_macro_complexity_is_split_into_semantic_subrenders() {
         "Tag should keep a single public component boundary."
     );
 
-    let script_needle = "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_view_macro_complexity_is_split_into_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_view_macro_complexity_is_split_into_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`."
@@ -803,9 +803,9 @@ fn tag_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 
 #[test]
 fn tag_inner_html_check_script_covers_security_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
 
-    let needle = "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let needle = "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(needle),
         "inner-html check script should enforce Tag contract marker `{needle}`."
@@ -909,9 +909,9 @@ fn tag_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated(
 
 #[test]
 fn tag_wasm_debug_check_script_covers_shared_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
 
-    let needle = "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated";
+    let needle = "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm debug check script should enforce `{needle}`."
@@ -986,7 +986,7 @@ fn tag_engineering_contract_keeps_tracing_semantics_unified_without_component_lo
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -1003,7 +1003,7 @@ fn tag_engineering_contract_keeps_tracing_semantics_unified_without_component_lo
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::tag::",
+        "target: \"ui::tag::",
         "const TAG_TRACE_TARGET",
     ] {
         assert!(
@@ -1047,12 +1047,12 @@ fn tag_engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
 
 #[test]
 fn tag_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1066,7 +1066,7 @@ fn tag_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_ar
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !path_exists(forbidden),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`."
+            "ui forbidden entrypoint file should not exist: `{forbidden}`."
         );
     }
 
@@ -1102,9 +1102,9 @@ fn tag_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_ar
 
 #[test]
 fn tag_entrypoints_check_script_covers_fixed_entrypoint_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
 
-    let needle = "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present";
+    let needle = "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present";
     assert!(
         script_source.contains(needle),
         "entrypoints check script should enforce `{needle}`."
@@ -1222,12 +1222,12 @@ fn tag_component_file_responsibilities_remain_scoped() {
 
 #[test]
 fn tag_component_files_check_script_covers_directory_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     for needle in [
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_component_directory_has_standard_file_layout",
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_mod_rs_keeps_minimal_stable_exports",
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_component_file_responsibilities_remain_scoped",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_component_directory_has_standard_file_layout",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_mod_rs_keeps_minimal_stable_exports",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_component_file_responsibilities_remain_scoped",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1406,13 +1406,13 @@ fn tag_streaming_validation_retry_resilience_boundaries_stay_outside_component_l
 
 #[test]
 fn tag_streaming_check_script_covers_snapshot_baseline_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_snapshot_baseline_and_streaming_fallback_contract_are_explicit",
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_streaming_optional_scope_keeps_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_snapshot_baseline_and_streaming_fallback_contract_are_explicit",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_streaming_optional_scope_keeps_aria_and_data_markers_continuous",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1423,14 +1423,14 @@ fn tag_streaming_check_script_covers_snapshot_baseline_contract() {
 
 #[test]
 fn tag_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_check2_documents_semantics_first_testing_rules",
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_semantics_suite_is_contract_first_not_snapshot_only",
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_check2_documents_semantics_first_testing_rules",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_semantics_suite_is_contract_first_not_snapshot_only",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1591,11 +1591,11 @@ fn tag_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 
 #[test]
 fn tag_e2e_check_script_covers_selector_and_key_flow_contracts() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-tag.sh");
+    let script_source = load_source("../../components/tag/scripts/check-ui-e2e-tag.sh");
 
     for needle in [
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1787,7 +1787,7 @@ fn tag_docs_source_first_copy_paste_ready_with_imports_source_paths_and_sync() {
         "toHaveAttribute(\"data-copyable\", \"true\")",
         "toHaveAttribute(\"aria-label\", /Copy to clipboard/i)",
         "toContainText(\"use leptos::prelude::*;\")",
-        "toContainText(\"use ui_components::*;\")",
+        "toContainText(\"use ui::*;\")",
     ] {
         assert!(
             e2e_source.contains(needle),

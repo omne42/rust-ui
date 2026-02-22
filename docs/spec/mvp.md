@@ -23,7 +23,7 @@
 
 ### 工程与门禁
 
-- [ ] Workspace 至少包含核心五层 crate：`ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components`
+- [ ] Workspace 至少包含核心五层 crate：`ui-state-primitives/ui-headless/ui-theme/ui-motion/ui`
 - [ ] 存在可提交 demo：`apps/web-demo`
 - [ ] `cargo fmt --all -- --check`
 - [ ] `cargo clippy --workspace --all-targets -- -D warnings`
@@ -33,7 +33,7 @@
 ### WASM 编译验证（不要求跑浏览器）
 
 - [ ] `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`
-- [ ] `cargo check -p ui-components --target wasm32-unknown-unknown`
+- [ ] `cargo check -p ui --target wasm32-unknown-unknown`
 - [ ] `cargo check -p web-demo --target wasm32-unknown-unknown`
 
 ### 行为验收（由 web-demo 体现）

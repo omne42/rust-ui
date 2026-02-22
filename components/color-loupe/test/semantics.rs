@@ -20,14 +20,14 @@ fn load_source(path: &str) -> &'static str {
         "heroui_strategy_doc" => {
             include_str!("../../../docs/spec/heroui-parameter-design-strategy.md")
         }
-        "perf_check_script" => include_str!("../../../scripts/check-ui-components-performance.sh"),
+        "perf_check_script" => include_str!("../../../scripts/check-ui-performance.sh"),
         "e2e_color_loupe_contract" => {
             include_str!("../../../e2e/tests/docs_app_color_loupe_contract.spec.mjs")
         }
-        "ui_components_lib" => include_str!("../../../crates/ui-components/src/lib.rs"),
-        "ui_components_cargo" => include_str!("../../../crates/ui-components/Cargo.toml"),
-        "ui_components_css" => include_str!("../../../crates/ui-components/src/css.rs"),
-        "ui_components_root" => include_str!("../../../crates/ui-components/src/root.rs"),
+        "ui_components_lib" => include_str!("../../../crates/ui/src/lib.rs"),
+        "ui_components_cargo" => include_str!("../../../crates/ui/Cargo.toml"),
+        "ui_components_css" => include_str!("../../../crates/ui/src/css.rs"),
+        "ui_components_root" => include_str!("../../../crates/ui/src/root.rs"),
         "ui_visual_active_highlight" => {
             include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs")
         }
@@ -59,7 +59,7 @@ fn color_loupe_semantics_tests_are_migrated_to_component_directory() {
 
     assert!(
         legacy_semantics.contains("color_loupe_"),
-        "legacy ui-components semantics suite should still be readable during migration.",
+        "legacy ui semantics suite should still be readable during migration.",
     );
     assert!(
         local_semantics.contains("color_loupe_semantics_tests_are_migrated_to_component_directory"),
@@ -88,7 +88,7 @@ fn color_loupe_ui_components_layer_boundaries_are_explicit() {
     ] {
         assert!(
             mod_source.contains(required),
-            "color-loupe mod.rs should keep ui-components export boundary `{required}`.",
+            "color-loupe mod.rs should keep ui export boundary `{required}`.",
         );
     }
 
@@ -152,7 +152,7 @@ fn color_loupe_public_surface_does_not_expose_dom_platform_types() {
     ] {
         assert!(
             !mod_source.contains(forbidden),
-            "color-loupe ui-components public module should not expose `{forbidden}`.",
+            "color-loupe ui public module should not expose `{forbidden}`.",
         );
         assert!(
             !lib_source.contains(forbidden),
@@ -231,12 +231,12 @@ fn color_loupe_platform_contract_is_explicit_and_non_wasm_safe() {
     assert!(
         ui_components_lib.contains("#[cfg(feature = \"component-color_loupe\")]")
             && ui_components_lib.contains("pub mod color_loupe;"),
-        "ui-components lib.rs should gate color-loupe module behind component feature.",
+        "ui lib.rs should gate color-loupe module behind component feature.",
     );
     assert!(
         ui_components_css.contains("#[cfg(feature = \"component-color_loupe\")]")
             && ui_components_css.contains("out.push_str(crate::color::loupe::styles::CSS);"),
-        "ui-components css.rs should gate color-loupe CSS aggregation behind component feature.",
+        "ui css.rs should gate color-loupe CSS aggregation behind component feature.",
     );
 }
 
@@ -437,7 +437,7 @@ fn color_loupe_css_cascade_layer_contract_is_explicit() {
     assert!(
         ui_components_css.contains("out.push_str(\"\\n@layer ui {\\n\");")
             && ui_components_css.contains("out.push_str(\"\\n}\\n\");"),
-        "ui-components css aggregator should wrap component styles in explicit `@layer ui`.",
+        "ui css aggregator should wrap component styles in explicit `@layer ui`.",
     );
     assert!(
         ui_components_css.contains("#[cfg(feature = \"component-color_loupe\")]")
@@ -673,7 +673,7 @@ fn color_loupe_docs_product_copy_paste_ready_contract_is_complete() {
     assert!(
         docs_playground.contains("fn compose_copy_ready_code(raw: &str, imports: &str) -> String")
             && docs_playground.contains("const DEFAULT_PLAYGROUND_IMPORTS: &str")
-            && docs_playground.contains("use ui_components::*;"),
+            && docs_playground.contains("use ui::*;"),
         "docs playground should keep copy-ready import injection pipeline.",
     );
 }
@@ -842,7 +842,7 @@ fn color_loupe_semantics_first_contract_prioritizes_data_aria_role_and_source_ma
     }
     assert!(
         legacy_semantics.contains("fn color_loupe_exposes_baseline_style_data_markers()"),
-        "legacy ui-components semantics suite should keep baseline data-marker regression coverage.",
+        "legacy ui semantics suite should keep baseline data-marker regression coverage.",
     );
 
     assert!(
@@ -1069,20 +1069,20 @@ fn color_loupe_ui_components_entrypoints_are_located_and_scoped() {
             && ui_components_lib.contains("pub mod color_loupe;")
             && ui_components_lib.contains("pub mod color {")
             && ui_components_lib.contains("pub use crate::color_loupe as loupe;"),
-        "ui-components lib.rs should expose color-loupe only behind component feature and stable color namespace.",
+        "ui lib.rs should expose color-loupe only behind component feature and stable color namespace.",
     );
     assert!(
         ui_components_css.contains("out.push_str(\"\\n@layer ui {\\n\");")
             && ui_components_css.contains("out.push_str(crate::color::loupe::styles::CSS);")
             && ui_components_css.contains("out.push_str(\"\\n}\\n\");"),
-        "ui-components css.rs should aggregate color-loupe CSS inside `@layer ui` with explicit close.",
+        "ui css.rs should aggregate color-loupe CSS inside `@layer ui` with explicit close.",
     );
     assert!(
         ui_components_root.contains("out.push_str(css::BASE_CSS);")
             && ui_components_root.contains("out.push_str(&theme.get().to_css_variables());")
             && ui_components_root.contains("crate::css::push_components_css(&mut out);")
             && ui_components_root.contains("provide_ui_i18n(i18n);"),
-        "ui-components root.rs should centralize base css/theme vars/components css injection and i18n context.",
+        "ui root.rs should centralize base css/theme vars/components css injection and i18n context.",
     );
     assert!(
         ui_visual_active_highlight.contains("pub const CSS: &str =")
@@ -1093,11 +1093,11 @@ fn color_loupe_ui_components_entrypoints_are_located_and_scoped() {
     );
 
     let ui_components_src =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/src");
     for forbidden in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src.join(forbidden).exists(),
-            "ui-components source root should not contain deprecated entry file `{forbidden}`.",
+            "ui source root should not contain deprecated entry file `{forbidden}`.",
         );
     }
 }
@@ -1553,7 +1553,7 @@ fn color_loupe_tree_shaking_feature_gates_are_component_scoped() {
 
     assert!(
         ui_components_cargo.contains("component-color_loupe = [\"component-color_swatch\"]"),
-        "ui-components Cargo feature tree should register color-loupe as component-scoped feature dependency.",
+        "ui Cargo feature tree should register color-loupe as component-scoped feature dependency.",
     );
     assert!(
         ui_components_cargo.contains("all-components = [")
@@ -1566,12 +1566,12 @@ fn color_loupe_tree_shaking_feature_gates_are_component_scoped() {
                 .contains("#[path = \"../../../components/color-loupe/src/mod.rs\"]")
             && ui_components_lib.contains("pub mod color_loupe;")
             && ui_components_lib.contains("pub use crate::color_loupe as loupe;"),
-        "ui-components lib.rs should gate color-loupe module and namespace export by feature.",
+        "ui lib.rs should gate color-loupe module and namespace export by feature.",
     );
     assert!(
         ui_components_css.contains("#[cfg(feature = \"component-color_loupe\")]")
             && ui_components_css.contains("out.push_str(crate::color::loupe::styles::CSS);"),
-        "ui-components css.rs should gate color-loupe css aggregation by component feature.",
+        "ui css.rs should gate color-loupe css aggregation by component feature.",
     );
 }
 
@@ -1616,7 +1616,7 @@ fn color_loupe_semantics_and_performance_regression_contract_is_covered() {
 
     assert!(
         perf_check_script.contains(
-            "cargo test -p ui-components --test color_loupe_semantics color_loupe_performance_governance_contract_is_budgeted_traceable_and_blocking"
+            "cargo test -p ui --test color_loupe_semantics color_loupe_performance_governance_contract_is_budgeted_traceable_and_blocking"
         ),
         "performance check script should keep color-loupe governance test gate.",
     );
@@ -1626,8 +1626,8 @@ fn color_loupe_semantics_and_performance_regression_contract_is_covered() {
 fn color_loupe_checklist_marks_ui_components_definition_complete() {
     let check2 = load_source("check2");
     assert!(
-        check2.contains("- [x] `ui-components` 定义"),
-        "color-loupe check2 should mark ui-components definition as completed.",
+        check2.contains("- [x] `ui` 定义"),
+        "color-loupe check2 should mark ui definition as completed.",
     );
     assert!(
         check2.contains("- [x] API 命名契约统一"),
@@ -1706,8 +1706,8 @@ fn color_loupe_checklist_marks_ui_components_definition_complete() {
         "color-loupe check2 should mark motion contract governance item as completed.",
     );
     assert!(
-        check2.contains("- [x] `ui-components` 固定入口文件落点正确"),
-        "color-loupe check2 should mark ui-components entrypoint layout governance item as completed.",
+        check2.contains("- [x] `ui` 固定入口文件落点正确"),
+        "color-loupe check2 should mark ui entrypoint layout governance item as completed.",
     );
     assert!(
         check2.contains("- [x] 组件目录标准文件落点正确"),

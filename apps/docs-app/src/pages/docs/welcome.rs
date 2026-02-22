@@ -1,11 +1,11 @@
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{Button, ButtonVariant};
+use ui::{Button, ButtonVariant};
 use ui_layout::{Card, Heading, HeadingLevel};
 
 #[component]
 pub fn Welcome() -> impl IntoView {
-    let code = r#"use ui_components::{UiRoot, Theme, Button, ButtonVariant};
+    let code = r#"use ui::{UiRoot, Theme, Button, ButtonVariant};
 
 <UiRoot theme=Theme::light() safe_area=true inject_components_css=true>
   <Button variant=ButtonVariant::Default>"Hello"</Button>
@@ -17,7 +17,7 @@ pub fn Welcome() -> impl IntoView {
             <p>
                 "This repo builds a layered Leptos UI system (baseline-style): "
                 <code>"ui-state-primitives"</code> ", " <code>"ui-headless"</code> ", " <code>"ui-theme"</code> ", "
-                <code>"ui-motion"</code> ", " <code>"ui-components"</code> "."
+                <code>"ui-motion"</code> ", " <code>"ui"</code> "."
             </p>
             <p>"Use the left nav to explore docs and component playgrounds."</p>
         </Card>

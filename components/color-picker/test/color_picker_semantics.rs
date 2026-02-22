@@ -440,7 +440,7 @@ fn color_picker_tree_shaking_boundaries_stay_feature_gated() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib boundary should include `{needle}` for ColorPicker feature gating."
+            "ui lib boundary should include `{needle}` for ColorPicker feature gating."
         );
     }
 
@@ -450,7 +450,7 @@ fn color_picker_tree_shaking_boundaries_stay_feature_gated() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css boundary should include `{needle}` for ColorPicker feature gating."
+            "ui css boundary should include `{needle}` for ColorPicker feature gating."
         );
     }
 }
@@ -507,7 +507,7 @@ fn color_picker_check2_marks_component_governance_complete() {
         "- [x] `ui-headless` 定义",
         "- [x] `ui-motion` 定义",
         "- [x] `ui-theme` 定义",
-        "- [x] `ui-components` 定义",
+        "- [x] `ui` 定义",
         "- [x] API 命名契约统一",
         "- [x] 如果无异步相关，直接打勾。",
         "- [x] 语义测试优先",

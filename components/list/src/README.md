@@ -10,6 +10,13 @@
 
 ## Architecture Layers
 
+## 组件结构
+- `mod.rs`: 组件入口与对外导出
+- `logic.rs`: 状态归一化与语义派生
+- `view.rs`: 组件装配与 headless 语义挂载
+- `motion.rs`: 动效契约与 attach 映射
+- `styles.rs`: token-first 静态样式
+
 - `logic.rs`：列表/条目/分组状态归一与派生（`ListState`、`ListItemState`、`ListSectionState`）。
 - `view.rs`：Leptos 结构渲染与 headless hooks 挂载（`use_listbox`、`use_focus_ring`）。
 - `motion.rs`：`ListMotion`/`ListSectionMotion` 动效契约与参数清洗。
@@ -89,7 +96,7 @@
 ```rust
 use leptos::prelude::*;
 use std::sync::Arc;
-use ui_components::List;
+use ui::List;
 
 let items: Arc<[String]> = vec!["Overview".to_string(), "Billing".to_string()].into();
 view! { <List id_base="list-hello".to_string() items=items aria_label="Settings navigation".to_string() /> }

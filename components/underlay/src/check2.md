@@ -31,22 +31,22 @@
   - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`crates/ui-components/src/underlay/motion.rs` 仅做语义到运行时变量映射，non-wasm no-op 可编译，回归：`underlay_motion_contract_has_non_wasm_noop_path`）
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`crates/ui/src/underlay/motion.rs` 仅做语义到运行时变量映射，non-wasm no-op 可编译，回归：`underlay_motion_contract_has_non_wasm_noop_path`）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（underlay token 在 `ui-theme` 定义并输出 CSS 变量，回归：`crates/ui-theme/tests/token_scale_baseline.rs` + `underlay_styles_are_token_first_and_state_driven`）
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`underlay/view.rs` 只装配四层输出，回归：`underlay_view_mounts_headless_and_motion_contracts`）
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`underlay/view.rs` 只装配四层输出，回归：`underlay_view_mounts_headless_and_motion_contracts`）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -122,12 +122,12 @@
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`crates/ui-components/src/underlay/spec.rs` 不存在）
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`crates/ui/src/underlay/spec.rs` 不存在）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`styles.rs` + `css.rs` feature 聚合已验证，回归：`underlay_css_is_feature_gated_and_aggregated`）
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -136,14 +136,14 @@
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`component-underlay` 与 `inject-css` 独立特性可单独解析，命令验证：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-underlay,inject-css`）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`component-underlay` 与 `inject-css` 独立特性可单独解析，命令验证：`cargo tree -e features -i ui -p ui --no-default-features --features component-underlay,inject-css`）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`enum` + `data-ui-*` 合同已落地，回归：`underlay_logic_concentrates_normalization_and_consumes_state_primitives` + `underlay_view_exposes_state_and_source_markers`）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -205,14 +205,14 @@
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 文件落点检查（必须提及）
-- [x] `ui-components` 固定入口文件落点正确。（`lib.rs/css.rs/root.rs/active_highlight.rs` 落点存在且 underlay 入口受 feature 管理，`overlay_open.rs/presence.rs/a11y.rs` 不存在）
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。（`lib.rs/css.rs/root.rs/active_highlight.rs` 落点存在且 underlay 入口受 feature 管理，`overlay_open.rs/presence.rs/a11y.rs` 不存在）
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。（`underlay` 目录含 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 且无 `spec.rs` 漂移）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -230,10 +230,10 @@
 - [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（`Underlay` 通过 `AiSpace` 上下文消费 `AiRenderMode::{Snapshot,Streaming}` 并输出 `data-ui-stream-mode`，无第三种模式。回归：`apps/docs-app/src/pages/components/pages/overlays_extra.rs` 的 `LLM Render Modes (Snapshot + Streaming)` Playground，`e2e/tests/docs_app_underlay_contract.spec.mjs`）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`Underlay` 在无 `AiSpace` 上下文时默认回落到 `snapshot + verified`，并稳定渲染根语义节点；可消费完整配置结果而无需流式增量。回归：`crates/ui-components/src/underlay/view.rs` 的 `unwrap_or(AiRenderMode::Snapshot)`，`e2e/tests/docs_app_underlay_contract.spec.mjs`）
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`Underlay` 在无 `AiSpace` 上下文时默认回落到 `snapshot + verified`，并稳定渲染根语义节点；可消费完整配置结果而无需流式增量。回归：`crates/ui/src/underlay/view.rs` 的 `unwrap_or(AiRenderMode::Snapshot)`，`e2e/tests/docs_app_underlay_contract.spec.mjs`）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`Underlay` 不是正文阅读面，判定 `Streaming Optional`；契约显式输出 `data-ui-stream-support="optional"` 与 `data-ui-stream-fallback="snapshot"`，同时持续输出 `data-ui-output-status`。数据校验/重试仍由上层负责。回归：`crates/ui-components/src/underlay/logic.rs` 的 `UnderlayAgentStreamSupport/UnderlayAgentStreamFallback`，`e2e/tests/docs_app_underlay_contract.spec.mjs`）
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`Underlay` 不是正文阅读面，判定 `Streaming Optional`；契约显式输出 `data-ui-stream-support="optional"` 与 `data-ui-stream-fallback="snapshot"`，同时持续输出 `data-ui-output-status`。数据校验/重试仍由上层负责。回归：`crates/ui/src/underlay/logic.rs` 的 `UnderlayAgentStreamSupport/UnderlayAgentStreamFallback`，`e2e/tests/docs_app_underlay_contract.spec.mjs`）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
@@ -264,7 +264,7 @@
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`Underlay` docs 的 `Playground` 走 `code_signal` + `CodeBlock` 复制路径，复制代码自动补齐默认 imports（`use leptos::prelude::*; use ui_components::*;`）；并在文档中显式提示 `component-underlay` 依赖与源码落点 `crates/ui-components/src/underlay/view.rs`。回归：`components/underlay/test/underlay_semantics.rs` 的 `underlay_docs_show_recommended_is_prefixed_api_and_source_markers`）
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`Underlay` docs 的 `Playground` 走 `code_signal` + `CodeBlock` 复制路径，复制代码自动补齐默认 imports（`use leptos::prelude::*; use ui::*;`）；并在文档中显式提示 `component-underlay` 依赖与源码落点 `crates/ui/src/underlay/view.rs`。回归：`components/underlay/test/underlay_semantics.rs` 的 `underlay_docs_show_recommended_is_prefixed_api_and_source_markers`）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
@@ -278,14 +278,14 @@
   - 发现 `ui-state-primitives` 引入 DOM/样式依赖即判架构越层，必须回滚并迁移到正确层。
 - [x] 在 `ui-headless` 写视觉和动画编排。（`crates/ui-headless/src/underlay.rs` 只输出 `attrs + handlers + state`，不含 class/CSS/motion；回归：`components/underlay/test/underlay_semantics.rs::underlay_forbidden_antipatterns_are_guarded`）
   - headless 只输出交互/A11y 契约；出现 class/CSS/动效时间线即判职责污染。
-- [x] 在 `view` 层隐藏关键状态决策。（`crates/ui-components/src/underlay/view.rs` 仅消费 `logic::normalize_* / resolve_view_state` 与 `ui_headless::use_underlay` 输出，不在 view 内重建原语；回归：`components/underlay/test/underlay_semantics.rs::underlay_forbidden_antipatterns_are_guarded`）
+- [x] 在 `view` 层隐藏关键状态决策。（`crates/ui/src/underlay/view.rs` 仅消费 `logic::normalize_* / resolve_view_state` 与 `ui_headless::use_underlay` 输出，不在 view 内重建原语；回归：`components/underlay/test/underlay_semantics.rs::underlay_forbidden_antipatterns_are_guarded`）
   - `view.rs` 只消费归一化结果；关键业务分支若散落在 view，必须回收至 `logic.rs`。
 - [x] 新增参数但不纳入统一命名与契约。（公开参数主路径使用 `is_* / default_* / on_*`，并输出 `data-*-source` 来源标记；兼容别名仅作迁移桥接；回归：`components/underlay/test/underlay_semantics.rs::underlay_forbidden_antipatterns_are_guarded`）
   - 新参数必须进入命名体系、类型约束、默认值归一和语义测试；缺任一项不得合并。
 - [x] 用并行数组/隐式约定替代显式语义结构（如 `labels + children`）。（`Underlay` API/docs 未引入并行数组输入，维持显式组件语义结构；回归：`components/underlay/test/underlay_semantics.rs::underlay_forbidden_antipatterns_are_guarded`）
   - 标题、语义、内容必须显式绑定在同一 item 结构；依赖位置索引配对视为反模式。
   - 发现“少写几行但语义变弱”的接口设计，默认拒绝合入。
-- [x] 公共 API 泄露底层实现细节类型。（`crates/ui-components/src/underlay/mod.rs` 导出面不暴露 `web-sys`/平台私有类型；回归：`components/underlay/test/underlay_semantics.rs::underlay_forbidden_antipatterns_are_guarded`）
+- [x] 公共 API 泄露底层实现细节类型。（`crates/ui/src/underlay/mod.rs` 导出面不暴露 `web-sys`/平台私有类型；回归：`components/underlay/test/underlay_semantics.rs::underlay_forbidden_antipatterns_are_guarded`）
   - 公共接口不得暴露 `web-sys`/运行时私有类型；平台细节只允许存在于内部模块。
 - [x] 用临时补丁破坏跨组件一致性。（`Underlay` 语义字段、命名与文档入口同步收敛到统一契约，变更同时落测试与文档，不留“先漂移后补”临时路径；回归：`components/underlay/test/underlay_semantics.rs`）
   - 临时 patch 若绕开统一契约（命名/状态/语义），必须在同 PR 里修正或显式回退计划。

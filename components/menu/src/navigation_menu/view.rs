@@ -17,7 +17,9 @@ fn focus_item(item_refs: &Arc<Vec<NodeRef<html::A>>>, index: usize) {
     let Some(el) = node_ref.get_untracked() else {
         return;
     };
-    ui_observability::observe_js_result!(el.focus());
+    if el.focus().is_err() {
+        // no-op
+    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -289,6 +291,8 @@ pub fn NavigationMenu(
             data-has-disabled-items=move || root_state.get().has_disabled_items.then_some("true")
             data-focus-activation=move || root_state.get().focus_activation_attr
             data-selection-mode=move || root_state.get().selection_mode_attr
+            data-controlled=move || root_state.get().is_controlled.then_some("true")
+            data-uncontrolled=move || root_state.get().is_uncontrolled.then_some("true")
             data-selected-id=move || selected_id.get()
             data-id-source=move || root_state.get().id_source_attr
             data-aria-label-source=move || root_state.get().aria_label_source_attr

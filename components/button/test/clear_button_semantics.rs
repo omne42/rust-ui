@@ -162,15 +162,15 @@ fn clear_button_docs_playgrounds_lock_state_matrix_contract_values() {
     for needle in [
         "<Playground title=\"Default + OverBackground\" code_signal=basic_code>",
         "aria_label=\"Clear query\".to_string()",
-        "variant=ui_components::ClearButtonVariant::OverBackground",
+        "variant=ui::ClearButtonVariant::OverBackground",
         "aria_label=\"Dismiss overlay\".to_string()",
         "<Playground title=\"Inset + Focus Mode + Disabled\" code_signal=state_code>",
         "inset=true",
-        "focus_mode=ui_components::ClearButtonFocusMode::Prevent",
+        "focus_mode=ui::ClearButtonFocusMode::Prevent",
         "aria_label=\"Clear token\".to_string()",
         "class_name=\"docs-clear-button-custom\".to_string()",
         "disabled=true",
-        "focus_mode=ui_components::ClearButtonFocusMode::ExcludeTab",
+        "focus_mode=ui::ClearButtonFocusMode::ExcludeTab",
         "aria_label=\"Disabled clear\".to_string()",
     ] {
         assert!(

@@ -104,8 +104,8 @@
 
 ## Source-first
 
-- `crates/ui-components/src/field_form/field/mod.rs`
-- `crates/ui-components/src/field_form/field/logic.rs`
-- `crates/ui-components/src/field_form/field/view.rs`
-- `crates/ui-components/src/field_form/field/motion.rs`
-- `crates/ui-components/src/field_form/field/styles.rs`
+- `crates/ui/src/field_form/field/mod.rs`
+- `crates/ui/src/field_form/field/logic.rs`
+- `crates/ui/src/field_form/field/view.rs`
+- `crates/ui/src/field_form/field/motion.rs`
+- `crates/ui/src/field_form/field/styles.rs`

@@ -39,7 +39,7 @@
   - 测试证据：`components/collapsible/test/collapsible_semantics.rs` 已断言 headless 契约接线；`e2e/tests/docs_app_collapsible.spec.mjs` 覆盖 docs-app 关键交互流程（pointer + keyboard + disabled）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
@@ -49,18 +49,18 @@
   - 降级证据：`crates/ui-motion/src/lib.rs` 与 `components/disclosure/src/motion.rs` 提供 non-wasm no-op/可预测降级；`components/collapsible/src/styles.rs` 提供 `prefers-reduced-motion` 样式降级。
   - 测试证据：`components/collapsible/test/motion.rs` 覆盖 sanitize 委托；`components/collapsible/test/collapsible_semantics.rs` 断言动效挂载经本地 `motion.rs` 收口。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-  - 审查证据：`crates/ui-theme/src/tokens.rs`、`crates/ui-theme/src/theme.rs`、`crates/ui-theme/src/css.rs` 分别承担 token 定义/三轴映射/CSS 变量输出；`crates/ui-components/src/root.rs` 统一注入 theme 变量到 `:root`，组件不重建主题。
+  - 审查证据：`crates/ui-theme/src/tokens.rs`、`crates/ui-theme/src/theme.rs`、`crates/ui-theme/src/css.rs` 分别承担 token 定义/三轴映射/CSS 变量输出；`crates/ui/src/root.rs` 统一注入 theme 变量到 `:root`，组件不重建主题。
   - 组件消费证据：`components/collapsible/src/styles.rs` 仅消费 `var(--ui-*)`（如 `--ui-accent`、`--ui-border`、`--ui-bg`、`--ui-accent-soft`），未引入组件私有颜色 token 体系。
   - 规范证据：`docs/spec/styling.md` 已固定 `tokens.rs -> theme.rs -> css.rs` 链路与“组件只消费变量”的约束。
   - 回归证据：`crates/ui-theme/tests/token_scale_baseline.rs` 覆盖 scale 基线与 CSS 变量输出；`components/collapsible/test/collapsible_semantics.rs` 覆盖 collapsible 语义契约与样式契约。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -220,13 +220,13 @@
   - 文档落点证据：简单组件契约说明保持在 `components/collapsible/check2.md` 与 `components/collapsible/src/README.md`，未引入平行 `spec.rs` 文档路径。
   - 防回归证据：`components/collapsible/test/semantics.rs` 与 `components/collapsible/test/collapsible_semantics.rs` 新增断言，锁定“无 spec.rs 文件 + 无 mod spec/pub use spec 导出”。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
   - 组件证据：`components/collapsible/src/styles.rs` 仅使用静态 CSS + `var(--ui-*)`，并以 `data-*` 语义标记驱动状态分支；`components/collapsible/src/view.rs` 无业务 `style=` 内联逻辑。
-  - 聚合证据：`crates/ui-components/src/css.rs` 在 `#[cfg(feature = "component-collapsible")]` 下聚合 `crate::collapsible::styles::CSS`，未走组件私有注入通道。
-  - 注入证据：`crates/ui-components/src/root.rs` 仅在 `inject_components_css` 开启时调用 `crate::css::push_components_css(&mut out)`，组件样式统一经 `UiRoot` 注入。
+  - 聚合证据：`crates/ui/src/css.rs` 在 `#[cfg(feature = "component-collapsible")]` 下聚合 `crate::collapsible::styles::CSS`，未走组件私有注入通道。
+  - 注入证据：`crates/ui/src/root.rs` 仅在 `inject_components_css` 开启时调用 `crate::css::push_components_css(&mut out)`，组件样式统一经 `UiRoot` 注入。
   - 防回归证据：`components/collapsible/test/semantics.rs` 与 `components/collapsible/test/collapsible_semantics.rs` 新增断言，锁定 token-first 变量使用、聚合注入链路、以及禁止 `@apply/tailwind/styled(/style!` 默认范式污染。
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
@@ -242,18 +242,18 @@
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-  - 特性门控证据：`crates/ui-components/Cargo.toml` 以 `component-collapsible = ["dep:ui-collapsible"]` 声明组件级 feature，且 `ui-collapsible` 依赖为 `optional = true`。
-  - 导出/样式门控证据：`crates/ui-components/src/lib.rs` 使用 `#[cfg(feature = "component-collapsible")] pub use ui_collapsible as collapsible;`；`crates/ui-components/src/css.rs` 使用 `#[cfg(feature = "component-collapsible")] out.push_str(crate::collapsible::styles::CSS);`，并由 `#[cfg(feature = "inject-css")]` 包裹聚合入口。
-  - source 模式证据：`apps/web-demo/Cargo.toml` 依赖 `ui-components` 使用 `default-features = false` + `features = ["inject-css", "web-demo-components"]`，未显式启用 `all-components`。
-  - 命令证据（最小特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-collapsible,inject-css | rg \"ui-accordion feature|ui-collapsible feature\"` 仅出现 `ui-collapsible feature \"default\"`。
-  - 命令证据（对照特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css | rg \"ui-accordion feature|ui-collapsible feature\"` 仅出现 `ui-accordion feature \"default\"`。
-  - 命令证据（反向依赖）：`cargo tree -e features -i ui-components -p web-demo` 显示 `web-demo` 通过 `web-demo-components` 依赖 `ui-components`，未被 `all-components` 隐式全量拉起。
+  - 特性门控证据：`crates/ui/Cargo.toml` 以 `component-collapsible = ["dep:ui-collapsible"]` 声明组件级 feature，且 `ui-collapsible` 依赖为 `optional = true`。
+  - 导出/样式门控证据：`crates/ui/src/lib.rs` 使用 `#[cfg(feature = "component-collapsible")] pub use ui_collapsible as collapsible;`；`crates/ui/src/css.rs` 使用 `#[cfg(feature = "component-collapsible")] out.push_str(crate::collapsible::styles::CSS);`，并由 `#[cfg(feature = "inject-css")]` 包裹聚合入口。
+  - source 模式证据：`apps/web-demo/Cargo.toml` 依赖 `ui` 使用 `default-features = false` + `features = ["inject-css", "web-demo-components"]`，未显式启用 `all-components`。
+  - 命令证据（最小特性树）：`cargo tree -e features -p ui --no-default-features --features component-collapsible,inject-css | rg \"ui-accordion feature|ui-collapsible feature\"` 仅出现 `ui-collapsible feature \"default\"`。
+  - 命令证据（对照特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css | rg \"ui-accordion feature|ui-collapsible feature\"` 仅出现 `ui-accordion feature \"default\"`。
+  - 命令证据（反向依赖）：`cargo tree -e features -i ui -p web-demo` 显示 `web-demo` 通过 `web-demo-components` 依赖 `ui`，未被 `all-components` 隐式全量拉起。
   - 回归测试证据：`components/collapsible/test/semantics.rs` 与 `components/collapsible/test/collapsible_semantics.rs` 新增 `collapsible_tree_shaking_contract_keeps_feature_gates_explicit`，锁定 feature 声明、可选依赖、`lib.rs/css.rs` 门控与 web-demo 依赖配置。
-  - CI 现状：最小特性 `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-collapsible,inject-css` 在当前环境因 `Invalid cross-device link (os error 18)` 阻塞；需在稳定文件系统 runner 上执行体积预算与阻断策略。
+  - CI 现状：最小特性 `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-collapsible,inject-css` 在当前环境因 `Invalid cross-device link (os error 18)` 阻塞；需在稳定文件系统 runner 上执行体积预算与阻断策略。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
@@ -289,7 +289,7 @@
   - compile-only 命令证据（当前环境）：  
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo check -p ui-collapsible`  
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo check -p ui-headless --no-default-features --features ssr`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-collapsible,inject-css`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-collapsible,inject-css`
   - 命令现状：以上三条在当前 runner 均被同一基础设施问题阻塞（`Invalid cross-device link (os error 18)`），未发现组件级代码错误栈；需在稳定文件系统 CI/本地 runner 复核三路径 compile-only 通过。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_ssr_cross_platform_contracts_keep_non_wasm_paths_safe` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_ssr_cross_platform_contracts_keep_non_wasm_paths_safe`，锁定 non-wasm 路径禁用浏览器对象、headless web/ssr 互斥保护与 motion wasm/non-wasm 显式分支契约。
 - [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
@@ -325,8 +325,8 @@
   - wasm/ssr 分支一致性证据：`components/disclosure/src/motion.rs` 对 `attach_indicator_motion/attach_panel_motion` 提供 `#[cfg(target_arch = "wasm32")]` 增强分支与 `#[cfg(not(target_arch = "wasm32"))]` 安全降级分支（含 `is_hidden.set(!is_open.get())`）；`components/collapsible/src/view.rs` 未使用 `#[cfg(...)]` 分裂语义标记，SSR 与 wasm 均输出同一 `data-* + aria-*` 契约。
   - compile-only 命令证据（当前环境）：  
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo check -p ui-collapsible`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo check -p ui-components --no-default-features --features component-collapsible,inject-css`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-collapsible,inject-css`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo check -p ui --no-default-features --features component-collapsible,inject-css`  
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-collapsible,inject-css`
   - 命令现状：以上命令在当前 runner 仍受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核 native/SSR/wasm 三路径编译。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_reduced_motion_ssr_wasm_contracts_stay_convergent` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_reduced_motion_ssr_wasm_contracts_stay_convergent`，锁定 reduced-motion 降级、SSR 首帧语义一致与 wasm/non-wasm 分支不分裂契约。
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
@@ -338,12 +338,12 @@
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
   - 预算证据：`apps/docs-app/src/pages/components/shell.rs` 为 `collapsible` 新增显式预算（`max_mount_ms: 34.0`、`max_update_ms: Some(11.0)`、`max_heap_kb: Some(576.0)`），并通过 `<UiPerfProbe name=perf_name budget=perf_budget>` 统一挂载。
   - 基线证据：同一预算源保留 `button/input` 基线预算（`24/8` 与 `28/10`），满足“基础组件预算基线”约束。
-  - 阻断证据：`e2e/tests/docs_app_components_coverage.spec.mjs` 对 `data-perf-mount-ms/data-perf-budget-ms/data-perf-observability` 与 `data-perf-violation!=true` 做阻断断言；`scripts/check-ui-components-performance.sh` 新增 `collapsible_performance_governance_contract_is_budgeted_traceable_and_blocking` 目标。
+  - 阻断证据：`e2e/tests/docs_app_components_coverage.spec.mjs` 对 `data-perf-mount-ms/data-perf-budget-ms/data-perf-observability` 与 `data-perf-violation!=true` 做阻断断言；`scripts/check-ui-performance.sh` 新增 `collapsible_performance_governance_contract_is_budgeted_traceable_and_blocking` 目标。
   - 可归因证据：`components/collapsible/src/view.rs` 暴露 `data-state/data-open-mode/data-open-value-source/data-open-change-source/data-motion-source`；`logic.rs` 负责状态归一，`styles.rs` 负责视觉分支，`motion.rs` 负责动效映射，定位可归因到状态/渲染/样式/动效路径。
   - `render_count` 现状：当前链路仍以 `UiPerfProbe` + e2e marker 作为等价证据；`docs/plan/TODO.md` 明确保留 `render_count` 自动化补齐任务（`Button/Input/Accordion`），未移除后续治理要求。
   - compile/test 命令证据（当前环境）：  
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_performance_governance_contract_is_budgeted_traceable_and_blocking -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_performance_governance_contract_is_budgeted_traceable_and_blocking -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_performance_governance_contract_is_budgeted_traceable_and_blocking -- --nocapture`
   - 命令现状：上述命令在当前 runner 受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_performance_governance_contract_is_budgeted_traceable_and_blocking` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_performance_governance_contract_is_budgeted_traceable_and_blocking`，锁定预算、阻断、可归因与 `render_count` 跟踪契约。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
@@ -352,10 +352,10 @@
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
   - 源码证据：`components/collapsible/src/view.rs` 将原始单块模板拆分为 `render_trigger(...)` 与 `render_panel(...)` 两个语义子块，并在根 `view!` 中组合 `{trigger}`、`{panel}`。
   - 宏体量证据：`components/collapsible/src/view.rs` 当前 `view!` 块总数受控（根 + 2 子块），无超长深嵌套单块模板；保留单一公开 `#[component] Collapsible` 入口。
-  - 门禁证据：`scripts/check-ui-components-view-macro.sh` 新增 `collapsible_view_macro_complexity_is_split_into_semantic_subrenders` 目标，纳入 view-macro 契约检查链。
+  - 门禁证据：`scripts/check-ui-view-macro.sh` 新增 `collapsible_view_macro_complexity_is_split_into_semantic_subrenders` 目标，纳入 view-macro 契约检查链。
   - compile/test 命令证据（当前环境）：  
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_view_macro_complexity_is_split_into_semantic_subblocks -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_view_macro_complexity_is_split_into_semantic_subrenders -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_view_macro_complexity_is_split_into_semantic_subrenders -- --nocapture`
   - 命令现状：上述命令在当前 runner 受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_view_macro_complexity_is_split_into_semantic_subblocks` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_view_macro_complexity_is_split_into_semantic_subrenders`，锁定语义分块与宏数量预算契约。
 - [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
@@ -365,10 +365,10 @@
   - 源码证据：`components/collapsible/src/view.rs` 提供 `fn render_trigger(...) -> impl IntoView` 与 `fn render_panel(...) -> impl IntoView`，并在 `pub fn Collapsible(...)` 内通过 `let trigger = render_trigger(...)`、`let panel = render_panel(...)` 组合渲染。
   - 边界证据：`components/collapsible/src/view.rs` 保持单一公开 `#[component]` 边界（`Collapsible`），未引入局部 `#[component]` 子片段。
   - 语义稳定证据：函数化拆分后 `data-slot="collapsible|collapsible-trigger|collapsible-label|collapsible-indicator|collapsible-panel|collapsible-panel-surface"` 标记保持不变。
-  - 门禁证据：`scripts/check-ui-components-view-macro.sh` 新增 `collapsible_view_functional_split_prefers_plain_functions_over_local_components` 目标，纳入 view-macro 契约检查链。
+  - 门禁证据：`scripts/check-ui-view-macro.sh` 新增 `collapsible_view_functional_split_prefers_plain_functions_over_local_components` 目标，纳入 view-macro 契约检查链。
   - compile/test 命令证据（当前环境）：  
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_view_functional_split_prefers_plain_functions_over_local_components -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_view_functional_split_prefers_plain_functions_over_local_components -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_view_functional_split_prefers_plain_functions_over_local_components -- --nocapture`
   - 命令现状：上述命令在当前 runner 受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_view_functional_split_prefers_plain_functions_over_local_components` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_view_functional_split_prefers_plain_functions_over_local_components`，锁定函数式拆分与语义标记稳定性契约。
 - [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
@@ -378,10 +378,10 @@
   - 源码证据：`components/collapsible/src/view.rs` 新增 `SLOT_COLLAPSIBLE*`、`ARIA_HIDDEN_TRUE`、`COLLAPSIBLE_INDICATOR_GLYPH` 常量，`data-slot` 与箭头 glyph 改为常量引用，避免散落字面量。
   - 可访问语义证据：常量化后仍保持 `role="region"`、`aria-labelledby`、`aria-hidden=ARIA_HIDDEN_TRUE` 与原有 `data-slot` 语义路径，不改变可访问契约。
   - 轻量组件策略：`Collapsible` 不包含复杂 SVG/长静态文本，按“常量化或缺省”策略执行；通过常量集中化静态片段，同时保持无重型静态模板拼接。
-  - 门禁证据：`scripts/check-ui-components-view-macro.sh` 新增 `collapsible_static_fragments_are_constantized_or_absent_for_simple_layout` 目标，纳入 view-macro 契约检查链。
+  - 门禁证据：`scripts/check-ui-view-macro.sh` 新增 `collapsible_static_fragments_are_constantized_or_absent_for_simple_layout` 目标，纳入 view-macro 契约检查链。
   - compile/test 命令证据（当前环境）：  
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_static_fragments_are_constantized_or_absent_for_simple_layout -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_static_fragments_are_constantized_or_absent_for_simple_layout -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_static_fragments_are_constantized_or_absent_for_simple_layout -- --nocapture`
   - 命令现状：上述命令在当前 runner 受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_static_fragments_are_constantized_or_absent_for_simple_layout` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_static_fragments_are_constantized_or_absent_for_simple_layout`，锁定静态常量收敛与语义稳定性契约。
 - [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
@@ -391,10 +391,10 @@
   - 组件证据：`components/collapsible/src/{mod,logic,styles,view,motion}.rs` 均未出现 `inner_html/set_inner_html/dangerously_set_inner_html`，无组件内原始 HTML 注入路径。
   - docs 证据：`apps/docs-app/src/pages/components/pages/collections_groups.rs`（collapsible 示例页）未出现 `inner_html` 或未清洗 HTML 拼接；组件示例仅使用显式 `Collapsible` 调用。
   - 白名单边界证据：`apps/docs-app/src/pages/components/shell.rs` 的 `inner_html` 仍仅用于受信任 README 挂载（`<div data-slot="component-readme" inner_html=html></div>`），且未把 `collapsible` 纳入 README 白名单映射。
-  - 门禁证据：`scripts/check-ui-components-inner-html.sh` 新增 `collapsible_inner_html_usage_is_forbidden_in_component_and_docs_examples` 目标，纳入 inner-html 契约检查链。
+  - 门禁证据：`scripts/check-ui-inner-html.sh` 新增 `collapsible_inner_html_usage_is_forbidden_in_component_and_docs_examples` 目标，纳入 inner-html 契约检查链。
   - compile/test 命令证据（当前环境）：  
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_inner_html_usage_is_forbidden_in_component_and_docs_examples -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_inner_html_usage_is_forbidden_in_component_and_docs_examples -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_inner_html_usage_is_forbidden_in_component_and_docs_examples -- --nocapture`
   - 命令现状：上述命令在当前 runner 受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_inner_html_usage_is_forbidden_in_component_and_docs_examples` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_inner_html_usage_is_forbidden_in_component_and_docs_examples`，锁定组件与 docs 的 inner-html 安全边界。
 - [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
@@ -404,11 +404,11 @@
   - 组件状态追踪证据：`components/collapsible/src/view.rs` 复用 `use_ui_trace()` 并在开关变更时发出 `trace.emit("collapsible", UiTraceEventKind::OpenChange { open: next })`，同时稳定暴露 `data-state/data-open-mode/data-open-value-source/data-open-change-source` 作为机器可读状态与来源标记。
   - 全局可视化入口证据：`apps/docs-app/src/lib.rs` 在 `debug_assertions` 下启用 `provide_ui_trace(debug_overlay_enabled)` 与 `<debug_overlay::UiDebugOverlay enabled=true />`；`apps/docs-app/src/debug_overlay.rs` + `crates/ui-headless/src/trace.rs` 提供时间戳事件时间线（`ts_ms`）。
   - 关键交互可回放证据：共享回放能力保持在 `components/button/src/view.rs`（`data-debug-source/data-debug-before/data-debug-after/data-debug-timestamp-ms` + `request_replay.run(event.source)`），`collapsible` 不重复发明本地 debug runtime。
-  - feature 隔离证据：`components/collapsible/Cargo.toml` 未新增 `collapsible-wasm-debug`；`crates/ui-components/Cargo.toml` 维持共享 `button-wasm-debug`，且 `all-components` 未引入该调试特性，避免生产链路污染。
-  - 门禁证据：`scripts/check-ui-components-wasm-debug.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。
+  - feature 隔离证据：`components/collapsible/Cargo.toml` 未新增 `collapsible-wasm-debug`；`crates/ui/Cargo.toml` 维持共享 `button-wasm-debug`，且 `all-components` 未引入该调试特性，避免生产链路污染。
+  - 门禁证据：`scripts/check-ui-wasm-debug.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。
   - compile/test 命令证据（当前环境）：  
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated -- --nocapture`
   - 命令现状：当前 runner 存在基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`，锁定 feature 隔离、全局 trace 复用与公共 API 非污染契约。
 - [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
@@ -419,10 +419,10 @@
   - 上下文保持证据：同一 playground 保持 `show_settings/show_code/show_test` 面板切换状态，并在 `collections_groups.rs` 的 `Interactive Playground (Display + Config + Code + CSS Test)` 中保留 `Mode/Motion/Controlled open/Default open/Disabled/Custom aria-label/Custom class` 调参与实时预览，减少重复操作。
   - 可选状态保留证据（N/A，按组件范围）：`collapsible` 当前 workbench 不引入跨刷新持久化（无 `*_WORKBENCH_STORAGE_KEY`、`load/save/clear_*_workbench_state`），避免为轻量 disclosure 交互引入额外存储复杂度；运行期上下文通过页面内信号保持。
   - 隔离画布证据：`apps/docs-app/src/playground.rs` 统一通过 `data-playground-scope=scope_id` + `.playground__preview-stage` 隔离演练区域；`collections_groups.rs` 保持 `slug="collapsible"` 与 interactive playground 专属 `id_base="docs-collapsible-interactive"` 路径。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na`。
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na`。
   - compile/test 命令证据（当前环境）：  
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na`，锁定热重载、上下文保持、可选状态保留 N/A 与隔离画布契约。
 - [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
@@ -430,12 +430,12 @@
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
   - serde/protocol 证据：`components/collapsible/src/protocol.rs` 统一承载协议序列化（`CollapsibleComponentSchemaVersion::V1` + `CollapsibleComponentSpec { schema_version }`，`Serialize/Deserialize` + `#[serde(default)]`）；其余层 `mod/logic/view/styles/motion` 不承载 schema 迁移与 JSON 处理逻辑。
-  - tracing 语义证据：`crates/ui-components/Cargo.toml` 保持共享 tracing 基线（如 `button-wasm-debug`），`components/button/src/view.rs` 仍是 canonical `target: "ui_components::button::state_change"`；`collapsible` 未新增 `collapsible-wasm-debug` 与本地 tracing target，避免组件各自为政。
+  - tracing 语义证据：`crates/ui/Cargo.toml` 保持共享 tracing 基线（如 `button-wasm-debug`），`components/button/src/view.rs` 仍是 canonical `target: "ui::button::state_change"`；`collapsible` 未新增 `collapsible-wasm-debug` 与本地 tracing target，避免组件各自为政。
   - runtime 边界证据：`components/collapsible/src/{mod,logic,view,styles,motion,protocol}.rs` 与 `components/collapsible/Cargo.toml` 未暴露 `tokio/async-std/smol/runtime::Handle` 等运行时细节；公共 API 仍仅围绕 `Collapsible/CollapsibleMotion` 语义面。
-  - 门禁证据：`scripts/check-ui-components-engineering.sh` 新增三条 `collapsible` 执行命令：`collapsible_engineering_contract_uses_serde_protocol_and_structured_schema_defaults`、`collapsible_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`、`collapsible_engineering_contract_avoids_runtime_leaks_in_public_api_surface`。
+  - 门禁证据：`scripts/check-ui-engineering.sh` 新增三条 `collapsible` 执行命令：`collapsible_engineering_contract_uses_serde_protocol_and_structured_schema_defaults`、`collapsible_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`、`collapsible_engineering_contract_avoids_runtime_leaks_in_public_api_surface`。
   - compile/test 命令证据（当前环境）：  
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_engineering_contract_uses_serde_protocol_and_structured_schema_defaults -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_engineering_contract_uses_serde_protocol_and_structured_schema_defaults -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_engineering_contract_uses_serde_protocol_and_structured_schema_defaults -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::{collapsible_engineering_contract_uses_serde_protocol_and_structured_schema_defaults, collapsible_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events, collapsible_engineering_contract_avoids_runtime_leaks_in_public_api_surface}` 与 `components/collapsible/test/collapsible_semantics.rs` 同名测试，锁定 serde/protocol、tracing 语义统一与 runtime 边界三类契约。
 
@@ -443,51 +443,51 @@
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
   - 样式契约证据：`components/collapsible/src/styles.rs` 将 disabled/motion/color 输入统一收口到双层回退链（如 `var(--ui-disabled-opacity, var(--ui-fallback-disabled-opacity))`、`var(--ui-text-field-motion-duration, var(--ui-fallback-text-field-motion-duration))`、`var(--ui-accent, var(--ui-fallback-accent))`），移除裸 `0.72/200ms` 终值。
   - SSOT 证据：`crates/ui-theme/src/css.rs` 提供 `--ui-fallback-disabled-opacity`、`--ui-fallback-text-field-motion-duration`、`--ui-fallback-text-field-motion-easing`、`--ui-fallback-accent`、`--ui-fallback-border`、`--ui-fallback-bg`、`--ui-fallback-accent-soft` 统一终值。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_styles_use_defensive_variable_fallback_chain`。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_styles_use_defensive_variable_fallback_chain`。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_styles_use_defensive_variable_fallback_chain` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_styles_use_defensive_variable_fallback_chain`，锁定 fallback 链、SSOT 终值、脚本门禁与 checklist 勾选状态。
   - compile/test 命令证据（当前环境）：
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_styles_use_defensive_variable_fallback_chain -- --nocapture`
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_styles_use_defensive_variable_fallback_chain -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_styles_use_defensive_variable_fallback_chain -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 级联层聚合证据：`crates/ui-components/src/css.rs` 在 `push_components_css` 中维持 `@layer ui` 包裹，并以 `#[cfg(feature = "component-collapsible")] out.push_str(crate::collapsible::styles::CSS);` 受特性门控聚合。
-  - 注入路径证据：`crates/ui-components/src/root.rs` 仅在 `inject_components_css` 开启时调用 `crate::css::push_components_css(&mut out)`，组件不自行旁路注入样式。
+  - 级联层聚合证据：`crates/ui/src/css.rs` 在 `push_components_css` 中维持 `@layer ui` 包裹，并以 `#[cfg(feature = "component-collapsible")] out.push_str(crate::collapsible::styles::CSS);` 受特性门控聚合。
+  - 注入路径证据：`crates/ui/src/root.rs` 仅在 `inject_components_css` 开启时调用 `crate::css::push_components_css(&mut out)`，组件不自行旁路注入样式。
   - 运行时样式证据：`components/collapsible/src/view.rs` 无普通内联布局样式（无 `style="top:..."` / `style:top=...` 等）；若未来引入 `style:*`，测试要求仅允许 `style:--*` 自定义属性通道。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_cascade_layer_and_runtime_style_contract_is_enforced`。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_cascade_layer_and_runtime_style_contract_is_enforced`。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_cascade_layer_and_runtime_style_contract_is_enforced` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_cascade_layer_and_runtime_style_contract_is_enforced`，锁定 `@layer ui` 聚合、UiRoot 注入路径与运行时样式通道约束。
   - compile/test 命令证据（当前环境）：
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_cascade_layer_and_runtime_style_contract_is_enforced -- --nocapture`
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_cascade_layer_and_runtime_style_contract_is_enforced -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_cascade_layer_and_runtime_style_contract_is_enforced -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 合同参数证据：`components/collapsible/src/mod.rs` 公开 `CollapsibleMotion = ui_disclosure::DisclosureMotion`；`components/disclosure/src/motion.rs` 默认 `SpringConfig` 固化 `stiffness: 260.0`、`damping: 18.0`，并经 `components/collapsible/src/motion.rs::sanitize_motion` 统一净化。
   - attach 挂载证据：`components/collapsible/src/view.rs` 仅通过 `crate::motion::attach_indicator_motion(...)` 与 `crate::motion::attach_panel_motion(...)` 绑定动效，组件层不直接接线底层执行器。
   - reduced-motion 证据：`components/collapsible/src/styles.rs` 保留 `@media (prefers-reduced-motion: reduce) { transition: none; }`；`crates/ui-motion/src/spring.rs` 在 `prefers_reduced_motion()` 分支直接收敛到目标值。
   - non-wasm/SSR 安全降级证据：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 提供 `web::animate(...) {}` no-op；`components/collapsible/src/motion.rs` 仅代理 `ui_disclosure::motion::attach_*`，无运行时句柄假设与 panic 路径。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop`。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop`。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop`，锁定内置参数、attach 路径、reduced-motion 与 non-wasm no-op 契约。
   - compile/test 命令证据（当前环境）：
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop -- --nocapture`
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-  - 入口证据：`crates/ui-components/src/lib.rs` 保留 `pub mod root;`、`pub use root::UiRoot;`，并以 `#[cfg(feature = "component-collapsible")] pub use ui_collapsible as collapsible;` 维持组件级特性导出边界。
-  - CSS 聚合证据：`crates/ui-components/src/css.rs` 保留 `push_components_css` + `@layer ui`，且 `out.push_str(crate::collapsible::styles::CSS);` 受 `component-collapsible` feature gate 保护。
-  - Root 注入证据：`crates/ui-components/src/root.rs` 统一注入 `css::BASE_CSS`、`theme.get().to_css_variables()`，并在 `inject_components_css` 分支集中调用 `crate::css::push_components_css(&mut out)`；i18n 入口保持 `provide_ui_i18n(i18n);`。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - 入口证据：`crates/ui/src/lib.rs` 保留 `pub mod root;`、`pub use root::UiRoot;`，并以 `#[cfg(feature = "component-collapsible")] pub use ui_collapsible as collapsible;` 维持组件级特性导出边界。
+  - CSS 聚合证据：`crates/ui/src/css.rs` 保留 `push_components_css` + `@layer ui`，且 `out.push_str(crate::collapsible::styles::CSS);` 受 `component-collapsible` feature gate 保护。
+  - Root 注入证据：`crates/ui/src/root.rs` 统一注入 `css::BASE_CSS`、`theme.get().to_css_variables()`，并在 `inject_components_css` 分支集中调用 `crate::css::push_components_css(&mut out)`；i18n 入口保持 `provide_ui_i18n(i18n);`。
   - 共享原语证据：`crates/ui-visual-primitive/src/active_highlight.rs` 保持 `pub const CSS`、`ActiveHighlightMotion`、`attach_active_highlight_motion`，且无 `collapsible` 业务语义硬编码。
-  - 禁止落点证据：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在；对应原语固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_ui_components_fixed_entry_files_follow_contract`。
+  - 禁止落点证据：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 均不存在；对应原语固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_ui_components_fixed_entry_files_follow_contract`。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_ui_components_fixed_entry_files_follow_contract` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_ui_components_fixed_entry_files_follow_contract`，锁定入口文件落点与 headless/source-of-truth 约束。
   - compile/test 命令证据（当前环境）：
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_ui_components_fixed_entry_files_follow_contract -- --nocapture`
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_ui_components_fixed_entry_files_follow_contract -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_ui_components_fixed_entry_files_follow_contract -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
@@ -501,42 +501,42 @@
   - `logic.rs` 边界证据：`components/collapsible/src/logic.rs` 保持 props 归一与状态派生映射（`normalize_* / compose_class_name`），未包含 `view!`、`NodeRef`、`web_sys` 等渲染/DOM 细节。
   - `styles.rs` 边界证据：`components/collapsible/src/styles.rs` 保持 token-first 静态 CSS（`var(--ui-*)`）；未引入 `#hex`、`:nth-child`、`:has` 或事件逻辑。
   - `view.rs` + `motion.rs` 边界证据：`components/collapsible/src/view.rs` 仅渲染结构并挂载 `use_button/use_focus_ring/use_hover` 语义契约；`components/collapsible/src/motion.rs` 仅做 `sanitize_motion + attach_*` 映射，无引擎重写 token（`SpringAnimator/requestAnimationFrame/keyframe`）。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_component_directory_standard_files_stay_in_canonical_layout`。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_component_directory_standard_files_stay_in_canonical_layout`。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_component_directory_standard_files_stay_in_canonical_layout` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_component_directory_standard_files_stay_in_canonical_layout`，锁定目录标准文件落点与职责边界。
   - compile/test 命令证据（当前环境）：
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_component_directory_standard_files_stay_in_canonical_layout -- --nocapture`
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_component_directory_standard_files_stay_in_canonical_layout -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_component_directory_standard_files_stay_in_canonical_layout -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
 - [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
   - 目录落点证据：`components/collapsible/src/` 保持 `mod.rs`、`logic.rs`、`styles.rs`、`view.rs`、`motion.rs` 五件套；`render.rs` 与 `spec.rs` 均不存在（当前组件为简单 disclosure，不引入 spec）。
   - 职责边界证据：`mod.rs` 仅做导出；`logic.rs` 收口归一化/派生；`styles.rs` 仅 token-first 静态样式；`view.rs` 仅结构渲染与 headless 挂载；`motion.rs` 仅语义到 motion contract 映射。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_file_layout_discipline_keeps_canonical_component_directory`。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_file_layout_discipline_keeps_canonical_component_directory`。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_file_layout_discipline_keeps_canonical_component_directory` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_file_layout_discipline_keeps_canonical_component_directory`，锁定目录文件集合与禁止文件规则。
   - compile/test 命令证据（当前环境）：
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_file_layout_discipline_keeps_canonical_component_directory -- --nocapture`
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_file_layout_discipline_keeps_canonical_component_directory -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_file_layout_discipline_keeps_canonical_component_directory -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
 - [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`Collapsible` 为简单 disclosure 组件，无复杂 schema builder 需求）
   - N/A 理由：`Collapsible` 为单实体 disclosure，参数轴有限（open/default/on_open_change、disabled、motion、label/class/locale），无需额外 `*Spec::new()...render()` 建造者层。
   - 目录证据：`components/collapsible/src/spec.rs` 不存在，`components/collapsible/src/mod.rs` 亦无 `mod spec` / `pub use spec::*` 导出。
   - 文档证据：`components/collapsible/src/README.md` 不包含 `Spec::new(` builder 教程，默认 API 走直接组件调用路径。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_hyper_structure_builder_spec_rs_is_not_applicable_for_simple_component`。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_hyper_structure_builder_spec_rs_is_not_applicable_for_simple_component`。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_hyper_structure_builder_spec_rs_is_not_applicable_for_simple_component` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_hyper_structure_builder_spec_rs_is_not_applicable_for_simple_component`，锁定 N/A 条件与脚本门禁挂接。
   - compile/test 命令证据（当前环境）：
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_hyper_structure_builder_spec_rs_is_not_applicable_for_simple_component -- --nocapture`
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_hyper_structure_builder_spec_rs_is_not_applicable_for_simple_component -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_hyper_structure_builder_spec_rs_is_not_applicable_for_simple_component -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
 - [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
   - 落点证据：新增 `components/collapsible/src/Component.toml`（能力清单）与 `components/collapsible/src/collapsible.rbi`（接口签名投影），并在 manifest 中声明 `rbi = "collapsible.rbi"`。
   - manifest 证据：`Component.toml` 保留 `schema_version = "1"`、`name = "Collapsible"`、`crate = "ui-collapsible"`，并显式开启 `context_compression_manifest` 与 `rbi_signature_projection` 能力标记。
   - RBI 投影证据：`collapsible.rbi` 覆盖 `Collapsible` 公共签名（含 `open/default_open/on_open_change/is_disabled/motion/lang/dir` 等关键输入）与导出类型引用，避免 AI 检索使用过期接口。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_context_compression_manifest_and_rbi_projection_are_present_and_current`。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_context_compression_manifest_and_rbi_projection_are_present_and_current`。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_context_compression_manifest_and_rbi_projection_are_present_and_current` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_context_compression_manifest_and_rbi_projection_are_present_and_current`，锁定 manifest/rbi 文件落点、关键字段和脚本绑定。
   - compile/test 命令证据（当前环境）：
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_context_compression_manifest_and_rbi_projection_are_present_and_current -- --nocapture`
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_context_compression_manifest_and_rbi_projection_are_present_and_current -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_context_compression_manifest_and_rbi_projection_are_present_and_current -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
@@ -547,16 +547,16 @@
   - 语义挂载证据：`components/collapsible/src/view.rs` 根节点新增 `data-ui-schema/schema-version/intent/action/state/source/output-status/stream-support/stream-fallback/stream-mode` 及 `data-ui-state-source/data-ui-motion-source/data-ui-open-value-source/data-ui-open-change-source/data-ui-config-policy`，字段均来自 `agent_contract` 类型化输出。
   - 白名单边界证据：`components/collapsible/src/Component.toml` 新增 `[[agent_contract]]`、`[[agent_contract_markers]]`、`[[agent_contract_whitelist]]`（`blocked = ["inner_html", "<script", "javascript:", "eval("]`）与 `agent_contract_*` 能力标记。
   - RBI 投影证据：`components/collapsible/src/collapsible.rbi` 新增 `CollapsibleAgent*` 类型与 `resolve_agent_contract` 签名，保持 Agent 检索与实现同步。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增四条 collapsible Agent Contract 回归命令：
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_agent_contract_schema_governance_rules`
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_agent_contract_is_schema_typed_and_machine_readable`
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增四条 collapsible Agent Contract 回归命令：
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_agent_contract_schema_governance_rules`
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_agent_contract_is_schema_typed_and_machine_readable`
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::{collapsible_check2_documents_agent_contract_schema_governance_rules,collapsible_agent_contract_is_schema_typed_and_machine_readable,collapsible_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing,collapsible_agent_contract_render_path_is_whitelist_safe_and_script_injection_free}` 与 `components/collapsible/test/collapsible_semantics.rs` 同名测试。
   - compile/test 命令证据（当前环境）：
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_agent_contract_is_schema_typed_and_machine_readable -- --nocapture`
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_agent_contract_is_schema_typed_and_machine_readable -- --nocapture`
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_agent_contract_render_path_is_whitelist_safe_and_script_injection_free -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_agent_contract_is_schema_typed_and_machine_readable -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_agent_contract_render_path_is_whitelist_safe_and_script_injection_free -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
 - [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
@@ -564,11 +564,11 @@
   - 术语范围证据：`components/collapsible/src/Component.toml` 的 `[streaming_policy]` 固定 `term_scope = "llm-output-rendering"`，并将 `defined_modes` 限定为 `["streaming", "snapshot"]`。
   - 类型约束证据：`components/collapsible/src/logic.rs` 保持 `CollapsibleAgentStreamMode::{Streaming, Snapshot}` 映射；`stream_support` 固定为 `unsupported`，`stream_fallback` 与 `stream_mode` 默认 `snapshot`。
   - 语义挂载证据：`components/collapsible/src/view.rs` 暴露 `data-ui-stream-support`、`data-ui-stream-fallback`、`data-ui-stream-mode`，确保两种渲染模式可机器读取。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_streaming_term_is_limited_to_llm_output_render_modes`。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_streaming_term_is_limited_to_llm_output_render_modes`。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_streaming_term_is_limited_to_llm_output_render_modes` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_streaming_term_is_limited_to_llm_output_render_modes`，锁定术语范围、模式枚举与脚本门禁绑定。
   - compile/test 命令证据（当前环境）：
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_streaming_term_is_limited_to_llm_output_render_modes -- --nocapture`
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_streaming_term_is_limited_to_llm_output_render_modes -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_streaming_term_is_limited_to_llm_output_render_modes -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
 - [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
@@ -577,11 +577,11 @@
   - 输出稳定证据：`components/collapsible/src/logic.rs` 固定 `output_status=verified`、`stream_mode=snapshot`，并通过 `as_str()` 映射为封闭值集合，避免自由文本漂移。
   - 语义挂载证据：`components/collapsible/src/view.rs` 挂载 `data-ui-output-status`、`data-ui-stream-fallback`、`data-ui-stream-mode`，确保快照输出状态可机器读取。
   - Manifest 证据：`components/collapsible/src/Component.toml` 显式保留 `name = "snapshot_rendering"`、`name = "streaming_optional_fallback_snapshot"` 与 `[streaming_policy] fallback/default = "snapshot"`。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_snapshot_is_foundational_and_complete_config_renders_stably`。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_snapshot_is_foundational_and_complete_config_renders_stably`。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_snapshot_is_foundational_and_complete_config_renders_stably` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_snapshot_is_foundational_and_complete_config_renders_stably`，锁定快照基础能力与完整配置渲染面。
   - compile/test 命令证据（当前环境）：
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_snapshot_is_foundational_and_complete_config_renders_stably -- --nocapture`
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_snapshot_is_foundational_and_complete_config_renders_stably -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_snapshot_is_foundational_and_complete_config_renders_stably -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
 - [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
@@ -592,60 +592,60 @@
   - 输出状态证据：`components/collapsible/src/logic.rs` 固定 `output_status=verified`、`stream_support=unsupported`、`stream_fallback=snapshot`、`stream_mode=snapshot`，并在 `components/collapsible/src/view.rs` 挂载为 `data-ui-output-status/data-ui-stream-support/data-ui-stream-fallback/data-ui-stream-mode`。
   - 连续可读证据：`components/collapsible/src/view.rs` 同步保留 `role=aria.attrs.role`、`aria-expanded`、`aria-controls` 与 `data-state`，保证 `role/aria/data` 在非流式路径连续可读。
   - 边界证据：`components/collapsible/src/logic.rs` 与 `components/collapsible/src/view.rs` 未承载数据校验/断线恢复/重试逻辑（相关职责保持在上层）。
-  - 门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status`。
+  - 门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status`。
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::collapsible_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status` 与 `components/collapsible/test/collapsible_semantics.rs::collapsible_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status`，锁定 optional 策略、语义连续性与上层职责边界。
   - compile/test 命令证据（当前环境）：
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status -- --nocapture`
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施阻塞（`Invalid cross-device link (os error 18)`），需在稳定文件系统 CI/本地 runner 复核通过结果。
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
-  - 组件范围验证命令：`RUST_HYGIENE_FILES="components/collapsible/src/mod.rs components/collapsible/src/logic.rs components/collapsible/src/view.rs components/collapsible/src/styles.rs components/collapsible/src/motion.rs components/collapsible/src/protocol.rs crates/ui-components/src/lib.rs crates/ui-components/src/css.rs crates/ui-components/src/root.rs" ./scripts/check-rust-hygiene.sh`。
+  - 组件范围验证命令：`RUST_HYGIENE_FILES="components/collapsible/src/mod.rs components/collapsible/src/logic.rs components/collapsible/src/view.rs components/collapsible/src/styles.rs components/collapsible/src/motion.rs components/collapsible/src/protocol.rs crates/ui/src/lib.rs crates/ui/src/css.rs crates/ui/src/root.rs" ./scripts/check-rust-hygiene.sh`。
   - 命令结果：`[rust-hygiene] OK`（当前 runner 同时提示 `skip check-api-contracts.sh (ripgrep built without PCRE2)`，不影响本条 Rust Hygiene 判定）。
   - 条目证据：上述目标文件集中未触发 `unwrap/expect`、`let _ = ...` 与字符串复制热点（`to_owned`/`String::from`/高频 `.to_string()`）告警。
-  - 范围说明：脚本默认 `RUST_HYGIENE_SCOPE=crates apps` 不覆盖 `components/*`，本条按单组件审查要求使用 `RUST_HYGIENE_FILES` 对 `collapsible` 及其 `ui-components` 聚合入口做定向校验。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 特性注册证据：`crates/ui-components/Cargo.toml` 保持 `component-collapsible = ["dep:ui-collapsible"]`，且 `ui-collapsible` 依赖为 `optional = true`，未启用时不进入可达路径。
-  - 聚合门控证据：`crates/ui-components/src/lib.rs` 使用 `#[cfg(feature = "component-collapsible")] pub use ui_collapsible as collapsible;`；`crates/ui-components/src/css.rs` 使用 `#[cfg(feature = "component-collapsible")] out.push_str(crate::collapsible::styles::CSS);`，并由 `#[cfg(feature = "inject-css")]` 保护聚合入口。
-  - source 模式证据：`apps/web-demo/Cargo.toml` 依赖 `ui-components` 使用 `default-features = false` + `features = ["inject-css", "web-demo-components"]`，未显式或隐式拉起 `all-components`。
-  - 命令证据（最小特性树）：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-collapsible,inject-css | rg "component-collapsible|inject-css|all-components"` 输出仅包含 `component-collapsible` 与 `inject-css` 命令行特性，无 `all-components`。
-  - 命令证据（反向依赖）：`cargo tree -e features -i ui-components -p web-demo | rg "web-demo-components|all-components"` 仅出现 `web-demo-components` 链路，无 `all-components`。
-  - 门禁证据：`scripts/check-ui-components-tree-shaking.sh` 新增 `collapsible` 树摇块，覆盖 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_tree_shaking_contract_keeps_feature_gates_explicit`、最小特性树断言与 wasm 最小特性编译检查。
+  - 范围说明：脚本默认 `RUST_HYGIENE_SCOPE=crates apps` 不覆盖 `components/*`，本条按单组件审查要求使用 `RUST_HYGIENE_FILES` 对 `collapsible` 及其 `ui` 聚合入口做定向校验。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 特性注册证据：`crates/ui/Cargo.toml` 保持 `component-collapsible = ["dep:ui-collapsible"]`，且 `ui-collapsible` 依赖为 `optional = true`，未启用时不进入可达路径。
+  - 聚合门控证据：`crates/ui/src/lib.rs` 使用 `#[cfg(feature = "component-collapsible")] pub use ui_collapsible as collapsible;`；`crates/ui/src/css.rs` 使用 `#[cfg(feature = "component-collapsible")] out.push_str(crate::collapsible::styles::CSS);`，并由 `#[cfg(feature = "inject-css")]` 保护聚合入口。
+  - source 模式证据：`apps/web-demo/Cargo.toml` 依赖 `ui` 使用 `default-features = false` + `features = ["inject-css", "web-demo-components"]`，未显式或隐式拉起 `all-components`。
+  - 命令证据（最小特性树）：`cargo tree -e features -i ui -p ui --no-default-features --features component-collapsible,inject-css | rg "component-collapsible|inject-css|all-components"` 输出仅包含 `component-collapsible` 与 `inject-css` 命令行特性，无 `all-components`。
+  - 命令证据（反向依赖）：`cargo tree -e features -i ui -p web-demo | rg "web-demo-components|all-components"` 仅出现 `web-demo-components` 链路，无 `all-components`。
+  - 门禁证据：`scripts/check-ui-tree-shaking.sh` 新增 `collapsible` 树摇块，覆盖 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_tree_shaking_contract_keeps_feature_gates_explicit`、最小特性树断言与 wasm 最小特性编译检查。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 语义矩阵证据：`components/collapsible/test/semantics.rs` 与 `components/collapsible/test/collapsible_semantics.rs` 新增 `collapsible_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`，联动约束 `aria-* + data-* + focus` 路径与性能回归治理。
   - `aria/data/focus` 断言证据：上述测试锁定 `components/collapsible/src/view.rs` 中 `role=aria.attrs.role`、`aria-expanded/aria-controls/aria-disabled`、`data-state/data-open-mode/data-open-value-source/data-open-change-source`、`use_focus_ring`、`focus-visible` 及 `on:pointerdown/on:keydown/on:focus` 语义路径。
   - 非快照优先证据：同一测试要求 `e2e/tests/docs_app_collapsible.spec.mjs` 覆盖 `controlledTrigger.click()`、`page.keyboard.press("Enter")` 与关键 `data-*`/`aria-*` 断言，不依赖 `toHaveScreenshot`/`toMatchSnapshot`。
   - `render_count` 治理证据：测试显式校验 `docs/plan/TODO.md` 保留 `render_count` 自动化补齐任务；当前链路继续采用 `UiPerfProbe + e2e marker` 作为等价回归证据（与“性能治理”条目一致）。
-  - 门禁证据：`scripts/check-ui-components-performance.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
+  - 门禁证据：`scripts/check-ui-performance.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
   - compile/test 命令证据（当前环境）：  
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement -- --nocapture`
   - 命令现状：上述命令在当前 runner 仍受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `Collapsible` 未发生跨大版本 API 破坏升级）
   - N/A 依据：`components/collapsible/src/Component.toml` 仍为 `schema_version = "1"`，`agent_contract` 仍是 `ui.collapsible.agent-contract.v1`；`components/collapsible/src/protocol.rs` 与 `components/collapsible/src/logic.rs` 仅定义 `V1`，未出现 `V2` 或破坏性升级轨迹。
   - API 稳定性证据：`components/collapsible/src/collapsible.rbi` 继续暴露同一主 API 轴（`open/default_open/on_open_change`），未引入跨大版本重命名或删除。
   - 迁移层状态：当前不存在 `migrate_v1_to_v2`，因为没有真实的破坏性升级触发条件；避免为假问题预置迁移层增加无收益复杂度。
   - 回归锁定：新增 `components/collapsible/test/semantics.rs::collapsible_version_deprecation_migration_is_na_without_major_breaking_upgrade`、`components/collapsible/test/semantics.rs::collapsible_version_deprecation_migration_script_covers_engineering_gate`、`components/collapsible/test/collapsible_semantics.rs::collapsible_version_deprecation_migration_is_na_without_major_breaking_upgrade`、`components/collapsible/test/collapsible_semantics.rs::collapsible_version_deprecation_migration_script_covers_engineering_gate`。
-  - 脚本门禁：`scripts/check-ui-components-engineering.sh` 新增 `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_version_deprecation_migration_is_na_without_major_breaking_upgrade`。
+  - 脚本门禁：`scripts/check-ui-engineering.sh` 新增 `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_version_deprecation_migration_is_na_without_major_breaking_upgrade`。
   - compile/test 命令证据（当前环境）：  
     `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-collapsible collapsible_version_deprecation_migration_is_na_without_major_breaking_upgrade -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_version_deprecation_migration_is_na_without_major_breaking_upgrade -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_version_deprecation_migration_is_na_without_major_breaking_upgrade -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
   - docs-app 验收面证据：`apps/docs-app/src/pages/components/pages/collections_groups.rs` 的 `collapsible` 页面覆盖 `Hello World / State Matrix / Controlled vs Uncontrolled Contrast / Streaming / Snapshot Contract / Source-first Starter (Copy-Paste Ready)` 六个 playground，满足“先可用、再进阶”的文档路径。
   - 流式/快照证据：同页面 `data-slot="collapsible-streaming-policy"` 显式挂载 `data-ui-streaming="optional"`、`data-ui-fallback="snapshot"`、`data-ui-output-state="snapshot"`，并给出 `Streaming Optional; fallback=snapshot.` 文案提示。
   - Source-first 证据：`Source-first Starter (Copy-Paste Ready)` 使用 `code_imports=collapsible_imports.clone()`，并列出真实源码路径（`components/collapsible/src/mod.rs|logic.rs|view.rs|styles.rs|motion.rs`）与最小特性依赖（`component-collapsible + inject-css`）。
   - 一键复制与 imports 补全证据：`apps/docs-app/src/playground.rs` 保持 `compose_copy_ready_code` + `code_imports` + `missing_import_lines` 链路，代码面板通过 `CodeBlock` 复制按钮输出可运行片段。
-  - 门禁证据：`scripts/check-ui-components-dx.sh` 新增四条回归命令：  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_docs_product_copy_paste_ready_rules`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_check_script_covers_docs_product_copy_paste_ready_contract`
+  - 门禁证据：`scripts/check-ui-dx.sh` 新增四条回归命令：  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_docs_product_copy_paste_ready_rules`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_check_script_covers_docs_product_copy_paste_ready_contract`
   - 防回归证据：新增 `components/collapsible/test/semantics.rs::{collapsible_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot,collapsible_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync,collapsible_check2_documents_docs_product_copy_paste_ready_rules,collapsible_dx_check_script_covers_docs_product_copy_paste_ready_contract}`，以及 `components/collapsible/test/collapsible_semantics.rs` 同名测试。
   - compile/test 命令证据（当前环境）：  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot -- --nocapture`  
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
@@ -654,14 +654,14 @@
   - 语义优先回归证据：`components/collapsible/test/semantics.rs::{collapsible_check2_documents_semantics_first_testing_rules,collapsible_semantics_suite_is_contract_first_not_snapshot_only,collapsible_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks,collapsible_semantics_first_testing_script_covers_contract}` 与 `components/collapsible/test/collapsible_semantics.rs` 同名测试。
   - 契约覆盖证据：`collapsible_view_mounts_headless_contract_and_semantic_markers` + `collapsible_semantics_matrix_prefers_contract_assertions_over_snapshots` 持续覆盖 `role/aria/data-*` 与受控/非受控、键盘路径、状态来源标记；并显式拒绝 `toHaveScreenshot/toMatchSnapshot` 作为主断言。
   - 字段联动证据：`collapsible_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks` 将 `components/collapsible/src/view.rs` 的关键 marker（`role`、`aria-expanded/controls/disabled`、`data-state/open-mode/motion-source/open-value-source/open-change-source`）与本地/聚合语义测试文本做双向绑定，防止新增/变更语义字段漏测。
-  - 门禁脚本证据：`scripts/check-ui-components-contract-hygiene.sh` 新增四条命令：  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_semantics_first_testing_rules`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_semantics_suite_is_contract_first_not_snapshot_only`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_semantics_first_testing_script_covers_contract`
+  - 门禁脚本证据：`scripts/check-ui-contract-hygiene.sh` 新增四条命令：  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_semantics_first_testing_rules`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_semantics_suite_is_contract_first_not_snapshot_only`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_semantics_first_testing_script_covers_contract`
   - compile/test 命令证据（当前环境）：  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_semantics_first_testing_rules -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_semantics_first_testing_rules -- --nocapture`  
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
@@ -670,14 +670,14 @@
   - 已满足（语义选择器）：`e2e/tests/docs_app_collapsible.spec.mjs` 使用 `data-component="collapsible"` 与 `data-slot="collapsible|collapsible-trigger|collapsible-panel"` 作为主选择器，并通过 `data-open-mode/data-state/data-open-value-source/data-open-change-source/aria-expanded` 断言契约状态；不再依赖 `.docs-page-title` 等脆弱样式选择器。
   - 已满足（WASM 稳定等待）：E2E 路径统一通过 `waitForWasmReady(page)` 与 `body:not(:has(#boot))` 作为 wasm/hydration ready 断点；测试中未使用 `waitForTimeout`/固定 sleep。
   - 已满足（ready/settled 覆盖）：新增 `expectCollapsibleReady`、`expectCollapsibleSettledOpen`、`expectCollapsibleSettledClosed`，显式覆盖点击与键盘（`Enter`）路径的状态收敛（`data-state`）与可见性收敛（`toBeVisible/toBeHidden`）。
-  - 脚本门禁：新增 `scripts/check-ui-components-e2e-collapsible.sh`，接入  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_e2e_selector_and_stable_wait_rules`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_selector_contract_uses_semantic_markers_and_settled_waits`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_contract_covers_ready_and_settled_conditions_for_disclosure_paths`
+  - 脚本门禁：新增 `components/collapsible/scripts/check-ui-e2e-collapsible.sh`，接入  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_e2e_selector_and_stable_wait_rules`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_selector_contract_uses_semantic_markers_and_settled_waits`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_contract_covers_ready_and_settled_conditions_for_disclosure_paths`
   - 回归：`components/collapsible/test/semantics.rs::{collapsible_check2_documents_e2e_selector_and_stable_wait_rules,collapsible_e2e_selector_contract_uses_semantic_markers_and_settled_waits,collapsible_e2e_contract_covers_ready_and_settled_conditions_for_disclosure_paths,collapsible_e2e_check_script_covers_selector_and_settled_wait_contract,collapsible_check2_marks_e2e_selector_stability_item_complete}`、`components/collapsible/test/collapsible_semantics.rs::{collapsible_e2e_selector_contract_uses_semantic_markers_and_settled_waits,collapsible_e2e_contract_covers_ready_and_settled_conditions_for_disclosure_paths,collapsible_e2e_check_script_covers_selector_and_settled_wait_contract,collapsible_check2_marks_e2e_selector_stability_item_complete}`。
   - 本地验证命令（当前环境）：  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_e2e_selector_and_stable_wait_rules -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_selector_contract_uses_semantic_markers_and_settled_waits -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_e2e_selector_and_stable_wait_rules -- --nocapture`  
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_selector_contract_uses_semantic_markers_and_settled_waits -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
 - [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
@@ -686,15 +686,15 @@
   - 已满足（可重复关键流程）：`e2e/tests/docs_app_collapsible.spec.mjs` 固化了同一条可重复 disclosure 路径：`expectCollapsibleSettledOpen -> controlledTrigger.click() -> expectCollapsibleSettledClosed -> controlledTrigger.focus() -> keyboard Enter -> expectCollapsibleSettledOpen`，覆盖打开/交互/关闭并再次打开的回归闭环。
   - 已满足（可定位语义断点）：E2E 失败断点绑定在 `expectCollapsibleReady/SettledOpen/SettledClosed` 的语义断言（`data-state`、`aria-expanded`、`toBeVisible/toBeHidden`、`data-open-change-source`），可直接定位到具体契约字段，而非“页面不一致”。
   - 已满足（高风险路径优先）：`Collapsible` 不涉及 overlay/async（N/A）；本条优先纳入 `focus + keyboard` 高风险路径，E2E 显式断言 `toBeFocused()` 与 `page.keyboard.press("Enter")` 的状态收敛。
-  - 脚本门禁：`scripts/check-ui-components-e2e-collapsible.sh` 新增四条命令：  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_repeatable_keyflow_regression_rules`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_regression_suite_contains_repeatable_disclosure_keyflow`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_regression_failures_map_to_semantic_contract_breakpoints`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_regression_prioritizes_focus_and_keyboard_risk_paths`
+  - 脚本门禁：`components/collapsible/scripts/check-ui-e2e-collapsible.sh` 新增四条命令：  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_repeatable_keyflow_regression_rules`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_regression_suite_contains_repeatable_disclosure_keyflow`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_regression_failures_map_to_semantic_contract_breakpoints`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_regression_prioritizes_focus_and_keyboard_risk_paths`
   - 回归：`components/collapsible/test/semantics.rs::{collapsible_check2_documents_repeatable_keyflow_regression_rules,collapsible_e2e_regression_suite_contains_repeatable_disclosure_keyflow,collapsible_e2e_regression_failures_map_to_semantic_contract_breakpoints,collapsible_e2e_regression_prioritizes_focus_and_keyboard_risk_paths,collapsible_e2e_check_script_covers_repeatable_keyflow_regression_contract,collapsible_check2_marks_repeatable_keyflow_regression_item_complete}`、`components/collapsible/test/collapsible_semantics.rs::{collapsible_check2_documents_repeatable_keyflow_regression_rules,collapsible_e2e_regression_suite_contains_repeatable_disclosure_keyflow,collapsible_e2e_regression_failures_map_to_semantic_contract_breakpoints,collapsible_e2e_regression_prioritizes_focus_and_keyboard_risk_paths,collapsible_e2e_check_script_covers_repeatable_keyflow_regression_contract,collapsible_check2_marks_repeatable_keyflow_regression_item_complete}`。
   - 本地验证命令（当前环境）：  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_repeatable_keyflow_regression_rules -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_regression_suite_contains_repeatable_disclosure_keyflow -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_repeatable_keyflow_regression_rules -- --nocapture`  
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_e2e_regression_suite_contains_repeatable_disclosure_keyflow -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
 - [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
@@ -703,14 +703,14 @@
   - 已满足（docs-app 同步更新）：`apps/docs-app/src/pages/components/pages/collections_groups.rs::collapsible` 新增 `title="Parameter Matrix"`（`data-slot="collapsible-parameter-matrix"`），并持续保留 `Hello World`、`State Matrix`、`Controlled vs Uncontrolled Contrast`、`Disabled + Custom Motion` 示例路径。
   - 已满足（状态矩阵覆盖）：`State Matrix` 同时覆盖 `default_open=true` 与 `default_open=false + is_disabled=true + custom motion`，`Controlled vs Uncontrolled Contrast` 显式覆盖受控/非受控路径与 `open/on_open_change/default_open` 语义。
   - 已满足（API/默认值与 logic 对齐）：参数矩阵与代码示例对齐 `components/collapsible/src/view.rs` props（`open/default_open/on_open_change/is_disabled/disabled/motion/aria_label/class_name/lang/dir`）以及 `components/collapsible/src/logic.rs` 归一化规则（`open > default_open > primitive fallback`、`is_disabled.unwrap_or(disabled)`）。
-  - 脚本门禁：`scripts/check-ui-components-dx.sh` 新增三条命令：  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_docs_sync_and_state_matrix_rules`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_check_script_covers_docs_sync_and_state_matrix_contract`
+  - 脚本门禁：`scripts/check-ui-dx.sh` 新增三条命令：  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_docs_sync_and_state_matrix_rules`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_check_script_covers_docs_sync_and_state_matrix_contract`
   - 回归：`components/collapsible/test/semantics.rs::{collapsible_check2_documents_docs_sync_and_state_matrix_rules,collapsible_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults,collapsible_dx_check_script_covers_docs_sync_and_state_matrix_contract,collapsible_check2_marks_docs_sync_and_state_matrix_item_complete}`、`components/collapsible/test/collapsible_semantics.rs::{collapsible_check2_documents_docs_sync_and_state_matrix_rules,collapsible_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults,collapsible_dx_check_script_covers_docs_sync_and_state_matrix_contract,collapsible_check2_marks_docs_sync_and_state_matrix_item_complete}`。
   - 本地验证命令（当前环境）：  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_docs_sync_and_state_matrix_rules -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_docs_sync_and_state_matrix_rules -- --nocapture`  
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
 - [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
@@ -719,14 +719,14 @@
   - 已满足（文档入口存在）：`components/collapsible/src/README.md` 与 docs-app 注册入口 `apps/docs-app/src/pages/components/pages.rs`（`component_doc!("Collapsible", "collapsible", "Collections", collections_groups::collapsible)`）同时存在，满足 “README 或等价入口” 要求。
   - 已满足（新手最小示例）：`components/collapsible/src/README.md` 保留 `## Hello World（最小可用）`；docs 页面 `apps/docs-app/src/pages/components/pages/collections_groups.rs::collapsible` 首个 playground 为 `title="Hello World"`。
   - 已满足（先基础后进阶）：docs 文案明确 `Start with Hello World, then move to controlled/state matrix examples`，并按 `Hello World -> Controlled Collapsible -> State Matrix -> Controlled vs Uncontrolled Contrast -> State + Source Markers -> Source-first Starter` 组织，默认路径在前、进阶路径在后。
-  - 脚本门禁：`scripts/check-ui-components-dx.sh` 新增三条命令：  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_documentation_as_product_rules`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_documentation_entry_exists_with_beginner_first_progression`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_check_script_covers_documentation_as_product_contract`
+  - 脚本门禁：`scripts/check-ui-dx.sh` 新增三条命令：  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_documentation_as_product_rules`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_documentation_entry_exists_with_beginner_first_progression`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_check_script_covers_documentation_as_product_contract`
   - 回归：`components/collapsible/test/semantics.rs::{collapsible_check2_documents_documentation_as_product_rules,collapsible_documentation_entry_exists_with_beginner_first_progression,collapsible_dx_check_script_covers_documentation_as_product_contract,collapsible_check2_marks_documentation_as_product_item_complete}`、`components/collapsible/test/collapsible_semantics.rs::{collapsible_check2_documents_documentation_as_product_rules,collapsible_documentation_entry_exists_with_beginner_first_progression,collapsible_dx_check_script_covers_documentation_as_product_contract,collapsible_check2_marks_documentation_as_product_item_complete}`。
   - 本地验证命令（当前环境）：  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_documentation_as_product_rules -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_documentation_entry_exists_with_beginner_first_progression -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_documentation_as_product_rules -- --nocapture`  
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_documentation_entry_exists_with_beginner_first_progression -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
 - [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
@@ -736,16 +736,16 @@
   - 已满足（稳定语义锚点）：interactive 区块新增 `data-slot="collapsible-workbench-controls"`、`data-slot="collapsible-workbench-preview"`、`data-slot="collapsible-workbench-controlled-state"`、`data-slot="collapsible-workbench-default-state"`，便于 docs 验收与自动化定位。
   - AI Spec 相关联动示例：N/A（`collapsible` 组件无 `spec.rs` 与 Spec 输入协议），本组件按 disclosure 职责仅验证 props/state/语义反馈链路。
   - 已满足（可重复关键流程）：`e2e/tests/docs_app_collapsible.spec.mjs::docs-app: collapsible interactive playground updates props/state and replays deterministically` 覆盖“切换模式 -> 状态开关 -> 语义断言 -> code 面板同步 -> reload 重放”路径，且避免 `waitForTimeout` 等不稳定等待。
-  - 脚本门禁：`scripts/check-ui-components-dx.sh` 新增四条命令：  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_interactive_playground_rules`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_app_provides_interactive_playground_for_props_state_and_preview`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_interactive_playground_reuses_repeatable_semantic_e2e_flow`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_check_script_covers_interactive_playground_contract`
+  - 脚本门禁：`scripts/check-ui-dx.sh` 新增四条命令：  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_interactive_playground_rules`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_app_provides_interactive_playground_for_props_state_and_preview`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_interactive_playground_reuses_repeatable_semantic_e2e_flow`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_check_script_covers_interactive_playground_contract`
   - 回归：`components/collapsible/test/semantics.rs::{collapsible_check2_documents_interactive_playground_rules,collapsible_docs_app_provides_interactive_playground_for_props_state_and_preview,collapsible_interactive_playground_reuses_repeatable_semantic_e2e_flow,collapsible_dx_check_script_covers_interactive_playground_contract,collapsible_check2_marks_interactive_playground_item_complete}`、`components/collapsible/test/collapsible_semantics.rs::{collapsible_check2_documents_interactive_playground_rules,collapsible_docs_app_provides_interactive_playground_for_props_state_and_preview,collapsible_interactive_playground_reuses_repeatable_semantic_e2e_flow,collapsible_dx_check_script_covers_interactive_playground_contract,collapsible_check2_marks_interactive_playground_item_complete}`。
   - 本地验证命令（当前环境）：  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_interactive_playground_rules -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_app_provides_interactive_playground_for_props_state_and_preview -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_interactive_playground_reuses_repeatable_semantic_e2e_flow -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_interactive_playground_rules -- --nocapture`  
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_app_provides_interactive_playground_for_props_state_and_preview -- --nocapture`  
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_interactive_playground_reuses_repeatable_semantic_e2e_flow -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
@@ -755,14 +755,14 @@
   - 已满足（真实源码落点与依赖前提）：source-first 区块 `data-slot="collapsible-source-first-contract"` 明确标注真实路径 `components/collapsible/src/mod.rs`、`components/collapsible/src/logic.rs`、`components/collapsible/src/view.rs`、`components/collapsible/src/styles.rs`、`components/collapsible/src/motion.rs`，并声明最小特性 `component-collapsible + inject-css`。
   - 已满足（复制按钮与代码面板链路）：`apps/docs-app/src/playground.rs` 维持 `compose_copy_ready_code + missing_import_lines + <CodeBlock code=resolved_code.get() />`，`components/code-block/src/view.rs` 保持 copy 按钮（`ui-code-block__copy-button` + `copy_to_clipboard_aria_label`）。
   - 已满足（示例与实现同步）：`source_first_code` 示例仍直接对齐当前 `Collapsible` API（`id_base/title/default_open/motion`）与 source-first 文案，不存在示例漂移。
-  - 脚本门禁：`scripts/check-ui-components-dx.sh` 新增三条命令：  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_source_first_copy_paste_ready_rules`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_check_script_covers_source_first_copy_paste_ready_contract`
+  - 脚本门禁：`scripts/check-ui-dx.sh` 新增三条命令：  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_source_first_copy_paste_ready_rules`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_check_script_covers_source_first_copy_paste_ready_contract`
   - 回归：`components/collapsible/test/semantics.rs::{collapsible_check2_documents_source_first_copy_paste_ready_rules,collapsible_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies,collapsible_dx_check_script_covers_source_first_copy_paste_ready_contract,collapsible_check2_marks_source_first_copy_paste_ready_contract_complete}`、`components/collapsible/test/collapsible_semantics.rs::{collapsible_check2_documents_source_first_copy_paste_ready_rules,collapsible_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies,collapsible_dx_check_script_covers_source_first_copy_paste_ready_contract,collapsible_check2_marks_source_first_copy_paste_ready_contract_complete}`。
   - 本地验证命令（当前环境）：  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_source_first_copy_paste_ready_rules -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_source_first_copy_paste_ready_rules -- --nocapture`  
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
@@ -772,14 +772,14 @@
   - 已满足（组件文档入口可索引）：`apps/docs-app/src/pages/components/pages.rs` 保持 `component_doc!("Collapsible", "collapsible", "Collections", collections_groups::collapsible)`，`apps/docs-app/src/pages/components/pages/collections_groups.rs::collapsible` 维持 `title="Collapsible"` + `slug="collapsible"`，`components/collapsible/src/README.md` 提供等价文档入口。
   - 已满足（实现与文档不漂移）：docs 页面矩阵持续覆盖 `Parameter Matrix`、`State Matrix`、`Source-first Starter`、`Interactive Playground`，并与当前参数语义一致；禁止“仅代码更新无文档更新”已在策略文档与本清单证据链固定。
   - 研究文档补充判定：本轮仅为 `Collapsible` 参数语义与组件文档入口同步校验，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
-  - 脚本门禁：`scripts/check-ui-components-dx.sh` 新增三条命令：  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_heroui_benchmark_docs_sync_rules`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_heroui_strategy_and_component_docs_are_synchronized_and_indexable`  
-    `cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_check_script_covers_heroui_benchmark_docs_sync_contract`
+  - 脚本门禁：`scripts/check-ui-dx.sh` 新增三条命令：  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_heroui_benchmark_docs_sync_rules`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_heroui_strategy_and_component_docs_are_synchronized_and_indexable`  
+    `cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_dx_check_script_covers_heroui_benchmark_docs_sync_contract`
   - 回归：`components/collapsible/test/semantics.rs::{collapsible_check2_documents_heroui_benchmark_docs_sync_rules,collapsible_heroui_strategy_and_component_docs_are_synchronized_and_indexable,collapsible_dx_check_script_covers_heroui_benchmark_docs_sync_contract,collapsible_check2_marks_heroui_benchmark_docs_sync_contract_complete}`、`components/collapsible/test/collapsible_semantics.rs::{collapsible_check2_documents_heroui_benchmark_docs_sync_rules,collapsible_heroui_strategy_and_component_docs_are_synchronized_and_indexable,collapsible_dx_check_script_covers_heroui_benchmark_docs_sync_contract,collapsible_check2_marks_heroui_benchmark_docs_sync_contract_complete}`。
   - 本地验证命令（当前环境）：  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_heroui_benchmark_docs_sync_rules -- --nocapture`  
-    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui-components --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_heroui_strategy_and_component_docs_are_synchronized_and_indexable -- --nocapture`
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_check2_documents_heroui_benchmark_docs_sync_rules -- --nocapture`  
+    `CARGO_TARGET_DIR=/tmp/rust-ui-target CARGO_INCREMENTAL=0 cargo test -p ui --test collapsible_semantics --no-default-features --features component-collapsible,inject-css collapsible_heroui_strategy_and_component_docs_are_synchronized_and_indexable -- --nocapture`
   - 命令现状：当前 runner 仍受基础设施问题阻塞（`Invalid cross-device link (os error 18)`）；需在稳定文件系统 CI/本地 runner 复核。
 
 ### 8. 合并前门禁死命令（最终执行）
@@ -789,9 +789,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

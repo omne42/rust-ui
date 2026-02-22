@@ -30,7 +30,7 @@ docs-app 入口：`apps/docs-app/src/pages/components/pages/collections.rs::disc
 
 ```rust
 use leptos::prelude::*;
-use ui_components::Disclosure;
+use ui::Disclosure;
 
 view! {
     <Disclosure id_base="disc".to_string() label="Details".to_string()>

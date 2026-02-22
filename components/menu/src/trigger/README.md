@@ -88,7 +88,7 @@ Root exposes stable markers:
 - 展示区: current 与 baseline 并排（open/placement/disabled/close strategy 对比）。
 - Config 区: 切换 `close_on_action` / `disabled` / `disabled_indices` / placement / aria/class source。
 - Code 区: 动态生成当前配置的可复制 `MenuTrigger` 代码。
-- CSS Test 区: 加载 `crates/ui-components/src/menu/trigger/styles.rs`，用于 scoped CSS 合同验证。
+- CSS Test 区: 加载 `crates/ui/src/menu/trigger/styles.rs`，用于 scoped CSS 合同验证。
 
 ## 对比场景
 

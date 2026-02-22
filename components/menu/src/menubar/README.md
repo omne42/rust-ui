@@ -66,7 +66,7 @@ Note: `MenubarMotion` is currently an alias to `DropdownMenuMotion`.
 
 ### css test
 
-- `css test` 面板绑定 `crates/ui-components/src/menu/menubar/styles.rs`。
+- `css test` 面板绑定 `crates/ui/src/menu/menubar/styles.rs`。
 - 可验证 open-mode、placement、motion-source 相关样式契约。
 
 ### 多场景对比显示
@@ -88,5 +88,5 @@ Note: `MenubarMotion` is currently an alias to `DropdownMenuMotion`.
 ## Source-first / Copy-Paste Ready
 
 - Docs entry: `apps/docs-app/src/pages/components/pages/collections_command.rs::menubar()`
-- Source: `crates/ui-components/src/menu/menubar/{mod,logic,view,styles}.rs`
+- Source: `crates/ui/src/menu/menubar/{mod,logic,view,styles}.rs`
 - Package mode feature: `component-menubar` (practically composed with `component-menu`, `component-popover`, `component-dropdown_menu`; optional `inject-css`)

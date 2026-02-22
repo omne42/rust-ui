@@ -1418,7 +1418,7 @@ fn share_button_tree_shaking_contract_enforces_component_feature_gates_and_budge
     let button_mod_source = load_source("src/button/mod.rs");
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
@@ -1432,7 +1432,7 @@ fn share_button_tree_shaking_contract_enforces_component_feature_gates_and_budge
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components feature graph should keep ShareButton tree-shaking token `{needle}`.",
+            "ui feature graph should keep ShareButton tree-shaking token `{needle}`.",
         );
     }
 
@@ -1475,12 +1475,12 @@ fn share_button_tree_shaking_contract_enforces_component_feature_gates_and_budge
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
     ] {
@@ -1512,16 +1512,16 @@ fn share_button_ssr_and_cross_platform_compile_paths_are_cfg_guarded() {
     let wasm_target_deps_header = "[target.'cfg(target_arch = \"wasm32\")'.dependencies]";
     let wasm_target_deps_index = ui_components_cargo_source
         .find(wasm_target_deps_header)
-        .expect("ui-components Cargo.toml should keep wasm32 target dependency section");
+        .expect("ui Cargo.toml should keep wasm32 target dependency section");
     let non_wasm_deps_section = &ui_components_cargo_source[..wasm_target_deps_index];
 
     assert!(
         non_wasm_deps_section.contains("[dependencies]"),
-        "ui-components should keep a native dependency section before wasm32 target dependencies."
+        "ui should keep a native dependency section before wasm32 target dependencies."
     );
     assert!(
         !non_wasm_deps_section.contains("web-sys ="),
-        "ui-components should not pull web-sys in non-wasm dependency path."
+        "ui should not pull web-sys in non-wasm dependency path."
     );
 
     for needle in [
@@ -1531,13 +1531,13 @@ fn share_button_ssr_and_cross_platform_compile_paths_are_cfg_guarded() {
     ] {
         assert!(
             ui_components_cargo_source.contains(needle),
-            "ui-components Cargo.toml should keep wasm-specific dependency token `{needle}`.",
+            "ui Cargo.toml should keep wasm-specific dependency token `{needle}`.",
         );
     }
 
     assert!(
         ui_components_lib_source.contains("#[cfg(target_arch = \"wasm32\")]"),
-        "ui-components lib should keep explicit wasm cfg boundary."
+        "ui lib should keep explicit wasm cfg boundary."
     );
 
     for needle in [
@@ -1593,7 +1593,7 @@ fn share_button_headless_web_ssr_feature_mutex_is_compile_guarded_and_script_ver
     let share_view_source = load_source("src/button/share/view.rs");
     let ui_headless_cargo_source = load_source("../ui-headless/Cargo.toml");
     let ui_headless_lib_source = load_source("../ui-headless/src/lib.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     assert!(
         check_source.contains("`ui-headless` web/ssr feature 互斥受 `compile_error!` 保护"),
@@ -1652,7 +1652,7 @@ fn share_button_motion_non_wasm_stub_contract_is_predictable_and_toolchain_safe(
     let ui_motion_stub_test_source = load_source("../ui-motion/tests/non_wasm_stub.rs");
     let share_motion_source = load_source("src/button/share/motion.rs");
     let share_view_source = load_source("src/button/share/view.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     assert!(
         check_source.contains("`ui-motion` 非 wasm 提供 no-op/stub"),
@@ -1729,7 +1729,7 @@ fn share_button_reduced_motion_ssr_wasm_branches_are_covered_via_flip_and_motion
     let button_styles_source = load_source("src/button/styles.rs");
     let ui_motion_spring_source = load_source("../ui-motion/src/spring.rs");
     let ui_motion_spring_checks_source = load_source("../ui-motion/tests/spring.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     assert!(
         check_source.contains("组件实现覆盖 `reduced-motion` / SSR / wasm 分支"),
@@ -1814,10 +1814,10 @@ fn share_button_reduced_motion_ssr_wasm_branches_are_covered_via_flip_and_motion
     }
 
     for needle in [
-        "cargo check -p ui-components --no-default-features --features component-button,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
+        "cargo check -p ui --no-default-features --features component-button,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
         "cargo test -p ui-motion --test non_wasm_stub",
-        "cargo test -p ui-components --test button_copy_semantics button_copy_reduced_motion_ssr_wasm_branches_are_covered_via_button_contract",
+        "cargo test -p ui --test button_copy_semantics button_copy_reduced_motion_ssr_wasm_branches_are_covered_via_button_contract",
     ] {
         assert!(
             platform_script_source.contains(needle),
@@ -1833,7 +1833,7 @@ fn share_button_performance_governance_budget_is_defined_and_blocking() {
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let check2_source = load_source("src/button/share/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/button/share/view.rs");
 
     for needle in [
@@ -1909,7 +1909,7 @@ fn share_button_performance_governance_budget_is_defined_and_blocking() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test share_button_semantics share_button_performance_governance_budget_is_defined_and_blocking";
+    let script_needle = "cargo test -p ui --test share_button_semantics share_button_performance_governance_budget_is_defined_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`.",
@@ -1919,7 +1919,7 @@ fn share_button_performance_governance_budget_is_defined_and_blocking() {
 #[test]
 fn share_button_view_macro_complexity_is_split_into_semantic_subrenders() {
     let view_source = load_source("src/button/share/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "fn render_platform_icon(platform: SharePlatform) -> AnyView",
@@ -1960,7 +1960,7 @@ fn share_button_view_macro_complexity_is_split_into_semantic_subrenders() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test share_button_semantics share_button_view_macro_complexity_is_split_into_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test share_button_semantics share_button_view_macro_complexity_is_split_into_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",

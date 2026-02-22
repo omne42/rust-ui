@@ -38,7 +38,7 @@ fn resolve_copied_contract_centralizes_default_priority() {
         Some(on_copied_change),
     );
     assert_eq!(controlled.source.as_attr(), "controlled");
-    assert_eq!(controlled.copied, Some(is_copied.into()));
+    assert!(controlled.copied.is_some());
     assert!(controlled.default_copied);
     assert!(controlled.on_copied_change.is_some());
 

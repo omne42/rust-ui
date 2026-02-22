@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     Icons, IconsGlyph, IconsScale, IconsSet, IconsTone, SegmentedControl, SegmentedControlSize,
 };
 

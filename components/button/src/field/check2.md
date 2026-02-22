@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`FieldButton` 不自建 `motion.rs` 或 spring/driver 执行逻辑，仅通过 `<Button>` 继承 `button/motion.rs` 对 `ui-motion` 的挂载执行，组件层只做语义装配）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`FieldButton` 不创建私有主题体系，继续通过 `<Button>` 消费 `ui-theme`，并在 `styles.rs` 仅使用 `var(--ui-*)` token 变量；token/theme/css 出口保持在 `crates/ui-theme`）
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`FieldButton` 保持装配层定位：`mod.rs` 仅调用 `logic::resolve_props` 并委托 `<Button>`，`logic.rs` 仅做归一派生，`styles.rs` 仅做 token-first 静态样式，不重写 headless/motion/state primitive）
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`FieldButton` 保持装配层定位：`mod.rs` 仅调用 `logic::resolve_props` 并委托 `<Button>`，`logic.rs` 仅做归一派生，`styles.rs` 仅做 token-first 静态样式，不重写 headless/motion/state primitive）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -122,7 +122,7 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`FieldButton` 样式继续在 `styles.rs` 静态定义，并复用 `Button`/theme 变量：`--ui-button-size-s-*`、`--ui-button-font-size`、`--ui-button-focus-outline-*`、`--ui-focus-ring`，避免硬编码尺寸与焦点值）
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -136,9 +136,9 @@
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`FieldButton` 的离散状态维持 `FieldButtonTone/FieldButtonValidation` enum 约束；状态对外通过稳定 `data-*` 与 `custom-*` marker 暴露，避免字符串协议漂移）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -147,7 +147,7 @@
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
-- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（已完成 compile-only 证据：`cargo check -p ui-components`、`cargo check -p ui-components --no-default-features --features component-button,inject-css`、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css`；`FieldButton` 源码保持平台无关且继续复用 `Button` 能力）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（已完成 compile-only 证据：`cargo check -p ui`、`cargo check -p ui --no-default-features --features component-button,inject-css`、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css`；`FieldButton` 源码保持平台无关且继续复用 `Button` 能力）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
@@ -159,7 +159,7 @@
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`FieldButton` 不分叉实现，直接复用 `Button` 分支能力：`button/styles.rs` 含 `prefers-reduced-motion` 降级，`button/motion.rs` 按 `wasm32/non-wasm` 分支；编译验证：`cargo check -p ui-components --no-default-features --features component-button,inject-css` 与 `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css`）
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`FieldButton` 不分叉实现，直接复用 `Button` 分支能力：`button/styles.rs` 含 `prefers-reduced-motion` 降级，`button/motion.rs` 按 `wasm32/non-wasm` 分支；编译验证：`cargo check -p ui --no-default-features --features component-button,inject-css` 与 `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css`）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
@@ -200,14 +200,14 @@
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 文件落点检查（必须提及）
-- [x] `ui-components` 固定入口文件落点正确。（已校验 `src/lib.rs`、`src/css.rs`、`src/root.rs`、`crates/ui-visual-primitive/src/active_highlight.rs` 入口角色；并确认 `src/overlay_open.rs`、`src/presence.rs`、`src/a11y.rs` 不存在。`FieldButton` 继续作为组件层消费者，借助 `Button` 能力而不自建平行入口）
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。（已校验 `src/lib.rs`、`src/css.rs`、`src/root.rs`、`crates/ui-visual-primitive/src/active_highlight.rs` 入口角色；并确认 `src/overlay_open.rs`、`src/presence.rs`、`src/a11y.rs` 不存在。`FieldButton` 继续作为组件层消费者，借助 `Button` 能力而不自建平行入口）
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。（`FieldButton` 目录保持最小化：仅 `mod.rs/logic.rs/styles.rs`；不新增 `render.rs/spec.rs/view.rs/motion.rs`。渲染与动效层明确复用 `button/view.rs` 与 `button/motion.rs`，避免重复实现）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -288,11 +288,11 @@
   - 一旦确认具备可复用状态不变量，应下沉至 `ui-state-primitives`/`ui-headless`，组件层仅保留装配映射。
 
 ### 9. 合并门禁（最终裁决）
-- [x] 架构正确（边界不破）。（`FieldButton` 保持 `ui-components` 装配层职责：`mod.rs` 仅做 `resolve_props` + `<Button ...>` 透传，状态原语与交互语义继续复用下层；`components/button/test/field_button_semantics.rs` 中 `field_button_stays_as_ui_components_assembly_layer_only`、`field_button_consumes_state_primitives_instead_of_reimplementing_state_machine`、`field_button_delegates_headless_semantics_to_button_view_layer` 持续约束边界）
+- [x] 架构正确（边界不破）。（`FieldButton` 保持 `ui` 装配层职责：`mod.rs` 仅做 `resolve_props` + `<Button ...>` 透传，状态原语与交互语义继续复用下层；`components/button/test/field_button_semantics.rs` 中 `field_button_stays_as_ui_components_assembly_layer_only`、`field_button_consumes_state_primitives_instead_of_reimplementing_state_machine`、`field_button_delegates_headless_semantics_to_button_view_layer` 持续约束边界）
 - [x] 行为正确（状态与交互语义成立）。（`FieldButton` 的状态与交互行为由既有测试持续约束：`components/button/test/field_button_semantics.rs` 中 `field_button_maps_field_state_to_button_variant_and_css_markers`、`field_button_state_normalization_is_not_scattered_in_view`、`field_button_snapshot_mode_consumes_complete_input_and_renders_in_one_pass`，并通过 `Button` 统一交互契约透传 `on_press/is_disabled`）
 - [x] 可访问性达标（默认可用）。（`FieldButton` 通过 `Button` 复用既有 A11y 契约并透传 `aria_label/on_press`，`components/button/test/field_button_semantics.rs` 中 `field_button_a11y_and_i18n_entrypoints_delegate_to_button_contract` 与 `field_button_semantics_suite_covers_data_aria_role_and_source_contracts` 持续验证 `aria` 入口、语义挂载与可检索标记）
 - [x] 默认主题美学质量达标（与可访问性同级门禁）。（`FieldButton` 默认视觉基线继续复用 `Button` 并走 token-first：`components/button/test/field_button_semantics.rs` 中 `field_button_default_visual_baseline_is_token_driven_and_button_aligned`、`field_button_styles_use_token_first_values_and_reuse_button_vars`、`field_button_theme_contract_comes_from_ui_theme_and_button_tokens` 持续约束主题变量、交互反馈与非硬编码视觉值）
-- [x] 可测试（契约可断言）。（`FieldButton` 已具备稳定可断言契约：`components/button/test/field_button_semantics.rs` 覆盖语义状态、A11y、分层边界与平台路径，且 `e2e/tests/docs_app_field_button_contract.spec.mjs` 提供 docs-app 端到端契约回归；当前门禁持续以 `cargo test -p ui-components --test field_button_semantics` 验证）
+- [x] 可测试（契约可断言）。（`FieldButton` 已具备稳定可断言契约：`components/button/test/field_button_semantics.rs` 覆盖语义状态、A11y、分层边界与平台路径，且 `e2e/tests/docs_app_field_button_contract.spec.mjs` 提供 docs-app 端到端契约回归；当前门禁持续以 `cargo test -p ui --test field_button_semantics` 验证）
 - [x] 可维护（命名和模式一致）。（`FieldButton` 持续复用 `Button` 统一模式并保持命名契约，`components/button/test/field_button_semantics.rs` 中 `field_button_api_naming_uses_is_prefix_only`、`field_button_new_params_must_follow_naming_and_contract_pipeline`、`field_button_file_responsibilities_stay_minimal_and_button_reuse_focused` 提供回归约束）
 - [x] 可解释（人和自动化都能读懂）。（`FieldButton` 保持单一 `resolve_props` 入口与稳定语义标记输出，`components/button/test/field_button_semantics.rs` 中 `field_button_state_markers_are_observable_and_source_distinguishable`、`field_button_semantics_suite_targets_contracts_not_visual_snapshots`、`field_button_semantics_suite_covers_data_aria_role_and_source_contracts` 持续保证人读与自动化读都可解释）
 - [x] 改动在正确层。（`FieldButton` 仅保留组件装配：状态原语复用 `ui-state-primitives`、交互语义复用 `ui-headless`、动效复用 `Button/ui-motion`，由 `components/button/test/field_button_semantics.rs` 中 `field_button_stays_as_ui_components_assembly_layer_only`、`field_button_consumes_state_primitives_instead_of_reimplementing_state_machine`、`field_button_delegates_headless_semantics_to_button_view_layer`、`field_button_motion_runtime_is_delegated_to_button_motion_layer` 持续约束）

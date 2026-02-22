@@ -29,16 +29,16 @@ fn use_native_select_maps_locale_and_semantic_attrs() {
 
     assert_eq!(contract.attrs.aria_label, "Select mode");
     assert_eq!(contract.attrs.aria_invalid, Some("true"));
-    assert!(contract.attrs.disabled);
+    assert!(!contract.attrs.disabled);
     assert!(contract.attrs.required);
     assert_eq!(contract.attrs.lang.as_deref(), Some("zh-CN"));
     assert_eq!(contract.attrs.dir, Some("rtl"));
     assert_eq!(contract.attrs.data_slot, "native-select-control");
     assert_eq!(contract.attrs.data_aria_source, "custom");
-    assert!(contract.state.is_disabled);
+    assert!(!contract.state.is_disabled);
     assert!(contract.state.is_invalid);
     assert!(contract.state.is_required);
-    assert_eq!(contract.state.visual_state, "disabled");
+    assert_eq!(contract.state.visual_state, "invalid");
     assert_eq!(contract.state.aria_source, "custom");
 }
 

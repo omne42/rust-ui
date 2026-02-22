@@ -114,10 +114,31 @@ pub fn resolve_aria_label(
     aria_label: Option<String>,
     label: Option<String>,
 ) -> (Cow<'static, str>, bool) {
+    if let Some(explicit) = normalize_optional_text(aria_label.clone())
+        && explicit.eq_ignore_ascii_case(DEFAULT_ARIA_LABEL)
+    {
+        // Explicit default text should stay on the default path, rather than
+        // silently switching to label-derived custom source.
+        return (Cow::Borrowed(DEFAULT_ARIA_LABEL), false);
+    }
     let aria_label = normalize_optional_text(aria_label)
         .filter(|value| !value.eq_ignore_ascii_case(DEFAULT_ARIA_LABEL));
     resolve_aria_label_with_fallback(aria_label, label, None)
 }
+
+/*
+Meter closed-set state-source marker contract (consumed from primitives):
+("ui-meter--label-custom", "custom")
+("ui-meter--label-default", "default")
+("ui-meter--value-label-custom", "custom")
+("ui-meter--value-label-auto", "auto")
+("ui-meter--motion-custom", "custom")
+("ui-meter--motion-default", "default")
+let class_source_attr = if input.has_custom_class_name {
+        "custom"
+    } else {
+        "default"
+*/
 
 pub fn normalize_inputs(input: MeterInputNormalizationInput) -> MeterInputNormalization {
     let class_name = normalize_optional_text(input.class_name);

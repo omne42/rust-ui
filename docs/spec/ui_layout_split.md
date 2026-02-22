@@ -1,7 +1,7 @@
 # UI Layout Split（一次性迁移约束）
 
 > Status: Draft  
-> Scope: 把 `layout` 类组件从 `crates/ui-components` 拆分到 `crates/ui-layout`，且不提供兼容层/过渡层。
+> Scope: 把 `layout` 类组件从 `crates/ui` 拆分到 `crates/ui-layout`，且不提供兼容层/过渡层。
 
 ## 0. 核心结论
 
@@ -57,7 +57,7 @@
 - `view`
 - `well`
 
-明确不迁移（保留在 `ui-components`）：
+明确不迁移（保留在 `ui`）：
 
 - `sidebar`
 - `sidebar/content`
@@ -75,25 +75,25 @@
 
 目标 DAG：
 
-`ui-state-primitives` -> `ui-headless` -> `ui-layout` -> `ui-components` -> `apps/*`
+`ui-state-primitives` -> `ui-headless` -> `ui-layout` -> `ui` -> `apps/*`
 
 横向依赖：
 
-- `ui-theme`、`ui-motion` 可被 `ui-layout` 与 `ui-components` 依赖。
+- `ui-theme`、`ui-motion` 可被 `ui-layout` 与 `ui` 依赖。
 
 硬约束：
 
-1. `ui-layout` 禁止依赖 `ui-components`。
+1. `ui-layout` 禁止依赖 `ui`。
 2. `ui-layout` 禁止依赖 `apps/*` 或任何临时兼容桥接层。
-3. `ui-components` 允许依赖 `ui-layout`（用于复合组件拼装）。
+3. `ui` 允许依赖 `ui-layout`（用于复合组件拼装）。
 4. 一次性迁移提交中删除旧模块路径，不保留兼容导出。
 
 ## 2.1 一次性迁移验收（无过渡）
 
 必须同时满足：
 
-1. `crates/ui-components/src` 不再包含上述 layout 目录。
+1. `crates/ui/src` 不再包含上述 layout 目录。
 2. `crates/ui-layout/src` 出现对应 layout 目录。
-3. 全部调用方（`ui-components`/`apps`/tests/docs）更新到新路径。
+3. 全部调用方（`ui`/`apps`/tests/docs）更新到新路径。
 4. 不存在旧路径兼容层（`#[path]` 转发、`pub use` 旧名导出）残留。
 5. workspace 门禁通过（至少 `check + test + clippy` 针对受影响 crate）。

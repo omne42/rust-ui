@@ -60,7 +60,7 @@
 
 ### css test
 
-- `css test` 面板绑定 `crates/ui-components/src/icon/set/styles.rs`。
+- `css test` 面板绑定 `crates/ui/src/icon/set/styles.rs`。
 - 支持在隔离作用域验证 source marker 对应样式选择器。
 
 ### 多场景对比显示
@@ -82,5 +82,5 @@
 ## Source-first / Copy-Paste Ready
 
 - Docs entry: `apps/docs-app/src/pages/components/pages/display_extra_iconset.rs::iconset()`
-- Source: `crates/ui-components/src/icon/set/{mod,logic,view,styles}.rs`
+- Source: `crates/ui/src/icon/set/{mod,logic,view,styles}.rs`
 - Package mode feature: `component-iconset` (requires `component-icon`; optional `inject-css`)

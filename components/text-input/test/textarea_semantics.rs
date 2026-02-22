@@ -469,7 +469,7 @@ fn textarea_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::textarea::styles::CSS);"),
-        "ui-components css aggregator should include textarea styles.",
+        "ui css aggregator should include textarea styles.",
     );
 }
 
@@ -901,12 +901,12 @@ fn textarea_keeps_simple_surface_without_spec_module_sprawl() {
 
 #[test]
 fn textarea_component_files_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     for needle in [
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_component_directory_has_standard_file_layout",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_mod_rs_keeps_minimal_stable_exports",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_component_file_responsibilities_remain_scoped",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_component_directory_has_standard_file_layout",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_mod_rs_keeps_minimal_stable_exports",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_component_file_responsibilities_remain_scoped",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1080,7 +1080,7 @@ fn textarea_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo features should include `{needle}` for tree-shaking boundaries."
+            "ui Cargo features should include `{needle}` for tree-shaking boundaries."
         );
     }
 
@@ -1105,7 +1105,7 @@ fn textarea_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components."
+        "web-demo should consume ui via web-demo-components, not all-components."
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -1116,15 +1116,15 @@ fn textarea_tree_shaking_keeps_component_feature_and_css_boundaries() {
 
 #[test]
 fn textarea_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
@@ -1258,19 +1258,19 @@ fn textarea_motion_covers_wasm_and_non_wasm_contract_paths() {
 
 #[test]
 fn textarea_platform_check_script_covers_default_ssr_wasm_compile_paths() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "echo \"[platform] compile-only: default native path\"",
-        "cargo check -p ui-components",
+        "cargo check -p ui",
         "echo \"[platform] compile-only: ssr native path\"",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "echo \"[platform] compile-only: web wasm path (ui-headless)\"",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
         "echo \"[platform] compile-only: textarea native path\"",
-        "cargo check -p ui-components --no-default-features --features component-textarea,inject-css",
+        "cargo check -p ui --no-default-features --features component-textarea,inject-css",
         "echo \"[platform] compile-only: textarea wasm path\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-textarea,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-textarea,inject-css",
         "echo \"[platform] source guard: non-wasm textarea files must not reference web_sys\"",
         "echo \"[platform] source guard: textarea motion must keep explicit wasm/non-wasm branches\"",
     ] {
@@ -1298,7 +1298,7 @@ fn textarea_ui_headless_web_ssr_mutex_is_compile_error_guarded() {
 
 #[test]
 fn textarea_platform_script_enforces_ui_headless_web_ssr_mutex() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "[platform] compile-only: ssr native path",
@@ -1340,7 +1340,7 @@ fn textarea_ui_motion_non_wasm_stub_contract_is_explicit_and_predictable() {
 
 #[test]
 fn textarea_platform_script_covers_ui_motion_native_wasm_and_stub_paths() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "echo \"[platform] compile-only: ui-motion native path\"",
@@ -1365,7 +1365,7 @@ fn textarea_reduced_motion_ssr_wasm_branches_are_covered_without_semantic_split(
     let motion_source = load_source("src/text_input/textarea/motion.rs");
     let ui_motion_spring_source = load_source("../ui-motion/src/spring.rs");
     let ui_motion_spring_checks_source = load_source("../ui-motion/tests/spring.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "if crate::web::prefers_reduced_motion() {",
@@ -1438,7 +1438,7 @@ fn textarea_reduced_motion_ssr_wasm_branches_are_covered_without_semantic_split(
     for needle in [
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-textarea,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-textarea,inject-css",
         "cargo check -p ui-motion",
         "cargo check -p ui-motion --target wasm32-unknown-unknown",
         "cargo test -p ui-motion --test non_wasm_stub",
@@ -1458,7 +1458,7 @@ fn textarea_performance_governance_contract_is_budgeted_traceable_and_blocking()
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("src/text_input/textarea/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/text_input/textarea/view.rs");
 
     for needle in [
@@ -1537,9 +1537,9 @@ fn textarea_performance_governance_contract_is_budgeted_traceable_and_blocking()
     }
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1566,7 +1566,7 @@ fn textarea_performance_governance_contract_is_budgeted_traceable_and_blocking()
 #[test]
 fn textarea_view_macro_complexity_is_bounded_with_semantic_subblocks() {
     let view_source = load_source("src/text_input/textarea/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     assert!(
         view_source.contains("view! {"),
@@ -1607,7 +1607,7 @@ fn textarea_view_macro_complexity_is_bounded_with_semantic_subblocks() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_view_macro_complexity_is_bounded_with_semantic_subblocks";
+    let script_needle = "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_view_macro_complexity_is_bounded_with_semantic_subblocks";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`."
@@ -1617,7 +1617,7 @@ fn textarea_view_macro_complexity_is_bounded_with_semantic_subblocks() {
 #[test]
 fn textarea_view_functional_split_prefers_plain_functions_over_local_components() {
     let view_source = load_source("src/text_input/textarea/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     assert_eq!(
         view_source.matches("#[component]").count(),
@@ -1645,7 +1645,7 @@ fn textarea_view_functional_split_prefers_plain_functions_over_local_components(
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_view_functional_split_prefers_plain_functions_over_local_components";
+    let script_needle = "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_view_functional_split_prefers_plain_functions_over_local_components";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`."
@@ -1657,7 +1657,7 @@ fn textarea_static_fragments_are_constantized_or_absent_for_simple_input_layout(
     let view_source = load_source("src/text_input/textarea/view.rs");
     let logic_source = load_source("src/text_input/textarea/logic.rs");
     let primitives_source = load_source("../../crates/ui-state-primitives/src/textarea.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("src/text_input/textarea/check2.md");
 
     for forbidden in [
@@ -1706,7 +1706,7 @@ fn textarea_static_fragments_are_constantized_or_absent_for_simple_input_layout(
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_static_fragments_are_constantized_or_absent_for_simple_input_layout";
+    let script_needle = "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_static_fragments_are_constantized_or_absent_for_simple_input_layout";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`."
@@ -1770,9 +1770,9 @@ fn textarea_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 
 #[test]
 fn textarea_inner_html_check_script_covers_security_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
 
-    let needle = "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let needle = "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(needle),
         "inner-html check script should enforce `{needle}`."
@@ -1797,7 +1797,7 @@ fn textarea_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isol
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep shared wasm-debug marker `{needle}`."
+            "ui Cargo features should keep shared wasm-debug marker `{needle}`."
         );
     }
     assert!(
@@ -1811,7 +1811,7 @@ fn textarea_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isol
     ] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components root should keep wasm-debug isolation marker `{needle}`."
+            "ui root should keep wasm-debug isolation marker `{needle}`."
         );
     }
 
@@ -1909,9 +1909,9 @@ fn textarea_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isol
 
 #[test]
 fn textarea_wasm_debug_check_script_covers_shared_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
 
-    let needle = "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated";
+    let needle = "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm-debug check script should enforce `{needle}`."
@@ -2014,11 +2014,11 @@ fn textarea_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_
 
 #[test]
 fn textarea_dx_check_script_covers_hot_reload_and_isolated_canvas_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2102,7 +2102,7 @@ fn textarea_engineering_contract_keeps_tracing_semantics_unified_without_compone
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -2119,7 +2119,7 @@ fn textarea_engineering_contract_keeps_tracing_semantics_unified_without_compone
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::textarea::",
+        "target: \"ui::textarea::",
         "const TEXTAREA_TRACE_TARGET",
     ] {
         assert!(
@@ -2170,12 +2170,12 @@ fn textarea_engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
 
 #[test]
 fn textarea_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2189,18 +2189,18 @@ fn textarea_check2_documents_ui_components_entrypoint_rules() {
     let checklist_source = load_source("src/text_input/textarea/check2.md");
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
-        "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
-        "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
-        "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
+        "- [x] `ui` 固定入口文件落点正确。",
+        "`crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
+        "`crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
+        "`crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
         "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
-        "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
-        "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
-        "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
+        "`crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
+        "`crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
+        "`crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
     ] {
         assert!(
             checklist_source.contains(required),
-            "Textarea checklist should keep ui-components entrypoint governance rule `{required}`."
+            "Textarea checklist should keep ui entrypoint governance rule `{required}`."
         );
     }
 }
@@ -2221,7 +2221,7 @@ fn textarea_ui_components_entry_files_keep_feature_gated_public_surface_and_no_p
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep marker `{needle}`."
+            "ui lib entry should keep marker `{needle}`."
         );
     }
 
@@ -2233,7 +2233,7 @@ fn textarea_ui_components_entry_files_keep_feature_gated_public_surface_and_no_p
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform/internal marker `{forbidden}`."
+            "ui lib entry should not leak platform/internal marker `{forbidden}`."
         );
     }
 }
@@ -2255,7 +2255,7 @@ fn textarea_ui_components_css_registry_remains_feature_gated_and_non_global() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css registry should keep feature-gated marker `{needle}`."
+            "ui css registry should keep feature-gated marker `{needle}`."
         );
     }
 }
@@ -2321,7 +2321,7 @@ fn textarea_ui_components_forbidden_entrypoint_files_are_absent_and_headless_pat
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !path_exists(forbidden),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`."
+            "ui forbidden entrypoint file should not exist: `{forbidden}`."
         );
     }
 
@@ -2357,9 +2357,9 @@ fn textarea_ui_components_forbidden_entrypoint_files_are_absent_and_headless_pat
 
 #[test]
 fn textarea_entrypoints_check_script_covers_fixed_entrypoint_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
 
-    let needle = "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present";
+    let needle = "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present";
     assert!(
         script_source.contains(needle),
         "entrypoints check script should enforce `{needle}`."
@@ -2501,11 +2501,11 @@ fn textarea_agent_contract_render_path_is_whitelist_safe_and_script_injection_fr
 
 #[test]
 fn textarea_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_agent_contract_markers_are_schema_like_and_machine_readable",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_agent_contract_markers_are_schema_like_and_machine_readable",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2532,9 +2532,9 @@ fn textarea_check2_documents_streaming_definition_is_llm_output_only_with_two_mo
 
 #[test]
 fn textarea_streaming_check_script_covers_llm_two_mode_definition_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
-    let needle = "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let needle = "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(needle),
         "streaming check script should enforce `{needle}`."
@@ -2617,9 +2617,9 @@ fn textarea_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
 #[test]
 fn textarea_streaming_check_script_covers_snapshot_baseline_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
-    let needle = "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_snapshot_as_default_baseline_capability";
+    let needle = "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_snapshot_as_default_baseline_capability";
     assert!(
         script_source.contains(needle),
         "streaming check script should enforce `{needle}`."
@@ -2711,12 +2711,12 @@ fn textarea_streaming_validation_retry_resilience_boundaries_stay_outside_compon
 
 #[test]
 fn textarea_streaming_check_script_covers_streaming_responsibility_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2811,12 +2811,12 @@ fn textarea_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
 
 #[test]
 fn textarea_contract_hygiene_script_covers_semantics_first_contract_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_semantics_first_testing_rules",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_semantics_suite_is_contract_first_not_snapshot_only",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_semantics_first_testing_rules",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_semantics_suite_is_contract_first_not_snapshot_only",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2877,11 +2877,11 @@ fn textarea_e2e_selector_contract_uses_semantic_markers_and_settled_waits() {
 
 #[test]
 fn textarea_e2e_check_script_covers_selector_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-textarea.sh");
+    let script_source = load_source("../../components/text-input/scripts/check-ui-e2e-textarea.sh");
 
     for needle in [
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2940,11 +2940,11 @@ fn textarea_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 
 #[test]
 fn textarea_e2e_check_script_covers_selector_and_key_flow_contracts() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-textarea.sh");
+    let script_source = load_source("../../components/text-input/scripts/check-ui-e2e-textarea.sh");
 
     for needle in [
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3017,11 +3017,11 @@ fn textarea_docs_examples_sync_with_logic_api_names_and_state_matrix() {
 
 #[test]
 fn textarea_contract_hygiene_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_examples_sync_with_logic_api_names_and_state_matrix",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_examples_sync_with_logic_api_names_and_state_matrix",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3158,13 +3158,13 @@ fn textarea_check2_marks_documentation_as_product_complete() {
 
 #[test]
 fn textarea_contract_hygiene_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_entry_exists_as_readme_or_equivalent_docs_app_page",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_are_beginner_friendly_with_default_then_advanced_path",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_marks_documentation_as_product_complete",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_entry_exists_as_readme_or_equivalent_docs_app_page",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_are_beginner_friendly_with_default_then_advanced_path",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_marks_documentation_as_product_complete",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3251,11 +3251,11 @@ fn textarea_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn textarea_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3344,11 +3344,11 @@ fn textarea_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
 
 #[test]
 fn textarea_contract_hygiene_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_are_copy_paste_ready_with_imports_copy_button_and_sync",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_are_copy_paste_ready_with_imports_copy_button_and_sync",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3428,11 +3428,11 @@ fn textarea_check2_marks_heroui_strategy_and_component_docs_sync_complete() {
 
 #[test]
 fn textarea_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
-        "cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_marks_heroui_strategy_and_component_docs_sync_complete",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
+        "cargo test -p ui --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_marks_heroui_strategy_and_component_docs_sync_complete",
     ] {
         assert!(
             script_source.contains(needle),

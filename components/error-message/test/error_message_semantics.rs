@@ -36,7 +36,7 @@ fn ui_components_reexports_error_message_component_crate() {
     assert!(
         lib_source.contains("#[cfg(feature = \"component-error_message\")]")
             && lib_source.contains("pub use ui_error_message as error_message;"),
-        "ui-components should re-export the external ui-error-message crate as `error_message`.",
+        "ui should re-export the external ui-error-message crate as `error_message`.",
     );
     assert!(
         cargo_source.contains("component-error_message = [\"dep:ui-error-message\"]"),
@@ -46,7 +46,7 @@ fn ui_components_reexports_error_message_component_crate() {
         cargo_source.contains(
             "ui-error-message = { path = \"../../components/error-message\", optional = true }"
         ),
-        "ui-components Cargo.toml should include the optional ui-error-message dependency.",
+        "ui Cargo.toml should include the optional ui-error-message dependency.",
     );
 }
 

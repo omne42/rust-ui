@@ -27,13 +27,13 @@ docs-app 页面：`/#/components/input-otp`
 
 ## Code 区
 
-Playground 的 `code_signal` 输出当前配置对应的可复制代码，默认自动补齐 `use leptos::prelude::*;` 与 `use ui_components::*;`。
+Playground 的 `code_signal` 输出当前配置对应的可复制代码，默认自动补齐 `use leptos::prelude::*;` 与 `use ui::*;`。
 
 最小可用示例：
 
 ```rust
 use leptos::prelude::*;
-use ui_components::InputOtp;
+use ui::InputOtp;
 
 let (value, set_value) = signal(String::new());
 

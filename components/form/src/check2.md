@@ -35,14 +35,14 @@
   - 本组件判定：`Form` 为语义容器，无可复用 keyboard/pointer/focus 状态机，handlers 维度按 N/A 处理；`lang/dir` 由 `ui_headless::locale_attrs` 统一归一并在 `components/form/src/view.rs` 挂载，组件层未重写交互/A11y 契约。回归：`components/form/test/semantics.rs::form_view_mounts_headless_locale_contract`。`e2e/tests/*` 在该项 N/A（无独立交互流程）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
   - 本组件判定：`Form` 为静态语义容器，无 open/close/enter/exit/active 等动效语义轴，`motion.rs` 在该项按 N/A 处理；组件源码未接入 `ui-motion`、未自实现 spring/keyframe/driver。回归：`components/form/test/semantics.rs::form_component_keeps_motion_layer_na_for_static_container`。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
@@ -50,7 +50,7 @@
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
   - 本组件判定：`components/form/src/styles.rs` 仅消费 `var(--ui-*)` 变量（如 `--ui-space-md`），`components/form/src/logic.rs` 与 `components/form/src/view.rs` 未引入 `ui_theme::*` 或重建 `system/color/scale` 映射，组件层未建立平行私有 token 体系。回归：`components/form/test/semantics.rs::form_component_consumes_ui_theme_tokens_without_rebuilding_theme_context`。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -76,12 +76,12 @@
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-  - 本组件判定：`components/form/src/logic.rs` 统一入口 `resolve_props + resolve_view_state` 完成输入类型化与渲染语义派生（含 `data-*`/`aria-*` 与 `state_source`）；`components/form/src/view.rs` 仅挂载 `resolved/view_state`，无 `unwrap_or/then_some` 规则重建；`components/form/src/styles.rs` 仅消费 `data-disabled` 标记。回归：`components/form/test/semantics.rs::form_state_normalization_is_centralized_in_logic`、`components/form/test/logic.rs::resolve_view_state_derives_render_markers_in_logic`。
+  - 本组件判定：`components/form/src/logic.rs` 统一入口 `resolve_props + resolve_view_state` 完成输入类型化与渲染语义派生（含 `data-*`/`aria-*` 与 `state_source`）；`components/form/src/view.rs` 仅挂载 `resolved/view_state`，无 `unwrap_or/then_some` 规则重建；`components/form/src/styles.rs` 仅消费 `data-disabled` 标记。证据锚点：`components/form/src/logic.rs::resolve_props`、`components/form/src/logic.rs::resolve_view_state`。回归：`components/form/test/semantics.rs::form_state_normalization_is_centralized_in_logic`、`components/form/test/logic.rs::resolve_view_state_derives_render_markers_in_logic`。
 - [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-  - 本组件判定：离散布局状态 `label_position/label_align` 由 `FormLabelPosition/FormLabelAlign` 枚举约束并在 `resolve_props` 中类型化归一；未引入 `label_*: String` 或 `is_label_left/is_label_top` 这类互斥 bool 组合。`is_disabled/is_read_only/is_required` 属于可并存语义开关而非互斥状态机，不构成离散状态爆炸。回归：`components/form/test/logic.rs::attr_mapping_matches_enum_variants`、`components/form/test/semantics.rs::form_discrete_states_are_type_constrained_by_enums`。
+  - 本组件判定：离散布局状态 `label_position/label_align` 由 `FormLabelPosition/FormLabelAlign` 枚举约束并在 `resolve_props` 中类型化归一；未引入 `label_*: String` 或 `is_label_left/is_label_top` 这类互斥 bool 组合。`is_disabled/is_read_only/is_required` 属于可并存语义开关而非互斥状态机，不构成离散状态爆炸。证据锚点：`components/form/src/logic.rs::FormLabelPosition`、`components/form/src/logic.rs::FormLabelAlign`。回归：`components/form/test/logic.rs::attr_mapping_matches_enum_variants`、`components/form/test/semantics.rs::form_discrete_states_are_type_constrained_by_enums`。
 - [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
@@ -148,11 +148,11 @@
   - 本组件判定：`Form` 为简单语义容器，不存在独立 Schema 契约或复杂配置固化需求；组件目录未引入 `components/form/src/spec.rs`，说明收敛在 `check2.md` 与 `README.md`，本项通过。
   - 回归：`components/form/test/semantics.rs::form_spec_rs_scope_is_restricted_for_simple_component`。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-  - 本组件判定：`components/form/src/styles.rs` 提供 token-first 静态 CSS，视觉值来自 `var(--ui-space-md)`；`components/form/src/view.rs` 无业务 inline style 逻辑。组件源码未引入 Utility-First/CSS-in-Rust 依赖，契约聚合入口存在于 `crates/ui-components/src/css.rs::push_components_css` 与 `crates/ui-components/src/root.rs::UiRoot`。
+  - 本组件判定：`components/form/src/styles.rs` 提供 token-first 静态 CSS，视觉值来自 `var(--ui-space-md)`；`components/form/src/view.rs` 无业务 inline style 逻辑。组件源码未引入 Utility-First/CSS-in-Rust 依赖，契约聚合入口存在于 `crates/ui/src/css.rs::push_components_css` 与 `crates/ui/src/root.rs::UiRoot`。
   - 回归：`components/form/test/semantics.rs::form_token_first_static_style_contract_is_enforced`。
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
@@ -168,13 +168,13 @@
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-form,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-form,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-form,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-form,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-  - 本组件判定：`crates/ui-components/Cargo.toml` 已提供 `component-form` 组件级 feature；`crates/ui-components/src/lib.rs` 对 `field_form` 域与 `Form` 导出均受 `#[cfg(feature = "component-form")]` 相关门控约束，未启用时不进入可达图。
-  - 样式裁剪：`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "inject-css")]` 和 `#[cfg(feature = "component-form")]` 按需注入 `crate::field_form::form::styles::CSS`，并在禁用 `inject-css` 时提供 no-op `push_components_css`。
-  - source 模式：`components/form` 是独立 crate（`components/form/Cargo.toml` 中 `name = "ui-form"`、`default = []`），可直接按需引入，不依赖 `ui-components` 中央注册表。
+  - 本组件判定：`crates/ui/Cargo.toml` 已提供 `component-form` 组件级 feature；`crates/ui/src/lib.rs` 对 `field_form` 域与 `Form` 导出均受 `#[cfg(feature = "component-form")]` 相关门控约束，未启用时不进入可达图。
+  - 样式裁剪：`crates/ui/src/css.rs` 通过 `#[cfg(feature = "inject-css")]` 和 `#[cfg(feature = "component-form")]` 按需注入 `crate::field_form::form::styles::CSS`，并在禁用 `inject-css` 时提供 no-op `push_components_css`。
+  - source 模式：`components/form` 是独立 crate（`components/form/Cargo.toml` 中 `name = "ui-form"`、`default = []`），可直接按需引入，不依赖 `ui` 中央注册表。
   - CI 体积预算属于仓库级门禁；本单组件检查按 N/A 继承，不在 `Form` 组件局部重复定义预算阈值。
   - 回归：`components/form/test/semantics.rs::form_tree_shaking_contract_is_feature_gated_and_not_registry_bound`。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
@@ -225,7 +225,7 @@
   - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
   - 本组件判定：`Form` 为静态语义容器，按 mount-only 预算通过。关键路径限定为 `components/form/src/view.rs` 中一次 `logic::resolve_props` + 一次 `logic::resolve_view_state`，无 `on:*` 事件处理器、无 `create_effect/create_resource`、无计时器/RAF/异步任务、无 `ui-motion` attach。
-  - 可归因与阻断：组件侧采用源码守卫等价证据（出现高频更新或逐帧路径即测试失败），可直接归因到 `logic.rs/view.rs/styles.rs/motion.rs` 路径；仓库级阻断链路由 `scripts/check-ui-components-performance.sh` 执行。
+  - 可归因与阻断：组件侧采用源码守卫等价证据（出现高频更新或逐帧路径即测试失败），可直接归因到 `logic.rs/view.rs/styles.rs/motion.rs` 路径；仓库级阻断链路由 `scripts/check-ui-performance.sh` 执行。
   - render_count 边界：`Button/Input` 的 `render_count=1` 基线属于仓库级治理；`docs/plan/TODO.md` 保持“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”跟踪项，本组件不重复定义跨组件预算。
   - 回归：`components/form/test/semantics.rs::form_performance_governance_contract_is_mount_only_traceable_and_blocking`。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
@@ -261,7 +261,7 @@
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
   - 本组件判定：`Form` 为静态语义容器，无独立高频交互状态机与可回放链路，本项在组件级按 N/A 继承全局调试基础设施；组件源码未接入 `use_ui_trace/provide_ui_trace`、`trace.emit` 或本地 debug overlay。
-  - feature 隔离证据：`components/form/Cargo.toml` 仅 `default = []`，未引入 `*-wasm-debug` 特性与 `tracing` 依赖；全局隔离入口位于 `crates/ui-components/src/lib.rs` 的 `wasm_debug_proxy` 与 `mod observability`，可视化入口位于 `apps/docs-app/src/lib.rs` 的 `provide_ui_trace(debug_overlay_enabled)`。
+  - feature 隔离证据：`components/form/Cargo.toml` 仅 `default = []`，未引入 `*-wasm-debug` 特性与 `tracing` 依赖；全局隔离入口位于 `crates/ui/src/lib.rs` 的 `wasm_debug_proxy` 与 `mod observability`，可视化入口位于 `apps/docs-app/src/lib.rs` 的 `provide_ui_trace(debug_overlay_enabled)`。
   - 回归：`components/form/test/semantics.rs::form_wasm_debug_contract_is_na_and_feature_isolated`。
 - [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
@@ -281,19 +281,19 @@
   - 回归：`components/form/test/semantics.rs::form_engineering_capability_contract_keeps_serde_tracing_and_runtime_boundaries`。
 
 ### 5. 文件落点检查（必须提及）
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-  - 本组件判定：`crates/ui-components/src/lib.rs` 维持总入口 + `UiRoot` 公共导出，并通过 `component-*` 特性门控组件导出面（含 `component-form`）。
-  - 聚合证据：`crates/ui-components/src/css.rs::push_components_css` 使用 `inject-css + component-*` 条件注入，`component-form` 下仅按需注入 `crate::field_form::form::styles::CSS`。
-  - 根注入证据：`crates/ui-components/src/root.rs::UiRoot` 统一注入 `BASE_CSS + theme vars + optional components css`，并提供 `UiI18n`/`IdProvider` 上下文。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - 本组件判定：`crates/ui/src/lib.rs` 维持总入口 + `UiRoot` 公共导出，并通过 `component-*` 特性门控组件导出面（含 `component-form`）。
+  - 聚合证据：`crates/ui/src/css.rs::push_components_css` 使用 `inject-css + component-*` 条件注入，`component-form` 下仅按需注入 `crate::field_form::form::styles::CSS`。
+  - 根注入证据：`crates/ui/src/root.rs::UiRoot` 统一注入 `BASE_CSS + theme vars + optional components css`，并提供 `UiI18n`/`IdProvider` 上下文。
   - 共享能力边界：`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver，未绑定 Form 业务语义。
-  - 负例证据：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 当前不存在（契约落在 `ui-headless`）。
+  - 负例证据：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 当前不存在（契约落在 `ui-headless`）。
   - 回归：`components/form/test/semantics.rs::form_ui_components_fixed_entrypoints_are_correctly_placed`。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
@@ -347,11 +347,11 @@
   - `Cow` 边界：当前 `Form` 为轻量语义容器，未识别到高频字符串复制热点；`Cow<'static, str>` 在本组件按 N/A 处理，避免为非热点路径引入额外抽象噪音。
   - 验证证据：已执行 `./scripts/check-rust-hygiene.sh`，当前环境因 `rg` 缺少 PCRE2 能力导致脚本提前失败（`PCRE2 is not available in this build of ripgrep`）；组件级改为语义回归锁定。
   - 回归：`components/form/test/semantics.rs::form_rust_hygiene_contract_blocks_unwrap_expect_and_ignored_results`。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 本组件判定：`crates/ui-components/Cargo.toml` 已注册 `component-form = []`，并纳入 `web-demo-components` 与 `all-components` 特性树，满足组件级特性剪裁入口。
-  - `lib.rs` 门控证据：`crates/ui-components/src/lib.rs` 的 `field_form` 模块与 `Form` 公共导出受 `#[cfg(feature = "component-form")]` 约束，未启用特性时不进入可达图。
-  - `css.rs` 门控证据：`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "inject-css")] + #[cfg(feature = "component-form")]` 按需注入 `crate::field_form::form::styles::CSS`，并在 `#[cfg(not(feature = "inject-css"))]` 提供 no-op `push_components_css`。
-  - 全局依赖约束：`components/form/Cargo.toml` 作为 source 模式独立 crate（`name = "ui-form"`、`default = []`）不反向依赖 `ui-components`，不存在中央注册表强耦合。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 本组件判定：`crates/ui/Cargo.toml` 已注册 `component-form = []`，并纳入 `web-demo-components` 与 `all-components` 特性树，满足组件级特性剪裁入口。
+  - `lib.rs` 门控证据：`crates/ui/src/lib.rs` 的 `field_form` 模块与 `Form` 公共导出受 `#[cfg(feature = "component-form")]` 约束，未启用特性时不进入可达图。
+  - `css.rs` 门控证据：`crates/ui/src/css.rs` 通过 `#[cfg(feature = "inject-css")] + #[cfg(feature = "component-form")]` 按需注入 `crate::field_form::form::styles::CSS`，并在 `#[cfg(not(feature = "inject-css"))]` 提供 no-op `push_components_css`。
+  - 全局依赖约束：`components/form/Cargo.toml` 作为 source 模式独立 crate（`name = "ui-form"`、`default = []`）不反向依赖 `ui`，不存在中央注册表强耦合。
   - 回归：`components/form/test/semantics.rs::form_tree_shaking_contract_is_feature_gated_and_not_registry_bound`。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 本组件判定：`components/form/test/semantics.rs` 已覆盖 `aria-*`、`data-*`、`role(<form>)` 与状态来源标记，断言主路径不依赖视觉快照。
@@ -423,7 +423,7 @@
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
   - `apps/docs-app/src/pages/components/pages/forms.rs::form()` 通过 `code_signal=hello_code/workbench_code` 提供与当前实现同步的可复制片段。
-  - `apps/docs-app/src/playground.rs::compose_copy_ready_code` + `DEFAULT_PLAYGROUND_IMPORTS` 为复制内容补全默认 imports（`use leptos::prelude::*;`、`use ui_components::*;`）。
+  - `apps/docs-app/src/playground.rs::compose_copy_ready_code` + `DEFAULT_PLAYGROUND_IMPORTS` 为复制内容补全默认 imports（`use leptos::prelude::*;`、`use ui::*;`）。
   - `apps/docs-app/src/pages/components/pages/forms.rs::form()` 通过 `test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/form/src/styles.rs"` 指向真实源码落点。
   - `e2e/tests/docs_app_form_contract.spec.mjs` 断言 `data-copyable=true` 与复制代码内容，防止示例漂移。
   - 回归：`components/form/test/semantics.rs::form_source_first_docs_are_copy_paste_ready_with_source_paths_and_import_hints`。

@@ -3085,7 +3085,7 @@ fn scroll_area_engineering_contract_marks_spec_serde_path_as_na_for_simple_compo
 fn scroll_area_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events()
 {
     let cargo_source = load_source("Cargo.toml");
-    let button_view_source = load_source("../ui-components/src/button/view.rs");
+    let button_view_source = load_source("../ui/src/button/view.rs");
     let combined = [
         load_source("src/scroll_area/mod.rs"),
         load_source("src/scroll_area/logic.rs"),
@@ -3810,7 +3810,7 @@ fn scroll_area_check2_documents_source_first_copy_paste_ready_rules() {
 fn scroll_area_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
-    let code_block_source = load_source("../ui-components/src/code_block/view.rs");
+    let code_block_source = load_source("../ui/src/code_block/view.rs");
     let view_source = load_source("src/scroll_area/view.rs");
     let logic_source = load_source("src/scroll_area/logic.rs");
 

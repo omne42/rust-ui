@@ -114,7 +114,7 @@ fn docs_catalog_covers_all_ui_components_components() {
 
     assert_eq!(
         expected, actual,
-        "docs-app 组件目录需要覆盖 ui-components/ui-layout 全部 #[component] pub fn 组件（新增/删除组件必须同步更新 docs catalog）。"
+        "docs-app 组件目录需要覆盖 ui/ui-layout 全部 #[component] pub fn 组件（新增/删除组件必须同步更新 docs catalog）。"
     );
 }
 

@@ -50,7 +50,7 @@ fn shared_element_transition_status_primitives_boundary_is_documented_and_enforc
 
     assert!(
         !crate_root.contains("pub mod shared_element_transition;"),
-        "ui-components crate root should not expose removed shared_element_transition component."
+        "ui crate root should not expose removed shared_element_transition component."
     );
     assert!(
         !state_primitives_root.contains("shared_element_transition"),
@@ -96,7 +96,7 @@ fn shared_element_transition_ui_headless_boundary_is_documented_and_enforced() {
 
     assert!(
         !crate_root.contains("pub mod shared_element_transition;"),
-        "ui-components crate root should not expose removed shared_element_transition component."
+        "ui crate root should not expose removed shared_element_transition component."
     );
 
     for required in [
@@ -163,7 +163,7 @@ fn shared_element_transition_ui_motion_boundary_is_documented_and_enforced() {
 
     assert!(
         !crate_root.contains("pub mod shared_element_transition;"),
-        "ui-components crate root should not expose removed shared_element_transition component."
+        "ui crate root should not expose removed shared_element_transition component."
     );
 
     for required in [
@@ -240,7 +240,7 @@ fn shared_element_transition_ui_theme_boundary_is_documented_and_enforced() {
 
     assert!(
         !crate_root.contains("pub mod shared_element_transition;"),
-        "ui-components crate root should not expose removed shared_element_transition component."
+        "ui crate root should not expose removed shared_element_transition component."
     );
 
     for required in [
@@ -350,7 +350,7 @@ fn shared_element_transition_ui_components_boundary_is_documented_and_enforced()
 
     assert!(
         !crate_root.contains("pub mod shared_element_transition;"),
-        "ui-components crate root should not expose removed shared_element_transition component."
+        "ui crate root should not expose removed shared_element_transition component."
     );
 
     for required in [
@@ -363,14 +363,14 @@ fn shared_element_transition_ui_components_boundary_is_documented_and_enforced()
     ] {
         assert!(
             crate_root.contains(required),
-            "ui-components crate root should keep assembly marker `{}`.",
+            "ui crate root should keep assembly marker `{}`.",
             required
         );
     }
 
     assert!(
         !crate_root.contains("pub use web_sys"),
-        "ui-components public API should not expose web_sys details from crate root."
+        "ui public API should not expose web_sys details from crate root."
     );
 
     for required in [
@@ -380,7 +380,7 @@ fn shared_element_transition_ui_components_boundary_is_documented_and_enforced()
     ] {
         assert!(
             css_aggregator.contains(required),
-            "ui-components css aggregation should keep feature-gated marker `{}`.",
+            "ui css aggregation should keep feature-gated marker `{}`.",
             required
         );
     }
@@ -392,20 +392,20 @@ fn shared_element_transition_ui_components_boundary_is_documented_and_enforced()
     ] {
         assert!(
             ui_root.contains(required),
-            "ui-components root should keep composition marker `{}`.",
+            "ui root should keep composition marker `{}`.",
             required
         );
     }
 
     for required in [
-        "- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
+        "- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
         "N/A：`shared_element_transition` 兼容组件已移除",
-        "组件目录仅 `check2.md` + crate root 未导出该组件 + `ui-components` 仍在 `lib.rs/root.rs` 组合 `ui-headless` 与 `ui-theme` 并通过 feature gate 聚合公共 API",
+        "组件目录仅 `check2.md` + crate root 未导出该组件 + `ui` 仍在 `lib.rs/root.rs` 组合 `ui-headless` 与 `ui-theme` 并通过 feature gate 聚合公共 API",
         "shared_element_transition_ui_components_boundary_is_documented_and_enforced",
     ] {
         assert!(
             check2_source.contains(required),
-            "shared_element_transition checklist should keep ui-components boundary marker `{}`.",
+            "shared_element_transition checklist should keep ui boundary marker `{}`.",
             required
         );
     }
@@ -435,7 +435,7 @@ fn shared_element_transition_api_naming_contract_is_documented_and_enforced() {
 
     assert!(
         !crate_root.contains("shared_element_transition"),
-        "ui-components crate root should not expose removed shared_element_transition symbols."
+        "ui crate root should not expose removed shared_element_transition symbols."
     );
 
     for required in [
@@ -475,7 +475,7 @@ fn shared_element_transition_section2_state_api_contracts_are_documented_and_enf
 
     assert!(
         !crate_root.contains("shared_element_transition"),
-        "ui-components crate root should not expose removed shared_element_transition symbols."
+        "ui crate root should not expose removed shared_element_transition symbols."
     );
 
     for required in [
@@ -524,7 +524,7 @@ fn shared_element_transition_section3_semantics_and_style_contracts_are_document
 
     assert!(
         !crate_root.contains("shared_element_transition"),
-        "ui-components crate root should not expose removed shared_element_transition symbols."
+        "ui crate root should not expose removed shared_element_transition symbols."
     );
 
     for required in [
@@ -534,7 +534,7 @@ fn shared_element_transition_section3_semantics_and_style_contracts_are_document
     ] {
         assert!(
             css_aggregator.contains(required),
-            "ui-components css aggregation should keep token-first/tree-shaking marker `{}`.",
+            "ui css aggregation should keep token-first/tree-shaking marker `{}`.",
             required
         );
     }
@@ -592,7 +592,7 @@ fn shared_element_transition_section4_platform_performance_contracts_are_documen
 
     assert!(
         !crate_root.contains("shared_element_transition"),
-        "ui-components crate root should not expose removed shared_element_transition symbols."
+        "ui crate root should not expose removed shared_element_transition symbols."
     );
 
     for required in [
@@ -668,7 +668,7 @@ fn shared_element_transition_section5_file_placement_contracts_are_documented_an
     for required in ["lib.rs", "css.rs", "root.rs"] {
         assert!(
             src_dir.join(required).exists(),
-            "ui-components source root should keep required entry file `{}`.",
+            "ui source root should keep required entry file `{}`.",
             required
         );
     }
@@ -682,13 +682,13 @@ fn shared_element_transition_section5_file_placement_contracts_are_documented_an
     for forbidden in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !src_dir.join(forbidden).exists(),
-            "ui-components source root should not carry forbidden file `{}`.",
+            "ui source root should not carry forbidden file `{}`.",
             forbidden
         );
     }
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "- [x] 组件目录标准文件落点正确。",
         "shared_element_transition_section5_file_placement_contracts_are_documented_and_enforced",
     ] {
@@ -724,7 +724,7 @@ fn shared_element_transition_section6_agent_contracts_are_documented_and_enforce
 
     assert!(
         !crate_root.contains("shared_element_transition"),
-        "ui-components crate root should not expose removed shared_element_transition symbols."
+        "ui crate root should not expose removed shared_element_transition symbols."
     );
 
     for required in [
@@ -767,7 +767,7 @@ fn shared_element_transition_section7_docs_and_e2e_contracts_are_documented_and_
 
     assert!(
         !crate_root.contains("shared_element_transition"),
-        "ui-components crate root should not expose removed shared_element_transition symbols."
+        "ui crate root should not expose removed shared_element_transition symbols."
     );
 
     for required in [
@@ -816,7 +816,7 @@ fn shared_element_transition_anti_patterns_are_documented_and_enforced() {
 
     assert!(
         !crate_root.contains("shared_element_transition"),
-        "ui-components crate root should not expose removed shared_element_transition symbols."
+        "ui crate root should not expose removed shared_element_transition symbols."
     );
     assert!(
         !state_primitives_root.contains("shared_element_transition"),

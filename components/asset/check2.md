@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。`asset 不自实现 spring/keyframe/driver；仅在 components/asset/src/motion.rs 转发到 ui_thumbnail::motion（其内部消费 ui_motion::spring），并继承 wasm/non-wasm 与 reduced-motion 降级路径`
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。`asset 仅在 styles.rs 消费 --ui-fg/--ui-bg/--ui-accent 等主题变量；三轴上下文与变量注入由 UiRoot + ui-theme (ThemeContext/theme_to_css_variables) 统一提供，组件未重建主题或引入平行 token 体系`
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。`asset 已保持 logic/view/styles/motion 职责拆分，未暴露 web-sys/DOM 类型；并已迁移语义测试到 components/asset/test/semantics.rs（旧的 components/*/test/*asset_semantics.rs 已回迁）`
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。`asset 已保持 logic/view/styles/motion 职责拆分，未暴露 web-sys/DOM 类型；并已迁移语义测试到 components/asset/test/semantics.rs（旧的 components/*/test/*asset_semantics.rs 已回迁）`
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -130,8 +130,8 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。`asset 的样式仅落在 styles.rs 并消费 var(--ui-fg/bg/accent) 等主题变量；crates/ui-components/src/css.rs 已按 component-asset 特性聚合 crate::asset::styles::CSS，UiRoot 通过 push_components_css 注入；asset 侧未引入 utility-first class 与 css-in-rust/inline-style 方案`
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。`asset 的样式仅落在 styles.rs 并消费 var(--ui-fg/bg/accent) 等主题变量；crates/ui/src/css.rs 已按 component-asset 特性聚合 crate::asset::styles::CSS，UiRoot 通过 push_components_css 注入；asset 侧未引入 utility-first class 与 css-in-rust/inline-style 方案`
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -140,14 +140,14 @@
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。`asset 已满足：ui-components/Cargo.toml 通过 component-asset -> dep:ui-asset 建立组件级特性；lib.rs 与 css.rs 均以 #[cfg(feature=\"component-asset\")] 做导出/样式聚合门控；web-demo 以 default-features=false + web-demo-components 接入，未启用 all-components。已补语义回归 asset_tree_shaking_contract_is_feature_gated_for_package_and_style_layers。CI 最小特性编译与体积预算为仓库级流水线治理项，单组件检查记 N/A 并升级仓库任务。`
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。`asset 已满足：ui/Cargo.toml 通过 component-asset -> dep:ui-asset 建立组件级特性；lib.rs 与 css.rs 均以 #[cfg(feature=\"component-asset\")] 做导出/样式聚合门控；web-demo 以 default-features=false + web-demo-components 接入，未启用 all-components。已补语义回归 asset_tree_shaking_contract_is_feature_gated_for_package_and_style_layers。CI 最小特性编译与体积预算为仓库级流水线治理项，单组件检查记 N/A 并升级仓库任务。`
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。`asset 已通过 enum/新类型约束离散输入（AssetVariant/AssetSize/ThumbnailSize），无效组合在 ui-state-primitives::asset::resolve_state 统一归一；view.rs 暴露稳定 data-state/data-selected/data-focused 与 *-source markers；并补充 asset_type_system_and_semantic_markers_form_machine_readable_contract 回归，确保编译器与语义测试可直接定位契约漂移点`
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -159,11 +159,11 @@
 - [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。`N/A（asset 非 overlay/分层弹层组件，不承载焦点恢复职责；已补回归 asset_has_no_overlay_focus_stack_or_focus_restore_protocol_surface，防止误引入 FallbackTo/document.body 等焦点栈协议面）`
 - [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。`N/A（asset 为静态展示组件，不集成 ECharts/Map 等命令式第三方实例，不存在 Foreign Zone 生命周期托管边界；已补回归 asset_has_no_foreign_zone_escape_hatch_surface，防止第三方实例/API 暴露与状态机反向污染）`
 - [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。`N/A（asset 不生成组件内 ID、无时间/随机种子初始化路径，因此不存在 SSR/Hydration ID 漂移面；已补回归 asset_has_no_hydration_nondeterministic_id_or_time_surface，防止引入 now()/随机 UUID 等非确定性来源）`
-- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。`asset 源码（mod/logic/view/styles/motion/protocol）已确认无 web-sys/js_sys/wasm_bindgen/window/document 等浏览器对象依赖；平台差异与 feature 互斥由 crates/ui-headless/src/lib.rs 的 web+ssr compile_error! 约束，compile-only 路径由 scripts/check-ui-components-platforms.sh 覆盖 default native + ssr native + web wasm。并补回归 asset_cross_platform_contract_uses_feature_cfg_guards_and_keeps_non_wasm_browser_free。另已尝试执行 CARGO_TARGET_DIR=/tmp/codex-asset-platform 下的三条 compile-only 命令（asset native、asset wasm32、ui-headless ssr），当前环境统一被 Invalid cross-device link (os error 18) 阻断。`
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。`asset 源码（mod/logic/view/styles/motion/protocol）已确认无 web-sys/js_sys/wasm_bindgen/window/document 等浏览器对象依赖；平台差异与 feature 互斥由 crates/ui-headless/src/lib.rs 的 web+ssr compile_error! 约束，compile-only 路径由 scripts/check-ui-platforms.sh 覆盖 default native + ssr native + web wasm。并补回归 asset_cross_platform_contract_uses_feature_cfg_guards_and_keeps_non_wasm_browser_free。另已尝试执行 CARGO_TARGET_DIR=/tmp/codex-asset-platform 下的三条 compile-only 命令（asset native、asset wasm32、ui-headless ssr），当前环境统一被 Invalid cross-device link (os error 18) 阻断。`
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。`asset 未直接接入 ui-headless（Cargo.toml 无 ui-headless 依赖），不存在组件侧破坏互斥约束的入口；并补回归 asset_headless_web_ssr_mutex_contract_is_enforced，锁定 crates/ui-headless/src/lib.rs 的 web+ssr compile_error! 与 scripts/check-ui-components-platforms.sh 的 ssr/web 两条编译路径及 web+ssr 预期失败守卫。已尝试实跑相关 cargo check，当前环境仍被 Invalid cross-device link (os error 18) 阻断。`
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。`asset 未直接接入 ui-headless（Cargo.toml 无 ui-headless 依赖），不存在组件侧破坏互斥约束的入口；并补回归 asset_headless_web_ssr_mutex_contract_is_enforced，锁定 crates/ui-headless/src/lib.rs 的 web+ssr compile_error! 与 scripts/check-ui-platforms.sh 的 ssr/web 两条编译路径及 web+ssr 预期失败守卫。已尝试实跑相关 cargo check，当前环境仍被 Invalid cross-device link (os error 18) 阻断。`
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
@@ -175,7 +175,7 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。`asset 为展示型组件，按适用范围采用“等价证据 + 仓库级阻断门禁”：组件本身无本地高频事件循环/计时器/订阅洪泛，且通过 data-state/data-*-source 标记提供可归因路径；仓库级预算与阻断由 docs UiPerfProbe + scripts/check-ui-components-performance.sh 覆盖（含 Button/Input 预算），render_count 自动化仍以 docs/plan/TODO.md + accordion_semantics 跟踪补齐。已补回归 asset_performance_governance_budget_is_equivalently_guarded_and_traceable。`
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。`asset 为展示型组件，按适用范围采用“等价证据 + 仓库级阻断门禁”：组件本身无本地高频事件循环/计时器/订阅洪泛，且通过 data-state/data-*-source 标记提供可归因路径；仓库级预算与阻断由 docs UiPerfProbe + scripts/check-ui-performance.sh 覆盖（含 Button/Input 预算），render_count 自动化仍以 docs/plan/TODO.md + accordion_semantics 跟踪补齐。已补回归 asset_performance_governance_budget_is_equivalently_guarded_and_traceable。`
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
@@ -213,16 +213,16 @@
 
 ### 5. 样式与动效（Theme & Motion）
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。`asset/styles.rs 已将颜色与关键尺寸入口收敛为双层回退链（fg/bg/accent/space-xl/space-xs），并移除 2.25rem/4.25rem/0.25rem 等裸尺寸终值；fallback 终值由 ui-theme 输出的 --ui-fallback-* 提供。已补回归 asset_styles_use_defensive_variable_fallback_chains 锁定契约。`
-- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。`asset 已满足：组件样式经 crates/ui-components/src/css.rs 的 push_components_css 聚合进 @layer ui，且以 #[cfg(feature=\"component-asset\")] 门控注入；asset/view.rs 未使用普通 inline style（style=\"...\"/style=...），运行时样式无越权写法。已补回归 asset_css_is_aggregated_under_ui_layer_without_plain_inline_styles 锁定契约。`
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。`asset 已满足：组件样式经 crates/ui/src/css.rs 的 push_components_css 聚合进 @layer ui，且以 #[cfg(feature=\"component-asset\")] 门控注入；asset/view.rs 未使用普通 inline style（style=\"...\"/style=...），运行时样式无越权写法。已补回归 asset_css_is_aggregated_under_ui_layer_without_plain_inline_styles 锁定契约。`
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。`asset 通过 motion.rs 维持组件合同桥接：AssetMotion=ThumbnailMotion，sanitize_motion/attach_motion 委托 ui_thumbnail::motion；合同参数（stiffness/damping）在 thumbnail motion 内置并经 sanitize 约束；wasm 分支尊重 prefers-reduced-motion，non-wasm 分支 attach_motion 为 no-op。已补回归 asset_motion_contract_is_parameterized_and_attached_with_safe_degrade 锁定。`
-- [x] `ui-components` 固定入口文件落点正确。`已满足：crates/ui-components/src/lib.rs 作为总入口并通过 component-* feature gate 导出（含 component-asset）；crates/ui-components/src/css.rs 作为 CSS 聚合入口并在 @layer ui 下按 feature 注入；crates/ui-components/src/root.rs 统一注入 BASE_CSS + theme vars + 可选 components css，并提供 i18n/id provider；共享高亮动效落在 crates/ui-visual-primitive/src/active_highlight.rs。并确认 crates/ui-components/src 不存在 overlay_open.rs / presence.rs / a11y.rs。已补回归 asset_ui_components_fixed_entry_files_are_correct 锁定。`
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。`已满足：crates/ui/src/lib.rs 作为总入口并通过 component-* feature gate 导出（含 component-asset）；crates/ui/src/css.rs 作为 CSS 聚合入口并在 @layer ui 下按 feature 注入；crates/ui/src/root.rs 统一注入 BASE_CSS + theme vars + 可选 components css，并提供 i18n/id provider；共享高亮动效落在 crates/ui-visual-primitive/src/active_highlight.rs。并确认 crates/ui/src 不存在 overlay_open.rs / presence.rs / a11y.rs。已补回归 asset_ui_components_fixed_entry_files_are_correct 锁定。`
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。`已满足：asset/src 存在 mod.rs + logic.rs + styles.rs + view.rs + motion.rs；mod.rs 仅保留最小稳定导出面（Asset/AssetMotion），logic.rs 仅做归一与派生，styles.rs 仅保留 token-first 静态 CSS，view.rs 仅做结构渲染与语义挂载，motion.rs 仅做 motion 合同桥接；并确认未引入 render.rs/spec.rs（simple component N/A）。已补回归 asset_component_directory_keeps_standard_file_layout + asset_files_keep_component_layer_responsibilities 锁定。`
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -254,8 +254,8 @@
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。`已满足（asset 作用域）：src 非测试代码无 unwrap/expect、无 let _ = 吞错、无 .to_string/.to_owned/String::from 字符串复制热点（当前以 &'static str/借用路径输出，暂无需额外 Cow 优化）。已补回归 asset_rust_hygiene_forbids_unwrap_expect_let_underscore_and_string_clone_hotspots。仓库脚本执行证据：尝试运行 ./scripts/check-rust-hygiene.sh（通过临时包装修复 check-api-contracts.sh 可执行位）后被环境/仓库基线阻断（rg 缺 PCRE2 + api-contract baseline drift），非 asset 局部回归导致。`
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。`asset 已满足：crates/ui-components/Cargo.toml 定义 component-asset=["dep:ui-asset"]；crates/ui-components/src/lib.rs 与 crates/ui-components/src/css.rs 均以 #[cfg(feature="component-asset")] 进行导出与样式聚合门控；components/asset/test/semantics.rs 的 asset_tree_shaking_contract_is_feature_gated_for_package_and_style_layers 已锁定回归。`
-- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。`asset 已满足：语义契约由 asset_semantic_contract_matrix_covers_applicable_branches_without_snapshot_dependency 锁定（覆盖 role/aria-label/data-state/data-selected/data-focused 与 *-source，且不依赖快照）；焦点“流转”对 asset 属 N/A（非交互组件，无键盘/指针焦点状态机，仅消费 is_focused 外部输入并输出稳定标记）。性能侧由 asset_performance_governance_budget_is_equivalently_guarded_and_traceable 锁定仓库级预算阻断路径与 render_count 跟踪（check-ui-components-performance.sh + docs/plan/TODO.md 的 render_count follow-up）。`
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。`asset 已满足：crates/ui/Cargo.toml 定义 component-asset=["dep:ui-asset"]；crates/ui/src/lib.rs 与 crates/ui/src/css.rs 均以 #[cfg(feature="component-asset")] 进行导出与样式聚合门控；components/asset/test/semantics.rs 的 asset_tree_shaking_contract_is_feature_gated_for_package_and_style_layers 已锁定回归。`
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。`asset 已满足：语义契约由 asset_semantic_contract_matrix_covers_applicable_branches_without_snapshot_dependency 锁定（覆盖 role/aria-label/data-state/data-selected/data-focused 与 *-source，且不依赖快照）；焦点“流转”对 asset 属 N/A（非交互组件，无键盘/指针焦点状态机，仅消费 is_focused 外部输入并输出稳定标记）。性能侧由 asset_performance_governance_budget_is_equivalently_guarded_and_traceable 锁定仓库级预算阻断路径与 render_count 跟踪（check-ui-performance.sh + docs/plan/TODO.md 的 render_count follow-up）。`
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。`N/A（当前 asset 未发生跨大版本 API 破坏升级）：组件 crate 仍为 0.0.0，协议面仅保留 AssetComponentSchemaVersion::V1 与 schema_version 字段；未引入 deprecated 窗口与 migrate_v1_to_v2。已补回归 asset_version_deprecation_migration_is_not_applicable_without_major_breaking_upgrade，防止在未触发条件时误引入迁移层。`
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。`asset 已满足：docs 页面新增并保留 Hello World、State + Source Markers、Controlled vs Uncontrolled (N/A Axis)、Streaming Optional + Snapshot Fallback 四类验收入口；受控/非受控对照对 asset 明确标注 N/A（组件无内部受控轴，仅消费 is_selected/is_focused 外部输入）。每个 Playground 显式传 code_imports=ASSET_PLAYGROUND_IMPORTS，复制代码补全 imports；复制链路由 Playground 的 compose_copy_ready_code + CodeBlock 承载。已补回归 asset_docs_copy_paste_ready_playground_contract_is_complete。`
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。`asset 已满足：语义回归以 components/asset/test/semantics.rs 为主，覆盖 role=\"img\"、aria-label、data-state/data-selected/data-focused 与 data-*-source（selection/focus/label/class/content）契约，并通过 asset_semantic_contract_matrix_covers_applicable_branches_without_snapshot_dependency + asset_semantics_tests_prioritize_contract_over_visual_snapshot 锁定“语义优先、非快照依赖”要求。新增/变更语义字段已在同文件通过字符串契约断言回归，缺失即失败。`
@@ -282,7 +282,7 @@
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。`asset 已补齐 source-first 文档入口：docs 页面新增 data-slot="asset-source-first" 区块，明确“Show code”复制路径、真实源码落点（components/asset/src/{mod,view,logic,styles,motion,protocol}.rs 与 crates/ui-components/src/lib.rs）和依赖前提（component-asset/source mode）。复制链路仍走 Playground 的 compose_copy_ready_code + CodeBlock（含 imports 自动补全）。并新增回归 asset_source_first_docs_are_copy_paste_ready_and_point_to_real_source_files + asset_source_first_e2e_contract_is_repeatable_with_semantic_markers，防止文档路径与实现漂移。`
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。`asset 已补齐 source-first 文档入口：docs 页面新增 data-slot="asset-source-first" 区块，明确“Show code”复制路径、真实源码落点（components/asset/src/{mod,view,logic,styles,motion,protocol}.rs 与 crates/ui/src/lib.rs）和依赖前提（component-asset/source mode）。复制链路仍走 Playground 的 compose_copy_ready_code + CodeBlock（含 imports 自动补全）。并新增回归 asset_source_first_docs_are_copy_paste_ready_and_point_to_real_source_files + asset_source_first_e2e_contract_is_repeatable_with_semantic_markers，防止文档路径与实现漂移。`
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
@@ -298,9 +298,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

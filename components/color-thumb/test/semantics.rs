@@ -33,7 +33,7 @@ fn color_thumb_semantics_tests_are_migrated_to_component_directory() {
 
     assert!(
         legacy_semantics.contains("color_thumb_"),
-        "legacy ui-components semantics suite should stay available during migration.",
+        "legacy ui semantics suite should stay available during migration.",
     );
     assert!(
         local_semantics.contains("color_thumb_semantics_tests_are_migrated_to_component_directory"),
@@ -56,7 +56,7 @@ fn color_thumb_module_keeps_ui_components_boundaries() {
     ] {
         assert!(
             mod_source.contains(required),
-            "color-thumb mod.rs should keep ui-components export boundary `{required}`.",
+            "color-thumb mod.rs should keep ui export boundary `{required}`.",
         );
     }
 }
@@ -147,8 +147,8 @@ fn color_thumb_logic_view_styles_motion_follow_assembly_contract() {
 
 #[test]
 fn color_thumb_component_files_keep_single_responsibility() {
-    let css_registry_source = include_str!("../../../crates/ui-components/src/css.rs");
-    let ui_root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let css_registry_source = include_str!("../../../crates/ui/src/css.rs");
+    let ui_root_source = include_str!("../../../crates/ui/src/root.rs");
     let lib_source = load_source("lib");
     let mod_source = load_source("mod");
     let logic_source = load_source("logic");
@@ -296,7 +296,7 @@ fn color_thumb_component_files_keep_single_responsibility() {
     ] {
         assert!(
             css_registry_source.contains(required),
-            "ui-components css registry should aggregate color-thumb styles via `{required}`.",
+            "ui css registry should aggregate color-thumb styles via `{required}`.",
         );
     }
     for required in [
@@ -416,7 +416,7 @@ fn color_thumb_public_surface_does_not_expose_dom_platform_types() {
         );
         assert!(
             !mod_source.contains(forbidden),
-            "color-thumb ui-components module should not expose `{forbidden}`.",
+            "color-thumb ui module should not expose `{forbidden}`.",
         );
     }
 }
@@ -469,7 +469,7 @@ fn color_thumb_performance_governance_budget_is_defined_and_blocking() {
     let perf_probe_source = include_str!("../../../apps/docs-app/src/perf_probe.rs");
     let e2e_source = include_str!("../../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = include_str!("../../../docs/plan/TODO.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../scripts/check-ui-performance.sh");
     let view_source = load_source("view");
     let styles_source = load_source("styles");
     let motion_source = load_source("motion");
@@ -489,7 +489,7 @@ fn color_thumb_performance_governance_budget_is_defined_and_blocking() {
             "mount-only 等价证据",
             "color_thumb_performance_governance_budget_is_defined_and_blocking",
             "color_thumb_performance_governance_contract_is_budgeted_traceable_and_blocking",
-            "`scripts/check-ui-components-performance.sh`",
+            "`scripts/check-ui-performance.sh`",
         ] {
             assert!(
                 source.contains(needle),
@@ -543,7 +543,7 @@ fn color_thumb_performance_governance_budget_is_defined_and_blocking() {
         "docs TODO should keep render_count follow-up tracking item.",
     );
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_performance_governance_contract_is_budgeted_traceable_and_blocking";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_performance_governance_contract_is_budgeted_traceable_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`.",
@@ -576,7 +576,7 @@ fn color_thumb_semantics_and_performance_regression_cover_aria_data_focus_and_re
     let view_source = load_source("view");
     let headless_tests = include_str!("../../../crates/ui-headless/src/test/color_thumb.rs");
     let todo_source = include_str!("../../../docs/plan/TODO.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../scripts/check-ui-performance.sh");
 
     for required_test in [
         "fn color_thumb_semantic_tests_cover_interaction_and_platform_matrix()",
@@ -625,9 +625,9 @@ fn color_thumb_semantics_and_performance_regression_cover_aria_data_focus_and_re
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -660,7 +660,7 @@ fn color_thumb_semantics_priority_contract_prefers_semantic_assertions_over_snap
     let view_source = load_source("view");
     let local_semantics = include_str!("semantics.rs");
     let legacy_semantics = load_source("legacy_semantics");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "role=move || semantics.get().root_attrs.role",
@@ -691,7 +691,7 @@ fn color_thumb_semantics_priority_contract_prefers_semantic_assertions_over_snap
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene script should enforce `{script_needle}`.",
@@ -703,7 +703,7 @@ fn color_thumb_semantics_priority_contract_prefers_semantic_assertions_over_snap
             "color_thumb_semantic_tests_cover_interaction_and_platform_matrix",
             "color_thumb_snapshot_baseline_consumes_complete_result_and_renders_stably",
             "color_thumb_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only",
-            "`scripts/check-ui-components-contract-hygiene.sh`",
+            "`scripts/check-ui-contract-hygiene.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -715,7 +715,8 @@ fn color_thumb_semantics_priority_contract_prefers_semantic_assertions_over_snap
 
 #[test]
 fn color_thumb_check2_documents_e2e_selector_and_stable_wait_rules() {
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-color-thumb.sh");
+    let script_source =
+        include_str!("../../../components/color-thumb/scripts/check-ui-e2e-color-thumb.sh");
 
     for source in [load_source("check2"), load_source("check2_src")] {
         for required in [
@@ -726,7 +727,7 @@ fn color_thumb_check2_documents_e2e_selector_and_stable_wait_rules() {
             "color_thumb_check2_documents_e2e_selector_and_stable_wait_rules",
             "color_thumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
             "color_thumb_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints",
-            "scripts/check-ui-components-e2e-color-thumb.sh",
+            "components/color-thumb/scripts/check-ui-e2e-color-thumb.sh",
         ] {
             assert!(
                 source.contains(required),
@@ -736,9 +737,9 @@ fn color_thumb_check2_documents_e2e_selector_and_stable_wait_rules() {
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -750,7 +751,8 @@ fn color_thumb_check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn color_thumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_color_thumb_contract.spec.mjs");
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-color-thumb.sh");
+    let script_source =
+        include_str!("../../../components/color-thumb/scripts/check-ui-e2e-color-thumb.sh");
 
     for required in [
         "const COLOR_THUMB_PAGE = \"/#/components/color-thumb\";",
@@ -792,7 +794,7 @@ fn color_thumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-thumb gate script should include `{script_needle}`.",
@@ -802,7 +804,8 @@ fn color_thumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
 #[test]
 fn color_thumb_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_color_thumb_contract.spec.mjs");
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-color-thumb.sh");
+    let script_source =
+        include_str!("../../../components/color-thumb/scripts/check-ui-e2e-color-thumb.sh");
 
     for required in [
         "focused/dragging/disabled/custom branches stay on semantic ready and settled breakpoints",
@@ -829,7 +832,7 @@ fn color_thumb_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints(
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-thumb gate script should include `{script_needle}`.",
@@ -838,7 +841,8 @@ fn color_thumb_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints(
 
 #[test]
 fn color_thumb_check2_documents_repeatable_e2e_regression_collection() {
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-color-thumb.sh");
+    let script_source =
+        include_str!("../../../components/color-thumb/scripts/check-ui-e2e-color-thumb.sh");
 
     for source in [load_source("check2"), load_source("check2_src")] {
         for required in [
@@ -852,7 +856,7 @@ fn color_thumb_check2_documents_repeatable_e2e_regression_collection() {
             "color_thumb_check2_documents_repeatable_e2e_regression_collection",
             "color_thumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
             "color_thumb_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-            "scripts/check-ui-components-e2e-color-thumb.sh",
+            "components/color-thumb/scripts/check-ui-e2e-color-thumb.sh",
         ] {
             assert!(
                 source.contains(required),
@@ -862,9 +866,9 @@ fn color_thumb_check2_documents_repeatable_e2e_regression_collection() {
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_repeatable_e2e_regression_collection",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_repeatable_e2e_regression_collection",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -876,7 +880,8 @@ fn color_thumb_check2_documents_repeatable_e2e_regression_collection() {
 #[test]
 fn color_thumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_color_thumb_contract.spec.mjs");
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-color-thumb.sh");
+    let script_source =
+        include_str!("../../../components/color-thumb/scripts/check-ui-e2e-color-thumb.sh");
 
     for required in [
         "key flow is repeatable and failures map to semantic breakpoints",
@@ -896,7 +901,7 @@ fn color_thumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-thumb gate script should include `{script_needle}`.",
@@ -906,7 +911,8 @@ fn color_thumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 #[test]
 fn color_thumb_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_color_thumb_contract.spec.mjs");
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-color-thumb.sh");
+    let script_source =
+        include_str!("../../../components/color-thumb/scripts/check-ui-e2e-color-thumb.sh");
 
     for required in [
         "high-risk paths keep focus keyboard and disabled branches semantically explicit",
@@ -932,7 +938,7 @@ fn color_thumb_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_bre
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-thumb gate script should include `{script_needle}`.",
@@ -944,12 +950,12 @@ fn color_thumb_view_macro_complexity_is_split_into_semantic_subrenders() {
     let view_source = load_source("view");
     let check2 = load_source("check2");
     let check2_src = load_source("check2_src");
-    let script_source = include_str!("../../../scripts/check-ui-components-view-macro.sh");
+    let script_source = include_str!("../../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "fn render_decorative_swatch(color: Option<String>, class_name: &str) -> AnyView",
-        "render_decorative_swatch(color.get_value(), \"ui-color-thumb__swatch\")",
-        "render_decorative_swatch(color.get_value(), \"ui-color-thumb__loupe-swatch\")",
+        "render_decorative_swatch(color.get_value(), CLASS_COLOR_THUMB_SWATCH)",
+        "render_decorative_swatch(color.get_value(), CLASS_COLOR_THUMB_LOUPE_SWATCH)",
     ] {
         assert!(
             view_source.contains(needle),
@@ -980,12 +986,12 @@ fn color_thumb_view_macro_complexity_is_split_into_semantic_subrenders() {
             "color-thumb check2 should include explicit view-macro regression test evidence.",
         );
         assert!(
-            source.contains("`scripts/check-ui-components-view-macro.sh`"),
+            source.contains("`scripts/check-ui-view-macro.sh`"),
             "color-thumb check2 should include explicit view-macro gate script evidence.",
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_view_macro_complexity_is_split_into_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_view_macro_complexity_is_split_into_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -997,7 +1003,7 @@ fn color_thumb_view_functional_split_prefers_plain_functions_over_local_componen
     let view_source = load_source("view");
     let check2 = load_source("check2");
     let check2_src = load_source("check2_src");
-    let script_source = include_str!("../../../scripts/check-ui-components-view-macro.sh");
+    let script_source = include_str!("../../../scripts/check-ui-view-macro.sh");
 
     assert!(
         view_source.contains(
@@ -1025,7 +1031,7 @@ fn color_thumb_view_functional_split_prefers_plain_functions_over_local_componen
             "`render_decorative_swatch(color, class_name) -> AnyView`",
             "`#[component] pub fn ColorThumb(...)`",
             "color_thumb_view_functional_split_prefers_plain_functions_over_local_components",
-            "`scripts/check-ui-components-view-macro.sh`",
+            "`scripts/check-ui-view-macro.sh`",
         ] {
             assert!(
                 source.contains(needle),
@@ -1034,7 +1040,7 @@ fn color_thumb_view_functional_split_prefers_plain_functions_over_local_componen
         }
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_view_functional_split_prefers_plain_functions_over_local_components";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_view_functional_split_prefers_plain_functions_over_local_components";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -1046,7 +1052,7 @@ fn color_thumb_static_fragments_are_constantized_or_absent_for_simple_layout() {
     let view_source = load_source("view");
     let check2 = load_source("check2");
     let check2_src = load_source("check2_src");
-    let script_source = include_str!("../../../scripts/check-ui-components-view-macro.sh");
+    let script_source = include_str!("../../../scripts/check-ui-view-macro.sh");
 
     for forbidden in [
         "inner_html=",
@@ -1100,7 +1106,7 @@ fn color_thumb_static_fragments_are_constantized_or_absent_for_simple_layout() {
             "- [x] 静态片段常量化",
             "`SLOT_COLOR_THUMB*`、`CLASS_COLOR_THUMB*`、`BOOL_TRUE`",
             "color_thumb_static_fragments_are_constantized_or_absent_for_simple_layout",
-            "`scripts/check-ui-components-view-macro.sh`",
+            "`scripts/check-ui-view-macro.sh`",
         ] {
             assert!(
                 source.contains(needle),
@@ -1109,7 +1115,7 @@ fn color_thumb_static_fragments_are_constantized_or_absent_for_simple_layout() {
         }
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_static_fragments_are_constantized_or_absent_for_simple_layout";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_static_fragments_are_constantized_or_absent_for_simple_layout";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`.",
@@ -1118,7 +1124,7 @@ fn color_thumb_static_fragments_are_constantized_or_absent_for_simple_layout() {
 
 #[test]
 fn color_thumb_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
-    let script_source = include_str!("../../../scripts/check-ui-components-inner-html.sh");
+    let script_source = include_str!("../../../scripts/check-ui-inner-html.sh");
 
     for (rel_path, source) in [
         (
@@ -1165,7 +1171,7 @@ fn color_thumb_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
             "仅允许编译期常量或明确白名单内容进入 `inner_html`",
             "使用 `inner_html` 的节点必须补语义测试与安全回归说明",
             "color_thumb_inner_html_usage_is_forbidden_in_component_and_docs_examples",
-            "`scripts/check-ui-components-inner-html.sh`",
+            "`scripts/check-ui-inner-html.sh`",
         ] {
             assert!(
                 source.contains(needle),
@@ -1174,7 +1180,7 @@ fn color_thumb_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
         }
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(script_needle),
         "inner-html gate script should enforce ColorThumb contract marker `{script_needle}`.",
@@ -1183,8 +1189,8 @@ fn color_thumb_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 
 #[test]
 fn color_thumb_wasm_debug_contract_reuses_shared_trace_and_stays_feature_isolated() {
-    let cargo_source = include_str!("../../../crates/ui-components/Cargo.toml");
-    let crate_root_source = include_str!("../../../crates/ui-components/src/lib.rs");
+    let cargo_source = include_str!("../../../crates/ui/Cargo.toml");
+    let crate_root_source = include_str!("../../../crates/ui/src/lib.rs");
     let docs_app_source = include_str!("../../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = include_str!("../../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = include_str!("../../../crates/ui-headless/src/trace.rs");
@@ -1198,7 +1204,7 @@ fn color_thumb_wasm_debug_contract_reuses_shared_trace_and_stays_feature_isolate
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep shared wasm-debug marker `{needle}`.",
+            "ui Cargo features should keep shared wasm-debug marker `{needle}`.",
         );
     }
     assert!(
@@ -1214,7 +1220,7 @@ fn color_thumb_wasm_debug_contract_reuses_shared_trace_and_stays_feature_isolate
     ] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components root should keep wasm-debug isolation marker `{needle}`.",
+            "ui root should keep wasm-debug isolation marker `{needle}`.",
         );
     }
 
@@ -1305,7 +1311,7 @@ fn color_thumb_wasm_debug_contract_reuses_shared_trace_and_stays_feature_isolate
             "关键交互链路应支持最小可复现记录",
             "调试开关默认不进入生产包体与公共 API",
             "color_thumb_wasm_debug_contract_reuses_shared_trace_and_stays_feature_isolated",
-            "`scripts/check-ui-components-wasm-debug.sh`",
+            "`scripts/check-ui-wasm-debug.sh`",
         ] {
             assert!(
                 source.contains(needle),
@@ -1317,8 +1323,8 @@ fn color_thumb_wasm_debug_contract_reuses_shared_trace_and_stays_feature_isolate
 
 #[test]
 fn color_thumb_wasm_debug_check_script_covers_shared_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-wasm-debug.sh");
-    let needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_wasm_debug_contract_reuses_shared_trace_and_stays_feature_isolated";
+    let script_source = include_str!("../../../scripts/check-ui-wasm-debug.sh");
+    let needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_wasm_debug_contract_reuses_shared_trace_and_stays_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm-debug check script should enforce ColorThumb contract marker `{needle}`.",
@@ -1330,7 +1336,7 @@ fn color_thumb_dx_playground_supports_css_hot_reload_and_context_with_optional_p
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
     let docs_source =
         include_str!("../../../apps/docs-app/src/pages/components/pages/forms_color.rs");
-    let dx_script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "let scope_selector = format!(\"[data-playground-scope=\\\"{scope_id}\\\"]\");",
@@ -1402,7 +1408,7 @@ fn color_thumb_dx_playground_supports_css_hot_reload_and_context_with_optional_p
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_dx_playground_supports_css_hot_reload_and_context_with_optional_persist_na";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_dx_playground_supports_css_hot_reload_and_context_with_optional_persist_na";
     assert!(
         dx_script_source.contains(
             "echo \"[dx] contract: color-thumb playground css hot-reload + isolated demo\""
@@ -1417,7 +1423,7 @@ fn color_thumb_dx_playground_supports_css_hot_reload_and_context_with_optional_p
             "组件调试应尽量保持当前交互上下文，降低重复操作成本。",
             "复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。",
             "color_thumb_dx_playground_supports_css_hot_reload_and_context_with_optional_persist_na",
-            "`scripts/check-ui-components-dx.sh`",
+            "`scripts/check-ui-dx.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -1429,8 +1435,8 @@ fn color_thumb_dx_playground_supports_css_hot_reload_and_context_with_optional_p
 
 #[test]
 fn color_thumb_dx_check_script_covers_hot_reload_and_demo_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
-    let needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_dx_playground_supports_css_hot_reload_and_context_with_optional_persist_na";
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
+    let needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_dx_playground_supports_css_hot_reload_and_context_with_optional_persist_na";
     assert!(
         script_source.contains(needle),
         "DX check script should enforce ColorThumb contract marker `{needle}`.",
@@ -1447,7 +1453,7 @@ fn color_thumb_check2_documents_docs_sync_and_state_matrix_rules() {
             "文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。",
             "color_thumb_check2_documents_docs_sync_and_state_matrix_rules",
             "color_thumb_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-            "`scripts/check-ui-components-dx.sh`",
+            "`scripts/check-ui-dx.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -1534,10 +1540,10 @@ fn color_thumb_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defa
 
 #[test]
 fn color_thumb_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
     for needle in [
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1558,7 +1564,7 @@ fn color_thumb_check2_documents_documentation_as_product_rules() {
             "color_thumb_docs_entry_exists_as_readme_or_equivalent_docs_app_page",
             "color_thumb_docs_are_beginner_friendly_with_default_then_advanced_path",
             "color_thumb_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring",
-            "`scripts/check-ui-components-contract-hygiene.sh`",
+            "`scripts/check-ui-contract-hygiene.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -1589,7 +1595,7 @@ fn color_thumb_docs_are_beginner_friendly_with_default_then_advanced_path() {
     let docs_source =
         include_str!("../../../apps/docs-app/src/pages/components/pages/forms_color.rs");
     let readme_source = include_str!("../src/README.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
     let section_start = docs_source
         .find("pub(super) fn color_thumb() -> AnyView {")
         .unwrap_or_else(|| panic!("forms_color docs should contain color_thumb section"));
@@ -1666,7 +1672,7 @@ fn color_thumb_docs_are_beginner_friendly_with_default_then_advanced_path() {
         "README should present default path before advanced guidance.",
     );
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_docs_are_beginner_friendly_with_default_then_advanced_path";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_docs_are_beginner_friendly_with_default_then_advanced_path";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene script should include `{script_needle}`.",
@@ -1799,11 +1805,11 @@ fn color_thumb_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn color_thumb_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_docs_app_provides_interactive_playground_for_props_state_and_preview",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1814,11 +1820,12 @@ fn color_thumb_dx_check_script_covers_interactive_playground_contract() {
 
 #[test]
 fn color_thumb_e2e_check_script_covers_interactive_playground_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-color-thumb.sh");
+    let script_source =
+        include_str!("../../../components/color-thumb/scripts/check-ui-e2e-color-thumb.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_check_script_covers_interactive_playground_contract",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_e2e_check_script_covers_interactive_playground_contract",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1839,7 +1846,7 @@ fn color_thumb_check2_documents_source_first_copy_paste_ready_rules() {
             "color_thumb_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
             "color_thumb_dx_check_script_covers_source_first_copy_paste_ready_contract",
             "color_thumb_check2_marks_source_first_copy_paste_ready_contract_complete",
-            "`scripts/check-ui-components-dx.sh`",
+            "`scripts/check-ui-dx.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -1921,11 +1928,11 @@ fn color_thumb_docs_source_first_copy_paste_ready_with_real_paths_and_dependenci
 
 #[test]
 fn color_thumb_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1942,7 +1949,7 @@ fn color_thumb_check2_marks_source_first_copy_paste_ready_contract_complete() {
             "color_thumb_check2_documents_source_first_copy_paste_ready_rules",
             "color_thumb_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
             "color_thumb_dx_check_script_covers_source_first_copy_paste_ready_contract",
-            "`scripts/check-ui-components-dx.sh`",
+            "`scripts/check-ui-dx.sh`",
         ] {
             assert!(
                 source.contains(marker),
@@ -2024,11 +2031,11 @@ fn color_thumb_heroui_strategy_and_component_docs_are_synchronized_and_indexable
 
 #[test]
 fn color_thumb_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2046,7 +2053,7 @@ fn color_thumb_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
             "color_thumb_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
             "color_thumb_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
             "docs/spec/heroui-parameter-design-strategy.md",
-            "`scripts/check-ui-components-dx.sh`",
+            "`scripts/check-ui-dx.sh`",
         ] {
             assert!(
                 source.contains(marker),
@@ -2061,7 +2068,7 @@ fn color_thumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_strea
     let docs_source =
         include_str!("../../../apps/docs-app/src/pages/components/pages/forms_color.rs");
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
-    let dx_script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     let section_start = docs_source
         .find("pub(super) fn color_thumb() -> AnyView {")
@@ -2117,7 +2124,7 @@ fn color_thumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_strea
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
     assert!(
         dx_script_source.contains(script_needle),
         "DX gate script should include docs-as-product contract `{script_needle}`.",
@@ -2128,7 +2135,7 @@ fn color_thumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_strea
             "- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。",
             "Controlled vs Uncontrolled (N/A)",
             "color_thumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-            "`scripts/check-ui-components-dx.sh`",
+            "`scripts/check-ui-dx.sh`",
             "compose_copy_ready_code",
         ] {
             assert!(
@@ -2141,8 +2148,8 @@ fn color_thumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_strea
 
 #[test]
 fn color_thumb_dx_check_script_covers_docs_product_copy_paste_ready_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
-    let needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
+    let needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
     assert!(
         script_source.contains(needle),
         "DX check script should enforce docs product copy-paste-ready marker `{needle}`.",
@@ -2153,7 +2160,7 @@ fn color_thumb_dx_check_script_covers_docs_product_copy_paste_ready_contract() {
 fn color_thumb_styles_use_defensive_variable_fallback_chain() {
     let styles_source = load_source("styles");
     let theme_css_source = include_str!("../../../crates/ui-theme/src/css.rs");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "var(--ui-color-thumb-x-start, var(--ui-fallback-color-thumb-x-start))",
@@ -2223,7 +2230,7 @@ fn color_thumb_styles_use_defensive_variable_fallback_chain() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_styles_use_defensive_variable_fallback_chain";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene script should enforce ColorThumb defensive-variable marker `{script_needle}`.",
@@ -2233,7 +2240,7 @@ fn color_thumb_styles_use_defensive_variable_fallback_chain() {
         for required in [
             "- [x] 样式孤岛防御（Defensive Variables）",
             "color_thumb_styles_use_defensive_variable_fallback_chain",
-            "`scripts/check-ui-components-contract-hygiene.sh`",
+            "`scripts/check-ui-contract-hygiene.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -2245,8 +2252,8 @@ fn color_thumb_styles_use_defensive_variable_fallback_chain() {
 
 #[test]
 fn color_thumb_contract_hygiene_script_covers_defensive_variable_chain() {
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
-    let needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_styles_use_defensive_variable_fallback_chain";
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
+    let needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(
             "echo \"[contract-hygiene] contract: color-thumb styles keep defensive fallback chain with ui-theme SSOT terminals\""
@@ -2257,11 +2264,11 @@ fn color_thumb_contract_hygiene_script_covers_defensive_variable_chain() {
 
 #[test]
 fn color_thumb_cascade_layer_and_runtime_style_contract_is_enforced() {
-    let css_source = include_str!("../../../crates/ui-components/src/css.rs");
-    let root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let css_source = include_str!("../../../crates/ui/src/css.rs");
+    let root_source = include_str!("../../../crates/ui/src/root.rs");
     let view_source = load_source("view");
     let motion_source = load_source("motion");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "pub fn push_components_css(out: &mut String) {",
@@ -2272,7 +2279,7 @@ fn color_thumb_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css aggregation should keep cascade-layer marker `{required}`.",
+            "ui css aggregation should keep cascade-layer marker `{required}`.",
         );
     }
 
@@ -2321,7 +2328,7 @@ fn color_thumb_cascade_layer_and_runtime_style_contract_is_enforced() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_cascade_layer_and_runtime_style_contract_is_enforced";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene script should enforce ColorThumb cascade-layer marker `{script_needle}`.",
@@ -2331,7 +2338,7 @@ fn color_thumb_cascade_layer_and_runtime_style_contract_is_enforced() {
         for required in [
             "- [x] 级联层覆盖（`@layer ui`）",
             "color_thumb_cascade_layer_and_runtime_style_contract_is_enforced",
-            "`scripts/check-ui-components-contract-hygiene.sh`",
+            "`scripts/check-ui-contract-hygiene.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -2343,8 +2350,8 @@ fn color_thumb_cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn color_thumb_contract_hygiene_script_covers_cascade_layer_and_runtime_style_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
-    let needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_cascade_layer_and_runtime_style_contract_is_enforced";
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
+    let needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(
             "echo \"[contract-hygiene] contract: color-thumb css is aggregated in @layer ui and runtime style is css-variable-only\""
@@ -2357,7 +2364,7 @@ fn color_thumb_contract_hygiene_script_covers_cascade_layer_and_runtime_style_co
 fn color_thumb_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop() {
     let motion_source = load_source("motion");
     let view_source = load_source("view");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "pub spring: ui_motion::spring::SpringConfig",
@@ -2380,7 +2387,7 @@ fn color_thumb_motion_contract_is_builtin_and_attached_with_reduced_motion_and_n
         "ColorThumb view should attach motion contract via style vars.",
     );
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene script should enforce ColorThumb motion-contract marker `{script_needle}`.",
@@ -2390,7 +2397,7 @@ fn color_thumb_motion_contract_is_builtin_and_attached_with_reduced_motion_and_n
         for required in [
             "- [x] Motion 合同化",
             "color_thumb_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
-            "`scripts/check-ui-components-contract-hygiene.sh`",
+            "`scripts/check-ui-contract-hygiene.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -2402,8 +2409,8 @@ fn color_thumb_motion_contract_is_builtin_and_attached_with_reduced_motion_and_n
 
 #[test]
 fn color_thumb_contract_hygiene_script_covers_motion_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
-    let needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop";
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
+    let needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop";
     assert!(
         script_source
             .contains("echo \"[contract-hygiene] contract: color-thumb motion contract is built-in and safely attached across reduced-motion + non-wasm\"")
@@ -2509,7 +2516,7 @@ fn color_thumb_agent_contract_render_path_is_whitelist_safe_and_script_injection
     let logic_source = load_source("logic");
     let view_source = load_source("view");
     let component_manifest = include_str!("../src/Component.toml");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "[[agent_contract_whitelist]]",
@@ -2544,8 +2551,8 @@ fn color_thumb_agent_contract_render_path_is_whitelist_safe_and_script_injection
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -2568,7 +2575,7 @@ fn color_thumb_agent_contract_render_path_is_whitelist_safe_and_script_injection
 
 #[test]
 fn color_thumb_check2_documents_streaming_definition_is_llm_output_only_with_two_modes() {
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
     for source in [load_source("check2"), load_source("check2_src")] {
         for required in [
@@ -2578,7 +2585,7 @@ fn color_thumb_check2_documents_streaming_definition_is_llm_output_only_with_two
             "N/A：`ColorThumb` 不是 LLM 正文渲染组件",
             "token-by-token streaming 协议",
             "color_thumb_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
-            "`scripts/check-ui-components-streaming.sh`",
+            "`scripts/check-ui-streaming.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -2587,7 +2594,7 @@ fn color_thumb_check2_documents_streaming_definition_is_llm_output_only_with_two
         }
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(script_needle),
         "streaming gate script should include `{script_needle}`.",
@@ -2600,7 +2607,7 @@ fn color_thumb_snapshot_baseline_consumes_complete_result_and_renders_stably() {
     let logic_source = load_source("logic");
     let docs_source =
         include_str!("../../../apps/docs-app/src/pages/components/pages/forms_color.rs");
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
     for source in [load_source("check2"), load_source("check2_src")] {
         for required in [
@@ -2608,7 +2615,7 @@ fn color_thumb_snapshot_baseline_consumes_complete_result_and_renders_stably() {
             "所有组件都应能消费“完整生成结果”并稳定渲染。",
             "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
             "color_thumb_snapshot_baseline_consumes_complete_result_and_renders_stably",
-            "`scripts/check-ui-components-streaming.sh`",
+            "`scripts/check-ui-streaming.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -2678,7 +2685,7 @@ fn color_thumb_snapshot_baseline_consumes_complete_result_and_renders_stably() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_snapshot_baseline_consumes_complete_result_and_renders_stably";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_snapshot_baseline_consumes_complete_result_and_renders_stably";
     assert!(
         script_source.contains(script_needle),
         "streaming gate script should include `{script_needle}`.",
@@ -2687,7 +2694,7 @@ fn color_thumb_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
 #[test]
 fn color_thumb_check2_documents_streaming_required_optional_classification_rules() {
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
     for source in [load_source("check2"), load_source("check2_src")] {
         for required in [
@@ -2709,9 +2716,9 @@ fn color_thumb_check2_documents_streaming_required_optional_classification_rules
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -2752,7 +2759,7 @@ fn color_thumb_streaming_validation_retry_resilience_boundaries_stay_outside_com
     let logic_source = load_source("logic");
     let motion_source = load_source("motion");
     let styles_source = load_source("styles");
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
     let combined =
         format!("{mod_source}\n{view_source}\n{logic_source}\n{motion_source}\n{styles_source}");
 
@@ -2774,9 +2781,9 @@ fn color_thumb_streaming_validation_retry_resilience_boundaries_stay_outside_com
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -2789,10 +2796,10 @@ fn color_thumb_streaming_validation_retry_resilience_boundaries_stay_outside_com
 fn color_thumb_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let check2_source = load_source("check2");
     let check2_src_source = load_source("check2_src");
-    let script_source = include_str!("../../../scripts/check-ui-components-entrypoints.sh");
-    let lib_source = include_str!("../../../crates/ui-components/src/lib.rs");
-    let css_source = include_str!("../../../crates/ui-components/src/css.rs");
-    let root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let script_source = include_str!("../../../scripts/check-ui-entrypoints.sh");
+    let lib_source = include_str!("../../../crates/ui/src/lib.rs");
+    let css_source = include_str!("../../../crates/ui/src/css.rs");
+    let root_source = include_str!("../../../crates/ui/src/root.rs");
     let active_highlight_source =
         include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
     let headless_a11y_source = include_str!("../../../crates/ui-headless/src/a11y.rs");
@@ -2807,7 +2814,7 @@ fn color_thumb_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib entry should keep feature-gated color-thumb public surface `{required}`.",
+            "ui lib entry should keep feature-gated color-thumb public surface `{required}`.",
         );
     }
 
@@ -2818,7 +2825,7 @@ fn color_thumb_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not expose platform detail `{forbidden}`.",
+            "ui lib entry should not expose platform detail `{forbidden}`.",
         );
     }
 
@@ -2832,7 +2839,7 @@ fn color_thumb_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css entry should keep feature-gated layered aggregation marker `{required}`.",
+            "ui css entry should keep feature-gated layered aggregation marker `{required}`.",
         );
     }
 
@@ -2897,17 +2904,17 @@ fn color_thumb_ui_components_fixed_entry_files_follow_layered_boundaries() {
         .and_then(std::path::Path::parent)
         .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
     for forbidden in [
-        workspace_dir.join("crates/ui-components/src/overlay_open.rs"),
-        workspace_dir.join("crates/ui-components/src/presence.rs"),
-        workspace_dir.join("crates/ui-components/src/a11y.rs"),
+        workspace_dir.join("crates/ui/src/overlay_open.rs"),
+        workspace_dir.join("crates/ui/src/presence.rs"),
+        workspace_dir.join("crates/ui/src/a11y.rs"),
     ] {
         assert!(
             !forbidden.exists(),
-            "ui-components forbidden fixed entrypoint file should stay absent: {forbidden:?}",
+            "ui forbidden fixed entrypoint file should stay absent: {forbidden:?}",
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         script_source.contains(script_needle),
         "entrypoint gate script should include `{script_needle}`.",
@@ -2915,9 +2922,9 @@ fn color_thumb_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
     for source in [check2_source, check2_src_source] {
         for required in [
-            "- [x] `ui-components` 固定入口文件落点正确。",
+            "- [x] `ui` 固定入口文件落点正确。",
             "color_thumb_ui_components_fixed_entry_files_follow_layered_boundaries",
-            "`scripts/check-ui-components-entrypoints.sh`",
+            "`scripts/check-ui-entrypoints.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -2929,8 +2936,8 @@ fn color_thumb_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
 #[test]
 fn color_thumb_entrypoints_script_covers_fixed_entry_files_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-entrypoints.sh");
-    let needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let script_source = include_str!("../../../scripts/check-ui-entrypoints.sh");
+    let needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         script_source.contains(
             "echo \"[entrypoints] contract: color-thumb fixed entry files and forbidden file guards\""
@@ -2943,7 +2950,7 @@ fn color_thumb_entrypoints_script_covers_fixed_entry_files_contract() {
 fn color_thumb_component_directory_standard_files_follow_contract_and_na_paths() {
     let check2_source = load_source("check2");
     let check2_src_source = load_source("check2_src");
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
     let lib_source = load_source("lib");
     let mod_source = load_source("mod");
     let logic_source = load_source("logic");
@@ -3100,7 +3107,7 @@ fn color_thumb_component_directory_standard_files_follow_contract_and_na_paths()
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_component_directory_standard_files_follow_contract_and_na_paths";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_component_directory_standard_files_follow_contract_and_na_paths";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
@@ -3110,7 +3117,7 @@ fn color_thumb_component_directory_standard_files_follow_contract_and_na_paths()
         for required in [
             "- [x] 组件目录标准文件落点正确。",
             "color_thumb_component_directory_standard_files_follow_contract_and_na_paths",
-            "`scripts/check-ui-components-component-files.sh`",
+            "`scripts/check-ui-component-files.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -3122,8 +3129,8 @@ fn color_thumb_component_directory_standard_files_follow_contract_and_na_paths()
 
 #[test]
 fn color_thumb_component_files_script_covers_standard_layout_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_component_directory_standard_files_follow_contract_and_na_paths";
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_component_directory_standard_files_follow_contract_and_na_paths";
     assert!(
         script_source.contains(
             "echo \"[component-files] contract: color-thumb standard file layout + scoped responsibilities\""
@@ -3141,7 +3148,7 @@ fn color_thumb_file_placement_discipline_contract_is_explicit_for_interactive_co
     let styles_source = load_source("styles");
     let view_source = load_source("view");
     let motion_source = load_source("motion");
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
 
     let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let workspace_dir = manifest_dir
@@ -3179,7 +3186,7 @@ fn color_thumb_file_placement_discipline_contract_is_explicit_for_interactive_co
         "logic/styles/view/motion should keep canonical responsibility anchors.",
     );
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_file_placement_discipline_contract_is_explicit_for_interactive_component_scope";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_file_placement_discipline_contract_is_explicit_for_interactive_component_scope";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
@@ -3189,7 +3196,7 @@ fn color_thumb_file_placement_discipline_contract_is_explicit_for_interactive_co
         for required in [
             "- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。",
             "color_thumb_file_placement_discipline_contract_is_explicit_for_interactive_component_scope",
-            "`scripts/check-ui-components-component-files.sh`",
+            "`scripts/check-ui-component-files.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -3201,8 +3208,8 @@ fn color_thumb_file_placement_discipline_contract_is_explicit_for_interactive_co
 
 #[test]
 fn color_thumb_component_files_script_covers_file_placement_discipline_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_file_placement_discipline_contract_is_explicit_for_interactive_component_scope";
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_file_placement_discipline_contract_is_explicit_for_interactive_component_scope";
     assert!(
         script_source.contains(
             "echo \"[component-files] contract: color-thumb file-placement discipline in AI struct-first section\""
@@ -3218,7 +3225,7 @@ fn color_thumb_hyper_structure_builder_spec_is_not_applicable_for_simple_compone
     let protocol_source = load_source("protocol");
     let check2_source = load_source("check2");
     let check2_src_source = load_source("check2_src");
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
     let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let workspace_dir = manifest_dir
         .parent()
@@ -3236,8 +3243,8 @@ fn color_thumb_hyper_structure_builder_spec_is_not_applicable_for_simple_compone
 
     for candidate in [
         workspace_dir.join("components/color-thumb/src/spec.rs"),
-        workspace_dir.join("crates/ui-components/src/color_thumb/spec.rs"),
-        workspace_dir.join("crates/ui-components/src/color/thumb/spec.rs"),
+        workspace_dir.join("crates/ui/src/color_thumb/spec.rs"),
+        workspace_dir.join("crates/ui/src/color/thumb/spec.rs"),
     ] {
         assert!(
             !candidate.exists(),
@@ -3245,7 +3252,7 @@ fn color_thumb_hyper_structure_builder_spec_is_not_applicable_for_simple_compone
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
@@ -3256,7 +3263,7 @@ fn color_thumb_hyper_structure_builder_spec_is_not_applicable_for_simple_compone
             "- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。",
             "N/A（已论证）",
             "color_thumb_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
-            "`scripts/check-ui-components-component-files.sh`",
+            "`scripts/check-ui-component-files.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -3268,8 +3275,8 @@ fn color_thumb_hyper_structure_builder_spec_is_not_applicable_for_simple_compone
 
 #[test]
 fn color_thumb_component_files_script_covers_hyper_structure_builder_na_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
     assert!(
         script_source.contains(
             "echo \"[component-files] contract: color-thumb hyper-structure builder spec contract is explicitly N/A\""
@@ -3282,7 +3289,7 @@ fn color_thumb_component_files_script_covers_hyper_structure_builder_na_contract
 fn color_thumb_context_compression_manifest_and_rbi_projection_are_present_and_current() {
     let check2_source = load_source("check2");
     let check2_src_source = load_source("check2_src");
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
     let component_manifest = include_str!("../src/Component.toml");
     let component_rbi = include_str!("../src/color_thumb.rbi");
     let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
@@ -3353,7 +3360,7 @@ fn color_thumb_context_compression_manifest_and_rbi_projection_are_present_and_c
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
@@ -3363,7 +3370,7 @@ fn color_thumb_context_compression_manifest_and_rbi_projection_are_present_and_c
         for required in [
             "- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。",
             "color_thumb_context_compression_manifest_and_rbi_projection_are_present_and_current",
-            "`scripts/check-ui-components-component-files.sh`",
+            "`scripts/check-ui-component-files.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -3375,8 +3382,8 @@ fn color_thumb_context_compression_manifest_and_rbi_projection_are_present_and_c
 
 #[test]
 fn color_thumb_component_files_script_covers_context_compression_manifest_and_rbi_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         script_source.contains(
             "echo \"[component-files] contract: color-thumb context-compression manifest + rbi projection\""
@@ -3394,7 +3401,7 @@ fn color_thumb_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtim
     let view_source = load_source("view");
     let styles_source = load_source("styles");
     let motion_source = load_source("motion");
-    let cargo_source = include_str!("../../../crates/ui-components/Cargo.toml");
+    let cargo_source = include_str!("../../../crates/ui/Cargo.toml");
     let trace_source = include_str!("../../../crates/ui-headless/src/trace.rs");
 
     for required in [
@@ -3431,7 +3438,7 @@ fn color_thumb_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtim
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::color_thumb::",
+        "target: \"ui::color_thumb::",
         "const COLOR_THUMB_TRACE_TARGET",
     ] {
         assert!(
@@ -3463,7 +3470,7 @@ fn color_thumb_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtim
             "关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。",
             "异步边界不得把具体 runtime 类型暴露到组件公共接口。",
             "color_thumb_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries",
-            "`scripts/check-ui-components-engineering.sh`",
+            "`scripts/check-ui-engineering.sh`",
         ] {
             assert!(
                 source.contains(required),
@@ -3478,7 +3485,7 @@ fn color_thumb_version_deprecation_migration_registry_is_explicitly_na_without_m
  {
     let protocol_source = load_source("protocol");
     let component_manifest = include_str!("../src/Component.toml");
-    let script_source = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let script_source = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for required in [
         "pub enum ThumbComponentSchemaVersion",
@@ -3515,7 +3522,7 @@ fn color_thumb_version_deprecation_migration_registry_is_explicitly_na_without_m
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
+    let script_needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(script_needle),
         "engineering gate script should include `{script_needle}`.",
@@ -3528,7 +3535,7 @@ fn color_thumb_version_deprecation_migration_registry_is_explicitly_na_without_m
             "`components/color-thumb/src/protocol.rs` 仍仅声明 `ThumbComponentSchemaVersion::V1` 与 `ThumbComponentSpec`",
             "`components/color-thumb/src/Component.toml` 保持 `schema_version = \"1\"` 与 `schema = \"ui.color-thumb.agent-contract.v1\"`",
             "color_thumb_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
-            "`scripts/check-ui-components-engineering.sh`",
+            "`scripts/check-ui-engineering.sh`",
         ] {
             assert!(
                 source.contains(needle),
@@ -3540,8 +3547,8 @@ fn color_thumb_version_deprecation_migration_registry_is_explicitly_na_without_m
 
 #[test]
 fn color_thumb_engineering_check_script_covers_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-engineering.sh");
-    let needle = "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries";
+    let script_source = include_str!("../../../scripts/check-ui-engineering.sh");
+    let needle = "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries";
     assert!(
         script_source.contains(
             "echo \"[engineering] contract: color-thumb serde protocol + tracing semantics + runtime boundary leakage\""
@@ -3611,7 +3618,7 @@ fn color_thumb_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent(
 #[test]
 fn color_thumb_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let script_source = include_str!("../../../scripts/check-rust-hygiene.sh");
-    let engineering_script = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -3626,9 +3633,9 @@ fn color_thumb_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "cargo test -p ui-components --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "cargo test -p ui --test color_thumb_semantics --no-default-features --features component-color_thumb,inject-css color_thumb_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(needle),
@@ -3642,7 +3649,7 @@ fn color_thumb_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
             "color_thumb_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
             "color_thumb_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
             "color_thumb_rust_hygiene_script_enforces_repo_level_hygiene_guards",
-            "`scripts/check-ui-components-engineering.sh`",
+            "`scripts/check-ui-engineering.sh`",
             "`./scripts/check-rust-hygiene.sh`",
         ] {
             assert!(
@@ -3660,8 +3667,8 @@ fn color_thumb_checklist_marks_ui_components_definition_complete() {
 
     for source in [check2, check2_src] {
         assert!(
-            source.contains("- [x] `ui-components` 定义"),
-            "color-thumb check2 should mark ui-components definition as completed.",
+            source.contains("- [x] `ui` 定义"),
+            "color-thumb check2 should mark ui definition as completed.",
         );
         assert!(
             source.contains("- [x] API 命名契约统一"),
@@ -3923,10 +3930,10 @@ fn color_thumb_checklist_marks_ui_components_definition_complete() {
             source.contains(
                 "color_thumb_performance_governance_contract_is_budgeted_traceable_and_blocking"
             ),
-            "color-thumb check2 should include explicit ui-components performance test evidence.",
+            "color-thumb check2 should include explicit ui performance test evidence.",
         );
         assert!(
-            source.contains("`scripts/check-ui-components-performance.sh`"),
+            source.contains("`scripts/check-ui-performance.sh`"),
             "color-thumb check2 should include explicit performance gate script evidence.",
         );
         assert!(
@@ -4006,13 +4013,13 @@ fn color_thumb_checklist_marks_ui_components_definition_complete() {
             "color-thumb check2 should mark token-first static style contract item as completed.",
         );
         assert!(
-            source.contains(
-                "`crates/ui-components/src/css.rs` 以 `component-color_thumb` feature gate 聚合"
-            ),
+            source.contains("`crates/ui/src/css.rs` 以 `component-color_thumb` feature gate 聚合"),
             "color-thumb check2 should include explicit rationale for css.rs feature-gated aggregation.",
         );
         assert!(
-            source.contains("`crates/ui-components/src/root.rs` 在 `UiRoot` 的 `inject_components_css` 路径统一注入"),
+            source.contains(
+                "`crates/ui/src/root.rs` 在 `UiRoot` 的 `inject_components_css` 路径统一注入"
+            ),
             "color-thumb check2 should include explicit rationale for UiRoot css injection path.",
         );
         assert!(
@@ -4072,7 +4079,7 @@ fn color_thumb_checklist_marks_ui_components_definition_complete() {
             "color-thumb check2 should mark motion-contract item as completed.",
         );
         assert!(
-            source.contains("- [x] `ui-components` 固定入口文件落点正确。"),
+            source.contains("- [x] `ui` 固定入口文件落点正确。"),
             "color-thumb check2 should mark fixed-entrypoint item as completed.",
         );
         assert!(
@@ -4277,19 +4284,19 @@ fn color_thumb_checklist_marks_ui_components_definition_complete() {
             "color-thumb check2 should include explicit N/A rationale for component-local streaming protocol support.",
         );
         assert!(
-            source.contains("`scripts/check-ui-components-entrypoints.sh`"),
+            source.contains("`scripts/check-ui-entrypoints.sh`"),
             "color-thumb check2 should include explicit fixed-entrypoint gate script evidence.",
         );
         assert!(
-            source.contains("`scripts/check-ui-components-component-files.sh`"),
+            source.contains("`scripts/check-ui-component-files.sh`"),
             "color-thumb check2 should include explicit component-files gate script evidence.",
         );
         assert!(
-            source.contains("`scripts/check-ui-components-streaming.sh`"),
+            source.contains("`scripts/check-ui-streaming.sh`"),
             "color-thumb check2 should include explicit streaming gate script evidence.",
         );
         assert!(
-            source.contains("`scripts/check-ui-components-engineering.sh`"),
+            source.contains("`scripts/check-ui-engineering.sh`"),
             "color-thumb check2 should include explicit engineering gate script evidence for rust-hygiene regressions.",
         );
         assert!(
@@ -4302,20 +4309,19 @@ fn color_thumb_checklist_marks_ui_components_definition_complete() {
         );
         assert!(
             source.contains(
-                "`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = \"component-color_thumb\")]` 门控 `pub mod color_thumb`"
+                "`crates/ui/src/lib.rs` 通过 `#[cfg(feature = \"component-color_thumb\")]` 门控 `pub mod color_thumb`"
             ),
             "color-thumb check2 should include explicit rationale for lib.rs feature-gated color_thumb export.",
         );
         assert!(
             source.contains(
-                "`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-color_thumb,inject-css`"
+                "`cargo tree -e features -i ui -p ui --no-default-features --features component-color_thumb,inject-css`"
             ),
             "color-thumb check2 should include explicit feature-tree verification command for minimal color-thumb chain.",
         );
         assert!(
-            source.contains(
-                "`cargo tree -e features -i ui-components -p web-demo` 输出未出现 `all-components`"
-            ),
+            source
+                .contains("`cargo tree -e features -i ui -p web-demo` 输出未出现 `all-components`"),
             "color-thumb check2 should include explicit reverse-dependency verification proving all-components is not implicitly enabled.",
         );
         assert!(
@@ -4351,8 +4357,7 @@ fn color_thumb_checklist_marks_ui_components_definition_complete() {
         "color-thumb check2 should mark tree-shaking feature-pruning item as completed in section 7.",
     );
     assert!(
-        check2
-            .contains("`component-color_thumb` 已注册在 `crates/ui-components/Cargo.toml` 特性树"),
+        check2.contains("`component-color_thumb` 已注册在 `crates/ui/Cargo.toml` 特性树"),
         "color-thumb check2 should include explicit rationale for feature-tree registration.",
     );
 }

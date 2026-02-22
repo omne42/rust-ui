@@ -1968,7 +1968,7 @@ fn image_declares_hydration_discontinuity_axis_as_not_applicable() {
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
     let motion_source = load_source("src/motion.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
 
     assert!(
         readme.contains("## Hydration Discontinuity Contract"),
@@ -2019,9 +2019,9 @@ fn image_declares_ssr_cross_platform_compile_contract() {
     );
 
     for required in [
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-image,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-image,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
-        "cargo check -p ui-components",
+        "cargo check -p ui",
     ] {
         assert!(
             readme.contains(required) && check2.contains(required),
@@ -2688,8 +2688,8 @@ fn image_enforces_token_first_static_style_contract() {
     let styles_source = load_source("src/styles.rs");
     let view_source = load_source("src/view.rs");
     let motion_source = load_source("src/motion.rs");
-    let css_registry_source = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_registry_source = load_source("../../crates/ui/src/css.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
 
     assert!(
         readme.contains("## Token-First Static Style Contract"),
@@ -2722,7 +2722,7 @@ fn image_enforces_token_first_static_style_contract() {
     assert!(
         css_registry_source.contains("#[cfg(feature = \"component-image\")]")
             && css_registry_source.contains("out.push_str(crate::image::styles::CSS);"),
-        "ui-components css registry should aggregate image styles via feature-gated push"
+        "ui css registry should aggregate image styles via feature-gated push"
     );
     assert!(
         ui_root_source.contains("if inject_components_css.get_value() {")
@@ -2755,9 +2755,9 @@ fn image_enforces_token_first_static_style_contract() {
 fn image_declares_ui_components_fixed_entry_contract() {
     let readme = load_source("src/README.md");
     let check2 = load_source("check2.md");
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let active_highlight_source =
         load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
     let controllable_state_source =
@@ -2768,22 +2768,22 @@ fn image_declares_ui_components_fixed_entry_contract() {
 
     assert!(
         readme.contains("## Ui-Components Fixed Entry Contract"),
-        "image docs should explicitly declare ui-components fixed entry contract"
+        "image docs should explicitly declare ui fixed entry contract"
     );
     assert!(
-        check2.contains("- [x] `ui-components` 固定入口文件落点正确。"),
-        "image checklist should mark ui-components fixed entry item as completed"
+        check2.contains("- [x] `ui` 固定入口文件落点正确。"),
+        "image checklist should mark ui fixed entry item as completed"
     );
 
     assert!(
         lib_source.contains("#[cfg(feature = \"component-image\")]")
             && lib_source.contains("pub use ui_image as image;"),
-        "ui-components lib.rs should keep image export behind component-image feature gate"
+        "ui lib.rs should keep image export behind component-image feature gate"
     );
     for disallowed in ["pub use web_sys", "pub use leptos::web_sys"] {
         assert!(
             !lib_source.contains(disallowed),
-            "ui-components lib.rs should not re-export platform detail fragment `{disallowed}`"
+            "ui lib.rs should not re-export platform detail fragment `{disallowed}`"
         );
     }
 
@@ -2795,7 +2795,7 @@ fn image_declares_ui_components_fixed_entry_contract() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css registry should keep fixed entry fragment `{required}`"
+            "ui css registry should keep fixed entry fragment `{required}`"
         );
     }
 
@@ -2831,16 +2831,13 @@ fn image_declares_ui_components_fixed_entry_contract() {
     }
 
     for (path, label) in [
-        (
-            "../../crates/ui-components/src/overlay_open.rs",
-            "overlay_open.rs",
-        ),
-        ("../../crates/ui-components/src/presence.rs", "presence.rs"),
-        ("../../crates/ui-components/src/a11y.rs", "a11y.rs"),
+        ("../../crates/ui/src/overlay_open.rs", "overlay_open.rs"),
+        ("../../crates/ui/src/presence.rs", "presence.rs"),
+        ("../../crates/ui/src/a11y.rs", "a11y.rs"),
     ] {
         assert!(
             !base.join(path).exists(),
-            "ui-components fixed entry contract forbids `{label}` in src/"
+            "ui fixed entry contract forbids `{label}` in src/"
         );
     }
 
@@ -2930,7 +2927,7 @@ fn image_declares_defensive_variables_contract() {
 fn image_declares_cascade_layer_contract() {
     let readme = load_source("src/README.md");
     let check2 = load_source("check2.md");
-    let css_registry_source = load_source("../../crates/ui-components/src/css.rs");
+    let css_registry_source = load_source("../../crates/ui/src/css.rs");
     let view_source = load_source("src/view.rs");
     let motion_source = load_source("src/motion.rs");
 
@@ -2951,7 +2948,7 @@ fn image_declares_cascade_layer_contract() {
     ] {
         assert!(
             css_registry_source.contains(required),
-            "ui-components css registry should keep cascade-layer aggregation fragment `{required}`"
+            "ui css registry should keep cascade-layer aggregation fragment `{required}`"
         );
     }
 
@@ -3098,9 +3095,9 @@ fn image_heroui_benchmark_docs_and_component_docs_are_synced() {
 fn image_tree_shaking_contract_is_feature_gated_and_css_is_prunable() {
     let checklist = load_source("check2.md");
     let readme = load_source("src/README.md");
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
 
     assert!(
         checklist.contains("- [x] Tree Shaking 是一等能力"),
@@ -3123,14 +3120,14 @@ fn image_tree_shaking_contract_is_feature_gated_and_css_is_prunable() {
     ] {
         assert!(
             cargo_source.contains(required),
-            "ui-components cargo feature tree should include `{required}`"
+            "ui cargo feature tree should include `{required}`"
         );
     }
 
     assert!(
         lib_source.contains("#[cfg(feature = \"component-image\")]")
             && lib_source.contains("pub use ui_image as image;"),
-        "image export in ui-components lib.rs should remain behind component-image feature gate"
+        "image export in ui lib.rs should remain behind component-image feature gate"
     );
     assert!(
         css_source.contains(

@@ -6,7 +6,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::ColorWheel;
+use ui::ColorWheel;
 
 view! {
     <ColorWheel id_base="demo-color-wheel".to_string() />

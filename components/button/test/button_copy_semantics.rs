@@ -172,7 +172,7 @@ fn button_copy_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::button::copy::styles::CSS);"),
-        "ui-components css aggregator should include button_copy styles."
+        "ui css aggregator should include button_copy styles."
     );
 }
 
@@ -491,7 +491,7 @@ fn button_copy_docs_default_playground_locks_contract_values() {
     for needle in [
         "pub(super) fn button_copy() -> AnyView",
         "<Playground title=\"Label + variant\" code_signal=code>",
-        "text=\"cargo add ui-components\".to_string()",
+        "text=\"cargo add ui\".to_string()",
         "label=\"Copy install command\".to_string()",
         "copied_label=\"Copied!\".to_string()",
         "text=\"https://github.com/openai\".to_string()",
@@ -513,7 +513,7 @@ fn button_copy_docs_entry_is_beginner_friendly_with_hello_world_first() {
     for needle in [
         "<Playground title=\"Hello World\" code_signal=hello_world_code>",
         "let hello_world_code = Signal::derive(move || {",
-        "<ButtonCopy text=\"cargo add ui-components\".to_string() />",
+        "<ButtonCopy text=\"cargo add ui\".to_string() />",
         "Start simple, then move to advanced controls.",
     ] {
         assert!(
@@ -580,7 +580,7 @@ fn button_copy_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "<Playground title=\"Label + variant\" code_signal=code>",
-        "text=\"cargo add ui-components\".to_string()",
+        "text=\"cargo add ui\".to_string()",
         "label=\"Copy install command\".to_string()",
         "copied_label=\"Copied!\".to_string()",
         "<Playground title=\"Disabled + empty matrix\" code_signal=states_code>",
@@ -603,7 +603,7 @@ fn button_copy_docs_playgrounds_lock_state_matrix_contract_values() {
 fn button_copy_performance_governance_budget_is_defined_and_blocking() {
     let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for needle in [
         "\"button-copy\" => UiPerfBudget {",
@@ -629,7 +629,7 @@ fn button_copy_performance_governance_budget_is_defined_and_blocking() {
         );
     }
 
-    let needle = "cargo test -p ui-components --test button_copy_semantics button_copy_performance_governance_budget_is_defined_and_blocking";
+    let needle = "cargo test -p ui --test button_copy_semantics button_copy_performance_governance_budget_is_defined_and_blocking";
     assert!(
         script_source.contains(needle),
         "performance gate script should include `{needle}`."
@@ -728,7 +728,7 @@ fn button_copy_wasm_debug_contract_reuses_button_debug_and_keeps_feature_isolate
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components feature contract should keep `{needle}`."
+            "ui feature contract should keep `{needle}`."
         );
     }
 
@@ -786,9 +786,9 @@ fn button_copy_dx_workbench_supports_optional_state_persistence_and_isolated_can
 
 #[test]
 fn button_copy_dx_check_script_covers_workbench_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
-    let needle = "cargo test -p ui-components --test button_copy_semantics button_copy_dx_workbench_supports_optional_state_persistence_and_isolated_canvas";
+    let needle = "cargo test -p ui --test button_copy_semantics button_copy_dx_workbench_supports_optional_state_persistence_and_isolated_canvas";
     assert!(
         script_source.contains(needle),
         "DX check script should enforce `{needle}`."
@@ -827,7 +827,7 @@ fn button_copy_engineering_contract_reuses_button_tracing_and_avoids_runtime_lea
     }
 
     for needle in [
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
         "data-debug-source=",
         "data-debug-before=",
         "data-debug-after=",
@@ -872,9 +872,9 @@ fn button_copy_engineering_contract_reuses_button_tracing_and_avoids_runtime_lea
 
 #[test]
 fn button_copy_engineering_check_script_covers_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
-    let needle = "cargo test -p ui-components --test button_copy_semantics button_copy_engineering_contract_reuses_button_tracing_and_avoids_runtime_leaks";
+    let needle = "cargo test -p ui --test button_copy_semantics button_copy_engineering_contract_reuses_button_tracing_and_avoids_runtime_leaks";
     assert!(
         script_source.contains(needle),
         "engineering check script should enforce `{needle}`."
@@ -912,9 +912,9 @@ fn button_copy_e2e_flow_is_in_repeatable_regression_set() {
 
 #[test]
 fn button_copy_e2e_check_script_covers_repeatable_flow_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-button.sh");
+    let script_source = load_source("../../components/button/scripts/check-ui-e2e-button.sh");
 
-    let needle = "cargo test -p ui-components --test button_copy_semantics button_copy_e2e_flow_is_in_repeatable_regression_set";
+    let needle = "cargo test -p ui --test button_copy_semantics button_copy_e2e_flow_is_in_repeatable_regression_set";
     assert!(
         script_source.contains(needle),
         "button-copy e2e check script should enforce `{needle}`."

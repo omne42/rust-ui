@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（Badge：组件侧仅保留 `BadgeMotion + sanitize_motion + attach_motion` 合同输出，无自实现 spring/keyframe/driver；`crates/ui-motion` 已提供 non-wasm no-op/stub。Badge 目前无 open/close 等语义状态驱动动画，状态映射项为 N/A）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（Badge：样式仅消费 `--ui-*` 变量（如 `--ui-bg-muted/--ui-accent/--ui-space-xs/--ui-font-size-100`），不在组件内重建主题；主题三轴与变量输出在 `ui-theme`；`token_scale_baseline.rs` 与 `wcag_contrast.rs` 提供主题基线与 AA 回归。Badge 本地不提供主题切换入口，轴选择由 `UiRoot`/应用层承担，故本组件侧主题选择流程为 N/A）
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（Badge：`logic/view/styles/motion` 职责已分离；状态机与 A11y 契约分别来自 `ui-state-primitives` 与 `ui-headless`；公共导出仅 `Badge/BadgeVariant/BadgeMotion`，未暴露 DOM 细节类型。已补 `components/badge/test/semantics.rs`；原 `components/badge/test/badge_semantics.rs` 保留为跨 crate 集成回归）
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（Badge：`logic/view/styles/motion` 职责已分离；状态机与 A11y 契约分别来自 `ui-state-primitives` 与 `ui-headless`；公共导出仅 `Badge/BadgeVariant/BadgeMotion`，未暴露 DOM 细节类型。已补 `components/badge/test/semantics.rs`；原 `components/badge/test/badge_semantics.rs` 保留为跨 crate 集成回归）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -120,7 +120,7 @@
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（Badge：`mod.rs` 仅最小导出 `Badge/BadgeVariant/BadgeMotion`；`logic.rs` 仅做归一与派生（无 DOM/样式分支）；`styles.rs` 为 token-first 静态 CSS；`view.rs` 仅结构渲染与 headless `lang/dir`/语义挂载；`motion.rs` 仅参数约束与 attach contract。feature gate 位于 `ui-components` 聚合层，本组件包内该子项按 N/A 解释）
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（Badge：`mod.rs` 仅最小导出 `Badge/BadgeVariant/BadgeMotion`；`logic.rs` 仅做归一与派生（无 DOM/样式分支）；`styles.rs` 为 token-first 静态 CSS；`view.rs` 仅结构渲染与 headless `lang/dir`/语义挂载；`motion.rs` 仅参数约束与 attach contract。feature gate 位于 `ui` 聚合层，本组件包内该子项按 N/A 解释）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
@@ -130,8 +130,8 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（Badge：样式集中在 `components/badge/src/styles.rs` 并通过 `crates/ui-components/src/css.rs` 的 `component-badge` 条件分支聚合，由 `UiRoot` 注入；视觉值使用 `var(--ui-*)`；`view.rs` 未承载 Utility-First/CSS-in-Rust 方案与业务样式内联逻辑）
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（Badge：样式集中在 `components/badge/src/styles.rs` 并通过 `crates/ui/src/css.rs` 的 `component-badge` 条件分支聚合，由 `UiRoot` 注入；视觉值使用 `var(--ui-*)`；`view.rs` 未承载 Utility-First/CSS-in-Rust 方案与业务样式内联逻辑）
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -140,14 +140,14 @@
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（Badge：`crates/ui-components/Cargo.toml` 存在 `component-badge = [\"dep:ui-badge\"]`；`lib.rs` 与 `css.rs` 均按 `#[cfg(feature = \"component-badge\")]` 条件导出/聚合。已验证 `cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-badge,inject-css` 仅启用 `component-badge/inject-css`。`web-demo` 通过 `web-demo-components` 聚合拉起多组件属应用验收配置；体积预算与最小特性 CI 阻断属于仓库级任务，单组件条目按 N/A 解释）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（Badge：`crates/ui/Cargo.toml` 存在 `component-badge = [\"dep:ui-badge\"]`；`lib.rs` 与 `css.rs` 均按 `#[cfg(feature = \"component-badge\")]` 条件导出/聚合。已验证 `cargo tree -e features -i ui -p ui --no-default-features --features component-badge,inject-css` 仅启用 `component-badge/inject-css`。`web-demo` 通过 `web-demo-components` 聚合拉起多组件属应用验收配置；体积预算与最小特性 CI 阻断属于仓库级任务，单组件条目按 N/A 解释）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（Badge：关键离散输入 `variant` 使用 `BadgeVariant` enum，`logic.rs` 通过 `resolve_variant/resolve_render_state` 统一归一并在 `test/logic.rs` 回归；`view.rs` 稳定输出 `data-variant/data-fill/data-state/data-class-source/data-ui-*`，`components/badge/test/semantics.rs` 与 `components/badge/test/badge_semantics.rs` 可直接定位契约破坏点）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -213,16 +213,16 @@
 
 ### 5. 样式与动效（Theme & Motion）
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（Badge：`components/badge/src/styles.rs` 已将间距/圆角/边框宽度/字体/颜色入口统一改为双层回退链，如 `var(--ui-font-size-100, var(--ui-fallback-font-size-100))`、`var(--ui-accent, var(--ui-fallback-accent))`；Fallback 变量由 `crates/ui-theme/src/css.rs` 统一输出。回归已补：`components/badge/test/semantics.rs::badge_styles_use_defensive_variable_fallback_chains`，并同步 `components/badge/test/badge_semantics.rs` 断言。）
-- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（Badge：`crates/ui-components/src/css.rs` 的 `push_components_css` 已统一输出 `@layer ui { ... }` 并按 feature 聚合 `component-badge` 样式；`components/badge/src/view.rs` 未使用普通 inline style，运行时仅通过语义标记与 class 驱动样式）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（Badge：`crates/ui/src/css.rs` 的 `push_components_css` 已统一输出 `@layer ui { ... }` 并按 feature 聚合 `component-badge` 样式；`components/badge/src/view.rs` 未使用普通 inline style，运行时仅通过语义标记与 class 驱动样式）
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（Badge：`components/badge/src/motion.rs` 已提供 `BadgeMotion` Contract、`sanitize_motion` 约束与 `attach_motion()` 挂载输出；`reduced_ms` 明确 reduced-motion 降级语义。Badge 为展示型组件，未采用 spring 物理参数（`stiffness/damping` 子项按 N/A）；non-wasm/SSR no-op 由 `crates/ui-motion/src/lib.rs` 契约保障）
-- [x] `ui-components` 固定入口文件落点正确。（已核验：`crates/ui-components/src/lib.rs` 作为总入口并通过 `component-*` feature gate 条件导出组件；`crates/ui-components/src/css.rs` 的 `push_components_css` 在 `inject-css` 下按 feature 聚合并包裹 `@layer ui`；`crates/ui-components/src/root.rs` 的 `UiRoot` 统一注入 base css + theme vars + 可选 components css，并提供 `UiI18n`/`IdProvider` 上下文；`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver。`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 当前均不存在）
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。（已核验：`crates/ui/src/lib.rs` 作为总入口并通过 `component-*` feature gate 条件导出组件；`crates/ui/src/css.rs` 的 `push_components_css` 在 `inject-css` 下按 feature 聚合并包裹 `@layer ui`；`crates/ui/src/root.rs` 的 `UiRoot` 统一注入 base css + theme vars + 可选 components css，并提供 `UiI18n`/`IdProvider` 上下文；`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver。`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 当前均不存在）
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。（Badge：`components/badge/src/mod.rs` 仅最小导出 `Badge/BadgeVariant/BadgeMotion`；`logic.rs` 仅做输入归一、派生与来源标记装配（状态原语来自 `ui-state-primitives`）；`styles.rs` 为静态 token-first CSS；`view.rs` 仅 Leptos 结构渲染 + headless 语义挂载；`motion.rs` 提供 `BadgeMotion + attach_motion` 合同映射。目录不存在 `render.rs` 与 `spec.rs`；额外 `protocol.rs` 仅用于 schema/serde 契约，不承载渲染逻辑）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -254,7 +254,7 @@
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（Badge：已在 `components/badge/src/logic.rs` 将 class 组装收敛为 `Cow<'static, str>`（去除局部 `to_string()` 热点），且 `src/*.rs` 无 `.unwrap(`/`.expect(`/`let _ =`。回归新增：`components/badge/test/semantics.rs::{badge_non_test_source_avoids_forbidden_hygiene_patterns,badge_logic_uses_cow_for_class_name_composition}`。`./scripts/check-rust-hygiene.sh` 已执行，但在仓库级前置门禁 `check-api-contracts`（基线漂移）与本机 `rg` 缺少 PCRE2 支持处失败，属全仓问题，非 Badge 局部回归）
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（Badge：`crates/ui-components/Cargo.toml` 已注册 `component-badge = [\"dep:ui-badge\"]` 且 `ui-badge` 为 `optional`；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = \"component-badge\")] pub use ui_badge as badge;` 门控导出；`crates/ui-components/src/css.rs` 在 `#[cfg(feature = \"inject-css\")]` 下再以 `#[cfg(feature = \"component-badge\")] out.push_str(crate::badge::styles::CSS);` 条件聚合。验证：`cargo tree -e features -p ui-components --no-default-features --features component-badge,inject-css` 未拉起 `all-components`；`apps/web-demo/Cargo.toml` 依赖 `ui-components` 使用 `default-features = false` + `web-demo-components`。回归补充：`components/badge/test/badge_semantics.rs::ui_components_reexports_badge_component_crate` 新增 CSS gate 断言）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（Badge：`crates/ui/Cargo.toml` 已注册 `component-badge = [\"dep:ui-badge\"]` 且 `ui-badge` 为 `optional`；`crates/ui/src/lib.rs` 通过 `#[cfg(feature = \"component-badge\")] pub use ui_badge as badge;` 门控导出；`crates/ui/src/css.rs` 在 `#[cfg(feature = \"inject-css\")]` 下再以 `#[cfg(feature = \"component-badge\")] out.push_str(crate::badge::styles::CSS);` 条件聚合。验证：`cargo tree -e features -p ui --no-default-features --features component-badge,inject-css` 未拉起 `all-components`；`apps/web-demo/Cargo.toml` 依赖 `ui` 使用 `default-features = false` + `web-demo-components`。回归补充：`components/badge/test/badge_semantics.rs::ui_components_reexports_badge_component_crate` 新增 CSS gate 断言）
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（Badge：`data-*` 语义契约已由 `components/badge/test/semantics.rs` + `components/badge/test/badge_semantics.rs` + `e2e/tests/docs_app_badge_contract.spec.mjs` 覆盖，断言集中在 `data-slot/data-variant/data-fill/data-class-source/data-ui-*`，未依赖视觉快照。Badge 为非交互展示组件，无键盘焦点流转与交互 `aria-*` 状态轴，该子项按 N/A 处理；`render_count` 仅对高频/重型组件强制，Badge 非该类组件，本条按 N/A 通过）
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（Badge：本轮未引入跨大版本 API 破坏升级，公共 API 仍为 `Badge/BadgeVariant/BadgeMotion`（`components/badge/src/mod.rs`），协议版本仍停留在 `BadgeComponentSchemaVersion::V1`（`components/badge/src/protocol.rs`）；因此无需新增 Schema Registry 弃用窗口与 `migrate_v1_to_v2`。该条按 N/A 通过）
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（Badge：`apps/docs-app/src/pages/components/pages/display.rs` 已提供 `Playground title="Hello World"` 与 `Playground title="Variant Matrix"`，并有 `Badge Workbench (Display + Config + Code + CSS Test)` 作为可复现验收面；Badge 无受控状态轴，`受控/非受控对照` 子项按 N/A 处理。流式/快照方面，Badge 明确为 snapshot 路径（`data-ui-stream-fallback=snapshot` / `data-ui-stream-mode=snapshot`），由 `e2e/tests/docs_app_badge_contract.spec.mjs` 验证。Source-first 复制链路由 `apps/docs-app/src/playground.rs` 的 `compose_copy_ready_code` 自动补全 imports（`DEFAULT_PLAYGROUND_IMPORTS`），并有 `apps/docs-app/src/test/playground.rs` 回归）
@@ -282,7 +282,7 @@
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（Badge：docs-app Playground 已提供代码复制链路（`data-slot="code-block"` + `data-copyable="true"`），并通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐默认 imports（`use leptos::prelude::*;`、`use ui_components::*;`）；回归见 `apps/docs-app/src/test/playground.rs`。组件侧 E2E `e2e/tests/docs_app_badge_contract.spec.mjs::docs-app badge playground source is copy-paste ready` 已断言复制代码包含 imports 与 `<Badge>`。Source-first 落点与依赖前提在 `components/badge/src/README.md::Source-first（Copy-Paste Ready）` 明确标注（`view.rs/logic.rs/styles.rs`）。文档-实现同步由 `components/badge/test/badge_semantics.rs::{badge_docs_playgrounds_lock_state_matrix_contract_values,badge_docs_api_names_and_defaults_align_with_logic_contract,badge_readme_keeps_beginner_first_doc_path}` 锁定）
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（Badge：docs-app Playground 已提供代码复制链路（`data-slot="code-block"` + `data-copyable="true"`），并通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐默认 imports（`use leptos::prelude::*;`、`use ui::*;`）；回归见 `apps/docs-app/src/test/playground.rs`。组件侧 E2E `e2e/tests/docs_app_badge_contract.spec.mjs::docs-app badge playground source is copy-paste ready` 已断言复制代码包含 imports 与 `<Badge>`。Source-first 落点与依赖前提在 `components/badge/src/README.md::Source-first（Copy-Paste Ready）` 明确标注（`view.rs/logic.rs/styles.rs`）。文档-实现同步由 `components/badge/test/badge_semantics.rs::{badge_docs_playgrounds_lock_state_matrix_contract_values,badge_docs_api_names_and_defaults_align_with_logic_contract,badge_readme_keeps_beginner_first_doc_path}` 锁定）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
@@ -298,9 +298,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

@@ -20,7 +20,7 @@
 │   ├── ui-headless          # 行为 + A11y（Aria）
 │   ├── ui-theme             # 设计系统 tokens → CSS vars（OKLCH + OLED）
 │   ├── ui-motion            # 高级动效引擎/后端（WAAPI + Spring runtime）
-│   ├── ui-components        # 最终组件（Spectrum）
+│   ├── ui        # 最终组件（Spectrum）
 ├── apps/
 │   ├── web-demo             # 可提交的 Web demo（Trunk CSR）
 │   ├── docs-app             # 文档与组件工作台入口
@@ -40,11 +40,11 @@
 ### 2.1 依赖方向（单向）
 
 - `ui-state-primitives`：**不依赖任何内部 crate**（平台无关；禁止 DOM/web-sys）。
-- `ui-theme`：不依赖 `ui-components`（tokens 不知道组件存在）。
-- `ui-headless`：可选依赖 `ui-state-primitives`；**禁止依赖** `ui-components` / `ui-theme`。
-- `ui-motion`：不依赖 `ui-components`（引擎不关心组件）。
-- `ui-components`：允许依赖 `ui-headless + ui-theme + ui-motion`（必要时才依赖 `ui-state-primitives`）。
-- `apps/*`：依赖 `ui-components`（上层不直接接触 `web-sys`）。
+- `ui-theme`：不依赖 `ui`（tokens 不知道组件存在）。
+- `ui-headless`：可选依赖 `ui-state-primitives`；**禁止依赖** `ui` / `ui-theme`。
+- `ui-motion`：不依赖 `ui`（引擎不关心组件）。
+- `ui`：允许依赖 `ui-headless + ui-theme + ui-motion`（必要时才依赖 `ui-state-primitives`）。
+- `apps/*`：依赖 `ui`（上层不直接接触 `web-sys`）。
 
 ### 2.2 每层职责（对标 React Spectrum）
 
@@ -67,7 +67,7 @@
 
 - 只做：tokens → CSS Variables（字符串输出）。
 - 颜色规范：**OKLCH**；新增 **OLED** 主题（真黑背景）。
-- 不做：组件 CSS（组件 CSS 在 `ui-components`）。
+- 不做：组件 CSS（组件 CSS 在 `ui`）。
 
 #### `ui-motion`（Motion Engine）
 
@@ -75,7 +75,7 @@
 - 必须支持 `prefers-reduced-motion`：reduce 时应跳过/降级。
 - 非 wasm/SSR：允许 no-op（保持编译通过）。
 
-#### `ui-components`（最终组件库）
+#### `ui`（最终组件库）
 
 - 只做：把 `ui-state-primitives` 状态 + `ui-headless` 行为 + `ui-theme` 样式 + `ui-motion` 动效组合成最终组件。
 - 对外 API：尽量小而稳（v0 冻结后避免破坏性改动）。
@@ -216,7 +216,7 @@
   - `Component.toml/.rbi` 必须可校验并与真实公开接口一致，禁止长期手写漂移。
   - 规范详见：`docs/spec/ai_context_projection_protocol.md`。
 - 受控演化沙盒硬规则（Cleanroom vs Sandbox）：
-  - 核心质量门禁不降级；不完美探索只能进入受控沙盒（建议 `crates/ui-contrib`），不得直接污染核心 `ui-components` 主路径。
+  - 核心质量门禁不降级；不完美探索只能进入受控沙盒（建议 `crates/ui-contrib`），不得直接污染核心 `ui` 主路径。
   - 实验组件必须显式标记风险（A11y/SSR/性能/命令式依赖）与生命周期状态（`incubating/adopted/graduated/retired`）。
   - `ui-contrib` 组件默认不进入核心导出，必须显式 opt-in；禁止通过实验需求反向放宽核心规则。
   - 进入核心前必须完成 Graduation 审查与重构，补齐语义测试与门禁。
@@ -230,8 +230,8 @@
 
 CSS 注入规则：
 
-- `ui-components/src/css.rs` 聚合所有组件 CSS。
-- `<UiRoot>`（`crates/ui-components/src/root.rs`）统一注入：
+- `ui/src/css.rs` 聚合所有组件 CSS。
+- `<UiRoot>`（`crates/ui/src/root.rs`）统一注入：
   - `ui-theme` 生成的 CSS variables
   - 组件 CSS
   - 最小全局 base（body 背景/字体）
@@ -239,15 +239,15 @@ CSS 注入规则：
   - 组件 CSS 注入在 `@layer ui`（低优先级层）。
   - 应用侧覆盖推荐：不分 layer 直接写 overrides；如应用也使用 layers，则声明 `@layer ui, app;` 并把 overrides 放进 `@layer app`。
 - **禁止 inline CSS（组件层）**：
-  - `ui-components` 中禁止在 `view!` 里写 `style="..."` / `style=...`（字符串形式的 inline style）。
-  - 组件所有样式规则（selector + 声明）必须位于该组件的 `styles.rs`，并通过 `ui-components/src/css.rs` 聚合后由 `<UiRoot>` 注入；组件内部不得写 `<style>` 标签。
+  - `ui` 中禁止在 `view!` 里写 `style="..."` / `style=...`（字符串形式的 inline style）。
+  - 组件所有样式规则（selector + 声明）必须位于该组件的 `styles.rs`，并通过 `ui/src/css.rs` 聚合后由 `<UiRoot>` 注入；组件内部不得写 `<style>` 标签。
   - 禁止使用 `style:<prop>=...` 绑定普通 CSS 属性（`padding/background/position/...` 等）；样式切换通过 `class`/`data-*` + `styles.rs` 完成。
   - 如必须传递运行时数值（例如 popover 位置 / motion 数值），只允许设置 **CSS variables（custom properties，`--*`）**：
     - 推荐：`style:--x=...`（如果语法可用）
     - 允许：`style=...` 但内容必须 **只包含** `--*` 变量赋值（禁止出现 `top/left/padding/background/...` 等普通属性）
 
 - **Inline CSS forbidden (component layer):**
-  - `ui-components` must not use `style="..."` / `style=...` inside `view!`
+  - `ui` must not use `style="..."` / `style=...` inside `view!`
   - Do not bind normal CSS properties via `style:<prop>=...`
   - Only CSS variables (custom properties, `--*`) are allowed
 

@@ -1,5 +1,5 @@
 //! Validation crate for migrated text_input domain sources.
 //!
-//! Runtime API continues to be provided by `ui-components`.
+//! Runtime API continues to be provided by `ui`.
 
-pub use ui_components::text_input;
+pub use ui::text_input;

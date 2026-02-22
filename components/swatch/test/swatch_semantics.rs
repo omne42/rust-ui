@@ -840,7 +840,7 @@ fn swatch_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo features should include `{needle}` for tree-shaking boundaries."
+            "ui Cargo features should include `{needle}` for tree-shaking boundaries."
         );
     }
 
@@ -889,7 +889,7 @@ fn swatch_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components."
+        "web-demo should consume ui via web-demo-components, not all-components."
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -900,15 +900,15 @@ fn swatch_tree_shaking_keeps_component_feature_and_css_boundaries() {
 
 #[test]
 fn swatch_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
@@ -953,16 +953,16 @@ fn swatch_platform_guards_keep_cfg_split_and_non_wasm_web_sys_free() {
     let wasm_target_deps_header = "[target.'cfg(target_arch = \"wasm32\")'.dependencies]";
     let wasm_target_deps_index = ui_components_cargo_source
         .find(wasm_target_deps_header)
-        .expect("ui-components Cargo.toml should keep wasm32 target dependency section");
+        .expect("ui Cargo.toml should keep wasm32 target dependency section");
     let non_wasm_deps_section = &ui_components_cargo_source[..wasm_target_deps_index];
 
     assert!(
         non_wasm_deps_section.contains("[dependencies]"),
-        "ui-components should keep a native dependency section before wasm32 target dependencies."
+        "ui should keep a native dependency section before wasm32 target dependencies."
     );
     assert!(
         !non_wasm_deps_section.contains("web-sys ="),
-        "ui-components should not pull web-sys in non-wasm dependency path."
+        "ui should not pull web-sys in non-wasm dependency path."
     );
 
     for needle in [
@@ -972,7 +972,7 @@ fn swatch_platform_guards_keep_cfg_split_and_non_wasm_web_sys_free() {
     ] {
         assert!(
             ui_components_cargo_source.contains(needle),
-            "ui-components Cargo.toml should keep wasm-specific dependency token `{needle}`.",
+            "ui Cargo.toml should keep wasm-specific dependency token `{needle}`.",
         );
     }
 
@@ -1038,17 +1038,17 @@ fn swatch_platform_guards_keep_cfg_split_and_non_wasm_web_sys_free() {
 
 #[test]
 fn swatch_platform_check_script_covers_default_ssr_wasm_compile_paths() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "echo \"[platform] compile-only: default native path\"",
-        "cargo check -p ui-components",
+        "cargo check -p ui",
         "echo \"[platform] compile-only: ssr native path\"",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "echo \"[platform] compile-only: web wasm path (ui-headless)\"",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
         "echo \"[platform] compile-only: web wasm path\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
         "if cargo check -p ui-headless --no-default-features --features web,ssr >\"$MUTEX_LOG\" 2>&1; then",
         "expected ui-headless web+ssr to fail",
         "mutually exclusive",
@@ -1065,7 +1065,7 @@ fn swatch_headless_web_ssr_feature_mutex_is_compile_guarded_and_script_verified(
     let check_source = load_source("../../components/swatch/src/check2.md");
     let ui_headless_cargo_source = load_source("../ui-headless/Cargo.toml");
     let ui_headless_lib_source = load_source("../ui-headless/src/lib.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let swatch_view_source = load_source("../../components/swatch/src/view.rs");
 
     assert!(
@@ -1124,7 +1124,7 @@ fn swatch_motion_non_wasm_stub_contract_is_predictable_and_toolchain_safe() {
     let ui_motion_lib_source = load_source("../ui-motion/src/lib.rs");
     let ui_motion_stub_test_source = load_source("../ui-motion/tests/non_wasm_stub.rs");
     let swatch_motion_source = load_source("../../components/swatch/src/motion.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     assert!(
         check_source.contains("`ui-motion` 非 wasm 提供 no-op/stub"),
@@ -1196,7 +1196,7 @@ fn swatch_reduced_motion_ssr_wasm_branches_are_covered_without_semantic_split() 
     let motion_source = load_source("../../components/swatch/src/motion.rs");
     let ui_motion_spring_source = load_source("../ui-motion/src/spring.rs");
     let ui_motion_spring_checks_source = load_source("../ui-motion/tests/spring.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     assert!(
         check_source.contains("组件实现覆盖 `reduced-motion` / SSR / wasm 分支"),
@@ -1414,13 +1414,13 @@ fn swatch_performance_governance_budget_is_defined_and_blocking() {
 
 #[test]
 fn swatch_performance_check_script_covers_budget_and_follow_up_gates() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for needle in [
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_performance_governance_budget_is_defined_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_performance_governance_budget_is_defined_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1596,9 +1596,9 @@ fn swatch_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 
 #[test]
 fn swatch_inner_html_check_script_covers_security_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
 
-    let needle = "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let needle = "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(needle),
         "inner-html check script should enforce Swatch contract marker `{needle}`."
@@ -1726,9 +1726,9 @@ fn swatch_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolat
 
 #[test]
 fn swatch_wasm_debug_check_script_covers_shared_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
 
-    let needle = "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated";
+    let needle = "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm debug check script should enforce `{needle}`."
@@ -1836,11 +1836,11 @@ fn swatch_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_op
 
 #[test]
 fn swatch_dx_check_script_covers_hot_reload_and_isolated_canvas_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1923,7 +1923,7 @@ fn swatch_engineering_contract_keeps_tracing_semantics_unified_without_component
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -1940,7 +1940,7 @@ fn swatch_engineering_contract_keeps_tracing_semantics_unified_without_component
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::swatch::",
+        "target: \"ui::swatch::",
         "const SWATCH_TRACE_TARGET",
     ] {
         assert!(
@@ -1991,12 +1991,12 @@ fn swatch_engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
 
 #[test]
 fn swatch_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2010,18 +2010,18 @@ fn swatch_check2_documents_ui_components_entrypoint_rules() {
     let checklist_source = load_source("../../components/swatch/src/check2.md");
 
     for required in [
-        "- [ ] `ui-components` 固定入口文件落点正确。",
-        "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
-        "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
-        "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
+        "- [ ] `ui` 固定入口文件落点正确。",
+        "`crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
+        "`crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
+        "`crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
         "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
-        "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
-        "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
-        "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
+        "`crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
+        "`crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
+        "`crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
     ] {
         assert!(
             checklist_source.contains(required),
-            "Swatch checklist should keep ui-components entrypoint governance rule `{required}`."
+            "Swatch checklist should keep ui entrypoint governance rule `{required}`."
         );
     }
 }
@@ -2042,7 +2042,7 @@ fn swatch_ui_components_entry_files_keep_feature_gated_public_surface_and_no_pla
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep marker `{needle}`."
+            "ui lib entry should keep marker `{needle}`."
         );
     }
 
@@ -2054,7 +2054,7 @@ fn swatch_ui_components_entry_files_keep_feature_gated_public_surface_and_no_pla
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform/internal marker `{forbidden}`."
+            "ui lib entry should not leak platform/internal marker `{forbidden}`."
         );
     }
 }
@@ -2064,7 +2064,7 @@ fn swatch_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !path_exists(forbidden),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`."
+            "ui forbidden entrypoint file should not exist: `{forbidden}`."
         );
     }
 
@@ -2100,15 +2100,15 @@ fn swatch_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths
 
 #[test]
 fn swatch_entrypoints_check_script_covers_fixed_entrypoint_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks",
-        "cargo test -p ui-components --test button_semantics ui_components_css_registry_remains_feature_gated_and_non_global",
-        "cargo test -p ui-components --test button_semantics ui_root_centralizes_theme_injection_and_i18n_context",
-        "cargo test -p ui-components --test button_semantics active_highlight_stays_shared_motion_primitive_without_component_semantics",
-        "cargo test -p ui-components --test button_semantics ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present",
+        "cargo test -p ui --test button_semantics ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks",
+        "cargo test -p ui --test button_semantics ui_components_css_registry_remains_feature_gated_and_non_global",
+        "cargo test -p ui --test button_semantics ui_root_centralizes_theme_injection_and_i18n_context",
+        "cargo test -p ui --test button_semantics active_highlight_stays_shared_motion_primitive_without_component_semantics",
+        "cargo test -p ui --test button_semantics ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2257,12 +2257,12 @@ fn swatch_component_file_responsibilities_remain_scoped() {
 
 #[test]
 fn swatch_component_files_check_script_covers_directory_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     for needle in [
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_component_directory_has_standard_file_layout",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_mod_rs_keeps_minimal_stable_exports",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_component_file_responsibilities_remain_scoped",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_component_directory_has_standard_file_layout",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_mod_rs_keeps_minimal_stable_exports",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_component_file_responsibilities_remain_scoped",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2273,13 +2273,13 @@ fn swatch_component_files_check_script_covers_directory_contract() {
 
 #[test]
 fn swatch_view_macro_check_script_covers_complexity_and_split_gates() {
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for needle in [
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_view_functional_split_prefers_no_extra_local_components_for_simple_layout",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_static_fragments_are_constantized_or_absent_for_simple_indicator_layout",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_functional_split_keeps_semantic_markers_stable_for_test_selectors",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_view_functional_split_prefers_no_extra_local_components_for_simple_layout",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_static_fragments_are_constantized_or_absent_for_simple_indicator_layout",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_functional_split_keeps_semantic_markers_stable_for_test_selectors",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2622,13 +2622,13 @@ fn swatch_streaming_validation_retry_resilience_boundaries_stay_outside_componen
 
 #[test]
 fn swatch_streaming_check_script_covers_snapshot_baseline_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_snapshot_baseline_and_streaming_fallback_contract_are_explicit",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_snapshot_baseline_and_streaming_fallback_contract_are_explicit",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2639,14 +2639,14 @@ fn swatch_streaming_check_script_covers_snapshot_baseline_contract() {
 
 #[test]
 fn swatch_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_check2_documents_semantics_first_testing_rules",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_semantics_suite_is_contract_first_not_snapshot_only",
-        "cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_check2_documents_semantics_first_testing_rules",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_semantics_suite_is_contract_first_not_snapshot_only",
+        "cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2965,7 +2965,7 @@ fn swatch_docs_source_first_copy_paste_ready_with_imports_source_paths_and_sync(
         "toHaveAttribute(\"data-copyable\", \"true\")",
         "toHaveAttribute(\"aria-label\", /Copy to clipboard/i)",
         "toContainText(\"use leptos::prelude::*;\")",
-        "toContainText(\"use ui_components::*;\")",
+        "toContainText(\"use ui::*;\")",
     ] {
         assert!(
             e2e_source.contains(needle),

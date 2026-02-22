@@ -36,7 +36,7 @@ fn ui_components_reexports_description_component_crate() {
     assert!(
         lib_source.contains("#[cfg(feature = \"component-description\")]")
             && lib_source.contains("pub use ui_description as description;"),
-        "ui-components should re-export the external ui-description crate as `description`.",
+        "ui should re-export the external ui-description crate as `description`.",
     );
     assert!(
         cargo_source.contains("component-description = [\"dep:ui-description\"]"),
@@ -46,7 +46,7 @@ fn ui_components_reexports_description_component_crate() {
         cargo_source.contains(
             "ui-description = { path = \"../../components/description\", optional = true }"
         ),
-        "ui-components Cargo.toml should include the optional ui-description dependency.",
+        "ui Cargo.toml should include the optional ui-description dependency.",
     );
 }
 
@@ -64,7 +64,7 @@ fn description_tree_shaking_feature_gating_contract_is_checked_and_documented() 
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo should keep description tree-shaking marker `{needle}`.",
+            "ui Cargo should keep description tree-shaking marker `{needle}`.",
         );
     }
 
@@ -74,7 +74,7 @@ fn description_tree_shaking_feature_gating_contract_is_checked_and_documented() 
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib should keep feature gate marker `{needle}`.",
+            "ui lib should keep feature gate marker `{needle}`.",
         );
     }
 
@@ -84,19 +84,19 @@ fn description_tree_shaking_feature_gating_contract_is_checked_and_documented() 
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "ui-components css should keep feature gate marker `{needle}`.",
+            "ui css should keep feature gate marker `{needle}`.",
         );
     }
 
     assert!(
         web_demo_cargo.contains(
-            "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"
+            "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"
         ) && !web_demo_cargo.contains("all-components"),
         "web-demo should keep source-mode import without implicitly enabling all-components.",
     );
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "已满足（特性树注册）",
         "已满足（`lib.rs` feature 门控）",
         "已满足（`css.rs` feature 门控）",
@@ -292,7 +292,7 @@ fn description_performance_governance_contract_is_mount_only_traceable_and_block
     let perf_probe_source = load_workspace_source("apps/docs-app/src/perf_probe.rs");
     let e2e_source = load_workspace_source("e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = load_workspace_source("docs/plan/TODO.md");
-    let script_source = load_workspace_source("scripts/check-ui-components-performance.sh");
+    let script_source = load_workspace_source("scripts/check-ui-performance.sh");
     let check2_source = load_workspace_source("components/description/check2.md");
     let view_source = load_description_component_source("src/view.rs");
 
@@ -362,10 +362,10 @@ fn description_performance_governance_contract_is_mount_only_traceable_and_block
     }
 
     for needle in [
-        "cargo test -p ui-components --test description_semantics description_performance_governance_contract_is_mount_only_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test description_semantics description_performance_governance_contract_is_mount_only_traceable_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -642,9 +642,9 @@ fn description_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     let view_source = load_description_component_source("src/view.rs");
     let styles_source = load_description_component_source("src/styles.rs");
     let description_cargo_source = load_description_component_source("Cargo.toml");
-    let ui_components_cargo_source = load_workspace_source("crates/ui-components/Cargo.toml");
+    let ui_components_cargo_source = load_workspace_source("crates/ui/Cargo.toml");
     let wasm_debug_script_source =
-        load_workspace_source("scripts/check-ui-components-wasm-debug.sh");
+        load_workspace_source("scripts/check-ui-wasm-debug.sh");
     let debug_overlay_source = load_workspace_source("apps/docs-app/src/debug_overlay.rs");
     let check2_source = load_description_component_source("check2.md");
 
@@ -677,7 +677,7 @@ fn description_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     );
     assert!(
         ui_components_cargo_source.contains("component-description = [\"dep:ui-description\"]"),
-        "ui-components should keep description behind component feature isolation.",
+        "ui should keep description behind component feature isolation.",
     );
     assert!(
         !wasm_debug_script_source.contains("description_semantics")
@@ -792,7 +792,7 @@ fn description_dx_workbench_contract_provides_fast_css_feedback_and_explicit_per
         "test_css_source=test_css_source",
         "test_source_path=\"components/description/src/styles.rs\".to_string()",
         "test_config_signal=actual_config",
-        "ui_components::description::styles::CSS",
+        "ui::description::styles::CSS",
         "let (tone_index, set_tone_index) = signal(Some(0_usize));",
         "let (is_disabled, set_is_disabled) = signal(false);",
         "let (is_truncated, set_is_truncated) = signal(false);",
@@ -849,7 +849,7 @@ fn description_documentation_as_product_copy_paste_ready_contract_is_implemented
 
     for needle in [
         "let description_imports =",
-        "use ui_components::{Description, DescriptionElement, DescriptionTone};",
+        "use ui::{Description, DescriptionElement, DescriptionTone};",
         "title=\"Hello World\"",
         "title=\"State Matrix (Tone / Disabled / Truncate)\"",
         "title=\"Controlled vs Uncontrolled (Stateless Contract)\"",
@@ -1129,7 +1129,7 @@ fn description_source_first_docs_are_copy_paste_ready_with_imports_and_real_sour
 
     for needle in [
         "let description_imports =",
-        "use ui_components::{Description, DescriptionElement, DescriptionTone};",
+        "use ui::{Description, DescriptionElement, DescriptionTone};",
         "code_imports=description_imports.clone()",
         "data-slot=\"description-source-first\"",
         "Source-first / Copy-Paste Ready",
@@ -1448,13 +1448,13 @@ fn description_cascade_layer_coverage_uses_ui_layer_and_rejects_plain_inline_sty
 
     let layer_start = css_aggregate_source
         .find("out.push_str(\"\\n@layer ui {\\n\");")
-        .expect("ui-components css aggregation should open @layer ui block.");
+        .expect("ui css aggregation should open @layer ui block.");
     let description_push = css_aggregate_source
         .find("out.push_str(crate::description::styles::CSS);")
-        .expect("ui-components css aggregation should include description styles.");
+        .expect("ui css aggregation should include description styles.");
     let layer_end = css_aggregate_source
         .rfind("out.push_str(\"\\n}\\n\");")
-        .expect("ui-components css aggregation should close @layer ui block.");
+        .expect("ui css aggregation should close @layer ui block.");
 
     assert!(
         layer_start < description_push && description_push < layer_end,
@@ -1492,12 +1492,12 @@ fn description_ui_components_entrypoints_layout_contract_is_correct_and_forbidde
     assert!(
         ui_components_lib_source.contains("#[cfg(feature = \"component-description\")]")
             && ui_components_lib_source.contains("pub use ui_description as description;"),
-        "ui-components lib.rs should keep feature-gated description re-export contract.",
+        "ui lib.rs should keep feature-gated description re-export contract.",
     );
     assert!(
         !ui_components_lib_source.contains("pub use web_sys")
             && !ui_components_lib_source.contains("pub use leptos::web_sys"),
-        "ui-components public entry should not leak web-sys detail types.",
+        "ui public entry should not leak web-sys detail types.",
     );
 
     for needle in [
@@ -1508,7 +1508,7 @@ fn description_ui_components_entrypoints_layout_contract_is_correct_and_forbidde
     ] {
         assert!(
             ui_components_css_source.contains(needle),
-            "ui-components css entry should keep `{needle}`.",
+            "ui css entry should keep `{needle}`.",
         );
     }
 
@@ -1546,20 +1546,20 @@ fn description_ui_components_entrypoints_layout_contract_is_correct_and_forbidde
     }
 
     for rel in [
-        "crates/ui-components/src/overlay_open.rs",
-        "crates/ui-components/src/presence.rs",
-        "crates/ui-components/src/a11y.rs",
+        "crates/ui/src/overlay_open.rs",
+        "crates/ui/src/presence.rs",
+        "crates/ui/src/a11y.rs",
     ] {
         let path = workspace_dir().join(rel);
         assert!(
             !path.exists(),
-            "forbidden ui-components entrypoint file should be absent: {}",
+            "forbidden ui entrypoint file should be absent: {}",
             path.display(),
         );
     }
 
     for needle in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "已满足（入口与导出边界）",
         "已满足（CSS 聚合边界）",
         "已满足（Root 注入集中）",
@@ -1570,7 +1570,7 @@ fn description_ui_components_entrypoints_layout_contract_is_correct_and_forbidde
     ] {
         assert!(
             check2_source.contains(needle),
-            "description/check2.md should keep ui-components entrypoint governance marker `{needle}`.",
+            "description/check2.md should keep ui entrypoint governance marker `{needle}`.",
         );
     }
 }
@@ -2162,7 +2162,7 @@ fn description_check2_marks_architecture_layer_definitions_complete() {
         "- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。",
         "- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。",
         "- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。",
-        "- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
+        "- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
     ] {
         assert!(
             check2_source.contains(needle),

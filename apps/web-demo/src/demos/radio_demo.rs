@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{RadioGroup, RadioGroupOrientation};
+use ui::{RadioGroup, RadioGroupOrientation};
 
 #[component]
 pub fn RadioDemo() -> impl IntoView {

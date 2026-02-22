@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{Badge, BadgeVariant, CircularProgress, StatusLight, StatusLightVariant};
+use ui::{Badge, BadgeVariant, CircularProgress, StatusLight, StatusLightVariant};
 
 #[component]
 pub fn StatusDemo() -> impl IntoView {

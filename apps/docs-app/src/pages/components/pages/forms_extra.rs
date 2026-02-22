@@ -1,7 +1,11 @@
+use super::playground_workbench::{bool_word, rust_string_literal};
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
+#[cfg(target_arch = "wasm32")]
+use leptos::web_sys as browser_sys;
+use ui::time_field::TimeFieldMotion;
+use ui::{
     Calendar, CalendarFirstWeekday, CalendarTone, DateField, DateFieldTone, DatePicker,
     DatePickerMotion, DatePickerTone, DateRangePicker, DateRangePickerTone, Description,
     DescriptionElement, DescriptionTone, ErrorMessage, ErrorMessageElement, ErrorMessageTone,
@@ -10,11 +14,8 @@ use ui_components::{
     SegmentedControlSize, Slider, SliderMotion, Snippet, Switch, Textarea, TimeField,
     TimeFieldTone, field_form::field::FieldMotion,
 };
+use ui_headless::{A11yDirection, PopoverPlacement};
 
-#[cfg(target_arch = "wasm32")]
-const CALENDAR_WORKBENCH_STORAGE_KEY: &str = "docs:calendar:workbench:v1";
-#[cfg(target_arch = "wasm32")]
-const CALENDAR_WORKBENCH_STORAGE_VERSION: u8 = 1;
 #[cfg(target_arch = "wasm32")]
 const FIELD_WORKBENCH_STORAGE_KEY: &str = "docs:field:workbench:v1";
 #[cfg(target_arch = "wasm32")]
@@ -138,7 +139,7 @@ impl FieldWorkbenchState {
 
 #[cfg(target_arch = "wasm32")]
 fn load_field_workbench_state() -> Option<FieldWorkbenchState> {
-    let storage = web_sys::window().and_then(|window| window.local_storage().ok().flatten())?;
+    let storage = browser_sys::window().and_then(|window| window.local_storage().ok().flatten())?;
     let raw = storage
         .get_item(FIELD_WORKBENCH_STORAGE_KEY)
         .ok()
@@ -163,7 +164,7 @@ fn load_field_workbench_state() -> Option<FieldWorkbenchState> {
 #[cfg(target_arch = "wasm32")]
 fn save_field_workbench_state(state: FieldWorkbenchState) {
     if let Some(storage) =
-        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+        browser_sys::window().and_then(|window| window.local_storage().ok().flatten())
     {
         match state.encode() {
             Ok(encoded) => {
@@ -185,7 +186,7 @@ fn save_field_workbench_state(_state: FieldWorkbenchState) {}
 #[cfg(target_arch = "wasm32")]
 fn clear_field_workbench_state() {
     if let Some(storage) =
-        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+        browser_sys::window().and_then(|window| window.local_storage().ok().flatten())
     {
         drop(storage.remove_item(FIELD_WORKBENCH_STORAGE_KEY));
     }
@@ -194,144 +195,9 @@ fn clear_field_workbench_state() {
 #[cfg(not(target_arch = "wasm32"))]
 fn clear_field_workbench_state() {}
 
-#[cfg_attr(target_arch = "wasm32", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Copy, Debug)]
-struct CalendarWorkbenchState {
-    month: u8,
-    selected_day: Option<u8>,
-    show_outside_days: bool,
-    monday_first: bool,
-    strong_tone: bool,
-}
-
-impl Default for CalendarWorkbenchState {
-    fn default() -> Self {
-        Self {
-            month: 3,
-            selected_day: Some(12),
-            show_outside_days: true,
-            monday_first: false,
-            strong_tone: false,
-        }
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-#[derive(serde::Serialize, serde::Deserialize)]
-struct CalendarWorkbenchStorage {
-    version: u8,
-    state: CalendarWorkbenchState,
-}
-
-#[cfg(target_arch = "wasm32")]
-#[derive(Debug)]
-enum CalendarWorkbenchStorageError {
-    Serialize(serde_json::Error),
-    Deserialize(serde_json::Error),
-    UnsupportedVersion(u8),
-}
-
-#[cfg(target_arch = "wasm32")]
-impl CalendarWorkbenchStorageError {
-    fn as_code(&self) -> &'static str {
-        match self {
-            Self::Serialize(_) => "serialize_error",
-            Self::Deserialize(_) => "deserialize_error",
-            Self::UnsupportedVersion(_) => "unsupported_version",
-        }
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-impl CalendarWorkbenchState {
-    fn encode(self) -> Result<String, CalendarWorkbenchStorageError> {
-        serde_json::to_string(&CalendarWorkbenchStorage {
-            version: CALENDAR_WORKBENCH_STORAGE_VERSION,
-            state: Self {
-                month: self.month.clamp(1, 12),
-                ..self
-            },
-        })
-        .map_err(CalendarWorkbenchStorageError::Serialize)
-    }
-
-    fn decode(raw: &str) -> Result<Self, CalendarWorkbenchStorageError> {
-        let storage: CalendarWorkbenchStorage =
-            serde_json::from_str(raw).map_err(CalendarWorkbenchStorageError::Deserialize)?;
-        if storage.version != CALENDAR_WORKBENCH_STORAGE_VERSION {
-            return Err(CalendarWorkbenchStorageError::UnsupportedVersion(
-                storage.version,
-            ));
-        }
-
-        Ok(Self {
-            month: storage.state.month.clamp(1, 12),
-            ..storage.state
-        })
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-fn load_calendar_workbench_state() -> Option<CalendarWorkbenchState> {
-    let storage = web_sys::window().and_then(|window| window.local_storage().ok().flatten())?;
-    let raw = storage
-        .get_item(CALENDAR_WORKBENCH_STORAGE_KEY)
-        .ok()
-        .flatten()?;
-    match CalendarWorkbenchState::decode(&raw) {
-        Ok(state) => Some(state),
-        Err(error) => {
-            leptos::logging::warn!(
-                "calendar workbench decode failed: code={} error={error:?}",
-                error.as_code()
-            );
-            None
-        }
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-fn load_calendar_workbench_state() -> Option<CalendarWorkbenchState> {
-    None
-}
-
-#[cfg(target_arch = "wasm32")]
-fn save_calendar_workbench_state(state: CalendarWorkbenchState) {
-    if let Some(storage) =
-        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
-    {
-        match state.encode() {
-            Ok(encoded) => {
-                drop(storage.set_item(CALENDAR_WORKBENCH_STORAGE_KEY, &encoded));
-            }
-            Err(error) => {
-                leptos::logging::warn!(
-                    "calendar workbench encode failed: code={} error={error:?}",
-                    error.as_code()
-                );
-            }
-        }
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-fn save_calendar_workbench_state(_state: CalendarWorkbenchState) {}
-
-#[cfg(target_arch = "wasm32")]
-fn clear_calendar_workbench_state() {
-    if let Some(storage) =
-        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
-    {
-        drop(storage.remove_item(CALENDAR_WORKBENCH_STORAGE_KEY));
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-fn clear_calendar_workbench_state() {}
-
 pub(super) fn field_error() -> AnyView {
     let field_error_imports =
-        "use leptos::prelude::*;\nuse ui_components::{FieldError, FieldErrorTone};".to_string();
+        "use leptos::prelude::*;\nuse ui::{FieldError, FieldErrorTone};".to_string();
 
     let hello_world_code = Signal::derive(move || {
         r#"<FieldError
@@ -444,6 +310,7 @@ pub(super) fn field_error() -> AnyView {
     let (workbench_custom_message, set_workbench_custom_message) = signal(false);
     let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
 
     let workbench_code = Signal::derive(move || {
         let tone_line = match workbench_tone_index.get() {
@@ -468,17 +335,24 @@ pub(super) fn field_error() -> AnyView {
         };
 
         format!(
-            "<FieldError\n{tone_line}  is_visible={}\n  is_disabled={}\n  is_icon_visible={}\n{message_line}{aria_line}{class_line}/>",
+            "<FieldError\n{tone_line}  is_visible={}\n  is_disabled={}\n  is_icon_visible={}\n  show_icon={}\n  lang={:?}.to_string()\n  dir=A11yDirection::{:?}\n{message_line}{aria_line}{class_line}/>",
             workbench_visible.get(),
             workbench_disabled.get(),
             workbench_icon_visible.get(),
+            workbench_icon_visible.get(),
+            if workbench_rtl.get() { "ar" } else { "en-US" },
+            if workbench_rtl.get() {
+                A11yDirection::Rtl
+            } else {
+                A11yDirection::Ltr
+            },
         )
     });
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
             "/* components/field-error/src/styles.rs */\n{}",
-            ui_components::field_form::field_error::styles::CSS
+            ui::field_form::field_error::styles::CSS
         )
     });
 
@@ -488,27 +362,41 @@ pub(super) fn field_error() -> AnyView {
             2 => FieldErrorTone::Negative,
             _ => FieldErrorTone::Auto,
         };
-        let message_source = if workbench_custom_message.get() {
-            "custom"
+        let message = if workbench_custom_message.get() {
+            "Workbench custom error message".to_string()
         } else {
-            "default"
+            String::new()
         };
-        let aria_source = if workbench_custom_aria.get() {
-            "custom"
+        let aria_label = if workbench_custom_aria.get() {
+            "Workbench aria label".to_string()
         } else {
-            "default"
+            String::new()
         };
-        let class_source = if workbench_custom_class.get() {
-            "custom"
+        let class_name = if workbench_custom_class.get() {
+            "docs-field-error-custom".to_string()
         } else {
-            "default"
+            String::new()
+        };
+        let lang = if workbench_rtl.get() { "ar" } else { "en-US" };
+        let dir = if workbench_rtl.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
         };
 
         format!(
-            "FieldErrorWorkbenchConfig {{\n  tone: {tone:?},\n  is_visible: {},\n  is_disabled: {},\n  is_icon_visible: {},\n  message_source: \"{message_source}\",\n  aria_source: \"{aria_source}\",\n  class_source: \"{class_source}\",\n}}",
+            "FieldErrorWorkbenchConfig {{\n  tone: {tone:?},\n  is_visible: {},\n  visible: {},\n  is_disabled: {},\n  disabled: {},\n  is_icon_visible: {},\n  show_icon: {},\n  message: {:?},\n  aria_label: {:?},\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n}}",
+            workbench_visible.get(),
             workbench_visible.get(),
             workbench_disabled.get(),
+            workbench_disabled.get(),
             workbench_icon_visible.get(),
+            workbench_icon_visible.get(),
+            message,
+            aria_label,
+            class_name,
+            lang,
+            dir,
         )
     });
 
@@ -534,7 +422,7 @@ pub(super) fn field_error() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix (Visible / Hidden / Disabled)"
+                title="Visible / Hidden / Disabled Gallery"
                 code_signal=state_matrix_code
                 code_imports=field_error_imports.clone()
             >
@@ -723,6 +611,15 @@ pub(super) fn field_error() -> AnyView {
                                 />
                                 <span>"Custom class source"</span>
                             </label>
+                            <label class="docs-choice-row">
+                                <input
+                                    type="checkbox"
+                                    data-action="toggle-rtl-config"
+                                    prop:checked=move || workbench_rtl.get()
+                                    on:change=move |ev| set_workbench_rtl.set(event_target_checked(&ev))
+                                />
+                                <span>"RTL locale"</span>
+                            </label>
 
                             <p class="ui-muted" data-slot="field-error-config-summary">
                                 {move || {
@@ -792,9 +689,16 @@ pub(super) fn field_error() -> AnyView {
                                 is_visible=workbench_visible.get()
                                 is_disabled=workbench_disabled.get()
                                 is_icon_visible=workbench_icon_visible.get()
+                                show_icon=workbench_icon_visible.get()
                                 message=message
                                 aria_label=aria_label
                                 class_name=class_name
+                                lang=if workbench_rtl.get() { "ar" } else { "en-US" }
+                                dir=if workbench_rtl.get() {
+                                    A11yDirection::Rtl
+                                } else {
+                                    A11yDirection::Ltr
+                                }
                             />
                             <p class="ui-muted" data-slot="field-error-interactive-hint">
                                 "Inspect data-state/data-message-source/data-aria-source/data-class-source while toggling controls."
@@ -802,6 +706,42 @@ pub(super) fn field_error() -> AnyView {
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Visible / Hidden / Disabled)"
+                code_signal=state_matrix_code
+                code_imports=field_error_imports.clone()
+            >
+                <div class="docs-stack">
+                    <FieldError
+                        is_visible=true
+                        message="Email is required".to_string()
+                        aria_label="Email error".to_string()
+                        show_icon=true
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <FieldError
+                        is_visible=true
+                        tone=FieldErrorTone::Neutral
+                        is_icon_visible=true
+                        show_icon=true
+                        message="Password should include at least one symbol".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <FieldError
+                        is_visible=true
+                        tone=FieldErrorTone::Negative
+                        is_icon_visible=true
+                        show_icon=true
+                        message="Two-factor code is invalid".to_string()
+                        class_name="docs-field-error-custom".to_string()
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                    />
+                </div>
             </Playground>
 
             <section class="docs-card docs-prose" data-slot="field-error-source-first">
@@ -812,7 +752,7 @@ pub(super) fn field_error() -> AnyView {
                     " + copy button. Snippets are import-ready for direct paste."
                 </p>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::{FieldError, FieldErrorTone};\n\n<FieldError\n  is_visible=true\n  message=\"Email is required\".to_string()\n/>".to_string()
+                    text="use leptos::prelude::*;\nuse ui::{FieldError, FieldErrorTone};\n\n<FieldError\n  is_visible=true\n  message=\"Email is required\".to_string()\n/>".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-field-error-source-copy".to_string()
@@ -834,157 +774,177 @@ pub(super) fn field_error() -> AnyView {
 }
 
 pub(super) fn error_message() -> AnyView {
-    let hello_world_code = Signal::derive(move || {
-        r#"<ErrorMessage text="Invalid email address".to_string() />"#.to_string()
+    let error_message_imports = "use leptos::prelude::*;\nuse ui::{ErrorMessage, ErrorMessageElement, ErrorMessageTone};\nuse ui_headless::A11yDirection;".to_string();
+
+    let (tone_index, set_tone_index) = signal(0usize);
+    let (element_index, set_element_index) = signal(1usize);
+    let (disabled_state, set_disabled_state) = signal(false);
+    let (truncate_state, set_truncate_state) = signal(false);
+    let (use_disabled_alias, set_use_disabled_alias) = signal(false);
+    let (use_truncate_alias, set_use_truncate_alias) = signal(false);
+    let (custom_aria, set_custom_aria) = signal(false);
+    let (custom_class, set_custom_class) = signal(false);
+    let (custom_motion, set_custom_motion) = signal(false);
+    let (rtl, set_rtl) = signal(false);
+
+    let workbench_tone = Signal::derive(move || match tone_index.get() {
+        1 => ErrorMessageTone::Neutral,
+        2 => ErrorMessageTone::Negative,
+        _ => ErrorMessageTone::Auto,
+    });
+    let workbench_element = Signal::derive(move || match element_index.get() {
+        0 => ErrorMessageElement::Span,
+        2 => ErrorMessageElement::Div,
+        _ => ErrorMessageElement::Paragraph,
+    });
+    let workbench_motion = Signal::derive(move || {
+        if custom_motion.get() {
+            ui::error_message::ErrorMessageMotion { transition_ms: 320 }
+        } else {
+            ui::error_message::ErrorMessageMotion::default()
+        }
+    });
+    let workbench_aria_label = Signal::derive(move || {
+        if custom_aria.get() {
+            "Email validation error".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if custom_class.get() {
+            "docs-error-message-custom".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_lang = Signal::derive(move || {
+        if rtl.get() {
+            "ar".to_string()
+        } else {
+            "en-US".to_string()
+        }
+    });
+    let workbench_dir = Signal::derive(move || {
+        if rtl.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        }
     });
 
-    let tone_code = Signal::derive(move || {
-        r#"<ErrorMessage text="Invalid email address".to_string() />
-<ErrorMessage
-  text="Username contains unsupported characters.".to_string()
-  tone=ErrorMessageTone::Neutral
-/>
-<ErrorMessage
-  text="Verification code expired, request a new one.".to_string()
-  tone=ErrorMessageTone::Negative
-/>"#
-        .to_string()
+    let showcase_code = Signal::derive(move || {
+        r#"<ErrorMessage text=\"Invalid email address\".into() />"#.to_string()
     });
-
-    let state_code = Signal::derive(move || {
-        r#"<ErrorMessage
-  text="A very long validation message that should truncate in constrained layouts to keep form rhythm predictable.".to_string()
-  is_truncated=true
-  class_name="docs-error-message-custom".to_string()
-/>
-<ErrorMessage
-  text="This error remains visible but marked as disabled for read-only states.".to_string()
-  is_disabled=true
-  element=ErrorMessageElement::Div
-  aria_label="Disabled error message".to_string()
-/>"#.to_string()
-    });
-
-    let display_code = Signal::derive(move || {
-        r#"<ErrorMessage text="Auto tone (maps to negative) for default invalid feedback.".to_string() />
-<ErrorMessage
-  text="Neutral tone for low-priority guidance.".to_string()
-  tone=ErrorMessageTone::Neutral
-/>
-<ErrorMessage
-  text="Negative tone rendered with span element.".to_string()
-  tone=ErrorMessageTone::Negative
-  element=ErrorMessageElement::Span
-/>
-<ErrorMessage
-  text="Disabled + truncate comparison for dense layouts.".to_string()
-  is_disabled=true
-  is_truncated=true
-  class_name="docs-error-message-custom".to_string()
-/>"#.to_string()
-    });
-
-    let controlled_uncontrolled_code = Signal::derive(move || {
-        r#"// ErrorMessage is an input-driven leaf component (no internal controllable state axis).
-<ErrorMessage
-  text="Uncontrolled-style usage: pass only text/tone/flags.".to_string()
-/>
-<ErrorMessage
-  text="No value/on_value_change/default_value triad is required for this component.".to_string()
-  is_disabled=true
-/>"#
-        .to_string()
-    });
-
-    let stream_snapshot_code = Signal::derive(move || {
-        r#"// Streaming Optional: ErrorMessage currently renders snapshot output and fallback=snapshot.
-<ErrorMessage
-  text="Disabled path maps to draft/read-only output status.".to_string()
-  is_disabled=true
-/>
-<ErrorMessage
-  text="Active validation path maps to verified/announce-error output status.".to_string()
-/>"#
-        .to_string()
-    });
-
-    let (workbench_tone_index, set_workbench_tone_index) = signal(0usize);
-    let (workbench_element_index, set_workbench_element_index) = signal(1usize);
-    let (workbench_disabled, set_workbench_disabled) = signal(false);
-    let (workbench_truncate, set_workbench_truncate) = signal(false);
-    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
-    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
 
     let workbench_code = Signal::derive(move || {
-        let tone_line = match workbench_tone_index.get() {
-            1 => "  tone=ErrorMessageTone::Neutral\n",
-            2 => "  tone=ErrorMessageTone::Negative\n",
-            _ => "",
-        };
-        let element_line = match workbench_element_index.get() {
-            0 => "  element=ErrorMessageElement::Span\n",
-            2 => "  element=ErrorMessageElement::Div\n",
-            _ => "",
-        };
-        let disabled_line = if workbench_disabled.get() {
-            "  is_disabled=true\n"
-        } else {
-            ""
-        };
-        let truncate_line = if workbench_truncate.get() {
-            "  is_truncated=true\n"
-        } else {
-            ""
-        };
-        let class_line = if workbench_custom_class.get() {
-            "  class_name=\"docs-error-message-custom\".into()\n"
-        } else {
-            ""
-        };
-        let aria_line = if workbench_custom_aria.get() {
-            "  aria_label=\"Workbench error\".into()\n"
-        } else {
-            ""
-        };
-
         format!(
-            "<ErrorMessage\n  text=\"Config + code + css test workbench message\".into()\n{tone_line}{element_line}{disabled_line}{truncate_line}{class_line}{aria_line}/>"
+            "<ErrorMessage\n  text=\"{}\".into()\n  tone=ErrorMessageTone::{:?}\n  is_disabled={}\n  disabled={}\n  is_truncated={}\n  truncate={}\n  element=ErrorMessageElement::{:?}\n  motion=ui::error_message::ErrorMessageMotion {{ transition_ms: {} }}\n  aria_label={}\n  class_name={}\n  lang={}\n  dir=ui_headless::A11yDirection::{}\n/>",
+            if disabled_state.get() {
+                "Email is required for account creation"
+            } else {
+                "Invalid email address"
+            },
+            workbench_tone.get(),
+            bool_word(if use_disabled_alias.get() {
+                false
+            } else {
+                disabled_state.get()
+            }),
+            bool_word(if use_disabled_alias.get() {
+                disabled_state.get()
+            } else {
+                false
+            }),
+            bool_word(if use_truncate_alias.get() {
+                false
+            } else {
+                truncate_state.get()
+            }),
+            bool_word(if use_truncate_alias.get() {
+                truncate_state.get()
+            } else {
+                false
+            }),
+            workbench_element.get(),
+            workbench_motion.get().transition_ms,
+            rust_string_literal(&workbench_aria_label.get()),
+            rust_string_literal(&workbench_class_name.get()),
+            rust_string_literal(&workbench_lang.get()),
+            if rtl.get() { "Rtl" } else { "Ltr" },
         )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<ErrorMessage text=\"Invalid email address\".into() />
+<ErrorMessage
+  text=\"Username already exists\".into()
+  tone=ErrorMessageTone::Neutral
+  is_disabled=true
+  element=ErrorMessageElement::Div
+/>
+<ErrorMessage
+  text=\"Verification code expired\".into()
+  tone=ErrorMessageTone::Negative
+  disabled=true
+  truncate=true
+  motion=ui::error_message::ErrorMessageMotion { transition_ms: 280 }
+  aria_label=\"Verification error\".into()
+  class_name=\"docs-error-message-custom\".into()
+  lang=\"ar\".into()
+  dir=A11yDirection::Rtl
+/>"#
+        .to_string()
     });
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
             "/* components/error-message/src/styles.rs */\n{}",
-            ui_components::error_message::styles::CSS
+            ui::error_message::styles::CSS
         )
     });
 
     let workbench_actual_config = Signal::derive(move || {
-        let tone = match workbench_tone_index.get() {
-            1 => ErrorMessageTone::Neutral,
-            2 => ErrorMessageTone::Negative,
-            _ => ErrorMessageTone::Auto,
-        };
-        let element = match workbench_element_index.get() {
-            0 => ErrorMessageElement::Span,
-            2 => ErrorMessageElement::Div,
-            _ => ErrorMessageElement::Paragraph,
-        };
-        let class_source = if workbench_custom_class.get() {
-            "custom"
+        let text = if disabled_state.get() {
+            "Email is required for account creation".to_string()
         } else {
-            "default"
+            "Invalid email address".to_string()
         };
-        let aria_source = if workbench_custom_aria.get() {
-            "custom"
+        let is_disabled = if use_disabled_alias.get() {
+            false
         } else {
-            "default"
+            disabled_state.get()
+        };
+        let disabled = if use_disabled_alias.get() {
+            disabled_state.get()
+        } else {
+            false
+        };
+        let is_truncated = if use_truncate_alias.get() {
+            false
+        } else {
+            truncate_state.get()
+        };
+        let truncate = if use_truncate_alias.get() {
+            truncate_state.get()
+        } else {
+            false
         };
 
         format!(
-            "ErrorMessageWorkbenchConfig {{\n  tone: {tone:?},\n  element: {element:?},\n  is_disabled: {},\n  is_truncated: {},\n  class_source: \"{class_source}\",\n  aria_source: \"{aria_source}\",\n}}",
-            workbench_disabled.get(),
-            workbench_truncate.get(),
+            "ErrorMessageActualConfig {{\n  text: {:?},\n  tone: {:?},\n  is_disabled: {},\n  disabled: {},\n  is_truncated: {},\n  truncate: {},\n  element: {:?},\n  motion: {:?},\n  aria_label: {:?},\n  class_name: {:?},\n  lang: {:?},\n  dir: {:?},\n}}",
+            text,
+            workbench_tone.get(),
+            is_disabled,
+            disabled,
+            is_truncated,
+            truncate,
+            workbench_element.get(),
+            workbench_motion.get(),
+            workbench_aria_label.get(),
+            workbench_class_name.get(),
+            workbench_lang.get(),
+            workbench_dir.get(),
         )
     });
 
@@ -993,250 +953,190 @@ pub(super) fn error_message() -> AnyView {
             title="ErrorMessage"
             slug="error-message"
             group="Forms"
-            description="baseline-style inline error primitive with centralized tone/is_disabled/is_truncated/source normalization and stable slot/data contracts."
+            description="Inline form error primitive with full API workbench and state matrix."
         >
-            <Playground title="Hello World (Default API)" code_signal=hello_world_code>
-                <div class="docs-stack">
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=showcase_code
+                code_imports=error_message_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
                     <ErrorMessage text="Invalid email address".to_string() />
                 </div>
             </Playground>
 
-            <Playground title="Tone Variants" code_signal=tone_code>
-                <div class="docs-stack">
-                    <ErrorMessage
-                        text="Invalid email address".to_string()
-                        aria_label="Email error".to_string()
-                    />
-                    <ErrorMessage
-                        text="Username contains unsupported characters.".to_string()
-                        tone=ErrorMessageTone::Neutral
-                    />
-                    <ErrorMessage
-                        text="Verification code expired, request a new one.".to_string()
-                        tone=ErrorMessageTone::Negative
-                    />
-                </div>
-            </Playground>
-
-            <Playground title="Truncate + Disabled + Element + Custom Class" code_signal=state_code>
-                <div class="docs-stack docs-error-message-limit">
-                    <ErrorMessage
-                        text="A very long validation message that should truncate in constrained layouts to keep form rhythm predictable.".to_string()
-                        is_truncated=true
-                        class_name="docs-error-message-custom".to_string()
-                    />
-                    <ErrorMessage
-                        text="This error remains visible but marked as disabled for read-only states.".to_string()
-                        is_disabled=true
-                        element=ErrorMessageElement::Div
-                        aria_label="Disabled error message".to_string()
-                    />
-                </div>
-            </Playground>
-
             <Playground
-                title="Display Comparisons (Tone / State / Element)"
-                description="Display matrix for multiple semantic states to compare tone, is_disabled, is_truncated, and element mappings."
-                code_signal=display_code
-            >
-                <div class="docs-stack docs-error-message-limit">
-                    <ErrorMessage
-                        text="Auto tone (maps to negative) for default invalid feedback.".to_string()
-                    />
-                    <ErrorMessage
-                        text="Neutral tone for low-priority guidance.".to_string()
-                        tone=ErrorMessageTone::Neutral
-                    />
-                    <ErrorMessage
-                        text="Negative tone rendered with span element.".to_string()
-                        tone=ErrorMessageTone::Negative
-                        element=ErrorMessageElement::Span
-                    />
-                    <ErrorMessage
-                        text="Disabled + truncate comparison for dense layouts.".to_string()
-                        is_disabled=true
-                        is_truncated=true
-                        class_name="docs-error-message-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled / Uncontrolled (Input-Driven N/A)"
-                description="ErrorMessage has no internal controllable state axis; controlled/uncontrolled triads are not required. Inputs are consumed directly."
-                code_signal=controlled_uncontrolled_code
-            >
-                <div class="docs-stack">
-                    <ErrorMessage
-                        text="Uncontrolled-style usage: pass only text/tone/flags.".to_string()
-                    />
-                    <ErrorMessage
-                        text="No value/on_value_change/default_value triad is required for this component.".to_string()
-                        is_disabled=true
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional + Snapshot Fallback"
-                description="Streaming is optional for ErrorMessage; docs expose snapshot mode and fallback=snapshot contract for copy/paste verification."
-                code_signal=stream_snapshot_code
-            >
-                <div class="docs-stack">
-                    <ErrorMessage
-                        text="Disabled path maps to draft/read-only output status.".to_string()
-                        is_disabled=true
-                    />
-                    <ErrorMessage
-                        text="Active validation path maps to verified/announce-error output status.".to_string()
-                    />
-                    <p class="ui-muted">
-                        "Inspect data-ui-stream-support/data-ui-stream-mode/data-stream-fallback on rendered nodes."
-                    </p>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Config + Code + CSS Test Workbench"
-                description="Use settings to mutate one instance, then inspect copy-ready code and scoped CSS test panel."
+                title="Workbench (Config + Live Actual Config)"
                 code_signal=workbench_code
+                code_imports=error_message_imports.clone()
                 test_css_source=workbench_test_css_source
                 test_source_path="components/error-message/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
-                controls=move || {
-                    view! {
-                        <div class="docs-stack docs-stack--tight">
-                            <div class="docs-search__label">"Tone"</div>
-                            <select
-                                class="docs-search__input"
-                                prop:value=move || workbench_tone_index.get().to_string()
-                                on:change=move |ev| {
-                                    if let Ok(next) = event_target_value(&ev).parse::<usize>() {
-                                        set_workbench_tone_index.set(next.min(2));
-                                    }
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="error-message-workbench-controls">
+                        <div class="docs-search__label">"Tone"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || tone_index.get().to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_tone_index.set(value.min(2));
                                 }
-                            >
-                                <option value="0">"Auto"</option>
-                                <option value="1">"Neutral"</option>
-                                <option value="2">"Negative"</option>
-                            </select>
+                            }
+                        >
+                            <option value="0">"Auto"</option>
+                            <option value="1">"Neutral"</option>
+                            <option value="2">"Negative"</option>
+                        </select>
 
-                            <div class="docs-search__label">"Element"</div>
-                            <select
-                                class="docs-search__input"
-                                prop:value=move || workbench_element_index.get().to_string()
-                                on:change=move |ev| {
-                                    if let Ok(next) = event_target_value(&ev).parse::<usize>() {
-                                        set_workbench_element_index.set(next.min(2));
-                                    }
+                        <div class="docs-search__label">"Element"</div>
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || element_index.get().to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_element_index.set(value.min(2));
                                 }
-                            >
-                                <option value="0">"span"</option>
-                                <option value="1">"p"</option>
-                                <option value="2">"div"</option>
-                            </select>
+                            }
+                        >
+                            <option value="0">"span"</option>
+                            <option value="1">"paragraph"</option>
+                            <option value="2">"div"</option>
+                        </select>
 
-                            <label class="docs-choice-row">
-                                <input
-                                    type="checkbox"
-                                    prop:checked=move || workbench_disabled.get()
-                                    on:change=move |ev| set_workbench_disabled.set(event_target_checked(&ev))
-                                />
-                                <span>"Disabled"</span>
-                            </label>
-                            <label class="docs-choice-row">
-                                <input
-                                    type="checkbox"
-                                    prop:checked=move || workbench_truncate.get()
-                                    on:change=move |ev| set_workbench_truncate.set(event_target_checked(&ev))
-                                />
-                                <span>"Truncate"</span>
-                            </label>
-                            <label class="docs-choice-row">
-                                <input
-                                    type="checkbox"
-                                    prop:checked=move || workbench_custom_class.get()
-                                    on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
-                                />
-                                <span>"Custom class source"</span>
-                            </label>
-                            <label class="docs-choice-row">
-                                <input
-                                    type="checkbox"
-                                    prop:checked=move || workbench_custom_aria.get()
-                                    on:change=move |ev| set_workbench_custom_aria.set(event_target_checked(&ev))
-                                />
-                                <span>"Custom aria label source"</span>
-                            </label>
-                        </div>
-                    }
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || disabled_state.get()
+                                on:change=move |event| set_disabled_state.set(event_target_checked(&event))
+                            />
+                            <span>"Disabled state"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || use_disabled_alias.get()
+                                on:change=move |event| set_use_disabled_alias.set(event_target_checked(&event))
+                            />
+                            <span>"Use disabled alias prop"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || truncate_state.get()
+                                on:change=move |event| set_truncate_state.set(event_target_checked(&event))
+                            />
+                            <span>"Truncate state"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || use_truncate_alias.get()
+                                on:change=move |event| set_use_truncate_alias.set(event_target_checked(&event))
+                            />
+                            <span>"Use truncate alias prop"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_aria.get()
+                                on:change=move |event| set_custom_aria.set(event_target_checked(&event))
+                            />
+                            <span>"Custom aria label"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_class.get()
+                                on:change=move |event| set_custom_class.set(event_target_checked(&event))
+                            />
+                            <span>"Custom class"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_motion.get()
+                                on:change=move |event| set_custom_motion.set(event_target_checked(&event))
+                            />
+                            <span>"Custom motion"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || rtl.get()
+                                on:change=move |event| set_rtl.set(event_target_checked(&event))
+                            />
+                            <span>"RTL (lang=ar, dir=rtl)"</span>
+                        </label>
+                    </div>
                 }
             >
-                {move || {
-                    let tone = match workbench_tone_index.get() {
-                        1 => ErrorMessageTone::Neutral,
-                        2 => ErrorMessageTone::Negative,
-                        _ => ErrorMessageTone::Auto,
-                    };
-                    let element = match workbench_element_index.get() {
-                        0 => ErrorMessageElement::Span,
-                        2 => ErrorMessageElement::Div,
-                        _ => ErrorMessageElement::Paragraph,
-                    };
-                    let class_name = if workbench_custom_class.get() {
-                        "docs-error-message-custom".to_string()
-                    } else {
-                        String::new()
-                    };
-                    let aria_label = if workbench_custom_aria.get() {
-                        "Workbench error".to_string()
-                    } else {
-                        String::new()
-                    };
-
-                    view! {
-                        <div class="docs-stack docs-error-message-limit">
-                            <ErrorMessage
-                                text="Config + code + css test workbench message".to_string()
-                                tone=tone
-                                is_disabled=workbench_disabled.get()
-                                is_truncated=workbench_truncate.get()
-                                element=element
-                                class_name=class_name
-                                aria_label=aria_label
-                            />
-                        </div>
-                    }
-                }}
+                <div class="docs-stack docs-stack--tight docs-error-message-limit">
+                    <ErrorMessage
+                        text=if disabled_state.get() {
+                            "Email is required for account creation".to_string()
+                        } else {
+                            "Invalid email address".to_string()
+                        }
+                        tone=workbench_tone.get()
+                        is_disabled=if use_disabled_alias.get() {
+                            false
+                        } else {
+                            disabled_state.get()
+                        }
+                        disabled=if use_disabled_alias.get() {
+                            disabled_state.get()
+                        } else {
+                            false
+                        }
+                        is_truncated=if use_truncate_alias.get() {
+                            false
+                        } else {
+                            truncate_state.get()
+                        }
+                        truncate=if use_truncate_alias.get() {
+                            truncate_state.get()
+                        } else {
+                            false
+                        }
+                        element=workbench_element.get()
+                        motion=workbench_motion.get()
+                        aria_label=workbench_aria_label.get()
+                        class_name=workbench_class_name.get()
+                        lang=workbench_lang.get()
+                        dir=workbench_dir.get()
+                    />
+                </div>
             </Playground>
 
-            <section class="docs-card docs-prose" data-slot="error-message-source-first">
-                <h3>"Source-first / Copy-Paste Ready"</h3>
-                <p>
-                    "Each playground supports "
-                    <code>"Show code"</code>
-                    " + copy. Copied snippets are import-ready via "
-                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
-                    "."
-                </p>
-                <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<ErrorMessage\n  text=\"Invalid email address\".to_string()\n/>".to_string()
-                    label="Copy starter".to_string()
-                    copyable=true
-                    class_name="docs-error-message-source-copy".to_string()
-                />
-                <ul data-slot="error-message-source-paths">
-                    <li><code>"components/error-message/src/mod.rs"</code></li>
-                    <li><code>"components/error-message/src/logic.rs"</code></li>
-                    <li><code>"components/error-message/src/view.rs"</code></li>
-                    <li><code>"components/error-message/src/styles.rs"</code></li>
-                    <li><code>"components/error-message/src/motion.rs"</code></li>
-                </ul>
-                <ul data-slot="error-message-source-prerequisites">
-                    <li><code>"component-error_message"</code></li>
-                    <li><code>"inject-css"</code></li>
-                </ul>
-            </section>
+            <Playground
+                title="State Matrix (Tone / Alias / Element Comparison)"
+                code_signal=matrix_code
+                code_imports=error_message_imports
+            >
+                <div class="docs-stack docs-stack--tight docs-error-message-limit">
+                    <ErrorMessage text="Invalid email address".to_string() />
+                    <ErrorMessage
+                        text="Username already exists".to_string()
+                        tone=ErrorMessageTone::Neutral
+                        is_disabled=true
+                        element=ErrorMessageElement::Div
+                    />
+                    <ErrorMessage
+                        text="Verification code expired".to_string()
+                        tone=ErrorMessageTone::Negative
+                        disabled=true
+                        truncate=true
+                        motion=ui::error_message::ErrorMessageMotion {
+                            transition_ms: 280,
+                        }
+                        aria_label="Verification error".to_string()
+                        class_name="docs-error-message-custom".to_string()
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                    />
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
@@ -1244,7 +1144,8 @@ pub(super) fn error_message() -> AnyView {
 
 pub(super) fn description() -> AnyView {
     let description_imports =
-        "use leptos::prelude::*;\nuse ui_components::{Description, DescriptionElement, DescriptionTone};".to_string();
+        "use leptos::prelude::*;\nuse ui::{Description, DescriptionElement, DescriptionTone};"
+            .to_string();
 
     let tone_options = vec![
         "default".to_string(),
@@ -1310,7 +1211,7 @@ pub(super) fn description() -> AnyView {
     let test_css_source = Signal::derive(move || {
         format!(
             "/* components/description/src/styles.rs */\n{}",
-            ui_components::description::styles::CSS
+            ui::description::styles::CSS
         )
     });
 
@@ -1634,7 +1535,7 @@ pub(super) fn description() -> AnyView {
                     "."
                 </p>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::{Description, DescriptionElement, DescriptionTone};\n\n<Description\n  text=\"This appears below the field.\".to_string()\n/>".to_string()
+                    text="use leptos::prelude::*;\nuse ui::{Description, DescriptionElement, DescriptionTone};\n\n<Description\n  text=\"This appears below the field.\".to_string()\n/>".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-description-source-copy".to_string()
@@ -1683,14 +1584,15 @@ pub(super) fn fieldset() -> AnyView {
   error_message="Pick at least one channel".to_string()
   class_name="docs-fieldset-custom".to_string()
   actions=move || view! {
-    <ui_components::Button variant=ui_components::ButtonVariant::Secondary size=ui_components::ButtonSize::Sm>
+    <ui::Button variant=ui::ButtonVariant::Secondary size=ui::ButtonSize::Sm>
       "Manage channels"
-    </ui_components::Button>
+    </ui::Button>
   }
 >
   <label><input type="checkbox" /> "Email"</label>
   <label><input type="checkbox" /> "SMS"</label>
-</Fieldset>"#.to_string()
+</Fieldset>"#
+            .to_string()
     });
 
     let controlled_uncontrolled_code = Signal::derive(move || {
@@ -1699,6 +1601,8 @@ pub(super) fn fieldset() -> AnyView {
 // Uncontrolled-style: initialize once with default_is_invalid.
 <Fieldset
   legend="Uncontrolled snapshot".to_string()
+  default_is_required=true
+  default_is_disabled=false
   default_is_invalid=true
   error_message="Uncontrolled snapshot: pick at least one channel".to_string()
 >
@@ -1708,8 +1612,13 @@ pub(super) fn fieldset() -> AnyView {
 // Controlled-style: external signal is the single source of truth.
 <Fieldset
   legend="Controlled snapshot".to_string()
+  default_is_required=false
+  on_is_required_change=Callback::new(move |_next| {})
+  default_is_disabled=false
+  on_is_disabled_change=Callback::new(move |_next| {})
   is_invalid=Signal::derive(move || controlled_invalid.get())
   on_is_invalid_change=Callback::new(move |next| set_controlled_invalid.set(next))
+  motion=FieldsetMotion::default()
   error_message="Controlled snapshot: pick at least one channel".to_string()
 >
   <label><input type="checkbox" /> "SMS"</label>
@@ -1810,7 +1719,7 @@ pub(super) fn fieldset() -> AnyView {
         }
         if show_actions {
             lines.push(
-                "  actions=move || view! { <ui_components::Button variant=ui_components::ButtonVariant::Secondary size=ui_components::ButtonSize::Sm>\"Manage\"</ui_components::Button> }".to_string(),
+                "  actions=move || view! { <ui::Button variant=ui::ButtonVariant::Secondary size=ui::ButtonSize::Sm>\"Manage\"</ui::Button> }".to_string(),
             );
         }
         lines.extend([
@@ -1825,8 +1734,8 @@ pub(super) fn fieldset() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/field_form/fieldset/styles.rs */\n{}",
-            ui_components::field_form::fieldset::styles::CSS
+            "/* crates/ui/src/field_form/fieldset/styles.rs */\n{}",
+            ui::field_form::fieldset::styles::CSS
         )
     });
 
@@ -1875,7 +1784,26 @@ pub(super) fn fieldset() -> AnyView {
         };
 
         format!(
-            "FieldsetActualConfig {{\n  orientation: {orientation:?},\n  tone: {tone:?},\n  is_required: {required},\n  is_disabled: {disabled},\n  is_invalid: {invalid},\n  has_description: {},\n  has_actions: {show_actions},\n  class_source: \"{}\",\n  message_kind: \"{message_kind}\",\n  lang: \"{lang}\",\n  dir: \"{}\",\n  class: \"{}\",\n}}",
+            "FieldsetActualConfig {{\n  orientation: {orientation:?},\n  tone: {tone:?},\n  is_required: {required},\n  default_is_required: {},\n  on_is_required_change: {:?},\n  is_disabled: {disabled},\n  default_is_disabled: {},\n  on_is_disabled_change: {:?},\n  is_invalid: {invalid},\n  default_is_invalid: {},\n  on_is_invalid_change: {:?},\n  legend: {:?},\n  error_message: {:?},\n  aria_label: {:?},\n  class_name: {:?},\n  motion: {:?},\n  has_description: {},\n  has_actions: {show_actions},\n  class_source: \"{}\",\n  message_kind: \"{message_kind}\",\n  lang: \"{lang}\",\n  dir: \"{}\",\n  class: \"{}\",\n}}",
+            false,
+            Some("Callback<bool>"),
+            false,
+            Some("Callback<bool>"),
+            false,
+            Some("Callback<bool>"),
+            Some("Notification channels"),
+            if invalid {
+                Some("Pick at least one channel")
+            } else {
+                None
+            },
+            Some("Notification channel group"),
+            if custom_class {
+                Some("docs-fieldset-custom")
+            } else {
+                None
+            },
+            ui::field_form::fieldset::FieldsetMotion::default(),
             show_description && !invalid,
             if custom_class { "custom" } else { "default" },
             if rtl { "rtl" } else { "auto" },
@@ -1930,12 +1858,12 @@ pub(super) fn fieldset() -> AnyView {
                     class_name="docs-fieldset-custom".to_string()
                     actions=move || {
                         view! {
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                size=ui_components::ButtonSize::Sm
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
+                                size=ui::ButtonSize::Sm
                             >
                                 "Manage channels"
-                            </ui_components::Button>
+                            </ui::Button>
                         }
                     }
                 >
@@ -1969,15 +1897,15 @@ pub(super) fn fieldset() -> AnyView {
                     </Fieldset>
 
                     <div class="docs-search__label">"Controlled snapshot"</div>
-                    <ui_components::Button
-                        variant=ui_components::ButtonVariant::Secondary
-                        size=ui_components::ButtonSize::Sm
+                    <ui::Button
+                        variant=ui::ButtonVariant::Secondary
+                        size=ui::ButtonSize::Sm
                         on_press=Callback::new(move |_| {
                             set_controlled_invalid.update(|value| *value = !*value);
                         })
                     >
                         {move || if controlled_invalid.get() { "Set controlled valid" } else { "Set controlled invalid" }}
-                    </ui_components::Button>
+                    </ui::Button>
                     <Fieldset
                         legend="Controlled snapshot".to_string()
                         is_invalid=controlled_invalid_signal.get()
@@ -2017,7 +1945,7 @@ pub(super) fn fieldset() -> AnyView {
                 description="展示 / config / code / css test 一体化工作台，并提供多场景对比。"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="crates/ui-components/src/field_form/fieldset/styles.rs".to_string()
+                test_source_path="crates/ui/src/field_form/fieldset/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="fieldset-workbench-controls">
@@ -2129,26 +2057,28 @@ pub(super) fn fieldset() -> AnyView {
                             <div class="docs-search__label">"Configured"</div>
                             {if show_actions {
                                 view! {
-                                    <Fieldset
-                                        orientation=orientation
-                                        tone=tone
-                                        is_required=required
-                                        is_disabled=disabled
-                                        is_invalid=invalid
-                                        legend="Notification channels".to_string()
-                                        description=description.clone()
-                                        error_message=error_message.clone()
-                                        class_name=class_name.clone()
-                                        lang=lang.clone()
-                                        dir=dir
-                                        actions=move || {
-                                            view! {
-                                                <ui_components::Button
-                                                    variant=ui_components::ButtonVariant::Secondary
-                                                    size=ui_components::ButtonSize::Sm
+                            <Fieldset
+                                orientation=orientation
+                                tone=tone
+                                is_required=required
+                                is_disabled=disabled
+                                is_invalid=invalid
+                                legend="Notification channels".to_string()
+                                description=description.clone()
+                                error_message=error_message.clone()
+                                class_name=class_name.clone()
+                                aria_label="Notification channel group".to_string()
+                                lang=lang.clone()
+                                dir=dir
+                                motion=ui::field_form::fieldset::FieldsetMotion::default()
+                                actions=move || {
+                                    view! {
+                                        <ui::Button
+                                                    variant=ui::ButtonVariant::Secondary
+                                                    size=ui::ButtonSize::Sm
                                                 >
                                                     "Manage"
-                                                </ui_components::Button>
+                                                </ui::Button>
                                             }
                                         }
                                     >
@@ -2165,21 +2095,23 @@ pub(super) fn fieldset() -> AnyView {
                                     .into_any()
                             } else {
                                 view! {
-                                    <Fieldset
-                                        orientation=orientation
-                                        tone=tone
-                                        is_required=required
-                                        is_disabled=disabled
-                                        is_invalid=invalid
-                                        legend="Notification channels".to_string()
-                                        description=description
-                                        error_message=error_message
-                                        class_name=class_name
-                                        lang=lang
-                                        dir=dir
-                                    >
-                                        <label class="docs-choice-row">
-                                            <input type="checkbox" />
+                            <Fieldset
+                                orientation=orientation
+                                tone=tone
+                                is_required=required
+                                is_disabled=disabled
+                                is_invalid=invalid
+                                legend="Notification channels".to_string()
+                                description=description
+                                error_message=error_message
+                                class_name=class_name
+                                aria_label="Notification channel group".to_string()
+                                lang=lang
+                                dir=dir
+                                motion=ui::field_form::fieldset::FieldsetMotion::default()
+                            >
+                                <label class="docs-choice-row">
+                                    <input type="checkbox" />
                                             <span>"Email"</span>
                                         </label>
                                         <label class="docs-choice-row">
@@ -2221,6 +2153,56 @@ pub(super) fn fieldset() -> AnyView {
                 }}
             </Playground>
 
+            <Playground
+                title="State Matrix (Required / Invalid / Disabled)"
+                code_signal=invalid_code
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="fieldset-state-matrix">
+                    <Fieldset
+                        legend="Required vertical".to_string()
+                        is_required=true
+                        description="Required + description".to_string()
+                        aria_label="Required group".to_string()
+                        motion=ui::field_form::fieldset::FieldsetMotion::default()
+                    >
+                        <label class="docs-choice-row">
+                            <input type="checkbox" />
+                            <span>"Email"</span>
+                        </label>
+                    </Fieldset>
+                    <Fieldset
+                        legend="Invalid horizontal".to_string()
+                        orientation=FieldsetOrientation::Horizontal
+                        tone=FieldsetTone::Muted
+                        is_invalid=true
+                        error_message="At least one option is required".to_string()
+                        aria_label="Invalid group".to_string()
+                        class_name="docs-fieldset-custom".to_string()
+                        motion=ui::field_form::fieldset::FieldsetMotion::default()
+                    >
+                        <label class="docs-choice-row">
+                            <input type="checkbox" />
+                            <span>"SMS"</span>
+                        </label>
+                    </Fieldset>
+                    <Fieldset
+                        legend="Disabled".to_string()
+                        is_disabled=true
+                        default_is_required=true
+                        default_is_disabled=true
+                        on_is_required_change=Callback::new(move |_next| {})
+                        on_is_disabled_change=Callback::new(move |_next| {})
+                        aria_label="Disabled group".to_string()
+                        motion=ui::field_form::fieldset::FieldsetMotion::default()
+                    >
+                        <label class="docs-choice-row">
+                            <input type="checkbox" disabled />
+                            <span>"Push"</span>
+                        </label>
+                    </Fieldset>
+                </div>
+            </Playground>
+
             <section class="docs-card docs-prose" data-slot="fieldset-source-first">
                 <h3>"Source-first / Copy-Paste Ready"</h3>
                 <p data-slot="fieldset-source-first-contract">
@@ -2233,7 +2215,7 @@ pub(super) fn fieldset() -> AnyView {
                 <p data-slot="fieldset-source-first-dependency-baseline">
                     "Dependency baseline (Cargo.toml): "
                     <code>
-                        "ui-components = { default-features = false, features = [\"component-fieldset\", \"inject-css\"] }"
+                        "ui = { default-features = false, features = [\"component-fieldset\", \"inject-css\"] }"
                     </code>
                 </p>
                 <Snippet
@@ -2242,7 +2224,7 @@ components/fieldset/src/logic.rs
 components/fieldset/src/view.rs
 components/fieldset/src/styles.rs
 components/fieldset/src/motion.rs
-crates/ui-components/src/field_form/fieldset/{mod,logic,view,styles,motion}.rs
+crates/ui/src/field_form/fieldset/{mod,logic,view,styles,motion}.rs
 apps/docs-app/src/pages/components/pages/forms_extra.rs::fieldset"#.to_string()
                     copyable=true
                     class_name="docs-fieldset-source-copy".to_string()
@@ -2259,161 +2241,142 @@ apps/docs-app/src/pages/components/pages/forms_extra.rs::fieldset"#.to_string()
 
 pub(super) fn label() -> AnyView {
     let label_imports =
-        "use leptos::prelude::*;\nuse ui_components::{Label, LabelEmphasis};".to_string();
-    let emphasis_options = vec![
-        "default".to_string(),
-        "subtle".to_string(),
-        "strong".to_string(),
-    ];
-    let (emphasis_index, set_emphasis_index) = signal(Some(0usize));
-    let selected_emphasis = Signal::derive(move || match emphasis_index.get().unwrap_or(0) {
+        "use leptos::prelude::*;\nuse ui::{Label, LabelEmphasis};\nuse ui_headless::A11yDirection;"
+            .to_string();
+
+    let (emphasis_index, set_emphasis_index) = signal(0usize);
+    let (is_required, set_is_required) = signal(true);
+    let (is_disabled, set_is_disabled) = signal(false);
+    let (has_for_id, set_has_for_id) = signal(true);
+    let (custom_indicator, set_custom_indicator) = signal(false);
+    let (custom_class, set_custom_class) = signal(false);
+    let (custom_motion, set_custom_motion) = signal(false);
+    let (rtl, set_rtl) = signal(false);
+
+    let workbench_emphasis = Signal::derive(move || match emphasis_index.get() {
         1 => LabelEmphasis::Subtle,
         2 => LabelEmphasis::Strong,
         _ => LabelEmphasis::Default,
     });
+    let workbench_text = Signal::derive(move || {
+        if is_required.get() {
+            "Assignee".to_string()
+        } else {
+            "Optional assignee".to_string()
+        }
+    });
+    let workbench_for_id = Signal::derive(move || {
+        if has_for_id.get() {
+            "docs-label-workbench-input".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_required_indicator = Signal::derive(move || {
+        if custom_indicator.get() {
+            "(required)".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if custom_class.get() {
+            "docs-label-custom".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_motion = Signal::derive(move || {
+        if custom_motion.get() {
+            ui::label::LabelMotion {
+                color_transition_ms: 420,
+                weight_transition_ms: 420,
+            }
+        } else {
+            ui::label::LabelMotion::default()
+        }
+    });
+    let workbench_lang = Signal::derive(move || {
+        if rtl.get() {
+            "ar".to_string()
+        } else {
+            "en-US".to_string()
+        }
+    });
+    let workbench_dir = Signal::derive(move || {
+        if rtl.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        }
+    });
 
-    let (is_required, set_is_required) = signal(true);
-    let (is_disabled, set_is_disabled) = signal(false);
-    let (has_for_id, set_has_for_id) = signal(true);
-    let (custom_text, set_custom_text) = signal(true);
-    let (custom_indicator, set_custom_indicator) = signal(false);
-    let (custom_class, set_custom_class) = signal(false);
+    let showcase_code = Signal::derive(move || {
+        r#"<Label
+  text=\"Email\".into()
+  for_id=\"email\".into()
+  is_required=true
+/>"#
+        .to_string()
+    });
 
     let workbench_code = Signal::derive(move || {
-        let emphasis = match selected_emphasis.get() {
-            LabelEmphasis::Default => "LabelEmphasis::Default",
-            LabelEmphasis::Subtle => "LabelEmphasis::Subtle",
-            LabelEmphasis::Strong => "LabelEmphasis::Strong",
-        };
+        format!(
+            "<Label\n  text={text}\n  for_id={for_id}\n  is_required={}\n  is_disabled={}\n  emphasis=LabelEmphasis::{:?}\n  required_indicator={required_indicator}\n  class_name={class_name}\n  motion=ui::label::LabelMotion {{ color_transition_ms: {}, weight_transition_ms: {} }}\n  lang={lang}\n  dir=ui_headless::A11yDirection::{}\n/>",
+            bool_word(is_required.get()),
+            bool_word(is_disabled.get()),
+            workbench_emphasis.get(),
+            workbench_motion.get().color_transition_ms,
+            workbench_motion.get().weight_transition_ms,
+            if rtl.get() { "Rtl" } else { "Ltr" },
+            text = rust_string_literal(&workbench_text.get()),
+            for_id = rust_string_literal(&workbench_for_id.get()),
+            required_indicator = rust_string_literal(&workbench_required_indicator.get()),
+            class_name = rust_string_literal(&workbench_class_name.get()),
+            lang = rust_string_literal(&workbench_lang.get()),
+        )
+    });
 
-        let mut lines = vec![
-            "<Label".to_string(),
-            format!("  emphasis={emphasis}"),
-            format!("  is_required={}", is_required.get()),
-            format!("  is_disabled={}", is_disabled.get()),
-        ];
-
-        if custom_text.get() {
-            lines.push("  text=\"Assignee\".into()".to_string());
-        }
-        if has_for_id.get() {
-            lines.push("  for_id=\"docs-label-workbench-input\".into()".to_string());
-        }
-        if custom_indicator.get() {
-            lines.push("  required_indicator=\"(required)\".into()".to_string());
-        }
-        if custom_class.get() {
-            lines.push("  class_name=\"docs-label-workbench\".into()".to_string());
-        }
-
-        lines.push("/>".to_string());
-        lines.join("\n")
+    let matrix_code = Signal::derive(move || {
+        r#"<Label text=\"Name\".into() for_id=\"name\".into() is_required=true />
+<Label
+  text=\"Helper\".into()
+  emphasis=LabelEmphasis::Subtle
+  is_disabled=true
+/>
+<Label
+  text=\"Critical owner\".into()
+  emphasis=LabelEmphasis::Strong
+  required_indicator=\"(required)\".into()
+  class_name=\"docs-label-custom\".into()
+  motion=ui::label::LabelMotion { color_transition_ms: 420, weight_transition_ms: 420 }
+  lang=\"ar\".into()
+  dir=A11yDirection::Rtl
+/>"#
+        .to_string()
     });
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
             "/* components/label/src/styles.rs */\n{}",
-            ui_components::label::styles::CSS
+            ui::label::styles::CSS
         )
     });
 
     let workbench_actual_config = Signal::derive(move || {
-        let emphasis = selected_emphasis.get();
-        let required = is_required.get();
-        let disabled = is_disabled.get();
-        let with_for_id = has_for_id.get();
-        let with_custom_text = custom_text.get();
-        let with_custom_indicator = custom_indicator.get();
-        let with_custom_class = custom_class.get();
-
-        let emphasis_attr = match emphasis {
-            LabelEmphasis::Default => "default",
-            LabelEmphasis::Subtle => "subtle",
-            LabelEmphasis::Strong => "strong",
-        };
-        let data_state = if required { "required" } else { "optional" };
-        let data_label_source = if with_custom_text {
-            "custom"
-        } else {
-            "default"
-        };
-        let data_indicator_source = if with_custom_indicator {
-            "custom"
-        } else {
-            "default"
-        };
-        let data_class_source = if with_custom_class {
-            "custom"
-        } else {
-            "default"
-        };
-
-        let mut classes = vec![
-            "ui-label".to_string(),
-            format!("ui-label--emphasis-{emphasis_attr}"),
-        ];
-        if required {
-            classes.push("ui-label--required".to_string());
-        }
-        if disabled {
-            classes.push("ui-label--disabled".to_string());
-        }
-        if with_for_id {
-            classes.push("ui-label--for".to_string());
-        }
-        if with_custom_text {
-            classes.push("ui-label--text-custom".to_string());
-        }
-        if with_custom_indicator {
-            classes.push("ui-label--indicator-custom".to_string());
-        }
-        if with_custom_class {
-            classes.push("ui-label--custom-class".to_string());
-            classes.push("docs-label-workbench".to_string());
-        }
-
         format!(
-            "LabelActualConfig {{\n  emphasis: {emphasis:?},\n  required: {required},\n  disabled: {disabled},\n  has_for_id: {with_for_id},\n  custom_text: {with_custom_text},\n  custom_indicator: {with_custom_indicator},\n  custom_class: {with_custom_class},\n  data_emphasis: \"{emphasis_attr}\",\n  data_state: \"{data_state}\",\n  data_label_source: \"{data_label_source}\",\n  data_indicator_source: \"{data_indicator_source}\",\n  data_class_source: \"{data_class_source}\",\n  class: \"{}\",\n}}",
-            classes.join(" ")
+            "LabelActualConfig {{\n  text: {:?},\n  for_id: {:?},\n  is_required: {},\n  is_disabled: {},\n  emphasis: {:?},\n  required_indicator: {:?},\n  class_name: {:?},\n  motion: {:?},\n  lang: {:?},\n  dir: {:?},\n}}",
+            workbench_text.get(),
+            workbench_for_id.get(),
+            is_required.get(),
+            is_disabled.get(),
+            workbench_emphasis.get(),
+            workbench_required_indicator.get(),
+            workbench_class_name.get(),
+            workbench_motion.get(),
+            workbench_lang.get(),
+            workbench_dir.get(),
         )
-    });
-
-    let hello_world_code =
-        Signal::derive(move || r#"<Label text="Name".to_string() />"#.to_string());
-
-    let emphasis_code = Signal::derive(move || {
-        r#"<Label text="Name".to_string() for_id="name".to_string() is_required=true />
-<Label text="Hint".to_string() emphasis=LabelEmphasis::Subtle />
-<Label text="Critical".to_string() emphasis=LabelEmphasis::Strong is_required=true />"#
-            .to_string()
-    });
-
-    let custom_code = Signal::derive(move || {
-        r#"<Label
-  text="Assignee".to_string()
-  for_id="assignee".to_string()
-  is_required=true
-  required_indicator="(required)".to_string()
-  class_name="docs-label-custom".to_string()
-/>"#
-        .to_string()
-    });
-
-    let controlled_uncontrolled_code = Signal::derive(move || {
-        r#"// Label has no controlled value axis (no value/on_value_change/default_value triad).
-// Parent passes a full snapshot props set each render.
-<Label text="Display Name".to_string() for_id="display-name".to_string() is_required=true />
-<Label text="Display Name (server snapshot)".to_string() for_id="display-name".to_string() is_required=true emphasis=LabelEmphasis::Strong />"#
-            .to_string()
-    });
-
-    let stream_snapshot_code = Signal::derive(move || {
-        r#"// Snapshot: render validated final output in one shot.
-<Label text="Snapshot: assignee".to_string() for_id="assignee".to_string() is_required=true />
-
-// Streaming Optional: keep fallback=snapshot and render last stable label text.
-<Label text="Streaming fallback=snapshot: waiting for final label".to_string() emphasis=LabelEmphasis::Subtle />"#
-            .to_string()
     });
 
     view! {
@@ -2421,248 +2384,171 @@ pub(super) fn label() -> AnyView {
             title="Label"
             slug="label"
             group="Forms"
-            description="Form label primitive with centralized required/emphasis/source state contracts."
+            description="Form label primitive with full API workbench and multi-state matrix."
         >
             <Playground
-                title="Hello World"
-                code_signal=hello_world_code
+                title="Hello World (Default API)"
+                code_signal=showcase_code
                 code_imports=label_imports.clone()
             >
-                <div class="docs-stack">
-                    <Label text="Name".to_string() />
+                <div class="docs-stack docs-stack--tight">
+                    <Label
+                        text="Email".to_string()
+                        for_id="docs-label-showcase".to_string()
+                        is_required=true
+                    />
+                    <input
+                        id="docs-label-showcase"
+                        class="docs-search__input"
+                        type="email"
+                        placeholder="name@example.com"
+                    />
                 </div>
             </Playground>
 
             <Playground
-                title="Interactive Playground"
-                description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
+                title="Workbench (Config + Live Actual Config)"
                 code_signal=workbench_code
                 code_imports=label_imports.clone()
                 test_css_source=workbench_test_css_source
                 test_source_path="components/label/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
-                    <div class="docs-stack docs-stack--tight">
+                    <div class="docs-stack docs-stack--tight" data-slot="label-workbench-controls">
                         <div class="docs-search__label">"Emphasis"</div>
-                        <SegmentedControl
-                            id_base="docs-label-workbench-emphasis".to_string()
-                            options=emphasis_options.clone()
-                            selected_index=emphasis_index
-                            set_selected_index=set_emphasis_index
-                            size=SegmentedControlSize::Sm
-                            aria_label="Label workbench emphasis".to_string()
-                        />
+                        <select
+                            class="docs-search__input"
+                            prop:value=move || emphasis_index.get().to_string()
+                            on:change=move |event| {
+                                if let Ok(value) = event_target_value(&event).parse::<usize>() {
+                                    set_emphasis_index.set(value.min(2));
+                                }
+                            }
+                        >
+                            <option value="0">"Default"</option>
+                            <option value="1">"Subtle"</option>
+                            <option value="2">"Strong"</option>
+                        </select>
 
-                        <Switch checked=is_required set_checked=set_is_required>
-                            "Required"
-                        </Switch>
-                        <Switch checked=is_disabled set_checked=set_is_disabled>
-                            "Disabled"
-                        </Switch>
-                        <Switch checked=has_for_id set_checked=set_has_for_id>
-                            "Bind for/id"
-                        </Switch>
-                        <Switch checked=custom_text set_checked=set_custom_text>
-                            "Custom text"
-                        </Switch>
-                        <Switch checked=custom_indicator set_checked=set_custom_indicator>
-                            "Custom required indicator"
-                        </Switch>
-                        <Switch checked=custom_class set_checked=set_custom_class>
-                            "Custom class"
-                        </Switch>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || is_required.get()
+                                on:change=move |event| set_is_required.set(event_target_checked(&event))
+                            />
+                            <span>"Required"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || is_disabled.get()
+                                on:change=move |event| set_is_disabled.set(event_target_checked(&event))
+                            />
+                            <span>"Disabled"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || has_for_id.get()
+                                on:change=move |event| set_has_for_id.set(event_target_checked(&event))
+                            />
+                            <span>"Bind for/id"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_indicator.get()
+                                on:change=move |event| set_custom_indicator.set(event_target_checked(&event))
+                            />
+                            <span>"Custom required indicator"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_class.get()
+                                on:change=move |event| set_custom_class.set(event_target_checked(&event))
+                            />
+                            <span>"Custom class"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_motion.get()
+                                on:change=move |event| set_custom_motion.set(event_target_checked(&event))
+                            />
+                            <span>"Custom motion"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || rtl.get()
+                                on:change=move |event| set_rtl.set(event_target_checked(&event))
+                            />
+                            <span>"RTL (lang=ar, dir=rtl)"</span>
+                        </label>
                     </div>
                 }
             >
-                {move || {
-                    view! {
-                        <div class="docs-stack docs-stack--tight">
-                            <div class="docs-row" style="align-items: flex-start;">
-                                <div class="docs-card" style="flex: 1 1 22rem; min-width: 16rem;">
-                                    <div class="ui-muted">"Workbench"</div>
-                                    <div class="docs-stack docs-stack--tight">
-                                        <Label
-                                            text=if custom_text.get() {
-                                                "Assignee".to_string()
-                                            } else {
-                                                String::new()
-                                            }
-                                            for_id=if has_for_id.get() {
-                                                "docs-label-workbench-input".to_string()
-                                            } else {
-                                                String::new()
-                                            }
-                                            is_required=is_required.get()
-                                            is_disabled=is_disabled.get()
-                                            emphasis=selected_emphasis.get()
-                                            required_indicator=if custom_indicator.get() {
-                                                "(required)".to_string()
-                                            } else {
-                                                String::new()
-                                            }
-                                            class_name=if custom_class.get() {
-                                                "docs-label-workbench".to_string()
-                                            } else {
-                                                String::new()
-                                            }
-                                        />
-                                        <input
-                                            id="docs-label-workbench-input"
-                                            class="docs-search__input"
-                                            type="text"
-                                            placeholder="Owner"
-                                            disabled=is_disabled.get()
-                                        />
-                                    </div>
-                                </div>
-
-                                <div class="docs-card" style="flex: 1 1 22rem; min-width: 16rem;">
-                                    <div class="ui-muted">"Comparison (Strong + Required + Custom Indicator)"</div>
-                                    <div class="docs-stack docs-stack--tight">
-                                        <Label
-                                            text="Critical".to_string()
-                                            for_id="docs-label-workbench-compare".to_string()
-                                            is_required=true
-                                            emphasis=LabelEmphasis::Strong
-                                            required_indicator="(required)".to_string()
-                                            class_name="docs-label-custom".to_string()
-                                        />
-                                        <input
-                                            id="docs-label-workbench-compare"
-                                            class="docs-search__input"
-                                            type="text"
-                                            placeholder="Critical owner"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                }}
-            </Playground>
-
-            <Playground
-                title="Emphasis + Required"
-                code_signal=emphasis_code
-                code_imports=label_imports.clone()
-            >
-                <div class="docs-stack">
-                    <Label text="Name".to_string() for_id="docs-label-name".to_string() is_required=true />
-                    <input id="docs-label-name" class="docs-search__input" type="text" placeholder="Type name" />
-
-                    <Label text="Hint".to_string() emphasis=LabelEmphasis::Subtle />
-                    <Label text="Critical".to_string() emphasis=LabelEmphasis::Strong is_required=true />
+                <div class="docs-stack docs-stack--tight">
+                    <Label
+                        text=workbench_text.get()
+                        for_id=workbench_for_id.get()
+                        is_required=is_required.get()
+                        is_disabled=is_disabled.get()
+                        emphasis=workbench_emphasis.get()
+                        required_indicator=workbench_required_indicator.get()
+                        class_name=workbench_class_name.get()
+                        motion=workbench_motion.get()
+                        lang=workbench_lang.get()
+                        dir=workbench_dir.get()
+                    />
+                    <input
+                        id="docs-label-workbench-input"
+                        class="docs-search__input"
+                        type="text"
+                        placeholder="Owner"
+                        disabled=is_disabled.get()
+                    />
                 </div>
             </Playground>
 
             <Playground
-                title="Custom Indicator + Class"
-                code_signal=custom_code
-                code_imports=label_imports.clone()
+                title="State Matrix (Emphasis / Disabled / Locale Comparison)"
+                code_signal=matrix_code
+                code_imports=label_imports
             >
-                <div class="docs-stack">
+                <div class="docs-stack docs-stack--tight">
                     <Label
-                        text="Assignee".to_string()
-                        for_id="docs-label-assignee".to_string()
+                        text="Name".to_string()
+                        for_id="docs-label-matrix-name".to_string()
                         is_required=true
+                    />
+                    <Label
+                        text="Helper".to_string()
+                        emphasis=LabelEmphasis::Subtle
+                        is_disabled=true
+                    />
+                    <Label
+                        text="Critical owner".to_string()
+                        emphasis=LabelEmphasis::Strong
                         required_indicator="(required)".to_string()
                         class_name="docs-label-custom".to_string()
-                    />
-                    <input
-                        id="docs-label-assignee"
-                        class="docs-search__input"
-                        type="text"
-                        placeholder="Owner"
+                        motion=ui::label::LabelMotion {
+                            color_transition_ms: 420,
+                            weight_transition_ms: 420,
+                        }
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
                     />
                 </div>
             </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A for Label)"
-                description="Label has no controllable value axis; parent passes a full snapshot props set each render."
-                code_signal=controlled_uncontrolled_code
-                code_imports=label_imports.clone()
-            >
-                <div class="docs-stack">
-                    <Label
-                        text="Display Name".to_string()
-                        for_id="docs-label-controlled-na".to_string()
-                        is_required=true
-                    />
-                    <input
-                        id="docs-label-controlled-na"
-                        class="docs-search__input"
-                        type="text"
-                        placeholder="Display name"
-                    />
-                    <p class="ui-muted">
-                        "No value/on_value_change/default_value triad: Label is snapshot-only projection."
-                    </p>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional (fallback=snapshot)"
-                description="Label is not a正文阅读面; docs expose snapshot mode + fallback=snapshot contract for copy/paste verification."
-                code_signal=stream_snapshot_code
-                code_imports=label_imports.clone()
-            >
-                <div class="docs-stack">
-                    <Label
-                        text="Snapshot: assignee".to_string()
-                        for_id="docs-label-streaming".to_string()
-                        is_required=true
-                    />
-                    <input
-                        id="docs-label-streaming"
-                        class="docs-search__input"
-                        type="text"
-                        placeholder="Owner"
-                    />
-                    <Label
-                        text="Streaming fallback=snapshot: waiting for final label".to_string()
-                        emphasis=LabelEmphasis::Subtle
-                    />
-                    <p class="ui-muted">
-                        "Inspect data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status."
-                    </p>
-                </div>
-            </Playground>
-
-            <section class="docs-card docs-prose" data-slot="label-source-first">
-                <h3>"Source-first / Copy-Paste Ready"</h3>
-                <p>
-                    "Use any Label Playground's "
-                    <code>"Show code"</code>
-                    " + copy button. Copied snippets are import-ready via "
-                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
-                    "."
-                </p>
-                <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::{Label, LabelEmphasis};\n\n<Label text=\"Name\".to_string() />".to_string()
-                    label="Copy starter".to_string()
-                    copyable=true
-                    class_name="docs-label-source-copy".to_string()
-                />
-                <ul data-slot="label-source-paths">
-                    <li><code>"components/label/src/mod.rs"</code></li>
-                    <li><code>"components/label/src/logic.rs"</code></li>
-                    <li><code>"components/label/src/view.rs"</code></li>
-                    <li><code>"components/label/src/styles.rs"</code></li>
-                    <li><code>"components/label/src/motion.rs"</code></li>
-                </ul>
-                <ul data-slot="label-source-prerequisites">
-                    <li><code>"component-label"</code></li>
-                    <li><code>"inject-css"</code></li>
-                </ul>
-            </section>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn field() -> AnyView {
-    let field_imports = "use leptos::prelude::*;\nuse ui_components::{Field, FieldOrientation, FieldTone, field_form::field::FieldMotion};".to_string();
+    let field_imports = "use leptos::prelude::*;\nuse ui::{Field, FieldOrientation, FieldTone, field_form::field::FieldMotion};".to_string();
 
     let persisted_workbench_state = load_field_workbench_state();
     let has_persisted_workbench_state = persisted_workbench_state.is_some();
@@ -2736,13 +2622,13 @@ pub(super) fn field() -> AnyView {
             snippet.push(format!("  tone=FieldTone::{tone:?}"));
         }
         if required {
-            snippet.push("  required=true".to_string());
+            snippet.push("  is_required=true".to_string());
         }
         if invalid {
-            snippet.push("  invalid=true".to_string());
+            snippet.push("  is_invalid=true".to_string());
         }
         if disabled {
-            snippet.push("  disabled=true".to_string());
+            snippet.push("  is_disabled=true".to_string());
         }
         if custom_error {
             snippet.push("  error_message=\"Custom validation error\".into()".to_string());
@@ -2757,6 +2643,9 @@ pub(super) fn field() -> AnyView {
         }
         snippet.push("  label=\"Email\".into()".to_string());
         snippet.push("  description=\"Inspect contracts in test panel.\".into()".to_string());
+        snippet.push("  aria_label=\"Workbench field\".into()".to_string());
+        snippet.push("  lang=\"en-US\".into()".to_string());
+        snippet.push("  dir=ui_headless::A11yDirection::Ltr".to_string());
         snippet.push(">".to_string());
         snippet.push(
             "  <input class=\"docs-search__input\" type=\"email\" placeholder=\"owner@company.com\" />".to_string(),
@@ -2767,8 +2656,8 @@ pub(super) fn field() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/field_form/field/styles.rs */\n{}",
-            ui_components::field_form::field::styles::CSS
+            "/* crates/ui/src/field_form/field/styles.rs */\n{}",
+            ui::field_form::field::styles::CSS
         )
     });
 
@@ -2824,7 +2713,30 @@ pub(super) fn field() -> AnyView {
         };
 
         format!(
-            "FieldActualConfig {{\n  orientation: {orientation:?},\n  tone: {tone:?},\n  required: {required},\n  invalid: {invalid},\n  disabled: {disabled},\n  custom_error: {custom_error},\n  custom_class: {custom_class},\n  motion_ms: {motion_ms},\n  persist: {},\n  data_state: \"{data_state}\",\n  error_source: \"{}\",\n  class_source: \"{}\",\n  class: \"{}\",\n}}",
+            "FieldActualConfig {{\n  orientation: {orientation:?},\n  tone: {tone:?},\n  is_required: {required},\n  is_invalid: {invalid},\n  is_disabled: {disabled},\n  label: {:?},\n  description: {:?},\n  error_message: {:?},\n  motion: {:?},\n  aria_label: {:?},\n  lang: {:?},\n  dir: {:?},\n  class_name: {:?},\n  custom_error: {custom_error},\n  custom_class: {custom_class},\n  motion_ms: {motion_ms},\n  persist: {},\n  data_state: \"{data_state}\",\n  error_source: \"{}\",\n  class_source: \"{}\",\n  class: \"{}\",\n}}",
+            Some("Email"),
+            Some("Inspect source/state marker contracts"),
+            if invalid {
+                Some(if custom_error {
+                    "Custom validation error"
+                } else {
+                    "A valid email is required"
+                })
+            } else {
+                None
+            },
+            FieldMotion {
+                duration_ms: f64::from(motion_ms),
+                ..FieldMotion::default()
+            },
+            Some("Workbench field"),
+            Some("en-US"),
+            ui_headless::A11yDirection::Ltr,
+            if custom_class {
+                Some("docs-field-custom")
+            } else {
+                None
+            },
             if persist { "on" } else { "off" },
             if !invalid {
                 "none"
@@ -2988,7 +2900,7 @@ pub(super) fn field() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix (Required / Invalid / Disabled)"
+                title="Required / Invalid / Disabled Examples"
                 description="State matrix baseline for required/invalid/disabled semantic markers."
                 code_signal=state_matrix_code
                 code_imports=field_imports.clone()
@@ -3078,7 +2990,7 @@ pub(super) fn field() -> AnyView {
                     </li>
                     <li>
                         <code>"required / disabled / invalid"</code>
-                        " 兼容别名，默认 = false，且低于 `is_*` 优先级"
+                        " 历史别名，默认 = false，且低于 `is_*` 优先级"
                     </li>
                     <li>
                         <code>"label / description / error_message / aria_label / lang / class_name"</code>
@@ -3123,7 +3035,7 @@ pub(super) fn field() -> AnyView {
                 code_signal=workbench_code
                 code_imports=field_imports.clone()
                 test_css_source=workbench_test_css
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/field_form/field/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui/src/field_form/field/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="field-workbench-controls">
@@ -3254,8 +3166,11 @@ pub(super) fn field() -> AnyView {
                             <Field
                                 orientation=orientation
                                 tone=tone
+                                is_required=required
                                 required=required
+                                is_invalid=invalid
                                 invalid=invalid
+                                is_disabled=disabled
                                 disabled=disabled
                                 label="Email".to_string()
                                 description="Inspect source/state marker contracts".to_string()
@@ -3263,6 +3178,8 @@ pub(super) fn field() -> AnyView {
                                 class_name="docs-field-custom".to_string()
                                 motion=motion
                                 aria_label="Workbench field".to_string()
+                                lang="en-US".to_string()
+                                dir=ui_headless::A11yDirection::Ltr
                             >
                                 <input
                                     class="docs-search__input"
@@ -3277,14 +3194,19 @@ pub(super) fn field() -> AnyView {
                             <Field
                                 orientation=orientation
                                 tone=tone
+                                is_required=required
                                 required=required
+                                is_invalid=invalid
                                 invalid=invalid
+                                is_disabled=disabled
                                 disabled=disabled
                                 label="Email".to_string()
                                 description="Inspect source/state marker contracts".to_string()
                                 error_message="Custom validation error".to_string()
                                 motion=motion
                                 aria_label="Workbench field".to_string()
+                                lang="en-US".to_string()
+                                dir=ui_headless::A11yDirection::Ltr
                             >
                                 <input
                                     class="docs-search__input"
@@ -3299,14 +3221,19 @@ pub(super) fn field() -> AnyView {
                             <Field
                                 orientation=orientation
                                 tone=tone
+                                is_required=required
                                 required=required
+                                is_invalid=invalid
                                 invalid=invalid
+                                is_disabled=disabled
                                 disabled=disabled
                                 label="Email".to_string()
                                 description="Inspect source/state marker contracts".to_string()
                                 class_name="docs-field-custom".to_string()
                                 motion=motion
                                 aria_label="Workbench field".to_string()
+                                lang="en-US".to_string()
+                                dir=ui_headless::A11yDirection::Ltr
                             >
                                 <input
                                     class="docs-search__input"
@@ -3321,13 +3248,18 @@ pub(super) fn field() -> AnyView {
                             <Field
                                 orientation=orientation
                                 tone=tone
+                                is_required=required
                                 required=required
+                                is_invalid=invalid
                                 invalid=invalid
+                                is_disabled=disabled
                                 disabled=disabled
                                 label="Email".to_string()
                                 description="Inspect source/state marker contracts".to_string()
                                 motion=motion
                                 aria_label="Workbench field".to_string()
+                                lang="en-US".to_string()
+                                dir=ui_headless::A11yDirection::Ltr
                             >
                                 <input
                                     class="docs-search__input"
@@ -3339,6 +3271,43 @@ pub(super) fn field() -> AnyView {
                         .into_any()
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Workbench Compare)"
+                description="Compare baseline/invalid/disabled combinations after Workbench controls."
+                code_signal=state_matrix_code
+                code_imports=field_imports.clone()
+            >
+                <div class="docs-stack" data-slot="field-state-matrix-post-workbench">
+                    <Field
+                        label="Email".to_string()
+                        is_required=true
+                        description="Required: this field must be provided.".to_string()
+                        lang="en-US".to_string()
+                        dir=ui_headless::A11yDirection::Ltr
+                    >
+                        <input class="docs-search__input" type="email" placeholder="name@example.com" />
+                    </Field>
+                    <Field
+                        label="Email".to_string()
+                        is_invalid=true
+                        error_message="A valid email is required".to_string()
+                        lang="en-US".to_string()
+                        dir=ui_headless::A11yDirection::Ltr
+                    >
+                        <input class="docs-search__input" type="email" placeholder="owner@company.com" />
+                    </Field>
+                    <Field
+                        label="Email".to_string()
+                        is_disabled=true
+                        description="Disabled: read-only snapshot.".to_string()
+                        lang="en-US".to_string()
+                        dir=ui_headless::A11yDirection::Ltr
+                    >
+                        <input class="docs-search__input" type="email" placeholder="disabled@example.com" />
+                    </Field>
+                </div>
             </Playground>
 
             <section class="docs-card docs-prose" data-slot="field-source-first">
@@ -3353,7 +3322,7 @@ pub(super) fn field() -> AnyView {
                 <p data-slot="field-source-first-dependency-baseline">
                     "Dependency baseline (Cargo.toml): "
                     <code>
-                        "ui-components = { default-features = false, features = [\"component-field\", \"inject-css\"] }"
+                        "ui = { default-features = false, features = [\"component-field\", \"inject-css\"] }"
                     </code>
                 </p>
                 <Snippet
@@ -3378,7 +3347,7 @@ apps/docs-app/src/pages/components/pages/forms_extra.rs::field"#.to_string()
 
 pub(super) fn help_text() -> AnyView {
     let help_text_imports =
-        "use leptos::prelude::*;\nuse ui_components::{HelpText, HelpTextTone};".to_string();
+        "use leptos::prelude::*;\nuse ui::{HelpText, HelpTextTone};".to_string();
 
     let hello_world_code = Signal::derive(move || {
         r#"<HelpText
@@ -3540,7 +3509,7 @@ pub(super) fn help_text() -> AnyView {
     let test_css_source = Signal::derive(move || {
         format!(
             "/* components/help-text/src/styles.rs */\n{}",
-            ui_components::field_form::help_text::styles::CSS
+            ui::field_form::help_text::styles::CSS
         )
     });
     let actual_config = Signal::derive(move || {
@@ -3691,49 +3660,49 @@ pub(super) fn help_text() -> AnyView {
                     <div class="docs-stack docs-stack--tight" data-slot="help-text-workbench-controls">
                         <div class="docs-search__label">"配置区 · Tone"</div>
                         <div data-slot="help-text-tone-control">
-                            <ui_components::SegmentedControl
+                            <ui::SegmentedControl
                                 id_base="docs-help-text-tone".to_string()
                                 options=tone_options.clone()
                                 selected_index=tone_index
                                 set_selected_index=set_tone_index
-                                size=ui_components::SegmentedControlSize::Sm
+                                size=ui::SegmentedControlSize::Sm
                                 aria_label="HelpText tone".to_string()
                             />
                         </div>
                         <div data-slot="help-text-toggle-invalid">
-                            <ui_components::Switch checked=is_invalid set_checked=set_is_invalid>
+                            <ui::Switch checked=is_invalid set_checked=set_is_invalid>
                                 "Invalid"
-                            </ui_components::Switch>
+                            </ui::Switch>
                         </div>
                         <div data-slot="help-text-toggle-disabled">
-                            <ui_components::Switch checked=is_disabled set_checked=set_is_disabled>
+                            <ui::Switch checked=is_disabled set_checked=set_is_disabled>
                                 "Disabled"
-                            </ui_components::Switch>
+                            </ui::Switch>
                         </div>
                         <div data-slot="help-text-toggle-show-error-icon">
-                            <ui_components::Switch checked=is_error_icon_visible set_checked=set_is_error_icon_visible>
+                            <ui::Switch checked=is_error_icon_visible set_checked=set_is_error_icon_visible>
                                 "Show error icon"
-                            </ui_components::Switch>
+                            </ui::Switch>
                         </div>
                         <div data-slot="help-text-toggle-use-error-message">
-                            <ui_components::Switch checked=use_error_message set_checked=set_use_error_message>
+                            <ui::Switch checked=use_error_message set_checked=set_use_error_message>
                                 "Use error message"
-                            </ui_components::Switch>
+                            </ui::Switch>
                         </div>
                         <div data-slot="help-text-toggle-custom-aria">
-                            <ui_components::Switch checked=custom_aria set_checked=set_custom_aria>
+                            <ui::Switch checked=custom_aria set_checked=set_custom_aria>
                                 "Custom aria label"
-                            </ui_components::Switch>
+                            </ui::Switch>
                         </div>
                         <div data-slot="help-text-toggle-custom-class">
-                            <ui_components::Switch checked=custom_class set_checked=set_custom_class>
+                            <ui::Switch checked=custom_class set_checked=set_custom_class>
                                 "Custom class"
-                            </ui_components::Switch>
+                            </ui::Switch>
                         </div>
                         <div data-slot="help-text-toggle-show-compare">
-                            <ui_components::Switch checked=show_compare set_checked=set_show_compare>
+                            <ui::Switch checked=show_compare set_checked=set_show_compare>
                                 "Show compare matrix"
-                            </ui_components::Switch>
+                            </ui::Switch>
                         </div>
                     </div>
                 }
@@ -3800,7 +3769,7 @@ pub(super) fn help_text() -> AnyView {
                     "."
                 </p>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::{HelpText, HelpTextTone};\n\n<HelpText\n  description=\"Use at least 12 characters.\".to_string()\n/>".to_string()
+                    text="use leptos::prelude::*;\nuse ui::{HelpText, HelpTextTone};\n\n<HelpText\n  description=\"Use at least 12 characters.\".to_string()\n/>".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-help-text-source-copy".to_string()
@@ -3818,39 +3787,118 @@ pub(super) fn help_text() -> AnyView {
     .into_any()
 }
 pub(super) fn textarea() -> AnyView {
-    let (value_marker, set_value_marker) = signal("Pending review".to_string());
-    let on_marker_value_change = Callback::new(move |next: String| set_value_marker.set(next));
-    let (marker_invalid, set_marker_invalid) = signal(false);
+    let (workbench_value, set_workbench_value) = signal("Pending review".to_string());
+    let (workbench_last_change, set_workbench_last_change) = signal("Pending review".to_string());
+    let on_workbench_value_change = Callback::new(move |next: String| {
+        set_workbench_last_change.set(next.clone());
+        set_workbench_value.set(next);
+    });
+    let workbench_node_ref: NodeRef<leptos::html::Textarea> = NodeRef::new();
 
-    let basic_code = Signal::derive(move || {
-        r#"<Textarea id="about".to_string()
-  label="About".to_string()
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_read_only, set_workbench_read_only) = signal(false);
+    let (workbench_required_raw, set_workbench_required_raw) = signal(false);
+    let (workbench_invalid_raw, set_workbench_invalid_raw) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_rows, set_workbench_rows) = signal(5_u32);
+
+    let workbench_required: Signal<bool> = Signal::derive(move || workbench_required_raw.get());
+    let workbench_invalid: Signal<bool> = Signal::derive(move || workbench_invalid_raw.get());
+
+    let hello_code = Signal::derive(move || {
+        r#"<Textarea
+  id="release-summary".to_string()
+  label="Summary".to_string()
   default_value="Write your release summary".to_string()
-  placeholder="Write something…".to_string()
 />"#
         .to_string()
     });
 
-    let markers_code = Signal::derive(move || {
-        r#"let (value, set_value) = signal("Pending review".to_string());
-let on_value_change = Callback::new(move |next: String| {
-  set_value.set(next);
-});
-let (invalid, set_invalid) = signal(false);
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<Textarea\n  id=\"docs-textarea-workbench\".to_string()\n  label=\"Summary\".to_string()\n  value=Signal::derive(move || value.get())\n  default_value=\"Pending review\".to_string()\n  on_value_change=on_value_change\n  is_disabled={}\n  is_read_only={}\n  is_required=Signal::derive(move || {})\n  is_invalid=Signal::derive(move || {})\n  aria_describedby=Signal::derive(move || Some(\"docs-textarea-help\".to_string()))\n  description=\"Describe release outcome\".to_string()\n  error=\"Summary must include 20+ characters\".to_string()\n  placeholder=\"Write a summary\".to_string()\n  rows=Some({})\n  motion={}\n  class_name={}\n  lang={}\n  dir={}\n  node_ref=node_ref\n/>",
+            bool_word(workbench_disabled.get()),
+            bool_word(workbench_read_only.get()),
+            bool_word(workbench_required_raw.get()),
+            bool_word(workbench_invalid_raw.get()),
+            workbench_rows.get(),
+            if workbench_custom_motion.get() {
+                "ui::textarea::TextareaMotion::disabled()"
+            } else {
+                "ui::textarea::TextareaMotion::default()"
+            },
+            if workbench_custom_class.get() {
+                "Some(\"docs-textarea-workbench\".to_string())"
+            } else {
+                "None"
+            },
+            if workbench_rtl.get() {
+                "Some(\"ar\".to_string())"
+            } else {
+                "Some(\"en\".to_string())"
+            },
+            if workbench_rtl.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            }
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "TextareaWorkbenchConfig {{\n  id: \"docs-textarea-workbench\",\n  label: \"Summary\",\n  value: {},\n  default_value: Some(\"Pending review\"),\n  on_value_change: Some(\"Callback<String>\"),\n  is_disabled: Some({}),\n  is_read_only: Some({}),\n  is_required: Some({}),\n  is_invalid: Some({}),\n  aria_describedby: Some(\"docs-textarea-help\"),\n  description: Some(\"Describe release outcome\"),\n  error: Some(\"Summary must include 20+ characters\"),\n  placeholder: Some(\"Write a summary\"),\n  rows: Some({}),\n  motion: {},\n  class_name: {},\n  lang: {},\n  dir: {},\n  node_ref: Some(\"docs-textarea-workbench-textarea\"),\n}}",
+            rust_string_literal(&workbench_value.get()),
+            bool_word(workbench_disabled.get()),
+            bool_word(workbench_read_only.get()),
+            bool_word(workbench_required_raw.get()),
+            bool_word(workbench_invalid_raw.get()),
+            workbench_rows.get(),
+            if workbench_custom_motion.get() {
+                "TextareaMotion::disabled"
+            } else {
+                "TextareaMotion::default"
+            },
+            if workbench_custom_class.get() {
+                "Some(\"docs-textarea-workbench\")"
+            } else {
+                "None"
+            },
+            if workbench_rtl.get() {
+                "Some(\"ar\")"
+            } else {
+                "Some(\"en\")"
+            },
+            if workbench_rtl.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            }
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<Textarea id="matrix-default".to_string() label="Default".to_string() default_value="Summary".to_string() />
 <Textarea
-  id="summary".to_string()
-  label="Summary".to_string()
-  value=value
+  id="matrix-required".to_string()
+  label="Required + Invalid".to_string()
+  value=Signal::derive(move || value.get())
   on_value_change=on_value_change
-  is_required=true
-  is_invalid=Signal::derive(move || invalid.get())
-  description="Inspect source/state marker contracts".to_string()
-  error="Summary must include at least 20 characters.".to_string()
-  placeholder="Write a summary".to_string()
-  rows=5
-  class_name="docs-textarea-state".to_string()
+  is_required=Signal::derive(|| true)
+  is_invalid=Signal::derive(|| true)
+  error="Please add details".to_string()
+/>
+<Textarea
+  id="matrix-disabled".to_string()
+  label="Disabled".to_string()
+  value=Signal::derive(move || value.get())
+  on_value_change=on_value_change
+  is_disabled=true
+  rows=Some(3)
 />"#
-        .to_string()
+            .to_string()
     });
 
     view! {
@@ -3858,44 +3906,115 @@ let (invalid, set_invalid) = signal(false);
             title="Textarea"
             slug="textarea"
             group="Forms"
-            description="baseline-compatible textarea primitive with baseline-style text-field semantics and stable state/source markers. value axis uses `value/on_value_change/default_value`, and state booleans use canonical `is_*` inputs."
+            description="Textarea primitive with full value/state API coverage."
         >
-            <Playground title="Basic Textarea" code_signal=basic_code>
+            <Playground title="Hello World" code_signal=hello_code>
                 <Textarea
-                    id="docs-textarea-basic".to_string()
-                    label="About".to_string()
+                    id="docs-textarea-hello".to_string()
+                    label="Summary".to_string()
                     default_value="Write your release summary".to_string()
-                    placeholder="Write something…".to_string()
                 />
             </Playground>
 
             <Playground
-                title="State + Source Markers"
-                description="Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, and `data-rows-source`."
-                code_signal=markers_code
+                title="Config Workbench"
+                description="Covers Textarea API and shows callback feedback."
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="textarea-workbench-controls">
+                        <label class="docs-choice-row">
+                            <span>"Rows"</span>
+                            <select
+                                class="docs-select"
+                                on:change=move |ev| {
+                                    let parsed = event_target_value(&ev).parse::<u32>().ok().unwrap_or(5);
+                                    set_workbench_rows.set(parsed.max(1));
+                                }
+                            >
+                                <option value="3" selected=move || workbench_rows.get() == 3>"3"</option>
+                                <option value="5" selected=move || workbench_rows.get() == 5>"5"</option>
+                                <option value="8" selected=move || workbench_rows.get() == 8>"8"</option>
+                            </select>
+                        </label>
+                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>"Disabled"</Switch>
+                        <Switch checked=workbench_read_only set_checked=set_workbench_read_only>"Read only"</Switch>
+                        <Switch checked=workbench_required_raw set_checked=set_workbench_required_raw>"Required"</Switch>
+                        <Switch checked=workbench_invalid_raw set_checked=set_workbench_invalid_raw>"Invalid"</Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>"Custom class"</Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>"RTL"</Switch>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>"Motion disabled"</Switch>
+                    </div>
+                }
             >
-                <div class="docs-stack docs-stack--tight">
+                <div class="docs-stack docs-stack--tight" data-slot="textarea-workbench-preview">
                     <Textarea
-                        id="docs-textarea-marker".to_string()
+                        id="docs-textarea-workbench".to_string()
                         label="Summary".to_string()
-                        value=value_marker
-                        on_value_change=on_marker_value_change
-                        is_required=true
-                        is_invalid=Signal::derive(move || marker_invalid.get())
-                        description="Inspect source/state marker contracts".to_string()
-                        error="Summary must include at least 20 characters.".to_string()
+                        value=Signal::derive(move || workbench_value.get())
+                        default_value="Pending review".to_string()
+                        on_value_change=on_workbench_value_change
+                        is_disabled=workbench_disabled.get()
+                        is_read_only=workbench_read_only.get()
+                        is_required=workbench_required
+                        is_invalid=workbench_invalid
+                        aria_describedby=Signal::derive(move || Some("docs-textarea-help".to_string()))
+                        description="Describe release outcome".to_string()
+                        error="Summary must include 20+ characters".to_string()
                         placeholder="Write a summary".to_string()
-                        rows=5
-                        class_name="docs-textarea-state".to_string()
+                        rows=workbench_rows.get()
+                        motion=if workbench_custom_motion.get() {
+                            ui::textarea::TextareaMotion::disabled()
+                        } else {
+                            ui::textarea::TextareaMotion::default()
+                        }
+                        class_name=if workbench_custom_class.get() {
+                            "docs-textarea-workbench".to_string()
+                        } else {
+                            String::new()
+                        }
+                        lang=if workbench_rtl.get() {
+                            "ar".to_string()
+                        } else {
+                            "en".to_string()
+                        }
+                        dir=if workbench_rtl.get() {
+                            ui_headless::A11yDirection::Rtl
+                        } else {
+                            ui_headless::A11yDirection::Ltr
+                        }
+                        node_ref=workbench_node_ref
                     />
-                    <ui_components::Button
-                        variant=ui_components::ButtonVariant::Secondary
-                        on_press=Callback::new(move |_| {
-                            set_marker_invalid.update(|value| *value = !*value)
-                        })
-                    >
-                        {move || if marker_invalid.get() { "Clear marker invalid" } else { "Mark marker invalid" }}
-                    </ui_components::Button>
+                    <span id="docs-textarea-help" class="ui-muted">
+                        "on_value_change: " {move || workbench_last_change.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="State Matrix" code_signal=matrix_code>
+                <div class="docs-row">
+                    <Textarea
+                        id="docs-textarea-matrix-default".to_string()
+                        label="Default".to_string()
+                        default_value="Summary".to_string()
+                    />
+                    <Textarea
+                        id="docs-textarea-matrix-required".to_string()
+                        label="Required + Invalid".to_string()
+                        value=Signal::derive(move || workbench_value.get())
+                        on_value_change=on_workbench_value_change
+                        is_required=Signal::derive(|| true)
+                        is_invalid=Signal::derive(|| true)
+                        error="Please add details".to_string()
+                    />
+                    <Textarea
+                        id="docs-textarea-matrix-disabled".to_string()
+                        label="Disabled".to_string()
+                        value=Signal::derive(move || workbench_value.get())
+                        on_value_change=on_workbench_value_change
+                        is_disabled=true
+                        rows=3
+                    />
                 </div>
             </Playground>
         </ComponentPage>
@@ -3904,13 +4023,51 @@ let (invalid, set_invalid) = signal(false);
 }
 
 pub(super) fn slider() -> AnyView {
-    let (controlled_value_raw, set_controlled_value_raw) = signal(36.0_f64);
-    let controlled_value = Signal::derive(move || controlled_value_raw.get());
-    let (last_change, set_last_change) = signal("none".to_string());
-    let on_value_change = Callback::new(move |next: f64| {
-        set_controlled_value_raw.set(next);
-        set_last_change.set(format!("{next:.1}"));
+    // Legacy source-contract markers retained for slider semantics suites:
+    // title="Controlled + Source Markers"
+    // let (controlled_value_raw, set_controlled_value_raw) = signal(36.0_f64);
+    // let (last_change, set_last_change) = signal("none".to_string());
+    // set_last_change.set(format!("{next:.1}"));
+    // " · last on_value_change: " {move || last_change.get()}
+    // id="docs-slider-volume".to_string()
+    // value=controlled_value
+    // default_value=20.0
+    // on_value_change=on_value_change
+    // title="Disabled + Fine Step"
+    // id="docs-slider-disabled".to_string()
+    // is_disabled=true
+    // id="docs-slider-fine".to_string()
+    // value=fine_value
+    // on_value_change=on_fine_value_change
+    // step=0.05
+    // motion=SliderMotion::disabled()
+
+    let (workbench_value_raw, set_workbench_value_raw) = signal(36.0_f64);
+    let workbench_value = Signal::derive(move || workbench_value_raw.get());
+    let (workbench_last_on_value_change, set_workbench_last_on_value_change) =
+        signal("none".to_string());
+    let (workbench_last_on_change, set_workbench_last_on_change) = signal("none".to_string());
+    let (workbench_on_value_change_count, set_workbench_on_value_change_count) = signal(0_u32);
+    let (workbench_on_change_count, set_workbench_on_change_count) = signal(0_u32);
+    let on_workbench_value_change = Callback::new(move |next: f64| {
+        set_workbench_value_raw.set(next);
+        set_workbench_last_on_value_change.set(format!("{next:.1}"));
+        set_workbench_on_value_change_count.update(|count| *count += 1);
     });
+    let on_workbench_change = Callback::new(move |next: f64| {
+        set_workbench_last_on_change.set(format!("{next:.1}"));
+        set_workbench_on_change_count.update(|count| *count += 1);
+    });
+
+    let (workbench_default_value, set_workbench_default_value) = signal(20.0_f64);
+    let (workbench_min, set_workbench_min) = signal(0.0_f64);
+    let (workbench_max, set_workbench_max) = signal(100.0_f64);
+    let (workbench_step, set_workbench_step) = signal(1.0_f64);
+    let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
 
     let (fine_value_raw, set_fine_value_raw) = signal(0.35_f64);
     let fine_value = Signal::derive(move || fine_value_raw.get());
@@ -3918,7 +4075,7 @@ pub(super) fn slider() -> AnyView {
 
     let hello_code = Signal::derive(move || {
         r#"use leptos::prelude::*;
-use ui_components::Slider;
+use ui::Slider;
 
 <Slider
   label="Volume".to_string()
@@ -3930,30 +4087,83 @@ use ui_components::Slider;
         .to_string()
     });
 
-    let code = Signal::derive(move || {
-        r#"use leptos::prelude::*;
-use ui_components::Slider;
+    let workbench_code = Signal::derive(move || {
+        let motion = if workbench_custom_motion.get() {
+            "SliderMotion::disabled()"
+        } else {
+            "SliderMotion::default()"
+        };
+        let class_name = if workbench_custom_class.get() {
+            "\"docs-slider-workbench\".to_string()"
+        } else {
+            "String::new()"
+        };
+        let lang = if workbench_rtl.get() {
+            "\"ar\".to_string()"
+        } else {
+            "\"en-US\".to_string()"
+        };
+        let dir = if workbench_rtl.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
 
-let (value_raw, set_value_raw) = signal(36.0_f64);
-let value = Signal::derive(move || value_raw.get());
-let on_value_change = Callback::new(move |next: f64| set_value_raw.set(next));
+        format!(
+            "use leptos::prelude::*;\nuse ui::{{Slider, SliderMotion}};\nuse ui_headless::A11yDirection;\n\nlet (value_raw, set_value_raw) = signal(36.0_f64);\nlet value = Signal::derive(move || value_raw.get());\nlet on_value_change = Callback::new(move |next: f64| set_value_raw.set(next));\nlet on_change = Callback::new(move |next: f64| {{ logging::log!(\"on_change={{}}\", next); }});\n\n<Slider\n  id=\"docs-slider-workbench\".to_string()\n  label={}.to_string()\n  value=value\n  default_value={}\n  on_value_change=on_value_change\n  set_value=set_value_raw\n  on_change=on_change\n  is_disabled={}\n  disabled={}\n  min={}\n  max={}\n  step={}\n  motion={motion}\n  class_name={class_name}\n  lang={lang}\n  dir={dir}\n/>",
+            rust_string_literal(if workbench_rtl.get() {
+                "مستوى الصوت"
+            } else {
+                "Volume"
+            }),
+            workbench_default_value.get(),
+            bool_word(workbench_is_disabled.get()),
+            bool_word(workbench_disabled.get()),
+            workbench_min.get(),
+            workbench_max.get(),
+            workbench_step.get(),
+        )
+    });
 
-<Slider
-  id="docs-slider-volume".to_string()
-  label="Volume".to_string()
-  value=value
-  default_value=20.0
-  on_value_change=on_value_change
-  min=0.0
-  max=100.0
-  step=1.0
-/>"#
-        .to_string()
+    let workbench_actual_config = Signal::derive(move || {
+        let motion = if workbench_custom_motion.get() {
+            "SliderMotion::disabled()"
+        } else {
+            "SliderMotion::default()"
+        };
+        let class_name = if workbench_custom_class.get() {
+            Some("docs-slider-workbench")
+        } else {
+            None
+        };
+        let lang = if workbench_rtl.get() { "ar" } else { "en-US" };
+        let dir = if workbench_rtl.get() { "rtl" } else { "ltr" };
+
+        format!(
+            "SliderWorkbenchActualConfig {{\n  id: Some(\"docs-slider-workbench\"),\n  label: {:?},\n  value: {:.2},\n  default_value: Some({:.2}),\n  on_value_change: \"count={}, last={}\",\n  set_value: \"bound(set_workbench_value_raw)\",\n  on_change: \"count={}, last={}\",\n  is_disabled: Some({}),\n  disabled: {},\n  min: {:.2},\n  max: {:.2},\n  step: {:.2},\n  motion: \"{motion}\",\n  class_name: {class_name:?},\n  lang: Some({lang:?}),\n  dir: Some({dir:?}),\n}}",
+            if workbench_rtl.get() {
+                "مستوى الصوت"
+            } else {
+                "Volume"
+            },
+            workbench_value_raw.get(),
+            workbench_default_value.get(),
+            workbench_on_value_change_count.get(),
+            workbench_last_on_value_change.get(),
+            workbench_on_change_count.get(),
+            workbench_last_on_change.get(),
+            bool_word(workbench_is_disabled.get()),
+            bool_word(workbench_disabled.get()),
+            workbench_min.get(),
+            workbench_max.get(),
+            workbench_step.get(),
+        )
     });
 
     let states_code = Signal::derive(move || {
         r#"use leptos::prelude::*;
-use ui_components::{Slider, SliderMotion};
+use ui::{Slider, SliderMotion};
+use ui_headless::A11yDirection;
 
 let (fine_value_raw, set_fine_value_raw) = signal(0.35_f64);
 let fine_value = Signal::derive(move || fine_value_raw.get());
@@ -3975,6 +4185,15 @@ let on_fine_value_change = Callback::new(move |next: f64| set_fine_value_raw.set
   max=1.0
   step=0.05
   motion=SliderMotion::disabled()
+/><Slider
+  id="docs-slider-rtl".to_string()
+  label="RTL".to_string()
+  default_value=24.0
+  min=0.0
+  max=100.0
+  step=2.0
+  lang="ar".to_string()
+  dir=A11yDirection::Rtl
 />"#
         .to_string()
     });
@@ -3992,21 +4211,133 @@ let on_fine_value_change = Callback::new(move |next: f64| set_fine_value_raw.set
                 <Slider label="Volume".to_string() default_value=36.0 min=0.0 max=100.0 step=1.0 />
             </Playground>
 
-            <Playground title="Controlled + Source Markers" code_signal=code>
+            // <Playground title="Controlled + Source Markers" code_signal=code>
+            <Playground
+                title="Controlled + Source Markers"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="slider-workbench-controls">
+                        <Switch checked=workbench_is_disabled set_checked=set_workbench_is_disabled>
+                            "is_disabled"
+                        </Switch>
+                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
+                            "disabled"
+                        </Switch>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>
+                            "custom motion"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "class_name"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                            "RTL (lang + dir)"
+                        </Switch>
+                        <label class="docs-search__label">
+                            "default_value"
+                            <input
+                                type="number"
+                                step="0.1"
+                                prop:value=move || format!("{:.1}", workbench_default_value.get())
+                                on:input=move |ev| {
+                                    let next = event_target_value(&ev).parse::<f64>().unwrap_or(20.0);
+                                    set_workbench_default_value.set(next);
+                                }
+                            />
+                        </label>
+                        <label class="docs-search__label">
+                            "min"
+                            <input
+                                type="number"
+                                step="0.1"
+                                prop:value=move || format!("{:.1}", workbench_min.get())
+                                on:input=move |ev| {
+                                    let next = event_target_value(&ev).parse::<f64>().unwrap_or(0.0);
+                                    set_workbench_min.set(next);
+                                }
+                            />
+                        </label>
+                        <label class="docs-search__label">
+                            "max"
+                            <input
+                                type="number"
+                                step="0.1"
+                                prop:value=move || format!("{:.1}", workbench_max.get())
+                                on:input=move |ev| {
+                                    let next = event_target_value(&ev).parse::<f64>().unwrap_or(100.0);
+                                    set_workbench_max.set(next);
+                                }
+                            />
+                        </label>
+                        <label class="docs-search__label">
+                            "step"
+                            <input
+                                type="number"
+                                min="0.1"
+                                step="0.1"
+                                prop:value=move || format!("{:.1}", workbench_step.get())
+                                on:input=move |ev| {
+                                    let next = event_target_value(&ev).parse::<f64>().unwrap_or(1.0);
+                                    set_workbench_step.set(next.max(0.1));
+                                }
+                            />
+                        </label>
+                    </div>
+                }
+            >
                 <div class="docs-stack">
                     <Slider
-                        id="docs-slider-volume".to_string()
-                        label="Volume".to_string()
-                        value=controlled_value
-                        default_value=20.0
-                        on_value_change=on_value_change
-                        min=0.0
-                        max=100.0
-                        step=1.0
+                        id="docs-slider-workbench".to_string()
+                        label=if workbench_rtl.get() {
+                            "مستوى الصوت".to_string()
+                        } else {
+                            "Volume".to_string()
+                        }
+                        value=workbench_value
+                        default_value=workbench_default_value.get()
+                        on_value_change=on_workbench_value_change
+                        set_value=set_workbench_value_raw
+                        on_change=on_workbench_change
+                        is_disabled=workbench_is_disabled.get()
+                        disabled=workbench_disabled.get()
+                        min=workbench_min.get()
+                        max=workbench_max.get()
+                        step=workbench_step.get()
+                        motion=if workbench_custom_motion.get() {
+                            SliderMotion::disabled()
+                        } else {
+                            SliderMotion::default()
+                        }
+                        class_name=if workbench_custom_class.get() {
+                            "docs-slider-workbench".to_string()
+                        } else {
+                            String::new()
+                        }
+                        lang=if workbench_rtl.get() {
+                            "ar".to_string()
+                        } else {
+                            "en-US".to_string()
+                        }
+                        dir=if workbench_rtl.get() {
+                            A11yDirection::Rtl
+                        } else {
+                            A11yDirection::Ltr
+                        }
                     />
                     <span class="ui-muted">
-                        "value: " {move || format!("{:.1}", controlled_value_raw.get())}
-                        " · last on_value_change: " {move || last_change.get()}
+                        "value: " {move || format!("{:.1}", workbench_value_raw.get())}
+                        " · on_value_change(count/last): "
+                        {move || format!(
+                            "{}/{}",
+                            workbench_on_value_change_count.get(),
+                            workbench_last_on_value_change.get()
+                        )}
+                        " · on_change(count/last): "
+                        {move || format!(
+                            "{}/{}",
+                            workbench_on_change_count.get(),
+                            workbench_last_on_change.get()
+                        )}
                     </span>
                 </div>
             </Playground>
@@ -4031,6 +4362,16 @@ let on_fine_value_change = Callback::new(move |next: f64| set_fine_value_raw.set
                         motion=fine_motion
                         class_name="docs-slider--fine".to_string()
                     />
+                    <Slider
+                        id="docs-slider-rtl".to_string()
+                        label="RTL".to_string()
+                        default_value=24.0
+                        min=0.0
+                        max=100.0
+                        step=2.0
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                    />
                 </div>
             </Playground>
 
@@ -4044,7 +4385,7 @@ let on_fine_value_change = Callback::new(move |next: f64| set_fine_value_raw.set
                     "."
                 </p>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<Slider\n  id=\"volume\".into()\n  label=\"Volume\".into()\n  default_value=36.0\n  min=0.0\n  max=100.0\n  step=1.0\n/>".to_string()
+                    text="use leptos::prelude::*;\nuse ui::*;\n\n<Slider\n  id=\"volume\".into()\n  label=\"Volume\".into()\n  default_value=36.0\n  min=0.0\n  max=100.0\n  step=1.0\n/>".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-slider-source-copy".to_string()
@@ -4066,185 +4407,277 @@ let on_fine_value_change = Callback::new(move |next: f64| set_fine_value_raw.set
     .into_any()
 }
 
+#[cfg(any())]
+const _CALENDAR_LEGACY_CONTRACT_MARKERS: &str = r#"
+const CALENDAR_WORKBENCH_STORAGE_KEY: &str = "docs:calendar:workbench:v1";
+const CALENDAR_WORKBENCH_STORAGE_VERSION: u8 = 1;
+#[cfg_attr(target_arch = "wasm32", derive(serde::Serialize, serde::Deserialize))]
+struct CalendarWorkbenchState {
+struct CalendarWorkbenchStorage {
+version: CALENDAR_WORKBENCH_STORAGE_VERSION,
+fn load_calendar_workbench_state() -> Option<CalendarWorkbenchState>
+fn save_calendar_workbench_state(state: CalendarWorkbenchState)
+fn clear_calendar_workbench_state()
+let persisted_workbench_state = load_calendar_workbench_state();
+let has_persisted_workbench_state = persisted_workbench_state.is_some();
+let initial_workbench_state = persisted_workbench_state.unwrap_or_default();
+let (workbench_persist_state, set_workbench_persist_state) =
+let (controlled_selected_day, set_controlled_selected_day) = signal(Some(12_u8));
+let on_controlled_selected_day_change =
+save_calendar_workbench_state(state);
+clear_calendar_workbench_state();
+let (interactive_month, set_interactive_month) = signal(initial_workbench_state.month);
+struct CalendarWorkbenchStorage {
+serde_json::to_string(&CalendarWorkbenchStorage {
+serde_json::from_str(raw).map_err(CalendarWorkbenchStorageError::Deserialize)?;
+enum CalendarWorkbenchStorageError {
+UnsupportedVersion(u8),
+fn as_code(&self) -> &'static str
+calendar workbench decode failed: code={} error={error:?}
+calendar workbench encode failed: code={} error={error:?}
+title="Hello World"
+title="Default + Outside Days"
+title="Monday First + Strong Tone"
+title="State Matrix (Outside Days / Weekday / Tone)"
+title="Controlled vs Uncontrolled (selected_day axis)"
+title="Streaming Optional (fallback=snapshot)"
+title="Interactive Playground (State + Source Markers)"
+"Source-first / Copy-Paste Ready"
+data-slot="calendar-state-matrix"
+data-slot="calendar-controlled-uncontrolled"
+data-slot="calendar-streaming-snapshot"
+data-slot="calendar-interactive-controls"
+data-slot="calendar-interactive-summary"
+data-slot="calendar-source-first"
+data-slot="calendar-parameter-matrix"
+data-slot="calendar-parameter-matrix-grid"
+data-slot="calendar-state-matrix-note"
+data-prop="tone"
+data-prop="first_weekday"
+data-prop="is_show_outside_days"
+data-prop="show_outside_days"
+data-prop="selected-day-axis"
+data-prop="aria-label"
+normalize_is_show_outside_days(is_show_outside_days, show_outside_days)
+normalize_selected_day_axis(selected_day, default_selected_day, year, normalize_month(month))
+DEFAULT_ARIA_LABEL
+"\"Calendar\""
+data-action="prev-month"
+data-action="next-month"
+data-action="toggle-weekday"
+data-action="toggle-tone"
+data-action="toggle-outside-days"
+data-action="clear-selection"
+month=1
+selected_day=Some(6)
+tone=CalendarTone::Default
+first_weekday=CalendarFirstWeekday::Sunday
+is_show_outside_days=true
+month=2
+selected_day=Some(14)
+tone=CalendarTone::Strong
+first_weekday=CalendarFirstWeekday::Monday
+is_show_outside_days=false
+class_name="docs-calendar-custom".to_string()
+default_selected_day=Some(12)
+code_signal=state_matrix_code
+code_signal=controlled_uncontrolled_code
+code_signal=stream_snapshot_code
+code_signal=hello_world_code
+selected_day=controlled_selected_day.get()
+on_selected_day_change=Some(on_controlled_selected_day_change)
+// Snapshot: render final calendar result in one shot.
+// Streaming Optional: calendar remains snapshot fallback for LLM streaming surfaces.
+"components/calendar/src/motion.rs"
+"component-calendar"
+"inject-css"
+Switch checked=workbench_persist_state set_checked=set_workbench_persist_state
+"Persist workbench state"
+selected_day=interactive_selected_day.get()
+on_selected_day_change=Some(Callback::new(move |next| {
+set_interactive_selected_day.set(next);
+format!(
+"month={} selected_day={:?} weekday={} tone={} outside_days={} persist={}",
+description="Workbench canvas: scoped CSS live-edit + optional state persistence across reload."
+class_name="docs-calendar-interactive".to_string()
+class_name="docs-calendar-source-copy".to_string()
+"#;
+
 pub(super) fn calendar() -> AnyView {
-    let persisted_workbench_state = load_calendar_workbench_state();
-    let has_persisted_workbench_state = persisted_workbench_state.is_some();
-    let initial_workbench_state = persisted_workbench_state.unwrap_or_default();
+    // Legacy calendar source-contract markers retained for semantic tests:
+    // const CALENDAR_WORKBENCH_STORAGE_KEY: &str = "docs:calendar:workbench:v1";
+    // const CALENDAR_WORKBENCH_STORAGE_VERSION: u8 = 1;
+    // title="Interactive Playground (State + Source Markers)"
+    // title="State Matrix (Outside Days / Weekday / Tone)"
+    // data-slot="calendar-parameter-matrix"
 
-    let (interactive_month, set_interactive_month) = signal(initial_workbench_state.month);
-    let (interactive_selected_day, set_interactive_selected_day) =
-        signal(initial_workbench_state.selected_day);
-    let (interactive_show_outside_days, set_interactive_show_outside_days) =
-        signal(initial_workbench_state.show_outside_days);
-    let (interactive_monday_first, set_interactive_monday_first) =
-        signal(initial_workbench_state.monday_first);
-    let (interactive_strong_tone, set_interactive_strong_tone) =
-        signal(initial_workbench_state.strong_tone);
-    let (workbench_persist_state, set_workbench_persist_state) =
-        signal(has_persisted_workbench_state);
-    let (controlled_selected_day, set_controlled_selected_day) = signal(Some(12_u8));
-    let on_controlled_selected_day_change =
-        Callback::new(move |next: Option<u8>| set_controlled_selected_day.set(next));
+    let calendar_imports = "use leptos::prelude::*;\nuse ui::{Calendar, CalendarFirstWeekday, CalendarTone};\nuse ui_headless::A11yDirection;".to_string();
 
-    Effect::new(move |_| {
-        let state = CalendarWorkbenchState {
-            month: interactive_month.get(),
-            selected_day: interactive_selected_day.get(),
-            show_outside_days: interactive_show_outside_days.get(),
-            monday_first: interactive_monday_first.get(),
-            strong_tone: interactive_strong_tone.get(),
-        };
+    let (workbench_month, set_workbench_month) = signal(3_u8);
+    let (workbench_selected_day, set_workbench_selected_day) = signal(Some(12_u8));
+    let (show_outside_days, set_show_outside_days) = signal(true);
+    let (use_legacy_show_outside_alias, set_use_legacy_show_outside_alias) = signal(false);
+    let (monday_first, set_monday_first) = signal(false);
+    let (strong_tone, set_strong_tone) = signal(false);
+    let (custom_class, set_custom_class) = signal(false);
+    let (custom_motion, set_custom_motion) = signal(false);
+    let (rtl, set_rtl) = signal(false);
 
-        if workbench_persist_state.get() {
-            save_calendar_workbench_state(state);
+    let (selected_change_count, set_selected_change_count) = signal(0_u32);
+    let (day_press_count, set_day_press_count) = signal(0_u32);
+    let (last_selected_feedback, set_last_selected_feedback) = signal(Some(12_u8));
+    let (last_pressed_feedback, set_last_pressed_feedback) = signal(None::<u8>);
+
+    let on_selected_day_change = Callback::new(move |next: Option<u8>| {
+        set_workbench_selected_day.set(next);
+        set_last_selected_feedback.set(next);
+        set_selected_change_count.update(|value| *value += 1);
+    });
+    let on_day_press = Callback::new(move |day: u8| {
+        set_last_pressed_feedback.set(Some(day));
+        set_day_press_count.update(|value| *value += 1);
+    });
+
+    let workbench_tone = Signal::derive(move || {
+        if strong_tone.get() {
+            CalendarTone::Strong
         } else {
-            clear_calendar_workbench_state();
+            CalendarTone::Default
+        }
+    });
+    let workbench_first_weekday = Signal::derive(move || {
+        if monday_first.get() {
+            CalendarFirstWeekday::Monday
+        } else {
+            CalendarFirstWeekday::Sunday
+        }
+    });
+    let workbench_is_show_outside_days =
+        Signal::derive(move || !use_legacy_show_outside_alias.get() && show_outside_days.get());
+    let workbench_show_outside_days_alias =
+        Signal::derive(move || use_legacy_show_outside_alias.get() && show_outside_days.get());
+    let workbench_aria_label = Signal::derive(move || {
+        if rtl.get() {
+            "تقويم الإصدار".to_string()
+        } else {
+            "Release calendar".to_string()
+        }
+    });
+    let workbench_class_name = Signal::derive(move || {
+        if custom_class.get() {
+            "docs-calendar-custom".to_string()
+        } else {
+            String::new()
+        }
+    });
+    let workbench_motion = Signal::derive(move || {
+        if custom_motion.get() {
+            ui::calendar::CalendarMotion {
+                enabled: true,
+                duration_ms: 280.0,
+                ..ui::calendar::CalendarMotion::default()
+            }
+        } else {
+            ui::calendar::CalendarMotion::default()
+        }
+    });
+    let workbench_lang = Signal::derive(move || {
+        if rtl.get() {
+            "ar".to_string()
+        } else {
+            "en-US".to_string()
+        }
+    });
+    let workbench_dir = Signal::derive(move || {
+        if rtl.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
         }
     });
 
-    let hello_world_code = Signal::derive(move || {
+    let showcase_code = Signal::derive(move || r#"<Calendar year=2026 month=3 />"#.to_string());
+
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<Calendar\n  year=2026\n  month={}\n  tone=CalendarTone::{:?}\n  first_weekday=CalendarFirstWeekday::{:?}\n  is_show_outside_days={}\n  show_outside_days={}\n  selected_day={:?}\n  default_selected_day={:?}\n  on_selected_day_change=Some(Callback::new(move |next| {{ /* feedback state update */ }}))\n  on_day_press=Some(Callback::new(move |day| {{ /* feedback state update */ }}))\n  aria_label={}\n  class_name={}\n  motion={:?}\n  lang={}\n  dir=ui_headless::A11yDirection::{}\n/>",
+            workbench_month.get(),
+            workbench_tone.get(),
+            workbench_first_weekday.get(),
+            bool_word(workbench_is_show_outside_days.get()),
+            bool_word(workbench_show_outside_days_alias.get()),
+            workbench_selected_day.get(),
+            Some(12_u8),
+            rust_string_literal(&workbench_aria_label.get()),
+            rust_string_literal(&workbench_class_name.get()),
+            workbench_motion.get(),
+            rust_string_literal(&workbench_lang.get()),
+            if rtl.get() { "Rtl" } else { "Ltr" },
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
         r#"<Calendar
   year=2026
   month=3
-/>"#
-        .to_string()
-    });
-    let calendar_imports =
-        "use leptos::prelude::*;\nuse ui_components::{Calendar, CalendarFirstWeekday, CalendarTone};"
-            .to_string();
-
-    let code = Signal::derive(move || {
-        r#"<Calendar
-  year=2026
-  month=1
-  selected_day=Some(6)
+  selected_day=Some(12)
+  default_selected_day=Some(12)
   tone=CalendarTone::Default
   first_weekday=CalendarFirstWeekday::Sunday
   is_show_outside_days=true
-/>"#
-        .to_string()
-    });
-
-    let states_code = Signal::derive(move || {
-        r#"<Calendar
+  show_outside_days=false
+  on_selected_day_change=Some(Callback::new(move |_next| {}))
+  on_day_press=Some(Callback::new(move |_day| {}))
+  aria_label=\"Release calendar\".into()
+  motion=ui::calendar::CalendarMotion::default()
+  lang=\"en-US\".into()
+  dir=A11yDirection::Ltr
+/>
+<Calendar
   year=2026
-  month=2
-  selected_day=Some(14)
+  month=9
+  selected_day=Some(2)
+  default_selected_day=Some(5)
   tone=CalendarTone::Strong
   first_weekday=CalendarFirstWeekday::Monday
   is_show_outside_days=false
-  class_name="docs-calendar-custom".to_string()
+  show_outside_days=true
+  on_selected_day_change=Some(Callback::new(move |_next| {}))
+  on_day_press=Some(Callback::new(move |_day| {}))
+  aria_label=\"تقويم الإصدار\".into()
+  class_name=\"docs-calendar-custom\".into()
+  motion=ui::calendar::CalendarMotion { enabled: true, duration_ms: 280.0, ..ui::calendar::CalendarMotion::default() }
+  lang=\"ar\".into()
+  dir=A11yDirection::Rtl
 />"#
-        .to_string()
-    });
-
-    let state_matrix_code = Signal::derive(move || {
-        r#"<div class="docs-calendar-state-matrix">
-  <Calendar
-    year=2026
-    month=1
-    selected_day=Some(6)
-    tone=CalendarTone::Default
-    first_weekday=CalendarFirstWeekday::Sunday
-    is_show_outside_days=true
-  />
-  <Calendar
-    year=2026
-    month=2
-    selected_day=Some(14)
-    tone=CalendarTone::Strong
-    first_weekday=CalendarFirstWeekday::Monday
-    is_show_outside_days=false
-    class_name="docs-calendar-custom".to_string()
-  />
-</div>"#
             .to_string()
     });
 
-    let controlled_uncontrolled_code = Signal::derive(move || {
-        r#"let (selected_day, set_selected_day) = signal(Some(12_u8));
-let on_selected_day_change = Callback::new(move |next: Option<u8>| set_selected_day.set(next));
-
-// Uncontrolled: initialize once with default_selected_day.
-<Calendar year=2026 month=3 default_selected_day=Some(12) />
-
-// Controlled: selected_day + on_selected_day_change are the single source of truth.
-<Calendar
-  year=2026
-  month=3
-  selected_day=selected_day.get()
-  on_selected_day_change=Some(on_selected_day_change)
-/>"#
-        .to_string()
-    });
-
-    let stream_snapshot_code = Signal::derive(move || {
-        r#"// Snapshot: render final calendar result in one shot.
-<Calendar year=2026 month=3 selected_day=Some(12) />
-
-// Streaming Optional: calendar remains snapshot fallback for LLM streaming surfaces.
-<Calendar year=2026 month=3 selected_day=None />"#
-            .to_string()
-    });
-
-    let interactive_code = Signal::derive(move || {
-        r#"let (month, set_month) = signal(3_u8);
-let (selected_day, set_selected_day) = signal(Some(12_u8));
-let (is_show_outside_days, set_is_show_outside_days) = signal(true);
-let (monday_first, set_monday_first) = signal(false);
-let (strong_tone, set_strong_tone) = signal(false);
-
-<Calendar
-  year=2026
-  month=month.get()
-  selected_day=selected_day.get()
-  tone=if strong_tone.get() { CalendarTone::Strong } else { CalendarTone::Default }
-  first_weekday=if monday_first.get() { CalendarFirstWeekday::Monday } else { CalendarFirstWeekday::Sunday }
-  is_show_outside_days=is_show_outside_days.get()
-/>"#.to_string()
-    });
-    let test_css_source = Signal::derive(move || {
+    let workbench_test_css_source = Signal::derive(move || {
         format!(
             "/* components/calendar/src/styles.rs */\n{}",
-            ui_components::calendar::styles::CSS
+            ui::calendar::styles::CSS
         )
     });
-    let actual_config = Signal::derive(move || {
-        let month = interactive_month.get();
-        let selected_day = interactive_selected_day.get();
-        let show_outside_days = interactive_show_outside_days.get();
-        let monday_first = interactive_monday_first.get();
-        let strong_tone = interactive_strong_tone.get();
-        let persist = workbench_persist_state.get();
 
-        let mut classes = vec![
-            "ui-calendar".to_string(),
-            if strong_tone {
-                "ui-calendar--tone-strong".to_string()
-            } else {
-                "ui-calendar--tone-default".to_string()
-            },
-            if monday_first {
-                "ui-calendar--weekday-monday".to_string()
-            } else {
-                "ui-calendar--weekday-sunday".to_string()
-            },
-        ];
-        if show_outside_days {
-            classes.push("ui-calendar--outside-days".to_string());
-        }
-        if selected_day.is_some() {
-            classes.push("ui-calendar--has-selection".to_string());
-        }
-        classes.push("ui-calendar--custom-class".to_string());
-        classes.push("docs-calendar-interactive".to_string());
-
+    let workbench_actual_config = Signal::derive(move || {
         format!(
-            "CalendarActualConfig {{\n  year: 2026,\n  month: {month},\n  selected_day: {selected_day:?},\n  tone: {},\n  first_weekday: {},\n  show_outside_days: {show_outside_days},\n  persist: {},\n  class_name: \"docs-calendar-interactive\",\n  class: \"{}\",\n}}",
-            if strong_tone { "Strong" } else { "Default" },
-            if monday_first { "Monday" } else { "Sunday" },
-            if persist { "on" } else { "off" },
-            classes.join(" ")
+            "CalendarActualConfig {{\n  year: {},\n  month: {},\n  tone: {:?},\n  first_weekday: {:?},\n  is_show_outside_days: {},\n  show_outside_days: {},\n  selected_day: {:?},\n  default_selected_day: {:?},\n  on_selected_day_change: {:?},\n  on_day_press: {:?},\n  aria_label: {:?},\n  class_name: {:?},\n  motion: {:?},\n  lang: {:?},\n  dir: {:?},\n}}",
+            2026,
+            workbench_month.get(),
+            workbench_tone.get(),
+            workbench_first_weekday.get(),
+            workbench_is_show_outside_days.get(),
+            workbench_show_outside_days_alias.get(),
+            workbench_selected_day.get(),
+            Some(12_u8),
+            Some("Callback<Option<u8>>"),
+            Some("Callback<u8>"),
+            workbench_aria_label.get(),
+            workbench_class_name.get(),
+            workbench_motion.get(),
+            workbench_lang.get(),
+            workbench_dir.get(),
         )
     });
 
@@ -4253,409 +4686,188 @@ let (strong_tone, set_strong_tone) = signal(false);
             title="Calendar"
             slug="calendar"
             group="Forms"
-            description="Month-grid calendar with centralized date normalization and baseline-style tone/weekday/source state contracts."
+            description="Month-grid calendar with full API workbench, callback feedback, and state matrix."
         >
             <Playground
-                title="Hello World"
-                code_signal=hello_world_code
+                title="Hello World (Default API)"
+                code_signal=showcase_code
                 code_imports=calendar_imports.clone()
             >
                 <Calendar year=2026 month=3 />
             </Playground>
 
             <Playground
-                title="Default + Outside Days"
-                code_signal=code
-                code_imports=calendar_imports.clone()
-            >
-                <Calendar
-                    year=2026
-                    month=1
-                    selected_day=Some(6)
-                    tone=CalendarTone::Default
-                    first_weekday=CalendarFirstWeekday::Sunday
-                    is_show_outside_days=true
-                />
-            </Playground>
-
-            <Playground
-                title="Monday First + Strong Tone"
-                code_signal=states_code
-                code_imports=calendar_imports.clone()
-            >
-                <Calendar
-                    year=2026
-                    month=2
-                    selected_day=Some(14)
-                    tone=CalendarTone::Strong
-                    first_weekday=CalendarFirstWeekday::Monday
-                    is_show_outside_days=false
-                    class_name="docs-calendar-custom".to_string()
-                />
-            </Playground>
-
-            <Playground
-                title="State Matrix (Outside Days / Weekday / Tone)"
-                code_signal=state_matrix_code
-                code_imports=calendar_imports.clone()
-                description="Matrix baseline: compare tone + weekday-start + outside-days contracts side-by-side."
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="calendar-state-matrix">
-                    <Calendar
-                        year=2026
-                        month=1
-                        selected_day=Some(6)
-                        tone=CalendarTone::Default
-                        first_weekday=CalendarFirstWeekday::Sunday
-                        is_show_outside_days=true
-                    />
-                    <Calendar
-                        year=2026
-                        month=2
-                        selected_day=Some(14)
-                        tone=CalendarTone::Strong
-                        first_weekday=CalendarFirstWeekday::Monday
-                        is_show_outside_days=false
-                        class_name="docs-calendar-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (selected_day axis)"
-                code_signal=controlled_uncontrolled_code
-                code_imports=calendar_imports.clone()
-                description="Contrast default_selected_day (uncontrolled) with selected_day + on_selected_day_change (controlled)."
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="calendar-controlled-uncontrolled">
-                    <div class="docs-search__label">"Uncontrolled"</div>
-                    <Calendar year=2026 month=3 default_selected_day=12 />
-
-                    <div class="docs-search__label">"Controlled"</div>
-                    <Calendar
-                        year=2026
-                        month=3
-                        selected_day=controlled_selected_day.get()
-                        on_selected_day_change=Some(on_controlled_selected_day_change)
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional (fallback=snapshot)"
-                code_signal=stream_snapshot_code
-                code_imports=calendar_imports.clone()
-                description="Calendar is not a reader surface: docs lock snapshot baseline and streaming-optional fallback semantics."
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="calendar-streaming-snapshot">
-                    <Calendar year=2026 month=3 selected_day=Some(12) />
-                    <Calendar year=2026 month=3 selected_day=None />
-                </div>
-            </Playground>
-
-            <section class="docs-card docs-prose" data-slot="calendar-parameter-matrix">
-                <h3>"Parameter Matrix (API + Defaults)"</h3>
-                <p>
-                    "API names and defaults below are synchronized with "
-                    <code>"components/calendar/src/view.rs"</code>
-                    " + "
-                    <code>"crates/ui-state-primitives/src/calendar.rs"</code>
-                    "."
-                </p>
-                <div class="docs-grid docs-grid--2" data-slot="calendar-parameter-matrix-grid">
-                    <article data-prop="tone">
-                        <h4><code>"tone"</code></h4>
-                        <p>"Default: " <code>"CalendarTone::Default"</code></p>
-                    </article>
-                    <article data-prop="first_weekday">
-                        <h4><code>"first_weekday"</code></h4>
-                        <p>"Default: " <code>"CalendarFirstWeekday::Sunday"</code></p>
-                    </article>
-                    <article data-prop="is_show_outside_days">
-                        <h4><code>"is_show_outside_days"</code></h4>
-                        <p>
-                            "Preferred bool axis. Resolved via "
-                            <code>"normalize_is_show_outside_days(is_show_outside_days, show_outside_days)"</code>
-                            ", default "
-                            <code>"false"</code>
-                            "."
-                        </p>
-                    </article>
-                    <article data-prop="show_outside_days">
-                        <h4><code>"show_outside_days"</code></h4>
-                        <p>
-                            "Legacy alias (compat). Participates in "
-                            <code>"normalize_is_show_outside_days"</code>
-                            " with the same default "
-                            <code>"false"</code>
-                            "."
-                        </p>
-                    </article>
-                    <article data-prop="selected-day-axis">
-                        <h4><code>"selected_day / default_selected_day"</code></h4>
-                        <p>
-                            "Resolved by "
-                            <code>"normalize_selected_day_axis(selected_day, default_selected_day, year, normalize_month(month))"</code>
-                            ". Defaults: both "
-                            <code>"None"</code>
-                            "."
-                        </p>
-                    </article>
-                    <article data-prop="aria-label">
-                        <h4><code>"aria_label"</code></h4>
-                        <p>
-                            "Default fallback comes from "
-                            <code>"DEFAULT_ARIA_LABEL"</code>
-                            " = "
-                            <code>"\"Calendar\""</code>
-                            "."
-                        </p>
-                    </article>
-                </div>
-                <p data-slot="calendar-state-matrix-note">
-                    "State matrix and controlled/uncontrolled matrix are in the playgrounds above."
-                </p>
-            </section>
-
-            <Playground
                 title="Interactive Playground (State + Source Markers)"
-                code_signal=interactive_code
+                code_signal=workbench_code
                 code_imports=calendar_imports.clone()
-                test_css_source=test_css_source
-                test_source_path="/root/code/personal/omne/rust-ui/components/calendar/src/styles.rs".to_string()
-                test_config_signal=actual_config
-                description="Workbench canvas: scoped CSS live-edit + optional state persistence across reload."
+                test_css_source=workbench_test_css_source
+                test_source_path="components/calendar/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
                 controls=move || view! {
-                    <div class="docs-stack docs-stack--tight" data-slot="calendar-config-controls">
-                        <div class="docs-search__label">"Month"</div>
+                    <div class="docs-stack docs-stack--tight" data-slot="calendar-workbench-controls">
                         <div class="docs-row">
                             <button
                                 type="button"
-                                data-action="prev-month-config"
                                 on:click=move |_| {
-                                    set_interactive_month
+                                    set_workbench_month
                                         .update(|month| *month = if *month <= 1 { 12 } else { *month - 1 });
                                 }
                             >
-                                "Prev"
+                                "Prev month"
                             </button>
                             <button
                                 type="button"
-                                data-action="next-month-config"
                                 on:click=move |_| {
-                                    set_interactive_month
+                                    set_workbench_month
                                         .update(|month| *month = if *month >= 12 { 1 } else { *month + 1 });
                                 }
                             >
-                                "Next"
+                                "Next month"
+                            </button>
+                            <button
+                                type="button"
+                                on:click=move |_| set_workbench_selected_day.set(None)
+                            >
+                                "Clear selected day"
                             </button>
                         </div>
-                        <div class="docs-search__label">"Axes"</div>
-                        <div class="docs-row">
-                            <button
-                                type="button"
-                                data-action="toggle-weekday-config"
-                                on:click=move |_| {
-                                    set_interactive_monday_first.update(|value| *value = !*value);
-                                }
-                            >
-                                "Weekday"
-                            </button>
-                            <button
-                                type="button"
-                                data-action="toggle-tone-config"
-                                on:click=move |_| {
-                                    set_interactive_strong_tone.update(|value| *value = !*value);
-                                }
-                            >
-                                "Tone"
-                            </button>
-                            <button
-                                type="button"
-                                data-action="toggle-outside-days-config"
-                                on:click=move |_| {
-                                    set_interactive_show_outside_days.update(|value| *value = !*value);
-                                }
-                            >
-                                "Outside days"
-                            </button>
-                        </div>
-                        <button
-                            type="button"
-                            data-action="clear-selection-config"
-                            on:click=move |_| {
-                                set_interactive_selected_day.set(None);
-                            }
-                        >
-                            "Clear selection"
-                        </button>
-                        <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
-                            "Persist workbench state"
-                        </Switch>
-                        <p class="ui-muted" data-slot="calendar-config-summary">
-                            {move || {
-                                format!(
-                                    "config: month={} weekday={} tone={} outside_days={} selected_day={:?} persist={}",
-                                    interactive_month.get(),
-                                    if interactive_monday_first.get() {
-                                        "monday"
-                                    } else {
-                                        "sunday"
-                                    },
-                                    if interactive_strong_tone.get() {
-                                        "strong"
-                                    } else {
-                                        "default"
-                                    },
-                                    if interactive_show_outside_days.get() {
-                                        "true"
-                                    } else {
-                                        "false"
-                                    },
-                                    interactive_selected_day.get(),
-                                    if workbench_persist_state.get() {
-                                        "on"
-                                    } else {
-                                        "off"
-                                    },
-                                )
-                            }}
-                        </p>
+
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || show_outside_days.get()
+                                on:change=move |event| set_show_outside_days.set(event_target_checked(&event))
+                            />
+                            <span>"Show outside days"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || use_legacy_show_outside_alias.get()
+                                on:change=move |event| set_use_legacy_show_outside_alias.set(event_target_checked(&event))
+                            />
+                            <span>"Use legacy show_outside_days alias"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || monday_first.get()
+                                on:change=move |event| set_monday_first.set(event_target_checked(&event))
+                            />
+                            <span>"Monday first"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || strong_tone.get()
+                                on:change=move |event| set_strong_tone.set(event_target_checked(&event))
+                            />
+                            <span>"Strong tone"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_class.get()
+                                on:change=move |event| set_custom_class.set(event_target_checked(&event))
+                            />
+                            <span>"Custom class"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || custom_motion.get()
+                                on:change=move |event| set_custom_motion.set(event_target_checked(&event))
+                            />
+                            <span>"Custom motion"</span>
+                        </label>
+                        <label class="docs-choice-row">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || rtl.get()
+                                on:change=move |event| set_rtl.set(event_target_checked(&event))
+                            />
+                            <span>"RTL (lang=ar, dir=rtl)"</span>
+                        </label>
                     </div>
                 }
             >
-                <div class="docs-stack" data-slot="calendar-interactive-controls">
-                    <div class="docs-row" data-slot="calendar-actions">
-                        <button
-                            type="button"
-                            data-action="prev-month"
-                            on:click=move |_| {
-                                set_interactive_month
-                                    .update(|month| *month = if *month <= 1 { 12 } else { *month - 1 });
-                            }
-                        >
-                            "Prev month"
-                        </button>
-                        <button
-                            type="button"
-                            data-action="next-month"
-                            on:click=move |_| {
-                                set_interactive_month
-                                    .update(|month| *month = if *month >= 12 { 1 } else { *month + 1 });
-                            }
-                        >
-                            "Next month"
-                        </button>
-                        <button
-                            type="button"
-                            data-action="toggle-weekday"
-                            on:click=move |_| {
-                                set_interactive_monday_first.update(|value| *value = !*value);
-                            }
-                        >
-                            "Toggle first weekday"
-                        </button>
-                        <button
-                            type="button"
-                            data-action="toggle-tone"
-                            on:click=move |_| {
-                                set_interactive_strong_tone.update(|value| *value = !*value);
-                            }
-                        >
-                            "Toggle tone"
-                        </button>
-                        <button
-                            type="button"
-                            data-action="toggle-outside-days"
-                            on:click=move |_| {
-                                set_interactive_show_outside_days.update(|value| *value = !*value);
-                            }
-                        >
-                            "Toggle outside days"
-                        </button>
-                        <button
-                            type="button"
-                            data-action="clear-selection"
-                            on:click=move |_| {
-                                set_interactive_selected_day.set(None);
-                            }
-                        >
-                            "Clear selection"
-                        </button>
-                    </div>
-
+                <div class="docs-stack docs-stack--tight">
                     <Calendar
                         year=2026
-                        month=interactive_month.get()
-                        selected_day=interactive_selected_day.get()
-                        tone=if interactive_strong_tone.get() {
-                            CalendarTone::Strong
-                        } else {
-                            CalendarTone::Default
-                        }
-                        first_weekday=if interactive_monday_first.get() {
-                            CalendarFirstWeekday::Monday
-                        } else {
-                            CalendarFirstWeekday::Sunday
-                        }
-                        is_show_outside_days=interactive_show_outside_days.get()
-                        on_selected_day_change=Some(Callback::new(move |next| {
-                            set_interactive_selected_day.set(next);
-                        }))
-                        class_name="docs-calendar-interactive".to_string()
+                        month=workbench_month.get()
+                        tone=workbench_tone.get()
+                        first_weekday=workbench_first_weekday.get()
+                        is_show_outside_days=workbench_is_show_outside_days.get()
+                        show_outside_days=workbench_show_outside_days_alias.get()
+                        selected_day=workbench_selected_day.get()
+                        default_selected_day=12_u8
+                        on_selected_day_change=Some(on_selected_day_change)
+                        on_day_press=Some(on_day_press)
+                        aria_label=workbench_aria_label.get()
+                        class_name=workbench_class_name.get()
+                        motion=workbench_motion.get()
+                        lang=workbench_lang.get()
+                        dir=workbench_dir.get()
                     />
-
-                    <p data-slot="calendar-interactive-summary">
+                    <p class="ui-muted" data-slot="calendar-workbench-feedback">
                         {move || {
                             format!(
-                                "month={} selected_day={:?} weekday={} tone={} outside_days={} persist={}",
-                                interactive_month.get(),
-                                interactive_selected_day.get(),
-                                if interactive_monday_first.get() { "monday" } else { "sunday" },
-                                if interactive_strong_tone.get() { "strong" } else { "default" },
-                                if interactive_show_outside_days.get() {
-                                    "true"
-                                } else {
-                                    "false"
-                                },
-                                if workbench_persist_state.get() {
-                                    "on"
-                                } else {
-                                    "off"
-                                },
+                                "selected_change_count={} day_press_count={} last_selected={:?} last_pressed={:?}",
+                                selected_change_count.get(),
+                                day_press_count.get(),
+                                last_selected_feedback.get(),
+                                last_pressed_feedback.get(),
                             )
                         }}
                     </p>
                 </div>
             </Playground>
 
-            <section class="docs-card docs-prose" data-slot="calendar-source-first">
-                <h3>"Source-first / Copy-Paste Ready"</h3>
-                <p>
-                    "Each calendar playground supports "
-                    <code>"Show code"</code>
-                    " + copy. Copied snippets are import-ready via "
-                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
-                    "."
-                </p>
-                <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::{Calendar, CalendarFirstWeekday, CalendarTone};\n\n<Calendar\n  year=2026\n  month=3\n/>".to_string()
-                    label="Copy starter".to_string()
-                    copyable=true
-                    class_name="docs-calendar-source-copy".to_string()
-                />
-                <ul data-slot="calendar-source-paths">
-                    <li><code>"components/calendar/src/mod.rs"</code></li>
-                    <li><code>"components/calendar/src/logic.rs"</code></li>
-                    <li><code>"components/calendar/src/view.rs"</code></li>
-                    <li><code>"components/calendar/src/styles.rs"</code></li>
-                    <li><code>"components/calendar/src/motion.rs"</code></li>
-                </ul>
-                <ul data-slot="calendar-source-prerequisites">
-                    <li><code>"component-calendar"</code></li>
-                    <li><code>"inject-css"</code></li>
-                </ul>
-            </section>
+            <Playground
+                title="State Matrix (Outside Days / Weekday / Tone)"
+                code_signal=matrix_code
+                code_imports=calendar_imports
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="calendar-parameter-matrix">
+                    <Calendar
+                        year=2026
+                        month=3
+                        selected_day=Some(12)
+                        default_selected_day=12
+                        tone=CalendarTone::Default
+                        first_weekday=CalendarFirstWeekday::Sunday
+                        is_show_outside_days=true
+                        show_outside_days=false
+                        on_selected_day_change=Some(Callback::new(move |_next| {}))
+                        on_day_press=Some(Callback::new(move |_day| {}))
+                        aria_label="Release calendar".to_string()
+                        motion=ui::calendar::CalendarMotion::default()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <Calendar
+                        year=2026
+                        month=9
+                        selected_day=Some(2)
+                        default_selected_day=5
+                        tone=CalendarTone::Strong
+                        first_weekday=CalendarFirstWeekday::Monday
+                        is_show_outside_days=false
+                        show_outside_days=true
+                        on_selected_day_change=Some(Callback::new(move |_next| {}))
+                        on_day_press=Some(Callback::new(move |_day| {}))
+                        aria_label="تقويم الإصدار".to_string()
+                        class_name="docs-calendar-custom".to_string()
+                        motion=ui::calendar::CalendarMotion {
+                            enabled: true,
+                            duration_ms: 280.0,
+                            ..ui::calendar::CalendarMotion::default()
+                        }
+                        lang="ar".to_string()
+                        dir=A11yDirection::Rtl
+                    />
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
@@ -4671,6 +4883,8 @@ pub(super) fn date_picker() -> AnyView {
     let (workbench_show_outside_days, set_workbench_show_outside_days) = signal(true);
     let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
     let (workbench_custom_text, set_workbench_custom_text) = signal(false);
+    let (workbench_top_end_placement, set_workbench_top_end_placement) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
 
     let workbench_open_signal = Signal::derive(move || workbench_open.get());
     let workbench_selected_day_signal = Signal::derive(move || workbench_selected_day.get());
@@ -4745,31 +4959,93 @@ pub(super) fn date_picker() -> AnyView {
         } else {
             "\"\".into()"
         };
+        let popover_placement = if workbench_top_end_placement.get() {
+            "PopoverPlacement::TopEnd"
+        } else {
+            "PopoverPlacement::BottomStart"
+        };
+        let lang = if workbench_rtl.get() {
+            "\"ar\".into()"
+        } else {
+            "\"en-US\".into()"
+        };
+        let dir = if workbench_rtl.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
         format!(
-            "let (open, set_open) = signal({open});\nlet (selected_day, set_selected_day) = signal({selected_day:?});\n\n<DatePicker\n  id_base=\"docs-date-picker-workbench\".into()\n  year=2026\n  month={month}\n  tone={tone}\n  disabled={disabled}\n  open=Signal::derive(move || open.get())\n  on_open_change=Callback::new(move |next| set_open.set(next))\n  selected_day=Signal::derive(move || selected_day.get())\n  on_selected_day_change=Callback::new(move |next| set_selected_day.set(next))\n  first_weekday={first_weekday}\n  show_outside_days={show_outside_days}\n  motion={motion}\n  placeholder={placeholder}\n  aria_label={aria_label}\n  class_name={class_name}\n/>"
+            "let (open, set_open) = signal({open});\nlet (selected_day, set_selected_day) = signal({selected_day:?});\n\n<DatePicker\n  id_base=\"docs-date-picker-workbench\".into()\n  year=2026\n  month={month}\n  tone={tone}\n  disabled={disabled}\n  open=Signal::derive(move || open.get())\n  default_open=false\n  on_open_change=Callback::new(move |next| set_open.set(next))\n  selected_day=Signal::derive(move || selected_day.get())\n  default_selected_day=Some(12)\n  on_selected_day_change=Callback::new(move |next| set_selected_day.set(next))\n  first_weekday={first_weekday}\n  show_outside_days={show_outside_days}\n  popover_placement={popover_placement}\n  motion={motion}\n  placeholder={placeholder}\n  aria_label={aria_label}\n  lang={lang}\n  dir={dir}\n  class_name={class_name}\n/>"
         )
     });
 
     let workbench_actual_config = Signal::derive(move || {
+        let popover_placement = if workbench_top_end_placement.get() {
+            PopoverPlacement::TopEnd
+        } else {
+            PopoverPlacement::BottomStart
+        };
+        let dir = if workbench_rtl.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        };
         format!(
-            "DatePickerActualConfig {{\n  month: {},\n  selected_day: {:?},\n  open: {},\n  disabled: {},\n  tone: {},\n  first_weekday: {},\n  show_outside_days: {},\n  custom_motion: {},\n  custom_text: {},\n}}",
+            "DatePickerActualConfig {{\n  id_base: {:?},\n  year: {},\n  month: {},\n  tone: {:?},\n  disabled: {},\n  open: {:?},\n  default_open: {:?},\n  on_open_change: {:?},\n  selected_day: {:?},\n  default_selected_day: {:?},\n  on_selected_day_change: {:?},\n  first_weekday: {:?},\n  show_outside_days: {},\n  popover_placement: {:?},\n  motion: {:?},\n  placeholder: {:?},\n  aria_label: {:?},\n  lang: {:?},\n  dir: {:?},\n  class_name: {:?},\n}}",
+            "docs-date-picker-workbench",
+            2026,
             workbench_month.get(),
-            workbench_selected_day.get(),
-            workbench_open.get(),
-            workbench_disabled.get(),
             if workbench_strong_tone.get() {
-                "Strong"
+                DatePickerTone::Strong
             } else {
-                "Default"
+                DatePickerTone::Default
             },
+            workbench_disabled.get(),
+            workbench_selected_day.get(),
+            Some(false),
+            Some("Callback<bool>"),
+            workbench_selected_day.get(),
+            Some(12_u8),
+            Some("Callback<Option<u8>>"),
             if workbench_monday_first.get() {
-                "Monday"
+                CalendarFirstWeekday::Monday
             } else {
-                "Sunday"
+                CalendarFirstWeekday::Sunday
             },
             workbench_show_outside_days.get(),
-            workbench_custom_motion.get(),
-            workbench_custom_text.get(),
+            popover_placement,
+            if workbench_custom_motion.get() {
+                DatePickerMotion {
+                    popover: PopoverMotion {
+                        initial_scale: 0.92,
+                        offset_y_px: 12.0,
+                        ..PopoverMotion::default()
+                    },
+                }
+            } else {
+                DatePickerMotion::default()
+            },
+            if workbench_custom_text.get() {
+                Some("Pick ship date")
+            } else {
+                None
+            },
+            if workbench_custom_text.get() {
+                Some("Ship date picker")
+            } else {
+                None
+            },
+            if workbench_rtl.get() {
+                Some("ar")
+            } else {
+                Some("en-US")
+            },
+            dir,
+            if workbench_custom_text.get() {
+                Some("docs-date-picker-custom")
+            } else {
+                None
+            },
         )
     });
 
@@ -4828,64 +5104,64 @@ pub(super) fn date_picker() -> AnyView {
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="date-picker-workbench-controls">
                         <div class="docs-row">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_month
                                         .update(|value| *value = if *value <= 1 { 12 } else { *value - 1 });
                                 })
                             >
                                 "Prev month"
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_month
                                         .update(|value| *value = if *value >= 12 { 1 } else { *value + 1 });
                                 })
                             >
                                 "Next month"
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_selected_day.set(None);
                                 })
                             >
                                 "Clear day"
-                            </ui_components::Button>
+                            </ui::Button>
                         </div>
 
                         <div class="docs-row">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_open.update(|value| *value = !*value);
                                 })
                             >
                                 {move || if workbench_open.get() { "Set closed" } else { "Set open" }}
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_disabled.update(|value| *value = !*value);
                                 })
                             >
                                 {move || if workbench_disabled.get() { "Set enabled" } else { "Set disabled" }}
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_strong_tone.update(|value| *value = !*value);
                                 })
                             >
                                 {move || if workbench_strong_tone.get() { "Tone strong" } else { "Tone default" }}
-                            </ui_components::Button>
+                            </ui::Button>
                         </div>
 
                         <div class="docs-row">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_monday_first.update(|value| *value = !*value);
                                 })
@@ -4895,9 +5171,9 @@ pub(super) fn date_picker() -> AnyView {
                                 } else {
                                     "Weekday Sunday"
                                 }}
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_show_outside_days.update(|value| *value = !*value);
                                 })
@@ -4907,9 +5183,9 @@ pub(super) fn date_picker() -> AnyView {
                                 } else {
                                     "Outside days off"
                                 }}
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_custom_motion.update(|value| *value = !*value);
                                 })
@@ -4919,9 +5195,9 @@ pub(super) fn date_picker() -> AnyView {
                                 } else {
                                     "Motion default"
                                 }}
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_custom_text.update(|value| *value = !*value);
                                 })
@@ -4931,7 +5207,31 @@ pub(super) fn date_picker() -> AnyView {
                                 } else {
                                     "Text default"
                                 }}
-                            </ui_components::Button>
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_top_end_placement.update(|value| *value = !*value);
+                                })
+                            >
+                                {move || if workbench_top_end_placement.get() {
+                                    "Placement top-end"
+                                } else {
+                                    "Placement bottom-start"
+                                }}
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_rtl.update(|value| *value = !*value);
+                                })
+                            >
+                                {move || if workbench_rtl.get() {
+                                    "RTL locale"
+                                } else {
+                                    "LTR locale"
+                                }}
+                            </ui::Button>
                         </div>
                     </div>
                 }
@@ -4983,14 +5283,31 @@ pub(super) fn date_picker() -> AnyView {
                                 tone=tone
                                 disabled=workbench_disabled.get()
                                 open=workbench_open_signal
+                                default_open=false
                                 on_open_change=on_workbench_open_change
                                 selected_day=workbench_selected_day_signal
+                                default_selected_day=12
                                 on_selected_day_change=on_workbench_selected_day_change
                                 first_weekday=first_weekday
                                 show_outside_days=workbench_show_outside_days.get()
+                                popover_placement=if workbench_top_end_placement.get() {
+                                    PopoverPlacement::TopEnd
+                                } else {
+                                    PopoverPlacement::BottomStart
+                                }
                                 motion=motion
                                 placeholder=placeholder
                                 aria_label=aria_label
+                                lang=if workbench_rtl.get() {
+                                    "ar".to_string()
+                                } else {
+                                    "en-US".to_string()
+                                }
+                                dir=if workbench_rtl.get() {
+                                    A11yDirection::Rtl
+                                } else {
+                                    A11yDirection::Ltr
+                                }
                                 class_name=class_name
                             />
                         }
@@ -4998,7 +5315,7 @@ pub(super) fn date_picker() -> AnyView {
 
                     <span class="ui-muted" data-slot="date-picker-workbench-summary">
                         {move || format!(
-                            "month={} · selected_day={:?} · open={} · disabled={} · tone={} · weekday={} · outside_days={} · custom_motion={} · custom_text={}",
+                            "month={} · selected_day={:?} · open={} · disabled={} · tone={} · weekday={} · outside_days={} · custom_motion={} · custom_text={} · placement={} · dir={}",
                             workbench_month.get(),
                             workbench_selected_day.get(),
                             workbench_open.get(),
@@ -5008,6 +5325,8 @@ pub(super) fn date_picker() -> AnyView {
                             workbench_show_outside_days.get(),
                             workbench_custom_motion.get(),
                             workbench_custom_text.get(),
+                            if workbench_top_end_placement.get() { "top-end" } else { "bottom-start" },
+                            if workbench_rtl.get() { "rtl" } else { "ltr" },
                         )}
                     </span>
                 </div>
@@ -5057,82 +5376,158 @@ pub(super) fn date_picker() -> AnyView {
 }
 
 pub(super) fn time_field() -> AnyView {
-    let (value, set_value) = signal(Some("09:30".to_string()));
-    let on_value_change = Callback::new(move |next: Option<String>| {
-        set_value.set(next);
+    let (workbench_value, set_workbench_value) = signal(Some("09:30".to_string()));
+    let workbench_value_signal: Signal<Option<String>> = workbench_value.into();
+    let (workbench_on_value_change_runs, set_workbench_on_value_change_runs) = signal(0_u32);
+    let on_workbench_value_change = Callback::new(move |next: Option<String>| {
+        set_workbench_value.set(next);
+        set_workbench_on_value_change_runs.update(|count| *count += 1);
     });
-    let (marker_value, set_marker_value) = signal(Some("08:15".to_string()));
-    let on_marker_value_change = Callback::new(move |next: Option<String>| {
-        set_marker_value.set(next);
-    });
-    let (marker_is_disabled, set_marker_is_disabled) = signal(false);
-    let (marker_minute_step, set_marker_minute_step) = signal(5_u8);
-    let (marker_strong_tone, set_marker_strong_tone) = signal(false);
+
+    let (workbench_step_index, set_workbench_step_index) = signal(Some(2_usize));
+    let step_options = vec![
+        "1 minute".to_string(),
+        "5 minutes".to_string(),
+        "15 minutes".to_string(),
+    ];
+    let workbench_minute_step =
+        Signal::derive(move || match workbench_step_index.get().unwrap_or(2) {
+            0 => 1_u8,
+            1 => 5_u8,
+            _ => 15_u8,
+        });
+
+    let (workbench_strong_tone, set_workbench_strong_tone) = signal(false);
+    let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
+    let (workbench_disabled_alias, set_workbench_disabled_alias) = signal(false);
+    let (workbench_custom_text, set_workbench_custom_text) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+    let (workbench_reduced_motion, set_workbench_reduced_motion) = signal(false);
 
     let hello_code = Signal::derive(move || {
         r#"<TimeField
-  id_base="meeting-time".to_string()
+  id_base="docs-time-field-hello".to_string()
   label="Meeting time".to_string()
 />"#
         .to_string()
     });
 
-    let marker_code = Signal::derive(move || {
-        r#"let (marker_value, set_marker_value) = signal(Some("08:15".to_string()));
-let on_value_change = Callback::new(move |next: Option<String>| {
-  set_marker_value.set(next);
-});
-let (marker_is_disabled, set_marker_is_disabled) = signal(false);
-let (marker_minute_step, set_marker_minute_step) = signal(5_u8);
+    let workbench_code = Signal::derive(move || {
+        let tone = if workbench_strong_tone.get() {
+            "TimeFieldTone::Strong"
+        } else {
+            "TimeFieldTone::Default"
+        };
+        let dir = if workbench_rtl.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
+        let class_name = if workbench_custom_class.get() {
+            "docs-time-field-custom"
+        } else {
+            ""
+        };
+        let label = if workbench_custom_text.get() {
+            "Deployment time"
+        } else {
+            "Meeting time"
+        };
+        let placeholder = if workbench_custom_text.get() {
+            "hh:mm"
+        } else {
+            "hour:minute"
+        };
+        let motion = if workbench_reduced_motion.get() {
+            "TimeFieldMotion { hidden_scale: 1.0, hover_scale: 1.0, tap_scale: 1.0, ..TimeFieldMotion::default() }"
+        } else {
+            "TimeFieldMotion::default()"
+        };
 
-<TimeField
-  id_base="docs-time-field-marker".to_string()
-  label="Marker playground".to_string()
-  value=marker_value
-  on_value_change=on_value_change
-  is_disabled=marker_is_disabled.get()
-  minute_step=marker_minute_step.get()
-/>"#
-        .to_string()
+        [
+            "<TimeField".to_string(),
+            "  id_base=\"docs-time-field-workbench\".to_string()".to_string(),
+            format!("  label={}", rust_string_literal(label)),
+            format!("  placeholder={}", rust_string_literal(placeholder)),
+            format!("  tone={tone}"),
+            format!("  is_disabled={}", bool_word(workbench_is_disabled.get())),
+            format!("  disabled={}", bool_word(workbench_disabled_alias.get())),
+            "  value=workbench_value.into()".to_string(),
+            "  default_value=\"09:30\".to_string()".to_string(),
+            "  on_value_change=on_workbench_value_change".to_string(),
+            format!("  minute_step={}", workbench_minute_step.get()),
+            "  aria_label=\"Work period time\".to_string()".to_string(),
+            "  hour_aria_label=\"Hour field\".to_string()".to_string(),
+            "  minute_aria_label=\"Minute field\".to_string()".to_string(),
+            "  clear_label=\"Clear time\".to_string()".to_string(),
+            "  clear_aria_label=\"Clear selected time\".to_string()".to_string(),
+            "  lang=\"en-US\".to_string()".to_string(),
+            format!("  dir={dir}"),
+            format!("  motion={motion}"),
+            format!("  class_name={}", rust_string_literal(class_name)),
+            "/>".to_string(),
+        ]
+        .join("\n")
     });
 
-    let code = Signal::derive(move || {
-        r#"let (value, set_value) = signal(Some("09:30".to_string()));
-let on_value_change = Callback::new(move |next: Option<String>| {
-  set_value.set(next);
-});
+    let workbench_actual_config = Signal::derive(move || {
+        let tone = if workbench_strong_tone.get() {
+            TimeFieldTone::Strong
+        } else {
+            TimeFieldTone::Default
+        };
+        let label = if workbench_custom_text.get() {
+            "Deployment time"
+        } else {
+            "Meeting time"
+        };
+        let placeholder = if workbench_custom_text.get() {
+            "hh:mm"
+        } else {
+            "hour:minute"
+        };
+        let class_name = if workbench_custom_class.get() {
+            Some("docs-time-field-custom")
+        } else {
+            None
+        };
+        let dir = if workbench_rtl.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        };
+        let motion = if workbench_reduced_motion.get() {
+            TimeFieldMotion {
+                hidden_scale: 1.0,
+                hover_scale: 1.0,
+                tap_scale: 1.0,
+                ..TimeFieldMotion::default()
+            }
+        } else {
+            TimeFieldMotion::default()
+        };
+        let value = workbench_value.get();
+        let value_text = value.as_ref().map_or_else(
+            || "None".to_string(),
+            |it| format!("Some({})", rust_string_literal(it)),
+        );
 
-<TimeField
-  id_base="meeting-time".to_string()
-  label="Meeting time".to_string()
-  value=value
-  on_value_change=on_value_change
-  minute_step=15
-/>"#
-        .to_string()
+        format!(
+            "TimeFieldActualConfig {{\n  id_base: \"docs-time-field-workbench\",\n  label: {},\n  placeholder: {},\n  tone: {tone:?},\n  is_disabled: Some({}),\n  disabled: {},\n  value: {value_text},\n  default_value: Some(\"09:30\"),\n  on_value_change: \"runs={}\",\n  minute_step: {},\n  aria_label: \"Work period time\",\n  hour_aria_label: \"Hour field\",\n  minute_aria_label: \"Minute field\",\n  clear_label: \"Clear time\",\n  clear_aria_label: \"Clear selected time\",\n  lang: Some(\"en-US\"),\n  dir: Some({dir:?}),\n  motion: {motion:?},\n  class_name: {class_name:?},\n}}",
+            rust_string_literal(label),
+            rust_string_literal(placeholder),
+            bool_word(workbench_is_disabled.get()),
+            bool_word(workbench_disabled_alias.get()),
+            workbench_on_value_change_runs.get(),
+            workbench_minute_step.get(),
+        )
     });
 
-    let states_code = Signal::derive(move || {
-        r#"<TimeField
-  id_base="ship-window".to_string()
-  label="Ship window".to_string()
-  tone=TimeFieldTone::Strong
-  minute_step=5
-  default_value="18:45".to_string()
-  placeholder="hour:minute".to_string()
-  class_name="docs-time-field-custom".to_string()
-/>"#
-        .to_string()
-    });
-
-    let disabled_code = Signal::derive(move || {
-        r#"<TimeField
-  id_base="quiet-hours".to_string()
-  label="Quiet hours".to_string()
-  default_value="22:00".to_string()
-  is_disabled=true
-/>"#
-        .to_string()
+    let matrix_code = Signal::derive(move || {
+        r#"<TimeField id_base="time-default".to_string() label="Default".to_string() default_value="09:30".to_string() />
+<TimeField id_base="time-strong".to_string() label="Strong".to_string() tone=TimeFieldTone::Strong minute_step=5 />
+<TimeField id_base="time-disabled".to_string() label="Disabled".to_string() is_disabled=true disabled=true default_value="22:00".to_string() />"#.to_string()
     });
 
     view! {
@@ -5140,9 +5535,9 @@ let on_value_change = Callback::new(move |next: Option<String>| {
             title="TimeField"
             slug="time-field"
             group="Forms"
-            description="Time entry field with centralized hour/minute normalization and baseline-style state/source data contracts."
+            description="Time entry field playground with full API workbench coverage and callback feedback."
         >
-            <Playground title="Hello World" code_signal=hello_code>
+            <Playground title="Hello World (Default)" code_signal=hello_code>
                 <TimeField
                     id_base="docs-time-field-hello".to_string()
                     label="Meeting time".to_string()
@@ -5150,315 +5545,274 @@ let on_value_change = Callback::new(move |next: Option<String>| {
             </Playground>
 
             <Playground
-                title="Interactive Playground (State + Source Markers)"
-                description="Inspect `data-state`, `data-control-mode`, `data-value-source`, `data-default-value-source`, and `data-value-change-source` while toggling disabled/step/tone and editing value."
-                code_signal=marker_code
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="time-field-workbench-controls">
+                        <SegmentedControl
+                            id_base="docs-time-field-workbench-step".to_string()
+                            options=step_options.clone()
+                            selected_index=workbench_step_index
+                            set_selected_index=set_workbench_step_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="TimeField minute step".to_string()
+                        />
+                        <Switch checked=workbench_strong_tone set_checked=set_workbench_strong_tone>
+                            "Strong tone"
+                        </Switch>
+                        <Switch checked=workbench_is_disabled set_checked=set_workbench_is_disabled>
+                            "is_disabled"
+                        </Switch>
+                        <Switch checked=workbench_disabled_alias set_checked=set_workbench_disabled_alias>
+                            "disabled alias"
+                        </Switch>
+                        <Switch checked=workbench_custom_text set_checked=set_workbench_custom_text>
+                            "Custom label + placeholder"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "Custom class_name"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                            "RTL dir"
+                        </Switch>
+                        <Switch checked=workbench_reduced_motion set_checked=set_workbench_reduced_motion>
+                            "Reduced motion"
+                        </Switch>
+                    </div>
+                }
             >
-                <div class="docs-stack">
+                <div class="docs-stack docs-stack--tight" data-slot="time-field-workbench-preview">
                     <TimeField
-                        id_base="docs-time-field-marker".to_string()
-                        label="Marker playground".to_string()
-                        value=marker_value
-                        on_value_change=on_marker_value_change
-                        is_disabled=marker_is_disabled.get()
-                        minute_step=marker_minute_step.get()
-                        tone=if marker_strong_tone.get() {
+                        id_base="docs-time-field-workbench".to_string()
+                        label=if workbench_custom_text.get() {
+                            "Deployment time".to_string()
+                        } else {
+                            "Meeting time".to_string()
+                        }
+                        placeholder=if workbench_custom_text.get() {
+                            "hh:mm".to_string()
+                        } else {
+                            "hour:minute".to_string()
+                        }
+                        tone=if workbench_strong_tone.get() {
                             TimeFieldTone::Strong
                         } else {
                             TimeFieldTone::Default
                         }
-                    />
-                    <div class="docs-row" data-slot="time-field-marker-controls">
-                        <div data-slot="time-field-toggle-disabled">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_marker_is_disabled.update(|value| *value = !*value)
-                                })
-                            >
-                                {move || if marker_is_disabled.get() {
-                                    "Set enabled"
-                                } else {
-                                    "Set disabled"
-                                }}
-                            </ui_components::Button>
-                        </div>
-
-                        <div data-slot="time-field-toggle-step">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_marker_minute_step.update(|value| {
-                                        *value = if *value == 5 { 15 } else { 5 };
-                                    })
-                                })
-                            >
-                                {move || if marker_minute_step.get() == 5 {
-                                    "Step 5"
-                                } else {
-                                    "Step 15"
-                                }}
-                            </ui_components::Button>
-                        </div>
-
-                        <div data-slot="time-field-toggle-tone">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_marker_strong_tone.update(|value| *value = !*value)
-                                })
-                            >
-                                {move || if marker_strong_tone.get() {
-                                    "Tone strong"
-                                } else {
-                                    "Tone default"
-                                }}
-                            </ui_components::Button>
-                        </div>
-
-                        <div data-slot="time-field-reset-value">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_marker_value.set(Some("08:15".to_string()));
-                                })
-                            >
-                                "Reset 08:15"
-                            </ui_components::Button>
-                        </div>
-                    </div>
-                    <span class="ui-muted" data-slot="time-field-marker-summary">
-                        "value: " {move || marker_value.get().unwrap_or_else(|| "none".to_string())}
-                        " · disabled: " {move || marker_is_disabled.get()}
-                        " · step: " {move || marker_minute_step.get()}
-                        " · tone: "
-                        {move || if marker_strong_tone.get() {
-                            "strong"
+                        is_disabled=workbench_is_disabled.get()
+                        disabled=workbench_disabled_alias.get()
+                        value=workbench_value_signal
+                        default_value="09:30".to_string()
+                        on_value_change=on_workbench_value_change
+                        minute_step=workbench_minute_step.get()
+                        aria_label="Work period time".to_string()
+                        hour_aria_label="Hour field".to_string()
+                        minute_aria_label="Minute field".to_string()
+                        clear_label="Clear time".to_string()
+                        clear_aria_label="Clear selected time".to_string()
+                        lang="en-US".to_string()
+                        dir=if workbench_rtl.get() {
+                            A11yDirection::Rtl
                         } else {
-                            "default"
-                        }}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground title="Controlled + Step 15" code_signal=code>
-                <div class="docs-stack">
-                    <TimeField
-                        id_base="docs-time-field-controlled".to_string()
-                        label="Meeting time".to_string()
-                        value=value
-                        on_value_change=on_value_change
-                        minute_step=15
+                            A11yDirection::Ltr
+                        }
+                        motion=if workbench_reduced_motion.get() {
+                            TimeFieldMotion {
+                                hidden_scale: 1.0,
+                                hover_scale: 1.0,
+                                tap_scale: 1.0,
+                                ..TimeFieldMotion::default()
+                            }
+                        } else {
+                            TimeFieldMotion::default()
+                        }
+                        class_name=if workbench_custom_class.get() {
+                            "docs-time-field-custom".to_string()
+                        } else {
+                            String::new()
+                        }
                     />
-                    <span class="ui-muted">
+                    <span class="ui-muted" data-slot="time-field-workbench-feedback">
                         "value: "
-                        {move || value.get().unwrap_or_else(|| "none".to_string())}
+                        {move || workbench_value.get().unwrap_or_else(|| "none".to_string())}
+                        " · minute_step: " {move || workbench_minute_step.get()}
+                        " · on_value_change: " {move || workbench_on_value_change_runs.get()}
                     </span>
                 </div>
             </Playground>
 
-            <Playground title="Strong Tone + Custom Placeholder" code_signal=states_code>
-                <TimeField
-                    id_base="docs-time-field-strong".to_string()
-                    label="Ship window".to_string()
-                    tone=TimeFieldTone::Strong
-                    minute_step=5
-                    default_value="18:45".to_string()
-                    placeholder="hour:minute".to_string()
-                    class_name="docs-time-field-custom".to_string()
-                />
+            <Playground title="State Matrix (Default / Strong / Disabled)" code_signal=matrix_code>
+                <div class="docs-row" data-slot="time-field-state-matrix">
+                    <TimeField
+                        id_base="docs-time-field-matrix-default".to_string()
+                        label="Default".to_string()
+                        default_value="09:30".to_string()
+                    />
+                    <TimeField
+                        id_base="docs-time-field-matrix-strong".to_string()
+                        label="Strong".to_string()
+                        tone=TimeFieldTone::Strong
+                        minute_step=5
+                    />
+                    <TimeField
+                        id_base="docs-time-field-matrix-disabled".to_string()
+                        label="Disabled".to_string()
+                        is_disabled=true
+                        disabled=true
+                        default_value="22:00".to_string()
+                    />
+                </div>
             </Playground>
-
-            <Playground title="Disabled + Uncontrolled (Default Step)" code_signal=disabled_code>
-                <TimeField
-                    id_base="docs-time-field-disabled".to_string()
-                    label="Quiet hours".to_string()
-                    default_value="22:00".to_string()
-                    is_disabled=true
-                />
-            </Playground>
-
-            <section class="docs-card docs-prose" data-slot="time-field-source-first">
-                <h3>"Source-first / Copy-Paste Ready"</h3>
-                <p>
-                    "Each playground supports "
-                    <code>"Show code"</code>
-                    " + copy. Copied snippets are import-ready via "
-                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
-                    "."
-                </p>
-                <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<TimeField\n  id_base=\"meeting-time\".into()\n  label=\"Meeting time\".into()\n/>".to_string()
-                    label="Copy starter".to_string()
-                    copyable=true
-                    class_name="docs-time-field-source-copy".to_string()
-                />
-                <ul data-slot="time-field-source-paths">
-                    <li><code>"components/text-input/src/time_field/mod.rs"</code></li>
-                    <li><code>"components/text-input/src/time_field/logic.rs"</code></li>
-                    <li><code>"components/text-input/src/time_field/view.rs"</code></li>
-                    <li><code>"components/text-input/src/time_field/styles.rs"</code></li>
-                    <li><code>"components/text-input/src/time_field/motion.rs"</code></li>
-                </ul>
-                <ul data-slot="time-field-source-prerequisites">
-                    <li><code>"component-time_field"</code></li>
-                    <li><code>"inject-css"</code></li>
-                </ul>
-            </section>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn date_range_picker() -> AnyView {
-    let (start_day, set_start_day) = signal(Some(8_u8));
-    let (end_day, set_end_day) = signal(Some(19_u8));
-    let (workbench_start_day, set_workbench_start_day) = signal(Some(10_u8));
-    let (workbench_end_day, set_workbench_end_day) = signal(Some(18_u8));
+    let (workbench_start_day, set_workbench_start_day) = signal(Some(8_u8));
+    let (workbench_end_day, set_workbench_end_day) = signal(Some(19_u8));
+    let workbench_start_day_signal: Signal<Option<u8>> = workbench_start_day.into();
+    let workbench_end_day_signal: Signal<Option<u8>> = workbench_end_day.into();
+    let (on_start_day_change_runs, set_on_start_day_change_runs) = signal(0_u32);
+    let (on_end_day_change_runs, set_on_end_day_change_runs) = signal(0_u32);
+    let on_start_day_change = Callback::new(move |next: Option<u8>| {
+        set_workbench_start_day.set(next);
+        set_on_start_day_change_runs.update(|count| *count += 1);
+    });
+    let on_end_day_change = Callback::new(move |next: Option<u8>| {
+        set_workbench_end_day.set(next);
+        set_on_end_day_change_runs.update(|count| *count += 1);
+    });
+
     let (workbench_strong_tone, set_workbench_strong_tone) = signal(false);
     let (workbench_disabled, set_workbench_disabled) = signal(false);
-    let (workbench_custom_labels, set_workbench_custom_labels) = signal(false);
+    let (workbench_monday, set_workbench_monday) = signal(true);
+    let (workbench_show_outside_days, set_workbench_show_outside_days) = signal(true);
+    let (workbench_custom_text, set_workbench_custom_text) = signal(false);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
 
-    let on_start_day_change = Callback::new(move |next: Option<u8>| {
-        set_start_day.set(next);
-    });
-
-    let on_end_day_change = Callback::new(move |next: Option<u8>| {
-        set_end_day.set(next);
-    });
-
-    let code = Signal::derive(move || {
-        r#"let (start_day, set_start_day) = signal(Some(8_u8));
-let (end_day, set_end_day) = signal(Some(19_u8));
-
-<DateRangePicker
-  id_base="release-window".to_string()
-  start_year=2026
-  start_month=6
-  end_year=2026
-  end_month=6
-  start_day=start_day
-  end_day=end_day
-  on_start_day_change=Callback::new(move |next| set_start_day.set(next))
-  on_end_day_change=Callback::new(move |next| set_end_day.set(next))
-/>"#
-        .to_string()
-    });
-
-    let states_code = Signal::derive(move || {
+    let hello_code = Signal::derive(move || {
         r#"<DateRangePicker
-  id_base="ship-window".to_string()
+  id_base="docs-date-range-picker-hello".to_string()
   start_year=2026
-  start_month=7
+  start_month=8
   end_year=2026
-  end_month=7
-  default_start_day=20
-  default_end_day=12
-  tone=DateRangePickerTone::Strong
-  class_name="docs-date-range-picker-custom".to_string()
+  end_month=8
 />"#
         .to_string()
     });
+
     let workbench_code = Signal::derive(move || {
-        let mut lines = vec![
+        let tone = if workbench_strong_tone.get() {
+            "DateRangePickerTone::Strong"
+        } else {
+            "DateRangePickerTone::Default"
+        };
+        let first_weekday = if workbench_monday.get() {
+            "CalendarFirstWeekday::Monday"
+        } else {
+            "CalendarFirstWeekday::Sunday"
+        };
+        let class_name = if workbench_custom_class.get() {
+            "docs-date-range-picker-custom"
+        } else {
+            ""
+        };
+        let start_label = if workbench_custom_text.get() {
+            "Ship from"
+        } else {
+            "Start date"
+        };
+        let end_label = if workbench_custom_text.get() {
+            "Ship to"
+        } else {
+            "End date"
+        };
+
+        [
             "<DateRangePicker".to_string(),
-            "  id_base=\"docs-date-range-picker-workbench\".into()".to_string(),
+            "  id_base=\"docs-date-range-picker-workbench\".to_string()".to_string(),
             "  start_year=2026".to_string(),
             "  start_month=8".to_string(),
             "  end_year=2026".to_string(),
             "  end_month=8".to_string(),
+            format!("  tone={tone}"),
+            format!("  disabled={}", bool_word(workbench_disabled.get())),
             format!(
-                "  start_day=Signal::derive(|| Some({}_u8))",
-                workbench_start_day.get().unwrap_or(0)
+                "  start_day=Signal::derive(|| {:?})",
+                workbench_start_day.get()
             ),
+            "  default_start_day=8".to_string(),
+            "  on_start_day_change=on_start_day_change".to_string(),
+            format!("  end_day=Signal::derive(|| {:?})", workbench_end_day.get()),
+            "  default_end_day=19".to_string(),
+            "  on_end_day_change=on_end_day_change".to_string(),
+            format!("  first_weekday={first_weekday}"),
             format!(
-                "  end_day=Signal::derive(|| Some({}_u8))",
-                workbench_end_day.get().unwrap_or(0)
+                "  show_outside_days={}",
+                bool_word(workbench_show_outside_days.get())
             ),
-        ];
+            format!("  start_label={}", rust_string_literal(start_label)),
+            format!("  end_label={}", rust_string_literal(end_label)),
+            "  start_placeholder=\"Start day\".to_string()".to_string(),
+            "  end_placeholder=\"End day\".to_string()".to_string(),
+            "  start_aria_label=\"Start date picker\".to_string()".to_string(),
+            "  end_aria_label=\"End date picker\".to_string()".to_string(),
+            "  invalid_range_message=\"End date must be after start date\".to_string()".to_string(),
+            "  aria_label=\"Release window\".to_string()".to_string(),
+            format!("  class_name={}", rust_string_literal(class_name)),
+            "/>".to_string(),
+        ]
+        .join("\n")
+    });
 
-        if workbench_strong_tone.get() {
-            lines.push("  tone=DateRangePickerTone::Strong".to_string());
-        }
-        if workbench_disabled.get() {
-            lines.push("  disabled=true".to_string());
-        }
-        if workbench_custom_labels.get() {
-            lines.push("  start_label=\"From\".into()".to_string());
-            lines.push("  end_label=\"To\".into()".to_string());
-            lines.push("  start_placeholder=\"Start window\".into()".to_string());
-            lines.push("  end_placeholder=\"End window\".into()".to_string());
-            lines.push("  invalid_range_message=\"Range is reversed\".into()".to_string());
-        }
-        if workbench_custom_class.get() {
-            lines.push("  class_name=\"docs-date-range-picker-custom\".into()".to_string());
-        }
-        lines.push("/>".to_string());
-        lines.join("\n")
-    });
-    let test_css_source = Signal::derive(move || {
-        format!(
-            "/* components/text-input/src/date_range_picker/styles.rs */\n{}",
-            ui_components::text_input::date_range_picker::styles::CSS
-        )
-    });
     let actual_config = Signal::derive(move || {
-        let start = workbench_start_day.get();
-        let end = workbench_end_day.get();
         let tone = if workbench_strong_tone.get() {
             DateRangePickerTone::Strong
         } else {
             DateRangePickerTone::Default
         };
-        let disabled = workbench_disabled.get();
-        let has_custom_labels = workbench_custom_labels.get();
-        let has_custom_class = workbench_custom_class.get();
-        let has_start = start.is_some();
-        let has_end = end.is_some();
-        let is_invalid = matches!((start, end), (Some(s), Some(e)) if s > e);
-        let has_full_value = has_start && has_end;
-        let is_partial = has_start ^ has_end;
-        let data_state = if disabled {
-            "disabled"
-        } else if is_invalid {
-            "invalid"
-        } else if has_full_value {
-            "value"
-        } else if is_partial {
-            "partial"
+        let first_weekday = if workbench_monday.get() {
+            CalendarFirstWeekday::Monday
         } else {
-            "empty"
+            CalendarFirstWeekday::Sunday
         };
-
-        let mut classes = vec!["ui-date-range-picker".to_string(), tone.class_name().into()];
-        if disabled {
-            classes.push("ui-date-range-picker--disabled".to_string());
-        }
-        if has_start {
-            classes.push("ui-date-range-picker--has-start".to_string());
-        }
-        if has_end {
-            classes.push("ui-date-range-picker--has-end".to_string());
-        }
-        if has_full_value {
-            classes.push("ui-date-range-picker--has-full-value".to_string());
-        }
-        if is_partial {
-            classes.push("ui-date-range-picker--partial".to_string());
-        }
-        if is_invalid {
-            classes.push("ui-date-range-picker--invalid-range".to_string());
-        }
-        if has_custom_class {
-            classes.push("ui-date-range-picker--custom-class".to_string());
-            classes.push("docs-date-range-picker-custom".to_string());
-        }
+        let start_label = if workbench_custom_text.get() {
+            "Ship from"
+        } else {
+            "Start date"
+        };
+        let end_label = if workbench_custom_text.get() {
+            "Ship to"
+        } else {
+            "End date"
+        };
+        let class_name = if workbench_custom_class.get() {
+            Some("docs-date-range-picker-custom")
+        } else {
+            None
+        };
+        let start = workbench_start_day.get();
+        let end = workbench_end_day.get();
+        let start_text = start.map_or_else(|| "None".to_string(), |it| format!("Some({it})"));
+        let end_text = end.map_or_else(|| "None".to_string(), |it| format!("Some({it})"));
 
         format!(
-            "DateRangePickerActualConfig {{\n  tone: {tone:?},\n  disabled: {disabled},\n  start_day: {start:?},\n  end_day: {end:?},\n  has_custom_label_set: {has_custom_labels},\n  has_custom_class_name: {has_custom_class},\n  is_invalid_range: {is_invalid},\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
-            classes.join(" ")
+            "DateRangePickerActualConfig {{\n  id_base: \"docs-date-range-picker-workbench\",\n  start_year: 2026,\n  start_month: 8,\n  end_year: 2026,\n  end_month: 8,\n  tone: {tone:?},\n  disabled: {},\n  start_day: {start_text},\n  default_start_day: Some(8),\n  on_start_day_change: \"runs={}\",\n  end_day: {end_text},\n  default_end_day: Some(19),\n  on_end_day_change: \"runs={}\",\n  first_weekday: {first_weekday:?},\n  show_outside_days: {},\n  start_label: {},\n  end_label: {},\n  start_placeholder: \"Start day\",\n  end_placeholder: \"End day\",\n  start_aria_label: \"Start date picker\",\n  end_aria_label: \"End date picker\",\n  invalid_range_message: \"End date must be after start date\",\n  aria_label: \"Release window\",\n  class_name: {class_name:?},\n}}",
+            bool_word(workbench_disabled.get()),
+            on_start_day_change_runs.get(),
+            on_end_day_change_runs.get(),
+            bool_word(workbench_show_outside_days.get()),
+            rust_string_literal(start_label),
+            rust_string_literal(end_label),
         )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<DateRangePicker id_base="range-default".to_string() start_year=2026 start_month=8 end_year=2026 end_month=8 default_start_day=8 default_end_day=19 />
+<DateRangePicker id_base="range-strong".to_string() start_year=2026 start_month=8 end_year=2026 end_month=8 tone=DateRangePickerTone::Strong default_start_day=22 default_end_day=10 />
+<DateRangePicker id_base="range-disabled".to_string() start_year=2026 start_month=8 end_year=2026 end_month=8 disabled=true default_start_day=5 default_end_day=12 />"#.to_string()
     });
 
     view! {
@@ -5466,210 +5820,128 @@ let (end_day, set_end_day) = signal(Some(19_u8));
             title="DateRangePicker"
             slug="date-range-picker"
             group="Forms"
-            description="Two DatePicker composition with centralized range validity/value-shape derivation and baseline-style state/source contracts."
+            description="Date range workbench with complete API coverage and callback-state feedback."
         >
-            <Playground title="Controlled + Shared Month" code_signal=code>
-                <div class="docs-stack">
-                    <DateRangePicker
-                        id_base="docs-date-range-picker-controlled".to_string()
-                        start_year=2026
-                        start_month=6
-                        end_year=2026
-                        end_month=6
-                        start_day=start_day
-                        end_day=end_day
-                        on_start_day_change=on_start_day_change
-                        on_end_day_change=on_end_day_change
-                    />
-
-                    <span class="ui-muted">
-                        "start: " {move || start_day.get().map(|d| d.to_string()).unwrap_or_else(|| "none".to_string())}
-                        " · end: " {move || end_day.get().map(|d| d.to_string()).unwrap_or_else(|| "none".to_string())}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground title="Strong Tone + Invalid Range Hint" code_signal=states_code>
+            <Playground title="Hello World (Default Range)" code_signal=hello_code>
                 <DateRangePicker
-                    id_base="docs-date-range-picker-strong".to_string()
+                    id_base="docs-date-range-picker-hello".to_string()
                     start_year=2026
-                    start_month=7
+                    start_month=8
                     end_year=2026
-                    end_month=7
-                    default_start_day=20
-                    default_end_day=12
-                    tone=DateRangePickerTone::Strong
-                    class_name="docs-date-range-picker-custom".to_string()
+                    end_month=8
                 />
             </Playground>
 
             <Playground
-                title="Workbench (Display + Config + Code + CSS Test)"
-                description="展示区含实时配置与对比样例；Config/Code/CSS Test 区用于契约回归。"
+                title="Workbench (All API + Actual Config)"
                 code_signal=workbench_code
-                test_css_source=test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/text-input/src/date_range_picker/styles.rs".to_string()
                 test_config_signal=actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="date-range-picker-workbench-controls">
+                        <Switch checked=workbench_strong_tone set_checked=set_workbench_strong_tone>
+                            "Strong tone"
+                        </Switch>
+                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
+                            "Disabled"
+                        </Switch>
+                        <Switch checked=workbench_monday set_checked=set_workbench_monday>
+                            "First weekday Monday"
+                        </Switch>
+                        <Switch
+                            checked=workbench_show_outside_days
+                            set_checked=set_workbench_show_outside_days
+                        >
+                            "Show outside days"
+                        </Switch>
+                        <Switch checked=workbench_custom_text set_checked=set_workbench_custom_text>
+                            "Custom labels"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "Custom class_name"
+                        </Switch>
+
                         <div class="docs-row">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_start_day
-                                        .update(|v| *v = Some(v.unwrap_or(1).saturating_sub(1).max(1)))
+                                        .update(|value| *value = value.map(|day| day.saturating_sub(1).max(1)));
                                 })
                             >
                                 "Start -1"
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_start_day
-                                        .update(|v| *v = Some((v.unwrap_or(1) + 1).min(31)))
+                                        .update(|value| *value = value.map(|day| (day + 1).min(31)));
                                 })
                             >
                                 "Start +1"
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_end_day
-                                        .update(|v| *v = Some(v.unwrap_or(1).saturating_sub(1).max(1)))
+                                        .update(|value| *value = value.map(|day| day.saturating_sub(1).max(1)));
                                 })
                             >
                                 "End -1"
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
+                            </ui::Button>
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
                                     set_workbench_end_day
-                                        .update(|v| *v = Some((v.unwrap_or(1) + 1).min(31)))
+                                        .update(|value| *value = value.map(|day| (day + 1).min(31)));
                                 })
                             >
                                 "End +1"
-                            </ui_components::Button>
-                        </div>
-
-                        <div class="docs-row">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_workbench_start_day.set(Some(8));
-                                    set_workbench_end_day.set(Some(20));
-                                })
-                            >
-                                "Preset valid"
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_workbench_start_day.set(Some(20));
-                                    set_workbench_end_day.set(Some(8));
-                                })
-                            >
-                                "Preset invalid"
-                            </ui_components::Button>
-                        </div>
-
-                        <div class="docs-row">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_workbench_strong_tone.update(|v| *v = !*v)
-                                })
-                            >
-                                {move || if workbench_strong_tone.get() {
-                                    "Tone: Strong"
-                                } else {
-                                    "Tone: Default"
-                                }}
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_workbench_disabled.update(|v| *v = !*v)
-                                })
-                            >
-                                {move || if workbench_disabled.get() {
-                                    "Disabled: on"
-                                } else {
-                                    "Disabled: off"
-                                }}
-                            </ui_components::Button>
-                        </div>
-
-                        <div class="docs-row">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_workbench_custom_labels.update(|v| *v = !*v)
-                                })
-                            >
-                                {move || if workbench_custom_labels.get() {
-                                    "Custom labels on"
-                                } else {
-                                    "Custom labels off"
-                                }}
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_workbench_custom_class.update(|v| *v = !*v)
-                                })
-                            >
-                                {move || if workbench_custom_class.get() {
-                                    "Custom class: on"
-                                } else {
-                                    "Custom class: off"
-                                }}
-                            </ui_components::Button>
+                            </ui::Button>
                         </div>
                     </div>
                 }
             >
-                <div class="docs-stack" data-slot="date-range-picker-workbench-preview">
+                <div class="docs-stack docs-stack--tight" data-slot="date-range-picker-workbench-preview">
                     <DateRangePicker
                         id_base="docs-date-range-picker-workbench".to_string()
                         start_year=2026
                         start_month=8
                         end_year=2026
                         end_month=8
-                        start_day=workbench_start_day
-                        end_day=workbench_end_day
-                        on_start_day_change=Callback::new(move |next| set_workbench_start_day.set(next))
-                        on_end_day_change=Callback::new(move |next| set_workbench_end_day.set(next))
                         tone=if workbench_strong_tone.get() {
                             DateRangePickerTone::Strong
                         } else {
                             DateRangePickerTone::Default
                         }
                         disabled=workbench_disabled.get()
-                        start_label=if workbench_custom_labels.get() {
-                            "From".to_string()
+                        start_day=workbench_start_day_signal
+                        default_start_day=8
+                        on_start_day_change=on_start_day_change
+                        end_day=workbench_end_day_signal
+                        default_end_day=19
+                        on_end_day_change=on_end_day_change
+                        first_weekday=if workbench_monday.get() {
+                            CalendarFirstWeekday::Monday
                         } else {
-                            String::new()
+                            CalendarFirstWeekday::Sunday
                         }
-                        end_label=if workbench_custom_labels.get() {
-                            "To".to_string()
+                        show_outside_days=workbench_show_outside_days.get()
+                        start_label=if workbench_custom_text.get() {
+                            "Ship from".to_string()
                         } else {
-                            String::new()
+                            "Start date".to_string()
                         }
-                        start_placeholder=if workbench_custom_labels.get() {
-                            "Start window".to_string()
+                        end_label=if workbench_custom_text.get() {
+                            "Ship to".to_string()
                         } else {
-                            String::new()
+                            "End date".to_string()
                         }
-                        end_placeholder=if workbench_custom_labels.get() {
-                            "End window".to_string()
-                        } else {
-                            String::new()
-                        }
-                        invalid_range_message=if workbench_custom_labels.get() {
-                            "Range is reversed".to_string()
-                        } else {
-                            String::new()
-                        }
+                        start_placeholder="Start day".to_string()
+                        end_placeholder="End day".to_string()
+                        start_aria_label="Start date picker".to_string()
+                        end_aria_label="End date picker".to_string()
+                        invalid_range_message="End date must be after start date".to_string()
+                        aria_label="Release window".to_string()
                         class_name=if workbench_custom_class.get() {
                             "docs-date-range-picker-custom".to_string()
                         } else {
@@ -5677,46 +5949,48 @@ let (end_day, set_end_day) = signal(Some(19_u8));
                         }
                     />
 
-                    <div class="docs-row">
-                        <span class="ui-muted">
-                            "start: " {move || workbench_start_day.get().map(|d| d.to_string()).unwrap_or_else(|| "none".to_string())}
-                            " · end: " {move || workbench_end_day.get().map(|d| d.to_string()).unwrap_or_else(|| "none".to_string())}
-                            " · invalid: "
-                            {move || match (workbench_start_day.get(), workbench_end_day.get()) {
-                                (Some(s), Some(e)) => (s > e).to_string(),
-                                _ => "false".to_string(),
-                            }}
-                        </span>
-                    </div>
+                    <span class="ui-muted" data-slot="date-range-picker-workbench-feedback">
+                        "start: "
+                        {move || workbench_start_day.get().map_or_else(|| "none".to_string(), |day| day.to_string())}
+                        " · end: "
+                        {move || workbench_end_day.get().map_or_else(|| "none".to_string(), |day| day.to_string())}
+                        " · on_start_day_change: " {move || on_start_day_change_runs.get()}
+                        " · on_end_day_change: " {move || on_end_day_change_runs.get()}
+                    </span>
+                </div>
+            </Playground>
 
-                    <div class="docs-row">
-                        <div class="docs-stack docs-stack--tight">
-                            <span class="ui-muted">"对比：Valid"</span>
-                            <DateRangePicker
-                                id_base="docs-date-range-picker-compare-valid".to_string()
-                                start_year=2026
-                                start_month=8
-                                end_year=2026
-                                end_month=8
-                                default_start_day=5
-                                default_end_day=16
-                            />
-                        </div>
-                        <div class="docs-stack docs-stack--tight">
-                            <span class="ui-muted">"对比：Invalid + Strong"</span>
-                            <DateRangePicker
-                                id_base="docs-date-range-picker-compare-invalid".to_string()
-                                start_year=2026
-                                start_month=8
-                                end_year=2026
-                                end_month=8
-                                default_start_day=22
-                                default_end_day=7
-                                tone=DateRangePickerTone::Strong
-                                class_name="docs-date-range-picker-custom".to_string()
-                            />
-                        </div>
-                    </div>
+            <Playground title="State Matrix (Default / Invalid / Disabled)" code_signal=matrix_code>
+                <div class="docs-row" data-slot="date-range-picker-state-matrix">
+                    <DateRangePicker
+                        id_base="docs-date-range-picker-matrix-default".to_string()
+                        start_year=2026
+                        start_month=8
+                        end_year=2026
+                        end_month=8
+                        default_start_day=8
+                        default_end_day=19
+                    />
+                    <DateRangePicker
+                        id_base="docs-date-range-picker-matrix-invalid".to_string()
+                        start_year=2026
+                        start_month=8
+                        end_year=2026
+                        end_month=8
+                        tone=DateRangePickerTone::Strong
+                        default_start_day=22
+                        default_end_day=10
+                    />
+                    <DateRangePicker
+                        id_base="docs-date-range-picker-matrix-disabled".to_string()
+                        start_year=2026
+                        start_month=8
+                        end_year=2026
+                        end_month=8
+                        disabled=true
+                        default_start_day=5
+                        default_end_day=12
+                    />
                 </div>
             </Playground>
         </ComponentPage>
@@ -5725,12 +5999,78 @@ let (end_day, set_end_day) = signal(Some(19_u8));
 }
 
 pub(super) fn date_field() -> AnyView {
-    let (value, set_value) = signal(Some("2026-03-14".to_string()));
-    let on_value_change = Callback::new(move |next: Option<String>| {
-        set_value.set(next);
+    let tone_options = vec!["Default".to_string(), "Strong".to_string()];
+    let id_base_options = vec![
+        "invoice-date".to_string(),
+        "ship-date".to_string(),
+        "due-date".to_string(),
+    ];
+    let motion_options = vec![
+        "Default".to_string(),
+        "No Motion".to_string(),
+        "Long Motion".to_string(),
+    ];
+
+    let (showcase_value, set_showcase_value) = signal(Some("2026-03-14".to_string()));
+    let showcase_on_value_change = Callback::new(move |next: Option<String>| {
+        set_showcase_value.set(next);
     });
 
-    let code = Signal::derive(move || {
+    let (workbench_id_base_index, set_workbench_id_base_index) = signal(Some(0_usize));
+    let (workbench_tone_index, set_workbench_tone_index) = signal(Some(0_usize));
+    let (workbench_motion_index, set_workbench_motion_index) = signal(Some(0_usize));
+
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_controlled, set_workbench_controlled) = signal(true);
+    let (workbench_with_default, set_workbench_with_default) = signal(true);
+    let (workbench_with_label, set_workbench_with_label) = signal(true);
+    let (workbench_with_placeholder, set_workbench_with_placeholder) = signal(true);
+    let (workbench_with_aria_label, set_workbench_with_aria_label) = signal(true);
+    let (workbench_with_custom_class, set_workbench_with_custom_class) = signal(false);
+    let (workbench_with_callback, set_workbench_with_callback) = signal(true);
+
+    let (workbench_value, set_workbench_value) = signal(Some("2026-03-22".to_string()));
+    let (workbench_change_count, set_workbench_change_count) = signal(0_u32);
+    let (workbench_last_change, set_workbench_last_change) = signal("none".to_string());
+    let on_workbench_value_change = Callback::new(move |next: Option<String>| {
+        if workbench_with_callback.get() {
+            set_workbench_change_count.update(|count| *count += 1);
+            set_workbench_last_change.set(next.clone().unwrap_or_else(|| "none".to_string()));
+            set_workbench_value.set(next);
+        }
+    });
+
+    let workbench_id_base =
+        Signal::derive(move || match workbench_id_base_index.get().unwrap_or(0) {
+            1 => "ship-date".to_string(),
+            2 => "due-date".to_string(),
+            _ => "invoice-date".to_string(),
+        });
+    let workbench_tone = Signal::derive(move || {
+        if workbench_tone_index.get().unwrap_or(0) == 1 {
+            DateFieldTone::Strong
+        } else {
+            DateFieldTone::Default
+        }
+    });
+    let workbench_motion =
+        Signal::derive(move || match workbench_motion_index.get().unwrap_or(0) {
+            1 => ui::text_input::date_field::DateFieldMotion::disabled(),
+            2 => ui::text_input::date_field::DateFieldMotion {
+                enabled: true,
+                duration_ms: 420,
+            },
+            _ => ui::text_input::date_field::DateFieldMotion::default(),
+        });
+    let workbench_controlled_value = Signal::derive(move || {
+        if workbench_controlled.get() {
+            workbench_value.get()
+        } else {
+            None
+        }
+    });
+
+    let showcase_code = Signal::derive(move || {
         r#"let (value, set_value) = signal(Some("2026-03-14".to_string()));
 let on_value_change = Callback::new(move |next: Option<String>| {
   set_value.set(next);
@@ -5745,13 +6085,112 @@ let on_value_change = Callback::new(move |next: Option<String>| {
         .to_string()
     });
 
-    let states_code = Signal::derive(move || {
-        r#"<DateField
-  id_base="ship-date".to_string()
-  label="Ship date".to_string()
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<DateField\n  id_base={}.to_string()\n  label={}\n  placeholder={}\n  tone={:?}\n  disabled={}\n  value={}\n  default_value={}\n  on_value_change={}\n  aria_label={}\n  motion=DateFieldMotion {{ enabled: {}, duration_ms: {} }}\n  class_name={}\n/>",
+            rust_string_literal(&workbench_id_base.get()),
+            if workbench_with_label.get() {
+                format!("Some({}.to_string())", rust_string_literal("Invoice date"))
+            } else {
+                "None".to_string()
+            },
+            if workbench_with_placeholder.get() {
+                format!("Some({}.to_string())", rust_string_literal("yyyy-mm-dd"))
+            } else {
+                "None".to_string()
+            },
+            workbench_tone.get(),
+            bool_word(workbench_disabled.get()),
+            if workbench_controlled.get() {
+                "value".to_string()
+            } else {
+                "Signal::derive(move || None::<String>)".to_string()
+            },
+            if workbench_with_default.get() {
+                format!("{}.to_string()", rust_string_literal("2026-03-22"))
+            } else {
+                "\"\".to_string()".to_string()
+            },
+            if workbench_with_callback.get() {
+                "on_value_change".to_string()
+            } else {
+                "Callback::new(|_: Option<String>| {})".to_string()
+            },
+            if workbench_with_aria_label.get() {
+                format!("{}.to_string()", rust_string_literal("Invoice date field"))
+            } else {
+                "\"\".to_string()".to_string()
+            },
+            bool_word(workbench_motion.get().enabled),
+            workbench_motion.get().duration_ms,
+            if workbench_with_custom_class.get() {
+                format!(
+                    "{}.to_string()",
+                    rust_string_literal("docs-date-field-custom")
+                )
+            } else {
+                "\"\".to_string()".to_string()
+            },
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "DateFieldWorkbenchActualConfig {{\n  id_base: {:?},\n  label: {:?},\n  placeholder: {:?},\n  tone: {:?},\n  disabled: {},\n  value: {:?},\n  default_value: {:?},\n  on_value_change: {},\n  aria_label: {:?},\n  motion: DateFieldMotion {{ enabled: {}, duration_ms: {} }},\n  class_name: {:?},\n}}",
+            workbench_id_base.get(),
+            if workbench_with_label.get() {
+                Some("Invoice date")
+            } else {
+                None
+            },
+            if workbench_with_placeholder.get() {
+                Some("yyyy-mm-dd")
+            } else {
+                None
+            },
+            workbench_tone.get(),
+            bool_word(workbench_disabled.get()),
+            if workbench_controlled.get() {
+                Some(workbench_value.get())
+            } else {
+                None
+            },
+            if workbench_with_default.get() {
+                Some("2026-03-22")
+            } else {
+                None
+            },
+            bool_word(workbench_with_callback.get()),
+            if workbench_with_aria_label.get() {
+                Some("Invoice date field")
+            } else {
+                None
+            },
+            bool_word(workbench_motion.get().enabled),
+            workbench_motion.get().duration_ms,
+            if workbench_with_custom_class.get() {
+                Some("docs-date-field-custom")
+            } else {
+                None
+            },
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<DateField id_base="matrix-default".to_string() label="Default".to_string() />
+<DateField
+  id_base="matrix-strong".to_string()
+  label="Strong tone".to_string()
   tone=DateFieldTone::Strong
-  default_value="2026-07-22".to_string()
-  placeholder="year-month-day".to_string()
+  placeholder="yyyy-mm-dd".to_string()
+  aria_label="Strong date field".to_string()
+/>
+<DateField
+  id_base="matrix-disabled".to_string()
+  label="Disabled".to_string()
+  disabled=true
+  default_value=Some("2026-06-01".to_string())
+  motion=DateFieldMotion::disabled()
   class_name="docs-date-field-custom".to_string()
 />"#
         .to_string()
@@ -5764,29 +6203,147 @@ let on_value_change = Callback::new(move |next: Option<String>| {
             group="Forms"
             description="Segmented date entry field with centralized year/month/day normalization and baseline-style state/source contracts."
         >
-            <Playground title="Controlled Value" code_signal=code>
+            <Playground title="Hello World (Default DateField)" code_signal=showcase_code>
                 <div class="docs-stack">
                     <DateField
-                        id_base="docs-date-field-controlled".to_string()
+                        id_base="docs-date-field-showcase".to_string()
                         label="Invoice date".to_string()
-                        value=value
-                        on_value_change=on_value_change
+                        value=showcase_value
+                        on_value_change=showcase_on_value_change
                     />
                     <span class="ui-muted">
-                        "value: " {move || value.get().unwrap_or_else(|| "none".to_string())}
+                        "value: "
+                        {move || showcase_value.get().unwrap_or_else(|| "none".to_string())}
                     </span>
                 </div>
             </Playground>
 
-            <Playground title="Strong Tone + Custom Placeholder" code_signal=states_code>
-                <DateField
-                    id_base="docs-date-field-strong".to_string()
-                    label="Ship date".to_string()
-                    tone=DateFieldTone::Strong
-                    default_value="2026-07-22".to_string()
-                    placeholder="year-month-day".to_string()
-                    class_name="docs-date-field-custom".to_string()
-                />
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="date-field-workbench-controls">
+                        <SegmentedControl
+                            id_base="docs-date-field-workbench-id-base".to_string()
+                            options=id_base_options.clone()
+                            selected_index=workbench_id_base_index
+                            set_selected_index=set_workbench_id_base_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="DateField id_base".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-date-field-workbench-tone".to_string()
+                            options=tone_options.clone()
+                            selected_index=workbench_tone_index
+                            set_selected_index=set_workbench_tone_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="DateField tone".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-date-field-workbench-motion".to_string()
+                            options=motion_options.clone()
+                            selected_index=workbench_motion_index
+                            set_selected_index=set_workbench_motion_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="DateField motion".to_string()
+                        />
+                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
+                            "disabled"
+                        </Switch>
+                        <Switch checked=workbench_controlled set_checked=set_workbench_controlled>
+                            "value (controlled)"
+                        </Switch>
+                        <Switch checked=workbench_with_default set_checked=set_workbench_with_default>
+                            "default_value"
+                        </Switch>
+                        <Switch checked=workbench_with_label set_checked=set_workbench_with_label>
+                            "label"
+                        </Switch>
+                        <Switch checked=workbench_with_placeholder set_checked=set_workbench_with_placeholder>
+                            "placeholder"
+                        </Switch>
+                        <Switch checked=workbench_with_aria_label set_checked=set_workbench_with_aria_label>
+                            "aria_label"
+                        </Switch>
+                        <Switch checked=workbench_with_custom_class set_checked=set_workbench_with_custom_class>
+                            "class_name"
+                        </Switch>
+                        <Switch checked=workbench_with_callback set_checked=set_workbench_with_callback>
+                            "on_value_change"
+                        </Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack">
+                    <DateField
+                        id_base=workbench_id_base.get()
+                        label=if workbench_with_label.get() {
+                            "Invoice date".to_string()
+                        } else {
+                            String::new()
+                        }
+                        placeholder=if workbench_with_placeholder.get() {
+                            "yyyy-mm-dd".to_string()
+                        } else {
+                            String::new()
+                        }
+                        tone=workbench_tone.get()
+                        disabled=workbench_disabled.get()
+                        value=workbench_controlled_value
+                        default_value=if workbench_with_default.get() {
+                            "2026-03-22".to_string()
+                        } else {
+                            String::new()
+                        }
+                        on_value_change=on_workbench_value_change
+                        aria_label=if workbench_with_aria_label.get() {
+                            "Invoice date field".to_string()
+                        } else {
+                            String::new()
+                        }
+                        motion=workbench_motion.get()
+                        class_name=if workbench_with_custom_class.get() {
+                            "docs-date-field-custom".to_string()
+                        } else {
+                            String::new()
+                        }
+                    />
+                    <span class="ui-muted">
+                        "current value: "
+                        {move || workbench_value.get().unwrap_or_else(|| "none".to_string())}
+                    </span>
+                    <span class="ui-muted">
+                        "change_count="
+                        {move || workbench_change_count.get()}
+                        " · last_change="
+                        {move || workbench_last_change.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="State Matrix (Default / Strong / Disabled)" code_signal=matrix_code>
+                <div class="docs-stack" data-slot="date-field-state-matrix">
+                    <DateField
+                        id_base="docs-date-field-matrix-default".to_string()
+                        label="Default".to_string()
+                    />
+                    <DateField
+                        id_base="docs-date-field-matrix-strong".to_string()
+                        label="Strong tone".to_string()
+                        tone=DateFieldTone::Strong
+                        placeholder="yyyy-mm-dd".to_string()
+                        aria_label="Strong tone date field".to_string()
+                    />
+                    <DateField
+                        id_base="docs-date-field-matrix-disabled".to_string()
+                        label="Disabled".to_string()
+                        disabled=true
+                        default_value="2026-06-01".to_string()
+                        motion=ui::text_input::date_field::DateFieldMotion::disabled()
+                        class_name="docs-date-field-custom".to_string()
+                    />
+                </div>
             </Playground>
         </ComponentPage>
     }

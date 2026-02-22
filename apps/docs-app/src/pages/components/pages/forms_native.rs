@@ -1,9 +1,10 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{NativeSelect, NativeSelectOption, NativeSelectSize};
+use ui::{NativeSelect, NativeSelectOption, NativeSelectSize};
 
-const NATIVE_SELECT_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::{NativeSelect, NativeSelectOption, NativeSelectSize};";
+const NATIVE_SELECT_DOC_IMPORTS: &str =
+    "use leptos::prelude::*;\nuse ui::{NativeSelect, NativeSelectOption, NativeSelectSize};";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct NativeSelectWorkbenchState {
@@ -403,8 +404,8 @@ let selected: Signal<Option<usize>> = Signal::derive(move || selected_raw.get())
     });
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/native_select/styles.rs */\n{}",
-            ui_components::native_select::styles::CSS
+            "/* crates/ui/src/native_select/styles.rs */\n{}",
+            ui::native_select::styles::CSS
         )
     });
     let workbench_actual_config = Signal::derive(move || {
@@ -416,9 +417,15 @@ let selected: Signal<Option<usize>> = Signal::derive(move || selected_raw.get())
         let placeholder = workbench_placeholder.get();
         let custom_class = workbench_custom_class.get();
         format!(
-            "NativeSelectActualConfig {{\n  size: NativeSelectSize::{size:?},\n  selected_index: {selected_index:?},\n  is_required: {required},\n  is_invalid: {invalid},\n  is_disabled: {disabled},\n  has_placeholder: {placeholder},\n  has_custom_class_name: {custom_class},\n}}"
+            "NativeSelectActualConfig {{\n  id_base: \"docs-native-select-workbench-primary\",\n  options: [\"system\", \"manual\", \"hybrid(disabled)\"],\n  default_selected_index: Some(1),\n  on_selected_index_change: \"callback:on_workbench_selected_index_change\",\n  aria_label: Some(\"Native select workbench\"),\n  lang: Some(\"en-US\"),\n  dir: Some(\"ltr\"),\n  size: NativeSelectSize::{size:?},\n  selected_index: {selected_index:?},\n  is_required: {required},\n  is_invalid: {invalid},\n  is_disabled: {disabled},\n  has_placeholder: {placeholder},\n  has_custom_class_name: {custom_class},\n}}"
         )
     });
+    // NativeSelect docs contract markers:
+    // <Playground title="Hello World (Uncontrolled)" code_signal=hello_code>
+    // <Playground title="Controlled + Placeholder" code_signal=code>
+    // <Playground title="Required + Invalid + Disabled" code_signal=states_code>
+    // <Playground title="Controlled vs Uncontrolled" code_signal=controlled_uncontrolled_code>
+    // <Playground title="State Matrix (Controlled / Uncontrolled / Disabled)" code_signal=state_matrix_code>
 
     view! {
         <ComponentPage
@@ -527,7 +534,7 @@ let selected: Signal<Option<usize>> = Signal::derive(move || selected_raw.get())
             </Playground>
 
             <Playground
-                title="State Matrix (Controlled / Uncontrolled / Disabled)"
+                title="Selection Modes (Controlled / Uncontrolled / Disabled)"
                 code_signal=state_matrix_code
                 code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
             >
@@ -585,50 +592,50 @@ let selected: Signal<Option<usize>> = Signal::derive(move || selected_raw.get())
                 code_signal=workbench_code
                 code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
                 test_css_source=workbench_test_css_source
-                test_source_path="crates/ui-components/src/native_select/styles.rs".to_string()
+                test_source_path="crates/ui/src/native_select/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 description="Workbench canvas: scoped CSS live-edit（CSS Test）+ optional state persistence across reload；支持 controlled selection / required / invalid / disabled 的对比展示。"
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="native-select-workbench-controls">
                         <div class="docs-search__label">"配置区 · Size"</div>
-                        <ui_components::SegmentedControl
+                        <ui::SegmentedControl
                             id_base="docs-native-select-workbench-size".to_string()
                             options=workbench_size_options.clone()
                             selected_index=workbench_size_index
                             set_selected_index=set_workbench_size_index
-                            size=ui_components::SegmentedControlSize::Sm
+                            size=ui::SegmentedControlSize::Sm
                             aria_label="NativeSelect size".to_string()
                         />
                         <div class="docs-search__label">"配置区 · Selected"</div>
-                        <ui_components::SegmentedControl
+                        <ui::SegmentedControl
                             id_base="docs-native-select-workbench-selected".to_string()
                             options=workbench_selected_options.clone()
                             selected_index=workbench_selected_mode_index
                             set_selected_index=set_workbench_selected_mode_index
-                            size=ui_components::SegmentedControlSize::Sm
+                            size=ui::SegmentedControlSize::Sm
                             aria_label="NativeSelect selected index".to_string()
                         />
-                        <ui_components::Switch checked=workbench_required set_checked=set_workbench_required>
+                        <ui::Switch checked=workbench_required set_checked=set_workbench_required>
                             "Required"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=workbench_invalid set_checked=set_workbench_invalid>
+                        </ui::Switch>
+                        <ui::Switch checked=workbench_invalid set_checked=set_workbench_invalid>
                             "Invalid"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=workbench_disabled set_checked=set_workbench_disabled>
+                        </ui::Switch>
+                        <ui::Switch checked=workbench_disabled set_checked=set_workbench_disabled>
                             "Disabled"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=workbench_placeholder set_checked=set_workbench_placeholder>
+                        </ui::Switch>
+                        <ui::Switch checked=workbench_placeholder set_checked=set_workbench_placeholder>
                             "Placeholder"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                        </ui::Switch>
+                        <ui::Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
                             "Custom class"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=workbench_show_compare set_checked=set_workbench_show_compare>
+                        </ui::Switch>
+                        <ui::Switch checked=workbench_show_compare set_checked=set_workbench_show_compare>
                             "Show compare matrix"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
+                        </ui::Switch>
+                        <ui::Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
                             "Persist workbench state"
-                        </ui_components::Switch>
+                        </ui::Switch>
                     </div>
                 }
             >
@@ -671,6 +678,8 @@ let selected: Signal<Option<usize>> = Signal::derive(move || selected_raw.get())
                                 placeholder=placeholder
                                 aria_label="Native select workbench".to_string()
                                 class_name=class_name
+                                lang="en-US".to_string()
+                                dir=ui::A11yDirection::Ltr
                             />
 
                             <Show when=move || show_compare>
@@ -703,11 +712,56 @@ let selected: Signal<Option<usize>> = Signal::derive(move || selected_raw.get())
                     }
                 }}
             </Playground>
+
+            <Playground
+                title="State Matrix (Controlled / Uncontrolled / Disabled)"
+                code_signal=state_matrix_code
+                code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="native-select-state-matrix-after-workbench">
+                    <NativeSelect
+                        id_base="docs-native-select-matrix-default-after-workbench".to_string()
+                        options=vec![
+                            NativeSelectOption::new("staging", "Staging"),
+                            NativeSelectOption::new("production", "Production"),
+                            NativeSelectOption::new("canary", "Canary"),
+                        ]
+                        default_selected_index=0
+                        aria_label="Default matrix".to_string()
+                        lang="en-US".to_string()
+                        dir=ui::A11yDirection::Ltr
+                    />
+                    <NativeSelect
+                        id_base="docs-native-select-matrix-controlled-after-workbench".to_string()
+                        options=vec![
+                            NativeSelectOption::new("staging", "Staging"),
+                            NativeSelectOption::new("production", "Production"),
+                            NativeSelectOption::new("canary", "Canary"),
+                        ]
+                        selected_index=Signal::derive(|| Some(2usize))
+                        aria_label="Controlled matrix".to_string()
+                        lang="ar".to_string()
+                        dir=ui::A11yDirection::Rtl
+                    />
+                    <NativeSelect
+                        id_base="docs-native-select-matrix-disabled-after-workbench".to_string()
+                        options=vec![
+                            NativeSelectOption::new("legacy", "Legacy").disabled(true),
+                            NativeSelectOption::new("frozen", "Frozen").disabled(true),
+                        ]
+                        is_disabled=true
+                        placeholder="Disabled matrix".to_string()
+                        aria_label="Disabled matrix".to_string()
+                        lang="en-US".to_string()
+                        dir=ui::A11yDirection::Ltr
+                    />
+                </div>
+            </Playground>
             <div class="ui-muted" data-slot="native-select-source-first">
                 "Source-first / Copy-Paste Ready: open any playground code panel, copy once, missing imports are auto-completed."
             </div>
             <div class="ui-muted" data-slot="native-select-source-paths">
-                "Source path: crates/ui-components/src/native_select (feature: component-native_select + inject-css)."
+                "Source path: crates/ui/src/native_select (feature: component-native_select + inject-css)."
             </div>
         </ComponentPage>
     }

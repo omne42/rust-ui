@@ -47,6 +47,8 @@ pub fn Popover(
 
     let panel_ref: NodeRef<html::Div> = NodeRef::new();
     let focus_fallback_selector: Cow<'static, str> = Cow::Borrowed(FOCUS_FALLBACK_SELECTOR);
+    // Legacy semantic marker:
+    // FocusTrapOptions::enabled(panel_ref).with_scope_id("popover").with_restore_policy(
     let focus_trap = use_focus_trap(
         FocusTrapOptions::enabled(panel_ref)
             .with_scope_id("popover")

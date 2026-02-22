@@ -166,8 +166,8 @@ fn surface_component_files_follow_layered_responsibilities() {
 #[ignore = "TODO: contract migration follow-up"]
 fn surface_spec_boundary_reuses_button_spec_without_local_spec_file() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let button_spec_path = manifest_dir.join("../ui-components/src/button/spec.rs");
-    let button_mod_source = load_source("../ui-components/src/button/mod.rs");
+    let button_spec_path = manifest_dir.join("../ui/src/button/spec.rs");
+    let button_mod_source = load_source("../ui/src/button/mod.rs");
     let surface_mod_source = load_source("src/surface/mod.rs");
 
     assert!(
@@ -1561,7 +1561,7 @@ fn surface_engineering_contract_marks_spec_serde_path_as_na_for_simple_component
 #[ignore = "TODO: contract migration follow-up"]
 fn surface_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events() {
     let cargo_source = load_source("Cargo.toml");
-    let button_view_source = load_source("../ui-components/src/button/view.rs");
+    let button_view_source = load_source("../ui/src/button/view.rs");
     let combined = [
         load_source("src/surface/mod.rs"),
         load_source("src/surface/logic.rs"),
@@ -2744,7 +2744,7 @@ fn surface_docs_source_first_copy_paste_ready_with_imports_source_paths_and_sync
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_surface.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
-    let code_block_source = load_source("../ui-components/src/code_block/view.rs");
+    let code_block_source = load_source("../ui/src/code_block/view.rs");
     let logic_source = load_source("src/surface/logic.rs");
     let view_source = load_source("src/surface/view.rs");
 

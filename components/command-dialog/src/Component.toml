@@ -248,9 +248,9 @@ name = "ui-motion"
 kind = "motion-contract"
 
 [[dependencies]]
-name = "ui-components/modal"
+name = "ui/modal"
 kind = "overlay-shell"
 
 [[dependencies]]
-name = "ui-components/command"
+name = "ui/command"
 kind = "command-content-composition"

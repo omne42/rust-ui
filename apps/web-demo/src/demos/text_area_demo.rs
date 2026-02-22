@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::TextArea;
+use ui::TextArea;
 
 #[component]
 pub fn TextAreaDemo() -> impl IntoView {

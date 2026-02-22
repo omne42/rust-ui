@@ -1,7 +1,7 @@
 # ui-visual-primitive
 
 `ui-visual-primitive` stores internal visual primitives that are shared by
-`ui-components` and `ui-layout`.
+`ui` and `ui-layout`.
 
 ## Positioning
 

@@ -1,12 +1,13 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{PickerButton, SegmentedControl, SegmentedControlSize, Switch};
+use ui::{PickerButton, SegmentedControl, SegmentedControlSize, Switch};
 
 // Legacy source-contract markers retained for semantic tests:
 // title="Interactive"
 
 pub(super) fn picker_button() -> AnyView {
+    let workbench_node_ref: NodeRef<leptos::html::Button> = NodeRef::new();
     let (active, set_active) = signal(false);
     let (press_count, set_press_count) = signal(0_usize);
     let on_press = Callback::new(move |_| {
@@ -25,6 +26,18 @@ pub(super) fn picker_button() -> AnyView {
     let (disabled, set_disabled) = signal(false);
     let (forced_active, set_forced_active) = signal(false);
     let (custom_aria_label, set_custom_aria_label) = signal(false);
+    let (custom_class_name, set_custom_class_name) = signal(false);
+    let button_type_options = vec![
+        "button".to_string(),
+        "submit".to_string(),
+        "reset".to_string(),
+    ];
+    let (button_type_index, set_button_type_index) = signal(Some(0_usize));
+    let button_type = Signal::derive(move || match button_type_index.get().unwrap_or(0) {
+        1 => "submit",
+        2 => "reset",
+        _ => "button",
+    });
 
     let code = Signal::derive(move || {
         let quiet = quiet.get();
@@ -50,6 +63,14 @@ pub(super) fn picker_button() -> AnyView {
         if custom_aria_label {
             snippet.push("  aria_label=\"Inspect picker trigger\".into()".to_string());
         }
+        if custom_class_name.get() {
+            snippet.push("  class_name=\"docs-picker-button-custom\".into()".to_string());
+        }
+        if button_type.get() != "button" {
+            snippet.push(format!("  button_type={:?}", button_type.get()));
+        }
+        snippet.push("  node_ref=NodeRef::new()".to_string());
+        snippet.push("  on_press=Callback::new(move |_| {})".to_string());
 
         snippet.extend([
             ">".to_string(),
@@ -62,22 +83,30 @@ pub(super) fn picker_button() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/button/picker_button/styles.rs */\n{}",
-            ui_components::picker_button::styles::CSS
+            "/* crates/ui/src/button/picker_button/styles.rs */\n{}",
+            ui::picker_button::styles::CSS
         )
     });
 
     let workbench_actual_config = Signal::derive(move || {
-        let preset = match preset_index.get().unwrap_or(0) {
-            1 => "quiet",
-            2 => "invalid",
-            _ => "default",
-        };
         format!(
-            "PickerButtonWorkbenchConfig {{\n  preset: \"{preset}\",\n  disabled: {},\n  is_active: {},\n  custom_aria_label: {},\n  press_count: {},\n}}",
+            "PickerButtonWorkbenchConfig {{\n  quiet: {},\n  invalid: {},\n  disabled: {},\n  is_active: {},\n  aria_label: {:?},\n  class_name: {:?},\n  button_type: {:?},\n  node_ref: \"bound\",\n  on_press: {:?},\n  press_count: {},\n}}",
+            quiet.get(),
+            invalid.get(),
             disabled.get(),
             forced_active.get() || active.get(),
-            custom_aria_label.get(),
+            if custom_aria_label.get() {
+                "Inspect picker trigger"
+            } else {
+                ""
+            },
+            if custom_class_name.get() {
+                "docs-picker-button-custom"
+            } else {
+                ""
+            },
+            button_type.get(),
+            "handler",
             press_count.get()
         )
     });
@@ -114,11 +143,17 @@ pub(super) fn picker_button() -> AnyView {
             group="Actions"
             description="baseline-compatible PickerButton alias for naming parity, preserving FieldButton accessibility/state contracts and baseline-level press/focus interaction behavior."
         >
+            <Playground title="Hello World (Default API)" code_signal=states_code>
+                <div class="docs-row">
+                    <PickerButton on_press=on_press>"Choose item"</PickerButton>
+                </div>
+            </Playground>
+
             <Playground
                 title="Interactive Playground (Display + Config + Code + CSS Test)"
                 code_signal=code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/button/picker_button/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui/src/button/picker_button/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -139,6 +174,18 @@ pub(super) fn picker_button() -> AnyView {
                         <Switch checked=custom_aria_label set_checked=set_custom_aria_label>
                             "Custom aria label"
                         </Switch>
+                        <Switch checked=custom_class_name set_checked=set_custom_class_name>
+                            "Custom class"
+                        </Switch>
+                        <div class="docs-search__label">"Button type"</div>
+                        <SegmentedControl
+                            id_base="docs-picker-button-button-type".to_string()
+                            options=button_type_options.clone()
+                            selected_index=button_type_index
+                            set_selected_index=set_button_type_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="PickerButton button type".to_string()
+                        />
                     </div>
                 }
             >
@@ -154,6 +201,13 @@ pub(super) fn picker_button() -> AnyView {
                                     disabled=disabled.get()
                                     is_active=is_active
                                     aria_label="Inspect picker trigger".to_string()
+                                    class_name=if custom_class_name.get() {
+                                        "docs-picker-button-custom".to_string()
+                                    } else {
+                                        String::new()
+                                    }
+                                    button_type=button_type.get()
+                                    node_ref=workbench_node_ref
                                     on_press=on_press
                                 >
                                     "Choose item"
@@ -167,6 +221,13 @@ pub(super) fn picker_button() -> AnyView {
                                     invalid=invalid.get()
                                     disabled=disabled.get()
                                     is_active=is_active
+                                    class_name=if custom_class_name.get() {
+                                        "docs-picker-button-custom".to_string()
+                                    } else {
+                                        String::new()
+                                    }
+                                    button_type=button_type.get()
+                                    node_ref=workbench_node_ref
                                     on_press=on_press
                                 >
                                     "Choose item"

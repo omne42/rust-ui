@@ -174,7 +174,7 @@ fn disclosure_styles_include_motion_marker_contracts() {
     }
 
     for token_var in [
-        "var(--ui-font-size-200, 14px)",
+        "var(--ui-font-size-150, var(--ui-fallback-font-size-150))",
         "var(--ui-font-weight-semibold, 600)",
     ] {
         assert!(
@@ -313,7 +313,7 @@ fn disclosure_check2_marks_component_governance_complete() {
         "- [x] `ui-headless` 定义",
         "- [x] `ui-motion` 定义",
         "- [x] `ui-theme` 定义",
-        "- [x] `ui-components` 定义",
+        "- [x] `ui` 定义",
         "- [x] 如果无异步相关，直接打勾。",
         "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。",
         "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。",

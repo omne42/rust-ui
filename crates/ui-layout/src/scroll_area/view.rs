@@ -69,11 +69,7 @@ pub fn ScrollArea(
             let element: leptos::web_sys::HtmlElement = div.unchecked_into();
             let style = element.style();
             let max_height = format!("{px}px");
-            ui_observability::set_css_property_observed_auto!(
-                &(style),
-                "--ui-scroll-area-max-h",
-                max_height.as_str()
-            );
+            drop(style.set_property("--ui-scroll-area-max-h", max_height.as_str()));
         }
     };
 

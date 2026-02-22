@@ -284,7 +284,7 @@ fn visually_hidden_css_is_injected_by_ui_root_aggregation() {
 
     assert!(
         source.contains("out.push_str(crate::visually_hidden::CSS);"),
-        "ui-components css aggregation should include visually_hidden CSS for runtime compatibility.",
+        "ui css aggregation should include visually_hidden CSS for runtime compatibility.",
     );
 }
 
@@ -597,7 +597,7 @@ fn visually_hidden_stays_in_ui_components_assembly_layer_without_platform_type_l
     ] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components public API should keep `{needle}` for visually-hidden stable export surface.",
+            "ui public API should keep `{needle}` for visually-hidden stable export surface.",
         );
     }
 }
@@ -1086,7 +1086,7 @@ fn visually_hidden_wasm_debug_capability_stays_feature_isolated() {
     for needle in ["macro_rules! wasm_debug_proxy"] {
         assert!(
             crate_root.contains(needle),
-            "ui-components should keep wasm debug capability isolated through `{needle}`.",
+            "ui should keep wasm debug capability isolated through `{needle}`.",
         );
     }
 
@@ -1156,7 +1156,7 @@ fn visually_hidden_ui_components_fixed_entry_layout_is_consistent() {
         let combined = format!("{lib_source}\n{css_source}\n{root_source}");
         assert!(
             combined.contains(needle),
-            "ui-components fixed entry layout should include `{needle}`.",
+            "ui fixed entry layout should include `{needle}`.",
         );
     }
 
@@ -1164,7 +1164,7 @@ fn visually_hidden_ui_components_fixed_entry_layout_is_consistent() {
     for forbidden_path in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !manifest_dir.join(forbidden_path).exists(),
-            "ui-components should not host forbidden shared primitive file `{forbidden_path}`.",
+            "ui should not host forbidden shared primitive file `{forbidden_path}`.",
         );
     }
 }

@@ -179,10 +179,21 @@ pub fn resolve_render_model(input: HelpTextLogicInput) -> HelpTextRenderModel {
         has_custom_class_name: class_name.is_some(),
     });
 
+    let description_text = if state.message_kind == HelpTextMessageKind::Description {
+        resolve_display_text(description)
+    } else {
+        String::new()
+    };
+    let error_message_text = if state.message_kind == HelpTextMessageKind::Error {
+        resolve_display_text(error_message)
+    } else {
+        String::new()
+    };
+
     HelpTextRenderModel {
         aria_label,
-        description_text: resolve_display_text(description),
-        error_message_text: resolve_display_text(error_message),
+        description_text,
+        error_message_text,
         class_name,
         state,
     }

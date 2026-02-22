@@ -52,7 +52,7 @@
 ## 4. 边界与防污染规则
 
 - Foreign Zone 不能反向写核心状态机；状态回流必须走 Action/Command 桥接。
-- 禁止把第三方对象句柄暴露到 `ui-components` 公共 API。
+- 禁止把第三方对象句柄暴露到 `ui` 公共 API。
 - 禁止为第三方库破坏 `core -> headless -> components -> apps` 依赖方向。
 - Escape Hatch 默认关闭，必须显式开启并带风险标注。
 
@@ -85,7 +85,7 @@ run_foreign_adapter(zone_ref, commands);
 ## 7. 验收门禁（建议）
 
 ```bash
-cargo test -p ui-components
+cargo test -p ui
 cargo check -p docs-app --target wasm32-unknown-unknown
 ```
 

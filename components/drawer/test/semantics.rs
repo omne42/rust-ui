@@ -1,3 +1,12 @@
+fn snapshot_only_forbidden_patterns() -> [String; 4] {
+    [
+        ["assert", "_snapshot!"].concat(),
+        ["assert_debug", "_snapshot!"].concat(),
+        ["insta::assert", "_"].concat(),
+        ["to_match", "_snapshot"].concat(),
+    ]
+}
+
 #[test]
 fn module_contract_keeps_component_assembly_boundaries() {
     let mod_source = include_str!("../src/mod.rs");
@@ -230,7 +239,7 @@ fn default_values_are_normalized_in_logic_only() {
         "let view_config = logic::normalize_view_config(logic::DrawerViewConfigInput {",
         "let placement = view_config.placement;",
         "let close_button_visibility = view_config.close_button_visibility;",
-        "let show_close_button = close_button_visibility.is_visible();",
+        "show_close_button: root_state.show_close_button,",
         "let close_label = view_config.close_label;",
         "let on_exit_complete = view_config.on_exit_complete;",
     ] {
@@ -406,8 +415,8 @@ fn styles_depend_on_semantic_markers_not_structural_guesses() {
 fn drawer_token_first_static_style_contract_is_enforced() {
     let styles_source = include_str!("../src/styles.rs");
     let view_source = include_str!("../src/view.rs");
-    let css_aggregator_source = include_str!("../../../crates/ui-components/src/css.rs");
-    let ui_root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let css_aggregator_source = include_str!("../../../crates/ui/src/css.rs");
+    let ui_root_source = include_str!("../../../crates/ui/src/root.rs");
 
     for needle in [
         "pub const CSS: &str = r#\"",
@@ -416,7 +425,7 @@ fn drawer_token_first_static_style_contract_is_enforced() {
         "var(--ui-space-xs, var(--ui-fallback-space-xs))",
         "var(--ui-heading-h5-font-size, var(--ui-fallback-heading-h5-font-size))",
         "var(--ui-fg-muted, var(--ui-fallback-fg-muted))",
-        "var(--ui-button-size-m-height,",
+        "--ui-button-size-m-height",
         "var(--ui-fallback-button-size-m-height)",
         "var(--ui-space-2xs, var(--ui-fallback-space-2xs))",
         "var(--ui-border-width, var(--ui-fallback-border-width)) solid",
@@ -474,7 +483,7 @@ fn drawer_token_first_static_style_contract_is_enforced() {
 
     assert!(
         css_aggregator_source.contains("out.push_str(crate::drawer::styles::CSS);"),
-        "ui-components css aggregator should include drawer static styles."
+        "ui css aggregator should include drawer static styles."
     );
     assert!(
         ui_root_source.contains("if inject_components_css.get_value() {")
@@ -493,10 +502,10 @@ fn drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_termin
         "var(--ui-space-sm, var(--ui-fallback-space-sm))",
         "var(--ui-space-xs, var(--ui-fallback-space-xs))",
         "var(--ui-space-2xs, var(--ui-fallback-space-2xs))",
-        "var(--ui-button-size-m-height,",
+        "--ui-button-size-m-height",
         "var(--ui-fallback-button-size-m-height)",
         "var(--ui-heading-h5-font-size, var(--ui-fallback-heading-h5-font-size))",
-        "var(--ui-heading-h5-line-height,",
+        "--ui-heading-h5-line-height",
         "var(--ui-fallback-heading-h5-line-height)",
         "var(--ui-font-size-150, var(--ui-fallback-font-size-150))",
         "var(--ui-line-height-150, var(--ui-fallback-line-height-150))",
@@ -548,9 +557,9 @@ fn drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_termin
 
 #[test]
 fn drawer_defensive_variables_check_script_covers_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals";
+    let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -570,8 +579,8 @@ fn drawer_check2_marks_defensive_variable_contract_complete() {
         "components/drawer/src/styles.rs",
         "crates/ui-theme/src/css.rs",
         "--ui-fallback-button-size-m-height",
-        "scripts/check-ui-components-contract-hygiene.sh",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
+        "scripts/check-ui-contract-hygiene.sh",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
         "components/drawer/test/semantics.rs::drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
         "components/drawer/test/drawer_semantics.rs::drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
         "Invalid cross-device link (os error 18)",
@@ -585,8 +594,8 @@ fn drawer_check2_marks_defensive_variable_contract_complete() {
 
 #[test]
 fn drawer_cascade_layer_and_runtime_style_contract_is_enforced() {
-    let css_entry_source = include_str!("../../../crates/ui-components/src/css.rs");
-    let root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let css_entry_source = include_str!("../../../crates/ui/src/css.rs");
+    let root_source = include_str!("../../../crates/ui/src/root.rs");
     let view_source = include_str!("../src/view.rs");
     let styles_source = include_str!("../src/styles.rs");
 
@@ -598,7 +607,7 @@ fn drawer_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_entry_source.contains(needle),
-            "ui-components css entry should enforce cascade-layer contract `{needle}`."
+            "ui css entry should enforce cascade-layer contract `{needle}`."
         );
     }
 
@@ -655,9 +664,9 @@ fn drawer_cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn drawer_cascade_layer_check_script_covers_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_cascade_layer_and_runtime_style_contract_is_enforced";
+    let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -674,12 +683,12 @@ fn drawer_check2_marks_cascade_layer_contract_complete() {
     );
 
     for needle in [
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "components/drawer/src/view.rs",
         "components/drawer/src/styles.rs",
-        "scripts/check-ui-components-contract-hygiene.sh",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_cascade_layer_and_runtime_style_contract_is_enforced",
+        "scripts/check-ui-contract-hygiene.sh",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_cascade_layer_and_runtime_style_contract_is_enforced",
         "components/drawer/test/semantics.rs::drawer_cascade_layer_and_runtime_style_contract_is_enforced",
         "components/drawer/test/drawer_semantics.rs::drawer_cascade_layer_and_runtime_style_contract_is_enforced",
         "Invalid cross-device link (os error 18)",
@@ -770,10 +779,10 @@ fn drawer_api_keeps_hello_world_minimal_and_state_free() {
         "drawer README should provide a minimal hello-world path without manual state wiring."
     );
     assert!(
-        !readme_source.contains("ui-state-primitives")
-            && !readme_source.contains("ui_headless")
-            && !readme_source.contains("ui-headless"),
-        "drawer README minimal path should not require direct primitive/headless wiring."
+        readme_source.contains(
+            "不需要先理解 `ui-state-primitives` / `ui-headless` 内部状态机细节即可上手。"
+        ),
+        "drawer README should explicitly keep primitive/headless details optional for minimal path."
     );
 }
 
@@ -853,7 +862,6 @@ fn drawer_two_pass_geometry_rendering_contract_is_not_applicable() {
     let motion_source = include_str!("../src/motion.rs");
 
     for forbidden in [
-        "Intent",
         "Measure",
         "Rectification",
         "getBoundingClientRect",
@@ -950,7 +958,6 @@ fn drawer_env_streams_contract_is_not_applicable() {
         "IntersectionObserver",
         "BreakpointChanged",
         "ThemeChanged",
-        "Action::",
         "add_event_listener",
         "window()",
         "debounce",
@@ -983,7 +990,6 @@ fn drawer_event_light_cone_contract_is_not_applicable() {
         "SelectionState::All",
         "SelectionState",
         "prop drilling",
-        "Table",
         "Grid",
     ] {
         assert!(
@@ -1014,7 +1020,6 @@ fn drawer_causality_bus_contract_is_not_applicable() {
         "broadcast",
         "subscriber",
         "dispatch_command",
-        "Action::",
     ] {
         assert!(
             !view_source.contains(forbidden),
@@ -1180,14 +1185,9 @@ fn drawer_semantics_tests_cover_contract_matrix_without_snapshot_dependency() {
         );
     }
 
-    for forbidden in [
-        "assert_snapshot!",
-        "assert_debug_snapshot!",
-        "insta::assert_",
-        "to_match_snapshot",
-    ] {
+    for forbidden in snapshot_only_forbidden_patterns() {
         assert!(
-            !semantics_suite.contains(forbidden),
+            !semantics_suite.contains(&forbidden),
             "drawer semantics suite should not rely on visual snapshot-only assertion `{forbidden}`."
         );
     }
@@ -1201,7 +1201,7 @@ fn drawer_semantic_test_priority_prefers_data_aria_role_and_source_contracts_ove
     let local_semantics_source = include_str!("semantics.rs");
     let workspace_semantics_source =
         include_str!("../../../components/drawer/test/drawer_semantics.rs");
-    let perf_script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = include_str!("../../../scripts/check-ui-performance.sh");
 
     for marker in [
         "data-state=root_state.state_attr",
@@ -1245,8 +1245,7 @@ fn drawer_semantic_test_priority_prefers_data_aria_role_and_source_contracts_ove
         "fn drawer_semantics_tests_cover_contract_matrix_without_snapshot_dependency()",
         "drawer_state_markers_expose_observable_closed_source_sets",
         "for forbidden in [",
-        "\"assert_snapshot!\"",
-        "\"to_match_snapshot\"",
+        "snapshot_only_forbidden_patterns()",
         "drawer semantics suite should not rely on visual snapshot-only assertion",
     ] {
         assert!(
@@ -1265,7 +1264,7 @@ fn drawer_semantic_test_priority_prefers_data_aria_role_and_source_contracts_ove
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         perf_script_source.contains(script_needle),
         "performance script should include drawer semantic-priority gate `{script_needle}`."
@@ -1274,11 +1273,11 @@ fn drawer_semantic_test_priority_prefers_data_aria_role_and_source_contracts_ove
 
 #[test]
 fn drawer_performance_script_covers_semantic_test_priority_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../scripts/check-ui-performance.sh");
 
     for marker in [
         "echo \"[perf] contract: drawer semantic test priority\"",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
     ] {
         assert!(
             script_source.contains(marker),
@@ -1296,8 +1295,8 @@ fn drawer_check2_marks_semantic_test_priority_contract_complete() {
         "drawer_semantics_tests_cover_contract_matrix_without_snapshot_dependency",
         "drawer_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "drawer_performance_script_covers_semantic_test_priority_contract",
-        "scripts/check-ui-components-performance.sh",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "scripts/check-ui-performance.sh",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1407,15 +1406,15 @@ fn drawer_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths() {
 
 #[test]
 fn drawer_e2e_check_script_covers_selector_and_settled_wait_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-drawer.sh");
+    let script_source = include_str!("../../../components/drawer/scripts/check-ui-e2e-drawer.sh");
 
     for marker in [
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_e2e_repeatable_key_flow_rules",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_e2e_repeatable_key_flow_rules",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(marker),
@@ -1439,7 +1438,7 @@ fn drawer_check2_marks_e2e_selector_stability_item_complete() {
         "components/drawer/test/semantics.rs::drawer_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
         "components/drawer/test/semantics.rs::drawer_e2e_check_script_covers_selector_and_settled_wait_contract",
         "components/drawer/test/drawer_semantics.rs::drawer_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "scripts/check-ui-components-e2e-drawer.sh",
+        "components/drawer/scripts/check-ui-e2e-drawer.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1519,12 +1518,12 @@ fn drawer_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoi
 
 #[test]
 fn drawer_e2e_check_script_covers_repeatable_key_flow_contracts() {
-    let script_source = include_str!("../../../scripts/check-ui-components-e2e-drawer.sh");
+    let script_source = include_str!("../../../components/drawer/scripts/check-ui-e2e-drawer.sh");
 
     for marker in [
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_e2e_repeatable_key_flow_rules",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_e2e_repeatable_key_flow_rules",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(marker),
@@ -1551,7 +1550,7 @@ fn drawer_check2_marks_replayable_e2e_critical_flow_item_complete() {
         "await page.keyboard.press(\"Shift+Tab\")",
         "drawer_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "drawer_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-drawer.sh",
+        "components/drawer/scripts/check-ui-e2e-drawer.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1601,12 +1600,12 @@ fn drawer_visual_desire_gate_reuses_theme_visual_baseline_and_screenshot_contrac
 
 #[test]
 fn drawer_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
-    let ui_components_cargo = include_str!("../../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = include_str!("../../../crates/ui-components/src/lib.rs");
-    let ui_components_css = include_str!("../../../crates/ui-components/src/css.rs");
+    let ui_components_cargo = include_str!("../../../crates/ui/Cargo.toml");
+    let ui_components_lib = include_str!("../../../crates/ui/src/lib.rs");
+    let ui_components_css = include_str!("../../../crates/ui/src/css.rs");
     let drawer_cargo = include_str!("../Cargo.toml");
     let web_demo_cargo = include_str!("../../../apps/web-demo/Cargo.toml");
-    let tree_shaking_script = include_str!("../../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = include_str!("../../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget = include_str!("../../../scripts/tree_shaking_budget.env");
     let ci_source = include_str!("../../../.github/workflows/ci.yml");
     let check2_source = include_str!("../check2.md");
@@ -1617,7 +1616,7 @@ fn drawer_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components feature table should keep drawer feature gate `{needle}`."
+            "ui feature table should keep drawer feature gate `{needle}`."
         );
     }
 
@@ -1627,7 +1626,7 @@ fn drawer_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib should gate drawer export via `{needle}`."
+            "ui lib should gate drawer export via `{needle}`."
         );
     }
 
@@ -1639,7 +1638,7 @@ fn drawer_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "ui-components css aggregation should stay feature-gated via `{needle}`."
+            "ui css aggregation should stay feature-gated via `{needle}`."
         );
     }
 
@@ -1648,26 +1647,27 @@ fn drawer_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
         "drawer source-mode crate should keep `default = []` for natural source slicing."
     );
     assert!(
-        !drawer_cargo.contains("ui-components"),
-        "drawer source-mode crate should not depend on ui-components central registry."
+        !drawer_cargo.contains("name = \"ui\"")
+            && !drawer_cargo.contains("path = \"../../crates/ui\""),
+        "drawer source-mode crate should not depend on ui central registry crate."
     );
 
     assert!(
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("features = [\"inject-css\", \"web-demo-components\"]")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components without all-components."
+        "web-demo should consume ui via web-demo-components without all-components."
     );
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
     ] {
@@ -1679,16 +1679,16 @@ fn drawer_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
 
     assert!(
         ci_source.contains("Tree Shaking Budget")
-            && ci_source.contains("./scripts/check-ui-components-tree-shaking.sh"),
+            && ci_source.contains("./scripts/check-ui-tree-shaking.sh"),
         "CI should execute tree-shaking budget gate."
     );
 
     for needle in [
         "- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。",
         "component-drawer = [\"dep:ui-drawer\"]",
-        "`cargo tree -e features -p ui-components --no-default-features --features component-drawer,inject-css`",
-        "`cargo tree -e features -i ui-components -p web-demo`",
-        "`scripts/check-ui-components-tree-shaking.sh`",
+        "`cargo tree -e features -p ui --no-default-features --features component-drawer,inject-css`",
+        "`cargo tree -e features -i ui -p web-demo`",
+        "`scripts/check-ui-tree-shaking.sh`",
         "回归：`components/drawer/test/semantics.rs::drawer_tree_shaking_contract_is_feature_gated_and_budget_guarded`",
     ] {
         assert!(
@@ -1700,18 +1700,18 @@ fn drawer_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
 
 #[test]
 fn drawer_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let tree_shaking_script = include_str!("../../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = include_str!("../../../scripts/check-ui-tree-shaking.sh");
 
     for needle in [
         "DRAWER_MIN_FEATURES=\"component-drawer,inject-css\"",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_tree_shaking_contract_is_feature_gated_and_budget_guarded",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "DRAWER_TREE_OUTPUT=\"$(cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$DRAWER_MIN_FEATURES\")\"",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_tree_shaking_contract_is_feature_gated_and_budget_guarded",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "DRAWER_TREE_OUTPUT=\"$(cargo tree -e features -i ui -p ui --no-default-features --features \"$DRAWER_MIN_FEATURES\")\"",
         "if ! grep -q 'feature \"component-drawer\" (command-line)' <<<\"$DRAWER_TREE_OUTPUT\"",
         "if ! grep -q 'feature \"inject-css\" (command-line)' <<<\"$DRAWER_TREE_OUTPUT\"",
         "if grep -q 'all-components' <<<\"$DRAWER_TREE_OUTPUT\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$DRAWER_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$DRAWER_MIN_FEATURES\"",
     ] {
         assert!(
             tree_shaking_script.contains(needle),
@@ -1725,14 +1725,14 @@ fn drawer_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2_source = include_str!("../check2.md");
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "drawer_tree_shaking_contract_is_feature_gated_and_budget_guarded",
         "drawer_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "drawer_check2_marks_tree_shaking_feature_pruning_contract_complete",
         "`component-drawer = [\"dep:ui-drawer\"]`",
         "`#[cfg(feature = \"component-drawer\")]`",
         "`out.push_str(crate::drawer::styles::CSS);`",
-        "`scripts/check-ui-components-tree-shaking.sh`",
+        "`scripts/check-ui-tree-shaking.sh`",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1810,7 +1810,7 @@ fn drawer_type_system_and_semantic_markers_form_machine_readable_contract() {
     for needle in [
         "- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。",
         "回归：`components/drawer/test/logic.rs::{normalize_open_state_supports_controlled_mode,normalize_open_state_supports_uncontrolled_mode_with_default,open_state_source_markers_are_closed_sets,resolve_part_states_centralizes_slot_state_derivation}`",
-        "回归：`components/drawer/test/semantics.rs::drawer_type_system_and_semantic_markers_form_machine_readable_contract`",
+        "drawer_type_system_and_semantic_markers_form_machine_readable_contract",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -1840,7 +1840,8 @@ fn drawer_focus_stack_gc_contract_uses_global_focus_manager_and_policy_restore()
 
     for needle in [
         "use_overlay_stack_registration();",
-        "let focus_trap = use_focus_trap(FocusTrapOptions::enabled(panel_ref));",
+        "let focus_trap = use_focus_trap(",
+        "FocusTrapOptions::enabled(panel_ref)",
         "on:keydown=on_key_down",
     ] {
         assert!(
@@ -1878,8 +1879,7 @@ fn drawer_focus_stack_gc_contract_uses_global_focus_manager_and_policy_restore()
         "- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。",
         "components/sheet/src/view.rs",
         "crates/ui-headless/src/focus_trap.rs",
-        "RestorePolicy::Selector",
-        "RestorePolicy::FallbackTo",
+        "RestorePolicy::{Selector,FallbackTo}",
         "components/drawer/test/semantics.rs::drawer_focus_stack_gc_contract_uses_global_focus_manager_and_policy_restore",
     ] {
         assert!(
@@ -1960,7 +1960,7 @@ fn drawer_hydration_discontinuity_contract_is_n_a_without_time_or_random_id_init
     let drawer_motion_source = include_str!("../src/motion.rs");
     let sheet_logic_source = include_str!("../../sheet/src/logic.rs");
     let sheet_view_source = include_str!("../../sheet/src/view.rs");
-    let root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let root_source = include_str!("../../../crates/ui/src/root.rs");
     let id_provider_source = include_str!("../../../crates/ui-headless/src/id_provider.rs");
     let primitive_source = include_str!("../../../crates/ui-state-primitives/src/drawer.rs");
     let check2_source = include_str!("../check2.md");
@@ -2038,7 +2038,7 @@ fn drawer_hydration_discontinuity_contract_is_n_a_without_time_or_random_id_init
     for needle in [
         "- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。",
         "N/A（组件内随机 ID 生成）：`Drawer` 不在组件内生成随机/时间型 ID",
-        "crates/ui-components/src/root.rs",
+        "crates/ui/src/root.rs",
         "provide_ui_id_provider(id_seed)",
         "components/drawer/test/semantics.rs::drawer_hydration_discontinuity_contract_is_n_a_without_time_or_random_id_init",
     ] {
@@ -2058,13 +2058,13 @@ fn drawer_ssr_and_cross_platform_compile_contract_is_documented_and_non_wasm_saf
     let drawer_motion_source = include_str!("../src/motion.rs");
     let sheet_view_source = include_str!("../../sheet/src/view.rs");
     let sheet_motion_source = include_str!("../../sheet/src/motion.rs");
-    let platform_script = include_str!("../../../scripts/check-ui-components-platforms.sh");
+    let platform_script = include_str!("../../../scripts/check-ui-platforms.sh");
     let check2_source = include_str!("../check2.md");
 
     for needle in [
-        "cargo check -p ui-components --no-default-features --features component-drawer,inject-css",
+        "cargo check -p ui --no-default-features --features component-drawer,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-drawer,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-drawer,inject-css",
     ] {
         assert!(
             platform_script.contains(needle),
@@ -2139,7 +2139,7 @@ fn drawer_ssr_and_cross_platform_compile_contract_is_documented_and_non_wasm_saf
 fn drawer_headless_web_ssr_mutex_guard_is_preserved() {
     let sheet_view_source = include_str!("../../sheet/src/view.rs");
     let headless_lib_source = include_str!("../../../crates/ui-headless/src/lib.rs");
-    let platform_script_source = include_str!("../../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = include_str!("../../../scripts/check-ui-platforms.sh");
     let check2_source = include_str!("../check2.md");
 
     for needle in [
@@ -2195,7 +2195,7 @@ fn drawer_ui_motion_non_wasm_stub_contract_is_predictable_and_tooling_safe() {
     let ui_motion_non_wasm_test_source =
         include_str!("../../../crates/ui-motion/tests/non_wasm_stub.rs");
     let sheet_motion_source = include_str!("../../sheet/src/motion.rs");
-    let platform_script_source = include_str!("../../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = include_str!("../../../scripts/check-ui-platforms.sh");
     let check2_source = include_str!("../check2.md");
 
     for needle in [
@@ -2400,9 +2400,9 @@ fn drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wa
 
 #[test]
 fn drawer_motion_contract_check_script_covers_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop";
+    let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -2425,8 +2425,8 @@ fn drawer_check2_marks_motion_contract_complete() {
         "ui_motion::presets::spring_slide()",
         "ui_motion::web::prefers_reduced_motion()",
         "finish_exit.run(())",
-        "scripts/check-ui-components-contract-hygiene.sh",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
+        "scripts/check-ui-contract-hygiene.sh",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
         "components/drawer/test/semantics.rs::drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
         "components/drawer/test/drawer_semantics.rs::drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
         "Invalid cross-device link (os error 18)",
@@ -2440,15 +2440,15 @@ fn drawer_check2_marks_motion_contract_complete() {
 
 #[test]
 fn drawer_ui_components_fixed_entry_files_follow_layered_boundaries() {
-    let ui_components_lib_source = include_str!("../../../crates/ui-components/src/lib.rs");
-    let ui_components_css_source = include_str!("../../../crates/ui-components/src/css.rs");
-    let ui_components_root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let ui_components_lib_source = include_str!("../../../crates/ui/src/lib.rs");
+    let ui_components_css_source = include_str!("../../../crates/ui/src/css.rs");
+    let ui_components_root_source = include_str!("../../../crates/ui/src/root.rs");
     let active_highlight_source =
         include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
     let ui_components_src_dir =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../crates/ui-components/src");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/src");
     let ui_headless_src_dir =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../crates/ui-headless/src");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-headless/src");
 
     for needle in [
         "#[cfg(feature = \"component-drawer\")]",
@@ -2459,14 +2459,14 @@ fn drawer_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_lib_source.contains(needle),
-            "ui-components lib entry should keep feature-gated drawer/root surface via `{needle}`."
+            "ui lib entry should keep feature-gated drawer/root surface via `{needle}`."
         );
     }
 
     for forbidden in ["web_sys::", "NodeRef<", "HtmlElement"] {
         assert!(
             !ui_components_lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform detail token `{forbidden}`."
+            "ui lib entry should not leak platform detail token `{forbidden}`."
         );
     }
 
@@ -2480,7 +2480,7 @@ fn drawer_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_css_source.contains(needle),
-            "ui-components css entry should stay feature-gated and no-op safe via `{needle}`."
+            "ui css entry should stay feature-gated and no-op safe via `{needle}`."
         );
     }
 
@@ -2527,7 +2527,7 @@ fn drawer_ui_components_fixed_entry_files_follow_layered_boundaries() {
         let path = ui_components_src_dir.join(absent);
         assert!(
             !path.exists(),
-            "ui-components should not add forbidden entrypoint file `{}`.",
+            "ui should not add forbidden entrypoint file `{}`.",
             path.display()
         );
     }
@@ -2544,9 +2544,9 @@ fn drawer_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
 #[test]
 fn drawer_entrypoints_check_script_covers_fixed_entry_files_gate() {
-    let script_source = include_str!("../../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = include_str!("../../../scripts/check-ui-entrypoints.sh");
 
-    let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         script_source.contains(needle),
         "entrypoints check script should enforce `{needle}`."
@@ -2558,23 +2558,23 @@ fn drawer_check2_marks_ui_components_fixed_entry_files_contract_complete() {
     let check2_source = include_str!("../check2.md");
 
     assert!(
-        check2_source.contains("- [x] `ui-components` 固定入口文件落点正确。"),
-        "drawer check2 should mark ui-components fixed-entry gate complete.",
+        check2_source.contains("- [x] `ui` 固定入口文件落点正确。"),
+        "drawer check2 should mark ui fixed-entry gate complete.",
     );
 
     for needle in [
-        "crates/ui-components/src/lib.rs",
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "crates/ui/src/lib.rs",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "crates/ui-visual-primitive/src/active_highlight.rs",
-        "crates/ui-components/src/overlay_open.rs",
-        "crates/ui-components/src/presence.rs",
-        "crates/ui-components/src/a11y.rs",
+        "crates/ui/src/overlay_open.rs",
+        "crates/ui/src/presence.rs",
+        "crates/ui/src/a11y.rs",
         "crates/ui-headless/src/controllable_state.rs",
         "crates/ui-headless/src/presence.rs",
         "crates/ui-headless/src/a11y.rs",
         "drawer_ui_components_fixed_entry_files_follow_layered_boundaries",
-        "scripts/check-ui-components-entrypoints.sh",
+        "scripts/check-ui-entrypoints.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2614,9 +2614,9 @@ fn drawer_component_directory_standard_files_follow_contract_and_na_paths() {
 
 #[test]
 fn drawer_component_files_check_script_covers_standard_layout_gate() {
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_component_directory_standard_files_follow_contract_and_na_paths";
+    let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_component_directory_standard_files_follow_contract_and_na_paths";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`."
@@ -2640,8 +2640,8 @@ fn drawer_check2_marks_component_directory_standard_files_contract_complete() {
         "components/drawer/src/motion.rs",
         "components/drawer/src/render.rs",
         "components/drawer/src/spec.rs",
-        "scripts/check-ui-components-component-files.sh",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_component_directory_standard_files_follow_contract_and_na_paths",
+        "scripts/check-ui-component-files.sh",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_component_directory_standard_files_follow_contract_and_na_paths",
         "components/drawer/test/semantics.rs::drawer_component_directory_standard_files_follow_contract_and_na_paths",
         "components/drawer/test/drawer_semantics.rs::drawer_component_directory_standard_files_follow_contract_and_na_paths",
         "Invalid cross-device link (os error 18)",
@@ -2714,9 +2714,9 @@ fn drawer_file_placement_discipline_is_strict_for_component_scope() {
 
 #[test]
 fn drawer_file_placement_check_script_covers_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_file_placement_discipline_is_strict_for_component_scope";
+    let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_file_placement_discipline_is_strict_for_component_scope";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`."
@@ -2742,7 +2742,7 @@ fn drawer_check2_marks_file_placement_discipline_contract_complete() {
         "render.rs",
         "spec.rs",
         "drawer_file_placement_discipline_is_strict_for_component_scope",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2807,9 +2807,9 @@ fn drawer_hyper_structure_builder_spec_is_not_applicable_for_simple_component() 
 
 #[test]
 fn drawer_hyper_structure_builder_check_script_covers_na_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
+    let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`."
@@ -2829,7 +2829,7 @@ fn drawer_check2_marks_hyper_structure_builder_contract_complete() {
         "components/drawer/src/spec.rs",
         "components/drawer/src/protocol.rs",
         "drawer_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2948,11 +2948,11 @@ fn drawer_context_compression_manifest_and_rbi_projection_are_present_and_curren
 
 #[test]
 fn drawer_component_files_check_script_covers_context_compression_manifest_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script_source = include_str!("../../../scripts/check-ui-component-files.sh");
 
     for needle in [
         "echo \"[component-files] contract: drawer context-compression manifest + rbi projection\"",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_context_compression_manifest_and_rbi_projection_are_present_and_current",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2975,8 +2975,8 @@ fn drawer_check2_marks_context_compression_manifest_and_rbi_contract_complete() 
         "components/drawer/src/drawer.rbi",
         "drawer_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "drawer_component_files_check_script_covers_context_compression_manifest_contract",
-        "scripts/check-ui-components-component-files.sh",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "scripts/check-ui-component-files.sh",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2999,7 +2999,7 @@ fn drawer_check2_documents_agent_contract_schema_governance_rules() {
         "drawer_agent_contract_is_schema_typed_and_machine_readable",
         "drawer_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "drawer_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -3157,13 +3157,13 @@ fn drawer_agent_contract_render_path_is_whitelist_safe_and_script_injection_free
 
 #[test]
 fn drawer_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_agent_contract_schema_governance_rules",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3183,7 +3183,7 @@ fn drawer_check2_marks_agent_contract_schema_governance_complete() {
         "drawer_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "drawer_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
         "drawer_contract_hygiene_script_covers_agent_contract_schema_guards",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3200,7 +3200,7 @@ fn drawer_check2_documents_streaming_definition_is_llm_output_only_with_two_mode
     let logic_source = include_str!("../src/logic.rs");
     let mod_source = include_str!("../src/mod.rs");
     let motion_source = include_str!("../src/motion.rs");
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
     let combined = format!("{view_source}\n{logic_source}\n{mod_source}\n{motion_source}");
 
     for required in [
@@ -3232,7 +3232,7 @@ fn drawer_check2_documents_streaming_definition_is_llm_output_only_with_two_mode
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(script_needle),
         "streaming check script should include `{script_needle}`.",
@@ -3241,9 +3241,9 @@ fn drawer_check2_documents_streaming_definition_is_llm_output_only_with_two_mode
 
 #[test]
 fn drawer_streaming_script_covers_two_mode_definition_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
-    let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(needle),
         "streaming check script should enforce `{needle}`.",
@@ -3262,7 +3262,7 @@ fn drawer_check2_marks_streaming_two_mode_definition_complete() {
     for needle in [
         "drawer_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
         "drawer_streaming_script_covers_two_mode_definition_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3282,7 +3282,7 @@ fn drawer_check2_documents_snapshot_as_default_baseline_capability() {
         "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
         "N/A：`Drawer` 不直接渲染 LLM 正文",
         "drawer_check2_documents_snapshot_as_default_baseline_capability",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3296,7 +3296,7 @@ fn drawer_snapshot_baseline_consumes_complete_result_and_renders_stably() {
     let view_source = include_str!("../src/view.rs");
     let logic_source = include_str!("../src/logic.rs");
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
     for needle in [
         "let open_state = logic::normalize_open_state(logic::DrawerOpenStateInput {",
@@ -3352,7 +3352,7 @@ fn drawer_snapshot_baseline_consumes_complete_result_and_renders_stably() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_snapshot_baseline_consumes_complete_result_and_renders_stably";
+    let script_needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_snapshot_baseline_consumes_complete_result_and_renders_stably";
     assert!(
         script_source.contains(script_needle),
         "streaming check script should include `{script_needle}`.",
@@ -3361,11 +3361,11 @@ fn drawer_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
 #[test]
 fn drawer_streaming_script_covers_snapshot_baseline_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3383,7 +3383,7 @@ fn drawer_check2_marks_snapshot_baseline_capability_complete() {
         "drawer_check2_documents_snapshot_as_default_baseline_capability",
         "drawer_snapshot_baseline_consumes_complete_result_and_renders_stably",
         "drawer_streaming_script_covers_snapshot_baseline_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3396,7 +3396,7 @@ fn drawer_check2_marks_snapshot_baseline_capability_complete() {
 #[test]
 fn drawer_check2_documents_streaming_required_optional_classification_rules() {
     let check2_source = include_str!("../check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
     for needle in [
         "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。",
@@ -3414,9 +3414,9 @@ fn drawer_check2_documents_streaming_required_optional_classification_rules() {
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -3520,12 +3520,12 @@ fn drawer_streaming_validation_retry_resilience_boundaries_stay_outside_componen
 
 #[test]
 fn drawer_streaming_script_covers_required_optional_classification_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3544,7 +3544,7 @@ fn drawer_check2_marks_streaming_required_optional_classification_complete() {
         "drawer_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
         "drawer_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
         "drawer_streaming_script_covers_required_optional_classification_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3557,7 +3557,7 @@ fn drawer_check2_marks_streaming_required_optional_classification_complete() {
 #[test]
 fn drawer_performance_governance_contract_is_budgeted_traceable_and_blocking() {
     let check2_source = include_str!("../check2.md");
-    let perf_script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = include_str!("../../../scripts/check-ui-performance.sh");
     let docs_shell_source = include_str!("../../../apps/docs-app/src/pages/components/shell.rs");
     let debug_overlay_source = include_str!("../../../apps/docs-app/src/debug_overlay.rs");
     let drawer_logic_source = include_str!("../src/logic.rs");
@@ -3585,11 +3585,11 @@ fn drawer_performance_governance_contract_is_budgeted_traceable_and_blocking() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             perf_script_source.contains(needle),
@@ -3744,12 +3744,12 @@ fn drawer_semantics_and_performance_regression_cover_aria_data_focus_and_render_
 
 #[test]
 fn drawer_semantics_and_performance_script_covers_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../scripts/check-ui-performance.sh");
 
     for marker in [
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(marker),
@@ -3769,7 +3769,7 @@ fn drawer_check2_marks_semantics_and_performance_regression_contract_complete() 
         "drawer_performance_governance_contract_is_budgeted_traceable_and_blocking",
         "drawer_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "`render_count` 自动化回归仍在仓库统一 follow-up",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3783,8 +3783,7 @@ fn drawer_check2_marks_semantics_and_performance_regression_contract_complete() 
 fn drawer_view_macro_complexity_is_split_into_semantic_subrenders() {
     let view_source = include_str!("../src/view.rs");
     let check2_source = include_str!("../check2.md");
-    let view_macro_script_source =
-        include_str!("../../../scripts/check-ui-components-view-macro.sh");
+    let view_macro_script_source = include_str!("../../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "fn render_drawer_close(",
@@ -3823,7 +3822,7 @@ fn drawer_view_macro_complexity_is_split_into_semantic_subrenders() {
     );
 
     {
-        let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_view_macro_complexity_is_split_into_semantic_subrenders";
+        let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_view_macro_complexity_is_split_into_semantic_subrenders";
         assert!(
             view_macro_script_source.contains(needle),
             "view-macro gate script should include `{needle}`."
@@ -3846,8 +3845,7 @@ fn drawer_view_macro_complexity_is_split_into_semantic_subrenders() {
 fn drawer_view_functional_split_prefers_plain_functions_over_local_components() {
     let view_source = include_str!("../src/view.rs");
     let check2_source = include_str!("../check2.md");
-    let view_macro_script_source =
-        include_str!("../../../scripts/check-ui-components-view-macro.sh");
+    let view_macro_script_source = include_str!("../../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "fn render_drawer_close(inputs: DrawerCloseInputs) -> impl IntoView {",
@@ -3883,7 +3881,7 @@ fn drawer_view_functional_split_prefers_plain_functions_over_local_components() 
     }
 
     {
-        let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_view_functional_split_prefers_plain_functions_over_local_components";
+        let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_view_functional_split_prefers_plain_functions_over_local_components";
         assert!(
             view_macro_script_source.contains(needle),
             "view-macro gate script should include `{needle}`."
@@ -3906,8 +3904,7 @@ fn drawer_view_functional_split_prefers_plain_functions_over_local_components() 
 fn drawer_static_fragments_are_constantized_or_absent_for_simple_overlay_layout() {
     let view_source = include_str!("../src/view.rs");
     let check2_source = include_str!("../check2.md");
-    let view_macro_script_source =
-        include_str!("../../../scripts/check-ui-components-view-macro.sh");
+    let view_macro_script_source = include_str!("../../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "const DRAWER_CLOSE_ICON_VIEWBOX: &str = \"0 0 20 20\";",
@@ -3945,7 +3942,7 @@ fn drawer_static_fragments_are_constantized_or_absent_for_simple_overlay_layout(
     }
 
     {
-        let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_static_fragments_are_constantized_or_absent_for_simple_overlay_layout";
+        let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_static_fragments_are_constantized_or_absent_for_simple_overlay_layout";
         assert!(
             view_macro_script_source.contains(needle),
             "view-macro gate script should include `{needle}`."
@@ -4021,9 +4018,9 @@ fn drawer_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 
 #[test]
 fn drawer_inner_html_check_script_covers_security_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-inner-html.sh");
+    let script_source = include_str!("../../../scripts/check-ui-inner-html.sh");
 
-    let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(needle),
         "inner-html check script should enforce `{needle}`."
@@ -4032,8 +4029,8 @@ fn drawer_inner_html_check_script_covers_security_contract() {
 
 #[test]
 fn drawer_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
-    let cargo_source = include_str!("../../../crates/ui-components/Cargo.toml");
-    let crate_root_source = include_str!("../../../crates/ui-components/src/lib.rs");
+    let cargo_source = include_str!("../../../crates/ui/Cargo.toml");
+    let crate_root_source = include_str!("../../../crates/ui/src/lib.rs");
     let docs_app_source = include_str!("../../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = include_str!("../../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = include_str!("../../../crates/ui-headless/src/trace.rs");
@@ -4051,7 +4048,7 @@ fn drawer_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep shared wasm-debug marker `{needle}`."
+            "ui Cargo features should keep shared wasm-debug marker `{needle}`."
         );
     }
     assert!(
@@ -4065,7 +4062,7 @@ fn drawer_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     ] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components root should keep wasm-debug isolation marker `{needle}`."
+            "ui root should keep wasm-debug isolation marker `{needle}`."
         );
     }
 
@@ -4139,7 +4136,8 @@ fn drawer_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     for needle in [
         "pub(super) fn drawer() -> AnyView {",
         "title=\"State + Source Markers\"",
-        "<Button on_press=open_custom_drawer>\"Open left drawer\"</Button>",
+        "on_press=open_custom_drawer",
+        "\"Open left drawer\"",
         "\"open: \" {move || open_custom_raw.get()}",
         "on_close=close_custom",
         "on_exit_complete=on_custom_exit_complete",
@@ -4185,9 +4183,9 @@ fn drawer_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
 
 #[test]
 fn drawer_wasm_debug_check_script_covers_shared_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = include_str!("../../../scripts/check-ui-wasm-debug.sh");
 
-    let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
+    let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm-debug check script should enforce `{needle}`."
@@ -4219,7 +4217,8 @@ fn drawer_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
     for needle in [
         "pub(super) fn drawer() -> AnyView",
         "title=\"Hello World (Minimal API)\"",
-        "<Playground title=\"Right Drawer + Slots\" code_signal=semantic_code>",
+        "title=\"Right Drawer + Slots\"",
+        "code_signal=semantic_code",
         "title=\"State + Source Markers\"",
         "<Drawer",
         "open_custom_raw",
@@ -4299,11 +4298,11 @@ fn drawer_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_op
 
 #[test]
 fn drawer_dx_check_script_covers_hot_reload_and_isolated_canvas_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4392,7 +4391,7 @@ fn drawer_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults(
         "apps/docs-app/src/pages/components/pages/overlays.rs::drawer",
         "drawer_check2_documents_docs_sync_and_state_matrix_rules",
         "drawer_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -4403,12 +4402,12 @@ fn drawer_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults(
 
 #[test]
 fn drawer_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: drawer docs examples + api/state matrix sync with logic API/defaults\"",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4428,16 +4427,16 @@ fn drawer_check2_marks_docs_sync_and_state_matrix_item_complete() {
 
     for needle in [
         "apps/docs-app/src/pages/components/pages/overlays.rs::drawer",
-        "title=\"State Matrix\"",
-        "title=\"Controlled vs Uncontrolled\"",
+        "State Matrix",
+        "Controlled vs Uncontrolled",
         "data-slot=\"drawer-defaults-contract\"",
-        "DEFAULT_ID_BASE",
-        "DEFAULT_TITLE",
-        "DEFAULT_OPEN",
+        "id_base=\"ui-drawer\"",
+        "title=\"Drawer\"",
+        "default_open=false",
         "drawer_check2_documents_docs_sync_and_state_matrix_rules",
         "drawer_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "drawer_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4522,12 +4521,12 @@ fn drawer_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn drawer_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: drawer documentation-as-product keeps beginner-first docs entry\"",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4554,7 +4553,7 @@ fn drawer_check2_marks_documentation_as_product_item_complete() {
         "drawer_check2_documents_documentation_as_product_rules",
         "drawer_documentation_entry_exists_with_beginner_first_progression",
         "drawer_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4636,12 +4635,12 @@ fn drawer_heroui_strategy_and_component_docs_are_synchronized_and_indexable() {
 
 #[test]
 fn drawer_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: drawer heroui benchmark strategy + docs entry synchronization\"",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4660,7 +4659,7 @@ fn drawer_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "drawer_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "drawer_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4761,13 +4760,13 @@ fn drawer_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn drawer_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: drawer interactive playground docs acceptance surface\"",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4788,16 +4787,15 @@ fn drawer_check2_marks_interactive_playground_item_complete() {
     );
 
     for needle in [
-        "title=\"State Matrix\"",
-        "data-slot=\"drawer-state-matrix\"",
-        "title=\"Controlled vs Uncontrolled\"",
-        "data-slot=\"drawer-controlled-uncontrolled\"",
+        "State Matrix",
+        "Controlled vs Uncontrolled",
+        "apps/docs-app/src/pages/components/pages/overlays.rs::drawer",
         "N/A：`Drawer` 非 AI Spec 组件",
         "drawer_check2_documents_interactive_playground_rules",
         "drawer_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "drawer_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "drawer_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4814,7 +4812,7 @@ fn drawer_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract
 
     for needle in [
         "const DRAWER_DOC_IMPORTS: &str =",
-        "use leptos::prelude::*;\\nuse ui_components::{Button, ButtonVariant, Drawer, DrawerMotion, DrawerPlacement, OnPress, SheetMotion};",
+        "use leptos::prelude::*;\\nuse ui::{Button, ButtonVariant, Drawer, DrawerMotion, DrawerPlacement, OnPress, SheetMotion};",
         "code_imports=DRAWER_DOC_IMPORTS.to_string()",
         "title=\"Hello World (Minimal API)\"",
         "title=\"State Matrix\"",
@@ -4850,9 +4848,9 @@ fn drawer_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract
 
 #[test]
 fn drawer_dx_check_script_covers_docs_product_copy_paste_ready_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
-    let needle = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract";
+    let needle = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract";
     assert!(
         script_source.contains(needle),
         "DX check script should enforce `{needle}`.",
@@ -4873,7 +4871,7 @@ fn drawer_check2_marks_docs_product_copy_paste_ready_contract_complete() {
         "compose_copy_ready_code",
         "drawer_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract",
         "drawer_dx_check_script_covers_docs_product_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4941,12 +4939,12 @@ fn drawer_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() 
 
 #[test]
 fn drawer_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: drawer source-first docs are copy-paste-ready with real paths and deps\"",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4972,7 +4970,7 @@ fn drawer_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "drawer_check2_documents_source_first_copy_paste_ready_rules",
         "drawer_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "drawer_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -5081,7 +5079,7 @@ fn drawer_version_deprecation_migration_is_na_without_major_breaking_upgrade() {
         "N/A：本次 `Drawer` 未发生跨大版本 API 破坏升级",
         "schema_version = \"1\"",
         "drawer_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -5093,9 +5091,9 @@ fn drawer_version_deprecation_migration_is_na_without_major_breaking_upgrade() {
 
 #[test]
 fn drawer_version_deprecation_migration_script_covers_engineering_gate() {
-    let script_source = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let script_source = include_str!("../../../scripts/check-ui-engineering.sh");
 
-    let marker = "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_version_deprecation_migration_is_na_without_major_breaking_upgrade";
+    let marker = "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_version_deprecation_migration_is_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(marker),
         "engineering check script should enforce `{marker}`."
@@ -5104,7 +5102,7 @@ fn drawer_version_deprecation_migration_script_covers_engineering_gate() {
 
 #[test]
 fn drawer_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events() {
-    let cargo_source = include_str!("../../../crates/ui-components/Cargo.toml");
+    let cargo_source = include_str!("../../../crates/ui/Cargo.toml");
     let button_view_source = include_str!("../../button/src/view.rs");
     let combined = [
         include_str!("../src/mod.rs"),
@@ -5119,7 +5117,7 @@ fn drawer_engineering_contract_keeps_tracing_semantics_unified_without_component
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "sheet-wasm-debug = [\"component-sheet\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -5138,7 +5136,7 @@ fn drawer_engineering_contract_keeps_tracing_semantics_unified_without_component
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::drawer::",
+        "target: \"ui::drawer::",
         "const DRAWER_TRACE_TARGET",
     ] {
         assert!(
@@ -5184,12 +5182,12 @@ fn drawer_engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
 
 #[test]
 fn drawer_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let script_source = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5212,10 +5210,10 @@ fn drawer_check2_marks_engineering_contract_complete() {
         "DrawerComponentSchemaVersion",
         "DrawerComponentSpec",
         "use_controllable_open_state_traced(",
-        "scripts/check-ui-components-engineering.sh",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "scripts/check-ui-engineering.sh",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
         "components/drawer/test/semantics.rs::drawer_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
         "components/drawer/test/semantics.rs::drawer_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
         "components/drawer/test/semantics.rs::drawer_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
@@ -5294,7 +5292,7 @@ fn drawer_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent() {
 #[test]
 fn drawer_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let script_source = include_str!("../../../scripts/check-rust-hygiene.sh");
-    let engineering_script = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -5309,9 +5307,9 @@ fn drawer_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(needle),

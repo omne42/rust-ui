@@ -18,7 +18,9 @@ fn focus_trigger(trigger_refs: &Arc<Vec<NodeRef<html::Button>>>, index: usize) {
     let Some(el) = node_ref.get_untracked() else {
         return;
     };
-    ui_observability::observe_js_result!(el.focus());
+    if el.focus().is_err() {
+        // no-op
+    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]

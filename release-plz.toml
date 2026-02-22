@@ -32,7 +32,7 @@ version_group = "ui-workspace"
 release_always = true
 
 [[package]]
-name = "ui-components"
+name = "ui"
 version_group = "ui-workspace"
 release_always = true
 

@@ -37,21 +37,21 @@
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 验证记录（2026-02-20）：`breadcrumb` 不包含语义状态驱动动画（无 open/close/enter/exit 轴），运行时 `motion.rs`/`ui-motion` attach 路径按组件职责标注 `N/A`；组件仅保留 token 化 CSS 过渡（直接消费 `--ui-text-field-motion-duration/easing`）并在 `@media (prefers-reduced-motion: reduce)` 下关闭 transition。未在组件层实现 spring/keyframe/driver，`ui-motion` 的执行器与 non-wasm no-op/stub 保持集中在 `crates/ui-motion`。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
   - 验证记录（2026-02-20）：`components/breadcrumb/src/styles.rs` 仅消费 `var(--ui-*)` 变量（颜色/间距/字号/焦点/动效均走 `ui-theme` 变量链），未重建 `system/color/scale` 主题上下文；`breadcrumb` 对三轴上下文选择无新增行为，沿用 `UiRoot` 注入上下文（按组件职责 `N/A`）。主题基线与三轴输出由 `crates/ui-theme/src/tokens.rs`、`crates/ui-theme/src/theme.rs`、`crates/ui-theme/src/css.rs` 提供，回归基线由 `crates/ui-theme/tests/token_scale_baseline.rs` 与 `crates/ui-theme/tests/wcag_contrast.rs` 覆盖，组件侧由 `components/breadcrumb/test/breadcrumb_semantics.rs` 锁定消费契约。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - 验证记录（2026-02-20）：`logic.rs` 仅做 props 归一与 `ui-state-primitives` 映射；`view.rs` 仅做 Leptos 结构渲染与 `ui_headless::navigation_attrs` 挂载；`styles.rs` 仅消费 `var(--ui-*)` 变量；`breadcrumb` 当前无语义状态驱动动画，`motion.rs` 按组件职责标注 `N/A`。对外导出仅 `BreadcrumbItem/Breadcrumb`，未暴露 `web-sys`/DOM 细节。语义回归已迁移到组件本地 `components/breadcrumb/test/semantics.rs`，并在 `components/breadcrumb/src/mod.rs` 通过 `#[cfg(test)]` 挂载。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
@@ -159,9 +159,9 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 验证记录（2026-02-20）：`breadcrumb` 静态样式仅落在 `components/breadcrumb/src/styles.rs`（`pub const CSS`），视觉值消费 `var(--ui-*)`，未引入私有 `--ui-breadcrumb-*` token；聚合链路保持 `crates/ui-components/src/css.rs` 的 `#[cfg(feature = "component-breadcrumb")] out.push_str(crate::breadcrumb::styles::CSS);`，并由 `crates/ui-components/src/root.rs` 在 `inject_components_css` 开关下统一调用 `crate::css::push_components_css(&mut out);` 注入。组件 `view.rs` 无 inline 业务样式，且未引入 Utility-First/CSS-in-Rust 默认范式标记。
+  - 验证记录（2026-02-20）：`breadcrumb` 静态样式仅落在 `components/breadcrumb/src/styles.rs`（`pub const CSS`），视觉值消费 `var(--ui-*)`，未引入私有 `--ui-breadcrumb-*` token；聚合链路保持 `crates/ui/src/css.rs` 的 `#[cfg(feature = "component-breadcrumb")] out.push_str(crate::breadcrumb::styles::CSS);`，并由 `crates/ui/src/root.rs` 在 `inject_components_css` 开关下统一调用 `crate::css::push_components_css(&mut out);` 注入。组件 `view.rs` 无 inline 业务样式，且未引入 Utility-First/CSS-in-Rust 默认范式标记。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_token_first_static_styles_contract_is_aggregated_and_injected_via_ui_root`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_token_first_static_styles_contract_is_aggregated_and_injected_via_ui_root`。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -173,16 +173,16 @@
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
 - [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
-  - 验证记录（2026-02-20）：`ui-components` 已为 breadcrumb 提供组件级特性 `component-breadcrumb = ["dep:ui-breadcrumb"]`；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 均通过 `#[cfg(feature = "component-breadcrumb")]` 做导出/样式聚合门控，未出现全量常驻注册表（如 `component_registry`/`ALL_COMPONENTS_MAP`）。应用侧依赖保持裁剪边界：`apps/web-demo/Cargo.toml` 使用 `default-features = false + web-demo-components`（不拉起 `all-components`），`apps/docs-app/Cargo.toml` 显式启用 `all-components` 仅用于文档全集。CI 树摇门禁脚本 `scripts/check-ui-components-tree-shaking.sh` 已覆盖特性树、反向依赖、最小 wasm 编译与体积预算（`scripts/tree_shaking_budget.env`）。
+  - 验证记录（2026-02-20）：`ui` 已为 breadcrumb 提供组件级特性 `component-breadcrumb = ["dep:ui-breadcrumb"]`；`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 均通过 `#[cfg(feature = "component-breadcrumb")]` 做导出/样式聚合门控，未出现全量常驻注册表（如 `component_registry`/`ALL_COMPONENTS_MAP`）。应用侧依赖保持裁剪边界：`apps/web-demo/Cargo.toml` 使用 `default-features = false + web-demo-components`（不拉起 `all-components`），`apps/docs-app/Cargo.toml` 显式启用 `all-components` 仅用于文档全集。CI 树摇门禁脚本 `scripts/check-ui-tree-shaking.sh` 已覆盖特性树、反向依赖、最小 wasm 编译与体积预算（`scripts/tree_shaking_budget.env`）。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_tree_shaking_keeps_component_feature_and_css_boundaries`、`components/breadcrumb/test/semantics.rs::breadcrumb_tree_shaking_check_script_covers_feature_tree_wasm_and_budget`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_tree_shaking_keeps_component_feature_and_css_boundaries`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_tree_shaking_check_script_covers_feature_tree_wasm_and_budget`。
-  - 验证命令参考：`cargo tree -e features -p ui-components --no-default-features --features component-breadcrumb,inject-css`、`cargo tree -e features -i ui-components -p web-demo`、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-breadcrumb,inject-css`、`bash ./scripts/check-ui-components-tree-shaking.sh`。
+  - 验证命令参考：`cargo tree -e features -p ui --no-default-features --features component-breadcrumb,inject-css`、`cargo tree -e features -i ui -p web-demo`、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-breadcrumb,inject-css`、`bash ./scripts/check-ui-tree-shaking.sh`。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 验证记录（2026-02-20）：`breadcrumb` 输入空间已类型化为 `BreadcrumbItem { label: String, href: Option<String> }`，并通过 `BreadcrumbsItemInput/BreadcrumbsStateInput` 与 `ui-state-primitives` 交互；无效状态在逻辑层统一归一化（空白/末项链接在 `resolve_item_href` 归零，来源标记封闭枚举在 `state_source_attrs_are_closed_enumerations`）。关键状态对外通过稳定语义标记暴露（`data-empty/data-has-items/data-has-links/data-has-current-page/data-last/data-aria-source/data-class-source/data-separator-source/aria-current`），可被自动化与 Agent 直接消费。
@@ -203,19 +203,19 @@
   - 验证记录（2026-02-20）：`breadcrumb` 不生成运行时 ID，也无基于 `now()`/随机 UUID 的初始化路径；`src/mod.rs`、`src/view.rs`、`src/logic.rs` 均未引入时间随机源（`Instant::now/SystemTime::now/Date::now/Uuid/rand`）。由于不存在 ID 轴，本组件无需接入 `IdProvider`，本项按组件职责标注 `N/A` 并通过。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_has_no_hydration_discontinuity_time_or_random_id_path`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_has_no_hydration_discontinuity_time_or_random_id_path`。
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
-  - 验证记录（2026-02-20）：`breadcrumb` 组件源码无平台分叉实现（`src/mod.rs/src/logic.rs/src/styles.rs/src/view.rs` 均未引入 `#[cfg(target_arch = "wasm32")]` 或 `#[cfg(feature = "web/ssr")]`），并保持 non-wasm 路径无浏览器对象依赖（无 `web_sys/js_sys/wasm_bindgen/window/document`）。平台 compile-only 证据已纳入 `scripts/check-ui-components-platforms.sh`：`cargo check -p ui-components --no-default-features --features component-breadcrumb,inject-css`（native）、`cargo check -p ui-headless --no-default-features --features ssr`（ssr native）、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-breadcrumb,inject-css`（web wasm）。本地执行上述三条命令时受环境 `Invalid cross-device link (os error 18)` 阻断，属于已知构建环境问题，非组件平台契约回归。
+  - 验证记录（2026-02-20）：`breadcrumb` 组件源码无平台分叉实现（`src/mod.rs/src/logic.rs/src/styles.rs/src/view.rs` 均未引入 `#[cfg(target_arch = "wasm32")]` 或 `#[cfg(feature = "web/ssr")]`），并保持 non-wasm 路径无浏览器对象依赖（无 `web_sys/js_sys/wasm_bindgen/window/document`）。平台 compile-only 证据已纳入 `scripts/check-ui-platforms.sh`：`cargo check -p ui --no-default-features --features component-breadcrumb,inject-css`（native）、`cargo check -p ui-headless --no-default-features --features ssr`（ssr native）、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-breadcrumb,inject-css`（web wasm）。本地执行上述三条命令时受环境 `Invalid cross-device link (os error 18)` 阻断，属于已知构建环境问题，非组件平台契约回归。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_platform_checks_cover_native_ssr_wasm_and_non_wasm_source_guard`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_platform_checks_cover_native_ssr_wasm_and_non_wasm_source_guard`。
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
 - [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
-  - 验证记录（2026-02-20）：`crates/ui-headless/src/lib.rs` 保持 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)` 互斥保护；`breadcrumb` 通过 `ui_headless::navigation_attrs/use_ui_i18n` 消费 headless 契约但未破坏其特性边界。平台脚本 `scripts/check-ui-components-platforms.sh` 已覆盖 `ui-headless` 两条 compile-only 路径（`--features ssr` 与 `--target wasm32-unknown-unknown --features web`），并显式要求 `--features web,ssr` 必须失败且错误包含 `mutually exclusive`。本地执行命令受环境 `Invalid cross-device link (os error 18)` 阻断，属已知构建环境问题，非该契约回归。
+  - 验证记录（2026-02-20）：`crates/ui-headless/src/lib.rs` 保持 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)` 互斥保护；`breadcrumb` 通过 `ui_headless::navigation_attrs/use_ui_i18n` 消费 headless 契约但未破坏其特性边界。平台脚本 `scripts/check-ui-platforms.sh` 已覆盖 `ui-headless` 两条 compile-only 路径（`--features ssr` 与 `--target wasm32-unknown-unknown --features web`），并显式要求 `--features web,ssr` 必须失败且错误包含 `mutually exclusive`。本地执行命令受环境 `Invalid cross-device link (os error 18)` 阻断，属已知构建环境问题，非该契约回归。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_ui_headless_web_ssr_mutex_compile_guard_is_enforced`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_ui_headless_web_ssr_mutex_compile_guard_is_enforced`。
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
 - [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
-  - 验证记录（2026-02-20）：`crates/ui-motion/src/lib.rs` 已保持 wasm/non-wasm 双分支；non-wasm `web` 后端提供可预测 no-op/stub（`prefers_reduced_motion() -> true`、`animate(...) {}`）并带有 `#[cfg(all(test, not(target_arch = "wasm32")))]` 回归测试。`breadcrumb` 组件无语义动效轴且 `src/motion.rs` 不存在，不调用 `ui_motion` 运行时句柄，因此不存在 non-wasm panic 或“动画句柄必存在”假设。平台脚本 `scripts/check-ui-components-platforms.sh` 覆盖 `cargo check -p ui-motion`、`cargo check -p ui-motion --target wasm32-unknown-unknown`、`cargo test -p ui-motion --test non_wasm_stub`。本地执行相关命令受环境 `Invalid cross-device link (os error 18)` 阻断，属已知环境问题，非该契约回归。
+  - 验证记录（2026-02-20）：`crates/ui-motion/src/lib.rs` 已保持 wasm/non-wasm 双分支；non-wasm `web` 后端提供可预测 no-op/stub（`prefers_reduced_motion() -> true`、`animate(...) {}`）并带有 `#[cfg(all(test, not(target_arch = "wasm32")))]` 回归测试。`breadcrumb` 组件无语义动效轴且 `src/motion.rs` 不存在，不调用 `ui_motion` 运行时句柄，因此不存在 non-wasm panic 或“动画句柄必存在”假设。平台脚本 `scripts/check-ui-platforms.sh` 覆盖 `cargo check -p ui-motion`、`cargo check -p ui-motion --target wasm32-unknown-unknown`、`cargo test -p ui-motion --test non_wasm_stub`。本地执行相关命令受环境 `Invalid cross-device link (os error 18)` 阻断，属已知环境问题，非该契约回归。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_ui_motion_non_wasm_stub_contract_is_preserved`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_ui_motion_non_wasm_stub_contract_is_preserved`。
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
@@ -227,7 +227,7 @@
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
-  - 验证记录（2026-02-20）：`apps/docs-app/src/pages/components/pages/collections_breadcrumb.rs` 通过 `<ComponentPage slug="breadcrumb">` 进入统一性能探针链路；`apps/docs-app/src/pages/components/shell.rs` 继续以 `component_page_perf_budget(...) + <UiPerfProbe ...>` 对组件页施加 mount/update/heap 预算；`apps/docs-app/src/perf_probe.rs` 提供稳定 `data-perf-*` 可观测标记与预算违规输出（`data-perf-violation`）。`scripts/check-ui-components-performance.sh` 已新增 breadcrumb 性能契约测试，并保留 docs probe 预算契约与 `render_count` 后续任务追踪契约，满足“可检测/可归因/可阻断”。
+  - 验证记录（2026-02-20）：`apps/docs-app/src/pages/components/pages/collections_breadcrumb.rs` 通过 `<ComponentPage slug="breadcrumb">` 进入统一性能探针链路；`apps/docs-app/src/pages/components/shell.rs` 继续以 `component_page_perf_budget(...) + <UiPerfProbe ...>` 对组件页施加 mount/update/heap 预算；`apps/docs-app/src/perf_probe.rs` 提供稳定 `data-perf-*` 可观测标记与预算违规输出（`data-perf-violation`）。`scripts/check-ui-performance.sh` 已新增 breadcrumb 性能契约测试，并保留 docs probe 预算契约与 `render_count` 后续任务追踪契约，满足“可检测/可归因/可阻断”。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_performance_governance_contract_is_budgeted_traceable_and_blocking`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_performance_governance_contract_is_budgeted_traceable_and_blocking`。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
@@ -283,21 +283,21 @@
   - 验证记录（2026-02-20）：`components/breadcrumb/src/styles.rs` 已统一改为双层回退链（如 `var(--ui-fg, var(--ui-fallback-fg))`、`var(--ui-space-xs, var(--ui-fallback-space-xs))`、`var(--ui-text-field-motion-duration, var(--ui-fallback-text-field-motion-duration))`），移除 `currentColor/14px/20px/180ms/ease` 等组件内终值；focus 样式改为消费主题变量（`--ui-button-focus-outline-width/offset` + `--ui-focus-ring`）。`crates/ui-theme/src/css.rs` 保持输出对应 fallback 终值（含 `--ui-fallback-text-field-motion-duration/easing`），满足 fallback SSOT。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_defensive_variables_use_two_level_theme_fallback_chain`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_defensive_variables_use_two_level_theme_fallback_chain`。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 验证记录（2026-02-20）：`crates/ui-components/src/css.rs` 的 `push_components_css` 继续以 `out.push_str("\n@layer ui {\n"); ... out.push_str("\n}\n");` 包裹组件样式，`component-breadcrumb` 仍通过 feature 门控注入 `crate::breadcrumb::styles::CSS`；`crates/ui-components/src/root.rs` 保持由 `inject_components_css` 统一触发注入。`components/breadcrumb/src/view.rs` 未使用普通内联样式（无 `style=`/`style:top|left|right|bottom`），本组件当前无 runtime 数值样式调节轴，因此 `style:--x` 路径按组件职责标注 `N/A`。
+  - 验证记录（2026-02-20）：`crates/ui/src/css.rs` 的 `push_components_css` 继续以 `out.push_str("\n@layer ui {\n"); ... out.push_str("\n}\n");` 包裹组件样式，`component-breadcrumb` 仍通过 feature 门控注入 `crate::breadcrumb::styles::CSS`；`crates/ui/src/root.rs` 保持由 `inject_components_css` 统一触发注入。`components/breadcrumb/src/view.rs` 未使用普通内联样式（无 `style=`/`style:top|left|right|bottom`），本组件当前无 runtime 数值样式调节轴，因此 `style:--x` 路径按组件职责标注 `N/A`。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_css_is_aggregated_into_ui_layer_without_inline_style_overrides`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_css_is_aggregated_into_ui_layer_without_inline_style_overrides`。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 验证记录（2026-02-20）：`breadcrumb` 无语义状态驱动动效轴（无 open/close/enter/exit），因此 `motion.rs + attach_motion` 路径按组件职责标注 `N/A`，并保持 `components/breadcrumb/src/motion.rs` 不存在；组件仅保留静态 token 化 CSS 过渡，在 `@media (prefers-reduced-motion: reduce)` 下显式降级为 `transition: none`。non-wasm/SSR 安全降级由 `crates/ui-motion/src/lib.rs` 的 no-op/stub 保证（`prefers_reduced_motion() -> true`、`animate(...) {}`），`breadcrumb` 侧无 `ui_motion` 运行时调用。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_ui_motion_non_wasm_stub_contract_is_preserved`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_ui_motion_non_wasm_stub_contract_is_preserved`、`components/breadcrumb/test/semantics.rs::breadcrumb_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`。
-- [x] `ui-components` 固定入口文件落点正确。
-  - 验证记录（2026-02-20）：`crates/ui-components/src/lib.rs` 保持 `component-*` feature gate 导出面（含 `#[cfg(feature = "component-breadcrumb")] pub use ui_breadcrumb as breadcrumb;`）与 `push_components_css` 统一入口；`crates/ui-components/src/css.rs` 继续作为组件 CSS 聚合入口并按 feature 注入（`inject-css` 顶层门控 + `component-breadcrumb` 条件注入）；`crates/ui-components/src/root.rs` 仍集中注入 `base css + theme vars + optional components css`，并提供全局 i18n/id 上下文（`provide_ui_i18n`、`provide_ui_id_provider`）。`crates/ui-visual-primitive/src/active_highlight.rs` 继续承载通用高亮样式与 motion driver。`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在；对应原语入口保留在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
+- [x] `ui` 固定入口文件落点正确。
+  - 验证记录（2026-02-20）：`crates/ui/src/lib.rs` 保持 `component-*` feature gate 导出面（含 `#[cfg(feature = "component-breadcrumb")] pub use ui_breadcrumb as breadcrumb;`）与 `push_components_css` 统一入口；`crates/ui/src/css.rs` 继续作为组件 CSS 聚合入口并按 feature 注入（`inject-css` 顶层门控 + `component-breadcrumb` 条件注入）；`crates/ui/src/root.rs` 仍集中注入 `base css + theme vars + optional components css`，并提供全局 i18n/id 上下文（`provide_ui_i18n`、`provide_ui_id_provider`）。`crates/ui-visual-primitive/src/active_highlight.rs` 继续承载通用高亮样式与 motion driver。`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 均不存在；对应原语入口保留在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_ui_components_fixed_entry_files_contract_is_preserved`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_ui_components_fixed_entry_files_contract_is_preserved`。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。
   - 验证记录（2026-02-20）：`components/breadcrumb/src` 维持 `mod.rs + logic.rs + styles.rs + view.rs + protocol.rs`；`mod.rs` 仅保留最小稳定导出（`BreadcrumbItem/Breadcrumb` + `styles/protocol`），未过度导出实现细节。`logic.rs` 仅做 props 归一、派生与来源标记；`styles.rs` 维持静态 CSS 契约并消费主题变量；`view.rs` 仅做 Leptos 结构渲染与 headless 语义挂载，未漂移到 `render.rs`。`breadcrumb` 无语义状态驱动动效轴，`motion.rs` 按组件职责标注 `N/A` 且保持不存在；`spec.rs` 仍未引入（该组件无复杂外部规范固化需求，契约留在 `protocol.rs`）。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_directory_layout_matches_ui_components_contract`、`components/breadcrumb/test/semantics.rs::breadcrumb_component_files_follow_responsibility_boundaries`、`components/breadcrumb/test/semantics.rs::breadcrumb_spec_rs_is_not_introduced_for_simple_component`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_component_files_follow_responsibility_boundaries`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_spec_rs_is_not_introduced_for_simple_component`。
@@ -347,38 +347,38 @@
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
   - 验证记录（2026-02-20）：`components/breadcrumb/src/logic.rs` 将 `class_name` 与 `separator` 收敛为 `Cow<'static, str>`（默认路径走 `Cow::Borrowed`，自定义路径走 `Cow::Owned`）；`components/breadcrumb/src/view.rs` 删除 `separator_text.to_string()` 热点，改为显式受控克隆路径。组件源码复扫结果为零命中：`unwrap/expect`、`let _ = ...`、`to_owned/String::from/to_string` 均未命中（命令：`rg -n "\\.(unwrap|unwrap_err|expect)\\s*\\(" components/breadcrumb/src`、`rg -n "^[[:space:]]*let[[:space:]]+_[[:space:]]*=" components/breadcrumb/src`、`rg -n "(\\.to_owned\\(\\)|String::from\\(|\\.to_string\\(\\))" components/breadcrumb/src`）。
   - 门禁执行记录：尝试执行 `./scripts/check-rust-hygiene.sh` 时，仓库级前置 `check-api-contracts` 在当前环境受限（`scripts/check-api-contracts.sh` 缺执行位且 `rg` 无 PCRE2 支持）导致基线校验中断，属于环境/仓库级阻塞，不是 breadcrumb hygiene 规则违规。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 验证记录（2026-02-20）：`crates/ui-components/Cargo.toml` 已注册 `component-breadcrumb = ["dep:ui-breadcrumb"]` 且纳入 `web-demo-components/all-components` 特性树；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-breadcrumb")] pub use ui_breadcrumb as breadcrumb;` 做组件导出门控；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "inject-css")]` + `#[cfg(feature = "component-breadcrumb")] out.push_str(crate::breadcrumb::styles::CSS);` 做样式聚合门控，不存在无条件全量注册表。
-  - 命令实证：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-accordion,inject-css` 输出仅包含命令行特性（未出现 `all-components`）；`cargo tree -e features -i ui-components -p web-demo` 验证 `web-demo-components present and all-components absent`；`cargo tree -e features -p ui-components --no-default-features --features component-breadcrumb,inject-css` 显示 `ui-breadcrumb` 通过 `component-breadcrumb` 进入依赖链。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 验证记录（2026-02-20）：`crates/ui/Cargo.toml` 已注册 `component-breadcrumb = ["dep:ui-breadcrumb"]` 且纳入 `web-demo-components/all-components` 特性树；`crates/ui/src/lib.rs` 通过 `#[cfg(feature = "component-breadcrumb")] pub use ui_breadcrumb as breadcrumb;` 做组件导出门控；`crates/ui/src/css.rs` 通过 `#[cfg(feature = "inject-css")]` + `#[cfg(feature = "component-breadcrumb")] out.push_str(crate::breadcrumb::styles::CSS);` 做样式聚合门控，不存在无条件全量注册表。
+  - 命令实证：`cargo tree -e features -i ui -p ui --no-default-features --features component-accordion,inject-css` 输出仅包含命令行特性（未出现 `all-components`）；`cargo tree -e features -i ui -p web-demo` 验证 `web-demo-components present and all-components absent`；`cargo tree -e features -p ui --no-default-features --features component-breadcrumb,inject-css` 显示 `ui-breadcrumb` 通过 `component-breadcrumb` 进入依赖链。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_tree_shaking_keeps_component_feature_and_css_boundaries`、`components/breadcrumb/test/semantics.rs::breadcrumb_tree_shaking_check_script_covers_feature_tree_wasm_and_budget`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_tree_shaking_keeps_component_feature_and_css_boundaries`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_tree_shaking_check_script_covers_feature_tree_wasm_and_budget`。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 验证记录（2026-02-20）：语义契约已由 `components/breadcrumb/test/semantics.rs::breadcrumb_semantics_contract_tests_prioritize_contracts_over_snapshots` 与 `components/breadcrumb/test/semantics.rs::breadcrumb_has_no_focus_stack_or_overlay_restore_path`（以及 `components/breadcrumb/test/breadcrumb_semantics.rs` 对应镜像用例）覆盖，断言 `aria-current`、`aria-label`、`data-aria-source/data-class-source/data-separator-source/data-last`，并验证焦点流相关标记（`focus-visible` 样式路径）与“无 overlay 焦点栈”边界。
   - 性能回归基线：`components/breadcrumb/test/semantics.rs::breadcrumb_performance_governance_contract_is_budgeted_traceable_and_blocking` 与 `components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_performance_governance_contract_is_budgeted_traceable_and_blocking` 锁定 `UiPerfProbe` 可观测字段（`data-perf-mount-ms/data-perf-budget-ms/data-perf-budget-update-ms/data-perf-budget-heap-kb/data-perf-violation`）与阻断脚本链路；新增组合回归 `breadcrumb_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`（组件层 + 聚合层）统一校验 `aria/data/focus/perf` 四轴。
-  - `render_count` 策略：`breadcrumb` 非高频/重型交互组件，当前采用仓库统一性能治理等价证据；`render_count` 自动化回归当前由仓库统一 follow-up 路线跟踪（`docs/plan/TODO.md` + `scripts/check-ui-components-performance.sh` 中 `perf_render_count_follow_up_is_tracked_in_plan`）。
-  - 门禁命令补充：`scripts/check-ui-components-performance.sh` 已新增 `cargo test -p ui-components --test breadcrumb_semantics breadcrumb_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`；本环境运行 Rust 集成测试仍受 `Invalid cross-device link (os error 18)` 阻塞，属环境问题，不是本项契约缺失。
+  - `render_count` 策略：`breadcrumb` 非高频/重型交互组件，当前采用仓库统一性能治理等价证据；`render_count` 自动化回归当前由仓库统一 follow-up 路线跟踪（`docs/plan/TODO.md` + `scripts/check-ui-performance.sh` 中 `perf_render_count_follow_up_is_tracked_in_plan`）。
+  - 门禁命令补充：`scripts/check-ui-performance.sh` 已新增 `cargo test -p ui --test breadcrumb_semantics breadcrumb_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`；本环境运行 Rust 集成测试仍受 `Invalid cross-device link (os error 18)` 阻塞，属环境问题，不是本项契约缺失。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `Breadcrumb` 未发生跨大版本 API 破坏升级）
   - N/A 判定依据：`components/breadcrumb/src/Component.toml` 保持 `schema_version = "1"`；`components/breadcrumb/src/breadcrumb.rbi` 的 `Breadcrumb(...)` 公共签名未发生破坏性移除/重命名；`components/breadcrumb/src/{mod.rs,logic.rs,view.rs,styles.rs,protocol.rs}` 未引入 `migrate_v1_to_v2`/`deprecation_window`/`SchemaRegistry`/`contract.v2`。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_version_deprecation_migration_is_na_without_major_breaking_upgrade`、`components/breadcrumb/test/semantics.rs::breadcrumb_version_deprecation_migration_script_covers_engineering_gate`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_version_deprecation_migration_is_na_without_major_breaking_upgrade`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_version_deprecation_migration_script_covers_engineering_gate`。
-  - 脚本门禁：`scripts/check-ui-components-engineering.sh` 新增 `cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_version_deprecation_migration_is_na_without_major_breaking_upgrade`。
+  - 脚本门禁：`scripts/check-ui-engineering.sh` 新增 `cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_version_deprecation_migration_is_na_without_major_breaking_upgrade`。
   - 验证记录：执行上述 `cargo test` 命令，当前环境返回 `Invalid cross-device link (os error 18)`（编译产物写入阶段失败）。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
   - 验证记录（2026-02-20）：`apps/docs-app/src/pages/components/pages/collections_breadcrumb.rs::breadcrumb` 已补齐 `Hello World`、`State Matrix (Linked / Label-only / Empty)`、`Controlled vs Uncontrolled (N/A)`、`Streaming / Snapshot Contract`、`Source-first Starter (Copy-Paste Ready)` 五组 Playground；代码复制链路统一使用 `BREADCRUMB_DOC_IMPORTS` + `code_imports=...`，并通过 `data-slot="breadcrumb-source-first"` 明确源码路径与依赖基线（`component-breadcrumb` + `inject-css`）。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`components/breadcrumb/test/semantics.rs::breadcrumb_check2_marks_docs_product_copy_paste_ready_item_complete`、`components/breadcrumb/test/semantics.rs::breadcrumb_dx_check_script_covers_docs_product_copy_paste_ready_contract`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_check2_marks_docs_product_copy_paste_ready_item_complete`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_dx_check_script_covers_docs_product_copy_paste_ready_contract`。
-  - 门禁脚本：`scripts/check-ui-components-dx.sh` 新增 `breadcrumb docs product copy-paste-ready + streaming/snapshot + source-first imports` 检查，执行 `cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`。
+  - 门禁脚本：`scripts/check-ui-dx.sh` 新增 `breadcrumb docs product copy-paste-ready + streaming/snapshot + source-first imports` 检查，执行 `cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`。
   - 本地执行记录：当前环境运行上述 Rust 集成测试仍返回 `Invalid cross-device link (os error 18)`，属于环境写入限制，不是 docs 产品契约缺失。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 验证记录（2026-02-20）：`components/breadcrumb/src/view.rs` 关键语义标记 `aria-label/aria-current` + `data-aria-source/data-class-source/data-separator-source/data-slot` 已由 `components/breadcrumb/test/semantics.rs::breadcrumb_semantics_contract_tests_prioritize_contracts_over_snapshots` 与 `components/breadcrumb/test/semantics.rs::breadcrumb_semantics_suite_is_contract_first_not_snapshot_only` 锁定；同名镜像用例同步存在于 `components/breadcrumb/test/breadcrumb_semantics.rs`，覆盖组件内与聚合层双路径。
   - 语义优先断言：本地与聚合测试均显式禁止快照断言依赖（`assert_snapshot/to_match_snapshot/insta::assert_snapshot/snapshot!`），并要求语义字段变化时回归测试同步更新。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_check2_documents_semantics_first_testing_rules`、`components/breadcrumb/test/semantics.rs::breadcrumb_contract_hygiene_script_covers_semantics_first_testing_rules`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_check2_documents_semantics_first_testing_rules`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_contract_hygiene_script_covers_semantics_first_testing_rules`。
-  - 门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 新增 breadcrumb 语义优先门禁，执行 `cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_semantics_first_testing_rules` 与 `... breadcrumb_semantics_suite_is_contract_first_not_snapshot_only`。
+  - 门禁脚本：`scripts/check-ui-contract-hygiene.sh` 新增 breadcrumb 语义优先门禁，执行 `cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_check2_documents_semantics_first_testing_rules` 与 `... breadcrumb_semantics_suite_is_contract_first_not_snapshot_only`。
   - 本地执行记录：当前环境执行上述 Rust 集成测试仍返回 `Invalid cross-device link (os error 18)`，属于环境写入限制，不是语义契约缺失。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - 验证记录（2026-02-20）：新增 `e2e/tests/docs_app_breadcrumb_contract.spec.mjs`，选择器统一使用语义标记（`[data-component="breadcrumb"]`、`[data-slot="breadcrumb-state-linked"] [data-slot="breadcrumb"]`、`[data-slot="breadcrumb-page"][aria-current="page"]`），避免 DOM 层级/文本脆弱定位。
   - WASM 稳定等待：所有场景统一使用 `await page.locator("body:not(:has(#boot))").waitFor();` 作为语义就绪断点，不使用 fixed sleep。
   - 异步/动画 ready-settled 适用性：`breadcrumb` 无异步请求与组件级动效状态轴，本项按 `N/A` 处理；E2E 显式锁定 `data-ui-render-mode="snapshot"`、`data-ui-stream-fallback="snapshot"`、`data-ui-output-status="verified"` 收敛。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_check2_documents_e2e_selector_and_stable_wait_rules`、`components/breadcrumb/test/semantics.rs::breadcrumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`components/breadcrumb/test/semantics.rs::breadcrumb_e2e_async_and_animation_axes_are_explicitly_not_applicable_and_semantically_settled`、`components/breadcrumb/test/semantics.rs::breadcrumb_e2e_check_script_covers_selector_and_stable_wait_contracts`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_check2_documents_e2e_selector_and_stable_wait_rules`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_e2e_async_and_animation_axes_are_explicitly_not_applicable_and_semantically_settled`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_e2e_check_script_covers_selector_and_stable_wait_contracts`。
-  - 门禁脚本：`scripts/check-ui-components-e2e-breadcrumb.sh` 新增 breadcrumb E2E 契约门禁命令。
-  - 本地执行记录：执行 `cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits`，当前环境仍返回 `Invalid cross-device link (os error 18)`，属于环境写入限制，不是契约缺失。
+  - 门禁脚本：`components/breadcrumb/scripts/check-ui-e2e-breadcrumb.sh` 新增 breadcrumb E2E 契约门禁命令。
+  - 本地执行记录：执行 `cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_e2e_selector_contract_uses_semantic_markers_and_stable_waits`，当前环境仍返回 `Invalid cross-device link (os error 18)`，属于环境写入限制，不是契约缺失。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
@@ -387,8 +387,8 @@
   - 语义断点：关键流程失败定位统一落在可读语义标记（`data-requested-stream-mode`、`data-ui-render-mode`、`data-ui-state`、`data-ui-output-status`、`data-ui-stream-fallback`），不是页面快照差异。
   - 高风险路径优先：新增 `docs-app breadcrumb high-risk path covers focus keyboard and settled semantic breakpoints`，显式覆盖 `focus + keyboard`（`streamingOption.focus()` + `page.keyboard.press("Enter")`）与 async settled 断点（`not.toHaveAttribute("aria-busy", /.+/)`、`not.toHaveAttribute("data-loading", /.+/)`）；`overlay` 轴对 breadcrumb 为 `N/A`。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_check2_documents_e2e_repeatable_key_flow_rules`、`components/breadcrumb/test/semantics.rs::breadcrumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/breadcrumb/test/semantics.rs::breadcrumb_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_check2_documents_e2e_repeatable_key_flow_rules`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints`。
-  - 门禁脚本：`scripts/check-ui-components-e2e-breadcrumb.sh` 新增 repeatable-key-flow 与 high-risk 路径命令。
-  - 本地执行记录：执行 `cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`，当前环境仍返回 `Invalid cross-device link (os error 18)`，属于环境写入限制，不是契约缺失。
+  - 门禁脚本：`components/breadcrumb/scripts/check-ui-e2e-breadcrumb.sh` 新增 repeatable-key-flow 与 high-risk 路径命令。
+  - 本地执行记录：执行 `cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`，当前环境仍返回 `Invalid cross-device link (os error 18)`，属于环境写入限制，不是契约缺失。
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
@@ -397,8 +397,8 @@
   - 状态轴适用性：`breadcrumb` 无 `disabled/size/variant` 轴，文档通过 `Controlled vs Uncontrolled (N/A)` 明确不适用边界，避免伪矩阵。
   - API/默认值一致性：docs 仅使用当前 API 命名（`items/aria_label/class_name/separator/lang/dir`）；默认值链路与 `logic.rs` 对齐（`class -> "ui-breadcrumb"`、`separator -> "/"`，分别由 `resolve_root_state/resolve_separator` 归一）。
   - 回归锁定：`components/breadcrumb/test/semantics.rs::breadcrumb_check2_documents_docs_sync_and_state_matrix_rules`、`components/breadcrumb/test/semantics.rs::breadcrumb_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`components/breadcrumb/test/semantics.rs::breadcrumb_dx_check_script_covers_docs_sync_and_state_matrix_contract`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_check2_documents_docs_sync_and_state_matrix_rules`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_dx_check_script_covers_docs_sync_and_state_matrix_contract`。
-  - 门禁脚本：`scripts/check-ui-components-dx.sh` 新增 breadcrumb docs-sync/state-matrix 命令。
-  - 本地执行记录：执行 `cargo test -p ui-components --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`，当前环境仍返回 `Invalid cross-device link (os error 18)`，属于环境写入限制，不是契约缺失。
+  - 门禁脚本：`scripts/check-ui-dx.sh` 新增 breadcrumb docs-sync/state-matrix 命令。
+  - 本地执行记录：执行 `cargo test -p ui --test breadcrumb_semantics --no-default-features --features component-breadcrumb,inject-css breadcrumb_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`，当前环境仍返回 `Invalid cross-device link (os error 18)`，属于环境写入限制，不是契约缺失。
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
@@ -406,7 +406,7 @@
   - 验证记录（2026-02-20）：`breadcrumb` 采用“等价文档入口”路径，docs-app 页面与目录索引已落地：`apps/docs-app/src/pages/components/pages/collections_breadcrumb.rs`、`apps/docs-app/src/pages/components/pages/collections_breadcrumb_catalog.rs`、`apps/docs-app/src/pages/components/pages.rs`。
   - 新手优先路径证据：`collections_breadcrumb.rs` 保持 `title="Hello World"` 在前，随后 `title="Trail"`，再进入状态矩阵与 source-first 进阶段落，符合“先用起来，再进阶”。
   - 回归覆盖：`components/breadcrumb/test/semantics.rs::breadcrumb_check2_documents_documentation_as_product_rules`、`components/breadcrumb/test/semantics.rs::breadcrumb_documentation_entry_exists_with_beginner_first_progression`、`components/breadcrumb/test/semantics.rs::breadcrumb_dx_check_script_covers_documentation_as_product_contract`，以及 `components/breadcrumb/test/breadcrumb_semantics.rs` 同名用例。
-  - 门禁脚本：`scripts/check-ui-components-dx.sh` 新增 documentation-as-product 合同检查命令，覆盖上述规则。
+  - 门禁脚本：`scripts/check-ui-dx.sh` 新增 documentation-as-product 合同检查命令，覆盖上述规则。
   - 本地执行记录：执行 documentation-as-product 相关 `cargo test` 目标时当前环境仍报 `Invalid cross-device link (os error 18)`，属于环境写入限制，不是文档契约缺失。
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
@@ -417,7 +417,7 @@
   - AI Spec 适用性：AI Spec 联动示例 N/A（`Breadcrumb` 非 AI Spec 输入组件），当前组件职责是导航渲染，不承载 Spec 输入协议。
   - 可重复关键路径证据：`e2e/tests/docs_app_breadcrumb_contract.spec.mjs` 已覆盖 `docs-app breadcrumb key flow is repeatable with semantic breakpoints`（`for (const cycle of [1, 2])` + reload 后语义断点校验）。
   - 回归覆盖：`components/breadcrumb/test/semantics.rs::breadcrumb_check2_documents_interactive_playground_rules`、`components/breadcrumb/test/semantics.rs::breadcrumb_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/breadcrumb/test/semantics.rs::breadcrumb_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/breadcrumb/test/semantics.rs::breadcrumb_dx_check_script_covers_interactive_playground_contract`，以及 `components/breadcrumb/test/breadcrumb_semantics.rs` 同名用例。
-  - 门禁脚本：`scripts/check-ui-components-dx.sh` 新增 interactive-playground 合同命令，覆盖 check2/docs/e2e 关键约束。
+  - 门禁脚本：`scripts/check-ui-dx.sh` 新增 interactive-playground 合同命令，覆盖 check2/docs/e2e 关键约束。
   - 本地执行记录：执行 interactive-playground 相关 `cargo test` 目标时当前环境仍报 `Invalid cross-device link (os error 18)`，属于环境写入限制，不是契约缺失。
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
@@ -425,9 +425,9 @@
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - 验证记录（2026-02-20）：`apps/docs-app/src/pages/components/pages/collections_breadcrumb.rs` 已提供 `Source-first Starter (Copy-Paste Ready)` 演示块，包含真实源码落点提示、依赖基线与可复制代码片段。
   - 复制可运行证据：该演示块使用 `code_imports=BREADCRUMB_DOC_IMPORTS.to_string()`，由 `apps/docs-app/src/playground.rs` 的 `compose_copy_ready_code + missing_import_lines` 自动补全 imports，并通过 `ui-code-block__copy-button` 提供一键复制。
-  - Source 路径与依赖证据：页面显式列出 `components/breadcrumb/src/mod.rs`、`components/breadcrumb/src/logic.rs`、`components/breadcrumb/src/view.rs`、`components/breadcrumb/src/styles.rs`，并给出依赖前提 `ui-components = { default-features = false, features = ["component-breadcrumb", "inject-css"] }`，避免“复制即报错”。
+  - Source 路径与依赖证据：页面显式列出 `components/breadcrumb/src/mod.rs`、`components/breadcrumb/src/logic.rs`、`components/breadcrumb/src/view.rs`、`components/breadcrumb/src/styles.rs`，并给出依赖前提 `ui = { default-features = false, features = ["component-breadcrumb", "inject-css"] }`，避免“复制即报错”。
   - 同步回归覆盖：`components/breadcrumb/test/semantics.rs::breadcrumb_check2_documents_source_first_copy_paste_ready_rules`、`components/breadcrumb/test/semantics.rs::breadcrumb_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`components/breadcrumb/test/semantics.rs::breadcrumb_dx_check_script_covers_source_first_copy_paste_ready_contract`，以及 `components/breadcrumb/test/breadcrumb_semantics.rs` 同名用例。
-  - 门禁脚本：`scripts/check-ui-components-dx.sh` 新增 source-first copy-paste-ready 合同命令，覆盖 check2 + docs 落点。
+  - 门禁脚本：`scripts/check-ui-dx.sh` 新增 source-first copy-paste-ready 合同命令，覆盖 check2 + docs 落点。
   - 本地执行记录：执行 source-first 相关 `cargo test` 目标时当前环境仍报 `Invalid cross-device link (os error 18)`，属于环境写入限制，不是契约缺失。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
@@ -437,7 +437,7 @@
   - docs 入口可索引证据：目录入口通过 `apps/docs-app/src/pages/components/pages/collections_breadcrumb_catalog.rs::BREADCRUMB_DOC` 并由 `apps/docs-app/src/pages/components/pages.rs` 收录 `collections_breadcrumb_catalog::BREADCRUMB_DOC`；页面入口 `apps/docs-app/src/pages/components/pages/collections_breadcrumb.rs::breadcrumb()` 可直接访问。
   - 研究文档补充判定：本轮未引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
   - 回归覆盖：`components/breadcrumb/test/semantics.rs::breadcrumb_check2_documents_heroui_benchmark_docs_sync_rules`、`components/breadcrumb/test/semantics.rs::breadcrumb_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/breadcrumb/test/semantics.rs::breadcrumb_dx_check_script_covers_heroui_benchmark_docs_sync_contract`，以及 `components/breadcrumb/test/breadcrumb_semantics.rs` 同名用例。
-  - 门禁脚本：`scripts/check-ui-components-dx.sh` 新增 breadcrumb heroui benchmark docs-sync 合同命令，覆盖 check2 + strategy doc + docs 入口同步。
+  - 门禁脚本：`scripts/check-ui-dx.sh` 新增 breadcrumb heroui benchmark docs-sync 合同命令，覆盖 check2 + strategy doc + docs 入口同步。
   - 本地执行记录：执行 heroui docs-sync 相关 `cargo test` 目标时当前环境仍报 `Invalid cross-device link (os error 18)`，属于环境写入限制，不是契约缺失。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
@@ -450,9 +450,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

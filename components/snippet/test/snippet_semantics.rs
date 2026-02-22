@@ -369,7 +369,7 @@ fn snippet_token_first_static_style_contract_is_css_registry_injected_without_ut
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib entry should keep snippet surface marker `{required}`."
+            "ui lib entry should keep snippet surface marker `{required}`."
         );
     }
 
@@ -379,7 +379,7 @@ fn snippet_token_first_static_style_contract_is_css_registry_injected_without_ut
     );
 
     for required in [
-        "样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。",
+        "样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。",
         "Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。",
         "CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。",
     ] {
@@ -547,8 +547,8 @@ fn snippet_docs_playgrounds_lock_state_matrix_contract_values() {
         "text=\"RUST_LOG=debug\".to_string()",
         "copied_label=\"Done\".to_string()",
         "title=\"Static + Multiline Custom\"",
-        "text=\"cargo test -p ui-components --test snippet_semantics\".to_string()",
-        "text=\"cargo fmt --all\\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings\".to_string()",
+        "text=\"cargo test -p ui --test snippet_semantics\".to_string()",
+        "text=\"cargo fmt --all\\ncargo clippy -p ui -p docs-app --all-targets -- -D warnings\".to_string()",
         "label=\"CI\".to_string()",
         "is_copyable=true",
         "is_copyable=false",
@@ -680,7 +680,7 @@ fn snippet_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     let cargo_source = load_source("Cargo.toml");
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
-    let tree_script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
@@ -690,7 +690,7 @@ fn snippet_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should include `{needle}`."
+            "ui Cargo features should include `{needle}`."
         );
     }
 
@@ -717,12 +717,12 @@ fn snippet_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "unexpected all-components in minimal feature tree",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "web-demo should pull web-demo-components feature bundle",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
         "size regression",
@@ -850,7 +850,7 @@ fn snippet_platform_contract_uses_explicit_cfg_branches_and_keeps_non_wasm_web_a
 fn snippet_headless_web_ssr_mutex_guard_is_enforced_and_regression_checked() {
     let headless_lib_source = load_source("../ui-headless/src/lib.rs");
     let snippet_logic_source = load_source("src/snippet/logic.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "#[cfg(all(feature = \"web\", feature = \"ssr\"))]",
@@ -890,7 +890,7 @@ fn snippet_headless_web_ssr_mutex_guard_is_enforced_and_regression_checked() {
 fn snippet_motion_non_wasm_noop_contract_is_present_and_toolchain_safe() {
     let ui_motion_lib_source = load_source("../ui-motion/src/lib.rs");
     let snippet_motion_source = load_source("src/snippet/motion.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let ui_motion_non_wasm_test_source = load_source("../ui-motion/tests/non_wasm_stub.rs");
 
     for needle in [
@@ -1116,13 +1116,13 @@ fn snippet_performance_governance_contract_is_budgeted_traceable_and_blocking() 
 
 #[test]
 fn snippet_performance_check_script_covers_budget_and_follow_up_gates() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for needle in [
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1233,7 +1233,7 @@ fn snippet_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
     let logic_source = load_source("src/snippet/logic.rs");
     let styles_source = load_source("src/snippet/styles.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
 
     for source in [&view_source, &logic_source, &styles_source, &docs_source] {
         assert!(
@@ -1309,7 +1309,7 @@ fn snippet_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isola
 fn snippet_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
-    let dx_script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "pub(super) fn snippet() -> AnyView",
@@ -1427,7 +1427,7 @@ fn snippet_engineering_contract_keeps_tracing_semantics_unified_without_componen
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::snippet::",
+        "target: \"ui::snippet::",
     ] {
         assert!(
             !combined.contains(forbidden),
@@ -1477,7 +1477,7 @@ fn snippet_ui_components_entrypoints_and_forbidden_files_contract_hold() {
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib entry should include `{required}`."
+            "ui lib entry should include `{required}`."
         );
     }
 
@@ -1515,7 +1515,7 @@ fn snippet_ui_components_entrypoints_and_forbidden_files_contract_hold() {
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !path_exists(forbidden),
-            "forbidden ui-components entrypoint should stay absent: `{forbidden}`."
+            "forbidden ui entrypoint should stay absent: `{forbidden}`."
         );
     }
 

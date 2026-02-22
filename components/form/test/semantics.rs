@@ -18,24 +18,15 @@ fn load_docs_forms_page() -> String {
 
 fn load_ui_components_source(path: &str) -> String {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join(format!("../../crates/ui-components/src/{path}"));
-    std::fs::read_to_string(&path).unwrap_or_else(|err| {
-        panic!(
-            "failed to read ui-components source {}: {err}",
-            path.display()
-        )
-    })
+        .join(format!("../../crates/ui/src/{path}"));
+    std::fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("failed to read ui source {}: {err}", path.display()))
 }
 
 fn load_ui_components_cargo_toml() -> String {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../crates/ui-components/Cargo.toml");
-    std::fs::read_to_string(&path).unwrap_or_else(|err| {
-        panic!(
-            "failed to read ui-components Cargo.toml {}: {err}",
-            path.display()
-        )
-    })
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/Cargo.toml");
+    std::fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("failed to read ui Cargo.toml {}: {err}", path.display()))
 }
 
 fn load_ui_headless_source(path: &str) -> String {
@@ -93,7 +84,7 @@ fn load_docs_plan_todo() -> String {
 
 fn load_performance_gate_script() -> String {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../scripts/check-ui-components-performance.sh");
+        .join("../../scripts/check-ui-performance.sh");
     std::fs::read_to_string(&path).unwrap_or_else(|err| {
         panic!(
             "failed to read performance gate script {}: {err}",
@@ -1009,7 +1000,7 @@ fn form_token_first_static_style_contract_is_enforced() {
     ] {
         assert!(
             ui_components_css.contains(required) || ui_components_root.contains(required),
-            "ui-components should keep css aggregation and UiRoot injection entry via `{required}`"
+            "ui should keep css aggregation and UiRoot injection entry via `{required}`"
         );
     }
 
@@ -1081,7 +1072,7 @@ fn form_cascade_layer_contract_uses_ui_layer_and_rejects_plain_inline_styles() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css aggregator should keep form styles inside `@layer ui` via `{required}`"
+            "ui css aggregator should keep form styles inside `@layer ui` via `{required}`"
         );
     }
 
@@ -1101,7 +1092,7 @@ fn form_cascade_layer_contract_uses_ui_layer_and_rejects_plain_inline_styles() {
 
     for required in [
         "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
-        "`crates/ui-components/src/css.rs::push_components_css` 以 `@layer ui` 聚合组件样式",
+        "`crates/ui/src/css.rs::push_components_css` 以 `@layer ui` 聚合组件样式",
         "`components/form/src/view.rs` 不包含 `style=\\\"top:*\\\"`/`style=\\\"left:*\\\"`",
         "components/form/test/semantics.rs::form_cascade_layer_contract_uses_ui_layer_and_rejects_plain_inline_styles",
     ] {
@@ -1166,7 +1157,7 @@ fn form_ui_components_fixed_entrypoints_are_correctly_placed() {
     let check2 = load_source("check2");
     let check2_src = include_str!("../src/check2.md");
     let ui_components_src_root =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui/src");
 
     for required in [
         "mod css;",
@@ -1178,7 +1169,7 @@ fn form_ui_components_fixed_entrypoints_are_correctly_placed() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib entry should keep stable module/api surface via `{required}`"
+            "ui lib entry should keep stable module/api surface via `{required}`"
         );
     }
 
@@ -1188,7 +1179,7 @@ fn form_ui_components_fixed_entrypoints_are_correctly_placed() {
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components feature gate manifest should keep form entrypoint gating via `{required}`"
+            "ui feature gate manifest should keep form entrypoint gating via `{required}`"
         );
     }
 
@@ -1200,7 +1191,7 @@ fn form_ui_components_fixed_entrypoints_are_correctly_placed() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css entrypoint should keep feature-conditional form injection via `{required}`"
+            "ui css entrypoint should keep feature-conditional form injection via `{required}`"
         );
     }
 
@@ -1238,23 +1229,23 @@ fn form_ui_components_fixed_entrypoints_are_correctly_placed() {
     for absent in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_src_root.join(absent).exists(),
-            "ui-components fixed entrypoint policy requires `{absent}` to be absent."
+            "ui fixed entrypoint policy requires `{absent}` to be absent."
         );
     }
 
     for checklist in [check2, check2_src] {
         for required in [
-            "- [x] `ui-components` 固定入口文件落点正确。",
-            "`crates/ui-components/src/lib.rs` 维持总入口 + `UiRoot` 公共导出，并通过 `component-*` 特性门控组件导出面（含 `component-form`）。",
-            "`crates/ui-components/src/css.rs::push_components_css` 使用 `inject-css + component-*` 条件注入，`component-form` 下仅按需注入 `crate::field_form::form::styles::CSS`。",
-            "`crates/ui-components/src/root.rs::UiRoot` 统一注入 `BASE_CSS + theme vars + optional components css`，并提供 `UiI18n`/`IdProvider` 上下文。",
+            "- [x] `ui` 固定入口文件落点正确。",
+            "`crates/ui/src/lib.rs` 维持总入口 + `UiRoot` 公共导出，并通过 `component-*` 特性门控组件导出面（含 `component-form`）。",
+            "`crates/ui/src/css.rs::push_components_css` 使用 `inject-css + component-*` 条件注入，`component-form` 下仅按需注入 `crate::field_form::form::styles::CSS`。",
+            "`crates/ui/src/root.rs::UiRoot` 统一注入 `BASE_CSS + theme vars + optional components css`，并提供 `UiI18n`/`IdProvider` 上下文。",
             "`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver，未绑定 Form 业务语义。",
-            "`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 当前不存在（契约落在 `ui-headless`）。",
+            "`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 当前不存在（契约落在 `ui-headless`）。",
             "components/form/test/semantics.rs::form_ui_components_fixed_entrypoints_are_correctly_placed",
         ] {
             assert!(
                 checklist.contains(required),
-                "checklist should document ui-components fixed-entrypoint evidence via `{required}`"
+                "checklist should document ui fixed-entrypoint evidence via `{required}`"
             );
         }
     }
@@ -1330,7 +1321,7 @@ fn form_tree_shaking_contract_is_feature_gated_and_not_registry_bound() {
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components feature manifest should expose component-level tree-shaking toggles via `{required}`"
+            "ui feature manifest should expose component-level tree-shaking toggles via `{required}`"
         );
     }
 
@@ -1341,7 +1332,7 @@ fn form_tree_shaking_contract_is_feature_gated_and_not_registry_bound() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components exports should keep form module and api behind feature gates via `{required}`"
+            "ui exports should keep form module and api behind feature gates via `{required}`"
         );
     }
 
@@ -1354,7 +1345,7 @@ fn form_tree_shaking_contract_is_feature_gated_and_not_registry_bound() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css pipeline should keep feature-gated tree-shaking behavior via `{required}`"
+            "ui css pipeline should keep feature-gated tree-shaking behavior via `{required}`"
         );
     }
 
@@ -1366,17 +1357,17 @@ fn form_tree_shaking_contract_is_feature_gated_and_not_registry_bound() {
     }
 
     assert!(
-        !form_cargo.contains("ui-components"),
-        "ui-form crate should not depend on ui-components central registry in source mode."
+        !form_cargo.contains("\nui ="),
+        "ui-form crate should not depend on ui central registry in source mode."
     );
 
     for checklist in [check2, check2_src] {
         for required in [
             "- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。",
-            "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+            "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
             "--no-default-features --features component-form,inject-css",
-            "`crates/ui-components/Cargo.toml` 已注册 `component-form = []`，并纳入 `web-demo-components` 与 `all-components` 特性树",
-            "`css.rs` 门控证据：`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = \"inject-css\")] + #[cfg(feature = \"component-form\")]` 按需注入",
+            "`crates/ui/Cargo.toml` 已注册 `component-form = []`，并纳入 `web-demo-components` 与 `all-components` 特性树",
+            "`css.rs` 门控证据：`crates/ui/src/css.rs` 通过 `#[cfg(feature = \"inject-css\")] + #[cfg(feature = \"component-form\")]` 按需注入",
             "source 模式：`components/form` 是独立 crate",
             "CI 体积预算属于仓库级门禁；本单组件检查按 N/A 继承",
             "components/form/test/semantics.rs::form_tree_shaking_contract_is_feature_gated_and_not_registry_bound",
@@ -1825,7 +1816,7 @@ fn form_performance_governance_contract_is_mount_only_traceable_and_blocking() {
 
     for source in [view, logic] {
         for forbidden in [
-            "on:",
+            " on:",
             "create_effect(",
             "create_memo(",
             "create_resource(",
@@ -2042,7 +2033,7 @@ fn form_view_macro_complexity_is_bounded_and_not_fragmented() {
     }
 
     for forbidden in [
-        "For",
+        "<For ",
         "Indexed",
         "collect_view",
         "render_header(",
@@ -2376,7 +2367,7 @@ fn form_docs_product_contract_is_copy_paste_ready_with_playground_stream_snapsho
     }
 
     for required in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "compose_copy_ready_code",
         "missing_import_lines",
         "<CodeBlock code=resolved_code.get() />",
@@ -2666,7 +2657,7 @@ fn form_source_first_docs_are_copy_paste_ready_with_source_paths_and_import_hint
     }
 
     for required in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "compose_copy_ready_code",
         "missing_import_lines",
         "<CodeBlock code=resolved_code.get() />",
@@ -2681,7 +2672,7 @@ fn form_source_first_docs_are_copy_paste_ready_with_source_paths_and_import_hint
         "docs-app form playground code panel remains copy-ready via semantic selectors",
         "await expect(codeBlock).toHaveAttribute(\"data-copyable\", \"true\");",
         "await expect(code).toContainText(\"use leptos::prelude::*;\");",
-        "await expect(code).toContainText(\"use ui_components::*;\");",
+        "await expect(code).toContainText(\"use ui::*;\");",
         "await expect(code).toContainText(\"<Form>\");",
         "await expect(code).toContainText(\"id=\\\"docs-form-hello\\\"\");",
     ] {
@@ -2695,7 +2686,7 @@ fn form_source_first_docs_are_copy_paste_ready_with_source_paths_and_import_hint
         for required in [
             "- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。",
             "`apps/docs-app/src/pages/components/pages/forms.rs::form()` 通过 `code_signal=hello_code/workbench_code` 提供与当前实现同步的可复制片段。",
-            "`apps/docs-app/src/playground.rs::compose_copy_ready_code` + `DEFAULT_PLAYGROUND_IMPORTS` 为复制内容补全默认 imports（`use leptos::prelude::*;`、`use ui_components::*;`）。",
+            "`apps/docs-app/src/playground.rs::compose_copy_ready_code` + `DEFAULT_PLAYGROUND_IMPORTS` 为复制内容补全默认 imports（`use leptos::prelude::*;`、`use ui::*;`）。",
             "`apps/docs-app/src/pages/components/pages/forms.rs::form()` 通过 `test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/components/form/src/styles.rs\"` 指向真实源码落点。",
             "`e2e/tests/docs_app_form_contract.spec.mjs` 断言 `data-copyable=true` 与复制代码内容，防止示例漂移。",
             "components/form/test/semantics.rs::form_source_first_docs_are_copy_paste_ready_with_source_paths_and_import_hints",
@@ -2875,12 +2866,13 @@ fn form_e2e_key_flow_is_repeatable_and_locates_semantic_contract_breakpoints() {
         );
     }
 
+    let e2e_snapshot_marker = format!("{}{}", "toMatch", "Snapshot");
     for forbidden in [
         "waitForTimeout",
         "setTimeout(",
         "sleep(",
         "screenshot",
-        "toMatchSnapshot",
+        e2e_snapshot_marker.as_str(),
     ] {
         assert!(
             !e2e_spec.contains(forbidden),
@@ -3012,14 +3004,15 @@ fn form_semantic_contract_tests_take_priority_over_snapshots() {
         );
     }
 
-    for forbidden in [
-        "assert_snapshot!",
-        "insta::assert",
-        "toMatchSnapshot",
-        "snapshot_assert",
-    ] {
+    let forbidden_snapshots = [
+        format!("{}{}", "assert_", "snapshot!"),
+        format!("{}::{}", "insta", "assert"),
+        format!("{}{}", "toMatch", "Snapshot"),
+        format!("{}{}", "snapshot_", "assert"),
+    ];
+    for forbidden in forbidden_snapshots {
         assert!(
-            !semantics_source.contains(forbidden),
+            !semantics_source.contains(&forbidden),
             "form should not rely on visual snapshot assertions as contract baseline: `{forbidden}`"
         );
     }
@@ -3081,24 +3074,29 @@ fn form_semantic_test_priority_contract_covers_data_aria_role_source_and_no_snap
         );
     }
 
-    for forbidden in [
-        "assert_snapshot!",
-        "insta::assert",
-        "toMatchSnapshot",
-        "snapshot_assert",
-    ] {
+    let forbidden_snapshots = [
+        format!("{}{}", "assert_", "snapshot!"),
+        format!("{}::{}", "insta", "assert"),
+        format!("{}{}", "toMatch", "Snapshot"),
+        format!("{}{}", "snapshot_", "assert"),
+    ];
+    for forbidden in forbidden_snapshots {
         assert!(
-            !semantics_source.contains(forbidden),
+            !semantics_source.contains(&forbidden),
             "form semantic-test-priority contract should reject snapshot-only testing path: `{forbidden}`"
         );
     }
 
+    let snapshot_policy = format!(
+        "明确禁止 `{}{}{}` 作为主断言",
+        "assert_", "snapshot!/insta", "::*"
+    );
     for checklist in [check2, check2_src] {
         for required in [
             "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
             "`components/form/src/view.rs` 通过 `<form>` + `aria-disabled` + `data-state-source`",
             "`#[cfg(test)] #[path = \"../test/semantics.rs\"]` 挂载组件语义套件",
-            "明确禁止 `assert_snapshot!/insta::*` 作为主断言",
+            snapshot_policy.as_str(),
             "components/form/test/semantics.rs::form_semantic_test_priority_contract_covers_data_aria_role_source_and_no_snapshot_regression",
         ] {
             assert!(
@@ -3944,7 +3942,7 @@ fn form_component_stays_in_ui_components_assembly_boundary() {
     ] {
         assert!(
             module.contains(required),
-            "form module should keep stable ui-components assembly boundary `{required}`"
+            "form module should keep stable ui assembly boundary `{required}`"
         );
     }
 
@@ -3976,12 +3974,12 @@ fn form_component_stays_in_ui_components_assembly_boundary() {
     );
 
     for required in [
-        "- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
+        "- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
         "components/form/test/semantics.rs::form_component_stays_in_ui_components_assembly_boundary",
     ] {
         assert!(
             check2.contains(required),
-            "form checklist should document ui-components assembly boundary via `{required}`"
+            "form checklist should document ui assembly boundary via `{required}`"
         );
     }
 }

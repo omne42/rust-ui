@@ -298,7 +298,7 @@ fn contextual_help_has_component_level_semantics_regression_entry() {
     );
     assert!(
         legacy.contains("fn contextual_help_styles_include_state_marker_contracts()"),
-        "legacy ui-components semantics coverage should remain present during migration.",
+        "legacy ui semantics coverage should remain present during migration.",
     );
 }
 
@@ -822,7 +822,7 @@ fn contextual_help_platform_contract_keeps_ssr_wasm_boundaries_explicit() {
 fn contextual_help_keeps_ui_headless_web_ssr_mutex_contract() {
     let view = load_source("view");
     let headless_lib = include_str!("../../../crates/ui-headless/src/lib.rs");
-    let platform_script = include_str!("../../../scripts/check-ui-components-platforms.sh");
+    let platform_script = include_str!("../../../scripts/check-ui-platforms.sh");
 
     assert!(
         view.contains("use ui_headless as overlay_open;"),
@@ -967,7 +967,7 @@ fn contextual_help_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() 
 fn contextual_help_performance_governance_has_budgeted_equivalent_evidence() {
     let view = load_source("view");
     let docs_shell = include_str!("../../../apps/docs-app/src/pages/components/shell.rs");
-    let perf_script = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let perf_script = include_str!("../../../scripts/check-ui-performance.sh");
     let accordion_semantics =
         include_str!("../../../components/accordion/test/accordion_semantics.rs");
 
@@ -1217,7 +1217,7 @@ fn contextual_help_dx_workbench_keeps_css_hot_edit_context_and_isolated_canvas()
     for needle in [
         "<Playground\n                title=\"Workbench (Display + Config + Code + CSS Test)\"",
         "test_css_source=test_css_source",
-        "test_source_path=\"crates/ui-components/src/contextual_help/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui/src/contextual_help/styles.rs\".to_string()",
         "test_config_signal=actual_config",
         "let (workbench_open_raw, set_workbench_open_raw) = signal(false);",
         "let (workbench_controlled, set_workbench_controlled) = signal(true);",
@@ -1295,7 +1295,7 @@ fn contextual_help_source_first_docs_are_copy_paste_ready_and_synced() {
         "<Snippet",
         "label=\"Copy starter\".to_string()",
         "copyable=true",
-        "text=\"use leptos::prelude::*;\\nuse ui_components::*;",
+        "text=\"use leptos::prelude::*;\\nuse ui::*;",
         "apps/docs-app/src/playground.rs::compose_copy_ready_code",
         "data-slot=\"contextual-help-source-paths\"",
         "components/contextual-help/src/mod.rs",
@@ -1314,7 +1314,7 @@ fn contextual_help_source_first_docs_are_copy_paste_ready_and_synced() {
     }
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String",
         "missing_import_lines(&raw, &imports)",
         "format!(\"{}\\n\\n{raw}\", missing_imports.join(\"\\n\"))",
@@ -1633,7 +1633,7 @@ fn contextual_help_styles_use_defensive_variable_fallback_chain() {
 #[test]
 fn contextual_help_cascade_layer_and_runtime_style_contract_is_enforced() {
     let view = load_source("view");
-    let css_registry = include_str!("../../../crates/ui-components/src/css.rs");
+    let css_registry = include_str!("../../../crates/ui/src/css.rs");
 
     for needle in [
         "out.push_str(\"\\n@layer ui {\\n\");",
@@ -1727,10 +1727,10 @@ fn contextual_help_motion_contract_is_component_scoped_reduced_motion_aware_and_
 
 #[test]
 fn contextual_help_ui_components_entrypoint_layout_contract_is_stable() {
-    let ui_components_cargo_toml = include_str!("../../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = include_str!("../../../crates/ui-components/src/lib.rs");
-    let ui_components_css = include_str!("../../../crates/ui-components/src/css.rs");
-    let ui_components_root = include_str!("../../../crates/ui-components/src/root.rs");
+    let ui_components_cargo_toml = include_str!("../../../crates/ui/Cargo.toml");
+    let ui_components_lib = include_str!("../../../crates/ui/src/lib.rs");
+    let ui_components_css = include_str!("../../../crates/ui/src/css.rs");
+    let ui_components_root = include_str!("../../../crates/ui/src/root.rs");
     let active_highlight =
         include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
 
@@ -1742,7 +1742,7 @@ fn contextual_help_ui_components_entrypoint_layout_contract_is_stable() {
     ] {
         assert!(
             ui_components_cargo_toml.contains(needle),
-            "ui-components feature tree should keep contextual-help registration marker `{needle}`.",
+            "ui feature tree should keep contextual-help registration marker `{needle}`.",
         );
     }
 
@@ -1753,7 +1753,7 @@ fn contextual_help_ui_components_entrypoint_layout_contract_is_stable() {
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib entry should keep feature-gated contextual-help export `{needle}`.",
+            "ui lib entry should keep feature-gated contextual-help export `{needle}`.",
         );
     }
 
@@ -1764,7 +1764,7 @@ fn contextual_help_ui_components_entrypoint_layout_contract_is_stable() {
     ] {
         assert!(
             !ui_components_lib.contains(forbidden),
-            "ui-components lib should not expose forbidden legacy module `{forbidden}`.",
+            "ui lib should not expose forbidden legacy module `{forbidden}`.",
         );
     }
 
@@ -1776,7 +1776,7 @@ fn contextual_help_ui_components_entrypoint_layout_contract_is_stable() {
     ] {
         assert!(
             ui_components_css.contains(needle),
-            "ui-components css entry should keep feature-gated layer aggregation marker `{needle}`.",
+            "ui css entry should keep feature-gated layer aggregation marker `{needle}`.",
         );
     }
 
@@ -1815,9 +1815,9 @@ fn contextual_help_ui_components_entrypoint_layout_contract_is_stable() {
     }
 
     for path in [
-        "crates/ui-components/src/overlay_open.rs",
-        "crates/ui-components/src/presence.rs",
-        "crates/ui-components/src/a11y.rs",
+        "crates/ui/src/overlay_open.rs",
+        "crates/ui/src/presence.rs",
+        "crates/ui/src/a11y.rs",
     ] {
         assert!(
             !std::path::Path::new(path).exists(),

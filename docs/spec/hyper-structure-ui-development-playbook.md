@@ -1,6 +1,6 @@
 # Hyper-Structure UI 开发手册（AI Verified / Struct-First）
 
-> 目标：把“Rust 类型系统 = AI 幻觉过滤器”落成可执行工程规范，用来指导 `ui-components` 后续所有组件开发。
+> 目标：把“Rust 类型系统 = AI 幻觉过滤器”落成可执行工程规范，用来指导 `ui` 后续所有组件开发。
 
 ## 1. North Star（核心原则）
 
@@ -112,9 +112,9 @@
 
 每次 AI 生成代码后，按以下顺序执行：
 
-1. `cargo check -p ui-components`
-2. 相关组件单测（例如 Button：`cargo test -p ui-components --test button_semantics`）
-3. 相关逻辑单测（例如：`cargo test -p ui-components button::logic::`）
+1. `cargo check -p ui`
+2. 相关组件单测（例如 Button：`cargo test -p ui --test button_semantics`）
+3. 相关逻辑单测（例如：`cargo test -p ui button::logic::`）
 4. 通过后再扩展到 docs/playground
 
 如果失败：
@@ -142,9 +142,9 @@
 
 Button 已完成第一轮落地，可作为模板：
 
-- Struct-First：`crates/ui-components/src/button/spec.rs`
-- 语义反射：`crates/ui-components/src/button/view.rs`（`data-ui-schema`）
-- 逻辑归一：`crates/ui-components/src/button/logic.rs`
+- Struct-First：`crates/ui/src/button/spec.rs`
+- 语义反射：`crates/ui/src/button/view.rs`（`data-ui-schema`）
+- 逻辑归一：`crates/ui/src/button/logic.rs`
 - 语义测试：`components/button/test/button_semantics.rs`
 
 下一优先级建议：

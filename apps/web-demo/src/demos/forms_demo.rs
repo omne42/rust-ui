@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{Button, Checkbox, CheckboxGroup, CheckboxSize, CheckboxVariant, Switch};
+use ui::{Button, Checkbox, CheckboxGroup, CheckboxSize, CheckboxVariant, Switch};
 
 #[component]
 pub fn FormsDemo() -> impl IntoView {
@@ -87,7 +87,7 @@ pub fn FormsDemo() -> impl IntoView {
             <div class="demo-divider"></div>
             <div class="demo-stack">
                 <div class="demo-row demo-row--end">
-                    <Button variant=ui_components::ButtonVariant::Secondary on_press=Callback::new(move |_| set_group_required.update(|v| *v = !*v))>
+                    <Button variant=ui::ButtonVariant::Secondary on_press=Callback::new(move |_| set_group_required.update(|v| *v = !*v))>
                         {move || if group_required.get() { "Required: on" } else { "Required: off" }}
                     </Button>
                 </div>

@@ -154,7 +154,7 @@ fn icons_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::icons::styles::CSS);"),
-        "ui-components css aggregator should include icons styles."
+        "ui css aggregator should include icons styles."
     );
 }
 

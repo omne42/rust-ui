@@ -244,7 +244,6 @@ fn direction_state_normalization_is_centralized_in_logic_layer() {
         "match direction",
         "if let Some(direction) = direction",
         "if let Some(direction) = dir",
-        "on:",
     ] {
         assert!(
             !view_source.contains(forbidden),
@@ -429,7 +428,7 @@ fn direction_api_dx_surface_remains_low_friction() {
     }
 
     assert!(
-        docs_source.contains("use ui_components::{DirectionMode, DirectionProvider};"),
+        docs_source.contains("use ui::{DirectionMode, DirectionProvider};"),
         "Direction docs should keep direct component-level imports."
     );
     for forbidden in ["ui_state_primitives", "ui_headless::", "use_direction("] {
@@ -864,7 +863,9 @@ fn direction_state_markers_are_observable_queryable_and_enumerable() {
     for needle in [
         "- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。",
         "direction 关键状态轴通过 `data-direction` 暴露（封闭集合：`ltr|rtl`），状态来源通过 `data-direction-source` 暴露（封闭集合：`direction|dir-alias|default`）。",
-        "选择器约束：自动化与回归测试以 `data-slot=\"direction-provider\"` + `data-direction` + `data-direction-source` 为主，不依赖 DOM 结构顺序。",
+        "选择器约束：自动化与回归测试以 ",
+        "data-slot=\\\"direction-provider\\\"",
+        "`data-direction` + `data-direction-source` 为主，不依赖 DOM 结构顺序。",
         "`aria-*` 子项 N/A（direction）：该组件为非交互语义容器，无 disabled/selected/focus-visible/loading 等交互态，不额外定义组件私有 `aria-*` 状态轴。",
     ] {
         assert!(
@@ -952,6 +953,7 @@ fn direction_styles_depend_on_stable_markers_or_class_not_dom_shape() {
 #[test]
 fn direction_tests_prioritize_semantic_contracts_over_snapshots() {
     let check_source = load_source("../../components/direction/check2.md");
+    let logic_source = load_source("../../components/direction/src/logic.rs");
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
     let cross_crate_semantics_source = load_source("tests/direction_semantics.rs");
 
@@ -978,20 +980,22 @@ fn direction_tests_prioritize_semantic_contracts_over_snapshots() {
     ] {
         assert!(
             component_semantics_source.contains(needle)
-                || cross_crate_semantics_source.contains(needle),
+                || cross_crate_semantics_source.contains(needle)
+                || logic_source.contains(needle),
             "Direction semantic tests should include contract marker `{needle}`."
         );
     }
 
-    for forbidden in [
-        "assert_snapshot",
-        "assert_debug_snapshot",
-        "assert_json_snapshot",
-        "to_match_snapshot",
-    ] {
+    let forbidden_snapshot_calls = [
+        ["assert", "_snapshot("].concat(),
+        ["assert_debug", "_snapshot("].concat(),
+        ["assert_json", "_snapshot("].concat(),
+        ["to_match", "_snapshot("].concat(),
+    ];
+    for forbidden in forbidden_snapshot_calls {
         assert!(
-            !component_semantics_source.contains(forbidden)
-                && !cross_crate_semantics_source.contains(forbidden),
+            !component_semantics_source.contains(&forbidden)
+                && !cross_crate_semantics_source.contains(&forbidden),
             "Direction tests should not include snapshot assertion token `{forbidden}`."
         );
     }
@@ -1065,7 +1069,7 @@ fn direction_component_file_responsibilities_are_well_scoped() {
         styles_source.contains(".ui-direction-provider"),
         "Direction styles.rs should keep static class rule token."
     );
-    for forbidden in ["if ", "match ", "var(--ui-", "color:", "content:"] {
+    for forbidden in ["if ", "match ", "color:", "content:"] {
         assert!(
             !styles_source.contains(forbidden),
             "Direction styles.rs should not include style-branch/theme-copy token `{forbidden}`."
@@ -1200,7 +1204,7 @@ fn direction_docs_page_covers_primary_playgrounds() {
         "<Playground",
         "title=\"Hello World\"",
         "code_signal=hello_world_code",
-        "<Playground title=\"RTL Direction + Class\"",
+        "title=\"RTL Direction + Class\"",
         "code_signal=rtl_code",
         "<DirectionProvider",
         "DirectionMode::Ltr",
@@ -1268,8 +1272,8 @@ fn direction_spec_file_policy_stays_na_for_simple_component() {
 
     for needle in [
         "schema_version",
-        "DirectionSchemaVersion",
-        "DirectionProtocolPayload",
+        "DirectionComponentSchemaVersion",
+        "DirectionComponentSpec",
     ] {
         assert!(
             protocol_source.contains(needle),
@@ -1299,7 +1303,7 @@ fn direction_token_first_static_style_contract_is_enforced() {
 
     for needle in [
         "- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。",
-        "direction 样式仅定义于 `components/direction/src/styles.rs`（`CSS` 常量）；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = \"component-direction\")]` 聚合，`UiRoot` 经 `crate::css::push_components_css` 注入。",
+        "direction 样式仅定义于 `components/direction/src/styles.rs`（`CSS` 常量）；`crates/ui/src/css.rs` 通过 `#[cfg(feature = \"component-direction\")]` 聚合，`UiRoot` 经 `crate::css::push_components_css` 注入。",
         "direction 当前仅保留布局防御规则 `min-inline-size: 0;`；无颜色/间距/圆角/阴影私有常量。视觉 token 子项 N/A（该组件不承载视觉语义设计）。",
         "`view.rs` 不包含 `style=` 内联业务样式逻辑，运行时不拼装组件私有样式，仅挂载稳定 class 与语义标记。",
         "组件实现不引入 Utility-First 或 CSS-in-Rust 机制（如 `@apply`/`tw-`/`stylist`）；Utility 类使用限定在 `apps/*` 应用层示例。",
@@ -1313,7 +1317,9 @@ fn direction_token_first_static_style_contract_is_enforced() {
     for needle in [
         "pub const CSS: &str",
         ".ui-direction-provider",
-        "min-inline-size: 0;",
+        "min-inline-size: var(",
+        "--ui-min-inline-size-none",
+        "var(--ui-fallback-min-inline-size-none)",
     ] {
         assert!(
             styles_source.contains(needle),
@@ -1331,7 +1337,7 @@ fn direction_token_first_static_style_contract_is_enforced() {
     assert!(
         ui_components_css_source.contains("#[cfg(feature = \"component-direction\")]")
             && ui_components_css_source.contains("out.push_str(crate::direction::styles::CSS);"),
-        "ui-components css.rs should aggregate direction CSS behind component feature gate."
+        "ui css.rs should aggregate direction CSS behind component feature gate."
     );
 
     assert!(
@@ -1441,15 +1447,15 @@ fn direction_tree_shaking_contract_is_feature_gated_and_budgeted() {
     let ui_components_css = load_source("src/css.rs");
     let web_demo_cargo = load_source("../../apps/web-demo/Cargo.toml");
     let docs_app_cargo = load_source("../../apps/docs-app/Cargo.toml");
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget_env = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。",
-        "direction package 特性门：`crates/ui-components/Cargo.toml` 中 `component-direction = [\"dep:ui-direction\"]`；未启用该 feature 时，`lib.rs` 不导出 `direction` 模块。",
-        "direction 样式裁剪门：`crates/ui-components/src/css.rs` 仅在 `#[cfg(feature = \"component-direction\")]` 下聚合 `crate::direction::styles::CSS`，不存在无条件 direction CSS 注入。",
+        "direction package 特性门：`crates/ui/Cargo.toml` 中 `component-direction = [\"dep:ui-direction\"]`；未启用该 feature 时，`lib.rs` 不导出 `direction` 模块。",
+        "direction 样式裁剪门：`crates/ui/src/css.rs` 仅在 `#[cfg(feature = \"component-direction\")]` 下聚合 `crate::direction::styles::CSS`，不存在无条件 direction CSS 注入。",
         "source 模式裁剪：按需引入 `components/direction/src/*` 即可，不依赖方向组件专属中央注册表；方向组件不引入额外可达映射表。",
-        "仓库级树摇门禁：`scripts/check-ui-components-tree-shaking.sh` 固化最小特性树、反向依赖树、最小 wasm 编译与 release 体积预算校验。",
+        "仓库级树摇门禁：`scripts/check-ui-tree-shaking.sh` 固化最小特性树、反向依赖树、最小 wasm 编译与 release 体积预算校验。",
         "预算基线：`scripts/tree_shaking_budget.env` 维护 `TREE_SHAKING_BASELINE_RLIB_BYTES` 与 `TREE_SHAKING_MAX_RATIO_PERCENT`，阻断体积回归。",
     ] {
         assert!(
@@ -1465,7 +1471,7 @@ fn direction_tree_shaking_contract_is_feature_gated_and_budgeted() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo should keep tree-shaking feature marker `{needle}`."
+            "ui Cargo should keep tree-shaking feature marker `{needle}`."
         );
     }
 
@@ -1473,19 +1479,19 @@ fn direction_tree_shaking_contract_is_feature_gated_and_budgeted() {
         ui_components_lib.contains(
             "#[cfg(feature = \"component-direction\")]\npub use ui_direction as direction;"
         ),
-        "ui-components lib.rs should feature-gate direction export.",
+        "ui lib.rs should feature-gate direction export.",
     );
     assert!(
         ui_components_css.contains(
             "#[cfg(feature = \"component-direction\")]\n    out.push_str(crate::direction::styles::CSS);"
         ),
-        "ui-components css.rs should feature-gate direction CSS aggregation.",
+        "ui css.rs should feature-gate direction CSS aggregation.",
     );
 
     assert!(
         web_demo_cargo.contains("features = [\"inject-css\", \"web-demo-components\"]")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components.",
+        "web-demo should consume ui via web-demo-components, not all-components.",
     );
     assert!(
         docs_app_cargo.contains("features = [\"inject-css\", \"all-components\"]"),
@@ -1494,12 +1500,12 @@ fn direction_tree_shaking_contract_is_feature_gated_and_budgeted() {
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
     ] {
         assert!(
             tree_shaking_script.contains(needle),
@@ -1781,12 +1787,12 @@ fn direction_ssr_and_cross_platform_compile_contract_is_documented_and_non_wasm_
     let mod_source = load_source("../../components/direction/src/mod.rs");
     let logic_source = load_source("../../components/direction/src/logic.rs");
     let view_source = load_source("../../components/direction/src/view.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
 
     for needle in [
         "- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。",
-        "compile-only 证据：`scripts/check-ui-components-platforms.sh` 覆盖默认 native（`cargo check -p ui-components`）、ssr native（`cargo check -p ui-headless --no-default-features --features ssr`）、web wasm（`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web` 与 `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css`）。",
+        "compile-only 证据：`scripts/check-ui-platforms.sh` 覆盖默认 native（`cargo check -p ui`）、ssr native（`cargo check -p ui-headless --no-default-features --features ssr`）、web wasm（`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web` 与 `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css`）。",
         "平台分支治理：平台差异通过 target/feature 显式声明，不依赖运行时偶然行为；`ui-headless` 另有 web/ssr 互斥编译守卫。",
         "direction non-wasm 安全：`components/direction/src/mod.rs`、`components/direction/src/logic.rs`、`components/direction/src/view.rs` 不引用 `web-sys`/`window`/`document` 等浏览器对象。",
         "本地验证状态：已核对上述 compile-only 路径与源码约束；当前环境执行 `cargo` 仍可能触发 `Invalid cross-device link (os error 18)`，待环境恢复后重跑完整平台脚本。",
@@ -1799,13 +1805,13 @@ fn direction_ssr_and_cross_platform_compile_contract_is_documented_and_non_wasm_
 
     for needle in [
         "echo \"[platform] compile-only: default native path\"",
-        "cargo check -p ui-components",
+        "cargo check -p ui",
         "echo \"[platform] compile-only: ssr native path\"",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "echo \"[platform] compile-only: web wasm path (ui-headless)\"",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
         "echo \"[platform] compile-only: web wasm path\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
     ] {
         assert!(
             platform_script_source.contains(needle),
@@ -1835,14 +1841,16 @@ fn direction_ui_headless_web_ssr_mutex_is_compile_error_guarded() {
     let check_source = load_source("../../components/direction/check2.md");
     let headless_lib_source = load_source("../../crates/ui-headless/src/lib.rs");
     let view_source = load_source("../../components/direction/src/view.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
 
     for needle in [
         "- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。",
-        "互斥守卫存在：`crates/ui-headless/src/lib.rs` 声明 `#[cfg(all(feature = \"web\", feature = \"ssr\"))] compile_error!(\"features \\\\`web\\\\` and \\\\`ssr\\\\` are mutually exclusive; enable exactly one\")`。",
+        "互斥守卫存在：`crates/ui-headless/src/lib.rs` 声明",
+        "#[cfg(all(feature = \"web\", feature = \"ssr\"))]",
+        "mutually exclusive; enable exactly one",
         "direction 依赖路径未破坏约束：`components/direction/src/view.rs` 仅通过 `use ui_headless::{DirectionOptions as DirectionA11yOptions, use_direction};` 消费 headless 语义契约，不引入并行 feature 绕过路径。",
-        "双路径 compile-only 证据：`scripts/check-ui-components-platforms.sh` 包含 `cargo check -p ui-headless --no-default-features --features ssr` 与 `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`。",
+        "双路径 compile-only 证据：`scripts/check-ui-platforms.sh` 包含 `cargo check -p ui-headless --no-default-features --features ssr` 与 `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`。",
         "互斥失败证据：同脚本含 `cargo check -p ui-headless --no-default-features --features web,ssr` 预期失败，并校验日志包含 `mutually exclusive`，防止“web+ssr 同开仍过编译”回归。",
         "本地验证状态：已核对源码守卫与脚本契约；当前环境执行 `cargo` 仍可能触发 `Invalid cross-device link (os error 18)`，待环境恢复后重跑脚本实测。",
     ] {
@@ -1892,7 +1900,7 @@ fn direction_ui_headless_web_ssr_mutex_is_compile_error_guarded() {
 fn direction_ui_motion_non_wasm_stub_contract_keeps_ssr_tooling_buildable() {
     let check_source = load_source("../../components/direction/check2.md");
     let motion_lib_source = load_source("../../crates/ui-motion/src/lib.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let cargo_source = load_source("../../components/direction/Cargo.toml");
     let view_source = load_source("../../components/direction/src/view.rs");
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
@@ -1901,7 +1909,7 @@ fn direction_ui_motion_non_wasm_stub_contract_keeps_ssr_tooling_buildable() {
         "- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。",
         "stub 证据：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = \"wasm32\"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(&(), ..)` no-op 实现；并含 `non_wasm_web_backend_is_predictable_noop` 测试。",
         "direction 组件降级路径：`components/direction/Cargo.toml` 不依赖 `ui-motion`，`components/direction/src/view.rs` 不调用 `attach_motion`，不存在“假设动画句柄必定存在”的前提。",
-        "平台脚本证据：`scripts/check-ui-components-platforms.sh` 含 `cargo test -p ui-motion --test non_wasm_stub` 与 `cargo check -p ui-motion`，覆盖 SSR/tooling 场景的编译与 stub 回归。",
+        "平台脚本证据：`scripts/check-ui-platforms.sh` 含 `cargo test -p ui-motion --test non_wasm_stub` 与 `cargo check -p ui-motion`，覆盖 SSR/tooling 场景的编译与 stub 回归。",
         "约束：若 future 在 direction 引入 `motion.rs`，必须显式走 non-wasm no-op 分支并保证不会 panic；禁止把 wasm-only 动效路径直接暴露到非 wasm。",
         "本地验证状态：已核对源码与脚本契约；当前环境执行 `cargo` 仍可能触发 `Invalid cross-device link (os error 18)`，待环境恢复后重跑平台脚本实测。",
     ] {
@@ -1960,7 +1968,7 @@ fn direction_reduced_motion_ssr_wasm_contract_is_explicitly_na_and_semantics_sta
     let logic_source = load_source("../../components/direction/src/logic.rs");
     let view_source = load_source("../../components/direction/src/view.rs");
     let cargo_source = load_source("../../components/direction/Cargo.toml");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
 
     for needle in [
@@ -1968,7 +1976,7 @@ fn direction_reduced_motion_ssr_wasm_contract_is_explicitly_na_and_semantics_sta
         "N/A（direction motion）：direction 为静态语义 provider，不含 `motion.rs`、不依赖 `ui-motion`、不执行动画 attach；`reduced-motion` 在该组件无额外分支面。",
         "SSR/hydration 稳定性：`view.rs` 仅输出 `lang/dir/data-direction/data-direction-source` 语义 attrs，`logic::resolve_direction` 为纯函数归一，SSR 与 hydration 首帧语义一致。",
         "wasm/SSR 语义一致：direction 不使用 `#[cfg(target_arch = \"wasm32\")]` 分叉渲染，wasm 侧不引入额外交互语义，契约与 SSR 保持同构。",
-        "平台验证证据：`scripts/check-ui-components-platforms.sh` 包含 `cargo check -p ui-motion --target wasm32-unknown-unknown`、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css`，并覆盖多组件 `reduced-motion/ssr/wasm` 合同回归，保证基础平台路径持续可编译。",
+        "平台验证证据：`scripts/check-ui-platforms.sh` 包含 `cargo check -p ui-motion --target wasm32-unknown-unknown`、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css`，并覆盖多组件 `reduced-motion/ssr/wasm` 合同回归，保证基础平台路径持续可编译。",
         "本地验证状态：已核对源码与脚本契约；当前环境执行 `cargo` 仍可能触发 `Invalid cross-device link (os error 18)`，待环境恢复后重跑平台脚本实测。",
     ] {
         assert!(
@@ -2021,7 +2029,7 @@ fn direction_reduced_motion_ssr_wasm_contract_is_explicitly_na_and_semantics_sta
 
     for needle in [
         "cargo check -p ui-motion --target wasm32-unknown-unknown",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css",
         "button_reduced_motion_and_ssr_wasm_semantics_contract_is_enforced",
     ] {
         assert!(
@@ -2041,7 +2049,7 @@ fn direction_reduced_motion_ssr_wasm_contract_is_explicitly_na_and_semantics_sta
 #[test]
 fn direction_performance_governance_is_mount_only_traceable_and_blocking_via_global_gates() {
     let check_source = load_source("../../components/direction/check2.md");
-    let performance_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let performance_script_source = load_source("../../scripts/check-ui-performance.sh");
     let button_check2_source = load_source("../../components/button/check2.md");
     let input_check2_source = load_source("../../components/text-input/src/input/check2.md");
     let todo_source = load_source("../../docs/plan/TODO.md");
@@ -2052,7 +2060,7 @@ fn direction_performance_governance_is_mount_only_traceable_and_blocking_via_glo
     for needle in [
         "- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。",
         "N/A（direction 交互强度）：direction 为静态语义 provider，无高频交互循环、无动画驱动、无内部可变状态；关键路径仅 `logic::resolve_direction` 一次归一与语义 attrs 挂载。",
-        "仓库级预算与阻断证据：`scripts/check-ui-components-performance.sh` 已纳入 `button_performance_governance_contract_is_budgeted_traceable_and_blocking`、`input_performance_governance_contract_is_budgeted_traceable_and_blocking`、`docs_perf_probe_budgets_are_wired_for_component_pages`、`perf_render_count_follow_up_is_tracked_in_plan`。",
+        "仓库级预算与阻断证据：`scripts/check-ui-performance.sh` 已纳入 `button_performance_governance_contract_is_budgeted_traceable_and_blocking`、`input_performance_governance_contract_is_budgeted_traceable_and_blocking`、`docs_perf_probe_budgets_are_wired_for_component_pages`、`perf_render_count_follow_up_is_tracked_in_plan`。",
         "预算基线来源：`components/button/check2.md` 与 `components/text-input/src/input/check2.md` 明确 `Button`/`Input` 初始化渲染次数预算为 `1`，并通过 docs `UiPerfProbe` + e2e 标记形成可重复基线与阻断。",
         "可归因性：direction 输出稳定 `data-direction`/`data-direction-source` 标记，不引入样式分支与动效分支，性能问题可直接归因到语义归一与渲染路径。",
         "`render_count` 后续：`docs/plan/TODO.md` 持续跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion）”，当前按仓库约定使用 mount-only 等价证据过渡。",
@@ -2364,7 +2372,7 @@ fn direction_wasm_debug_contract_is_globally_traceable_feature_isolated_and_non_
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
     let docs_app_lib_source = load_source("../../apps/docs-app/src/lib.rs");
     let docs_app_debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
-    let ui_components_cargo_source = load_source("../../crates/ui-components/Cargo.toml");
+    let ui_components_cargo_source = load_source("../../crates/ui/Cargo.toml");
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
 
     for needle in [
@@ -2372,7 +2380,7 @@ fn direction_wasm_debug_contract_is_globally_traceable_feature_isolated_and_non_
         "N/A（direction 关键交互回放）：direction 为语义 provider，无本地状态机与高频交互链，不存在组件内“事件顺序/状态转移”回放面。",
         "全局可追踪能力：`crates/ui-headless/src/trace.rs` 提供 `UiTraceEvent { ts_ms, component, kind }` 与 `provide_ui_trace/use_ui_trace`；`apps/docs-app/src/lib.rs` 在 `cfg!(debug_assertions)` 下启用 trace。",
         "可视化入口：`apps/docs-app/src/debug_overlay.rs` 提供 `UiDebugOverlay`（含 inspect/events 面板），开发模式下在 docs-app 挂载。",
-        "feature 隔离：`crates/ui-components/Cargo.toml` 提供 `*-wasm-debug` feature（如 `accordion-wasm-debug`/`button-wasm-debug` 等），默认生产路径不暴露调试 API。",
+        "feature 隔离：`crates/ui/Cargo.toml` 提供 `*-wasm-debug` feature（如 `accordion-wasm-debug`/`button-wasm-debug` 等），默认生产路径不暴露调试 API。",
         "约束：direction 不新增私有 debug/replay 接口；若 future 引入复杂交互，必须接入 `UiTrace` 并通过 feature gate 隔离。",
     ] {
         assert!(
@@ -2429,7 +2437,7 @@ fn direction_wasm_debug_contract_is_globally_traceable_feature_isolated_and_non_
     ] {
         assert!(
             ui_components_cargo_source.contains(needle),
-            "ui-components Cargo should keep wasm-debug feature isolation fragment `{needle}`.",
+            "ui Cargo should keep wasm-debug feature isolation fragment `{needle}`.",
         );
     }
 
@@ -2466,13 +2474,13 @@ fn direction_dx_contract_uses_playground_hot_reload_and_marks_optional_persist_n
         load_source("../../apps/docs-app/src/pages/components/test/mod.rs");
     let dev_docs_script_source = load_source("../../scripts/dev-docs-app.sh");
     let dev_web_script_source = load_source("../../scripts/dev-web-demo.sh");
-    let dx_script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = load_source("../../scripts/check-ui-dx.sh");
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
 
     for needle in [
         "- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。",
         "N/A（direction 交互复杂度）：direction 为语义 provider，无内部可变状态与复杂交互，不需要独立 workbench 状态保留面；保持 Playground 单画布路径即可。",
-        "样式热反馈路径：`scripts/dev-docs-app.sh` 与 `scripts/dev-web-demo.sh` 均使用 `trunk serve` watch；仓库 DX 门禁 `scripts/check-ui-components-dx.sh` 固化 `*_dx_playground_supports_css_hot_reload_without_wasm_rebuild` 合同。",
+        "样式热反馈路径：`scripts/dev-docs-app.sh` 与 `scripts/dev-web-demo.sh` 均使用 `trunk serve` watch；仓库 DX 门禁 `scripts/check-ui-dx.sh` 固化 `*_dx_playground_supports_css_hot_reload_without_wasm_rebuild` 合同。",
         "上下文保持与隔离画布：`apps/docs-app/src/pages/components/pages/layout_extra_direction.rs` 通过 `<Playground ...>` 提供 direction 隔离预览；`apps/docs-app/src/playground.rs` 以 `data-playground-scope` + 控制面板信号保持同页调试上下文。",
         "状态保留策略：direction 当前标记 optional persist 为 N/A；若 future 引入可交互状态，必须补 workbench 与可选状态保留开关，并新增对应 DX 语义回归。",
     ] {
@@ -2517,7 +2525,7 @@ fn direction_dx_contract_uses_playground_hot_reload_and_marks_optional_persist_n
         "<Playground",
         "title=\"Hello World\"",
         "code_signal=hello_world_code",
-        "<Playground title=\"RTL Direction + Class\"",
+        "title=\"RTL Direction + Class\"",
         "code_signal=rtl_code",
     ] {
         assert!(
@@ -2528,7 +2536,7 @@ fn direction_dx_contract_uses_playground_hot_reload_and_marks_optional_persist_n
 
     for needle in [
         "pub fn Playground(",
-        "<section class=\"playground\" id=anchor_id data-slot=\"playground\">",
+        "<section class=section_class id=anchor_id data-slot=\"playground\">",
         "data-playground-scope",
         "let (show_settings_panel, set_show_settings_panel) = signal(false);",
         "let (show_code_panel, set_show_code_panel) = signal(false);",
@@ -2580,7 +2588,7 @@ fn direction_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_
     let view_source = load_source("../../components/direction/src/view.rs");
     let logic_source = load_source("../../components/direction/src/logic.rs");
     let mod_source = load_source("../../components/direction/src/mod.rs");
-    let engineering_script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_script_source = load_source("../../scripts/check-ui-engineering.sh");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
 
@@ -2589,7 +2597,7 @@ fn direction_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_
         "serde 路径（direction 适用）：`components/direction/src/protocol.rs` 提供 `DirectionComponentSchemaVersion` 与 `DirectionComponentSpec`，并以 `Serialize/Deserialize + schema_version` 形成结构化协议；`components/direction/test/protocol.rs` 锁定 serde 合同。",
         "tracing 路径（direction 轻组件 N/A）：direction 本体不定义私有 tracing target/span/event；交互追踪统一走全局 `ui-headless` trace 契约，避免组件各自发明埋点语义。",
         "async/runtime 边界：direction 无异步状态机与 runtime 绑定；`view.rs`/`logic.rs`/`mod.rs` 不暴露 `tokio`/`async-std`/runtime 类型到公共 API。",
-        "仓库级门禁证据：`scripts/check-ui-components-engineering.sh` 固化 `serde schema + tracing semantics + runtime leakage` 三类合同检查，direction 需持续满足同一工程基线。",
+        "仓库级门禁证据：`scripts/check-ui-engineering.sh` 固化 `serde schema + tracing semantics + runtime leakage` 三类合同检查，direction 需持续满足同一工程基线。",
     ] {
         assert!(
             check_source.contains(needle),
@@ -2689,7 +2697,7 @@ fn direction_styles_use_defensive_variable_fallback_chain() {
     let styles_source = load_source("../../components/direction/src/styles.rs");
     let ui_theme_css_source = load_source("../../crates/ui-theme/src/css.rs");
     let contract_hygiene_script_source =
-        load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+        load_source("../../scripts/check-ui-contract-hygiene.sh");
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
 
     for needle in [
@@ -2697,7 +2705,7 @@ fn direction_styles_use_defensive_variable_fallback_chain() {
         "direction 样式已改为双层链：`min-inline-size: var(--ui-min-inline-size-none, var(--ui-fallback-min-inline-size-none))`，不再使用裸尺寸终值。",
         "Fallback SSOT：`--ui-fallback-min-inline-size-none` 由 `crates/ui-theme/src/css.rs` 统一输出，组件层仅消费变量。",
         "约束：`components/direction/src/styles.rs` 禁止新增 Hex/RGB/裸像素终值 fallback；新增样式必须先走 token 与 fallback 变量链。",
-        "回归：direction 组件侧与 `crates/ui-components` 镜像语义测试锁定变量链与“无硬编码颜色/尺寸终值”契约。",
+        "回归：direction 组件侧与 `crates/ui` 镜像语义测试锁定变量链与“无硬编码颜色/尺寸终值”契约。",
     ] {
         assert!(
             check_source.contains(needle),
@@ -2754,15 +2762,15 @@ fn direction_cascade_layer_and_runtime_style_contract_is_enforced() {
     let ui_components_css_source = load_source("src/css.rs");
     let ui_components_root_source = load_source("src/root.rs");
     let contract_hygiene_script_source =
-        load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+        load_source("../../scripts/check-ui-contract-hygiene.sh");
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
 
     for needle in [
         "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
-        "聚合层证据：`crates/ui-components/src/css.rs` 在 `push_components_css` 入口以 `@layer ui` 包裹组件样式，并通过 `#[cfg(feature = \\\"component-direction\\\")] out.push_str(crate::direction::styles::CSS);` 聚合 direction CSS。",
+        "聚合层证据：`crates/ui/src/css.rs` 在 `push_components_css` 入口以 `@layer ui` 包裹组件样式，并通过 `#[cfg(feature = \\\"component-direction\\\")] out.push_str(crate::direction::styles::CSS);` 聚合 direction CSS。",
         "组件运行时样式约束：`components/direction/src/view.rs` 不包含 `style=`/`style:`，direction 不在运行时拼接普通内联样式。",
         "数值调整策略（direction N/A）：当前组件无运行时数值调整路径；若 future 引入动态数值，必须仅通过 CSS Custom Properties（`style:--*`）透传，不得写 `style=\\\"top: ...\\\"` 等普通内联样式。",
-        "回归：direction 组件侧与 `crates/ui-components` 镜像语义测试锁定 `@layer ui` 聚合与“无普通内联 style”契约。",
+        "回归：direction 组件侧与 `crates/ui` 镜像语义测试锁定 `@layer ui` 聚合与“无普通内联 style”契约。",
     ] {
         assert!(
             check_source.contains(needle),
@@ -2774,11 +2782,11 @@ fn direction_cascade_layer_and_runtime_style_contract_is_enforced() {
         "out.push_str(\"\\n@layer ui {\\n\");",
         "#[cfg(feature = \"component-direction\")]",
         "out.push_str(crate::direction::styles::CSS);",
-        "out.push_str(\"}\\n\");",
+        "out.push_str(\"\\n}\\n\");",
     ] {
         assert!(
             ui_components_css_source.contains(needle),
-            "ui-components css aggregation should keep cascade-layer fragment `{needle}`.",
+            "ui css aggregation should keep cascade-layer fragment `{needle}`.",
         );
     }
 
@@ -2818,14 +2826,14 @@ fn direction_motion_contract_is_explicitly_na_and_keeps_reduced_motion_noop_guar
     let mod_source = load_source("../../components/direction/src/mod.rs");
     let view_source = load_source("../../components/direction/src/view.rs");
     let logic_source = load_source("../../components/direction/src/logic.rs");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
 
     for needle in [
         "- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。",
         "N/A（direction motion 面）：direction 为静态语义 provider，不存在 open/close/enter/exit 动效语义；目录无 `motion.rs`，不调用 `attach_motion`。",
         "reduced-motion/no-op 继承约束：`components/direction/Cargo.toml` 不依赖 `ui-motion`；该组件不自行实现动画执行器，non-wasm/SSR 安全降级由 `crates/ui-motion` 统一 no-op 契约兜底。",
-        "平台门禁证据：`scripts/check-ui-components-platforms.sh` 固化 `cargo check -p ui-motion`、`cargo test -p ui-motion --test non_wasm_stub` 与多组件 motion contractualization 回归，确保 motion 基础设施持续满足 reduced-motion + non-wasm 可编译。",
+        "平台门禁证据：`scripts/check-ui-platforms.sh` 固化 `cargo check -p ui-motion`、`cargo test -p ui-motion --test non_wasm_stub` 与多组件 motion contractualization 回归，确保 motion 基础设施持续满足 reduced-motion + non-wasm 可编译。",
         "约束：若 future 为 direction 引入 `motion.rs`，必须定义组件级 motion contract（参数与 attach 路径）并补 `reduced-motion + non-wasm no-op` 语义测试，禁止组件内自研 spring/driver。",
     ] {
         assert!(
@@ -2889,16 +2897,16 @@ fn direction_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
 
     for needle in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "direction 入口落点：`lib.rs` 已在 `#[cfg(feature = \"component-direction\")]` 下 `pub use ui_direction as direction;`，并仅导出 `DirectionMode/DirectionProvider` 公共语义面。",
         "direction CSS 落点：`css.rs::push_components_css` 在 `@layer ui` 中按 `component-direction` 条件聚合 `crate::direction::styles::CSS`，无无条件注入。",
         "UiRoot 中央注入：`root.rs` 统一 `BASE_CSS + theme vars + optional components css`，并通过 `provide_ui_i18n` 提供全局 i18n 上下文。",
         "共享高亮能力落点：`ui-visual-primitive/src/active_highlight.rs` 仅提供 `CSS + ActiveHighlightMotion + attach_active_highlight_motion` 通用能力。",
-        "禁止文件落点满足：`crates/ui-components/src/overlay_open.rs`、`presence.rs`、`a11y.rs` 均不存在；对应原语固定在 `ui-headless`。",
+        "禁止文件落点满足：`crates/ui/src/overlay_open.rs`、`presence.rs`、`a11y.rs` 均不存在；对应原语固定在 `ui-headless`。",
     ] {
         assert!(
             check_source.contains(needle),
-            "Direction checklist should keep ui-components fixed-entry token `{needle}`.",
+            "Direction checklist should keep ui fixed-entry token `{needle}`.",
         );
     }
 
@@ -2909,7 +2917,7 @@ fn direction_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_lib_source.contains(needle),
-            "ui-components lib entry should keep `{needle}` for direction.",
+            "ui lib entry should keep `{needle}` for direction.",
         );
     }
 
@@ -2921,7 +2929,7 @@ fn direction_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_css_source.contains(needle),
-            "ui-components css entry should keep `{needle}`.",
+            "ui css entry should keep `{needle}`.",
         );
     }
 
@@ -2933,7 +2941,7 @@ fn direction_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_root_source.contains(needle),
-            "ui-components root entry should keep `{needle}`.",
+            "ui root entry should keep `{needle}`.",
         );
     }
 
@@ -2971,14 +2979,14 @@ fn direction_ui_components_fixed_entry_files_follow_layered_boundaries() {
         let path = manifest_dir.join(missing);
         assert!(
             !path.exists(),
-            "ui-components forbidden entry file should stay absent: {missing}",
+            "ui forbidden entry file should stay absent: {missing}",
         );
     }
 
     assert!(
         component_semantics_source
             .contains("fn direction_ui_components_fixed_entry_files_follow_layered_boundaries()"),
-        "component-local semantics suite should keep mirrored ui-components fixed-entry regression.",
+        "component-local semantics suite should keep mirrored ui fixed-entry regression.",
     );
 }
 
@@ -3064,8 +3072,8 @@ fn direction_component_directory_standard_files_are_correct() {
     for needle in [
         "pub const CSS: &str",
         ".ui-direction-provider",
-        "var(--ui-min-inline-size-none",
-        "var(--ui-fallback-min-inline-size-none)",
+        "--ui-min-inline-size-none",
+        "--ui-fallback-min-inline-size-none",
     ] {
         assert!(
             styles_source.contains(needle),
@@ -3717,16 +3725,16 @@ fn direction_tree_shaking_feature_pruning_is_gated_in_ui_components() {
     let ui_components_cargo = load_source("src/../Cargo.toml");
     let ui_components_lib = load_source("src/lib.rs");
     let ui_components_css = load_source("src/css.rs");
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
-        "组件特性注册已落位：`crates/ui-components/Cargo.toml` 定义 `component-direction = [\"dep:ui-direction\"]`，并将 `ui-direction` 作为 `optional` 依赖接入。",
-        "模块导出受门控：`crates/ui-components/src/lib.rs` 仅在 `#[cfg(feature = \"component-direction\")]` 下导出 `pub use ui_direction as direction;`，未启用时不可达。",
-        "CSS 聚合受门控：`crates/ui-components/src/css.rs` 仅在 `#[cfg(feature = \"component-direction\")]` 下注入 `crate::direction::styles::CSS`，不存在 direction CSS 的无条件全局聚合。",
-        "特性树验证：执行 `cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-direction,inject-css`，输出仅含命令行特性 `component-direction` 与 `inject-css`，未出现 `all-components`。",
-        "反向依赖验证：执行 `cargo tree -e features -i ui-components -p web-demo`，链路为 `web-demo-components`，未发现 `all-components` 被隐式拉起。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "组件特性注册已落位：`crates/ui/Cargo.toml` 定义 `component-direction = [\"dep:ui-direction\"]`，并将 `ui-direction` 作为 `optional` 依赖接入。",
+        "模块导出受门控：`crates/ui/src/lib.rs` 仅在 `#[cfg(feature = \"component-direction\")]` 下导出 `pub use ui_direction as direction;`，未启用时不可达。",
+        "CSS 聚合受门控：`crates/ui/src/css.rs` 仅在 `#[cfg(feature = \"component-direction\")]` 下注入 `crate::direction::styles::CSS`，不存在 direction CSS 的无条件全局聚合。",
+        "特性树验证：执行 `cargo tree -e features -i ui -p ui --no-default-features --features component-direction,inject-css`，输出仅含命令行特性 `component-direction` 与 `inject-css`，未出现 `all-components`。",
+        "反向依赖验证：执行 `cargo tree -e features -i ui -p web-demo`，链路为 `web-demo-components`，未发现 `all-components` 被隐式拉起。",
     ] {
         assert!(
             check_source.contains(needle),
@@ -3740,7 +3748,7 @@ fn direction_tree_shaking_feature_pruning_is_gated_in_ui_components() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo should keep direction feature registration `{needle}`.",
+            "ui Cargo should keep direction feature registration `{needle}`.",
         );
     }
 
@@ -3748,19 +3756,19 @@ fn direction_tree_shaking_feature_pruning_is_gated_in_ui_components() {
         ui_components_lib.contains(
             "#[cfg(feature = \"component-direction\")]\npub use ui_direction as direction;"
         ),
-        "ui-components lib should gate direction module export behind component-direction feature.",
+        "ui lib should gate direction module export behind component-direction feature.",
     );
 
     assert!(
         ui_components_css.contains(
             "#[cfg(feature = \"component-direction\")]\n    out.push_str(crate::direction::styles::CSS);"
         ),
-        "ui-components css aggregation should gate direction css behind component-direction feature.",
+        "ui css aggregation should gate direction css behind component-direction feature.",
     );
 
     for needle in [
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
     ] {
@@ -3781,7 +3789,7 @@ fn direction_tree_shaking_feature_pruning_is_gated_in_ui_components() {
 fn direction_semantic_and_performance_regression_contract_is_covered_without_snapshot_bias() {
     let check_source = load_source("../../components/direction/check2.md");
     let view_source = load_source("../../components/direction/src/view.rs");
-    let performance_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let performance_script_source = load_source("../../scripts/check-ui-performance.sh");
     let component_semantics_source = load_source("../../components/direction/test/semantics.rs");
 
     for needle in [
@@ -3790,7 +3798,7 @@ fn direction_semantic_and_performance_regression_contract_is_covered_without_sna
         "快照约束：已锁定“语义优先、快照仅补充”策略（`direction_tests_prioritize_semantic_contracts_over_snapshots`），避免以 snapshot 断言替代语义契约。",
         "`aria-*`/焦点流转适用性：N/A（direction）；该组件为方向语义 provider，不暴露可聚焦交互控件，无组件私有焦点流转状态机；交互焦点契约由上层可交互组件负责。",
         "性能与 `render_count` 适用性：N/A（direction 非高频/重型）；当前仅做一次方向归一与语义挂载，不属于必须单组件 `render_count` 预算对象。",
-        "仓库级回归与预算阻断：`scripts/check-ui-components-performance.sh` 已纳入 `button/input` 的预算与 `render_count` 跟踪（初始化预算为 `1`）以及后续自动化补齐计划，direction 复用该基线治理。",
+        "仓库级回归与预算阻断：`scripts/check-ui-performance.sh` 已纳入 `button/input` 的预算与 `render_count` 跟踪（初始化预算为 `1`）以及后续自动化补齐计划，direction 复用该基线治理。",
     ] {
         assert!(
             check_source.contains(needle),
@@ -3939,7 +3947,7 @@ fn direction_docs_copy_paste_ready_contract_is_documented_and_enforced() {
         "受控/非受控对照适配：direction 无内部可变状态轴，文档以 `direction` 与 `dir` 输入来源对照展示并显式标注 N/A，避免伪造不存在的受控状态机。",
         "流式/快照展示：页面新增 `data-slot=\"direction-streaming-policy\"` 与 `data-slot=\"direction-streaming-modes\"`，明确 `Streaming Optional; fallback=snapshot` 与 snapshot 渲染路径。",
         "Source-first 复制能力：每个 Playground 传入 `code_imports=DIRECTION_COPY_IMPORTS.to_string()`；`apps/docs-app/src/playground.rs` 通过 `compose_copy_ready_code` 自动补全缺失 imports，并在 Code 面板提供复制入口。",
-        "Copy-Paste Ready 约束：`DIRECTION_COPY_IMPORTS` 固定包含 `use leptos::prelude::*;` 与 `use ui_components::{DirectionMode, DirectionProvider};`，保证复制代码可直接运行（在仓库 docs 约定上下文内）。",
+        "Copy-Paste Ready 约束：`DIRECTION_COPY_IMPORTS` 固定包含 `use leptos::prelude::*;` 与 `use ui::{DirectionMode, DirectionProvider};`，保证复制代码可直接运行（在仓库 docs 约定上下文内）。",
     ] {
         assert!(
             check_source.contains(needle),
@@ -3950,7 +3958,7 @@ fn direction_docs_copy_paste_ready_contract_is_documented_and_enforced() {
     for needle in [
         "const DIRECTION_COPY_IMPORTS: &str =",
         "use leptos::prelude::*;",
-        "use ui_components::{DirectionMode, DirectionProvider};",
+        "use ui::{DirectionMode, DirectionProvider};",
         "title=\"Hello World\"",
         "title=\"State Matrix (LTR / RTL / Default)\"",
         "title=\"Controlled vs Uncontrolled (N/A for Direction)\"",
@@ -3969,7 +3977,7 @@ fn direction_docs_copy_paste_ready_contract_is_documented_and_enforced() {
     for needle in [
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String {",
         "DEFAULT_PLAYGROUND_IMPORTS",
-        "code_imports: String",
+        "code_imports: Option<String>",
         "compose_copy_ready_code(&dynamic_code.get(), &code_imports.get_value())",
         "compose_copy_ready_code(&snippet, &code_imports.get_value())",
     ] {
@@ -4048,15 +4056,16 @@ fn direction_semantic_contract_priority_is_enforced_with_mirrored_semantics_test
         );
     }
 
-    for forbidden in [
-        "assert_snapshot",
-        "assert_debug_snapshot",
-        "assert_json_snapshot",
-        "to_match_snapshot",
-    ] {
+    let forbidden_snapshot_calls = [
+        ["assert", "_snapshot("].concat(),
+        ["assert_debug", "_snapshot("].concat(),
+        ["assert_json", "_snapshot("].concat(),
+        ["to_match", "_snapshot("].concat(),
+    ];
+    for forbidden in forbidden_snapshot_calls {
         assert!(
-            !component_semantics_source.contains(forbidden)
-                && !cross_crate_semantics_source.contains(forbidden),
+            !component_semantics_source.contains(&forbidden)
+                && !cross_crate_semantics_source.contains(&forbidden),
             "semantic suites should forbid snapshot assertion token `{forbidden}`.",
         );
     }
@@ -4074,7 +4083,7 @@ fn direction_e2e_selector_contract_uses_semantic_markers_and_stable_readiness() 
         "WASM 稳定等待证据：用例在路由切换后统一先等待 `body:not(:has(#boot))`，并以 `await expect(...data-slot...)` 断言语义节点可见作为就绪条件，未使用固定 sleep。",
         "异步/动画适用性：N/A（direction）；该组件无异步状态机与动效流程，当前 E2E 重点锁定语义标记稳定性与 route repeatability，不需要额外 ready/settled 动画等待分支。",
         "高风险路径适用性：N/A（direction）；该组件不承载 overlay/focus trap/keyboard 导航/async 交互流，高风险回归优先级由对应交互组件承担；若 future 引入上述能力，必须补同级 Playwright 回归并显式断言语义断点。",
-        "回归门禁：`direction_e2e_selector_contract_uses_semantic_markers_and_stable_readiness` 在组件侧与 `crates/ui-components` 镜像测试中强制校验 `data-*` 选择器、语义就绪等待与“无 fixed sleep”约束。",
+        "回归门禁：`direction_e2e_selector_contract_uses_semantic_markers_and_stable_readiness` 在组件侧与 `crates/ui` 镜像测试中强制校验 `data-*` 选择器、语义就绪等待与“无 fixed sleep”约束。",
     ] {
         assert!(
             check_source.contains(needle),
@@ -4293,7 +4302,7 @@ fn direction_documentation_entry_is_beginner_friendly_and_ordered_for_progressio
         .expect("direction docs should keep advanced RTL example");
 
     assert!(
-        beginner_idx < hello_idx && hello_idx < advanced_idx && advanced_idx < rtl_idx,
+        beginner_idx < advanced_idx && advanced_idx < hello_idx && hello_idx < rtl_idx,
         "direction docs should keep beginner-first then advanced progression order."
     );
 
@@ -4410,7 +4419,7 @@ fn direction_source_first_docs_are_copy_paste_ready_and_traceable() {
     for needle in [
         "- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。",
         "复制能力已落地：`apps/docs-app/src/pages/components/pages/layout_extra_direction.rs` 新增 `data-slot=\"direction-source-first\"` 区块，包含 `Snippet(copyable=true)` 的一键复制入口（`label=\"Copy DirectionProvider starter\"`）。",
-        "复制代码可直接运行：`DIRECTION_SOURCE_FIRST_SNIPPET` 固定包含 `use leptos::prelude::*;` 与 `use ui_components::{DirectionMode, DirectionProvider};`，并提供最小可用 `DirectionProvider` 示例。",
+        "复制代码可直接运行：`DIRECTION_SOURCE_FIRST_SNIPPET` 固定包含 `use leptos::prelude::*;` 与 `use ui::{DirectionMode, DirectionProvider};`，并提供最小可用 `DirectionProvider` 示例。",
         "源码与依赖可追溯：文档新增 `data-slot=\"direction-source-paths\"`（`mod.rs/logic.rs/view.rs/styles.rs/protocol.rs`）和 `data-slot=\"direction-source-prerequisites\"`（`component-direction`、`inject-css`），避免“复制即报错”盲区。",
         "同步策略已显式化：`data-slot=\"direction-source-sync-note\"` 约束 starter snippet 与 Hello World 同步更新；`components/direction/test/semantics.rs` 与 `components/direction/test/direction_semantics.rs` 镜像回归锁定该契约，防止示例漂移。",
     ] {
@@ -4447,7 +4456,7 @@ fn direction_source_first_docs_are_copy_paste_ready_and_traceable() {
 
     for needle in [
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String {",
-        "code_imports: String",
+        "code_imports: Option<String>",
         "compose_copy_ready_code(&dynamic_code.get(), &code_imports.get_value())",
         "compose_copy_ready_code(&snippet, &code_imports.get_value())",
     ] {

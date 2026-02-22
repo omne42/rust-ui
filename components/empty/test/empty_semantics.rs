@@ -37,7 +37,7 @@ fn ui_components_reexports_empty_component_crate() {
     assert!(
         lib_source.contains("#[cfg(feature = \"component-empty\")]")
             && lib_source.contains("pub use ui_empty as empty;"),
-        "ui-components should re-export the external ui-empty crate as `empty`.",
+        "ui should re-export the external ui-empty crate as `empty`.",
     );
     assert!(
         cargo_source.contains("component-empty = [\"dep:ui-empty\"]"),
@@ -45,7 +45,7 @@ fn ui_components_reexports_empty_component_crate() {
     );
     assert!(
         cargo_source.contains("ui-empty = { path = \"../../components/empty\", optional = true }"),
-        "ui-components Cargo.toml should include the optional ui-empty dependency.",
+        "ui Cargo.toml should include the optional ui-empty dependency.",
     );
 }
 
@@ -277,7 +277,7 @@ fn empty_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::empty::styles::CSS);"),
-        "ui-components css aggregator should include empty styles."
+        "ui css aggregator should include empty styles."
     );
 }
 

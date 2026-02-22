@@ -55,7 +55,7 @@
 - `ui-headless`：交互与可访问性原语（Aria analogue）。
 - `ui-theme`：设计 token 与 CSS 变量输出。
 - `ui-motion`：动效引擎与执行后端。
-- `ui-components`：最终组件层，组合前述能力。
+- `ui`：最终组件层，组合前述能力。
 - `apps/*`：可运行 demo/docs，作为验收面与回归面。
 
 该架构天然面向多端演进：
@@ -178,7 +178,7 @@ A11y 不是“后期补丁”，而是原语层职责：
 
 - `ui-state-primitives`：仅处理与语言无关的状态与规则。
 - `ui-headless`：定义语义与格式化契约（不持有业务字典）。
-- `ui-components`：消费外部 locale/formatter/messages 并渲染。
+- `ui`：消费外部 locale/formatter/messages 并渲染。
 
 ## 5.10 数据可视化兼容性是架构压力测试
 
@@ -203,7 +203,7 @@ A11y 不是“后期补丁”，而是原语层职责：
   - `ui-theme`
   - `ui-motion`
 - Source-first（可定制表达层）：
-  - `ui-components`（按需拉取具体组件源码）
+  - `ui`（按需拉取具体组件源码）
 
 设计理由：
 
@@ -278,7 +278,7 @@ A11y 不是“后期补丁”，而是原语层职责：
 
 原则：
 
-- package 模式下：`ui-components` 必须支持组件级 feature，按需编译。
+- package 模式下：`ui` 必须支持组件级 feature，按需编译。
 - source 模式下：只拉取需要的组件源码，天然实现裁剪。
 - 样式层必须同步裁剪：禁止无条件聚合全部组件 CSS。
 - 禁止全量中央注册表让所有组件保持可达（会破坏 DCE/LTO）。
@@ -567,7 +567,7 @@ DX 基线能力：
 我们将测试分层明确化：
 
 - 单元测试：`ui-state-primitives` 纯逻辑与状态机。
-- 集成测试：`ui-headless + ui-components` 的交互契约验证。
+- 集成测试：`ui-headless + ui` 的交互契约验证。
 - E2E：真实浏览器场景下的端到端回归。
 
 E2E 基线要求：

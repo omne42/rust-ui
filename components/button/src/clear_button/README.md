@@ -36,7 +36,7 @@ docs-app `clear-button` 页面提供对比展示：
 
 ## css test
 
-- 样式来源：`crates/ui-components/src/button/clear_button/styles.rs`
+- 样式来源：`crates/ui/src/button/clear_button/styles.rs`
 - docs Playground 支持 scoped CSS test，用于验证 `data-*` 状态标记与样式联动稳定性。
 
 ## docs-app 入口

@@ -157,7 +157,7 @@ test("docs-app drop-zone source-first docs are copy-paste ready and traceable", 
   await expect(codePanel).toBeVisible();
   await expect(codePanel).toContainText("use leptos::prelude::*;");
   await expect(codePanel).toContainText(
-    "use ui_components::{DropZone, DropZoneMotion, DroppedFile};",
+    "use ui::{DropZone, DropZoneMotion, DroppedFile};",
   );
   await expect(codePanel.locator(".ui-code-block__copy-button").first()).toBeVisible();
 });

@@ -8,12 +8,12 @@ pub(super) const DIRECTION_PROVIDER_DOC: ComponentDoc = ComponentDoc {
 };
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{DirectionMode, DirectionProvider, Snippet};
+use ui::{DirectionMode, DirectionProvider, Snippet};
 
 const DIRECTION_COPY_IMPORTS: &str =
-    "use leptos::prelude::*;\nuse ui_components::{DirectionMode, DirectionProvider};";
+    "use leptos::prelude::*;\nuse ui::{DirectionMode, DirectionProvider};";
 const DIRECTION_SOURCE_FIRST_SNIPPET: &str = r#"use leptos::prelude::*;
-use ui_components::{DirectionMode, DirectionProvider};
+use ui::{DirectionMode, DirectionProvider};
 
 view! {
   <DirectionProvider direction=DirectionMode::Ltr>
@@ -168,7 +168,7 @@ pub(super) fn direction_provider() -> AnyView {
                 "Snapshot: renders complete direction context. Streaming: not required for this provider."
             </p>
             <p class="ui-muted" data-slot="direction-copy-ready-hint">
-                "Copy-ready snippets prepend imports automatically; dependency: ui-components; source: components/direction/src/view.rs."
+                "Copy-ready snippets prepend imports automatically; dependency: ui; source: components/direction/src/view.rs."
             </p>
 
             <Playground
@@ -444,7 +444,7 @@ pub(super) fn direction_provider() -> AnyView {
                 <h2>"Parameter Matrix"</h2>
                 <ul data-slot="direction-parameter-rows">
                     <li><code>"direction: Option&lt;DirectionMode&gt;"</code>" default = None (primary axis; wins priority)"</li>
-                    <li><code>"dir: Option&lt;DirectionMode&gt;"</code>" default = None (legacy alias; used only when direction=None)"</li>
+                    <li><code>"dir: Option&lt;DirectionMode&gt;"</code>" default = None (historical alias; used only when direction=None)"</li>
                     <li><code>"lang: Option&lt;String&gt;"</code>" default = None (forwarded to semantic attrs)"</li>
                     <li><code>"class_name: Option&lt;String&gt;"</code>" default = None (normalized class extension)"</li>
                 </ul>

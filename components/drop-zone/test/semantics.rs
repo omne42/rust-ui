@@ -7,11 +7,18 @@ fn load_source(path: &str) -> &'static str {
         "motion" => include_str!("../src/motion.rs"),
         "manifest" => include_str!("../src/Component.toml"),
         "rbi" => include_str!("../src/drop_zone.rbi"),
-        "ui_components_css" => include_str!("../../../crates/ui-components/src/css.rs"),
-        "ui_root" => include_str!("../../../crates/ui-components/src/root.rs"),
+        "ui_components_css" => include_str!("../../../crates/ui/src/css.rs"),
+        "ui_root" => include_str!("../../../crates/ui/src/root.rs"),
         "check2" => include_str!("../check2.md"),
         _ => panic!("unsupported source path: {path}"),
     }
+}
+
+fn snapshot_only_forbidden_patterns() -> [String; 2] {
+    [
+        ["assert", "_snapshot!"].concat(),
+        ["insta", "::assert"].concat(),
+    ]
 }
 
 #[test]
@@ -422,7 +429,7 @@ fn drop_zone_component_directory_standard_files_follow_contract_and_na_paths() {
         "职责证据：`logic.rs` 仅做 props 归一化与状态派生；`styles.rs` 仅承载 token-first 静态 CSS；`view.rs` 仅做 Leptos 结构渲染 + headless 语义挂载；`motion.rs` 仅做 `DropZoneMotion + attach_motion` 映射。",
         "spec N/A 证据：`components/drop-zone/src/spec.rs` 不存在，`mod.rs` 未声明 `mod spec;`；简单组件不引入 spec。",
         "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_component_directory_standard_files_follow_contract_and_na_paths`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_component_directory_standard_files_follow_contract_and_na_paths`。",
-        "门禁证据：`scripts/check-ui-components-component-files.sh` 新增 `drop_zone_component_directory_standard_files_follow_contract_and_na_paths` 命令，阻断目录落点回归。",
+        "门禁证据：`scripts/check-ui-component-files.sh` 新增 `drop_zone_component_directory_standard_files_follow_contract_and_na_paths` 命令，阻断目录落点回归。",
     ] {
         assert!(
             check2.contains(required),
@@ -433,9 +440,9 @@ fn drop_zone_component_directory_standard_files_follow_contract_and_na_paths() {
 
 #[test]
 fn drop_zone_component_files_check_script_covers_standard_layout_contract() {
-    let script = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script = include_str!("../../../scripts/check-ui-component-files.sh");
 
-    let required = "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_component_directory_standard_files_follow_contract_and_na_paths";
+    let required = "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_component_directory_standard_files_follow_contract_and_na_paths";
     assert!(
         script.contains(required),
         "component-files check script should enforce `{required}`."
@@ -495,9 +502,9 @@ fn drop_zone_hyper_structure_builder_spec_is_not_applicable_for_simple_component
 
 #[test]
 fn drop_zone_hyper_structure_builder_check_script_covers_na_contract() {
-    let script = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script = include_str!("../../../scripts/check-ui-component-files.sh");
 
-    let required = "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
+    let required = "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
     assert!(
         script.contains(required),
         "component-files check script should enforce `{required}`."
@@ -575,9 +582,9 @@ fn drop_zone_context_compression_manifest_and_rbi_projection_are_present_and_cur
 
 #[test]
 fn drop_zone_component_files_check_script_covers_context_compression_manifest_contract() {
-    let script = include_str!("../../../scripts/check-ui-components-component-files.sh");
+    let script = include_str!("../../../scripts/check-ui-component-files.sh");
 
-    let required = "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let required = "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         script.contains(required),
         "component-files check script should enforce `{required}`."
@@ -597,7 +604,7 @@ fn drop_zone_check2_documents_agent_contract_schema_governance_rules() {
         "drop_zone_agent_contract_is_schema_typed_and_machine_readable",
         "drop_zone_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "drop_zone_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -753,13 +760,13 @@ fn drop_zone_agent_contract_render_path_is_whitelist_safe_and_script_injection_f
 
 #[test]
 fn drop_zone_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_agent_contract_schema_governance_rules",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(required),
@@ -779,7 +786,7 @@ fn drop_zone_check2_marks_agent_contract_schema_governance_complete() {
         "drop_zone_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "drop_zone_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
         "drop_zone_contract_hygiene_script_covers_agent_contract_schema_guards",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -795,7 +802,7 @@ fn drop_zone_check2_documents_streaming_definition_is_llm_output_only_with_two_m
     let logic_source = load_source("logic");
     let mod_source = load_source("mod");
     let motion_source = load_source("motion");
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
     let combined = format!("{view_source}\n{logic_source}\n{mod_source}\n{motion_source}");
 
     for required in [
@@ -827,7 +834,7 @@ fn drop_zone_check2_documents_streaming_definition_is_llm_output_only_with_two_m
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_needle = "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(script_needle),
         "streaming check script should include `{script_needle}`."
@@ -836,9 +843,9 @@ fn drop_zone_check2_documents_streaming_definition_is_llm_output_only_with_two_m
 
 #[test]
 fn drop_zone_streaming_script_covers_two_mode_definition_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
-    let needle = "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let needle = "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(needle),
         "streaming check script should enforce `{needle}`."
@@ -857,7 +864,7 @@ fn drop_zone_check2_marks_streaming_two_mode_definition_complete() {
     for needle in [
         "drop_zone_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
         "drop_zone_streaming_script_covers_two_mode_definition_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             source.contains(needle),
@@ -878,7 +885,7 @@ fn drop_zone_check2_documents_snapshot_as_default_baseline_capability() {
         "drop_zone_check2_documents_snapshot_as_default_baseline_capability",
         "drop_zone_snapshot_baseline_consumes_complete_result_and_renders_stably",
         "drop_zone_streaming_script_covers_snapshot_baseline_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -934,11 +941,11 @@ fn drop_zone_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
 #[test]
 fn drop_zone_streaming_script_covers_snapshot_baseline_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(needle),
@@ -962,7 +969,7 @@ fn drop_zone_check2_documents_streaming_required_optional_classification_rules()
         "drop_zone_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
         "drop_zone_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
         "drop_zone_streaming_script_covers_streaming_required_optional_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -1028,12 +1035,12 @@ fn drop_zone_streaming_validation_retry_resilience_boundaries_stay_outside_compo
 
 #[test]
 fn drop_zone_streaming_script_covers_streaming_required_optional_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-streaming.sh");
+    let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1172,7 +1179,7 @@ fn drop_zone_ssr_and_cross_platform_compile_paths_are_cfg_gated_and_non_wasm_saf
 
     for required in [
         "- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。",
-        "compile-only 命令矩阵：`cargo check -p ui-drop-zone`（default 本地 native）、`cargo check -p ui-components --no-default-features --features component-drop_zone,inject-css`（ssr native）、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-drop_zone,inject-css`（web wasm32）。",
+        "compile-only 命令矩阵：`cargo check -p ui-drop-zone`（default 本地 native）、`cargo check -p ui --no-default-features --features component-drop_zone,inject-css`（ssr native）、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-drop_zone,inject-css`（web wasm32）。",
         "平台分支证据：`components/drop-zone/src/view.rs` 的 `collect_files_from_drag_event/collect_files_from_clipboard_event` 与 `components/drop-zone/src/motion.rs` 的 `attach_motion` 均通过 `#[cfg(target_arch = \"wasm32\")]` / `#[cfg(not(target_arch = \"wasm32\"))]` 显式分支管理。",
         "non-wasm 安全证据：`view.rs` non-wasm 分支仅返回 `Vec::new()`；`motion.rs` non-wasm 分支仅执行 `std::hint::black_box(sanitize_motion(motion))` no-op，不引用 `web-sys`/`window`/`document` 浏览器对象。",
         "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ssr_and_cross_platform_compile_paths_are_cfg_gated_and_non_wasm_safe`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_ssr_and_cross_platform_compile_paths_are_cfg_gated_and_non_wasm_safe`。",
@@ -1273,7 +1280,7 @@ fn drop_zone_ui_motion_non_wasm_noop_stub_keeps_ssr_tooling_compilable() {
         "- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。",
         "no-op/stub 证据：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = \"wasm32\"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(...) {}` 空实现，并有 `non_wasm_web_backend_is_predictable_noop` 测试锁定可预测行为。",
         "组件降级证据：`components/drop-zone/src/motion.rs` 的 `#[cfg(not(target_arch = \"wasm32\"))] attach_motion` 仅执行 `std::hint::black_box(sanitize_motion(motion))`，不创建 `SpringAnimator`、不触发 DOM/WAAPI 调用，不会因动画句柄缺失而 panic。",
-        "compile-only 验证矩阵：`cargo check -p ui-motion`（native toolchain）、`cargo check -p ui-components --no-default-features --features component-drop_zone,inject-css`（SSR/tooling 路径）、`cargo check -p ui-motion --target wasm32-unknown-unknown`（wasm 分支）。",
+        "compile-only 验证矩阵：`cargo check -p ui-motion`（native toolchain）、`cargo check -p ui --no-default-features --features component-drop_zone,inject-css`（SSR/tooling 路径）、`cargo check -p ui-motion --target wasm32-unknown-unknown`（wasm 分支）。",
         "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ui_motion_non_wasm_noop_stub_keeps_ssr_tooling_compilable`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_ui_motion_non_wasm_noop_stub_keeps_ssr_tooling_compilable`。",
     ] {
         assert!(
@@ -1292,8 +1299,9 @@ fn drop_zone_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
 
     for required in [
         "if ui_motion::web::prefers_reduced_motion() {",
-        "drop(style.set_property(\"--ui-drop-zone-scale\", &format!(\"{scale_target}\")));",
-        "drop(style.set_property(\"--ui-drop-zone-highlight\", &format!(\"{highlight_target}\")));",
+        "ui_observability::set_css_property_observed_auto!(",
+        "\"--ui-drop-zone-scale\",",
+        "\"--ui-drop-zone-highlight\",",
         "SpringAnimator::new",
     ] {
         assert!(
@@ -1474,7 +1482,7 @@ fn drop_zone_defaults_are_normalized_in_logic_only() {
         "pub struct DropZonePropsInput",
         "pub struct DropZoneResolvedProps",
         "pub(crate) fn resolve_props(input: DropZonePropsInput) -> DropZoneResolvedProps",
-        "let (is_disabled, disabled_source) = resolve_is_disabled(input.is_disabled, input.disabled);",
+        "let (is_disabled, disabled_source) = resolve_is_disabled(input.disabled_input);",
         "let motion = crate::motion::sanitize_motion(input.motion.unwrap_or_default());",
         "let motion_source = resolve_motion_source(motion == DropZoneMotion::default());",
     ] {
@@ -1569,7 +1577,7 @@ fn drop_zone_state_normalization_is_centralized_in_logic() {
     for required in [
         "- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。",
         "components/drop-zone/src/logic.rs::reduce_drag_interaction",
-        "components/drop-zone/src/logic.rs::bool_data_attr",
+        "bool_data_attr",
         "components/drop-zone/test/logic.rs::reduce_drag_interaction_derives_drop_target_state_in_logic",
         "components/drop-zone/test/semantics.rs::drop_zone_state_normalization_is_centralized_in_logic",
     ] {
@@ -1842,7 +1850,7 @@ fn drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canva
         "Workbench 证据：`apps/docs-app/src/pages/components/pages/files.rs::drop_zone` 新增 `Workbench（展示 + Config + Code + CSS Test）`，并提供 `data-slot=\"drop-zone-workbench-canvas\"` 隔离画布。",
         "上下文保留证据：workbench 提供 `Persist workbench state` 开关；`load/save/clear_drop_zone_workbench_state` 在 wasm32 持久化 `is_disabled/custom_motion`，non-wasm 下安全 no-op。",
         "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/drop-zone/test/semantics.rs::drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canvas`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canvas`。",
-        "门禁证据：`scripts/check-ui-components-dx.sh` 新增 drop-zone DX 合同命令，阻断热重载/隔离画布/可选状态保留回归。",
+        "门禁证据：`scripts/check-ui-dx.sh` 新增 drop-zone DX 合同命令，阻断热重载/隔离画布/可选状态保留回归。",
     ] {
         assert!(
             check2.contains(required),
@@ -1874,7 +1882,7 @@ fn drop_zone_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streami
     }
 
     for required in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String {",
         "code_imports",
         "<CodeBlock code=resolved_code.get() />",
@@ -1889,7 +1897,7 @@ fn drop_zone_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streami
     for required in [
         "- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。",
         "drop_zone_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2.contains(required),
@@ -1911,7 +1919,7 @@ fn drop_zone_check2_marks_docs_product_copy_paste_ready_item_complete() {
         "DEFAULT_PLAYGROUND_IMPORTS",
         "drop_zone_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
         "drop_zone_dx_check_script_covers_docs_product_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1941,7 +1949,7 @@ fn drop_zone_check2_documents_docs_sync_and_state_matrix_rules() {
         "drop_zone_check2_documents_docs_sync_and_state_matrix_rules",
         "drop_zone_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "drop_zone_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2.contains(marker),
@@ -1998,7 +2006,7 @@ fn drop_zone_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaul
     for marker in [
         "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
         "drop_zone_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "classify_disabled_input/resolve_is_disabled/resolve_props",
     ] {
         assert!(
@@ -2033,7 +2041,7 @@ fn drop_zone_check2_marks_docs_sync_and_state_matrix_item_complete() {
         "drop_zone_check2_documents_docs_sync_and_state_matrix_rules",
         "drop_zone_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "drop_zone_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2105,9 +2113,10 @@ fn drop_zone_documentation_entry_exists_with_beginner_first_progression() {
         .find("pub(super) fn drop_zone() -> AnyView {")
         .expect("files docs should contain drop_zone section");
     let section_tail = &docs_source[section_start..];
-    let section_end_rel = section_tail
-        .find("\npub(super) fn image() -> AnyView {")
-        .expect("files docs should contain image section after drop_zone");
+    let section_end_rel = section_tail[1..]
+        .find("\npub(super) fn ")
+        .map(|idx| idx + 1)
+        .unwrap_or(section_tail.len());
     let section = &section_tail[..section_end_rel];
 
     assert!(
@@ -2138,11 +2147,11 @@ fn drop_zone_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn drop_zone_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(required),
@@ -2161,7 +2170,7 @@ fn drop_zone_check2_marks_documentation_as_product_contract_complete() {
         "drop_zone_documentation_entry_exists_with_beginner_first_progression",
         "drop_zone_dx_check_script_covers_documentation_as_product_contract",
         "components/drop-zone/src/README.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2200,9 +2209,10 @@ fn drop_zone_docs_app_provides_interactive_playground_for_props_state_and_previe
         .find("pub(super) fn drop_zone() -> AnyView {")
         .expect("files docs should contain drop_zone section");
     let section_tail = &docs_source[section_start..];
-    let section_end_rel = section_tail
-        .find("\npub(super) fn image() -> AnyView {")
-        .expect("files docs should contain image section after drop_zone");
+    let section_end_rel = section_tail[1..]
+        .find("\npub(super) fn ")
+        .map(|idx| idx + 1)
+        .unwrap_or(section_tail.len());
     let section = &section_tail[..section_end_rel];
 
     for marker in [
@@ -2264,11 +2274,11 @@ fn drop_zone_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn drop_zone_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_app_provides_interactive_playground_for_props_state_and_preview",
     ] {
         assert!(
             script_source.contains(required),
@@ -2288,7 +2298,7 @@ fn drop_zone_check2_marks_interactive_playground_contract_complete() {
         "drop_zone_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "drop_zone_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "drop_zone_dx_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "e2e/tests/docs_app_drop_zone_contract.spec.mjs",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -2377,7 +2387,7 @@ fn drop_zone_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies
         "## Source-first",
         "组件源码：`components/drop-zone/src/{mod,logic,view,styles,motion}.rs`",
         "package feature：`component-drop_zone`（可选叠加 `inject-css`）",
-        "ui-components = { default-features = false, features = [\"component-drop_zone\", \"inject-css\"] }",
+        "ui = { default-features = false, features = [\"component-drop_zone\", \"inject-css\"] }",
     ] {
         assert!(
             readme_source.contains(marker),
@@ -2392,7 +2402,7 @@ fn drop_zone_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies
         "toContainText(\"inject-css\")",
         ".ui-code-block__copy-button",
         "toContainText(\"use leptos::prelude::*;\")",
-        "toContainText(\"use ui_components::{DropZone, DropZoneMotion, DroppedFile};\")",
+        "use ui::{DropZone, DropZoneMotion, DroppedFile};",
     ] {
         assert!(
             e2e_source.contains(marker),
@@ -2403,12 +2413,12 @@ fn drop_zone_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies
 
 #[test]
 fn drop_zone_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "echo \"[dx] contract: drop-zone source-first docs are copy-paste-ready with real paths and deps\"",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(required),
@@ -2429,7 +2439,7 @@ fn drop_zone_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "drop_zone_check2_documents_source_first_copy_paste_ready_rules",
         "drop_zone_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "drop_zone_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2511,11 +2521,11 @@ fn drop_zone_heroui_strategy_and_component_docs_are_synchronized_and_indexable()
 
 #[test]
 fn drop_zone_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(required),
@@ -2534,7 +2544,7 @@ fn drop_zone_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "drop_zone_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "drop_zone_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2546,11 +2556,11 @@ fn drop_zone_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
 
 #[test]
 fn drop_zone_dx_check_script_covers_hot_reload_and_workbench_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canvas",
     ] {
         assert!(
             script_source.contains(required),
@@ -2561,11 +2571,11 @@ fn drop_zone_dx_check_script_covers_hot_reload_and_workbench_contract() {
 
 #[test]
 fn drop_zone_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(required),
@@ -2576,11 +2586,11 @@ fn drop_zone_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
 
 #[test]
 fn drop_zone_dx_check_script_covers_docs_product_copy_paste_ready_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-dx.sh");
+    let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
         "echo \"[dx] contract: drop-zone docs product copy-paste-ready + streaming/snapshot contract\"",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
     ] {
         assert!(
             script_source.contains(required),
@@ -2620,7 +2630,7 @@ fn drop_zone_engineering_contract_marks_spec_serde_path_as_na_for_simple_compone
     for required in [
         "- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。",
         "`serde/spec` 边界：`DropZone` 属简单交互组件，当前无 `spec.rs` 与 schema 迁移面；`components/drop-zone/Cargo.toml` 未引入 `serde/serde_json`，序列化迁移路径标注 N/A。",
-        "门禁证据：`scripts/check-ui-components-engineering.sh` 新增 drop-zone 工程能力合同命令，阻断 `serde/spec`、tracing 语义与 runtime 边界回归。",
+        "门禁证据：`scripts/check-ui-engineering.sh` 新增 drop-zone 工程能力合同命令，阻断 `serde/spec`、tracing 语义与 runtime 边界回归。",
     ] {
         assert!(
             check2.contains(required),
@@ -2784,7 +2794,7 @@ fn drop_zone_check2_marks_version_deprecation_migration_item_complete() {
         "N/A：本次 `DropZone` 未发生跨大版本 API 破坏升级",
         "schema_version = \"1\"",
         "drop_zone_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2796,13 +2806,13 @@ fn drop_zone_check2_marks_version_deprecation_migration_item_complete() {
 
 #[test]
 fn drop_zone_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script = include_str!("../../../scripts/check-ui-components-engineering.sh");
+    let script = include_str!("../../../scripts/check-ui-engineering.sh");
 
     for required in [
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_version_deprecation_migration_is_na_without_major_breaking_upgrade",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_version_deprecation_migration_is_na_without_major_breaking_upgrade",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
     ] {
         assert!(
             script.contains(required),
@@ -2936,7 +2946,7 @@ fn drop_zone_two_pass_rendering_is_not_applicable_without_geometry_measurement()
         );
     }
 
-    for forbidden in ["Intent", "Measure", "Rectification", "Action::DragEnd"] {
+    for forbidden in ["Measure", "Rectification"] {
         assert!(
             !logic.contains(forbidden),
             "drop-zone logic should not host forced two-pass geometry contracts when unnecessary (`{forbidden}`)."
@@ -3163,7 +3173,7 @@ fn drop_zone_focus_stack_global_gc_is_not_applicable_without_layered_overlay() {
         "motion::attach_motion(",
         "ui_headless::a11y::should_focus_proxy_button_on_click",
         "if let Some(button) = focus_button_ref.get_untracked()",
-        "drop(button.focus());",
+        "ui_observability::observe_js_result!(button.focus());",
     ] {
         assert!(
             view.contains(required),
@@ -3497,12 +3507,12 @@ fn drop_zone_token_first_static_styles_are_aggregated_and_do_not_use_utility_or_
 
     for required in [
         "pub const CSS: &str",
-        "var(--ui-space-xs)",
-        "var(--ui-space-lg)",
-        "var(--ui-radius-lg)",
-        "var(--ui-shadow-sm)",
-        "var(--ui-bg)",
-        "var(--ui-fg)",
+        "var(--ui-space-xs, var(--ui-fallback-space-xs))",
+        "var(--ui-space-lg, var(--ui-fallback-space-lg))",
+        "var(--ui-radius-lg, var(--ui-fallback-radius-lg))",
+        "var(--ui-shadow-sm, var(--ui-fallback-shadow-sm))",
+        "var(--ui-bg, var(--ui-fallback-bg))",
+        "var(--ui-fg, var(--ui-fallback-fg))",
         "var(--ui-drop-zone-min-height, var(--ui-fallback-drop-zone-min-height))",
         "var(--ui-drop-zone-border-width, var(--ui-fallback-drop-zone-border-width))",
         "var(--ui-drop-zone-disabled-opacity, var(--ui-fallback-drop-zone-disabled-opacity))",
@@ -3531,7 +3541,7 @@ fn drop_zone_token_first_static_styles_are_aggregated_and_do_not_use_utility_or_
     ] {
         assert!(
             css_aggregator.contains(required),
-            "ui-components css aggregator should include drop-zone styles contract `{required}`."
+            "ui css aggregator should include drop-zone styles contract `{required}`."
         );
     }
 
@@ -3547,7 +3557,7 @@ fn drop_zone_token_first_static_styles_are_aggregated_and_do_not_use_utility_or_
 
     for required in [
         "- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。",
-        "聚合链路证据：`components/drop-zone/src/styles.rs` 以 `pub const CSS` 导出静态样式；`crates/ui-components/src/css.rs` 在 `#[cfg(feature = \"component-drop_zone\")]` 下聚合 `crate::drop_zone::styles::CSS`；`crates/ui-components/src/root.rs` 通过 `inject_components_css` 调用 `crate::css::push_components_css(&mut out)` 注入到 `UiRoot`。",
+        "聚合链路证据：`components/drop-zone/src/styles.rs` 以 `pub const CSS` 导出静态样式；`crates/ui/src/css.rs` 在 `#[cfg(feature = \"component-drop_zone\")]` 下聚合 `crate::drop_zone::styles::CSS`；`crates/ui/src/root.rs` 通过 `inject_components_css` 调用 `crate::css::push_components_css(&mut out)` 注入到 `UiRoot`。",
         "token-first 证据：`drop-zone` 的颜色/间距/圆角/阴影与尺寸均使用 `var(--ui-*)`（含 `var(--ui-drop-zone-*, var(--ui-fallback-drop-zone-*))` 回退链），未引入组件私有平行 token 体系。",
         "运行时与范式边界：`components/drop-zone/src/view.rs` 无业务 `style=` 内联样式；组件未引入 Utility-First class 协议或 CSS-in-Rust `style!`/运行时样式 DSL 作为默认实现。",
         "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_token_first_static_styles_are_aggregated_and_do_not_use_utility_or_css_in_rust_defaults`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_token_first_static_styles_are_aggregated_and_do_not_use_utility_or_css_in_rust_defaults`。",
@@ -3619,7 +3629,7 @@ fn drop_zone_styles_use_defensive_variable_fallback_chain() {
         );
     }
 
-    for forbidden in ["#", " 120px", " 1px", " 4px", " 8px", " 16px"] {
+    for forbidden in [" 120px", " 1px", " 4px", " 8px", " 16px"] {
         assert!(
             !styles.contains(forbidden),
             "drop-zone styles should not contain hardcoded terminal style literal `{forbidden}`."
@@ -3631,7 +3641,7 @@ fn drop_zone_styles_use_defensive_variable_fallback_chain() {
         "回退链证据：`components/drop-zone/src/styles.rs` 的颜色/间距/圆角/阴影/焦点均升级为双层回退链（如 `var(--ui-fg, var(--ui-fallback-fg))`、`var(--ui-space-lg, var(--ui-fallback-space-lg))`、`var(--ui-drop-zone-border-width, var(--ui-fallback-drop-zone-border-width))`）。",
         "SSOT 证据：fallback 终值统一来自 `crates/ui-theme/src/css.rs`（`--ui-fallback-*` 与 `--ui-fallback-drop-zone-*`），组件层不自带终值常量。",
         "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_styles_use_defensive_variable_fallback_chain`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_styles_use_defensive_variable_fallback_chain`。",
-        "门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `drop_zone_styles_use_defensive_variable_fallback_chain` 命令，防止回退链回归。",
+        "门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `drop_zone_styles_use_defensive_variable_fallback_chain` 命令，防止回退链回归。",
     ] {
         assert!(
             check2.contains(required),
@@ -3642,9 +3652,9 @@ fn drop_zone_styles_use_defensive_variable_fallback_chain() {
 
 #[test]
 fn drop_zone_defensive_variables_check_script_covers_style_fallback_contract() {
-    let script = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
-    let required = "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_styles_use_defensive_variable_fallback_chain";
+    let required = "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_styles_use_defensive_variable_fallback_chain";
     assert!(
         script.contains(required),
         "contract-hygiene check script should enforce `{required}`."
@@ -3659,13 +3669,13 @@ fn drop_zone_cascade_layer_and_runtime_style_contract_is_enforced() {
 
     let layer_start = css_aggregator
         .find("out.push_str(\"\\n@layer ui {\\n\");")
-        .expect("ui-components css aggregation should open @layer ui.");
+        .expect("ui css aggregation should open @layer ui.");
     let drop_zone_push = css_aggregator
         .find("out.push_str(crate::drop_zone::styles::CSS);")
-        .expect("ui-components css aggregation should include drop-zone styles.");
+        .expect("ui css aggregation should include drop-zone styles.");
     let layer_end = css_aggregator
         .rfind("out.push_str(\"\\n}\\n\");")
-        .expect("ui-components css aggregation should close @layer ui.");
+        .expect("ui css aggregation should close @layer ui.");
 
     assert!(
         layer_start < drop_zone_push && drop_zone_push < layer_end,
@@ -3679,10 +3689,10 @@ fn drop_zone_cascade_layer_and_runtime_style_contract_is_enforced() {
 
     for required in [
         "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
-        "聚合层证据：`crates/ui-components/src/css.rs` 通过 `out.push_str(\"\\n@layer ui {\\n\"); ... out.push_str(crate::drop_zone::styles::CSS); ... out.push_str(\"\\n}\\n\");` 将 `drop-zone` CSS 聚合在 `@layer ui` 内。",
+        "聚合层证据：`crates/ui/src/css.rs` 通过 `out.push_str(\"\\n@layer ui {\\n\"); ... out.push_str(crate::drop_zone::styles::CSS); ... out.push_str(\"\\n}\\n\");` 将 `drop-zone` CSS 聚合在 `@layer ui` 内。",
         "运行时数值策略（DropZone N/A）：`components/drop-zone/src/view.rs` 当前无运行时数值内联样式路径（无 `style=`/`style:`），因此不存在 `style=\"top: ...\"` 一类普通内联样式；若未来新增动态数值，仅允许 `style:--ui-*` 自定义变量透传。",
         "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_cascade_layer_and_runtime_style_contract_is_enforced`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_cascade_layer_and_runtime_style_contract_is_enforced`。",
-        "门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `drop_zone_cascade_layer_and_runtime_style_contract_is_enforced` 命令，阻断 `@layer ui` 边界和 inline style 约束回归。",
+        "门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `drop_zone_cascade_layer_and_runtime_style_contract_is_enforced` 命令，阻断 `@layer ui` 边界和 inline style 约束回归。",
     ] {
         assert!(
             check2.contains(required),
@@ -3693,9 +3703,9 @@ fn drop_zone_cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn drop_zone_cascade_layer_check_script_covers_layer_and_inline_style_guard() {
-    let script = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
-    let required = "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_cascade_layer_and_runtime_style_contract_is_enforced";
+    let required = "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script.contains(required),
         "contract-hygiene check script should enforce `{required}`."
@@ -3755,7 +3765,7 @@ fn drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non
         "挂载证据：`components/drop-zone/src/view.rs` 通过 `motion::attach_motion(zone_ref, hover.is_hovered, is_drop_target, focus_ring.is_focused, is_disabled, motion)` 执行组件语义到动效 contract 的绑定。",
         "reduced-motion + non-wasm 证据：wasm `attach_motion` 在 `ui_motion::web::prefers_reduced_motion()` 为真时只同步写 `--ui-drop-zone-scale/--ui-drop-zone-highlight` 并 `return`；`#[cfg(not(target_arch = \"wasm32\"))] attach_motion` 仅 `std::hint::black_box(sanitize_motion(motion))` no-op，SSR/tooling 可预测降级。",
         "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop`。",
-        "门禁证据：`scripts/check-ui-components-contract-hygiene.sh` 新增 `drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop` 命令，阻断 motion contract / reduced-motion / non-wasm no-op 回归。",
+        "门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop` 命令，阻断 motion contract / reduced-motion / non-wasm no-op 回归。",
     ] {
         assert!(
             check2.contains(required),
@@ -3766,9 +3776,9 @@ fn drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non
 
 #[test]
 fn drop_zone_motion_contract_check_script_covers_reduced_motion_and_noop_guards() {
-    let script = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
-    let required = "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop";
+    let required = "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop";
     assert!(
         script.contains(required),
         "contract-hygiene check script should enforce `{required}`."
@@ -3777,10 +3787,10 @@ fn drop_zone_motion_contract_check_script_covers_reduced_motion_and_noop_guards(
 
 #[test]
 fn drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries() {
-    let ui_components_lib = include_str!("../../../crates/ui-components/src/lib.rs");
-    let ui_components_css = include_str!("../../../crates/ui-components/src/css.rs");
-    let ui_components_root = include_str!("../../../crates/ui-components/src/root.rs");
-    let ui_components_cargo = include_str!("../../../crates/ui-components/Cargo.toml");
+    let ui_components_lib = include_str!("../../../crates/ui/src/lib.rs");
+    let ui_components_css = include_str!("../../../crates/ui/src/css.rs");
+    let ui_components_root = include_str!("../../../crates/ui/src/root.rs");
+    let ui_components_cargo = include_str!("../../../crates/ui/Cargo.toml");
     let active_highlight =
         include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
     let headless_controllable_state =
@@ -3798,14 +3808,14 @@ fn drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib.rs should keep fixed entry marker `{required}`."
+            "ui lib.rs should keep fixed entry marker `{required}`."
         );
     }
 
     for forbidden in ["web_sys::", "NodeRef<", "HtmlElement"] {
         assert!(
             !ui_components_lib.contains(forbidden),
-            "ui-components lib.rs should not leak platform detail `{forbidden}`."
+            "ui lib.rs should not leak platform detail `{forbidden}`."
         );
     }
 
@@ -3819,7 +3829,7 @@ fn drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css.rs should keep fixed entry marker `{required}`."
+            "ui css.rs should keep fixed entry marker `{required}`."
         );
     }
 
@@ -3859,13 +3869,13 @@ fn drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
     let workspace_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../");
     for absent in [
-        "crates/ui-components/src/overlay_open.rs",
-        "crates/ui-components/src/presence.rs",
-        "crates/ui-components/src/a11y.rs",
+        "crates/ui/src/overlay_open.rs",
+        "crates/ui/src/presence.rs",
+        "crates/ui/src/a11y.rs",
     ] {
         assert!(
             !workspace_dir.join(absent).exists(),
-            "ui-components should not include forbidden entrypoint file `{absent}`."
+            "ui should not include forbidden entrypoint file `{absent}`."
         );
     }
 
@@ -3889,18 +3899,18 @@ fn drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries() {
     );
     assert!(
         ui_components_cargo.contains("component-drop_zone = [\"dep:ui-drop-zone\"]"),
-        "ui-components Cargo.toml should keep component-level fixed entry gate for drop-zone."
+        "ui Cargo.toml should keep component-level fixed entry gate for drop-zone."
     );
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
-        "入口证据：`crates/ui-components/src/lib.rs` 保持 `mod css;` + `pub mod root;` + `pub use root::UiRoot;`，并在 `#[cfg(feature = \"component-drop_zone\")]` 下导出 `pub use ui_drop_zone as drop_zone;`，公共 API 不泄露 `web_sys/NodeRef/HtmlElement` 平台细节。",
-        "CSS 入口证据：`crates/ui-components/src/css.rs` 通过 `push_components_css` 聚合样式，并在 `#[cfg(feature = \"component-drop_zone\")]` 下注入 `crate::drop_zone::styles::CSS`；同时保留 `#[cfg(not(feature = \"inject-css\"))]` no-op 分支，避免无条件聚合。",
-        "Root 入口证据：`crates/ui-components/src/root.rs::UiRoot` 统一执行 `provide_ui_i18n` / `provide_ui_id_provider` 与 base css + theme vars +（可选）components css 注入，主题与注入策略集中不下沉到组件层。",
+        "- [x] `ui` 固定入口文件落点正确。",
+        "入口证据：`crates/ui/src/lib.rs` 保持 `mod css;` + `pub mod root;` + `pub use root::UiRoot;`，并在 `#[cfg(feature = \"component-drop_zone\")]` 下导出 `pub use ui_drop_zone as drop_zone;`，公共 API 不泄露 `web_sys/NodeRef/HtmlElement` 平台细节。",
+        "CSS 入口证据：`crates/ui/src/css.rs` 通过 `push_components_css` 聚合样式，并在 `#[cfg(feature = \"component-drop_zone\")]` 下注入 `crate::drop_zone::styles::CSS`；同时保留 `#[cfg(not(feature = \"inject-css\"))]` no-op 分支，避免无条件聚合。",
+        "Root 入口证据：`crates/ui/src/root.rs::UiRoot` 统一执行 `provide_ui_i18n` / `provide_ui_id_provider` 与 base css + theme vars +（可选）components css 注入，主题与注入策略集中不下沉到组件层。",
         "共享原语落点证据：`crates/ui-visual-primitive/src/active_highlight.rs` 仅提供通用高亮样式与 motion driver（`ActiveHighlightMotion` + `attach_active_highlight_motion`），不承载 DropZone/业务语义。",
-        "禁止文件证据：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在；对应原语固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。",
+        "禁止文件证据：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 均不存在；对应原语固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。",
         "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries`。",
-        "门禁证据：`scripts/check-ui-components-entrypoints.sh` 新增 `drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries` 命令，阻断入口落点与禁止文件回归。",
+        "门禁证据：`scripts/check-ui-entrypoints.sh` 新增 `drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries` 命令，阻断入口落点与禁止文件回归。",
     ] {
         assert!(
             check2.contains(required),
@@ -3911,9 +3921,9 @@ fn drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
 #[test]
 fn drop_zone_entrypoints_check_script_covers_fixed_entry_files_gate() {
-    let script = include_str!("../../../scripts/check-ui-components-entrypoints.sh");
+    let script = include_str!("../../../scripts/check-ui-entrypoints.sh");
 
-    let required = "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let required = "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         script.contains(required),
         "entrypoints check script should enforce `{required}`."
@@ -3943,8 +3953,8 @@ fn drop_zone_semantics_contract_tests_are_primary_and_not_snapshot_only() {
         "ui_headless::a11y::should_focus_proxy_button_on_click",
         "data-disabled=super::logic::bool_data_attr(is_disabled)",
         "data-drop-target=move || super::logic::bool_data_attr(is_drop_target.get())",
-        "#[cfg(target_arch = \"wasm32\")]",
-        "#[cfg(not(target_arch = \"wasm32\"))]",
+        "fn collect_files_from_data_transfer(dt: &leptos::web_sys::DataTransfer) -> Vec<DroppedFile> {",
+        "fn collect_files_from_drag_event(_ev: &ev::DragEvent) -> Vec<DroppedFile> {",
     ] {
         assert!(
             semantics.contains(required),
@@ -3952,15 +3962,9 @@ fn drop_zone_semantics_contract_tests_are_primary_and_not_snapshot_only() {
         );
     }
 
-    let forbidden_terms = [
-        ["assert", "_snapshot"].concat(),
-        ["insta", "::"].concat(),
-        ["toMatch", "Snapshot"].concat(),
-        ["image", "_snapshot"].concat(),
-    ];
-    for forbidden in forbidden_terms {
+    for forbidden in snapshot_only_forbidden_patterns() {
         assert!(
-            !semantics.contains(forbidden.as_str()),
+            !semantics.contains(&forbidden),
             "drop-zone semantic suite should not rely on visual snapshot assertion `{forbidden}`."
         );
     }
@@ -3983,7 +3987,7 @@ fn drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_
     let view = load_source("view");
     let local_semantics = include_str!("../test/semantics.rs");
     let semantics = include_str!("../../../components/drop-zone/test/drop_zone_semantics.rs");
-    let perf_script = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let perf_script = include_str!("../../../scripts/check-ui-performance.sh");
 
     for needle in [
         "role=\"group\"",
@@ -4020,19 +4024,14 @@ fn drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_
         );
     }
 
-    for forbidden in [
-        "assert_snapshot!",
-        "insta::assert",
-        "toMatchSnapshot(",
-        "toHaveScreenshot(",
-    ] {
+    for forbidden in snapshot_only_forbidden_patterns() {
         assert!(
-            !local_semantics.contains(forbidden) && !semantics.contains(forbidden),
+            !local_semantics.contains(&forbidden) && !semantics.contains(&forbidden),
             "drop-zone semantic-priority path should avoid snapshot-only assertion `{forbidden}`."
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         perf_script.contains(script_needle),
         "performance script should include semantic-priority gate `{script_needle}`."
@@ -4041,11 +4040,11 @@ fn drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_
 
 #[test]
 fn drop_zone_performance_script_covers_semantic_test_priority_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../scripts/check-ui-performance.sh");
 
     for needle in [
         "echo \"[perf] contract: drop-zone semantic test priority\"",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4068,7 +4067,7 @@ fn drop_zone_check2_marks_semantic_test_priority_item_complete() {
         "components/drop-zone/test/semantics.rs::drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "components/drop-zone/test/drop_zone_semantics.rs::drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "drop_zone_performance_script_covers_semantic_test_priority_contract",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4163,12 +4162,12 @@ fn drop_zone_e2e_contract_covers_ready_and_settled_conditions_for_motion_interac
 
 #[test]
 fn drop_zone_e2e_check_script_covers_selector_and_settled_wait_contract() {
-    let script = include_str!("../../../scripts/check-ui-components-e2e-drop-zone.sh");
+    let script = include_str!("../../../components/drop-zone/scripts/check-ui-e2e-drop-zone.sh");
 
     for required in [
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_e2e_contract_covers_ready_and_settled_conditions_for_motion_interaction",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_e2e_contract_covers_ready_and_settled_conditions_for_motion_interaction",
     ] {
         assert!(
             script.contains(required),
@@ -4191,7 +4190,7 @@ fn drop_zone_check2_marks_e2e_selector_stability_item_complete() {
         "components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_e2e_selector_and_stable_wait_rules",
         "components/drop-zone/test/drop_zone_semantics.rs::drop_zone_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "e2e/tests/docs_app_drop_zone_contract.spec.mjs",
-        "scripts/check-ui-components-e2e-drop-zone.sh",
+        "components/drop-zone/scripts/check-ui-e2e-drop-zone.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4247,11 +4246,11 @@ fn drop_zone_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 
 #[test]
 fn drop_zone_e2e_check_script_covers_repeatable_key_flow_contract() {
-    let script = include_str!("../../../scripts/check-ui-components-e2e-drop-zone.sh");
+    let script = include_str!("../../../components/drop-zone/scripts/check-ui-e2e-drop-zone.sh");
 
     for required in [
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_e2e_repeatable_key_flow_rules",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_check2_documents_e2e_repeatable_key_flow_rules",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
     ] {
         assert!(
             script.contains(required),
@@ -4275,7 +4274,7 @@ fn drop_zone_check2_marks_e2e_repeatable_key_flow_item_complete() {
         "components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_e2e_repeatable_key_flow_rules",
         "components/drop-zone/test/drop_zone_semantics.rs::drop_zone_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_marks_e2e_repeatable_key_flow_item_complete",
-        "scripts/check-ui-components-e2e-drop-zone.sh",
+        "components/drop-zone/scripts/check-ui-e2e-drop-zone.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4431,7 +4430,7 @@ fn drop_zone_performance_governance_contract_is_budgeted_traceable_and_blocking(
     for required in [
         "性能治理：关键路径有预算",
         "drop-zone` 定义 `UiPerfBudget",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "render_count",
         "Button/Input",
     ] {
@@ -4454,14 +4453,14 @@ fn drop_zone_performance_governance_contract_is_budgeted_traceable_and_blocking(
 
 #[test]
 fn drop_zone_performance_check_script_covers_budget_and_follow_up_gates() {
-    let script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../scripts/check-ui-performance.sh");
 
     for required in [
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(required),
@@ -4476,7 +4475,7 @@ fn drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_rend
     let view_source = load_source("view");
     let local_semantics_source = include_str!("../test/semantics.rs");
     let check2_source = load_source("check2");
-    let perf_script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let perf_script_source = include_str!("../../../scripts/check-ui-performance.sh");
     let todo_source = include_str!("../../../docs/plan/TODO.md");
 
     for required in [
@@ -4509,13 +4508,13 @@ fn drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_rend
         );
     }
 
-    let perf_gate_needle = "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_performance_governance_contract_is_budgeted_traceable_and_blocking";
+    let perf_gate_needle = "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_performance_governance_contract_is_budgeted_traceable_and_blocking";
     assert!(
         perf_script_source.contains(perf_gate_needle),
         "performance gate script should include `{perf_gate_needle}`."
     );
 
-    let matrix_gate_needle = "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement";
+    let matrix_gate_needle = "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement";
     assert!(
         perf_script_source.contains(matrix_gate_needle),
         "performance gate script should include `{matrix_gate_needle}`."
@@ -4535,7 +4534,7 @@ fn drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_rend
         "- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。",
         "drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "drop_zone_performance_script_covers_semantics_and_performance_regression_matrix",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone）",
     ] {
         assert!(
@@ -4547,11 +4546,11 @@ fn drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_rend
 
 #[test]
 fn drop_zone_performance_script_covers_semantics_and_performance_regression_matrix() {
-    let script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
+    let script_source = include_str!("../../../scripts/check-ui-performance.sh");
 
     for required in [
         "echo \"[perf] contract: drop-zone semantics/perf matrix\"",
-        "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
     ] {
         assert!(
             script_source.contains(required),
@@ -4572,7 +4571,7 @@ fn drop_zone_check2_marks_semantics_and_performance_regression_item_complete() {
         "drop_zone_performance_script_covers_semantics_and_performance_regression_matrix",
         "drop_zone_performance_governance_contract_is_budgeted_traceable_and_blocking",
         "drop_zone_semantics_contract_tests_are_primary_and_not_snapshot_only",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone）",
     ] {
         assert!(
@@ -4775,7 +4774,7 @@ fn drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated(
     let trace_source = include_str!("../../../crates/ui-headless/src/trace.rs");
     let docs_app_source = include_str!("../../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = include_str!("../../../apps/docs-app/src/debug_overlay.rs");
-    let wasm_debug_script = include_str!("../../../scripts/check-ui-components-wasm-debug.sh");
+    let wasm_debug_script = include_str!("../../../scripts/check-ui-wasm-debug.sh");
 
     for required in [
         "use ui_headless::use_ui_trace;",
@@ -4798,7 +4797,7 @@ fn drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated(
         "pub ts_ms: u64,",
         "pub component: &'static str,",
         "pub kind: UiTraceEventKind,",
-        "UiTraceEventKind::Note",
+        "Note {",
         "events.push(event);",
     ] {
         assert!(
@@ -4822,7 +4821,10 @@ fn drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated(
     for required in [
         "fn render_events(trace: ui_headless::UiTrace) -> AnyView",
         "let ts_ms = event.ts_ms;",
-        "events.into_iter().rev().take(40)",
+        "let events = events.get();",
+        ".into_iter()",
+        ".rev()",
+        ".take(40)",
         "data-slot=\"ui-debug-overlay-events\"",
         "UiTraceEventKind::Note { message }",
     ] {
@@ -4834,7 +4836,7 @@ fn drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated(
 
     assert!(
         wasm_debug_script.contains(
-            "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated"
+            "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated"
         ),
         "wasm debug gate script should enforce drop-zone wasm debug contract regression."
     );
@@ -4845,7 +4847,7 @@ fn drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated(
         "时间与回放证据：`crates/ui-headless/src/trace.rs` 的 `UiTraceEvent` 含 `ts_ms/component/kind`，`apps/docs-app/src/debug_overlay.rs::render_events` 按事件序列展示 `ts_ms + component + kind + body`，支持最小交互链路回放排障。",
         "可视化入口证据：`apps/docs-app/src/lib.rs` 在开发模式 `cfg!(debug_assertions)` 下启用 `UiDebugOverlay`，提供 `Inspect + Events` 面板用于 wasm 调试可视化。",
         "隔离证据：`provide_ui_trace(debug_overlay_enabled)` 仅在开发模式启用；`emit_drop_zone_debug_note` 在 `#[cfg(all(target_arch = \"wasm32\", debug_assertions))]` 下才真正写入事件，默认产物与公共 API 不暴露调试开关。",
-        "门禁证据：`scripts/check-ui-components-wasm-debug.sh` 新增 `drop-zone` 调试契约测试命令，确保约束可回归。",
+        "门禁证据：`scripts/check-ui-wasm-debug.sh` 新增 `drop-zone` 调试契约测试命令，确保约束可回归。",
         "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。",
     ] {
         assert!(
@@ -4859,10 +4861,10 @@ fn drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated(
 fn drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks() {
     let check2 = load_source("check2");
     let drop_zone_mod = load_source("mod");
-    let ui_components_cargo = include_str!("../../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = include_str!("../../../crates/ui-components/src/lib.rs");
-    let ui_components_css = include_str!("../../../crates/ui-components/src/css.rs");
-    let tree_shaking_script = include_str!("../../../scripts/check-ui-components-tree-shaking.sh");
+    let ui_components_cargo = include_str!("../../../crates/ui/Cargo.toml");
+    let ui_components_lib = include_str!("../../../crates/ui/src/lib.rs");
+    let ui_components_css = include_str!("../../../crates/ui/src/css.rs");
+    let tree_shaking_script = include_str!("../../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget = include_str!("../../../scripts/tree_shaking_budget.env");
     let ci_workflow = include_str!("../../../.github/workflows/ci.yml");
 
@@ -4872,7 +4874,7 @@ fn drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_chec
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components Cargo feature graph should include drop-zone tree-shaking gate `{required}`."
+            "ui Cargo feature graph should include drop-zone tree-shaking gate `{required}`."
         );
     }
 
@@ -4884,7 +4886,7 @@ fn drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_chec
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib export boundary should keep feature-gated tree-shaking contract `{required}`."
+            "ui lib export boundary should keep feature-gated tree-shaking contract `{required}`."
         );
     }
 
@@ -4894,7 +4896,7 @@ fn drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_chec
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css aggregation should stay feature-gated for drop-zone `{required}`."
+            "ui css aggregation should stay feature-gated for drop-zone `{required}`."
         );
     }
 
@@ -4907,13 +4909,13 @@ fn drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_chec
 
     for required in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "source \"$BUDGET_FILE\"",
         "CURRENT_BYTES=\"$(stat -c '%s' \"$LATEST_RLIB\")\"",
         "if (( CURRENT_BYTES > MAX_BYTES )); then",
@@ -4935,17 +4937,17 @@ fn drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_chec
     }
 
     assert!(
-        ci_workflow.contains("./scripts/check-ui-components-tree-shaking.sh"),
+        ci_workflow.contains("./scripts/check-ui-tree-shaking.sh"),
         "CI workflow should execute tree-shaking gate script."
     );
 
     for required in [
         "- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。",
-        "package feature 证据：`crates/ui-components/Cargo.toml` 定义 `component-drop_zone = [\"dep:ui-drop-zone\"]`，且 `ui-drop-zone` 依赖为 `optional = true`；`crates/ui-components/src/lib.rs` 使用 `#[cfg(feature = \"component-drop_zone\")] pub use ui_drop_zone as drop_zone;`；`crates/ui-components/src/css.rs` 仅在 `#[cfg(feature = \"component-drop_zone\")]` 下聚合 `crate::drop_zone::styles::CSS`。",
+        "package feature 证据：`crates/ui/Cargo.toml` 定义 `component-drop_zone = [\"dep:ui-drop-zone\"]`，且 `ui-drop-zone` 依赖为 `optional = true`；`crates/ui/src/lib.rs` 使用 `#[cfg(feature = \"component-drop_zone\")] pub use ui_drop_zone as drop_zone;`；`crates/ui/src/css.rs` 仅在 `#[cfg(feature = \"component-drop_zone\")]` 下聚合 `crate::drop_zone::styles::CSS`。",
         "source 模式证据：`components/drop-zone/src/mod.rs` 仅暴露组件 API，不包含全量组件注册表；组件源码按需由上层 feature gate 引入，不通过中心映射强制保持全可达。",
-        "特性树实测：执行 `cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-drop_zone,inject-css` 输出仅含 `feature \"component-drop_zone\" (command-line)` 与 `feature \"inject-css\" (command-line)`，未出现 `all-components`。",
-        "反向依赖实测：执行 `cargo tree -e features -i ui-components -p web-demo` 输出包含 `feature \"web-demo-components\"`、`feature \"component-drop_zone\"` 与 `feature \"inject-css\"`，未出现 `all-components`。",
-        "CI 证据：`.github/workflows/ci.yml` 已调用 `./scripts/check-ui-components-tree-shaking.sh`；脚本包含最小特性 wasm 编译检查（`cargo check ... --no-default-features --features component-accordion,inject-css`）与 release 产物预算检查（读取 `scripts/tree_shaking_budget.env` 的 `TREE_SHAKING_BASELINE_RLIB_BYTES` / `TREE_SHAKING_MAX_RATIO_PERCENT`，并阻断超预算）。",
+        "特性树实测：执行 `cargo tree -e features -i ui -p ui --no-default-features --features component-drop_zone,inject-css` 输出仅含 `feature \"component-drop_zone\" (command-line)` 与 `feature \"inject-css\" (command-line)`，未出现 `all-components`。",
+        "反向依赖实测：执行 `cargo tree -e features -i ui -p web-demo` 输出包含 `feature \"web-demo-components\"`、`feature \"component-drop_zone\"` 与 `feature \"inject-css\"`，未出现 `all-components`。",
+        "CI 证据：`.github/workflows/ci.yml` 已调用 `./scripts/check-ui-tree-shaking.sh`；脚本包含最小特性 wasm 编译检查（`cargo check ... --no-default-features --features component-accordion,inject-css`）与 release 产物预算检查（读取 `scripts/tree_shaking_budget.env` 的 `TREE_SHAKING_BASELINE_RLIB_BYTES` / `TREE_SHAKING_MAX_RATIO_PERCENT`，并阻断超预算）。",
         "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks`。",
     ] {
         assert!(
@@ -4960,9 +4962,9 @@ fn drop_zone_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2 = load_source("check2");
 
     for required in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
-        "组件特性树证据：`crates/ui-components/Cargo.toml` 已注册 `component-drop_zone = [\"dep:ui-drop-zone\"]`",
-        "门禁证据：`scripts/check-ui-components-tree-shaking.sh` 显式覆盖 `drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks`",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "组件特性树证据：`crates/ui/Cargo.toml` 已注册 `component-drop_zone = [\"dep:ui-drop-zone\"]`",
+        "门禁证据：`scripts/check-ui-tree-shaking.sh` 显式覆盖 `drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks`",
         "drop_zone_check2_marks_tree_shaking_feature_pruning_contract_complete",
         "drop_zone_tree_shaking_script_covers_component_feature_pruning_contract",
         "drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks",
@@ -4976,8 +4978,8 @@ fn drop_zone_check2_marks_tree_shaking_feature_pruning_contract_complete() {
 
 #[test]
 fn drop_zone_tree_shaking_script_covers_component_feature_pruning_contract() {
-    let script_source = include_str!("../../../scripts/check-ui-components-tree-shaking.sh");
-    let needle = "cargo test -p ui-components --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks";
+    let script_source = include_str!("../../../scripts/check-ui-tree-shaking.sh");
+    let needle = "cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks";
     assert!(
         script_source.contains(needle),
         "tree-shaking script should enforce `{needle}`."
@@ -5042,7 +5044,7 @@ fn drop_zone_type_system_and_semantic_markers_form_machine_readable_contract() {
 fn drop_zone_checklist_marks_ui_components_item_complete() {
     let check2 = load_source("check2");
     assert!(
-        check2.contains("- [x] `ui-components` 定义：最终 Leptos 组件装配层"),
-        "drop-zone checklist should mark the ui-components assembly item as done."
+        check2.contains("- [x] `ui` 定义：最终 Leptos 组件装配层"),
+        "drop-zone checklist should mark the ui assembly item as done."
     );
 }

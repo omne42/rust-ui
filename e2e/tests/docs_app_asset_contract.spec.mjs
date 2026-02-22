@@ -112,6 +112,6 @@ test("docs-app asset source-first docs expose copy-ready code and real source pa
     sourceFirst.locator('[data-slot="asset-source-first-paths"]')
   ).toBeVisible();
   await expect(sourceFirst).toContainText("components/asset/src/view.rs");
-  await expect(sourceFirst).toContainText("crates/ui-components/src/lib.rs");
+  await expect(sourceFirst).toContainText("crates/ui/src/lib.rs");
   await expect(sourceFirst.locator('[data-slot="asset-source-first-prerequisites"]')).toBeVisible();
 });

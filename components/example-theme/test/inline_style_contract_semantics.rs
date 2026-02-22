@@ -193,7 +193,7 @@ fn inline_style_bindings_use_css_variable_builders_only() {
 
     assert!(
         !inline_style_lines.is_empty(),
-        "expected at least one inline style binding contract in ui-components view layer."
+        "expected at least one inline style binding contract in ui view layer."
     );
 }
 
@@ -239,7 +239,7 @@ fn inline_style_contract_docs_page_covers_primary_playgrounds() {
     for needle in [
         "## Rules (Required)",
         "- **Inline CSS is forbidden in components:**",
-        "`ui-components` must not use inline style for normal CSS properties",
+        "`ui` must not use inline style for normal CSS properties",
         "- **Runtime values must use CSS variables (custom properties) only:**",
         "- Quick violation check: search the repo for `style=` and `style:`",
     ] {
@@ -251,7 +251,7 @@ fn inline_style_contract_docs_page_covers_primary_playgrounds() {
 
     for needle in [
         "- **Inline CSS forbidden (component layer):**",
-        "`ui-components` must not use `style=\"...\"` / `style=...` inside `view!`",
+        "`ui` must not use `style=\"...\"` / `style=...` inside `view!`",
         "Do not bind normal CSS properties via `style:<prop>=...`",
         "Only CSS variables (custom properties, `--*`) are allowed",
     ] {

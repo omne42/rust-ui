@@ -1453,11 +1453,11 @@ fn time_field_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
 
 #[test]
 fn time_field_contract_hygiene_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_docs_are_copy_paste_ready_with_imports_copy_button_and_sync",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_docs_are_copy_paste_ready_with_imports_copy_button_and_sync",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1542,11 +1542,11 @@ fn time_field_check2_marks_heroui_strategy_and_component_docs_sync_complete() {
 
 #[test]
 fn time_field_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_marks_heroui_strategy_and_component_docs_sync_complete",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_marks_heroui_strategy_and_component_docs_sync_complete",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1692,14 +1692,14 @@ fn time_field_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_brea
 
 #[test]
 fn time_field_e2e_check_script_covers_selector_and_key_flow_contracts() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-time-field.sh");
+    let script_source = load_source("../../components/text-input/scripts/check-ui-e2e-time-field.sh");
 
     for needle in [
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_documents_e2e_repeatable_key_flow_rules",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_documents_e2e_repeatable_key_flow_rules",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1729,7 +1729,7 @@ fn time_field_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo features should include `{needle}` for tree-shaking boundaries."
+            "ui Cargo features should include `{needle}` for tree-shaking boundaries."
         );
     }
 
@@ -1754,7 +1754,7 @@ fn time_field_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components."
+        "web-demo should consume ui via web-demo-components, not all-components."
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -1765,15 +1765,15 @@ fn time_field_tree_shaking_keeps_component_feature_and_css_boundaries() {
 
 #[test]
 fn time_field_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
@@ -1832,14 +1832,14 @@ fn time_field_platform_guards_keep_cfg_split_and_non_wasm_web_sys_free() {
 
 #[test]
 fn time_field_platform_check_script_covers_default_ssr_wasm_compile_paths() {
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
-        "cargo check -p ui-components",
-        "cargo check -p ui-components --no-default-features --features component-time_field,inject-css",
+        "cargo check -p ui",
+        "cargo check -p ui --no-default-features --features component-time_field,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-time_field,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-time_field,inject-css",
         "components/text-input/src/time_field/view.rs",
         "components/text-input/src/time_field/motion.rs",
         "cfg(target_arch = \"wasm32\")",
@@ -1855,7 +1855,7 @@ fn time_field_platform_check_script_covers_default_ssr_wasm_compile_paths() {
 #[test]
 fn time_field_ui_headless_feature_mutex_contract_is_guarded() {
     let headless_lib_source = load_source("../ui-headless/src/lib.rs");
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "#[cfg(all(feature = \"web\", feature = \"ssr\"))]",
@@ -1887,7 +1887,7 @@ fn time_field_ui_motion_non_wasm_noop_stub_contract_is_guarded() {
     let motion_lib_source = load_source("../ui-motion/src/lib.rs");
     let motion_stub_test_source = load_source("../ui-motion/tests/non_wasm_stub.rs");
     let time_field_motion_source = load_source("src/text_input/time_field/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "#[cfg(not(target_arch = \"wasm32\"))]",
@@ -1937,8 +1937,8 @@ fn time_field_ui_motion_non_wasm_noop_stub_contract_is_guarded() {
         "cargo check -p ui-motion",
         "cargo check -p ui-motion --target wasm32-unknown-unknown",
         "cargo test -p ui-motion --test non_wasm_stub",
-        "cargo check -p ui-components --no-default-features --features component-time_field,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-time_field,inject-css",
+        "cargo check -p ui --no-default-features --features component-time_field,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-time_field,inject-css",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1951,7 +1951,7 @@ fn time_field_ui_motion_non_wasm_noop_stub_contract_is_guarded() {
 fn time_field_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
     let view_source = load_source("src/text_input/time_field/view.rs");
     let motion_source = load_source("src/text_input/time_field/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "#[cfg(target_arch = \"wasm32\")]",
@@ -2006,8 +2006,8 @@ fn time_field_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
 
     for needle in [
         "cargo check -p ui-headless --no-default-features --features ssr",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-time_field,inject-css",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field time_field_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-time_field,inject-css",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field time_field_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2025,7 +2025,7 @@ fn time_field_performance_governance_budget_is_defined_and_blocking() {
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("src/text_input/time_field/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/text_input/time_field/view.rs");
 
     for needle in [
@@ -2130,7 +2130,7 @@ fn time_field_performance_governance_budget_is_defined_and_blocking() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_performance_governance_budget_is_defined_and_blocking";
+    let script_needle = "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_performance_governance_budget_is_defined_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`.",
@@ -2378,12 +2378,12 @@ fn time_field_component_file_responsibilities_remain_scoped() {
 
 #[test]
 fn time_field_component_files_check_script_covers_directory_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     for needle in [
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_component_directory_has_standard_file_layout",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_mod_rs_keeps_minimal_stable_exports",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_component_file_responsibilities_remain_scoped",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_component_directory_has_standard_file_layout",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_mod_rs_keeps_minimal_stable_exports",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_component_file_responsibilities_remain_scoped",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2397,18 +2397,18 @@ fn time_field_check2_documents_ui_components_entrypoint_rules() {
     let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
-        "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
-        "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
-        "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
+        "- [x] `ui` 固定入口文件落点正确。",
+        "`crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
+        "`crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
+        "`crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
         "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
-        "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
-        "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
-        "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
+        "`crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
+        "`crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
+        "`crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
     ] {
         assert!(
             checklist_source.contains(required),
-            "TimeField checklist should keep ui-components entrypoint governance rule `{required}`."
+            "TimeField checklist should keep ui entrypoint governance rule `{required}`."
         );
     }
 }
@@ -2418,7 +2418,7 @@ fn time_field_ui_components_forbidden_entrypoint_files_are_absent_and_headless_p
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !path_exists(forbidden),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`."
+            "ui forbidden entrypoint file should not exist: `{forbidden}`."
         );
     }
 
@@ -2454,9 +2454,9 @@ fn time_field_ui_components_forbidden_entrypoint_files_are_absent_and_headless_p
 
 #[test]
 fn time_field_entrypoints_check_script_covers_fixed_entrypoint_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
 
-    let needle = "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present";
+    let needle = "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present";
     assert!(
         script_source.contains(needle),
         "entrypoints check script should enforce `{needle}`."
@@ -2466,7 +2466,7 @@ fn time_field_entrypoints_check_script_covers_fixed_entrypoint_contract() {
 #[test]
 fn time_field_view_macro_complexity_is_split_into_semantic_subrenders() {
     let view_source = load_source("src/text_input/time_field/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     assert!(
         view_source.contains("view! {"),
@@ -2511,7 +2511,7 @@ fn time_field_view_macro_complexity_is_split_into_semantic_subrenders() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_view_macro_complexity_is_split_into_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_view_macro_complexity_is_split_into_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`."
@@ -2521,7 +2521,7 @@ fn time_field_view_macro_complexity_is_split_into_semantic_subrenders() {
 #[test]
 fn time_field_view_functional_split_prefers_plain_functions_over_local_components() {
     let view_source = load_source("src/text_input/time_field/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     assert_eq!(
         view_source.matches("#[component]").count(),
@@ -2551,7 +2551,7 @@ fn time_field_view_functional_split_prefers_plain_functions_over_local_component
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_view_functional_split_prefers_plain_functions_over_local_components";
+    let script_needle = "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_view_functional_split_prefers_plain_functions_over_local_components";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`."
@@ -2561,7 +2561,7 @@ fn time_field_view_functional_split_prefers_plain_functions_over_local_component
 #[test]
 fn time_field_static_fragments_are_constantized_with_stable_semantics() {
     let view_source = load_source("src/text_input/time_field/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("src/text_input/time_field/check2.md");
 
     for needle in [
@@ -2597,7 +2597,7 @@ fn time_field_static_fragments_are_constantized_with_stable_semantics() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_static_fragments_are_constantized_with_stable_semantics";
+    let script_needle = "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_static_fragments_are_constantized_with_stable_semantics";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`."
@@ -2661,9 +2661,9 @@ fn time_field_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 
 #[test]
 fn time_field_inner_html_check_script_covers_security_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
 
-    let needle = "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let needle = "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(needle),
         "inner-html check script should enforce `{needle}`."
@@ -2791,9 +2791,9 @@ fn time_field_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_is
 
 #[test]
 fn time_field_wasm_debug_check_script_covers_shared_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
 
-    let needle = "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated";
+    let needle = "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm debug check script should enforce `{needle}`."
@@ -2895,13 +2895,13 @@ fn time_field_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_wit
 
 #[test]
 fn time_field_dx_check_script_covers_hot_reload_and_isolated_canvas_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2991,7 +2991,7 @@ fn time_field_engineering_contract_keeps_tracing_semantics_unified_without_compo
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             cargo_source.contains(required) || button_view_source.contains(required),
@@ -3008,7 +3008,7 @@ fn time_field_engineering_contract_keeps_tracing_semantics_unified_without_compo
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::time_field::",
+        "target: \"ui::time_field::",
         "const TIME_FIELD_TRACE_TARGET",
     ] {
         assert!(
@@ -3061,12 +3061,12 @@ fn time_field_engineering_contract_avoids_runtime_leaks_in_public_api_surface() 
 
 #[test]
 fn time_field_engineering_check_script_covers_serde_tracing_and_runtime_boundaries() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3164,14 +3164,14 @@ fn time_field_agent_contract_render_path_is_whitelist_safe_and_script_injection_
 
 #[test]
 fn time_field_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_documents_semantics_first_testing_rules",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_semantics_suite_prioritizes_contract_assertions_over_snapshots",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_documents_semantics_first_testing_rules",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_semantics_suite_prioritizes_contract_assertions_over_snapshots",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3316,15 +3316,15 @@ fn time_field_streaming_validation_retry_resilience_boundaries_stay_outside_comp
 
 #[test]
 fn time_field_streaming_check_script_covers_snapshot_baseline_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_snapshot_baseline_and_streaming_fallback_contract_are_explicit",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_snapshot_baseline_consumes_complete_result_and_renders_stably",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_snapshot_baseline_and_streaming_fallback_contract_are_explicit",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),

@@ -442,7 +442,7 @@ fn native_select_dx_workbench_supports_live_css_and_optional_state_persistence()
     for required in [
         "title=\"Interactive Playground\"",
         "test_css_source=workbench_test_css_source",
-        "test_source_path=\"crates/ui-components/src/native_select/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui/src/native_select/styles.rs\".to_string()",
         "scoped CSS live-edit（CSS Test）+ optional state persistence across reload",
         "let persisted_workbench_state = load_native_select_workbench_state();",
         "let (workbench_persist_state, set_workbench_persist_state) =",
@@ -611,7 +611,7 @@ fn native_select_readme_is_beginner_friendly_documentation_product() {
         "# NativeSelect",
         "## 新手路径：先用起来，再进阶",
         "### Hello World（零门槛）",
-        "use ui_components::{NativeSelect, NativeSelectOption};",
+        "use ui::{NativeSelect, NativeSelectOption};",
         "### 常见用法（在 docs-app 直接对照）",
         "Hello World (Uncontrolled)",
         "Controlled + Placeholder",
@@ -1247,12 +1247,12 @@ fn native_select_token_first_static_style_contract_is_enforced() {
     assert!(
         css_aggregator_source.contains("#[cfg(feature = \"component-native_select\")]")
             && css_aggregator_source.contains("out.push_str(crate::native_select::styles::CSS);"),
-        "ui-components css aggregator should feature-gate native-select style injection."
+        "ui css aggregator should feature-gate native-select style injection."
     );
     assert!(
         cargo_toml_source.contains("inject-css = []")
             && cargo_toml_source.contains("component-native_select = [\"dep:ui-native-select\"]"),
-        "ui-components feature map should keep inject-css + component-native_select wiring."
+        "ui feature map should keep inject-css + component-native_select wiring."
     );
 
     for forbidden in [
@@ -1438,13 +1438,13 @@ fn native_select_tree_shaking_feature_gates_are_component_scoped() {
         lib_source.contains(
             "#[cfg(feature = \"component-native_select\")]\npub use ui_native_select as native_select;"
         ),
-        "ui-components lib export should gate NativeSelect behind `component-native_select`."
+        "ui lib export should gate NativeSelect behind `component-native_select`."
     );
     assert!(
         css_source.contains(
             "#[cfg(feature = \"component-native_select\")]\n    out.push_str(crate::native_select::styles::CSS);"
         ),
-        "ui-components css aggregation should gate NativeSelect CSS behind `component-native_select`."
+        "ui css aggregation should gate NativeSelect CSS behind `component-native_select`."
     );
     assert!(
         lib_source.contains("#[cfg(feature = \"all-components\")]")
@@ -1452,14 +1452,14 @@ fn native_select_tree_shaking_feature_gates_are_component_scoped() {
             && lib_source.contains(
                 "#[cfg(all(feature = \"web-demo-components\", not(feature = \"all-components\")))]"
             ),
-        "ui-components central aggregation paths should remain feature-gated (`all-components` / `web-demo-components`)."
+        "ui central aggregation paths should remain feature-gated (`all-components` / `web-demo-components`)."
     );
     assert!(
         cargo_toml_source.contains("component-native_select = [\"dep:ui-native-select\"]")
             && cargo_toml_source.contains("default = [\"inject-css\", \"all-components\"]")
             && cargo_toml_source.contains("all-components = [")
             && cargo_toml_source.contains("\"component-native_select\""),
-        "ui-components Cargo feature graph should keep component-scoped feature + optional all-components aggregate."
+        "ui Cargo feature graph should keep component-scoped feature + optional all-components aggregate."
     );
 
     for forbidden in ["all_components", "web_demo_components"] {
@@ -1495,7 +1495,7 @@ fn native_select_ui_components_fixed_entry_files_are_in_correct_locations() {
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib.rs should include fixed entry contract `{required}`."
+            "ui lib.rs should include fixed entry contract `{required}`."
         );
     }
 
@@ -1507,7 +1507,7 @@ fn native_select_ui_components_fixed_entry_files_are_in_correct_locations() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css.rs should keep feature-gated aggregation contract `{required}`."
+            "ui css.rs should keep feature-gated aggregation contract `{required}`."
         );
     }
 
@@ -1523,7 +1523,7 @@ fn native_select_ui_components_fixed_entry_files_are_in_correct_locations() {
     ] {
         assert!(
             root_source.contains(required),
-            "ui-components root.rs should centralize theme/css/i18n injection via `{required}`."
+            "ui root.rs should centralize theme/css/i18n injection via `{required}`."
         );
     }
 
@@ -1553,13 +1553,13 @@ fn native_select_ui_components_fixed_entry_files_are_in_correct_locations() {
         .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
 
     for absent in [
-        "crates/ui-components/src/overlay_open.rs",
-        "crates/ui-components/src/presence.rs",
-        "crates/ui-components/src/a11y.rs",
+        "crates/ui/src/overlay_open.rs",
+        "crates/ui/src/presence.rs",
+        "crates/ui/src/a11y.rs",
     ] {
         assert!(
             !workspace_dir.join(absent).exists(),
-            "ui-components should not define forbidden fixed-entry file `{absent}`."
+            "ui should not define forbidden fixed-entry file `{absent}`."
         );
     }
 
@@ -1577,7 +1577,7 @@ fn native_select_ui_components_fixed_entry_files_are_in_correct_locations() {
     );
     assert!(
         cargo_toml_source.contains("component-native_select = [\"dep:ui-native-select\"]"),
-        "ui-components Cargo features should keep component-level fixed-entry gate for native-select."
+        "ui Cargo features should keep component-level fixed-entry gate for native-select."
     );
 }
 

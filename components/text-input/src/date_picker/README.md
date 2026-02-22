@@ -98,8 +98,8 @@
 - 组件语义回归：`components/text-input/test/date_picker_semantics.rs`。
 - primitives 回归：`crates/ui-logic-calendar/src/date_picker.rs` 单元测试。
 - 最小特性验证建议：
-  - `cargo test -p ui-components --test date_picker_semantics --no-default-features --features component-date_picker,inject-css`
-  - `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-date_picker,inject-css`
+  - `cargo test -p ui --test date_picker_semantics --no-default-features --features component-date_picker,inject-css`
+  - `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-date_picker,inject-css`
 
 ## Docs Playground（展示 / Config / Code / CSS Test）
 

@@ -720,7 +720,7 @@ fn toaster_logic_models_positions_queue_and_part_state() {
     ] {
         assert!(
             !source.contains(forbidden),
-            "Toaster logic should not reimplement state primitives in ui-components: `{forbidden}`."
+            "Toaster logic should not reimplement state primitives in ui: `{forbidden}`."
         );
     }
 }
@@ -1475,7 +1475,7 @@ fn toaster_engineering_contract_is_spec_free_tracing_aligned_and_runtime_agnosti
     ] {
         assert!(
             !crate_root_source.contains(forbidden),
-            "ui-components crate root should not leak runtime/spec details through toaster public exports: `{forbidden}`."
+            "ui crate root should not leak runtime/spec details through toaster public exports: `{forbidden}`."
         );
     }
 
@@ -1534,7 +1534,7 @@ fn toaster_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep stable export/gate marker `{needle}`."
+            "ui lib entry should keep stable export/gate marker `{needle}`."
         );
     }
 
@@ -1547,7 +1547,7 @@ fn toaster_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not expose internal platform/details marker `{forbidden}`."
+            "ui lib entry should not expose internal platform/details marker `{forbidden}`."
         );
     }
 
@@ -1598,19 +1598,19 @@ fn toaster_ui_components_fixed_entry_files_follow_layered_boundaries() {
         manifest_dir
             .join("../ui-visual-primitive/src/active_highlight.rs")
             .exists(),
-        "ui-components should keep shared `../ui-visual-primitive/src/active_highlight.rs` entry."
+        "ui should keep shared `../ui-visual-primitive/src/active_highlight.rs` entry."
     );
     assert!(
         !manifest_dir.join("src/overlay_open.rs").exists(),
-        "ui-components should not define `src/overlay_open.rs`; open-state primitive belongs to ui-headless."
+        "ui should not define `src/overlay_open.rs`; open-state primitive belongs to ui-headless."
     );
     assert!(
         !manifest_dir.join("src/presence.rs").exists(),
-        "ui-components should not define `src/presence.rs`; presence primitive belongs to ui-headless."
+        "ui should not define `src/presence.rs`; presence primitive belongs to ui-headless."
     );
     assert!(
         !manifest_dir.join("src/a11y.rs").exists(),
-        "ui-components should not define `src/a11y.rs`; shared a11y helpers belong to ui-headless."
+        "ui should not define `src/a11y.rs`; shared a11y helpers belong to ui-headless."
     );
 
     for needle in [
@@ -1628,14 +1628,14 @@ fn toaster_ui_components_fixed_entry_files_follow_layered_boundaries() {
     }
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
-        "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
-        "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
-        "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
+        "- [x] `ui` 固定入口文件落点正确。",
+        "`crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
+        "`crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
+        "`crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
         "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
-        "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
-        "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
-        "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
+        "`crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
+        "`crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
+        "`crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -2219,7 +2219,7 @@ fn toaster_performance_governance_contract_is_budgeted_repeatable_attributable_a
     let pages_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
     let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("src/toaster/check2.md");
     let toaster_view = load_source("src/toaster/view.rs");
@@ -2277,8 +2277,8 @@ fn toaster_performance_governance_contract_is_budgeted_repeatable_attributable_a
     }
 
     for needle in [
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2504,12 +2504,12 @@ fn toaster_wasm_debug_capability_reuses_global_trace_and_stays_feature_isolated(
     let docs_lib_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
-    let wasm_debug_script = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let wasm_debug_script = load_source("../../scripts/check-ui-wasm-debug.sh");
 
     for needle in ["macro_rules! wasm_debug_proxy"] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components should keep wasm debug capability isolated via `{needle}`."
+            "ui should keep wasm debug capability isolated via `{needle}`."
         );
     }
 
@@ -2519,7 +2519,7 @@ fn toaster_wasm_debug_capability_reuses_global_trace_and_stays_feature_isolated(
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
+            "ui Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
         );
     }
 
@@ -2621,8 +2621,8 @@ fn toaster_wasm_debug_capability_reuses_global_trace_and_stays_feature_isolated(
     }
 
     for needle in [
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
-        "cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_wasm_debug_capability_stays_feature_isolated_and_non_polluting",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
+        "cargo test -p ui --test well_semantics --no-default-features --features component-well,inject-css well_wasm_debug_capability_stays_feature_isolated_and_non_polluting",
     ] {
         assert!(
             wasm_debug_script.contains(needle),
@@ -2725,14 +2725,14 @@ fn toaster_dx_workbench_uses_interactive_playground_and_marks_persist_state_na()
 
 #[test]
 fn toaster_dx_check_script_keeps_shared_playground_contract_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "[dx] contract: playground css hot-reload path",
-        "cargo test -p ui-components --test button_semantics button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test action_button_semantics action_button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_dx_non_interactive_scope_keeps_isolated_canvas_and_marks_persist_state_na",
+        "cargo test -p ui --test button_semantics button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test action_button_semantics action_button_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test well_semantics --no-default-features --features component-well,inject-css well_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test well_semantics --no-default-features --features component-well,inject-css well_dx_non_interactive_scope_keeps_isolated_canvas_and_marks_persist_state_na",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2791,7 +2791,7 @@ fn toaster_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::toaster::styles::CSS);"),
-        "ui-components css aggregator should include toaster styles."
+        "ui css aggregator should include toaster styles."
     );
 }
 
@@ -2854,9 +2854,9 @@ fn toaster_docs_examples_and_matrices_stay_synced_with_logic_defaults() {
         "\"motion: ToastMotion\"",
         "\"store: Option<ToastStore>\"",
         "ToasterPosition::default()",
-        "ui_components::toaster::DEFAULT_PORTAL",
-        "ui_components::toaster::DEFAULT_MAX_TOASTS",
-        "ui_components::toaster::DEFAULT_ARIA_LABEL",
+        "ui::toaster::DEFAULT_PORTAL",
+        "ui::toaster::DEFAULT_MAX_TOASTS",
+        "ui::toaster::DEFAULT_ARIA_LABEL",
         "default path = provided -> context -> local",
     ] {
         assert!(
@@ -2958,7 +2958,7 @@ fn toaster_source_first_docs_are_copy_paste_ready_and_traceable() {
         "Snippet",
         "label=\"Copy starter\".to_string()",
         "copyable=true",
-        "use leptos::prelude::*;\\nuse ui_components::*;\\n\\n<Toaster />",
+        "use leptos::prelude::*;\\nuse ui::*;\\n\\n<Toaster />",
         "data-slot=\"toaster-source-paths\"",
         "components/toaster/src/mod.rs",
         "components/toaster/src/logic.rs",

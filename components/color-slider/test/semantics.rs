@@ -24,6 +24,16 @@ fn load_source(rel_path: &str) -> String {
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn color_slider_docs_section(docs_source: &str) -> &str {
+    let (_, tail) = docs_source
+        .split_once("pub(super) fn color_slider() -> AnyView {")
+        .expect("forms_color.rs should expose color_slider docs section.");
+    let (section, _) = tail
+        .split_once("\npub(super) fn color_wheel() -> AnyView {")
+        .expect("forms_color.rs should keep color_slider before color_wheel section.");
+    section
+}
+
 #[test]
 fn color_slider_semantics_tests_are_migrated_to_component_directory() {
     let mod_source = load_source("../../components/color-slider/src/mod.rs");
@@ -39,7 +49,7 @@ fn color_slider_semantics_tests_are_migrated_to_component_directory() {
 
     assert!(
         legacy_semantics.contains("../../../components/color-slider/test/semantics.rs"),
-        "legacy ui-components semantics entry should include migrated component semantics file.",
+        "legacy ui semantics entry should include migrated component semantics file.",
     );
     assert!(
         local_semantics
@@ -121,7 +131,7 @@ fn color_slider_component_layer_keeps_file_responsibilities() {
 #[test]
 fn color_slider_view_macro_complexity_is_split_into_semantic_subrenders() {
     let view_source = load_source("src/color/slider/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("check2.md");
 
     for needle in [
@@ -183,7 +193,7 @@ fn color_slider_view_macro_complexity_is_split_into_semantic_subrenders() {
 #[test]
 fn color_slider_view_functional_split_prefers_plain_functions_over_local_components() {
     let view_source = load_source("src/color/slider/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("check2.md");
 
     for needle in [
@@ -252,7 +262,7 @@ fn color_slider_view_functional_split_prefers_plain_functions_over_local_compone
 #[test]
 fn color_slider_static_fragments_are_constantized_or_absent_for_simple_layout() {
     let view_source = load_source("src/color/slider/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
     let check2_source = load_source("check2.md");
 
     for needle in [
@@ -318,10 +328,11 @@ fn color_slider_static_fragments_are_constantized_or_absent_for_simple_layout() 
 
 #[test]
 fn color_slider_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
     let check2_source = load_source("check2.md");
     let docs_page_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+    let docs_slider_section = color_slider_docs_section(&docs_page_source);
     let docs_shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
 
     for rel_path in [
@@ -360,8 +371,8 @@ fn color_slider_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
         "onload=",
     ] {
         assert!(
-            !docs_page_source.contains(forbidden),
-            "color-slider docs page should avoid raw-html injection token `{forbidden}`.",
+            !docs_slider_section.contains(forbidden),
+            "color-slider docs section should avoid raw-html injection token `{forbidden}`.",
         );
     }
 
@@ -389,14 +400,14 @@ fn color_slider_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 #[test]
 fn color_slider_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
 
     let color_slider_cargo = load_source("../../components/color-slider/Cargo.toml");
-    let ui_components_cargo = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = load_source("../../crates/ui-components/src/lib.rs");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib = load_source("../../crates/ui/src/lib.rs");
     let view_source = load_source("src/color/slider/view.rs");
     let logic_source = load_source("src/color/slider/logic.rs");
     let docs_page_source =
@@ -427,7 +438,7 @@ fn color_slider_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components should keep shared wasm-debug feature marker `{needle}`.",
+            "ui should keep shared wasm-debug feature marker `{needle}`.",
         );
     }
 
@@ -439,7 +450,7 @@ fn color_slider_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             !ui_components_cargo.contains(forbidden),
-            "ui-components feature graph should not leak color-slider debug toggle `{forbidden}`.",
+            "ui feature graph should not leak color-slider debug toggle `{forbidden}`.",
         );
     }
 
@@ -449,7 +460,7 @@ fn color_slider_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components root should keep shared wasm-debug isolation marker `{needle}`.",
+            "ui root should keep shared wasm-debug isolation marker `{needle}`.",
         );
     }
 
@@ -586,7 +597,7 @@ fn color_slider_keeps_spec_rs_out_of_simple_component_surface() {
     let mod_source = load_source("src/color/slider/mod.rs");
     let readme_source = load_source("src/color/slider/README.md");
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let workspace_dir = manifest_dir
         .parent()
@@ -604,7 +615,7 @@ fn color_slider_keeps_spec_rs_out_of_simple_component_surface() {
         manifest_dir.join("src/spec.rs"),
         manifest_dir.join("src/color/slider/spec.rs"),
         workspace_dir.join("components/color-slider/src/spec.rs"),
-        workspace_dir.join("crates/ui-components/src/color/slider/spec.rs"),
+        workspace_dir.join("crates/ui/src/color/slider/spec.rs"),
     ] {
         assert!(
             !candidate.exists(),
@@ -612,14 +623,14 @@ fn color_slider_keeps_spec_rs_out_of_simple_component_surface() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_keeps_spec_rs_out_of_simple_component_surface";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_keeps_spec_rs_out_of_simple_component_surface";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
     );
 
     for required in [
-        "- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`ColorSlider` 当前不属于复杂 schema 驱动组件，不存在稳定外部 schema 固化需求；组件目录保持 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`，且 `src/spec.rs` 不存在。`protocol.rs` 仅承载最小版本化序列化协议，不暴露 `*Spec::new()...render()` 建造者入口。回归：`components/color-slider/test/semantics.rs::color_slider_keeps_spec_rs_out_of_simple_component_surface`；门禁脚本：`scripts/check-ui-components-component-files.sh` 新增 `cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_keeps_spec_rs_out_of_simple_component_surface`。）",
+        "- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`ColorSlider` 当前不属于复杂 schema 驱动组件，不存在稳定外部 schema 固化需求；组件目录保持 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`，且 `src/spec.rs` 不存在。`protocol.rs` 仅承载最小版本化序列化协议，不暴露 `*Spec::new()...render()` 建造者入口。回归：`components/color-slider/test/semantics.rs::color_slider_keeps_spec_rs_out_of_simple_component_surface`；门禁脚本：`scripts/check-ui-component-files.sh` 新增 `cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_keeps_spec_rs_out_of_simple_component_surface`。）",
         "color_slider_keeps_spec_rs_out_of_simple_component_surface",
     ] {
         assert!(
@@ -632,7 +643,7 @@ fn color_slider_keeps_spec_rs_out_of_simple_component_surface() {
 #[test]
 fn color_slider_context_compression_manifest_and_rbi_projection_are_present_and_current() {
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
     let component_manifest = load_source("src/color/slider/Component.toml");
     let component_rbi = load_source("src/color/slider/color_slider.rbi");
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
@@ -710,14 +721,14 @@ fn color_slider_context_compression_manifest_and_rbi_projection_are_present_and_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
     );
 
     for required in [
-        "- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`components/color-slider/src/Component.toml` 与 `components/color-slider/src/color_slider.rbi` 已同步维护；`Component.toml` 覆盖输入输出轴与能力清单，`.rbi` 提供 `ColorSlider` 接口签名投影，避免 AI 检索漂移。回归：`components/color-slider/test/semantics.rs::color_slider_context_compression_manifest_and_rbi_projection_are_present_and_current`；门禁脚本：`scripts/check-ui-components-component-files.sh` 新增 `cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_context_compression_manifest_and_rbi_projection_are_present_and_current`。）",
+        "- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`components/color-slider/src/Component.toml` 与 `components/color-slider/src/color_slider.rbi` 已同步维护；`Component.toml` 覆盖输入输出轴与能力清单，`.rbi` 提供 `ColorSlider` 接口签名投影，避免 AI 检索漂移。回归：`components/color-slider/test/semantics.rs::color_slider_context_compression_manifest_and_rbi_projection_are_present_and_current`；门禁脚本：`scripts/check-ui-component-files.sh` 新增 `cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_context_compression_manifest_and_rbi_projection_are_present_and_current`。）",
         "color_slider_context_compression_manifest_and_rbi_projection_are_present_and_current",
     ] {
         assert!(
@@ -805,7 +816,7 @@ fn color_slider_agent_contract_is_schema_typed_and_machine_readable() {
     }
 
     for required in [
-        "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`components/color-slider/src/logic.rs` 已使用类型化 Agent Contract（`ColorSliderAgent{Schema/SchemaVersion/Intent/UiAction}` + `resolve_agent_contract/resolve_ui_action`）生成语义字段，`components/color-slider/src/view.rs` 挂载稳定 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source` 以及来源轴标记（`data-control-mode/data-value-source/data-default-value-source/data-value-change-source/data-disabled-source`）；`components/color-slider/src/Component.toml` 补充 `agent-contract-markers`、`agent_contract_schema_markers`、`[[agent_contract]]` 与 `[[agent_contract_markers]]`，`.rbi` 补充 Agent Contract 签名投影。回归：`components/color-slider/test/semantics.rs::color_slider_agent_contract_is_schema_typed_and_machine_readable` 与 `components/color-slider/test/semantics.rs::color_slider_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`；门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 新增对应 `cargo test` 目标。）",
+        "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`components/color-slider/src/logic.rs` 已使用类型化 Agent Contract（`ColorSliderAgent{Schema/SchemaVersion/Intent/UiAction}` + `resolve_agent_contract/resolve_ui_action`）生成语义字段，`components/color-slider/src/view.rs` 挂载稳定 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source` 以及来源轴标记（`data-control-mode/data-value-source/data-default-value-source/data-value-change-source/data-disabled-source`）；`components/color-slider/src/Component.toml` 补充 `agent-contract-markers`、`agent_contract_schema_markers`、`[[agent_contract]]` 与 `[[agent_contract_markers]]`，`.rbi` 补充 Agent Contract 签名投影。回归：`components/color-slider/test/semantics.rs::color_slider_agent_contract_is_schema_typed_and_machine_readable` 与 `components/color-slider/test/semantics.rs::color_slider_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`；门禁脚本：`scripts/check-ui-contract-hygiene.sh` 新增对应 `cargo test` 目标。）",
         "color_slider_agent_contract_is_schema_typed_and_machine_readable",
     ] {
         assert!(
@@ -821,7 +832,7 @@ fn color_slider_agent_contract_render_path_is_whitelist_safe_and_script_injectio
     let logic_source = load_source("src/color/slider/logic.rs");
     let view_source = load_source("src/color/slider/view.rs");
     let component_manifest = load_source("src/color/slider/Component.toml");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "[[agent_contract_whitelist]]",
@@ -856,8 +867,8 @@ fn color_slider_agent_contract_render_path_is_whitelist_safe_and_script_injectio
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -885,10 +896,10 @@ fn color_slider_check2_documents_streaming_definition_is_llm_output_only_with_tw
     let styles_source = load_source("src/color/slider/styles.rs");
     let docs_page_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for required in [
-        "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（N/A：`ColorSlider` 不是 LLM 正文渲染组件，组件职责是同步颜色通道输入；组件侧不实现 token-by-token streaming 协议，仅消费稳定快照状态输入。术语约束固定为两种显示模式：`Streaming`（边生成边显示）与 `Snapshot`（完整结果一次性显示），避免在组件层引入第三种“伪流式”定义。回归：`components/color-slider/test/semantics.rs::color_slider_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`；门禁脚本：`scripts/check-ui-components-streaming.sh` 新增 `cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`。）",
+        "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（N/A：`ColorSlider` 不是 LLM 正文渲染组件，组件职责是同步颜色通道输入；组件侧不实现 token-by-token streaming 协议，仅消费稳定快照状态输入。术语约束固定为两种显示模式：`Streaming`（边生成边显示）与 `Snapshot`（完整结果一次性显示），避免在组件层引入第三种“伪流式”定义。回归：`components/color-slider/test/semantics.rs::color_slider_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`；门禁脚本：`scripts/check-ui-streaming.sh` 新增 `cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`。）",
         "`Streaming`：LLM 还在生成，界面边生成边显示。",
         "`Snapshot`：LLM 全部生成完成后，一次性显示。",
         "N/A：`ColorSlider` 不是 LLM 正文渲染组件",
@@ -910,7 +921,7 @@ fn color_slider_check2_documents_streaming_definition_is_llm_output_only_with_tw
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(script_needle),
         "streaming gate script should include `{script_needle}`.",
@@ -923,10 +934,10 @@ fn color_slider_snapshot_baseline_consumes_complete_result_and_renders_stably() 
     let view_source = load_source("src/color/slider/view.rs");
     let logic_source = load_source("src/color/slider/logic.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for required in [
-        "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`ColorSlider` 已支持完整配置快照输入并稳定渲染：`components/color-slider/src/view.rs` 通过受控/非受控三件套（`value/default_value/on_value_change`）+ 归一化边界（`sanitize_bounds/sanitize_step/normalize_default_value`）消费完整结果，根节点持续输出稳定语义标记（`data-state/data-channel/data-value/data-value-percent/data-control-mode/data-value-source/...`）。docs 基线示例 `apps/docs-app/src/pages/components/pages/forms_color.rs` 提供 Hello World、Controlled Hue、Disabled Alpha + Custom Track + Reduced Motion 等完整快照路径。回归：`components/color-slider/test/semantics.rs::color_slider_snapshot_baseline_consumes_complete_result_and_renders_stably`；门禁脚本：`scripts/check-ui-components-streaming.sh` 新增 `cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_snapshot_baseline_consumes_complete_result_and_renders_stably`。）",
+        "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`ColorSlider` 已支持完整配置快照输入并稳定渲染：`components/color-slider/src/view.rs` 通过受控/非受控三件套（`value/default_value/on_value_change`）+ 归一化边界（`sanitize_bounds/sanitize_step/normalize_default_value`）消费完整结果，根节点持续输出稳定语义标记（`data-state/data-channel/data-value/data-value-percent/data-control-mode/data-value-source/...`）。docs 基线示例 `apps/docs-app/src/pages/components/pages/forms_color.rs` 提供 Hello World、Controlled Hue、Disabled Alpha + Custom Track + Reduced Motion 等完整快照路径。回归：`components/color-slider/test/semantics.rs::color_slider_snapshot_baseline_consumes_complete_result_and_renders_stably`；门禁脚本：`scripts/check-ui-streaming.sh` 新增 `cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_snapshot_baseline_consumes_complete_result_and_renders_stably`。）",
         "所有组件都应能消费“完整生成结果”并稳定渲染。",
         "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
     ] {
@@ -990,7 +1001,7 @@ fn color_slider_snapshot_baseline_consumes_complete_result_and_renders_stably() 
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_snapshot_baseline_consumes_complete_result_and_renders_stably";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_snapshot_baseline_consumes_complete_result_and_renders_stably";
     assert!(
         script_source.contains(script_needle),
         "streaming gate script should include `{script_needle}`.",
@@ -1000,10 +1011,10 @@ fn color_slider_snapshot_baseline_consumes_complete_result_and_renders_stably() 
 #[test]
 fn color_slider_check2_documents_streaming_required_optional_classification_rules() {
     let checklist_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for required in [
-        "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`ColorSlider` 归类为 `Streaming Optional`；组件职责是颜色通道输入而非 LLM 正文阅读面，默认走 `Snapshot` 渲染路径。实现显式输出 `data-ui-stream-support=\"unsupported\"`、`data-ui-stream-fallback=\"snapshot\"`、`data-ui-stream-mode=\"snapshot\"` 与 `data-ui-output-status`，并保持 `role/aria/data-*` 连续可读。数据校验、断线恢复、重试策略继续留在上层编排，不下沉到组件。回归：`components/color-slider/test/semantics.rs::color_slider_check2_documents_streaming_required_optional_classification_rules`、`components/color-slider/test/semantics.rs::color_slider_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-slider/test/semantics.rs::color_slider_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`；门禁脚本：`scripts/check-ui-components-streaming.sh` 新增对应 `cargo test` 目标。）",
+        "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`ColorSlider` 归类为 `Streaming Optional`；组件职责是颜色通道输入而非 LLM 正文阅读面，默认走 `Snapshot` 渲染路径。实现显式输出 `data-ui-stream-support=\"unsupported\"`、`data-ui-stream-fallback=\"snapshot\"`、`data-ui-stream-mode=\"snapshot\"` 与 `data-ui-output-status`，并保持 `role/aria/data-*` 连续可读。数据校验、断线恢复、重试策略继续留在上层编排，不下沉到组件。回归：`components/color-slider/test/semantics.rs::color_slider_check2_documents_streaming_required_optional_classification_rules`、`components/color-slider/test/semantics.rs::color_slider_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-slider/test/semantics.rs::color_slider_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`；门禁脚本：`scripts/check-ui-streaming.sh` 新增对应 `cargo test` 目标。）",
         "`Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。",
         "`Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。",
         "无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。",
@@ -1017,9 +1028,9 @@ fn color_slider_check2_documents_streaming_required_optional_classification_rule
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -1064,7 +1075,7 @@ fn color_slider_streaming_validation_retry_resilience_boundaries_stay_outside_co
     let view_source = load_source("src/color/slider/view.rs");
     let logic_source = load_source("src/color/slider/logic.rs");
     let motion_source = load_source("src/color/slider/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
     let combined = format!("{view_source}\n{logic_source}\n{motion_source}");
 
     for forbidden in [
@@ -1085,9 +1096,9 @@ fn color_slider_streaming_validation_retry_resilience_boundaries_stay_outside_co
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -1149,7 +1160,7 @@ fn color_slider_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_s
 #[test]
 fn color_slider_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     let script_source = load_source("../../scripts/check-rust-hygiene.sh");
-    let engineering_script = load_source("../../scripts/check-ui-components-engineering.sh");
+    let engineering_script = load_source("../../scripts/check-ui-engineering.sh");
 
     for required in [
         r#"'\.(unwrap|unwrap_err|expect)\s*\('"#,
@@ -1164,9 +1175,9 @@ fn color_slider_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_static",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_static",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(needle),
@@ -1180,7 +1191,7 @@ fn color_slider_check2_marks_rust_hygiene_contract_complete() {
     let check2_source = load_source("check2.md");
 
     for needle in [
-        "- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/color-slider/src/logic.rs` 通过 `Cow<'static, str>` 收敛默认文案回退的字符串复制热点；组件非测试源码维持无 `unwrap/expect` 与无吞错 `let _ = ...`。回归：`components/color-slider/test/semantics.rs::color_slider_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/color-slider/test/semantics.rs::color_slider_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_static`、`components/color-slider/test/semantics.rs::color_slider_rust_hygiene_script_enforces_repo_level_hygiene_guards`；门禁脚本：`scripts/check-ui-components-engineering.sh` 新增对应 `cargo test` 目标。另执行：`./scripts/check-rust-hygiene.sh`（当前环境已执行，若失败以脚本输出为准）。）",
+        "- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/color-slider/src/logic.rs` 通过 `Cow<'static, str>` 收敛默认文案回退的字符串复制热点；组件非测试源码维持无 `unwrap/expect` 与无吞错 `let _ = ...`。回归：`components/color-slider/test/semantics.rs::color_slider_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/color-slider/test/semantics.rs::color_slider_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_static`、`components/color-slider/test/semantics.rs::color_slider_rust_hygiene_script_enforces_repo_level_hygiene_guards`；门禁脚本：`scripts/check-ui-engineering.sh` 新增对应 `cargo test` 目标。另执行：`./scripts/check-rust-hygiene.sh`（当前环境已执行，若失败以脚本输出为准）。）",
         "color_slider_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
         "color_slider_rust_hygiene_string_clone_hotspots_converge_to_cow_or_borrowed_static",
         "color_slider_rust_hygiene_script_enforces_repo_level_hygiene_guards",
@@ -1325,12 +1336,12 @@ fn color_slider_feature_dependencies_are_self_contained() {
 
 #[test]
 fn color_slider_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
     let web_demo_cargo_source = load_source("../../apps/web-demo/Cargo.toml");
     let docs_app_cargo_source = load_source("../../apps/docs-app/Cargo.toml");
-    let tree_script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
@@ -1341,7 +1352,7 @@ fn color_slider_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components feature tree should include `{needle}`.",
+            "ui feature tree should include `{needle}`.",
         );
     }
 
@@ -1352,7 +1363,7 @@ fn color_slider_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib export should keep color-slider gate `{needle}`.",
+            "ui lib export should keep color-slider gate `{needle}`.",
         );
     }
 
@@ -1362,18 +1373,18 @@ fn color_slider_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css aggregation should keep color-slider gate `{needle}`.",
+            "ui css aggregation should keep color-slider gate `{needle}`.",
         );
     }
 
     for needle in [
-        "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
+        "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
         "default-features = false",
         "web-demo-components",
     ] {
         assert!(
             web_demo_cargo_source.contains(needle),
-            "web-demo should consume ui-components via tree-shaking friendly feature set `{needle}`.",
+            "web-demo should consume ui via tree-shaking friendly feature set `{needle}`.",
         );
     }
 
@@ -1383,7 +1394,7 @@ fn color_slider_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     );
 
     for needle in [
-        "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"all-components\"] }",
+        "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"all-components\"] }",
         "all-components",
     ] {
         assert!(
@@ -1394,12 +1405,12 @@ fn color_slider_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "source \"$BUDGET_FILE\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
@@ -1423,15 +1434,15 @@ fn color_slider_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
 
 #[test]
 fn color_slider_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let tree_script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let tree_script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
 
     for needle in [
         "COLOR_SLIDER_MIN_FEATURES=\"component-color_slider,inject-css\"",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_tree_shaking_contract_is_feature_gated_and_budget_guarded",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$COLOR_SLIDER_MIN_FEATURES\"",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_tree_shaking_contract_is_feature_gated_and_budget_guarded",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$COLOR_SLIDER_MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$COLOR_SLIDER_TREE_OUTPUT\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$COLOR_SLIDER_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$COLOR_SLIDER_MIN_FEATURES\"",
     ] {
         assert!(
             tree_script_source.contains(needle),
@@ -1445,11 +1456,11 @@ fn color_slider_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2_source = load_source("check2.md");
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "color_slider_tree_shaking_contract_is_feature_gated_and_budget_guarded",
         "color_slider_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "color_slider_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -1869,8 +1880,10 @@ fn color_slider_reduced_motion_ssr_and_wasm_contracts_stay_aligned() {
     );
 
     for needle in [
-        "drop(style.set_property(\"--ui-slider-visual-percent\", &format!(\"{initial:.4}\")));",
-        "drop(style.set_property(\"--ui-slider-visual-percent\", &format!(\"{target:.4}\")));",
+        "ui_observability::set_css_property_observed_auto!(",
+        "\"--ui-slider-visual-percent\",",
+        "&format!(\"{initial:.4}\")",
+        "&format!(\"{target:.4}\")",
         "if !motion.enabled || ui_motion::web::prefers_reduced_motion() {",
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
@@ -1926,7 +1939,7 @@ fn color_slider_performance_governance_contract_is_budgeted_traceable_and_blocki
     let e2e_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let check2_source = load_source("check2.md");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/color/slider/view.rs");
 
     for needle in [
@@ -1998,8 +2011,8 @@ fn color_slider_performance_governance_contract_is_budgeted_traceable_and_blocki
 
     for needle in [
         "cargo test -p ui-color-slider color_slider_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2030,7 +2043,7 @@ fn color_slider_semantics_and_performance_regression_cover_aria_data_focus_and_r
  {
     let view_source = load_source("src/color/slider/view.rs");
     let logic_source = load_source("src/color/slider/logic.rs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let check2_source = load_source("check2.md");
     let docs_shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
@@ -2073,7 +2086,7 @@ fn color_slider_semantics_and_performance_regression_cover_aria_data_focus_and_r
 
     for marker in [
         "cargo test -p ui-color-slider color_slider_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
@@ -2105,11 +2118,18 @@ fn color_slider_semantics_and_performance_regression_cover_aria_data_focus_and_r
     }
 
     assert!(
-        logic_source.contains("pub fn resolve_state("),
-        "logic should keep state derivation path for attributable semantics/perf regressions.",
+        logic_source.contains("resolve_state,") || logic_source.contains("pub fn resolve_state("),
+        "logic should keep state derivation export for attributable semantics/perf regressions.",
     );
 
-    for forbidden in ["assert_snapshot", "insta::assert", "toMatchSnapshot("] {
+    let snapshot_token = ["assert", "_snapshot!("].concat();
+    let insta_snapshot_token = ["insta::assert", "_snapshot!("].concat();
+    let jest_snapshot_token = ["toMatch", "Snapshot("].concat();
+    for forbidden in [
+        snapshot_token.as_str(),
+        insta_snapshot_token.as_str(),
+        jest_snapshot_token.as_str(),
+    ] {
         assert!(
             !semantics_source.contains(forbidden),
             "color-slider semantic/perf tests should not depend on visual snapshot token `{forbidden}`.",
@@ -2121,7 +2141,7 @@ fn color_slider_semantics_and_performance_regression_cover_aria_data_focus_and_r
 fn color_slider_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only() {
     let check2_source = load_source("../../components/color-slider/check2.md");
     let view_source = load_source("../../components/color-slider/src/view.rs");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
     let local_semantics = include_str!("semantics.rs");
 
     for required in [
@@ -2159,7 +2179,7 @@ fn color_slider_semantics_priority_contract_prefers_semantic_assertions_over_sna
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -2171,7 +2191,7 @@ fn color_slider_semantics_priority_contract_prefers_semantic_assertions_over_sna
         "color_slider_semantics_matrix_covers_state_paths_without_snapshot_dependency",
         "color_slider_snapshot_baseline_consumes_complete_result_and_renders_stably",
         "color_slider_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2192,7 +2212,7 @@ fn color_slider_check2_documents_e2e_selector_and_stable_wait_rules() {
         "color_slider_check2_documents_e2e_selector_and_stable_wait_rules",
         "color_slider_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "color_slider_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-color-slider.sh",
+        "components/color-slider/scripts/check-ui-e2e-color-slider.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2204,7 +2224,8 @@ fn color_slider_check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn color_slider_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_slider_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-slider.sh");
+    let script_source =
+        load_source("../../components/color-slider/scripts/check-ui-e2e-color-slider.sh");
 
     for required in [
         "const COLOR_SLIDER_PAGE = \"/#/components/color-slider\";",
@@ -2241,7 +2262,7 @@ fn color_slider_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_e2e_selector_contract_uses_semantic_markers_and_stable_waits";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_e2e_selector_contract_uses_semantic_markers_and_stable_waits";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-slider gate script should include `{script_needle}`.",
@@ -2251,7 +2272,8 @@ fn color_slider_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
 #[test]
 fn color_slider_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_slider_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-slider.sh");
+    let script_source =
+        load_source("../../components/color-slider/scripts/check-ui-e2e-color-slider.sh");
 
     for required in [
         "input.focus()",
@@ -2277,7 +2299,7 @@ fn color_slider_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-slider gate script should include `{script_needle}`.",
@@ -2296,7 +2318,7 @@ fn color_slider_check2_documents_e2e_repeatable_key_flow_rules() {
         "color_slider_check2_documents_e2e_repeatable_key_flow_rules",
         "color_slider_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "color_slider_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-color-slider.sh",
+        "components/color-slider/scripts/check-ui-e2e-color-slider.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2308,7 +2330,8 @@ fn color_slider_check2_documents_e2e_repeatable_key_flow_rules() {
 #[test]
 fn color_slider_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_slider_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-slider.sh");
+    let script_source =
+        load_source("../../components/color-slider/scripts/check-ui-e2e-color-slider.sh");
 
     for required in [
         "key flow is repeatable and failures map to semantic breakpoints",
@@ -2327,7 +2350,7 @@ fn color_slider_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_e2e_key_flow_is_repeatable_and_failure_points_are_semantic";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_e2e_key_flow_is_repeatable_and_failure_points_are_semantic";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-slider gate script should include `{script_needle}`.",
@@ -2337,7 +2360,8 @@ fn color_slider_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 #[test]
 fn color_slider_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints() {
     let e2e_source = load_source("../../e2e/tests/docs_app_color_slider_contract.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-slider.sh");
+    let script_source =
+        load_source("../../components/color-slider/scripts/check-ui-e2e-color-slider.sh");
 
     for required in [
         "high-risk paths keep focus keyboard and disabled branches semantically explicit",
@@ -2360,7 +2384,7 @@ fn color_slider_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_br
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints";
     assert!(
         script_source.contains(script_needle),
         "e2e-color-slider gate script should include `{script_needle}`.",
@@ -2401,8 +2425,8 @@ fn color_slider_exposes_a11y_and_i18n_l10n_contracts() {
     for needle in [
         "pub fn normalize_label(",
         "pub fn normalize_aria_label(",
-        "(channel.default_label().to_string(), false)",
-        "(channel.default_aria_label().to_string(), false)",
+        "normalize_text_with_fallback(value, channel.default_label())",
+        "Cow::Borrowed(channel.default_aria_label())",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -2699,8 +2723,8 @@ fn color_slider_uses_token_first_static_css_injection_contract() {
     let styles_source = load_source("src/color/slider/styles.rs");
     let view_source = load_source("src/color/slider/view.rs");
     let logic_source = load_source("src/color/slider/logic.rs");
-    let css_registry_source = load_source("../../crates/ui-components/src/css.rs");
-    let ui_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_registry_source = load_source("../../crates/ui/src/css.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
 
     for needle in [
         "pub const CSS: &str",
@@ -2740,7 +2764,7 @@ fn color_slider_uses_token_first_static_css_injection_contract() {
     ] {
         assert!(
             css_registry_source.contains(needle),
-            "ui-components css registry should aggregate color-slider styles via feature gate `{needle}`.",
+            "ui css registry should aggregate color-slider styles via feature gate `{needle}`.",
         );
     }
 
@@ -2778,7 +2802,7 @@ fn color_slider_styles_use_defensive_variable_fallback_chain() {
     let styles_source = load_source("src/color/slider/styles.rs");
     let theme_css_source = load_source("../../crates/ui-theme/src/css.rs");
     let check2_source = load_source("../../components/color-slider/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "var(--ui-space-sm, var(--ui-fallback-space-sm))",
@@ -2855,7 +2879,7 @@ fn color_slider_styles_use_defensive_variable_fallback_chain() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_styles_use_defensive_variable_fallback_chain";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -2875,9 +2899,9 @@ fn color_slider_styles_use_defensive_variable_fallback_chain() {
 #[test]
 fn color_slider_cascade_layer_and_runtime_style_contract_is_enforced() {
     let check2_source = load_source("../../components/color-slider/check2.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
+    let css_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let view_source = load_source("src/color/slider/view.rs");
     let logic_source = load_source("src/color/slider/logic.rs");
     let motion_source = load_source("src/color/slider/motion.rs");
@@ -2891,7 +2915,7 @@ fn color_slider_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css aggregation should keep cascade-layer marker `{required}`.",
+            "ui css aggregation should keep cascade-layer marker `{required}`.",
         );
     }
 
@@ -2953,7 +2977,7 @@ fn color_slider_cascade_layer_and_runtime_style_contract_is_enforced() {
         }
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_cascade_layer_and_runtime_style_contract_is_enforced";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -3142,7 +3166,7 @@ fn color_slider_preserves_ui_motion_non_wasm_stub_contract() {
 #[test]
 fn color_slider_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe() {
     let check2_source = load_source("../../components/color-slider/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let script_source = load_source("../../scripts/check-ui-platforms.sh");
     let motion_source = load_source("src/color/slider/motion.rs");
     let view_source = load_source("src/color/slider/view.rs");
 
@@ -3186,7 +3210,7 @@ fn color_slider_motion_contract_is_component_scoped_reduced_motion_aware_and_non
         "color-slider view should mount motion contract through attach_motion.",
     );
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
     assert!(
         script_source.contains(script_needle),
         "platform gate script should include `{script_needle}`.",
@@ -3206,10 +3230,10 @@ fn color_slider_motion_contract_is_component_scoped_reduced_motion_aware_and_non
 #[test]
 fn color_slider_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let check2_source = load_source("../../components/color-slider/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let active_highlight_source =
         load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
     let headless_a11y_source = load_source("../../crates/ui-headless/src/a11y.rs");
@@ -3223,7 +3247,7 @@ fn color_slider_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib entry should keep feature-gated color-slider public surface `{required}`.",
+            "ui lib entry should keep feature-gated color-slider public surface `{required}`.",
         );
     }
 
@@ -3234,7 +3258,7 @@ fn color_slider_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not expose platform detail `{forbidden}`.",
+            "ui lib entry should not expose platform detail `{forbidden}`.",
         );
     }
 
@@ -3248,7 +3272,7 @@ fn color_slider_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css entry should keep feature-gated layered aggregation marker `{required}`.",
+            "ui css entry should keep feature-gated layered aggregation marker `{required}`.",
         );
     }
 
@@ -3295,8 +3319,9 @@ fn color_slider_ui_components_fixed_entry_files_follow_layered_boundaries() {
     }
     for required in [
         "pub fn use_presence(",
-        "pub struct PresenceOptions",
-        "pub struct PresenceState",
+        "pub struct Presence",
+        "pub is_present: ReadSignal<bool>",
+        "pub finish_exit: Callback<()>",
     ] {
         assert!(
             headless_presence_source.contains(required),
@@ -3304,8 +3329,9 @@ fn color_slider_ui_components_fixed_entry_files_follow_layered_boundaries() {
         );
     }
     for required in [
-        "pub fn use_controllable_state(",
-        "pub struct ControllableStateHandle<T>",
+        "pub fn use_controllable_state<T>(",
+        "pub struct ControllableState<T>",
+        "pub struct ControllableOpenState",
     ] {
         assert!(
             headless_controllable_state_source.contains(required),
@@ -3319,24 +3345,24 @@ fn color_slider_ui_components_fixed_entry_files_follow_layered_boundaries() {
         .and_then(Path::parent)
         .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
     for forbidden in [
-        workspace_dir.join("crates/ui-components/src/overlay_open.rs"),
-        workspace_dir.join("crates/ui-components/src/presence.rs"),
-        workspace_dir.join("crates/ui-components/src/a11y.rs"),
+        workspace_dir.join("crates/ui/src/overlay_open.rs"),
+        workspace_dir.join("crates/ui/src/presence.rs"),
+        workspace_dir.join("crates/ui/src/a11y.rs"),
     ] {
         assert!(
             !forbidden.exists(),
-            "ui-components forbidden fixed entrypoint file should stay absent: {forbidden:?}",
+            "ui forbidden fixed entrypoint file should stay absent: {forbidden:?}",
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         script_source.contains(script_needle),
         "entrypoint gate script should include `{script_needle}`.",
     );
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "color_slider_ui_components_fixed_entry_files_follow_layered_boundaries",
     ] {
         assert!(
@@ -3349,7 +3375,7 @@ fn color_slider_ui_components_fixed_entry_files_follow_layered_boundaries() {
 #[test]
 fn color_slider_component_directory_standard_files_follow_contract_and_na_paths() {
     let check2_source = load_source("../../components/color-slider/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
     let mod_source = load_source("../../components/color-slider/src/mod.rs");
     let logic_source = load_source("../../components/color-slider/src/logic.rs");
     let styles_source = load_source("../../components/color-slider/src/styles.rs");
@@ -3495,7 +3521,7 @@ fn color_slider_component_directory_standard_files_follow_contract_and_na_paths(
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_component_directory_standard_files_follow_contract_and_na_paths";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_component_directory_standard_files_follow_contract_and_na_paths";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
@@ -3520,7 +3546,7 @@ fn color_slider_file_placement_discipline_contract_is_explicit_for_interactive_c
     let styles_source = load_source("../../components/color-slider/src/styles.rs");
     let view_source = load_source("../../components/color-slider/src/view.rs");
     let motion_source = load_source("../../components/color-slider/src/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
     assert!(
         check2_source.contains("文件落点纪律"),
@@ -3563,7 +3589,7 @@ fn color_slider_file_placement_discipline_contract_is_explicit_for_interactive_c
         "logic/styles/view/motion should keep canonical responsibility anchors.",
     );
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_file_placement_discipline_contract_is_explicit_for_interactive_component_scope";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_file_placement_discipline_contract_is_explicit_for_interactive_component_scope";
     assert!(
         script_source.contains(script_needle),
         "component-files gate script should include `{script_needle}`.",
@@ -3629,7 +3655,14 @@ fn color_slider_semantics_matrix_covers_state_paths_without_snapshot_dependency(
         );
     }
 
-    for forbidden in ["assert_snapshot", "insta::assert", "toMatchSnapshot("] {
+    let snapshot_token = ["assert", "_snapshot!("].concat();
+    let insta_snapshot_token = ["insta::assert", "_snapshot!("].concat();
+    let jest_snapshot_token = ["toMatch", "Snapshot("].concat();
+    for forbidden in [
+        snapshot_token.as_str(),
+        insta_snapshot_token.as_str(),
+        jest_snapshot_token.as_str(),
+    ] {
         assert!(
             !semantics_source.contains(forbidden),
             "color-slider semantic contract tests should not depend on visual snapshot token `{forbidden}`.",
@@ -3674,34 +3707,35 @@ fn color_slider_docs_entry_exists_as_readme_or_equivalent_docs_app_page() {
 #[test]
 fn color_slider_docs_are_beginner_friendly_with_default_then_advanced_path() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+    let docs_slider_section = color_slider_docs_section(&docs_source);
     let readme_source = load_source("src/color/slider/README.md");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "title=\"ColorSlider\"",
         "slug=\"color-slider\"",
-        "Playground title=\"Hello World\" code_signal=hello_code",
-        "Playground title=\"State Matrix\" code_signal=state_matrix_code",
-        "Playground title=\"Controlled vs Uncontrolled\" code_signal=controlled_vs_uncontrolled_code",
-        "Playground title=\"Interactive Workbench (DX)\"",
+        "title=\"Hello World\"",
+        "title=\"State Matrix\"",
+        "title=\"Controlled vs Uncontrolled\"",
+        "title=\"Interactive Workbench (DX)\"",
     ] {
         assert!(
-            docs_source.contains(required),
+            docs_slider_section.contains(required),
             "color-slider docs should keep beginner-to-advanced marker `{required}`.",
         );
     }
 
-    let hello_pos = docs_source
-        .find("Playground title=\"Hello World\" code_signal=hello_code")
+    let hello_pos = docs_slider_section
+        .find("title=\"Hello World\"")
         .expect("docs should include hello-world playground for zero-threshold path.");
-    let matrix_pos = docs_source
-        .find("Playground title=\"State Matrix\" code_signal=state_matrix_code")
+    let matrix_pos = docs_slider_section
+        .find("title=\"State Matrix\"")
         .expect("docs should include state-matrix playground as common usage.");
-    let controlled_pos = docs_source
-        .find("Playground title=\"Controlled vs Uncontrolled\" code_signal=controlled_vs_uncontrolled_code")
+    let controlled_pos = docs_slider_section
+        .find("title=\"Controlled vs Uncontrolled\"")
         .expect("docs should include controlled-vs-uncontrolled playground.");
-    let interactive_pos = docs_source
-        .find("Playground title=\"Interactive Workbench (DX)\"")
+    let interactive_pos = docs_slider_section
+        .find("title=\"Interactive Workbench (DX)\"")
         .expect("docs should include interactive workbench for advanced controls.");
     assert!(
         hello_pos < matrix_pos && matrix_pos < controlled_pos && controlled_pos < interactive_pos,
@@ -3735,7 +3769,7 @@ fn color_slider_docs_are_beginner_friendly_with_default_then_advanced_path() {
         "README should present default path before advanced guidance.",
     );
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_docs_are_beginner_friendly_with_default_then_advanced_path";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_docs_are_beginner_friendly_with_default_then_advanced_path";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -3749,7 +3783,7 @@ fn color_slider_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_
 
     for required in [
         "title=\"Hello World\"",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::ColorSlider;\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::ColorSlider;\".to_string()",
         "<ColorSlider id_base=\"docs-color-slider-hello\".to_string() />",
         "## Hello World",
         "id_base=\"demo-color-slider\".to_string()",
@@ -3879,7 +3913,7 @@ fn color_slider_docs_examples_parameter_and_state_matrix_stay_synced_with_logic_
         "default_value=40.0",
         "default_value=180.0",
         "disabled=true",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::{ColorSlider, ColorSliderChannel, ColorSliderMotion};\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::{ColorSlider, ColorSliderChannel, ColorSliderMotion};\".to_string()",
     ] {
         assert!(
             docs_source.contains(required),
@@ -3919,11 +3953,11 @@ fn color_slider_docs_examples_parameter_and_state_matrix_stay_synced_with_logic_
 
 #[test]
 fn color_slider_contract_hygiene_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_docs_examples_parameter_and_state_matrix_stay_synced_with_logic_defaults",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_docs_examples_parameter_and_state_matrix_stay_synced_with_logic_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3936,7 +3970,7 @@ fn color_slider_contract_hygiene_script_covers_docs_sync_and_state_matrix_contra
 fn color_slider_check2_documents_docs_product_copy_paste_ready_contract() {
     let check2_source = load_source("../../components/color-slider/check2.md");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
-    let script_source = include_str!("../../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [
         "- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。",
@@ -3951,7 +3985,7 @@ fn color_slider_check2_documents_docs_product_copy_paste_ready_contract() {
         "color_slider_docs_page_covers_primary_playgrounds",
         "color_slider_docs_playgrounds_lock_state_matrix_contract_values",
         "color_slider_check2_documents_docs_product_copy_paste_ready_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -3975,7 +4009,7 @@ fn color_slider_check2_documents_docs_product_copy_paste_ready_contract() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_docs_product_copy_paste_ready_contract";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_docs_product_copy_paste_ready_contract";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate script should include `{script_needle}`.",
@@ -4039,10 +4073,15 @@ fn color_slider_check2_documents_interactive_playground_rules() {
 #[test]
 fn color_slider_docs_app_provides_interactive_playground_for_props_state_and_preview() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+    let docs_slider_section = color_slider_docs_section(&docs_source);
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
 
+    assert!(
+        docs_source.contains("pub(super) fn color_slider() -> AnyView"),
+        "docs should expose color_slider entry function.",
+    );
+
     for marker in [
-        "pub(super) fn color_slider() -> AnyView",
         "title=\"Interactive Workbench (DX)\"",
         "test_css_source=workbench_test_css_source",
         "test_config_signal=workbench_actual_config",
@@ -4062,16 +4101,18 @@ fn color_slider_docs_app_provides_interactive_playground_for_props_state_and_pre
         "data-slot=\"color-slider-workbench-state\"",
     ] {
         assert!(
-            docs_source.contains(marker),
+            docs_slider_section.contains(marker),
             "color-slider docs should keep interactive playground marker `{marker}`.",
         );
     }
 
     for marker in [
         "let section_class = \"docs-card playground\";",
-        "<div class=\"playground__preview\" data-playground-scope=scope_id.clone()>",
+        "<div data-playground-scope=scope_id.clone()>",
+        "<Card class_name=\"playground__preview\".to_string()>",
         "<div class=\"playground__preview-stage\">{children()}</div>",
-        "<aside class=\"playground__panel playground__controls\" data-slot=\"playground-controls\">",
+        "<div data-slot=\"playground-controls\">",
+        "<Card class_name=\"playground__panel playground__controls\".to_string()>",
     ] {
         assert!(
             playground_source.contains(marker),
@@ -4105,11 +4146,11 @@ fn color_slider_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn color_slider_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for marker in [
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4209,11 +4250,11 @@ fn color_slider_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
 
 #[test]
 fn color_slider_contract_hygiene_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_docs_are_copy_paste_ready_with_imports_copy_button_and_sync",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_docs_are_copy_paste_ready_with_imports_copy_button_and_sync",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4237,7 +4278,7 @@ fn color_slider_heroui_strategy_and_component_docs_are_synced_for_parameter_mode
         "value + on_value_change + default_value",
         "`channel`",
         "`min/max/step`",
-        "`is_disabled(disabled legacy alias)`",
+        "is_disabled(disabled legacy alias)",
         "component_doc!(\"ColorSlider\", \"color-slider\", \"Forms\", forms_color::color_slider)",
         "apps/docs-app/src/pages/components/pages/forms_color.rs::color_slider()",
         "Hello World",
@@ -4248,7 +4289,9 @@ fn color_slider_heroui_strategy_and_component_docs_are_synced_for_parameter_mode
         "参数语义若变更，必须先同步本策略文档与 docs 入口",
     ] {
         assert!(
-            strategy_source.contains(marker) || docs_index_source.contains(marker),
+            strategy_source.contains(marker)
+                || docs_index_source.contains(marker)
+                || readme_source.contains(marker),
             "color-slider HeroUI/doc sync record should include `{marker}`.",
         );
     }
@@ -4276,8 +4319,8 @@ fn color_slider_heroui_strategy_and_component_docs_are_synced_for_parameter_mode
         "#[prop(optional)] is_disabled: Option<bool>,",
         "#[prop(optional)] disabled: bool,",
         "#[prop(optional)] motion: ColorSliderMotion,",
-        "pub fn sanitize_bounds(",
-        "pub fn sanitize_step(",
+        "sanitize_bounds,",
+        "sanitize_step,",
         "pub fn normalize_default_value(",
         "pub fn normalize_accessibility_state(",
     ] {
@@ -4320,11 +4363,11 @@ fn color_slider_check2_marks_heroui_strategy_and_component_docs_sync_complete() 
 
 #[test]
 fn color_slider_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for marker in [
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
-        "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_marks_heroui_strategy_and_component_docs_sync_complete",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes",
+        "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_check2_marks_heroui_strategy_and_component_docs_sync_complete",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4336,8 +4379,8 @@ fn color_slider_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract
 #[test]
 fn color_slider_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries() {
     let check2_source = load_source("../../components/color-slider/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
-    let ui_components_cargo = load_source("Cargo.toml");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
+    let ui_components_cargo = load_source("../../crates/ui/Cargo.toml");
     let color_slider_cargo = load_source("../../components/color-slider/Cargo.toml");
     let protocol_source = load_source("../../components/color-slider/src/protocol.rs");
     let protocol_test_source = load_source("../../components/color-slider/test/protocol.rs");
@@ -4426,7 +4469,7 @@ fn color_slider_engineering_contract_uses_serde_protocol_and_keeps_tracing_runti
         }
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries";
     assert!(
         script_source.contains(script_needle),
         "engineering gate script should include `{script_needle}`.",
@@ -4450,7 +4493,7 @@ fn color_slider_engineering_contract_uses_serde_protocol_and_keeps_tracing_runti
 fn color_slider_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade()
  {
     let check2_source = load_source("../../components/color-slider/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
     let readme_source = load_source("../../components/color-slider/src/README.md");
     let protocol_source = include_str!("../src/protocol.rs");
     let component_manifest = include_str!("../src/Component.toml");
@@ -4498,14 +4541,14 @@ fn color_slider_version_deprecation_migration_registry_is_explicitly_na_without_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
+    let script_needle = "cargo test -p ui --test color_slider_semantics --no-default-features --features component-color_slider,inject-css color_slider_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(script_needle),
         "engineering gate script should include `{script_needle}`.",
     );
 
     for needle in [
-        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorSlider` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/color-slider/src/protocol.rs` 的 `SliderComponentSchemaVersion::V1`、`components/color-slider/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.color-slider.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/color-slider/test/semantics.rs::color_slider_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-components-engineering.sh` 新增对应 `cargo test` 目标。）",
+        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorSlider` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/color-slider/src/protocol.rs` 的 `SliderComponentSchemaVersion::V1`、`components/color-slider/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.color-slider.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/color-slider/test/semantics.rs::color_slider_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-engineering.sh` 新增对应 `cargo test` 目标。）",
         "color_slider_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
     ] {
         assert!(

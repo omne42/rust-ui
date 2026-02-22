@@ -1273,7 +1273,7 @@ fn sonner_semantic_test_matrix_covers_contract_paths_not_snapshot_only() {
         "sonner_semantic_test_matrix_covers_contract_paths_not_snapshot_only",
         "新增/变更语义字段必须同步补测试，否则不得打勾。",
         "回归：`sonner_view_uses_logic_state_contracts`、`sonner_state_markers_are_closed_sets_and_selector_friendly`、`sonner_semantic_test_matrix_covers_contract_paths_not_snapshot_only`",
-        "cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_semantic_test_matrix_covers_contract_paths_not_snapshot_only",
+        "cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_semantic_test_matrix_covers_contract_paths_not_snapshot_only",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -1383,8 +1383,8 @@ fn sonner_component_files_respect_layered_responsibilities() {
     for needle in [
         "- [x] 组件目录标准文件落点正确。",
         "回归：`sonner_component_files_respect_layered_responsibilities`、`sonner_component_file_responsibilities_are_strictly_scoped`",
-        "cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_component_files_respect_layered_responsibilities",
-        "cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_component_file_responsibilities_are_strictly_scoped",
+        "cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_component_files_respect_layered_responsibilities",
+        "cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_component_file_responsibilities_are_strictly_scoped",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -1760,7 +1760,7 @@ fn sonner_docs_app_interactive_playground_supports_props_state_preview_and_repea
         "- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。",
         "Sonner 非 AI Spec 组件，本项按 N/A 收口。",
         "回归：`sonner_docs_app_interactive_playground_supports_props_state_preview_and_repeatable_flow`",
-        "实测命令：`cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_docs_app_interactive_playground_supports_props_state_preview_and_repeatable_flow`",
+        "实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_docs_app_interactive_playground_supports_props_state_preview_and_repeatable_flow`",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -1778,7 +1778,7 @@ fn sonner_source_first_docs_are_copy_paste_ready_and_synced() {
     let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String",
         "None => DEFAULT_PLAYGROUND_IMPORTS.to_string(),",
         "compose_copy_ready_code(&dynamic_code.get(), &code_imports.get_value())",
@@ -1826,7 +1826,7 @@ fn sonner_source_first_docs_are_copy_paste_ready_and_synced() {
     for needle in [
         "- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。",
         "回归：`sonner_source_first_docs_are_copy_paste_ready_and_synced`",
-        "实测命令：`cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_source_first_docs_are_copy_paste_ready_and_synced`",
+        "实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_source_first_docs_are_copy_paste_ready_and_synced`",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -1886,7 +1886,7 @@ fn sonner_heroui_benchmark_docs_and_component_docs_stay_synced() {
     for needle in [
         "- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。",
         "回归：`sonner_heroui_benchmark_docs_and_component_docs_stay_synced`",
-        "实测命令：`cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_heroui_benchmark_docs_and_component_docs_stay_synced`",
+        "实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_heroui_benchmark_docs_and_component_docs_stay_synced`",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2005,7 +2005,7 @@ fn sonner_forbidden_antipatterns_are_blocked_by_layer_and_contract_guards() {
     for needle in [
         "### 8. 明确禁止的反模式",
         "统一回归：`sonner_forbidden_antipatterns_are_blocked_by_layer_and_contract_guards`",
-        "实测命令：`cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_forbidden_antipatterns_are_blocked_by_layer_and_contract_guards`",
+        "实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_forbidden_antipatterns_are_blocked_by_layer_and_contract_guards`",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2087,9 +2087,9 @@ fn sonner_docs_examples_and_matrices_stay_synced_with_logic_defaults() {
         "data-slot=\"sonner-state-matrix\"",
         "<h3>\"API Matrix\"</h3>",
         "<h3>\"State Matrix\"</h3>",
-        "ui_components::sonner::DEFAULT_PORTAL",
-        "ui_components::sonner::DEFAULT_MAX_TOASTS",
-        "ui_components::sonner::DEFAULT_ARIA_LABEL",
+        "ui::sonner::DEFAULT_PORTAL",
+        "ui::sonner::DEFAULT_MAX_TOASTS",
+        "ui::sonner::DEFAULT_ARIA_LABEL",
         "control mode",
         "N/A (Sonner is host config, no controlled/uncontrolled runtime axis)",
     ] {
@@ -2109,7 +2109,7 @@ fn sonner_docs_examples_and_matrices_stay_synced_with_logic_defaults() {
     for needle in [
         "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
         "回归：`sonner_docs_examples_and_matrices_stay_synced_with_logic_defaults`",
-        "实测命令：`cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_docs_examples_and_matrices_stay_synced_with_logic_defaults`",
+        "实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_docs_examples_and_matrices_stay_synced_with_logic_defaults`",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2149,7 +2149,7 @@ fn sonner_documentation_is_beginner_friendly_with_readme_or_equivalent_entry() {
     for needle in [
         "- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。",
         "回归：`sonner_documentation_is_beginner_friendly_with_readme_or_equivalent_entry`",
-        "实测命令：`cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_documentation_is_beginner_friendly_with_readme_or_equivalent_entry`",
+        "实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_documentation_is_beginner_friendly_with_readme_or_equivalent_entry`",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2189,7 +2189,7 @@ fn sonner_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::sonner::styles::CSS);"),
-        "ui-components css aggregator should include sonner styles."
+        "ui css aggregator should include sonner styles."
     );
 }
 
@@ -2233,7 +2233,7 @@ fn sonner_token_first_static_style_contract_is_enforced() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css aggregation should include sonner via `{needle}`."
+            "ui css aggregation should include sonner via `{needle}`."
         );
     }
 
@@ -2270,14 +2270,14 @@ fn sonner_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep sonner feature-gated export `{needle}`."
+            "ui lib entry should keep sonner feature-gated export `{needle}`."
         );
     }
 
     assert!(
         css_source.contains("#[cfg(feature = \"component-sonner\")]")
             && css_source.contains("out.push_str(crate::sonner::styles::CSS);"),
-        "ui-components css entry should keep sonner feature-gated aggregation."
+        "ui css entry should keep sonner feature-gated aggregation."
     );
 
     for needle in [
@@ -2313,7 +2313,7 @@ fn sonner_ui_components_fixed_entry_files_follow_layered_boundaries() {
     for absent in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !Path::new(env!("CARGO_MANIFEST_DIR")).join(absent).exists(),
-            "forbidden ui-components entry file should stay absent: `{absent}`."
+            "forbidden ui entry file should stay absent: `{absent}`."
         );
     }
 
@@ -2331,9 +2331,9 @@ fn sonner_ui_components_fixed_entry_files_follow_layered_boundaries() {
     }
 
     for needle in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "回归：`sonner_ui_components_fixed_entry_files_follow_layered_boundaries`",
-        "cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_ui_components_fixed_entry_files_follow_layered_boundaries",
+        "cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_ui_components_fixed_entry_files_follow_layered_boundaries",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2397,7 +2397,7 @@ fn sonner_agent_contract_schema_is_typed_traceable_and_whitelisted() {
     for needle in [
         "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。",
         "回归：`sonner_agent_contract_schema_is_typed_traceable_and_whitelisted`",
-        "cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_agent_contract_schema_is_typed_traceable_and_whitelisted",
+        "cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_agent_contract_schema_is_typed_traceable_and_whitelisted",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2466,7 +2466,7 @@ fn sonner_streaming_policy_is_optional_with_snapshot_fallback_and_explicit_outpu
         "`Streaming`：LLM 还在生成，界面边生成边显示。",
         "`Snapshot`：LLM 全部生成完成后，一次性显示。",
         "回归：`sonner_streaming_policy_is_optional_with_snapshot_fallback_and_explicit_output_status`",
-        "cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_streaming_policy_is_optional_with_snapshot_fallback_and_explicit_output_status",
+        "cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_streaming_policy_is_optional_with_snapshot_fallback_and_explicit_output_status",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2540,7 +2540,7 @@ fn sonner_snapshot_baseline_consumes_complete_configuration_and_renders_stably()
     for needle in [
         "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。",
         "回归：`sonner_snapshot_baseline_consumes_complete_configuration_and_renders_stably`",
-        "cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_snapshot_baseline_consumes_complete_configuration_and_renders_stably",
+        "cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_snapshot_baseline_consumes_complete_configuration_and_renders_stably",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2592,7 +2592,7 @@ fn sonner_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable() {
     for needle in [
         "- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。",
         "回归：`sonner_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable`",
-        "实测命令：`cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable`",
+        "实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable`",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2641,7 +2641,7 @@ fn sonner_e2e_repeatable_key_flow_covers_overlay_focus_keyboard_and_async_paths(
     for needle in [
         "- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。",
         "回归：`sonner_e2e_repeatable_key_flow_covers_overlay_focus_keyboard_and_async_paths`",
-        "实测命令：`cargo test -p ui-components --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_e2e_repeatable_key_flow_covers_overlay_focus_keyboard_and_async_paths`",
+        "实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_e2e_repeatable_key_flow_covers_overlay_focus_keyboard_and_async_paths`",
         "回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。",
         "高风险路径（overlay、focus、keyboard、async）优先进入回归集合。",
     ] {
@@ -2753,12 +2753,12 @@ fn sonner_wasm_debug_capability_reuses_global_trace_overlay_and_stays_feature_is
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_sonner_contract.spec.mjs");
-    let wasm_debug_script = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let wasm_debug_script = load_source("../../scripts/check-ui-wasm-debug.sh");
 
     for needle in ["macro_rules! wasm_debug_proxy"] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components should keep wasm debug capability isolated via `{needle}`."
+            "ui should keep wasm debug capability isolated via `{needle}`."
         );
     }
 
@@ -2768,7 +2768,7 @@ fn sonner_wasm_debug_capability_reuses_global_trace_overlay_and_stays_feature_is
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
+            "ui Cargo features should keep explicit wasm-debug opt-in marker `{needle}`."
         );
     }
 
@@ -2864,8 +2864,8 @@ fn sonner_wasm_debug_capability_reuses_global_trace_overlay_and_stays_feature_is
     }
 
     for needle in [
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
-        "cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_wasm_debug_capability_stays_feature_isolated_and_non_polluting",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug",
+        "cargo test -p ui --test well_semantics --no-default-features --features component-well,inject-css well_wasm_debug_capability_stays_feature_isolated_and_non_polluting",
     ] {
         assert!(
             wasm_debug_script.contains(needle),
@@ -2920,7 +2920,7 @@ fn sonner_tree_shaking_keeps_component_feature_and_css_boundaries() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo features should include `{needle}` for tree-shaking boundaries."
+            "ui Cargo features should include `{needle}` for tree-shaking boundaries."
         );
     }
 
@@ -2967,7 +2967,7 @@ fn sonner_tree_shaking_keeps_component_feature_and_css_boundaries() {
         web_demo_cargo.contains("default-features = false")
             && web_demo_cargo.contains("web-demo-components")
             && !web_demo_cargo.contains("all-components"),
-        "web-demo should consume ui-components via web-demo-components, not all-components."
+        "web-demo should consume ui via web-demo-components, not all-components."
     );
     assert!(
         docs_app_cargo.contains("default-features = false")
@@ -2978,15 +2978,15 @@ fn sonner_tree_shaking_keeps_component_feature_and_css_boundaries() {
 
 #[test]
 fn sonner_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
@@ -3091,7 +3091,7 @@ fn sonner_performance_governance_contract_is_budgeted_repeatable_attributable_an
     let pages_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
     let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let check2_source = load_source("../../components/toast/src/sonner/check2.md");
     let sonner_view = load_source("../../components/toast/src/sonner/view.rs");
@@ -3147,8 +3147,8 @@ fn sonner_performance_governance_contract_is_budgeted_repeatable_attributable_an
     }
 
     for needle in [
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(needle),

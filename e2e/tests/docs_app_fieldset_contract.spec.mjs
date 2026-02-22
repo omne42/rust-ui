@@ -106,7 +106,7 @@ test("docs-app fieldset playground source is copy-paste ready", async ({ page })
     "use leptos::prelude::*;"
   );
   await expect(playground.locator('[data-slot="code-block-code"]').first()).toContainText(
-    "use ui_components::*;"
+    "use ui::*;"
   );
   await expect(playground.locator('[data-slot="code-block-code"]').first()).toContainText(
     "<Fieldset"

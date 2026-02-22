@@ -8,7 +8,7 @@
 ## Hello World
 
 ```rust
-use ui_components::{ColorSlider, ColorSliderChannel};
+use ui::{ColorSlider, ColorSliderChannel};
 
 view! {
     <ColorSlider
@@ -23,7 +23,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{ColorSlider, ColorSliderChannel};
+use ui::{ColorSlider, ColorSliderChannel};
 
 let (hue_raw, set_hue_raw) = signal(220.0_f64);
 let hue = Signal::derive(move || hue_raw.get());
@@ -57,5 +57,5 @@ view! {
 ## Source-first / Copy-Paste Ready
 
 - docs 入口：`apps/docs-app/src/pages/components/pages/forms_color.rs::color_slider()`
-- 组件源码：`crates/ui-components/src/color/slider/{mod,logic,view,styles,motion}.rs`
+- 组件源码：`crates/ui/src/color/slider/{mod,logic,view,styles,motion}.rs`
 - package 模式前提：`component-color_slider`（样式注入可选叠加 `inject-css`）

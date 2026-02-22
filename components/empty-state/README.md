@@ -13,7 +13,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::EmptyState;
+use ui::EmptyState;
 
 view! { <EmptyState /> }
 ```
@@ -24,7 +24,7 @@ view! { <EmptyState /> }
 
 ```rust
 use leptos::prelude::*;
-use ui_components::EmptyState;
+use ui::EmptyState;
 
 view! {
     <EmptyState
@@ -38,7 +38,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{EmptyState, EmptyStateAlign, EmptyStateTone};
+use ui::{EmptyState, EmptyStateAlign, EmptyStateTone};
 
 view! {
     <EmptyState

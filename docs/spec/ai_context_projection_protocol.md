@@ -45,7 +45,7 @@ schema_version = "1"
 
 [component]
 name = "Button"
-crate = "ui-components"
+crate = "ui"
 
 [[inputs]]
 name = "size"

@@ -64,9 +64,9 @@ fn spec_rs_is_not_introduced_for_simple_hover_card_component() {
 
 #[test]
 fn tree_shaking_contract_is_feature_gated_through_ui_components_package_mode() {
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
     let web_demo_cargo = load_source("../../apps/web-demo/Cargo.toml");
 
     for needle in [
@@ -108,20 +108,20 @@ fn tree_shaking_contract_is_feature_gated_through_ui_components_package_mode() {
 
 #[test]
 fn hover_card_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
         "HOVER_CARD_MIN_FEATURES=\"component-hover_card,inject-css\"",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_tree_shaking_contract_stays_feature_gated_in_package_and_demo_modes",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_tree_shaking_contract_stays_feature_gated_in_package_and_demo_modes",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_marks_tree_shaking_feature_pruning_contract_complete",
         "HOVER_CARD_TREE_OUTPUT",
         "if grep -q 'all-components' <<<\"$HOVER_CARD_TREE_OUTPUT\";",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features",
+        "cargo tree -e features -i ui -p ui --no-default-features --features",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
@@ -154,7 +154,7 @@ fn hover_card_check2_marks_tree_shaking_feature_pruning_contract_complete_locall
         "hover-card check2 should mark tree-shaking first-class ability item complete",
     );
     assert!(
-        source.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
+        source.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
         "hover-card check2 should mark tree-shaking feature-pruning checklist item complete",
     );
 
@@ -166,9 +166,9 @@ fn hover_card_check2_marks_tree_shaking_feature_pruning_contract_complete_locall
         "components/hover-card/test/hover_card_semantics.rs::hover_card_tree_shaking_contract_stays_feature_gated_in_package_and_demo_modes",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-hover_card,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-hover_card,inject-css",
+        "cargo tree -e features -i ui -p web-demo",
+        "scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             source.contains(needle),
@@ -449,8 +449,8 @@ fn hover_card_component_file_responsibilities_remain_scoped_locally() {
 
 #[test]
 fn hover_card_component_files_check_script_covers_scoped_responsibility_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_component_file_responsibilities_remain_scoped";
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_component_file_responsibilities_remain_scoped";
 
     assert!(
         script_source.contains(needle),
@@ -495,8 +495,8 @@ fn hover_card_check2_marks_component_file_responsibility_complete_locally() {
         "components/hover-card/test/hover_card_semantics.rs::hover_card_component_file_responsibilities_remain_scoped",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_component_files_check_script_covers_scoped_responsibility_contract",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_component_file_responsibility_complete",
-        "scripts/check-ui-components-component-files.sh",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_component_file_responsibilities_remain_scoped",
+        "scripts/check-ui-component-files.sh",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_component_file_responsibilities_remain_scoped",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -542,8 +542,8 @@ fn hover_card_file_placement_discipline_is_strict_for_component_scope_locally() 
 
 #[test]
 fn hover_card_component_files_script_covers_file_placement_discipline_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_file_placement_discipline_is_strict_for_component_scope";
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_file_placement_discipline_is_strict_for_component_scope";
 
     assert!(
         script_source.contains(needle),
@@ -575,8 +575,8 @@ fn hover_card_check2_marks_file_placement_discipline_complete_locally() {
         "components/hover-card/test/hover_card_semantics.rs::hover_card_file_placement_discipline_is_strict_for_component_scope",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_component_files_script_covers_file_placement_discipline",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_file_placement_discipline_complete",
-        "scripts/check-ui-components-component-files.sh",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_file_placement_discipline_is_strict_for_component_scope",
+        "scripts/check-ui-component-files.sh",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_file_placement_discipline_is_strict_for_component_scope",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -620,8 +620,8 @@ fn hover_card_hyper_structure_builder_spec_is_not_applicable_for_simple_componen
 
 #[test]
 fn hover_card_component_files_script_covers_hyper_structure_builder_na_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
 
     assert!(
         script_source.contains(needle),
@@ -650,8 +650,8 @@ fn hover_card_check2_marks_hyper_structure_builder_contract_complete_locally() {
         "components/hover-card/test/hover_card_semantics.rs::hover_card_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_component_files_script_covers_hyper_structure_builder_na_contract",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_hyper_structure_builder_contract_complete",
-        "scripts/check-ui-components-component-files.sh",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
+        "scripts/check-ui-component-files.sh",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -760,8 +760,8 @@ fn hover_card_context_compression_manifest_and_rbi_projection_are_present_and_cu
 
 #[test]
 fn hover_card_component_files_check_script_covers_context_compression_manifest_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
-    let needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let script_source = load_source("../../scripts/check-ui-component-files.sh");
+    let needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_context_compression_manifest_and_rbi_projection_are_present_and_current";
 
     assert!(
         script_source.contains(needle),
@@ -787,8 +787,8 @@ fn hover_card_check2_marks_context_compression_manifest_and_rbi_contract_complet
         "components/hover-card/test/hover_card_semantics.rs::hover_card_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_component_files_check_script_covers_context_compression_manifest_contract",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_context_compression_manifest_and_rbi_contract_complete",
-        "scripts/check-ui-components-component-files.sh",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "scripts/check-ui-component-files.sh",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -811,7 +811,7 @@ fn hover_card_check2_documents_agent_contract_schema_governance_rules_locally() 
         "hover_card_agent_contract_is_schema_typed_and_machine_readable_locally",
         "hover_card_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing_locally",
         "hover_card_agent_contract_render_path_is_whitelist_safe_and_script_injection_free_locally",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -992,13 +992,13 @@ fn hover_card_agent_contract_render_path_is_whitelist_safe_and_script_injection_
 
 #[test]
 fn hover_card_contract_hygiene_script_covers_agent_contract_schema_guards_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_agent_contract_schema_governance_rules",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1022,7 +1022,7 @@ fn hover_card_check2_marks_agent_contract_schema_governance_complete_locally() {
         "components/hover-card/test/hover_card_semantics.rs::hover_card_agent_contract_is_schema_typed_and_machine_readable",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1039,7 +1039,7 @@ fn hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_
     let logic_source = load_source("src/logic.rs");
     let mod_source = load_source("src/mod.rs");
     let motion_source = load_source("src/motion.rs");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
     let combined = format!("{view_source}\n{logic_source}\n{mod_source}\n{motion_source}");
 
     for required in [
@@ -1071,7 +1071,7 @@ fn hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(script_needle),
         "streaming check script should include `{script_needle}`"
@@ -1080,9 +1080,9 @@ fn hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_
 
 #[test]
 fn hover_card_streaming_script_covers_two_mode_definition_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
-    let needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(needle),
         "streaming check script should enforce `{needle}`"
@@ -1105,8 +1105,8 @@ fn hover_card_check2_marks_streaming_two_mode_definition_complete_locally() {
         "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_streaming_script_covers_two_mode_definition_contract",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_streaming_two_mode_definition_complete",
-        "scripts/check-ui-components-streaming.sh",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
+        "scripts/check-ui-streaming.sh",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1126,7 +1126,7 @@ fn hover_card_check2_documents_snapshot_as_default_baseline_capability_locally()
         "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
         "N/A：`HoverCard` 不直接渲染 LLM 正文",
         "hover_card_check2_documents_snapshot_as_default_baseline_capability_locally",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -1140,7 +1140,7 @@ fn hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably_loca
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
     let combined = format!("{view_source}\n{logic_source}");
 
     for needle in [
@@ -1186,7 +1186,7 @@ fn hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably_loca
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably";
+    let script_needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably";
     assert!(
         script_source.contains(script_needle),
         "streaming check script should include `{script_needle}`"
@@ -1195,11 +1195,11 @@ fn hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably_loca
 
 #[test]
 fn hover_card_streaming_script_covers_snapshot_baseline_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1225,9 +1225,9 @@ fn hover_card_check2_marks_snapshot_baseline_capability_complete_locally() {
         "components/hover-card/test/hover_card_semantics.rs::hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_streaming_script_covers_snapshot_baseline_contract",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_snapshot_baseline_capability_complete",
-        "scripts/check-ui-components-streaming.sh",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "scripts/check-ui-streaming.sh",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1240,7 +1240,7 @@ fn hover_card_check2_marks_snapshot_baseline_capability_complete_locally() {
 #[test]
 fn hover_card_check2_documents_streaming_required_optional_classification_rules_locally() {
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
         "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。",
@@ -1257,9 +1257,9 @@ fn hover_card_check2_documents_streaming_required_optional_classification_rules_
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -1332,12 +1332,12 @@ fn hover_card_streaming_validation_retry_resilience_boundaries_stay_outside_comp
 
 #[test]
 fn hover_card_streaming_script_covers_required_optional_classification_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-streaming.sh");
+    let script_source = load_source("../../scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1361,7 +1361,7 @@ fn hover_card_check2_marks_streaming_required_optional_classification_complete_l
         "components/hover-card/test/hover_card_semantics.rs::hover_card_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_streaming_script_covers_required_optional_classification_contract",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_streaming_required_optional_classification_complete",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1930,7 +1930,7 @@ fn escape_hatches_foreign_zone_is_not_applicable_for_hover_card() {
 #[test]
 fn hydration_discontinuity_uses_seeded_id_provider_instead_of_runtime_time_or_random() {
     let view_source = load_source("src/view.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let id_provider_source = load_source("../../crates/ui-headless/src/id_provider.rs");
 
     for needle in [
@@ -1993,14 +1993,14 @@ fn ssr_cross_platform_contract_covers_web_ssr_wasm_and_non_wasm_source_guards() 
     let headless_popover_source = load_source("../../crates/ui-headless/src/popover_position.rs");
     let motion_lib_source = load_source("../../crates/ui-motion/src/lib.rs");
     let headless_lib_source = load_source("../../crates/ui-headless/src/lib.rs");
-    let platforms_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platforms_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
-        "cargo check -p ui-components",
+        "cargo check -p ui",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
-        "cargo check -p ui-components --no-default-features --features component-hover_card,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-hover_card,inject-css",
+        "cargo check -p ui --no-default-features --features component-hover_card,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-hover_card,inject-css",
     ] {
         assert!(
             platforms_script_source.contains(needle),
@@ -2072,7 +2072,7 @@ fn ssr_cross_platform_contract_covers_web_ssr_wasm_and_non_wasm_source_guards() 
 fn ui_headless_web_ssr_mutex_contract_is_enforced_for_hover_card_dependencies() {
     let view_source = load_source("src/view.rs");
     let headless_lib_source = load_source("../../crates/ui-headless/src/lib.rs");
-    let platforms_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platforms_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     assert!(
         headless_lib_source
@@ -2110,7 +2110,7 @@ fn ui_headless_web_ssr_mutex_contract_is_enforced_for_hover_card_dependencies() 
 fn ui_motion_non_wasm_noop_stub_contract_is_enforced_for_hover_card() {
     let motion_source = load_source("src/motion.rs");
     let motion_lib_source = load_source("../../crates/ui-motion/src/lib.rs");
-    let platforms_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platforms_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     for needle in [
         "cargo check -p ui-motion",
@@ -2178,11 +2178,11 @@ fn reduced_motion_ssr_wasm_branches_keep_semantics_consistent_locally() {
     let view_source = load_source("src/view.rs");
     let motion_source = load_source("src/motion.rs");
     let headless_hover_source = load_source("../../crates/ui-headless/src/hover_card.rs");
-    let platforms_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platforms_script_source = load_source("../../scripts/check-ui-platforms.sh");
 
     assert!(
         platforms_script_source.contains(
-            "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_reduced_motion_ssr_wasm_branches_keep_semantics_consistent"
+            "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_reduced_motion_ssr_wasm_branches_keep_semantics_consistent"
         ),
         "platform script should include hover-card reduced-motion/ssr/wasm contract command",
     );
@@ -2509,12 +2509,12 @@ fn hover_card_semantic_markers_changed_in_view_must_be_covered_by_semantics_chec
 
 #[test]
 fn hover_card_contract_hygiene_script_covers_semantics_first_contract_guards_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_semantics_first_testing_rules",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_semantics_suite_is_contract_first_not_snapshot_only",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_semantics_first_testing_rules",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_semantics_suite_is_contract_first_not_snapshot_only",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2537,7 +2537,7 @@ fn hover_card_check2_marks_semantics_first_testing_complete_locally() {
         "components/hover-card/test/hover_card_semantics.rs::hover_card_semantics_suite_is_contract_first_not_snapshot_only",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_contract_hygiene_script_covers_semantics_first_contract_guards",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2905,9 +2905,9 @@ fn hover_card_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_te
 
 #[test]
 fn hover_card_defensive_variables_check_script_covers_style_fallback_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_styles_use_defensive_variable_fallback_chain";
+    let needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`",
@@ -2926,7 +2926,7 @@ fn hover_card_check2_marks_defensive_variables_contract_complete_locally() {
     for needle in [
         "hover_card_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals_locally",
         "hover_card_defensive_variables_check_script_covers_style_fallback_contract_locally",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "components/hover-card/src/styles.rs",
         "crates/ui-theme/src/css.rs",
         "Invalid cross-device link (os error 18)",
@@ -3010,8 +3010,8 @@ fn styles_depend_on_explicit_state_markers_and_runtime_css_vars_only() {
 
 #[test]
 fn hover_card_cascade_layer_and_runtime_style_contract_is_enforced_locally() {
-    let css_entry_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_entry_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
 
@@ -3072,9 +3072,9 @@ fn hover_card_cascade_layer_and_runtime_style_contract_is_enforced_locally() {
 
 #[test]
 fn hover_card_cascade_layer_check_script_covers_runtime_css_variable_only_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_cascade_layer_and_runtime_style_contract_is_enforced";
+    let needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`",
@@ -3093,9 +3093,9 @@ fn hover_card_check2_marks_cascade_layer_runtime_style_contract_complete_locally
     for needle in [
         "hover_card_cascade_layer_and_runtime_style_contract_is_enforced_locally",
         "hover_card_cascade_layer_check_script_covers_runtime_css_variable_only_contract_locally",
-        "scripts/check-ui-components-contract-hygiene.sh",
-        "crates/ui-components/src/css.rs",
-        "crates/ui-components/src/root.rs",
+        "scripts/check-ui-contract-hygiene.sh",
+        "crates/ui/src/css.rs",
+        "crates/ui/src/root.rs",
         "components/hover-card/src/view.rs",
         "components/hover-card/src/logic.rs",
         "Invalid cross-device link (os error 18)",
@@ -3188,9 +3188,9 @@ fn motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe_lo
 
 #[test]
 fn motion_contract_platform_script_covers_guard_locally() {
-    let source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let source = load_source("../../scripts/check-ui-platforms.sh");
 
-    let needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
+    let needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
     assert!(
         source.contains(needle),
         "platform check script should enforce `{needle}`",
@@ -3214,7 +3214,7 @@ fn hover_card_check2_marks_motion_contractualization_complete_locally() {
         "if ui_motion::web::prefers_reduced_motion() {",
         "std::hint::black_box(sanitize_motion(motion));",
         "hover_card_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
-        "scripts/check-ui-components-platforms.sh",
+        "scripts/check-ui-platforms.sh",
         "components/hover-card/src/motion.rs",
         "components/hover-card/src/view.rs",
         "crates/ui-motion/src/lib.rs",
@@ -3231,9 +3231,9 @@ fn hover_card_check2_marks_motion_contractualization_complete_locally() {
 
 #[test]
 fn hover_card_ui_components_fixed_entry_files_follow_layered_boundaries_locally() {
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
     let active_highlight_source =
         load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
     let controllable_state_source =
@@ -3253,7 +3253,7 @@ fn hover_card_ui_components_fixed_entry_files_follow_layered_boundaries_locally(
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep marker `{needle}`"
+            "ui lib entry should keep marker `{needle}`"
         );
     }
 
@@ -3265,7 +3265,7 @@ fn hover_card_ui_components_fixed_entry_files_follow_layered_boundaries_locally(
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not leak platform/internal marker `{forbidden}`"
+            "ui lib entry should not leak platform/internal marker `{forbidden}`"
         );
     }
 
@@ -3282,7 +3282,7 @@ fn hover_card_ui_components_fixed_entry_files_follow_layered_boundaries_locally(
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css registry should keep feature-gated marker `{needle}`"
+            "ui css registry should keep feature-gated marker `{needle}`"
         );
     }
 
@@ -3335,13 +3335,13 @@ fn hover_card_ui_components_fixed_entry_files_follow_layered_boundaries_locally(
     }
 
     for forbidden in [
-        "../../crates/ui-components/src/overlay_open.rs",
-        "../../crates/ui-components/src/presence.rs",
-        "../../crates/ui-components/src/a11y.rs",
+        "../../crates/ui/src/overlay_open.rs",
+        "../../crates/ui/src/presence.rs",
+        "../../crates/ui/src/a11y.rs",
     ] {
         assert!(
             !path_exists(forbidden),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`"
+            "ui forbidden entrypoint file should not exist: `{forbidden}`"
         );
     }
 
@@ -3372,8 +3372,8 @@ fn hover_card_ui_components_fixed_entry_files_follow_layered_boundaries_locally(
 
 #[test]
 fn hover_card_entrypoints_check_script_covers_fixed_entrypoint_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-entrypoints.sh");
-    let needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let script_source = load_source("../../scripts/check-ui-entrypoints.sh");
+    let needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_ui_components_fixed_entry_files_follow_layered_boundaries";
 
     assert!(
         script_source.contains(needle),
@@ -3386,18 +3386,18 @@ fn hover_card_check2_marks_ui_components_fixed_entry_files_complete_locally() {
     let source = load_source("check2.md");
 
     assert!(
-        source.contains("- [x] `ui-components` 固定入口文件落点正确。"),
+        source.contains("- [x] `ui` 固定入口文件落点正确。"),
         "hover-card check2 should mark fixed-entrypoint gate complete."
     );
 
     for required in [
-        "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
-        "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
-        "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
+        "`crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
+        "`crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
+        "`crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
         "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
-        "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
-        "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
-        "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
+        "`crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
+        "`crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
+        "`crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
     ] {
         assert!(
             source.contains(required),
@@ -3412,8 +3412,8 @@ fn hover_card_check2_marks_ui_components_fixed_entry_files_complete_locally() {
         "components/hover-card/test/hover_card_semantics.rs::hover_card_ui_components_fixed_entry_files_follow_layered_boundaries",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_entrypoints_check_script_covers_fixed_entrypoint_contract",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_ui_components_fixed_entry_files_complete",
-        "scripts/check-ui-components-entrypoints.sh",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_ui_components_fixed_entry_files_follow_layered_boundaries",
+        "scripts/check-ui-entrypoints.sh",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_ui_components_fixed_entry_files_follow_layered_boundaries",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3431,7 +3431,7 @@ fn hover_card_performance_governance_budget_is_defined_traceable_and_blocking_lo
     let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let view_source = load_source("src/view.rs");
     let button_check2_source = load_source("../../components/button/check2.md");
@@ -3522,7 +3522,7 @@ fn hover_card_performance_governance_budget_is_defined_traceable_and_blocking_lo
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_performance_governance_contract_is_budgeted_traceable_and_blocking";
+    let script_needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_performance_governance_contract_is_budgeted_traceable_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`",
@@ -3650,12 +3650,12 @@ fn hover_card_semantics_and_performance_regression_cover_aria_data_focus_and_ren
 
 #[test]
 fn hover_card_semantics_and_performance_script_covers_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for marker in [
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(marker),
@@ -3673,7 +3673,7 @@ fn hover_card_check2_marks_semantics_and_performance_regression_contract_complet
         "hover_card_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement_locally",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "`render_count` 自动化回归仍在仓库统一 follow-up",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3687,7 +3687,7 @@ fn hover_card_check2_marks_semantics_and_performance_regression_contract_complet
 fn hover_card_view_macro_complexity_is_split_into_semantic_subrenders_locally() {
     let check2_source = load_source("check2.md");
     let view_source = load_source("src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "fn render_trigger_view(input: TriggerViewInput) -> impl IntoView {",
@@ -3720,7 +3720,7 @@ fn hover_card_view_macro_complexity_is_split_into_semantic_subrenders_locally() 
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_view_macro_complexity_is_split_into_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_view_macro_complexity_is_split_into_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`",
@@ -3731,7 +3731,7 @@ fn hover_card_view_macro_complexity_is_split_into_semantic_subrenders_locally() 
 fn hover_card_view_functional_split_prefers_plain_functions_over_local_components() {
     let check2_source = load_source("check2.md");
     let view_source = load_source("src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for needle in [
         "fn render_trigger_view(input: TriggerViewInput) -> impl IntoView {",
@@ -3776,7 +3776,7 @@ fn hover_card_view_functional_split_prefers_plain_functions_over_local_component
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_view_functional_split_prefers_plain_functions_over_local_components";
+    let script_needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_view_functional_split_prefers_plain_functions_over_local_components";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`",
@@ -3787,7 +3787,7 @@ fn hover_card_view_functional_split_prefers_plain_functions_over_local_component
 fn hover_card_static_fragments_are_constantized_or_absent_for_simple_layout_locally() {
     let check2_source = load_source("check2.md");
     let view_source = load_source("src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for forbidden in [
         "inner_html=",
@@ -3818,7 +3818,7 @@ fn hover_card_static_fragments_are_constantized_or_absent_for_simple_layout_loca
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_static_fragments_are_constantized_or_absent_for_simple_layout";
+    let script_needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_static_fragments_are_constantized_or_absent_for_simple_layout";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`",
@@ -3880,8 +3880,8 @@ fn hover_card_inner_html_usage_is_explicitly_na_and_guarded_locally() {
         );
     }
 
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
-    let script_needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_inner_html_usage_is_explicitly_na_and_guarded";
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
+    let script_needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_inner_html_usage_is_explicitly_na_and_guarded";
     assert!(
         script_source.contains(script_needle),
         "inner-html check script should enforce `{script_needle}`",
@@ -3890,8 +3890,8 @@ fn hover_card_inner_html_usage_is_explicitly_na_and_guarded_locally() {
 
 #[test]
 fn hover_card_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated_locally() {
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let crate_root_source = load_source("../../crates/ui-components/src/lib.rs");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let crate_root_source = load_source("../../crates/ui/src/lib.rs");
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
@@ -3902,7 +3902,7 @@ fn hover_card_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated
     let docs_hover_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_hover_card.rs");
     let check2_source = load_source("check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
 
     for needle in [
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
@@ -3910,7 +3910,7 @@ fn hover_card_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep shared wasm-debug marker `{needle}`",
+            "ui Cargo features should keep shared wasm-debug marker `{needle}`",
         );
     }
     assert!(
@@ -3925,7 +3925,7 @@ fn hover_card_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated
     ] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components root should keep wasm-debug isolation marker `{needle}`",
+            "ui root should keep wasm-debug isolation marker `{needle}`",
         );
     }
 
@@ -4014,7 +4014,7 @@ fn hover_card_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
+    let script_needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated";
     assert!(
         script_source.contains(script_needle),
         "wasm-debug gate script should include `{script_needle}`",
@@ -4126,11 +4126,11 @@ fn hover_card_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_wit
 
 #[test]
 fn hover_card_dx_check_script_covers_hot_reload_and_isolated_canvas_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4147,7 +4147,7 @@ fn hover_card_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_cont
 
     for needle in [
         "const HOVER_CARD_DOC_IMPORTS: &str =",
-        "use leptos::prelude::*;\\nuse ui_components::{Button, ButtonVariant, HoverCard, HoverCardMotion, OnPress};",
+        "use leptos::prelude::*;\\nuse ui::{Button, ButtonVariant, HoverCard, HoverCardMotion, OnPress};",
         "code_imports=HOVER_CARD_DOC_IMPORTS.to_string()",
         "title=\"Hello World (Minimal Path)\"",
         "title=\"State Matrix\"",
@@ -4183,9 +4183,9 @@ fn hover_card_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_cont
 
 #[test]
 fn hover_card_dx_check_script_covers_docs_product_copy_paste_ready_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
-    let needle = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract";
+    let needle = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract";
     assert!(
         script_source.contains(needle),
         "dx check script should enforce `{needle}`",
@@ -4207,7 +4207,7 @@ fn hover_card_check2_marks_docs_product_copy_paste_ready_contract_complete_local
         "hover_card_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract_locally",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract",
         "hover_card_dx_check_script_covers_docs_product_copy_paste_ready_contract_locally",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4302,13 +4302,13 @@ fn hover_card_interactive_playground_reuses_repeatable_semantic_e2e_flow_locally
 
 #[test]
 fn hover_card_dx_check_script_covers_interactive_playground_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: hover-card interactive playground docs acceptance surface\"",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_interactive_playground_reuses_repeatable_semantic_e2e_flow",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4339,7 +4339,7 @@ fn hover_card_check2_marks_interactive_playground_item_complete_locally() {
         "hover_card_docs_app_provides_interactive_playground_for_props_state_and_preview_locally",
         "hover_card_interactive_playground_reuses_repeatable_semantic_e2e_flow_locally",
         "hover_card_dx_check_script_covers_interactive_playground_contract_locally",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4404,7 +4404,7 @@ fn hover_card_engineering_contract_marks_spec_serde_path_as_na_for_simple_compon
 #[test]
 fn hover_card_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events_locally()
  {
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
     let headless_hover_source = load_source("../../crates/ui-headless/src/hover_card.rs");
     let controllable_state_source =
         load_source("../../crates/ui-headless/src/controllable_state.rs");
@@ -4435,7 +4435,7 @@ fn hover_card_engineering_contract_keeps_tracing_semantics_unified_without_compo
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::hover_card::",
+        "target: \"ui::hover_card::",
         "const HOVER_CARD_TRACE_TARGET",
     ] {
         assert!(
@@ -4487,13 +4487,13 @@ fn hover_card_engineering_contract_avoids_runtime_leaks_in_public_api_surface_lo
 
 #[test]
 fn hover_card_engineering_check_script_covers_serde_tracing_and_runtime_boundaries_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_version_deprecation_migration_is_na_without_major_breaking_upgrade",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_version_deprecation_migration_is_na_without_major_breaking_upgrade",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4565,7 +4565,7 @@ fn hover_card_version_deprecation_migration_is_na_without_major_breaking_upgrade
         "N/A：本次 `HoverCard` 未发生跨大版本 API 破坏升级",
         "schema_version = \"1\"",
         "hover_card_version_deprecation_migration_is_na_without_major_breaking_upgrade_locally",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4577,9 +4577,9 @@ fn hover_card_version_deprecation_migration_is_na_without_major_breaking_upgrade
 
 #[test]
 fn hover_card_version_deprecation_migration_script_covers_engineering_gate_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
 
-    let marker = "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_version_deprecation_migration_is_na_without_major_breaking_upgrade";
+    let marker = "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_version_deprecation_migration_is_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(marker),
         "engineering check script should enforce `{marker}`",
@@ -4763,12 +4763,13 @@ fn hover_card_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths
 
 #[test]
 fn hover_card_e2e_check_script_covers_selector_and_settled_wait_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-hover-card.sh");
+    let script_source =
+        load_source("../../components/hover-card/scripts/check-ui-e2e-hover-card.sh");
 
     for marker in [
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4794,7 +4795,7 @@ fn hover_card_check2_marks_e2e_selector_stability_item_complete_locally() {
         "components/hover-card/test/semantics.rs::hover_card_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths_locally",
         "components/hover-card/test/semantics.rs::hover_card_e2e_check_script_covers_selector_and_settled_wait_contract_locally",
         "components/hover-card/test/hover_card_semantics.rs::hover_card_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "scripts/check-ui-components-e2e-hover-card.sh",
+        "components/hover-card/scripts/check-ui-e2e-hover-card.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4867,12 +4868,13 @@ fn hover_card_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_brea
 
 #[test]
 fn hover_card_e2e_check_script_covers_replayable_flow_and_high_risk_path_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-hover-card.sh");
+    let script_source =
+        load_source("../../components/hover-card/scripts/check-ui-e2e-hover-card.sh");
 
     for marker in [
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_e2e_repeatable_key_flow_rules",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_e2e_repeatable_key_flow_rules",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
     ] {
         assert!(
             script_source.contains(marker),
@@ -4898,7 +4900,7 @@ fn hover_card_check2_marks_replayable_e2e_critical_flow_item_complete_locally() 
         "await expectHoverCardSettledClosed(interactiveRoot, panel)",
         "hover_card_e2e_key_flow_is_repeatable_and_failure_points_are_semantic_locally",
         "hover_card_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints_locally",
-        "scripts/check-ui-components-e2e-hover-card.sh",
+        "components/hover-card/scripts/check-ui-e2e-hover-card.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -4998,7 +5000,7 @@ fn hover_card_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defau
         "apps/docs-app/src/pages/components/pages/overlays_hover_card.rs::hover_card",
         "hover_card_check2_documents_docs_sync_and_state_matrix_rules_locally",
         "hover_card_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults_locally",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -5009,12 +5011,12 @@ fn hover_card_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defau
 
 #[test]
 fn hover_card_dx_check_script_covers_docs_sync_and_state_matrix_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: hover-card docs examples + api/state matrix sync with logic API/defaults\"",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5042,7 +5044,7 @@ fn hover_card_check2_marks_docs_sync_and_state_matrix_item_complete_locally() {
         "hover_card_check2_documents_docs_sync_and_state_matrix_rules_locally",
         "hover_card_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults_locally",
         "hover_card_dx_check_script_covers_docs_sync_and_state_matrix_contract_locally",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -5128,12 +5130,12 @@ fn hover_card_documentation_entry_exists_with_beginner_first_progression_locally
 
 #[test]
 fn hover_card_dx_check_script_covers_documentation_as_product_contract_locally() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
         "echo \"[dx] contract: hover-card documentation-as-product keeps beginner-first docs entry\"",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5160,7 +5162,7 @@ fn hover_card_check2_marks_documentation_as_product_item_complete_locally() {
         "hover_card_check2_documents_documentation_as_product_rules_locally",
         "hover_card_documentation_entry_exists_with_beginner_first_progression_locally",
         "hover_card_dx_check_script_covers_documentation_as_product_contract_locally",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(

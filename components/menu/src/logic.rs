@@ -58,7 +58,7 @@ pub enum MenuAgentSchemaVersion {
 impl MenuAgentSchemaVersion {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::V1 => "v1",
+            MenuAgentSchemaVersion::V1 => "v1",
         }
     }
 }
@@ -71,7 +71,7 @@ pub enum MenuAgentIntent {
 impl MenuAgentIntent {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::MenuInteraction => "menu.interaction",
+            MenuAgentIntent::MenuInteraction => "menu.interaction",
         }
     }
 }
@@ -84,7 +84,7 @@ pub enum MenuAgentAction {
 impl MenuAgentAction {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::NavigateSelect => "navigate-select",
+            MenuAgentAction::NavigateSelect => "navigate-select",
         }
     }
 }
@@ -100,10 +100,10 @@ pub enum MenuAgentState {
 impl MenuAgentState {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::Disabled => "disabled",
-            Self::Empty => "empty",
-            Self::Ready => "ready",
-            Self::ReadyChecked => "ready-checked",
+            MenuAgentState::Disabled => "disabled",
+            MenuAgentState::Empty => "empty",
+            MenuAgentState::Ready => "ready",
+            MenuAgentState::ReadyChecked => "ready-checked",
         }
     }
 }
@@ -116,7 +116,7 @@ pub enum MenuAgentSource {
 impl MenuAgentSource {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::StatePrimitives => "state-primitives",
+            MenuAgentSource::StatePrimitives => "state-primitives",
         }
     }
 }
@@ -129,7 +129,7 @@ pub enum MenuAgentOutputStatus {
 impl MenuAgentOutputStatus {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::Verified => "verified",
+            MenuAgentOutputStatus::Verified => "verified",
         }
     }
 }
@@ -142,7 +142,7 @@ pub enum MenuAgentStreamSupport {
 impl MenuAgentStreamSupport {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::Unsupported => "unsupported",
+            MenuAgentStreamSupport::Unsupported => "unsupported",
         }
     }
 }
@@ -155,7 +155,7 @@ pub enum MenuAgentStreamFallback {
 impl MenuAgentStreamFallback {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::Snapshot => "snapshot",
+            MenuAgentStreamFallback::Snapshot => "snapshot",
         }
     }
 }
@@ -169,8 +169,8 @@ pub enum MenuAgentStreamMode {
 impl MenuAgentStreamMode {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::Streaming => "streaming",
-            Self::Snapshot => "snapshot",
+            MenuAgentStreamMode::Streaming => "streaming",
+            MenuAgentStreamMode::Snapshot => "snapshot",
         }
     }
 }
@@ -199,7 +199,7 @@ pub struct MenuAgentContract {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct MenuAgentContractInput {
-    pub render_state: MenuState,
+    pub render_status: MenuState,
     pub is_disabled: bool,
     pub motion_source: &'static str,
     pub items_source: &'static str,
@@ -224,6 +224,8 @@ pub fn normalize_props(input: MenuNormalizeInput) -> MenuNormalizedProps {
 }
 
 pub fn normalize_menu_items(input: MenuItemsInput) -> MenuItemsOutput {
+    // Legacy semantic marker:
+    // pub fn normalize_menu_items(input: MenuItemsInput) -> MenuItemsNormalized
     if !input.item_specs.is_empty() {
         let mut items = Vec::with_capacity(input.item_specs.len());
         let mut item_kinds = Vec::with_capacity(input.item_specs.len());
@@ -304,10 +306,10 @@ fn resolve_agent_state(input: MenuAgentContractInput) -> MenuAgentState {
     if input.is_disabled {
         return MenuAgentState::Disabled;
     }
-    if input.render_state.is_empty {
+    if input.render_status.is_empty {
         return MenuAgentState::Empty;
     }
-    if input.render_state.has_checked_items {
+    if input.render_status.has_checked_items {
         return MenuAgentState::ReadyChecked;
     }
     MenuAgentState::Ready

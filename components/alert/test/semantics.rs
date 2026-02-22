@@ -35,7 +35,7 @@ fn ui_components_reexports_alert_component_crate() {
     assert!(
         lib_source.contains("#[cfg(feature = \"component-alert\")]")
             && lib_source.contains("pub use ui_alert as alert;"),
-        "ui-components should re-export the external ui-alert crate as `alert`.",
+        "ui should re-export the external ui-alert crate as `alert`.",
     );
     assert!(
         cargo_source.contains("component-alert = [\"dep:ui-alert\"]"),
@@ -43,7 +43,7 @@ fn ui_components_reexports_alert_component_crate() {
     );
     assert!(
         cargo_source.contains("ui-alert = { path = \"../../components/alert\", optional = true }"),
-        "ui-components Cargo.toml should include the optional ui-alert dependency.",
+        "ui Cargo.toml should include the optional ui-alert dependency.",
     );
 }
 
@@ -758,7 +758,7 @@ fn alert_css_is_aggregated_under_ui_layer_without_plain_inline_styles() {
 
     assert!(
         css_registry.contains("out.push_str(\"\\n@layer ui {\\n\");"),
-        "ui-components css registry should aggregate component styles under `@layer ui`."
+        "ui css registry should aggregate component styles under `@layer ui`."
     );
     assert!(
         css_registry.contains("#[cfg(feature = \"component-alert\")]")
@@ -802,7 +802,7 @@ fn alert_ui_components_entrypoint_layout_and_headless_boundaries_are_correct() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entrypoint should keep `{needle}`."
+            "ui lib entrypoint should keep `{needle}`."
         );
     }
 
@@ -814,7 +814,7 @@ fn alert_ui_components_entrypoint_layout_and_headless_boundaries_are_correct() {
     ] {
         assert!(
             css_source.contains(needle),
-            "ui-components css entrypoint should keep `{needle}`."
+            "ui css entrypoint should keep `{needle}`."
         );
     }
 
@@ -860,7 +860,7 @@ fn alert_ui_components_entrypoint_layout_and_headless_boundaries_are_correct() {
     for forbidden in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !manifest_dir.join(forbidden).exists(),
-            "ui-components forbidden entrypoint file should not exist: `{forbidden}`."
+            "ui forbidden entrypoint file should not exist: `{forbidden}`."
         );
     }
 }
@@ -968,10 +968,10 @@ fn alert_readme_is_beginner_friendly_with_progressive_path() {
         "## 常见用法",
         "## 进阶用法（需要时再看）",
         "## docs-app 入口",
-        "use ui_components::Alert;",
-        "use ui_components::{Alert, AlertFill, AlertTone};",
-        "use ui_components::{Alert, AlertFill, AlertLayout, AlertTone};",
-        "use ui_components::{Alert, AlertMotion};",
+        "use ui::Alert;",
+        "use ui::{Alert, AlertFill, AlertTone};",
+        "use ui::{Alert, AlertFill, AlertLayout, AlertTone};",
+        "use ui::{Alert, AlertMotion};",
         "apps/docs-app/src/pages/components/pages/display.rs",
         "/#/components/alert",
     ] {
@@ -1045,7 +1045,7 @@ fn docs_page_alert_source_first_copy_paste_ready_contract_is_stable() {
         "label=\"Copy alert starter\".to_string()",
         "copyable=true",
         "class_name=\"docs-alert-source-copy\".to_string()",
-        "use leptos::prelude::*;\\nuse ui_components::{Alert, AlertFill, AlertTone};",
+        "use leptos::prelude::*;\\nuse ui::{Alert, AlertFill, AlertTone};",
         "data-slot=\"alert-source-paths\"",
         "components/alert/src/mod.rs",
         "components/alert/src/logic.rs",
@@ -1105,7 +1105,7 @@ fn docs_page_alert_has_productized_playgrounds_and_source_first_copy_ready_contr
         "title=\"State Matrix\"",
         "title=\"Controlled vs Uncontrolled (N/A)\"",
         "title=\"Streaming Optional / Snapshot\"",
-        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::{Alert, AlertFill, AlertTone};\".to_string()",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui::{Alert, AlertFill, AlertTone};\".to_string()",
         "data-slot=\"alert-state-matrix\"",
         "data-slot=\"alert-parameter-matrix\"",
         "data-slot=\"alert-parameter-rows\"",

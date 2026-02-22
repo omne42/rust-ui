@@ -4,7 +4,7 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let mapped = match rel_path {
-        "src/css.rs" => "../../crates/ui-components/src/css.rs".to_string(),
+        "src/css.rs" => "../../crates/ui/src/css.rs".to_string(),
         _ if rel_path.starts_with("src/tray/") => {
             format!("src/{}", &rel_path["src/tray/".len()..])
         }
@@ -105,7 +105,8 @@ fn tray_view_uses_logic_state_contracts() {
         "logic::normalize_required_text(title, logic::DEFAULT_TITLE)",
         "logic::normalize_optional_text(description)",
         "logic::normalize_optional_text(class_name)",
-        "logic::resolve_state(TrayPartStateInput {",
+        "let state_inputs = logic::TrayStateInputs {",
+        "let resolved_states = logic::resolve_states(state_inputs);",
         "logic::compose_class_name(class_name, root_state)",
         "data-slot=root_state.slot_attr",
         "data-state=root_state.state_attr",
@@ -251,7 +252,7 @@ fn tray_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::tray::styles::CSS);"),
-        "ui-components css aggregator should include tray styles."
+        "ui css aggregator should include tray styles."
     );
 }
 
@@ -281,7 +282,7 @@ fn tray_docs_custom_motion_playground_locks_contract_values() {
     for needle in [
         "title=\"State + Source Markers\"",
         "let custom_motion = TrayMotion {",
-        "sheet: ui_components::SheetMotion {",
+        "sheet: ui::SheetMotion {",
         "initial_offset_px: 46.0",
         "id_base=\"docs-tray-fixed\".to_string()",
         "motion=custom_motion",

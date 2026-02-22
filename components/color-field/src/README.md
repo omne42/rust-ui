@@ -94,4 +94,4 @@ let on_value_change = Callback::new(move |next: Option<String>| set_value.set(ne
 - primitives 单测：`crates/ui-state-primitives/src/color_field.rs`
 - docs 验收页：`apps/docs-app/src/pages/components/pages/forms_color.rs`
 - E2E 契约：`e2e/tests/docs_app_color_field_contract.spec.mjs`
-- E2E 门禁脚本：`scripts/check-ui-components-e2e-color-field.sh`
+- E2E 门禁脚本：`components/color-field/scripts/check-ui-e2e-color-field.sh`

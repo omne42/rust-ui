@@ -15,19 +15,18 @@ const COLOR_LOUPE_TAIL_SLOT: &str = "color-loupe-tail";
 const ARIA_HIDDEN_TRUE: &str = "true";
 
 fn render_loupe_fill(color: Option<String>) -> impl IntoView {
+    let swatch_class = COLOR_LOUPE_SWATCH_CLASS.to_string();
+
     match color {
         Some(color) => view! {
             <ColorSwatch
                 color=color
                 is_decorative=true
-                class_name=COLOR_LOUPE_SWATCH_CLASS.to_string()
+                class_name=swatch_class.clone()
             />
         }
         .into_any(),
-        None => view! {
-            <ColorSwatch is_decorative=true class_name=COLOR_LOUPE_SWATCH_CLASS.to_string() />
-        }
-        .into_any(),
+        None => view! { <ColorSwatch is_decorative=true class_name=swatch_class /> }.into_any(),
     }
 }
 

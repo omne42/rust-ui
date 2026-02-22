@@ -542,8 +542,8 @@ fn well_component_file_responsibilities_remain_scoped() {
 #[ignore = "TODO: contract migration follow-up"]
 fn well_spec_boundary_reuses_button_spec_without_local_spec_file() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let button_spec_path = manifest_dir.join("../ui-components/src/button/spec.rs");
-    let button_mod_source = load_source("../ui-components/src/button/mod.rs");
+    let button_spec_path = manifest_dir.join("../ui/src/button/spec.rs");
+    let button_mod_source = load_source("../ui/src/button/mod.rs");
     let well_mod_source = load_source("src/well/mod.rs");
 
     assert!(
@@ -1638,7 +1638,7 @@ fn well_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_sc
 #[ignore = "TODO: contract migration follow-up"]
 fn well_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events() {
     let cargo_source = load_source("Cargo.toml");
-    let button_view_source = load_source("../ui-components/src/button/view.rs");
+    let button_view_source = load_source("../ui/src/button/view.rs");
     let combined = [
         load_source("src/well/mod.rs"),
         load_source("src/well/logic.rs"),

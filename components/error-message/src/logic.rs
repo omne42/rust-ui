@@ -1,8 +1,9 @@
 use std::borrow::Cow;
 
 pub use ui_state_primitives::error_message::{
-    DEFAULT_ARIA_LABEL, DEFAULT_MESSAGE, ErrorMessageElement, ErrorMessageModelInput,
-    ErrorMessageState, ErrorMessageTone, resolve_effective_tone, resolve_model,
+    DEFAULT_ARIA_LABEL, DEFAULT_MESSAGE, ErrorMessageElement, ErrorMessageModel,
+    ErrorMessageModelInput, ErrorMessageState, ErrorMessageTone, resolve_effective_tone,
+    resolve_model,
 };
 #[cfg(test)]
 pub use ui_state_primitives::error_message::{
@@ -44,6 +45,7 @@ pub fn compose_class_name(base_class_name: Option<String>, state: ErrorMessageSt
 }
 
 const _: Option<ErrorMessageState> = None;
+const _: Option<ErrorMessageModel> = None;
 const _: &str = DEFAULT_MESSAGE;
 const _: &str = DEFAULT_ARIA_LABEL;
 const _: fn(ErrorMessageTone) -> ErrorMessageTone = resolve_effective_tone;

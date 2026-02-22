@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -166,11 +166,11 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 聚合注入链路已满足：`components/contextual-help/src/styles.rs` 提供静态 `CSS` 常量，`crates/ui-components/src/css.rs` 通过 `component-contextual_help` 分支聚合，最终由 `UiRoot` 统一注入。
+  - 聚合注入链路已满足：`components/contextual-help/src/styles.rs` 提供静态 `CSS` 常量，`crates/ui/src/css.rs` 通过 `component-contextual_help` 分支聚合，最终由 `UiRoot` 统一注入。
   - 视觉值遵循 token-first：颜色/间距/字号/边框等均消费 `var(--ui-*)`（含 fallback），未建立组件私有 token 命名体系。
   - 组件层未引入 Utility-First 作为样式契约；`apps/*` 的布局样式与组件样式边界分离，未反向污染 `contextual-help` 组件实现。
   - 组件层未采用 CSS-in-Rust 方案；当前为 `styles.rs` 静态 CSS 常量模式，符合默认范式约束。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -182,17 +182,17 @@
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
 - [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
-  - 组件级特性链已满足：`ui-components/Cargo.toml` 存在 `component-contextual_help`，且仅声明所需依赖链（`component-button`、`component-popover`）。
+  - 组件级特性链已满足：`ui/Cargo.toml` 存在 `component-contextual_help`，且仅声明所需依赖链（`component-button`、`component-popover`）。
   - 条件导出/聚合已满足：`lib.rs` 对 `contextual_help` 使用 `#[cfg(feature = "component-contextual_help")]`；`css.rs` 对 `contextual_help::styles::CSS` 使用同名 feature 条件聚合，非无条件全量引用。
-  - 反向依赖检查通过：`cargo tree -e features -i ui-components -p web-demo` 显示 `web-demo` 拉起的是 `web-demo-components + inject-css`，未见 `all-components` 被隐式启用。
+  - 反向依赖检查通过：`cargo tree -e features -i ui -p web-demo` 显示 `web-demo` 拉起的是 `web-demo-components + inject-css`，未见 `all-components` 被隐式启用。
   - N/A（仓库级 CI 预算）：体积预算阈值与最小特性 CI 阻断属于仓库级流水线治理，不在单组件 `ContextualHelp` 任务内闭环。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入已类型约束：`ContextualHelpVariant`（`enum`）与 `PopoverPlacement`（类型化枚举）进入 `ContextualHelpStateInput`，避免字符串协议与布尔爆炸（见 `components/contextual-help/src/logic.rs`）。
@@ -219,7 +219,7 @@
   - `logic.rs` 在 provider 缺失时使用稳定兜底 `ui-contextual-help-0`，不依赖 `now()`、随机 UUID 或时间戳。
   - 语义/逻辑回归覆盖：`components/contextual-help/test/semantics.rs::contextual_help_id_generation_is_deterministic_for_ssr_hydration` 与 `components/contextual-help/test/logic.rs::resolve_generated_id_uses_provider_value_or_stable_fallback`。
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
-  - compile-only 命令已按条目执行（`cargo check -p ui-headless --no-default-features --features web`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui-components --no-default-features --features component-contextual_help,inject-css`），当前环境均因文件系统 `Invalid cross-device link (os error 18)` 受限，属于执行环境问题而非组件语义问题。
+  - compile-only 命令已按条目执行（`cargo check -p ui-headless --no-default-features --features web`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui --no-default-features --features component-contextual_help,inject-css`），当前环境均因文件系统 `Invalid cross-device link (os error 18)` 受限，属于执行环境问题而非组件语义问题。
   - 平台分支显式约束存在：`crates/ui-headless/src/lib.rs` 保留 `web+ssr` 互斥 `compile_error!`；`crates/ui-headless/src/focus_trap.rs` 明确 `wasm` 与 `non-wasm` 双分支（含 non-wasm stub）。
   - 组件 non-wasm 路径保持纯净：`ContextualHelp` 组件层（`view/logic/styles/motion`）不直接引用 `web-sys`/浏览器对象，交由 `ui-headless` 的平台适配层处理。
   - 回归覆盖：`components/contextual-help/test/semantics.rs::contextual_help_platform_contract_keeps_ssr_wasm_boundaries_explicit` 锁定上述契约。
@@ -229,7 +229,7 @@
 - [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
   - `crates/ui-headless/src/lib.rs` 已保留 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)`，保证同时启用 `web+ssr` 必然失败。
   - 组件接入未破坏该约束：`ContextualHelp` 继续通过 `ui-headless` 契约消费能力（如 controllable open、presence、a11y attrs），未引入绕过互斥的并行实现。
-  - 双路径编译验证入口已固化在 `scripts/check-ui-components-platforms.sh`：包含 `ui-headless` 的 `ssr` 与 `web(wasm32)` compile-only 命令，以及 `web,ssr` 同开必须失败并匹配 `mutually exclusive` 的守卫。
+  - 双路径编译验证入口已固化在 `scripts/check-ui-platforms.sh`：包含 `ui-headless` 的 `ssr` 与 `web(wasm32)` compile-only 命令，以及 `web,ssr` 同开必须失败并匹配 `mutually exclusive` 的守卫。
   - 当前会话环境执行 `cargo check` 受文件系统 `Invalid cross-device link (os error 18)` 限制，已以语义回归锁定互斥契约：`components/contextual-help/test/semantics.rs::contextual_help_keeps_ui_headless_web_ssr_mutex_contract`。
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
@@ -252,7 +252,7 @@
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
   - 预算与可重复基线：`apps/docs-app/src/pages/components/shell.rs` 通过 `UiPerfProbe + UiPerfBudget` 为组件页提供统一预算入口（`component_page_perf_budget`），并有 mount-only 基线兜底。
-  - 阻断式回归检查：`scripts/check-ui-components-performance.sh` 已将 `Button`、`Input` 预算契约测试与 `render_count` 后续计划检查纳入 gate，失败可直接阻断。
+  - 阻断式回归检查：`scripts/check-ui-performance.sh` 已将 `Button`、`Input` 预算契约测试与 `render_count` 后续计划检查纳入 gate，失败可直接阻断。
   - 可归因性：`ContextualHelp` 在 `view.rs` 输出 `data-open-source` / `data-open-change-source` / `data-motion-source` 等来源标记，语义测试可直接定位回归来源。
   - `render_count` 自动化现状：当前以“等价证据 + 明确追踪”执行，`components/accordion/test/accordion_semantics.rs` 维护 `perf_render_count_follow_up_is_tracked_in_plan`；待测试框架支持精确计数后补齐自动化断言。
   - 组件回归证据：`components/contextual-help/test/semantics.rs::contextual_help_performance_governance_has_budgeted_equivalent_evidence`。
@@ -300,7 +300,7 @@
   - Fallback 终值 SSOT 由主题层输出：`crates/ui-theme/src/css.rs` 提供 `--ui-fallback-icon-size-200`、`--ui-fallback-overlay-panel-min-width` 等变量。
   - 回归锁定：`components/contextual-help/test/semantics.rs::contextual_help_styles_use_defensive_variable_fallback_chain`。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-  - 组件 CSS 聚合层已满足：`crates/ui-components/src/css.rs` 通过 `push_components_css` 统一包裹 `@layer ui`，并在 `component-contextual_help` feature 下按条件注入 `contextual_help::styles::CSS`。
+  - 组件 CSS 聚合层已满足：`crates/ui/src/css.rs` 通过 `push_components_css` 统一包裹 `@layer ui`，并在 `component-contextual_help` feature 下按条件注入 `contextual_help::styles::CSS`。
   - `ContextualHelp` 视图层未使用普通内联样式：`components/contextual-help/src/view.rs` 不包含 `style=` 或 `style:<property>` 形式的业务样式注入。
   - 本组件当前无运行时样式负载；若后续新增，必须限定为 CSS custom properties（`style:--*`）通道。
   - 回归锁定：`components/contextual-help/test/semantics.rs::contextual_help_cascade_layer_and_runtime_style_contract_is_enforced`。
@@ -310,19 +310,19 @@
   - `attach_motion` 挂载链路已闭环：`components/popover/src/view.rs` 通过 `motion::attach_motion(...)` 挂载；`ContextualHelp` 在 `view.rs` 仅传递 `motion=motion.popover`，不重写引擎。
   - reduced-motion 与 non-wasm 安全降级已覆盖：`crates/ui-motion/src/spring.rs` 在 `prefers_reduced_motion` 下即时收敛；`components/popover/src/motion.rs` 提供 `#[cfg(not(target_arch = "wasm32"))]` no-op 路径并在关闭态回调 `on_exit_complete`。
   - 回归锁定：`components/contextual-help/test/semantics.rs::contextual_help_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`。
-- [x] `ui-components` 固定入口文件落点正确。
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-  - 证据：`crates/ui-components/src/lib.rs` 保持 `component-contextual_help` feature gate 导出，且未暴露 `overlay_open/presence/a11y` 旧入口。
-  - 证据：`crates/ui-components/src/css.rs` 通过 `push_components_css` 在 `@layer ui` 下按 feature 条件聚合，不做全量无条件注入。
-  - 证据：`crates/ui-components/src/root.rs` 的 `UiRoot` 统一注入 `base css + theme vars + components css`，并集中提供 i18n 与 id provider。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - 证据：`crates/ui/src/lib.rs` 保持 `component-contextual_help` feature gate 导出，且未暴露 `overlay_open/presence/a11y` 旧入口。
+  - 证据：`crates/ui/src/css.rs` 通过 `push_components_css` 在 `@layer ui` 下按 feature 条件聚合，不做全量无条件注入。
+  - 证据：`crates/ui/src/root.rs` 的 `UiRoot` 统一注入 `base css + theme vars + components css`，并集中提供 i18n 与 id provider。
   - 证据：`crates/ui-visual-primitive/src/active_highlight.rs` 仅提供通用高亮样式与 motion attach 能力，不耦合组件业务文案。
-  - 证据：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在。
+  - 证据：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 均不存在。
   - 回归锁定：`components/contextual-help/test/semantics.rs::contextual_help_ui_components_entrypoint_layout_contract_is_stable`。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
@@ -397,13 +397,13 @@
   - 证据：`components/contextual-help/src/*.rs` 非测试实现已清除 `unwrap/expect` 与 `let _ = ...`；`logic.rs`/`view.rs` 的字符串构造热点从 `.to_string()` 收敛到 `.into()`，避免高频拷贝模式。
   - 证据：组件级语义回归新增 `components/contextual-help/test/semantics.rs::contextual_help_rust_hygiene_contract_for_non_test_sources`，锁定 `unwrap/expect/let _/to_string/String::from/to_owned` 禁止项。
   - 脚本执行记录：已执行 `./scripts/check-rust-hygiene.sh`；当前环境因 `rg` 缺少 PCRE2 支持且仓库级 `api-contract` baseline 漂移导致脚本以仓库全局问题失败（非 `contextual-help` 组件局部回归）。
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-  - 证据：`crates/ui-components/Cargo.toml` 已注册 `component-contextual_help = ["component-button", "component-popover"]`，并纳入 `web-demo-components` 与 `all-components` 特性集合。
-  - 证据：`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-contextual_help")] pub mod contextual_help;` 对入口做 feature 门控导出。
-  - 证据：`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-contextual_help")] out.push_str(crate::contextual_help::styles::CSS);` 做 CSS 聚合门控，未启用特性时不会注入组件样式。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 证据：`crates/ui/Cargo.toml` 已注册 `component-contextual_help = ["component-button", "component-popover"]`，并纳入 `web-demo-components` 与 `all-components` 特性集合。
+  - 证据：`crates/ui/src/lib.rs` 通过 `#[cfg(feature = "component-contextual_help")] pub mod contextual_help;` 对入口做 feature 门控导出。
+  - 证据：`crates/ui/src/css.rs` 通过 `#[cfg(feature = "component-contextual_help")] out.push_str(crate::contextual_help::styles::CSS);` 做 CSS 聚合门控，未启用特性时不会注入组件样式。
   - 回归锁定：`components/contextual-help/test/semantics.rs::contextual_help_ui_components_entrypoint_layout_contract_is_stable` 断言特性树注册与 `lib.rs`/`css.rs` 门控标记。
-  - 验证命令：`cargo tree -e features -p ui-components --no-default-features --features component-contextual_help,inject-css`（最小特性树仅拉起 contextual-help 依赖链）。
-  - 验证命令：`cargo tree -e features -i ui-components -p web-demo`（反向依赖链确认由 `web-demo-components` 按特性集合引入，非无条件全量依赖）。
+  - 验证命令：`cargo tree -e features -p ui --no-default-features --features component-contextual_help,inject-css`（最小特性树仅拉起 contextual-help 依赖链）。
+  - 验证命令：`cargo tree -e features -i ui -p web-demo`（反向依赖链确认由 `web-demo-components` 按特性集合引入，非无条件全量依赖）。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 证据（`aria-*`）：`components/contextual-help/test/contextual_help_semantics.rs::contextual_help_panel_preserves_non_modal_dialog_semantics` 锁定 `role="dialog"`、`aria-modal`、`aria-label/labelledby/describedby` 语义挂载。
   - 证据（`data-*`）：`components/contextual-help/test/semantics.rs::contextual_help_state_contract_is_type_bounded_and_machine_readable` 与 `components/contextual-help/test/contextual_help_semantics.rs::contextual_help_emits_baseline_style_state_data_attributes` 锁定 `data-state/data-open-mode/data-*-source` 等稳定标记。
@@ -418,7 +418,7 @@
   - 证据（Playground 覆盖）：`apps/docs-app/src/pages/components/pages/overlays.rs` 的 `contextual_help()` 已提供 `Hello World (Default API)`、`Info Variant + Controlled`、`State Matrix` 与 `Workbench (Display + Config + Code + CSS Test)`。
   - 证据（受控/非受控对照）：`Info Variant + Controlled` 展示 `open + on_open_change`；Workbench 通过 `Controlled mode` 开关在 `open/on_open_change` 与 `default_open` 路径间切换并实时渲染。
   - 证据（流式/快照展现）：新增 `Streaming/Snapshot Display` Playground，明确展示 `Streaming Optional; fallback=snapshot` 与 `data-ui-output-mode=snapshot|streaming` 契约说明。
-  - 证据（Source-first 一键复制 + imports）：新增 `Source-first / Copy-Paste Ready` 区块与 `Copy starter`；同时 Playground 代码复制统一走 `apps/docs-app/src/playground.rs::compose_copy_ready_code`，默认补全 `use leptos::prelude::*;` 与 `use ui_components::*;`。
+  - 证据（Source-first 一键复制 + imports）：新增 `Source-first / Copy-Paste Ready` 区块与 `Copy starter`；同时 Playground 代码复制统一走 `apps/docs-app/src/playground.rs::compose_copy_ready_code`，默认补全 `use leptos::prelude::*;` 与 `use ui::*;`。
   - 回归锁定：`components/contextual-help/test/contextual_help_semantics.rs::contextual_help_docs_page_covers_primary_playgrounds` 与 `components/contextual-help/test/contextual_help_semantics.rs::contextual_help_docs_playgrounds_lock_state_matrix_contract_values`。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 证据（组件级语义测试文件）：`components/contextual-help/test/semantics.rs` 已存在并作为组件目录主语义回归入口，覆盖 `data-*`、`aria-*`、`role`、状态来源与焦点恢复契约。
@@ -473,7 +473,7 @@
   - Playground 作为验收面，需可重复复现关键交互路径。
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
-  - 证据（复制按钮 + 运行就绪 imports）：`apps/docs-app/src/pages/components/pages/overlays.rs` 的 `data-slot="contextual-help-source-first"` 区块提供 `Snippet(copyable=true)`；示例片段内置 `use leptos::prelude::*;` 与 `use ui_components::*;`，并说明 Playground 复制链路走 `apps/docs-app/src/playground.rs::compose_copy_ready_code`。
+  - 证据（复制按钮 + 运行就绪 imports）：`apps/docs-app/src/pages/components/pages/overlays.rs` 的 `data-slot="contextual-help-source-first"` 区块提供 `Snippet(copyable=true)`；示例片段内置 `use leptos::prelude::*;` 与 `use ui::*;`，并说明 Playground 复制链路走 `apps/docs-app/src/playground.rs::compose_copy_ready_code`。
   - 证据（真实源码落点 + 依赖前提）：同区块列出 `components/contextual-help/src/{mod,logic,view,styles,motion}.rs` 真实源码路径，以及 `component-contextual_help`、`inject-css` 前置依赖，避免“复制即报错”。
   - 证据（示例同步）：Source-first 复制片段与当前 `ContextualHelp` 默认调用路径一致（`heading + children` 最小可用示例），并在 docs 页与 README 保持一致的默认优先叙事。
   - 回归锁定：`components/contextual-help/test/semantics.rs::contextual_help_source_first_docs_are_copy_paste_ready_and_synced`。
@@ -495,9 +495,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

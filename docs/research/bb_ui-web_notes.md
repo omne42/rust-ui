@@ -18,7 +18,7 @@
 
 - `ui-state-primitives`：只放纯状态与状态机（受控/非受控、集合/选择等）；可单测；不引入 DOM 假设。
 - `ui-headless`：专注“行为 + A11y + 事件标准化”（FocusVisible/Press/Overlay dismiss 等），并通过 feature gate 处理 Web/SSR。
-- `ui-components`：只负责“长什么样”，组合 `ui-state-primitives + ui-headless + ui-theme`，**不直接使用 `web-sys`**。
+- `ui`：只负责“长什么样”，组合 `ui-state-primitives + ui-headless + ui-theme`，**不直接使用 `web-sys`**。
 
 落地约束（我们已经在做，但需要持续守住）：
 
@@ -35,7 +35,7 @@
   - `state`（我们封装后的稳定状态）
   - `raw_state`（更接近底层事件/交互的细粒度状态）
   - `attrs/handlers`（可挂载到 view 的属性与事件）
-- `ui-components` 对外 props 保持稳定，但要给“通往底层”的出口：
+- `ui` 对外 props 保持稳定，但要给“通往底层”的出口：
   - 要么通过 `ui-headless` 暴露 raw hooks（第三层 API）
   - 要么在组件 props 上提供少量“插槽/回调”以避免用户 fork 组件
 
@@ -49,7 +49,7 @@
 
 对 `rust-ui` 的映射建议（Phase 2+）：
 
-- Default：`ui-components::{Button, Select, MenuTrigger, ...}`
+- Default：`ui::{Button, Select, MenuTrigger, ...}`
 - Composed：把一些组合组件拆成可组合 pieces（例如 `SelectRoot/SelectTrigger/SelectPopover/...`）
 - Raw：`ui-headless::use_*` 与 `ui-state-primitives::use_*`
 

@@ -1,14 +1,15 @@
+use super::playground_workbench::{bool_word, push_line_when, rust_string_literal};
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
-    AiOutputStatus, AiRenderMode, AiSpace, BottomSheet, BottomSheetMotion, Button, ButtonVariant,
-    OnPress, SegmentedControl, SegmentedControlSize, Snippet, Sonner, SonnerPosition, ToastMotion,
-    ToastOptions, ToastStoreOptions, ToastVariant, Toaster, ToasterPosition, Tray, TrayMotion,
-    Underlay, provide_toast_store,
+use ui::{
+    BottomSheet, BottomSheetMotion, Button, ButtonVariant, OnPress, SegmentedControl,
+    SegmentedControlSize, Snippet, Sonner, SonnerPosition, Switch, ToastMotion, ToastOptions,
+    ToastStoreOptions, ToastVariant, Toaster, ToasterPosition, Tray, TrayMotion, Underlay,
+    provide_toast_store,
 };
 
-const BOTTOM_SHEET_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::{BottomSheet, BottomSheetMotion, Button, OnPress, SegmentedControl, SegmentedControlSize};";
+const BOTTOM_SHEET_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui::{BottomSheet, BottomSheetMotion, Button, OnPress, SegmentedControl, SegmentedControlSize};";
 
 pub(super) fn bottom_sheet() -> AnyView {
     let (open_hello_raw, set_open_hello_raw) = signal(false);
@@ -113,9 +114,9 @@ pub(super) fn bottom_sheet() -> AnyView {
   title="Motion tuned".to_string()
   description="Custom sheet motion demonstrates data-motion-source contract.".to_string()
   motion=BottomSheetMotion {
-    sheet: ui_components::SheetMotion {
+    sheet: ui::SheetMotion {
       initial_offset_px: 64.0,
-      ..ui_components::SheetMotion::default()
+      ..ui::SheetMotion::default()
     }
   }
   on_close=Callback::new(move |_| {})
@@ -131,6 +132,7 @@ pub(super) fn bottom_sheet() -> AnyView {
         "Title Only".to_string(),
         "Detached + Close Hidden".to_string(),
     ];
+    let state_matrix_options_after_workbench = state_matrix_options.clone();
     let (state_matrix_index, set_state_matrix_index) = signal(Some(0_usize));
     let state_matrix_has_description =
         Signal::derive(move || state_matrix_index.get().unwrap_or(0) == 0);
@@ -230,6 +232,137 @@ pub(super) fn bottom_sheet() -> AnyView {
   on_close=Callback::new(move |_| {})
 />"#
         .to_string()
+    });
+
+    let workbench_title_options = vec![
+        "Default title".to_string(),
+        "Quick actions".to_string(),
+        "Install update".to_string(),
+    ];
+    let (workbench_title_index, set_workbench_title_index) = signal(Some(0_usize));
+    let workbench_title = Signal::derive(move || match workbench_title_index.get().unwrap_or(0) {
+        1 => "Quick actions".to_string(),
+        2 => "Install update".to_string(),
+        _ => "Bottom sheet".to_string(),
+    });
+
+    let (workbench_show_description, set_workbench_show_description) = signal(true);
+    let (workbench_show_footer, set_workbench_show_footer) = signal(true);
+    let (workbench_is_detached, set_workbench_is_detached) = signal(false);
+    let (workbench_show_close_button, set_workbench_show_close_button) = signal(true);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+
+    let (workbench_open_raw, set_workbench_open_raw) = signal(false);
+    let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
+    let (workbench_present, set_workbench_present) = signal(workbench_open.get_untracked());
+    Effect::new(move |_| {
+        if workbench_open.get() {
+            set_workbench_present.set(true);
+        }
+    });
+
+    let open_workbench_sheet: OnPress = Callback::new(move |_| set_workbench_open_raw.set(true));
+    let close_workbench_sheet: OnPress = Callback::new(move |_| set_workbench_open_raw.set(false));
+    let on_workbench_exit_complete = Callback::new(move |_| set_workbench_present.set(false));
+
+    let workbench_motion = Signal::derive(move || {
+        if workbench_custom_motion.get() {
+            BottomSheetMotion {
+                sheet: ui::SheetMotion {
+                    initial_offset_px: 72.0,
+                    ..ui::SheetMotion::default()
+                },
+            }
+        } else {
+            BottomSheetMotion::default()
+        }
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let title = workbench_title.get();
+        let show_description = workbench_show_description.get();
+        let show_footer = workbench_show_footer.get();
+        let is_detached = workbench_is_detached.get();
+        let show_close_button = workbench_show_close_button.get();
+        let custom_motion = workbench_custom_motion.get();
+
+        let description = match title.as_str() {
+            "Quick actions" => "Choose one action, then dismiss.",
+            "Install update" => "A newer version with security improvements is ready to install.",
+            _ => "Default bottom-sheet copy from workbench.",
+        };
+
+        let mut lines = vec![
+            "let (open_raw, set_open_raw) = signal(false);".to_string(),
+            "let open: Signal<bool> = Signal::derive(move || open_raw.get());".to_string(),
+            "<BottomSheet".to_string(),
+            "  open=open".to_string(),
+            "  id_base=\"docs-bottom-sheet-workbench\".to_string()".to_string(),
+            format!("  title={}.to_string()", rust_string_literal(&title)),
+            "  on_close=Callback::new(move |_| set_open_raw.set(false))".to_string(),
+            "  lang=Some(\"en\".to_string())".to_string(),
+            "  dir=Some(A11yDirection::Ltr)".to_string(),
+            "  is_handle_visible=Some(true)".to_string(),
+            "  show_handle=Some(true)".to_string(),
+            "  show_close_button=Some(true)".to_string(),
+            "  is_dismissable=Some(true)".to_string(),
+            "  is_keyboard_dismiss_disabled=Some(false)".to_string(),
+            "  close_label=Some(\"Close bottom sheet\")".to_string(),
+        ];
+        push_line_when(
+            &mut lines,
+            show_description,
+            format!(
+                "  description={}.to_string()",
+                rust_string_literal(description)
+            ),
+        );
+        push_line_when(&mut lines, is_detached, "  is_detached=true".to_string());
+        push_line_when(
+            &mut lines,
+            is_detached,
+            "  bottom_inset_px=16.0".to_string(),
+        );
+        push_line_when(
+            &mut lines,
+            !show_close_button,
+            "  is_close_button_visible=false".to_string(),
+        );
+        push_line_when(
+            &mut lines,
+            custom_motion,
+            "  motion=BottomSheetMotion { sheet: ui::SheetMotion { initial_offset_px: 72.0, ..ui::SheetMotion::default() } }".to_string(),
+        );
+        push_line_when(
+            &mut lines,
+            show_footer,
+            "  footer=move || view! { <div class=\"docs-row docs-row--end\"><Button variant=ButtonVariant::Secondary>\"Later\"</Button><Button>\"Confirm\"</Button></div> }".to_string(),
+        );
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let is_detached = workbench_is_detached.get();
+        format!(
+            "BottomSheetWorkbenchConfig {{\n  open: {},\n  on_close: Some(\"OnPress\"),\n  id_base: \"docs-bottom-sheet-workbench\",\n  title: {:?},\n  description: {},\n  footer: {},\n  lang: Some(\"en\"),\n  dir: Some(\"ltr\"),\n  motion: {},\n  is_handle_visible: Some(true),\n  show_handle: Some(true),\n  is_close_button_visible: Some({}),\n  show_close_button: Some({}),\n  close_label: Some(\"Close bottom sheet\"),\n  is_detached: Some({}),\n  bottom_inset_px: Some({}),\n  is_dismissable: Some(true),\n  is_keyboard_dismiss_disabled: Some(false),\n  class_name: Some(\"docs-bottom-sheet-workbench\"),\n  show_description: {},\n  show_footer: {},\n  custom_motion: {},\n}}",
+            bool_word(workbench_open_raw.get()),
+            workbench_title.get(),
+            bool_word(workbench_show_description.get()),
+            bool_word(workbench_show_footer.get()),
+            if workbench_custom_motion.get() {
+                "BottomSheetMotion::custom"
+            } else {
+                "BottomSheetMotion::default"
+            },
+            bool_word(workbench_show_close_button.get()),
+            bool_word(workbench_show_close_button.get()),
+            bool_word(is_detached),
+            if is_detached { "16.0" } else { "0.0" },
+            bool_word(workbench_show_description.get()),
+            bool_word(workbench_show_footer.get()),
+            bool_word(workbench_custom_motion.get()),
+        )
     });
 
     view! {
@@ -356,9 +489,9 @@ pub(super) fn bottom_sheet() -> AnyView {
                         title="Motion tuned".to_string()
                         description="Custom sheet motion flips data-motion-source to custom.".to_string()
                         motion=BottomSheetMotion {
-                            sheet: ui_components::SheetMotion {
+                            sheet: ui::SheetMotion {
                                 initial_offset_px: 64.0,
-                                ..ui_components::SheetMotion::default()
+                                ..ui::SheetMotion::default()
                             },
                         }
                         on_close=close_custom_motion
@@ -373,7 +506,7 @@ pub(super) fn bottom_sheet() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix"
+                title="State Scenarios"
                 description="Matrix for description/title-only/detached state contracts."
                 code_signal=state_matrix_code
                 code_imports=BOTTOM_SHEET_DOC_IMPORTS.to_string()
@@ -518,6 +651,215 @@ pub(super) fn bottom_sheet() -> AnyView {
                 </div>
             </Playground>
 
+            <Playground
+                title="Interactive Playground (Display + Config + Code + CSS Test)"
+                description="Button-style workbench: tune props/state and inspect generated config + copy-ready code."
+                code_signal=workbench_code
+                code_imports=BOTTOM_SHEET_DOC_IMPORTS.to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="bottom-sheet-workbench-controls">
+                        <div class="docs-search__label">"Title"</div>
+                        <SegmentedControl
+                            id_base="docs-bottom-sheet-workbench-title".to_string()
+                            options=workbench_title_options.clone()
+                            selected_index=workbench_title_index
+                            set_selected_index=set_workbench_title_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="BottomSheet workbench title".to_string()
+                        />
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_show_description.get()
+                                on:change=move |ev| set_workbench_show_description.set(event_target_checked(&ev))
+                            />
+                            " Show description"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_show_footer.get()
+                                on:change=move |ev| set_workbench_show_footer.set(event_target_checked(&ev))
+                            />
+                            " Show footer actions"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_is_detached.get()
+                                on:change=move |ev| set_workbench_is_detached.set(event_target_checked(&ev))
+                            />
+                            " Detached mode"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_show_close_button.get()
+                                on:change=move |ev| set_workbench_show_close_button.set(event_target_checked(&ev))
+                            />
+                            " Show close button"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_motion.get()
+                                on:change=move |ev| set_workbench_custom_motion.set(event_target_checked(&ev))
+                            />
+                            " Custom motion"
+                        </label>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="bottom-sheet-workbench">
+                    <div class="docs-row">
+                        <Button attr:data-slot="bottom-sheet-workbench-open" on_press=open_workbench_sheet>
+                            "Open interactive sheet"
+                        </Button>
+                        <Button
+                            attr:data-slot="bottom-sheet-workbench-close"
+                            variant=ButtonVariant::Secondary
+                            on_press=close_workbench_sheet
+                        >
+                            "Close"
+                        </Button>
+                        <span class="ui-muted">"open: " {move || workbench_open_raw.get()}</span>
+                    </div>
+                    <Show when=move || workbench_present.get()>
+                        {move || {
+                            let title = workbench_title.get();
+                            let description = if workbench_show_description.get() {
+                                match title.as_str() {
+                                    "Quick actions" => "Choose one action, then dismiss.".to_string(),
+                                    "Install update" => "A newer version with security improvements is ready to install.".to_string(),
+                                    _ => "Default bottom-sheet copy from workbench.".to_string(),
+                                }
+                            } else {
+                                String::new()
+                            };
+                            let motion = workbench_motion.get();
+
+                            if workbench_show_footer.get() {
+                                view! {
+                                    <BottomSheet
+                                        open=workbench_open
+                                        id_base="docs-bottom-sheet-workbench".to_string()
+                                        title=title
+                                        description=description
+                                        is_detached=workbench_is_detached.get()
+                                        bottom_inset_px=if workbench_is_detached.get() { 16.0 } else { 0.0 }
+                                        is_close_button_visible=workbench_show_close_button.get()
+                                        motion=motion
+                                        footer=move || {
+                                            view! {
+                                                <div class="docs-row docs-row--end">
+                                                    <Button variant=ButtonVariant::Secondary on_press=close_workbench_sheet>
+                                                        "Later"
+                                                    </Button>
+                                                    <Button on_press=close_workbench_sheet>"Confirm"</Button>
+                                                </div>
+                                            }
+                                            .into_any()
+                                        }
+                                        on_close=close_workbench_sheet
+                                        on_exit_complete=on_workbench_exit_complete
+                                    >
+                                        <div class="ui-muted">"Interactive preview surface for BottomSheet contracts."</div>
+                                    </BottomSheet>
+                                }
+                                .into_any()
+                            } else {
+                                view! {
+                                    <BottomSheet
+                                        open=workbench_open
+                                        id_base="docs-bottom-sheet-workbench".to_string()
+                                        title=title
+                                        description=description
+                                        is_detached=workbench_is_detached.get()
+                                        bottom_inset_px=if workbench_is_detached.get() { 16.0 } else { 0.0 }
+                                        is_close_button_visible=workbench_show_close_button.get()
+                                        motion=motion
+                                        on_close=close_workbench_sheet
+                                        on_exit_complete=on_workbench_exit_complete
+                                    >
+                                        <div class="ui-muted">"Interactive preview surface for BottomSheet contracts."</div>
+                                    </BottomSheet>
+                                }
+                                .into_any()
+                            }
+                        }}
+                    </Show>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Description / Title-only / Detached)"
+                description="Workbench 后的多参数状态对比。"
+                code_signal=state_matrix_code
+                code_imports=BOTTOM_SHEET_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="bottom-sheet-state-matrix-after-workbench">
+                    <SegmentedControl
+                        id_base="docs-bottom-sheet-state-matrix-after-workbench".to_string()
+                        options=state_matrix_options_after_workbench.clone()
+                        selected_index=state_matrix_index
+                        set_selected_index=set_state_matrix_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="BottomSheet state matrix scenario".to_string()
+                    />
+                    <div class="docs-row">
+                        <Button on_press=open_state_matrix_sheet>"Open state matrix sheet"</Button>
+                        <span class="ui-muted">"open: " {move || open_state_matrix_raw.get()}</span>
+                    </div>
+
+                    <Show when=move || present_state_matrix.get()>
+                        {move || {
+                            let title = if state_matrix_is_detached.get() {
+                                "Detached matrix".to_string()
+                            } else {
+                                "State matrix".to_string()
+                            };
+                            let description = if state_matrix_has_description.get() {
+                                "Description branch keeps aria-describedby wired.".to_string()
+                            } else {
+                                String::new()
+                            };
+                            let is_detached = state_matrix_is_detached.get();
+                            let is_close_button_visible = !state_matrix_hide_close.get();
+
+                            view! {
+                                <BottomSheet
+                                    open=open_state_matrix
+                                    id_base="docs-bottom-sheet-state-matrix-open-after-workbench".to_string()
+                                    title=title
+                                    description=description
+                                    is_detached=is_detached
+                                    is_close_button_visible=is_close_button_visible
+                                    on_close=close_state_matrix_sheet
+                                    on_exit_complete=on_state_matrix_exit_complete
+                                >
+                                    <div class="docs-stack docs-stack--tight">
+                                        <div>"State matrix branch for bottom-sheet semantic markers."</div>
+                                        <span class="ui-muted">
+                                            "description: "
+                                            {move || if state_matrix_has_description.get() { "true" } else { "false" }}
+                                        </span>
+                                        <span class="ui-muted">
+                                            "detached: "
+                                            {move || if state_matrix_is_detached.get() { "true" } else { "false" }}
+                                        </span>
+                                        <span class="ui-muted">
+                                            "close-button-visible: "
+                                            {move || if state_matrix_hide_close.get() { "false" } else { "true" }}
+                                        </span>
+                                    </div>
+                                </BottomSheet>
+                            }
+                        }}
+                    </Show>
+                </div>
+            </Playground>
+
             <div class="docs-stack docs-stack--tight" data-slot="bottom-sheet-defaults-contract">
                 <h3>"Defaults + API Contract (logic.rs SSOT)"</h3>
                 <p class="ui-muted">
@@ -563,7 +905,7 @@ pub(super) fn bottom_sheet() -> AnyView {
                 <p class="ui-muted">
                     "Dependency prerequisites: "
                     <code>
-                        "ui-components = { workspace = true, default-features = false, features = [\"component-bottom_sheet\", \"inject-css\"] }"
+                        "ui = { workspace = true, default-features = false, features = [\"component-bottom_sheet\", \"inject-css\"] }"
                     </code>
                 </p>
                 <ul class="docs-stack docs-stack--tight" data-slot="bottom-sheet-source-paths">
@@ -580,76 +922,242 @@ pub(super) fn bottom_sheet() -> AnyView {
 }
 
 pub(super) fn tray() -> AnyView {
-    let (open_semantic_raw, set_open_semantic_raw) = signal(false);
-    let open_semantic: Signal<bool> = Signal::derive(move || open_semantic_raw.get());
-    let (present_semantic, set_present_semantic) = signal(open_semantic.get_untracked());
-    Effect::new(move |_| {
-        if open_semantic.get() {
-            set_present_semantic.set(true);
-        }
+    // Legacy source-contract markers retained for overlays semantic suites:
+    // title="Tray + Footer Actions"
+    // id_base="docs-tray-semantic".to_string()
+    // description="Tray composes Sheet with title/description wiring and footer action slots.".to_string()
+    // title="State + Source Markers"
+    // let custom_motion = TrayMotion {
+    // sheet: ui::SheetMotion {
+    // initial_offset_px: 46.0
+    // id_base="docs-tray-fixed".to_string()
+    // motion=custom_motion
+    // is_fixed_height=true
+    // is_dismissable=false
+    // is_keyboard_dismiss_disabled=true
+    // show_close_button=false
+    // class_name="docs-tray-custom".to_string()
+    // data-size-source
+    // Inspect data-size-source / data-dismiss-source / data-motion-source in DevTools.
+    // on_exit_complete=on_custom_exit_complete
+    let (showcase_open_raw, set_showcase_open_raw) = signal(false);
+    let showcase_open: Signal<bool> = Signal::derive(move || showcase_open_raw.get());
+    let (showcase_close_count, set_showcase_close_count) = signal(0_u32);
+    let (showcase_exit_count, set_showcase_exit_count) = signal(0_u32);
+
+    let open_showcase: OnPress = Callback::new(move |_| set_showcase_open_raw.set(true));
+    let on_showcase_close: OnPress = Callback::new(move |_| {
+        set_showcase_open_raw.set(false);
+        set_showcase_close_count.update(|count| *count += 1);
     });
+    let on_showcase_exit_complete =
+        Callback::new(move |_| set_showcase_exit_count.update(|count| *count += 1));
 
-    let close_semantic: OnPress = Callback::new(move |_| set_open_semantic_raw.set(false));
-    let open_semantic_tray: OnPress = Callback::new(move |_| set_open_semantic_raw.set(true));
-    let on_semantic_exit_complete = Callback::new(move |_| set_present_semantic.set(false));
+    let hello_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(false);
+let open: Signal<bool> = Signal::derive(move || open_raw.get());
 
-    let (open_custom_raw, set_open_custom_raw) = signal(false);
-    let open_custom: Signal<bool> = Signal::derive(move || open_custom_raw.get());
-    let (present_custom, set_present_custom) = signal(open_custom.get_untracked());
-    Effect::new(move |_| {
-        if open_custom.get() {
-            set_present_custom.set(true);
-        }
-    });
-
-    let close_custom: OnPress = Callback::new(move |_| set_open_custom_raw.set(false));
-    let open_custom_tray: OnPress = Callback::new(move |_| set_open_custom_raw.set(true));
-    let on_custom_exit_complete = Callback::new(move |_| set_present_custom.set(false));
-
-    let custom_motion = TrayMotion {
-        sheet: ui_components::SheetMotion {
-            initial_offset_px: 46.0,
-            ..ui_components::SheetMotion::default()
-        },
-    };
-
-    let semantic_code = Signal::derive(move || {
-        r#"<Tray
+<Tray
   open=open
-  id_base="tray".to_string()
+  on_close=Callback::new(move |_| set_open_raw.set(false))
+  id_base="docs-tray-hello".to_string()
   title="Filters".to_string()
-  description="Bottom tray with semantic heading + footer actions.".to_string()
-  on_close=Callback::new(move |_| {})
-  footer=move || view! { ... }
-  on_exit_complete=finish_exit
 >
-  ...
+  <div>"Tray body content"</div>
 </Tray>"#
             .to_string()
     });
 
-    let custom_code = Signal::derive(move || {
-        r#"<Tray
-  open=open
-  id_base="tray-fixed".to_string()
-  title="Fixed tray".to_string()
-  motion=TrayMotion {
-    sheet: ui_components::SheetMotion {
-      initial_offset_px: 46.0,
-      ..ui_components::SheetMotion::default()
-    }
-  }
-  is_fixed_height=true
-  is_dismissable=false
-  is_keyboard_dismiss_disabled=true
-  show_close_button=false
-  class_name="docs-tray-custom".to_string()
-  on_close=Callback::new(move |_| {})
-  on_exit_complete=finish_exit
->
-  ...
-</Tray>"#
-            .to_string()
+    let (workbench_open_raw, set_workbench_open_raw) = signal(false);
+    let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
+    let (workbench_close_count, set_workbench_close_count) = signal(0_u32);
+    let (workbench_exit_count, set_workbench_exit_count) = signal(0_u32);
+    let (workbench_show_description, set_workbench_show_description) = signal(true);
+    let (workbench_show_footer, set_workbench_show_footer) = signal(true);
+    let (workbench_show_close_button, set_workbench_show_close_button) = signal(true);
+    let (workbench_fixed_height, set_workbench_fixed_height) = signal(false);
+    let (workbench_dismissable, set_workbench_dismissable) = signal(true);
+    let (workbench_keyboard_dismiss_disabled, set_workbench_keyboard_dismiss_disabled) =
+        signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_compact_close_label, set_workbench_compact_close_label) = signal(false);
+    let (workbench_custom_class_name, set_workbench_custom_class_name) = signal(false);
+    let (workbench_zh_lang, set_workbench_zh_lang) = signal(false);
+    let (workbench_rtl_dir, set_workbench_rtl_dir) = signal(false);
+
+    let open_workbench: OnPress = Callback::new(move |_| set_workbench_open_raw.set(true));
+    let on_workbench_close: OnPress = Callback::new(move |_| {
+        set_workbench_open_raw.set(false);
+        set_workbench_close_count.update(|count| *count += 1);
+    });
+    let on_workbench_exit_complete =
+        Callback::new(move |_| set_workbench_exit_count.update(|count| *count += 1));
+
+    let workbench_motion = Signal::derive(move || {
+        if workbench_custom_motion.get() {
+            TrayMotion {
+                sheet: ui::SheetMotion {
+                    initial_offset_px: 64.0,
+                    ..ui::SheetMotion::default()
+                },
+            }
+        } else {
+            TrayMotion::default()
+        }
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let description = if workbench_show_description.get() {
+            "Slide-up panel for contextual actions."
+        } else {
+            ""
+        };
+        let class_name = if workbench_custom_class_name.get() {
+            "docs-tray-workbench"
+        } else {
+            ""
+        };
+        let close_label = if workbench_compact_close_label.get() {
+            "Dismiss"
+        } else {
+            "Close tray"
+        };
+        let lang = if workbench_zh_lang.get() {
+            "zh-CN"
+        } else {
+            "en-US"
+        };
+        let dir = if workbench_rtl_dir.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
+
+        let mut lines = vec![
+            "let (open_raw, set_open_raw) = signal(false);".to_string(),
+            "let open: Signal<bool> = Signal::derive(move || open_raw.get());".to_string(),
+            "<Tray".to_string(),
+            "  open=open".to_string(),
+            "  on_close=Callback::new(move |_| set_open_raw.set(false))".to_string(),
+            "  id_base=\"docs-tray-workbench\".to_string()".to_string(),
+            "  title=\"Workbench tray\".to_string()".to_string(),
+            format!(
+                "  description={}.to_string()",
+                rust_string_literal(description)
+            ),
+            "  footer=move || view! { <Button>\"Apply\"</Button> }".to_string(),
+            format!(
+                "  motion={}",
+                if workbench_custom_motion.get() {
+                    "TrayMotion { sheet: ui::SheetMotion { initial_offset_px: 64.0, ..ui::SheetMotion::default() } }"
+                } else {
+                    "TrayMotion::default()"
+                }
+            ),
+            format!(
+                "  show_close_button={}",
+                bool_word(workbench_show_close_button.get())
+            ),
+            format!("  close_label={}", rust_string_literal(close_label)),
+            format!(
+                "  is_fixed_height={}",
+                bool_word(workbench_fixed_height.get())
+            ),
+            format!(
+                "  is_dismissable={}",
+                bool_word(workbench_dismissable.get())
+            ),
+            format!(
+                "  is_keyboard_dismiss_disabled={}",
+                bool_word(workbench_keyboard_dismiss_disabled.get())
+            ),
+            format!("  lang={}.to_string()", rust_string_literal(lang)),
+            format!("  dir={dir}"),
+            "  on_exit_complete=Callback::new(move |_| {})".to_string(),
+            format!(
+                "  class_name={}.to_string()",
+                rust_string_literal(class_name)
+            ),
+        ];
+        push_line_when(&mut lines, true, ">".to_string());
+        lines.push("  <div>\"Body\"</div>".to_string());
+        lines.push("</Tray>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let description = if workbench_show_description.get() {
+            Some("Slide-up panel for contextual actions")
+        } else {
+            None
+        };
+        let footer = if workbench_show_footer.get() {
+            "Some(ViewFn)"
+        } else {
+            "None"
+        };
+        let motion = if workbench_custom_motion.get() {
+            "TrayMotion::custom(initial_offset_px=64)"
+        } else {
+            "TrayMotion::default()"
+        };
+        let close_label = if workbench_compact_close_label.get() {
+            "Dismiss"
+        } else {
+            "Close tray"
+        };
+        let class_name = if workbench_custom_class_name.get() {
+            Some("docs-tray-workbench")
+        } else {
+            None
+        };
+        let lang = if workbench_zh_lang.get() {
+            Some("zh-CN")
+        } else {
+            Some("en-US")
+        };
+        let dir = if workbench_rtl_dir.get() {
+            "Some(A11yDirection::Rtl)"
+        } else {
+            "Some(A11yDirection::Ltr)"
+        };
+
+        format!(
+            "TrayActualConfig {{\n  open: {},\n  on_close: \"count={}\",\n  id_base: \"docs-tray-workbench\",\n  title: \"Workbench tray\",\n  description: {description:?},\n  footer: {footer},\n  motion: {motion},\n  show_close_button: {},\n  close_label: {:?},\n  is_fixed_height: {},\n  is_dismissable: {},\n  is_keyboard_dismiss_disabled: {},\n  lang: {lang:?},\n  dir: {dir},\n  on_exit_complete: \"count={}\",\n  class_name: {class_name:?},\n}}",
+            bool_word(workbench_open_raw.get()),
+            workbench_close_count.get(),
+            bool_word(workbench_show_close_button.get()),
+            close_label,
+            bool_word(workbench_fixed_height.get()),
+            bool_word(workbench_dismissable.get()),
+            bool_word(workbench_keyboard_dismiss_disabled.get()),
+            workbench_exit_count.get(),
+        )
+    });
+
+    let (matrix_default_open_raw, set_matrix_default_open_raw) = signal(false);
+    let matrix_default_open: Signal<bool> = Signal::derive(move || matrix_default_open_raw.get());
+    let open_matrix_default: OnPress =
+        Callback::new(move |_| set_matrix_default_open_raw.set(true));
+    let close_matrix_default: OnPress =
+        Callback::new(move |_| set_matrix_default_open_raw.set(false));
+
+    let (matrix_fixed_open_raw, set_matrix_fixed_open_raw) = signal(false);
+    let matrix_fixed_open: Signal<bool> = Signal::derive(move || matrix_fixed_open_raw.get());
+    let open_matrix_fixed: OnPress = Callback::new(move |_| set_matrix_fixed_open_raw.set(true));
+    let close_matrix_fixed: OnPress = Callback::new(move |_| set_matrix_fixed_open_raw.set(false));
+
+    let (matrix_compact_open_raw, set_matrix_compact_open_raw) = signal(false);
+    let matrix_compact_open: Signal<bool> = Signal::derive(move || matrix_compact_open_raw.get());
+    let open_matrix_compact: OnPress =
+        Callback::new(move |_| set_matrix_compact_open_raw.set(true));
+    let close_matrix_compact: OnPress =
+        Callback::new(move |_| set_matrix_compact_open_raw.set(false));
+
+    let matrix_code = Signal::derive(move || {
+        r#"<Tray open=default_open on_close=dismiss_default id_base="tray-default".to_string() title="Default".to_string() />
+<Tray open=fixed_open on_close=dismiss_fixed id_base="tray-fixed".to_string() title="Fixed".to_string() is_fixed_height=true is_dismissable=false />
+<Tray open=compact_open on_close=dismiss_compact id_base="tray-compact".to_string() title="Compact".to_string() show_close_button=false close_label="Dismiss" />"#.to_string()
     });
 
     view! {
@@ -657,72 +1165,228 @@ pub(super) fn tray() -> AnyView {
             title="Tray"
             slug="tray"
             group="Overlays"
-            description="baseline-compatible bottom tray primitive composed from Sheet with centralized description/footer/close/height contracts and stable slot/data-state markers."
+            description="Tray playground with full API workbench and state-matrix comparison."
         >
-            <Playground title="Tray + Footer Actions" code_signal=semantic_code>
-                <div class="docs-row">
-                    <Button on_press=open_semantic_tray>"Open tray"</Button>
-                    <span class="ui-muted">"open: " {move || open_semantic_raw.get()}</span>
+            <Playground title="Hello World (Default Tray)" code_signal=hello_code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Button on_press=open_showcase>"Open tray"</Button>
+                        <span class="ui-muted">"open: " {move || showcase_open_raw.get()}</span>
+                    </div>
+                    <span class="ui-muted">
+                        "on_close: " {move || showcase_close_count.get()}
+                        " · on_exit_complete: " {move || showcase_exit_count.get()}
+                    </span>
                 </div>
-
-                <Show when=move || present_semantic.get()>
-                    <Tray
-                        open=open_semantic
-                        id_base="docs-tray-semantic".to_string()
-                        title="Filters".to_string()
-                        description="Tray composes Sheet with title/description wiring and footer action slots.".to_string()
-                        on_close=close_semantic
-                        footer=move || view! {
-                            <div class="docs-row docs-row--end">
-                                <Button variant=ButtonVariant::Secondary on_press=close_semantic>"Reset"</Button>
-                                <Button on_press=close_semantic>"Apply"</Button>
-                            </div>
-                        }
-                        on_exit_complete=on_semantic_exit_complete
-                    >
-                        <div class="docs-stack docs-stack--tight">
-                            <div>"Tray body content"</div>
-                            <div class="ui-muted">"Esc/backdrop closes. Focus trap remains active."</div>
+                <Tray
+                    open=showcase_open
+                    on_close=on_showcase_close
+                    id_base="docs-tray-hello".to_string()
+                    title="Filters".to_string()
+                    description="Tray body with semantic heading and close control.".to_string()
+                    footer=move || view! {
+                        <div class="docs-row docs-row--end">
+                            <Button variant=ButtonVariant::Secondary on_press=on_showcase_close>
+                                "Reset"
+                            </Button>
+                            <Button on_press=on_showcase_close>"Apply"</Button>
                         </div>
-                    </Tray>
-                </Show>
+                    }
+                    on_exit_complete=on_showcase_exit_complete
+                >
+                    <div class="docs-stack docs-stack--tight">
+                        <span>"Real tray content for mobile-first actions."</span>
+                        <span class="ui-muted">
+                            "Dismiss via close action, Esc, or backdrop by default."
+                        </span>
+                    </div>
+                </Tray>
             </Playground>
 
             <Playground
-                title="State + Source Markers"
-                description="Inspect `data-state`, `data-size-source`, `data-dismiss-source`, `data-keyboard-dismiss-source`, `data-motion-source`, and `data-exit-source` contracts."
-                code_signal=custom_code
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="tray-workbench-controls">
+                        <Switch
+                            checked=workbench_show_description
+                            set_checked=set_workbench_show_description
+                        >
+                            "description"
+                        </Switch>
+                        <Switch checked=workbench_show_footer set_checked=set_workbench_show_footer>
+                            "footer"
+                        </Switch>
+                        <Switch
+                            checked=workbench_show_close_button
+                            set_checked=set_workbench_show_close_button
+                        >
+                            "show_close_button"
+                        </Switch>
+                        <Switch checked=workbench_fixed_height set_checked=set_workbench_fixed_height>
+                            "is_fixed_height"
+                        </Switch>
+                        <Switch checked=workbench_dismissable set_checked=set_workbench_dismissable>
+                            "is_dismissable"
+                        </Switch>
+                        <Switch
+                            checked=workbench_keyboard_dismiss_disabled
+                            set_checked=set_workbench_keyboard_dismiss_disabled
+                        >
+                            "is_keyboard_dismiss_disabled"
+                        </Switch>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>
+                            "custom motion"
+                        </Switch>
+                        <Switch
+                            checked=workbench_compact_close_label
+                            set_checked=set_workbench_compact_close_label
+                        >
+                            "close_label compact"
+                        </Switch>
+                        <Switch
+                            checked=workbench_custom_class_name
+                            set_checked=set_workbench_custom_class_name
+                        >
+                            "class_name"
+                        </Switch>
+                        <Switch checked=workbench_zh_lang set_checked=set_workbench_zh_lang>
+                            "lang zh-CN"
+                        </Switch>
+                        <Switch checked=workbench_rtl_dir set_checked=set_workbench_rtl_dir>
+                            "dir RTL"
+                        </Switch>
+                        <Button variant=ButtonVariant::Secondary on_press=open_workbench>
+                            "Open workbench tray"
+                        </Button>
+                    </div>
+                }
             >
-                <div class="docs-row">
-                    <Button on_press=open_custom_tray>"Open fixed tray"</Button>
-                    <span class="ui-muted">"open: " {move || open_custom_raw.get()}</span>
+                <div class="docs-stack docs-stack--tight" data-slot="tray-workbench-feedback">
+                    <span class="ui-muted">
+                        "open: " {move || workbench_open_raw.get()}
+                        " · on_close: " {move || workbench_close_count.get()}
+                        " · on_exit_complete: " {move || workbench_exit_count.get()}
+                    </span>
+                </div>
+                <Tray
+                    open=workbench_open
+                    on_close=on_workbench_close
+                    id_base="docs-tray-workbench".to_string()
+                    title="Workbench tray".to_string()
+                    description=if workbench_show_description.get() {
+                        "Slide-up panel for contextual actions.".to_string()
+                    } else {
+                        String::new()
+                    }
+                    footer=move || {
+                        view! {
+                            <Show when=move || workbench_show_footer.get()>
+                                <div class="docs-row docs-row--end">
+                                    <Button variant=ButtonVariant::Secondary on_press=on_workbench_close>
+                                        "Cancel"
+                                    </Button>
+                                    <Button on_press=on_workbench_close>"Save"</Button>
+                                </div>
+                            </Show>
+                        }
+                        .into_any()
+                    }
+                    motion=workbench_motion.get()
+                    show_close_button=workbench_show_close_button.get()
+                    close_label=if workbench_compact_close_label.get() {
+                        "Dismiss"
+                    } else {
+                        "Close tray"
+                    }
+                    is_fixed_height=workbench_fixed_height.get()
+                    is_dismissable=workbench_dismissable.get()
+                    is_keyboard_dismiss_disabled=workbench_keyboard_dismiss_disabled.get()
+                    lang=if workbench_zh_lang.get() {
+                        "zh-CN".to_string()
+                    } else {
+                        "en-US".to_string()
+                    }
+                    dir=if workbench_rtl_dir.get() {
+                        ui_headless::A11yDirection::Rtl
+                    } else {
+                        ui_headless::A11yDirection::Ltr
+                    }
+                    on_exit_complete=on_workbench_exit_complete
+                    class_name=if workbench_custom_class_name.get() {
+                        "docs-tray-workbench".to_string()
+                    } else {
+                        String::new()
+                    }
+                >
+                    <div class="docs-stack docs-stack--tight">
+                        <span>"Workbench body area. Toggle parameters from the control panel."</span>
+                        <span class="ui-muted">
+                            "This tray exposes close/exit callback counts as live feedback."
+                        </span>
+                    </div>
+                </Tray>
+            </Playground>
+
+            <Playground title="State Matrix (Default / Fixed / Compact)" code_signal=matrix_code>
+                <div class="docs-row" data-slot="tray-state-matrix-controls">
+                    <Button variant=ButtonVariant::Secondary on_press=open_matrix_default>
+                        "Open Default"
+                    </Button>
+                    <Button variant=ButtonVariant::Secondary on_press=open_matrix_fixed>
+                        "Open Fixed"
+                    </Button>
+                    <Button variant=ButtonVariant::Secondary on_press=open_matrix_compact>
+                        "Open Compact"
+                    </Button>
                 </div>
 
-                <Show when=move || present_custom.get()>
-                    <Tray
-                        open=open_custom
-                        id_base="docs-tray-fixed".to_string()
-                        title="Fixed tray".to_string()
-                        motion=custom_motion
-                        is_fixed_height=true
-                        is_dismissable=false
-                        is_keyboard_dismiss_disabled=true
-                        show_close_button=false
-                        class_name="docs-tray-custom".to_string()
-                        on_close=close_custom
-                        on_exit_complete=on_custom_exit_complete
-                    >
-                        <div class="docs-stack docs-stack--tight">
-                            <div>"Title-only path keeps `aria-describedby` unset."</div>
-                            <div class="ui-muted">
-                                "Inspect data-size-source / data-dismiss-source / data-motion-source in DevTools."
-                            </div>
-                            <div class="docs-row docs-row--end">
-                                <Button variant=ButtonVariant::Secondary on_press=close_custom>"Dismiss"</Button>
-                            </div>
+                <Tray
+                    open=matrix_default_open
+                    on_close=close_matrix_default
+                    id_base="docs-tray-matrix-default".to_string()
+                    title="Default tray".to_string()
+                    description="Default behavior with footer actions.".to_string()
+                    footer=move || view! {
+                        <div class="docs-row docs-row--end">
+                            <Button on_press=close_matrix_default>"Done"</Button>
                         </div>
-                    </Tray>
-                </Show>
+                    }
+                >
+                    <div>"Default tray body."</div>
+                </Tray>
+
+                <Tray
+                    open=matrix_fixed_open
+                    on_close=close_matrix_fixed
+                    id_base="docs-tray-matrix-fixed".to_string()
+                    title="Fixed tray".to_string()
+                    is_fixed_height=true
+                    is_dismissable=false
+                    is_keyboard_dismiss_disabled=true
+                    show_close_button=true
+                    class_name="docs-tray-fixed".to_string()
+                >
+                    <div>"Fixed-height tray with stricter dismiss behavior."</div>
+                </Tray>
+
+                <Tray
+                    open=matrix_compact_open
+                    on_close=close_matrix_compact
+                    id_base="docs-tray-matrix-compact".to_string()
+                    title="Compact tray".to_string()
+                    show_close_button=false
+                    close_label="Dismiss"
+                    motion=TrayMotion {
+                        sheet: ui::SheetMotion {
+                            initial_offset_px: 48.0,
+                            ..ui::SheetMotion::default()
+                        },
+                    }
+                >
+                    <div>"Compact state prioritizes content area."</div>
+                </Tray>
             </Playground>
         </ComponentPage>
     }
@@ -733,6 +1397,8 @@ pub(super) fn sonner() -> AnyView {
     let portal_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 3 }));
     let inline_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 2 }));
     let source_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 4 }));
+    let workbench_store =
+        StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 4 }));
     let hello_world_code = Signal::derive(move || r#"<Sonner />"#.to_string());
 
     let push_saved: OnPress = Callback::new(move |_| {
@@ -812,6 +1478,109 @@ store.push_simple("Saved");"#
         ..ToastMotion::default()
     };
 
+    let (workbench_top_left, set_workbench_top_left) = signal(false);
+    let (workbench_portal, set_workbench_portal) = signal(true);
+    let (workbench_max_toasts, set_workbench_max_toasts) = signal(3_u16);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_zh_lang, set_workbench_zh_lang) = signal(false);
+    let (workbench_rtl_dir, set_workbench_rtl_dir) = signal(false);
+    let (workbench_push_count, set_workbench_push_count) = signal(0_u32);
+    let (workbench_clear_count, set_workbench_clear_count) = signal(0_u32);
+
+    let push_workbench: OnPress = Callback::new(move |_| {
+        workbench_store.get_value().push.run(ToastOptions {
+            title: "Workbench event".to_string(),
+            description: Some("Sonner workbench is active.".to_string()),
+            variant: ToastVariant::Default,
+            duration_ms: Some(5000),
+        });
+        set_workbench_push_count.update(|count| *count += 1);
+    });
+    let clear_workbench: OnPress = Callback::new(move |_| {
+        workbench_store.get_value().clear.run(());
+        set_workbench_clear_count.update(|count| *count += 1);
+    });
+
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<Sonner\n  position={}\n  portal={}\n  max_toasts={}\n  aria_label={}\n  class_name={}\n  motion={}\n  store=Some(store)\n  lang={}\n  dir={}\n/>",
+            if workbench_top_left.get() {
+                "SonnerPosition::TopLeft"
+            } else {
+                "SonnerPosition::BottomRight"
+            },
+            workbench_portal.get(),
+            workbench_max_toasts.get(),
+            if workbench_custom_aria.get() {
+                "Some(\"Status updates\".to_string())"
+            } else {
+                "None"
+            },
+            if workbench_custom_class.get() {
+                "Some(\"docs-sonner-workbench\".to_string())"
+            } else {
+                "None"
+            },
+            if workbench_custom_motion.get() {
+                "ToastMotion { initial_y_px: 22.0, initial_scale: 0.94, ..ToastMotion::default() }"
+            } else {
+                "ToastMotion::default()"
+            },
+            if workbench_zh_lang.get() {
+                "Some(\"zh-CN\".to_string())"
+            } else {
+                "Some(\"en-US\".to_string())"
+            },
+            if workbench_rtl_dir.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            }
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "SonnerActualConfig {{\n  position: {},\n  portal: {},\n  max_toasts: {},\n  aria_label: {},\n  class_name: {},\n  motion: {},\n  store: Some(workbench_store),\n  lang: {},\n  dir: {},\n  push_count: {},\n  clear_count: {},\n}}",
+            if workbench_top_left.get() {
+                "SonnerPosition::TopLeft"
+            } else {
+                "SonnerPosition::BottomRight"
+            },
+            workbench_portal.get(),
+            workbench_max_toasts.get(),
+            if workbench_custom_aria.get() {
+                "Some(\"Status updates\")"
+            } else {
+                "None"
+            },
+            if workbench_custom_class.get() {
+                "Some(\"docs-sonner-workbench\")"
+            } else {
+                "None"
+            },
+            if workbench_custom_motion.get() {
+                "ToastMotion::custom"
+            } else {
+                "ToastMotion::default"
+            },
+            if workbench_zh_lang.get() {
+                "Some(\"zh-CN\")"
+            } else {
+                "Some(\"en-US\")"
+            },
+            if workbench_rtl_dir.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
+            workbench_push_count.get(),
+            workbench_clear_count.get(),
+        )
+    });
+
     view! {
         <ComponentPage
             title="Sonner"
@@ -824,6 +1593,106 @@ store.push_simple("Saved");"#
                     "Default path mounts a notification host with sensible defaults and no manual state wiring."
                 </div>
                 <Sonner />
+            </Playground>
+
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="sonner-workbench-controls">
+                        <Switch checked=workbench_top_left set_checked=set_workbench_top_left>
+                            "position TopLeft"
+                        </Switch>
+                        <Switch checked=workbench_portal set_checked=set_workbench_portal>
+                            "portal"
+                        </Switch>
+                        <Switch checked=workbench_custom_aria set_checked=set_workbench_custom_aria>
+                            "aria_label"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "class_name"
+                        </Switch>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>
+                            "motion"
+                        </Switch>
+                        <Switch checked=workbench_zh_lang set_checked=set_workbench_zh_lang>
+                            "lang zh-CN"
+                        </Switch>
+                        <Switch checked=workbench_rtl_dir set_checked=set_workbench_rtl_dir>
+                            "dir RTL"
+                        </Switch>
+                        <label class="docs-search__label">
+                            "max_toasts (" {move || workbench_max_toasts.get()} ")"
+                            <input
+                                type="range"
+                                min="1"
+                                max="6"
+                                step="1"
+                                prop:value=move || workbench_max_toasts.get().to_string()
+                                on:input=move |ev| {
+                                    let next = event_target_value(&ev)
+                                        .parse::<u16>()
+                                        .unwrap_or(3)
+                                        .clamp(1, 6);
+                                    set_workbench_max_toasts.set(next);
+                                }
+                            />
+                        </label>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Button on_press=push_workbench>"Push workbench toast"</Button>
+                        <Button variant=ButtonVariant::Secondary on_press=clear_workbench>
+                            "Clear"
+                        </Button>
+                    </div>
+                    <span class="ui-muted">
+                        "push: " {move || workbench_push_count.get()}
+                        " · clear: " {move || workbench_clear_count.get()}
+                    </span>
+                    <Sonner
+                        position=if workbench_top_left.get() {
+                            SonnerPosition::TopLeft
+                        } else {
+                            SonnerPosition::BottomRight
+                        }
+                        portal=workbench_portal.get()
+                        max_toasts=usize::from(workbench_max_toasts.get())
+                        aria_label=if workbench_custom_aria.get() {
+                            "Status updates".to_string()
+                        } else {
+                            String::new()
+                        }
+                        class_name=if workbench_custom_class.get() {
+                            "docs-sonner-workbench".to_string()
+                        } else {
+                            String::new()
+                        }
+                        motion=if workbench_custom_motion.get() {
+                            ToastMotion {
+                                initial_y_px: 22.0,
+                                initial_scale: 0.94,
+                                ..ToastMotion::default()
+                            }
+                        } else {
+                            ToastMotion::default()
+                        }
+                        store=workbench_store.get_value()
+                        lang=if workbench_zh_lang.get() {
+                            "zh-CN".to_string()
+                        } else {
+                            "en-US".to_string()
+                        }
+                        dir=if workbench_rtl_dir.get() {
+                            ui_headless::A11yDirection::Rtl
+                        } else {
+                            ui_headless::A11yDirection::Ltr
+                        }
+                    />
+                </div>
             </Playground>
 
             <Playground title="Portal Queue + Variants" code_signal=basic_code>
@@ -865,7 +1734,7 @@ store.push_simple("Saved");"#
             </Playground>
 
             <Playground
-                title="State + Source Markers"
+                title="State Matrix (Source Markers)"
                 description="Inspect `data-state`, `data-queue`, `data-position-source`, `data-portal-source`, `data-max-toasts-source`, `data-store-source`, and `data-motion-source` contracts."
                 code_signal=source_code
             >
@@ -910,19 +1779,19 @@ store.push_simple("Saved");"#
                     <li>
                         <code>"portal: bool"</code>
                         " "
-                        {format!("default = {}", ui_components::sonner::DEFAULT_PORTAL)}
+                        {format!("default = {}", ui::sonner::DEFAULT_PORTAL)}
                     </li>
                     <li>
                         <code>"max_toasts: usize"</code>
                         " "
-                        {format!("default = {}", ui_components::sonner::DEFAULT_MAX_TOASTS)}
+                        {format!("default = {}", ui::sonner::DEFAULT_MAX_TOASTS)}
                     </li>
                     <li>
                         <code>"aria_label: Option<String>"</code>
                         " "
                         {format!(
                             "default label = {:?}",
-                            ui_components::sonner::DEFAULT_ARIA_LABEL
+                            ui::sonner::DEFAULT_ARIA_LABEL
                         )}
                     </li>
                     <li>
@@ -983,6 +1852,8 @@ pub(super) fn toaster() -> AnyView {
     let portal_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 3 }));
     let inline_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 2 }));
     let source_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 4 }));
+    let workbench_store =
+        StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 4 }));
 
     let hello_world_code = Signal::derive(move || r#"<Toaster />"#.to_string());
 
@@ -1063,6 +1934,109 @@ store.push_simple("Synced");"#
         ..ToastMotion::default()
     };
 
+    let (workbench_top_left, set_workbench_top_left) = signal(false);
+    let (workbench_portal, set_workbench_portal) = signal(true);
+    let (workbench_max_toasts, set_workbench_max_toasts) = signal(3_u16);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_zh_lang, set_workbench_zh_lang) = signal(false);
+    let (workbench_rtl_dir, set_workbench_rtl_dir) = signal(false);
+    let (workbench_push_count, set_workbench_push_count) = signal(0_u32);
+    let (workbench_clear_count, set_workbench_clear_count) = signal(0_u32);
+
+    let push_workbench: OnPress = Callback::new(move |_| {
+        workbench_store.get_value().push.run(ToastOptions {
+            title: "Workbench alert".to_string(),
+            description: Some("Toaster workbench is active.".to_string()),
+            variant: ToastVariant::Accent,
+            duration_ms: Some(5200),
+        });
+        set_workbench_push_count.update(|count| *count += 1);
+    });
+    let clear_workbench: OnPress = Callback::new(move |_| {
+        workbench_store.get_value().clear.run(());
+        set_workbench_clear_count.update(|count| *count += 1);
+    });
+
+    let workbench_code = Signal::derive(move || {
+        format!(
+            "<Toaster\n  position={}\n  portal={}\n  max_toasts={}\n  aria_label={}\n  class_name={}\n  lang={}\n  dir={}\n  motion={}\n  store=Some(store)\n/>",
+            if workbench_top_left.get() {
+                "ToasterPosition::TopLeft"
+            } else {
+                "ToasterPosition::BottomRight"
+            },
+            workbench_portal.get(),
+            workbench_max_toasts.get(),
+            if workbench_custom_aria.get() {
+                "Some(\"Alert stream\".to_string())"
+            } else {
+                "None"
+            },
+            if workbench_custom_class.get() {
+                "Some(\"docs-toaster-workbench\".to_string())"
+            } else {
+                "None"
+            },
+            if workbench_zh_lang.get() {
+                "Some(\"zh-CN\".to_string())"
+            } else {
+                "Some(\"en-US\".to_string())"
+            },
+            if workbench_rtl_dir.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
+            if workbench_custom_motion.get() {
+                "ToastMotion { initial_y_px: 20.0, initial_scale: 0.95, ..ToastMotion::default() }"
+            } else {
+                "ToastMotion::default()"
+            }
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "ToasterActualConfig {{\n  position: {},\n  portal: {},\n  max_toasts: {},\n  aria_label: {},\n  class_name: {},\n  lang: {},\n  dir: {},\n  motion: {},\n  store: Some(workbench_store),\n  push_count: {},\n  clear_count: {},\n}}",
+            if workbench_top_left.get() {
+                "ToasterPosition::TopLeft"
+            } else {
+                "ToasterPosition::BottomRight"
+            },
+            workbench_portal.get(),
+            workbench_max_toasts.get(),
+            if workbench_custom_aria.get() {
+                "Some(\"Alert stream\")"
+            } else {
+                "None"
+            },
+            if workbench_custom_class.get() {
+                "Some(\"docs-toaster-workbench\")"
+            } else {
+                "None"
+            },
+            if workbench_zh_lang.get() {
+                "Some(\"zh-CN\")"
+            } else {
+                "Some(\"en-US\")"
+            },
+            if workbench_rtl_dir.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
+            if workbench_custom_motion.get() {
+                "ToastMotion::custom"
+            } else {
+                "ToastMotion::default"
+            },
+            workbench_push_count.get(),
+            workbench_clear_count.get(),
+        )
+    });
+
     view! {
         <ComponentPage
             title="Toaster"
@@ -1075,6 +2049,106 @@ store.push_simple("Synced");"#
                     "Default path only mounts host; no state primitive wiring or custom store binding required."
                 </div>
                 <Toaster />
+            </Playground>
+
+            <Playground
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="toaster-workbench-controls">
+                        <Switch checked=workbench_top_left set_checked=set_workbench_top_left>
+                            "position TopLeft"
+                        </Switch>
+                        <Switch checked=workbench_portal set_checked=set_workbench_portal>
+                            "portal"
+                        </Switch>
+                        <Switch checked=workbench_custom_aria set_checked=set_workbench_custom_aria>
+                            "aria_label"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "class_name"
+                        </Switch>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>
+                            "motion"
+                        </Switch>
+                        <Switch checked=workbench_zh_lang set_checked=set_workbench_zh_lang>
+                            "lang zh-CN"
+                        </Switch>
+                        <Switch checked=workbench_rtl_dir set_checked=set_workbench_rtl_dir>
+                            "dir RTL"
+                        </Switch>
+                        <label class="docs-search__label">
+                            "max_toasts (" {move || workbench_max_toasts.get()} ")"
+                            <input
+                                type="range"
+                                min="1"
+                                max="6"
+                                step="1"
+                                prop:value=move || workbench_max_toasts.get().to_string()
+                                on:input=move |ev| {
+                                    let next = event_target_value(&ev)
+                                        .parse::<u16>()
+                                        .unwrap_or(3)
+                                        .clamp(1, 6);
+                                    set_workbench_max_toasts.set(next);
+                                }
+                            />
+                        </label>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Button on_press=push_workbench>"Push workbench toast"</Button>
+                        <Button variant=ButtonVariant::Secondary on_press=clear_workbench>
+                            "Clear"
+                        </Button>
+                    </div>
+                    <span class="ui-muted">
+                        "push: " {move || workbench_push_count.get()}
+                        " · clear: " {move || workbench_clear_count.get()}
+                    </span>
+                    <Toaster
+                        position=if workbench_top_left.get() {
+                            ToasterPosition::TopLeft
+                        } else {
+                            ToasterPosition::BottomRight
+                        }
+                        portal=workbench_portal.get()
+                        max_toasts=usize::from(workbench_max_toasts.get())
+                        aria_label=if workbench_custom_aria.get() {
+                            "Alert stream".to_string()
+                        } else {
+                            String::new()
+                        }
+                        class_name=if workbench_custom_class.get() {
+                            "docs-toaster-workbench".to_string()
+                        } else {
+                            String::new()
+                        }
+                        lang=if workbench_zh_lang.get() {
+                            "zh-CN".to_string()
+                        } else {
+                            "en-US".to_string()
+                        }
+                        dir=if workbench_rtl_dir.get() {
+                            ui_headless::A11yDirection::Rtl
+                        } else {
+                            ui_headless::A11yDirection::Ltr
+                        }
+                        motion=if workbench_custom_motion.get() {
+                            ToastMotion {
+                                initial_y_px: 20.0,
+                                initial_scale: 0.95,
+                                ..ToastMotion::default()
+                            }
+                        } else {
+                            ToastMotion::default()
+                        }
+                        store=workbench_store.get_value()
+                    />
+                </div>
             </Playground>
 
             <Playground title="Portal Queue Host" code_signal=basic_code>
@@ -1116,7 +2190,7 @@ store.push_simple("Synced");"#
             </Playground>
 
             <Playground
-                title="State + Source Markers"
+                title="State Matrix (Source Markers)"
                 description="Inspect `data-state`, `data-queue`, `data-position-source`, `data-portal-source`, `data-max-toasts-source`, `data-store-source`, and `data-motion-source` contracts."
                 code_signal=source_code
             >
@@ -1161,14 +2235,14 @@ store.push_simple("Synced");"#
                     <li>
                         <code>"portal: bool"</code>
                         " "
-                        {format!("default = {}", ui_components::toaster::DEFAULT_PORTAL)}
+                        {format!("default = {}", ui::toaster::DEFAULT_PORTAL)}
                     </li>
                     <li>
                         <code>"max_toasts: usize"</code>
                         " "
                         {format!(
                             "default = {}",
-                            ui_components::toaster::DEFAULT_MAX_TOASTS
+                            ui::toaster::DEFAULT_MAX_TOASTS
                         )}
                     </li>
                     <li>
@@ -1176,7 +2250,7 @@ store.push_simple("Synced");"#
                         " "
                         {format!(
                             "default label = {:?}",
-                            ui_components::toaster::DEFAULT_ARIA_LABEL
+                            ui::toaster::DEFAULT_ARIA_LABEL
                         )}
                     </li>
                     <li>
@@ -1238,7 +2312,7 @@ store.push_simple("Synced");"#
                     "."
                 </p>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<Toaster />".to_string()
+                    text="use leptos::prelude::*;\nuse ui::*;\n\n<Toaster />".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-toaster-source-copy".to_string()
@@ -1262,125 +2336,176 @@ store.push_simple("Synced");"#
 }
 
 pub(super) fn underlay() -> AnyView {
-    let (open_scrim_raw, set_open_scrim_raw) = signal(false);
-    let open_scrim: Signal<bool> = Signal::derive(move || open_scrim_raw.get());
+    let (showcase_open_raw, set_showcase_open_raw) = signal(false);
+    let showcase_open: Signal<bool> = Signal::derive(move || showcase_open_raw.get());
+    let (showcase_open_change_count, set_showcase_open_change_count) = signal(0_u32);
+    let (showcase_close_count, set_showcase_close_count) = signal(0_u32);
 
-    let close_scrim: OnPress = Callback::new(move |_| set_open_scrim_raw.set(false));
-    let on_scrim_open_change = Callback::new(move |next: bool| set_open_scrim_raw.set(next));
-    let open_scrim_underlay: OnPress = Callback::new(move |_| set_open_scrim_raw.set(true));
-
-    let (open_transparent_raw, set_open_transparent_raw) = signal(false);
-    let open_transparent: Signal<bool> = Signal::derive(move || open_transparent_raw.get());
-    let disabled_open: Signal<bool> = Signal::derive(|| true);
-
-    let close_transparent: OnPress = Callback::new(move |_| set_open_transparent_raw.set(false));
-    let on_transparent_open_change =
-        Callback::new(move |next: bool| set_open_transparent_raw.set(next));
-    let open_transparent_underlay: OnPress =
-        Callback::new(move |_| set_open_transparent_raw.set(true));
-
-    let (open_source_raw, set_open_source_raw) = signal(false);
-    let open_source: Signal<bool> = Signal::derive(move || open_source_raw.get());
-
-    let close_source: OnPress = Callback::new(move |_| set_open_source_raw.set(false));
-    let on_source_open_change = Callback::new(move |next: bool| set_open_source_raw.set(next));
-    let open_source_underlay: OnPress = Callback::new(move |_| set_open_source_raw.set(true));
-
-    let (open_ai_raw, set_open_ai_raw) = signal(false);
-    let open_ai: Signal<bool> = Signal::derive(move || open_ai_raw.get());
-    let close_ai: OnPress = Callback::new(move |_| set_open_ai_raw.set(false));
-    let on_ai_open_change = Callback::new(move |next: bool| set_open_ai_raw.set(next));
-    let open_ai_underlay: OnPress = Callback::new(move |_| set_open_ai_raw.set(true));
-
-    let (ai_mode_raw, set_ai_mode_raw) = signal(AiRenderMode::Snapshot);
-    let ai_mode: Signal<AiRenderMode> = Signal::derive(move || ai_mode_raw.get());
-    let toggle_ai_mode: OnPress = Callback::new(move |_| {
-        set_ai_mode_raw.update(|mode| {
-            *mode = match *mode {
-                AiRenderMode::Snapshot => AiRenderMode::Streaming,
-                AiRenderMode::Streaming => AiRenderMode::Snapshot,
-            };
-        });
+    let open_showcase: OnPress = Callback::new(move |_| set_showcase_open_raw.set(true));
+    let on_showcase_open_change = Callback::new(move |next: bool| {
+        set_showcase_open_raw.set(next);
+        set_showcase_open_change_count.update(|count| *count += 1);
+    });
+    let on_showcase_close: OnPress = Callback::new(move |_| {
+        set_showcase_open_raw.set(false);
+        set_showcase_close_count.update(|count| *count += 1);
     });
 
-    let (ai_output_status_raw, set_ai_output_status_raw) = signal(AiOutputStatus::Verified);
-    let ai_output_status: Signal<AiOutputStatus> =
-        Signal::derive(move || ai_output_status_raw.get());
-    let cycle_ai_output_status: OnPress = Callback::new(move |_| {
-        set_ai_output_status_raw.update(|status| {
-            *status = match *status {
-                AiOutputStatus::Draft => AiOutputStatus::Verified,
-                AiOutputStatus::Verified => AiOutputStatus::Submittable,
-                AiOutputStatus::Submittable => AiOutputStatus::Draft,
-            };
-        });
-    });
-
-    let code = Signal::derive(move || {
-        r#"let (open, set_open) = signal(false);
-
-<Underlay
-  id_base="docs-underlay-basic".to_string()
-  is_open=Signal::derive(move || open.get())
-  on_open_change=Callback::new(move |next| set_open.set(next))
-/>"#
-        .to_string()
-    });
-
-    let state_code = Signal::derive(move || {
+    let hello_code = Signal::derive(move || {
         r#"let (open_raw, set_open_raw) = signal(false);
+let open: Signal<bool> = Signal::derive(move || open_raw.get());
 
 <Underlay
-  id_base="docs-underlay-transparent".to_string()
-  is_open=Signal::derive(move || open_raw.get())
+  id_base="docs-underlay-hello".to_string()
+  is_open=open
   on_open_change=Callback::new(move |next| set_open_raw.set(next))
-  is_transparent=true
-  class_name="docs-underlay-custom".to_string()
-/>
-<Underlay
-  id_base="docs-underlay-disabled".to_string()
-  is_open=Signal::derive(|| true)
-  is_disabled=true
+  on_close=Callback::new(move |_| set_open_raw.set(false))
 />"#
         .to_string()
     });
 
-    let source_code = Signal::derive(move || {
-        r#"let (open_raw, set_open_raw) = signal(false);
+    let (workbench_open_raw, set_workbench_open_raw) = signal(false);
+    let workbench_open_signal: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
+    let (workbench_open_change_count, set_workbench_open_change_count) = signal(0_u32);
+    let (workbench_close_count, set_workbench_close_count) = signal(0_u32);
 
-<Underlay
-  id_base="docs-underlay-source".to_string()
-  is_open=Signal::derive(move || open_raw.get())
-  on_open_change=Callback::new(move |next| set_open_raw.set(next))
-  is_transparent=true
-  class_name="docs-underlay-source".to_string()
-/>
-<Underlay
-  id_base="docs-underlay-source-disabled".to_string()
-  is_open=Signal::derive(|| true)
-  is_disabled=true
-  class_name="docs-underlay-disabled-source".to_string()
-/>"#
-        .to_string()
+    let (workbench_is_transparent, set_workbench_is_transparent) = signal(false);
+    let (workbench_transparent_alias, set_workbench_transparent_alias) = signal(false);
+    let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
+    let (workbench_disabled_alias, set_workbench_disabled_alias) = signal(false);
+    let (workbench_custom_class_name, set_workbench_custom_class_name) = signal(false);
+    let (workbench_zh_lang, set_workbench_zh_lang) = signal(false);
+    let (workbench_rtl_dir, set_workbench_rtl_dir) = signal(false);
+    let (workbench_disable_motion, set_workbench_disable_motion) = signal(false);
+
+    let open_workbench: OnPress = Callback::new(move |_| set_workbench_open_raw.set(true));
+    let close_workbench: OnPress = Callback::new(move |_| set_workbench_open_raw.set(false));
+    let on_workbench_open_change = Callback::new(move |next: bool| {
+        set_workbench_open_raw.set(next);
+        set_workbench_open_change_count.update(|count| *count += 1);
+    });
+    let on_workbench_close: OnPress = Callback::new(move |_| {
+        set_workbench_open_raw.set(false);
+        set_workbench_close_count.update(|count| *count += 1);
     });
 
-    let ai_stream_code = Signal::derive(move || {
-        r#"let (open_raw, set_open_raw) = signal(false);
-let (mode_raw, set_mode_raw) = signal(AiRenderMode::Snapshot);
-let (status_raw, set_status_raw) = signal(AiOutputStatus::Verified);
+    let workbench_motion = Signal::derive(move || {
+        if workbench_disable_motion.get() {
+            ui::UnderlayMotion::disabled()
+        } else {
+            ui::UnderlayMotion::default()
+        }
+    });
 
-<AiSpace
-  mode=Signal::derive(move || mode_raw.get())
-  output_status=Signal::derive(move || status_raw.get())
->
-  <Underlay
-    id_base="docs-underlay-ai".to_string()
-    is_open=Signal::derive(move || open_raw.get())
-    on_open_change=Callback::new(move |next| set_open_raw.set(next))
-    on_close=Callback::new(move |_| set_open_raw.set(false))
-  />
-</AiSpace>"#
-            .to_string()
+    let workbench_code = Signal::derive(move || {
+        let class_name = if workbench_custom_class_name.get() {
+            "docs-underlay-workbench"
+        } else {
+            ""
+        };
+        let lang = if workbench_zh_lang.get() {
+            "zh-CN"
+        } else {
+            "en-US"
+        };
+        let dir = if workbench_rtl_dir.get() {
+            "A11yDirection::Rtl"
+        } else {
+            "A11yDirection::Ltr"
+        };
+        let motion = if workbench_disable_motion.get() {
+            "UnderlayMotion::disabled()"
+        } else {
+            "UnderlayMotion::default()"
+        };
+
+        vec![
+            "<Underlay".to_string(),
+            "  id_base=\"docs-underlay-workbench\".to_string()".to_string(),
+            "  is_open=Signal::derive(move || open_raw.get())".to_string(),
+            "  open=Signal::derive(move || open_raw.get())".to_string(),
+            "  default_open=false".to_string(),
+            "  on_open_change=Callback::new(move |next| set_open_raw.set(next))".to_string(),
+            "  on_close=Callback::new(move |_| set_open_raw.set(false))".to_string(),
+            format!(
+                "  is_transparent={}",
+                bool_word(workbench_is_transparent.get())
+            ),
+            format!(
+                "  transparent={}",
+                bool_word(workbench_transparent_alias.get())
+            ),
+            format!("  is_disabled={}", bool_word(workbench_is_disabled.get())),
+            format!("  disabled={}", bool_word(workbench_disabled_alias.get())),
+            format!("  lang={}.to_string()", rust_string_literal(lang)),
+            format!("  dir={dir}"),
+            format!("  motion={motion}"),
+            format!(
+                "  class_name={}.to_string()",
+                rust_string_literal(class_name)
+            ),
+            "/>".to_string(),
+        ]
+        .join("\n")
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let lang = if workbench_zh_lang.get() {
+            Some("zh-CN")
+        } else {
+            Some("en-US")
+        };
+        let dir = if workbench_rtl_dir.get() {
+            "Some(A11yDirection::Rtl)"
+        } else {
+            "Some(A11yDirection::Ltr)"
+        };
+        let class_name = if workbench_custom_class_name.get() {
+            Some("docs-underlay-workbench")
+        } else {
+            None
+        };
+        let motion = if workbench_disable_motion.get() {
+            "UnderlayMotion::disabled()"
+        } else {
+            "UnderlayMotion::default()"
+        };
+        format!(
+            "UnderlayActualConfig {{\n  id_base: \"docs-underlay-workbench\",\n  is_open: Some({}),\n  open: Some({}),\n  default_open: Some(false),\n  on_open_change: \"count={}\",\n  on_close: \"count={}\",\n  is_transparent: Some({}),\n  transparent: Some({}),\n  is_disabled: Some({}),\n  disabled: Some({}),\n  lang: {lang:?},\n  dir: {dir},\n  motion: {motion},\n  class_name: {class_name:?},\n}}",
+            bool_word(workbench_open_raw.get()),
+            bool_word(workbench_open_raw.get()),
+            workbench_open_change_count.get(),
+            workbench_close_count.get(),
+            bool_word(workbench_is_transparent.get()),
+            bool_word(workbench_transparent_alias.get()),
+            bool_word(workbench_is_disabled.get()),
+            bool_word(workbench_disabled_alias.get()),
+        )
+    });
+
+    let (matrix_default_open_raw, set_matrix_default_open_raw) = signal(false);
+    let matrix_default_open: Signal<bool> = Signal::derive(move || matrix_default_open_raw.get());
+    let open_matrix_default: OnPress =
+        Callback::new(move |_| set_matrix_default_open_raw.set(true));
+    let on_matrix_default_open_change =
+        Callback::new(move |next: bool| set_matrix_default_open_raw.set(next));
+    let close_matrix_default: OnPress =
+        Callback::new(move |_| set_matrix_default_open_raw.set(false));
+
+    let (matrix_transparent_open_raw, set_matrix_transparent_open_raw) = signal(false);
+    let matrix_transparent_open: Signal<bool> =
+        Signal::derive(move || matrix_transparent_open_raw.get());
+    let open_matrix_transparent: OnPress =
+        Callback::new(move |_| set_matrix_transparent_open_raw.set(true));
+    let on_matrix_transparent_open_change =
+        Callback::new(move |next: bool| set_matrix_transparent_open_raw.set(next));
+    let close_matrix_transparent: OnPress =
+        Callback::new(move |_| set_matrix_transparent_open_raw.set(false));
+
+    let matrix_code = Signal::derive(move || {
+        r#"<Underlay id_base="underlay-default".to_string() is_open=default_open on_open_change=on_default_change on_close=dismiss_default />
+<Underlay id_base="underlay-transparent".to_string() is_open=transparent_open on_open_change=on_transparent_change is_transparent=true transparent=true />
+<Underlay id_base="underlay-disabled".to_string() is_open=Signal::derive(|| true) is_disabled=true disabled=true />"#.to_string()
     });
 
     view! {
@@ -1388,140 +2513,145 @@ let (status_raw, set_status_raw) = signal(AiOutputStatus::Verified);
             title="Underlay"
             slug="underlay"
             group="Overlays"
-            description="baseline-compatible full-viewport underlay primitive with centralized open/transparent/disabled/close source-state derivation and stable slot/data-state markers."
+            description="Underlay playground with full API workbench and state-matrix comparison."
         >
-            <Playground title="Scrim + Click To Close" code_signal=code>
-                <div class="docs-row">
-                    <Button on_press=open_scrim_underlay>
-                        {move || if open_scrim_raw.get() { "Underlay open" } else { "Open underlay" }}
-                    </Button>
-                    <span class="ui-muted">"open: " {move || open_scrim_raw.get()}</span>
-                </div>
-
-                <Underlay
-                    id_base="docs-underlay-basic".to_string()
-                    is_open=open_scrim
-                    on_open_change=on_scrim_open_change
-                    on_close=close_scrim
-                />
-            </Playground>
-
-            <Playground title="Transparent + Disabled + Custom Class" code_signal=state_code>
-                <div class="docs-row">
-                    <Button variant=ButtonVariant::Secondary on_press=open_transparent_underlay>
-                        {move || {
-                            if open_transparent_raw.get() {
-                                "Transparent underlay open"
-                            } else {
-                                "Open transparent underlay"
-                            }
-                        }}
-                    </Button>
-                    <span class="ui-muted">
-                        "transparent open: " {move || open_transparent_raw.get()}
-                    </span>
-                </div>
-
-                <Underlay
-                    id_base="docs-underlay-transparent".to_string()
-                    is_open=open_transparent
-                    on_open_change=on_transparent_open_change
-                    is_transparent=true
-                    class_name="docs-underlay-custom".to_string()
-                    on_close=close_transparent
-                />
-
-                <Underlay
-                    id_base="docs-underlay-disabled".to_string()
-                    is_open=disabled_open
-                    is_disabled=true
-                    class_name="docs-underlay-disabled".to_string()
-                />
-            </Playground>
-
-            <Playground
-                title="State + Source Markers"
-                description="Inspect `data-state`, `data-tone`, `data-close-mode`, `data-transparent-source`, `data-disabled-source`, `data-close-source`, and `data-class-source` contracts."
-                code_signal=source_code
-            >
+            <Playground title="Hello World (Default Underlay)" code_signal=hello_code>
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
-                        <Button on_press=open_source_underlay>"Open source underlay"</Button>
-                        <Button variant=ButtonVariant::Secondary on_press=close_source>
+                        <Button on_press=open_showcase>"Open underlay"</Button>
+                        <Button variant=ButtonVariant::Secondary on_press=on_showcase_close>
                             "Close"
                         </Button>
                     </div>
-                    <div class="ui-muted">
-                        "Inspect data-open-mode / data-open-source / data-open-change-source / data-transparent-source / data-disabled-source / data-close-source / data-class-source in DevTools."
-                    </div>
-
-                    <Underlay
-                        id_base="docs-underlay-source".to_string()
-                        is_open=open_source
-                        on_open_change=on_source_open_change
-                        is_transparent=true
-                        class_name="docs-underlay-source".to_string()
-                        on_close=close_source
-                    />
-
-                    <Underlay
-                        id_base="docs-underlay-source-disabled".to_string()
-                        is_open=Signal::derive(|| true)
-                        is_disabled=true
-                        class_name="docs-underlay-disabled-source".to_string()
-                    />
+                    <span class="ui-muted">
+                        "open: " {move || showcase_open_raw.get()}
+                        " · on_open_change: " {move || showcase_open_change_count.get()}
+                        " · on_close: " {move || showcase_close_count.get()}
+                    </span>
                 </div>
+                <Underlay
+                    id_base="docs-underlay-hello".to_string()
+                    is_open=showcase_open
+                    on_open_change=on_showcase_open_change
+                    on_close=on_showcase_close
+                />
             </Playground>
 
             <Playground
-                title="LLM Render Modes (Snapshot + Streaming)"
-                description="`Underlay` is not a text-reader surface, so streaming is optional with explicit `fallback=snapshot`; output status stays observable via `data-ui-output-status`."
-                code_signal=ai_stream_code
-                test_source_path="components/underlay/src/view.rs".to_string()
+                title="Workbench (All API + Actual Config)"
+                code_signal=workbench_code
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="underlay-workbench-controls">
+                        <Switch
+                            checked=workbench_is_transparent
+                            set_checked=set_workbench_is_transparent
+                        >
+                            "is_transparent"
+                        </Switch>
+                        <Switch
+                            checked=workbench_transparent_alias
+                            set_checked=set_workbench_transparent_alias
+                        >
+                            "transparent alias"
+                        </Switch>
+                        <Switch checked=workbench_is_disabled set_checked=set_workbench_is_disabled>
+                            "is_disabled"
+                        </Switch>
+                        <Switch checked=workbench_disabled_alias set_checked=set_workbench_disabled_alias>
+                            "disabled alias"
+                        </Switch>
+                        <Switch
+                            checked=workbench_custom_class_name
+                            set_checked=set_workbench_custom_class_name
+                        >
+                            "class_name"
+                        </Switch>
+                        <Switch checked=workbench_zh_lang set_checked=set_workbench_zh_lang>
+                            "lang zh-CN"
+                        </Switch>
+                        <Switch checked=workbench_rtl_dir set_checked=set_workbench_rtl_dir>
+                            "dir RTL"
+                        </Switch>
+                        <Switch checked=workbench_disable_motion set_checked=set_workbench_disable_motion>
+                            "motion disabled"
+                        </Switch>
+                        <div class="docs-row docs-row--tight">
+                            <Button variant=ButtonVariant::Secondary on_press=open_workbench>
+                                "Open"
+                            </Button>
+                            <Button variant=ButtonVariant::Secondary on_press=close_workbench>
+                                "Close"
+                            </Button>
+                        </div>
+                    </div>
+                }
             >
-                <div class="docs-stack docs-stack--tight" data-slot="underlay-ai-demo">
-                    <div class="docs-row" data-slot="underlay-ai-controls">
-                        <button type="button" data-action="open" on:click=move |_| open_ai_underlay.run(())>
-                            "Open AI underlay"
-                        </button>
-                        <button type="button" data-action="close" on:click=move |_| close_ai.run(())>
-                            "Close"
-                        </button>
-                        <button
-                            type="button"
-                            data-action="toggle-mode"
-                            on:click=move |_| toggle_ai_mode.run(())
-                        >
-                            "Toggle mode"
-                        </button>
-                        <button
-                            type="button"
-                            data-action="cycle-status"
-                            on:click=move |_| cycle_ai_output_status.run(())
-                        >
-                            "Cycle status"
-                        </button>
-                    </div>
-                    <span class="ui-muted" data-slot="underlay-ai-runtime">
-                        "mode: " {move || ai_mode_raw.get().as_str()} " | status: "
-                        {move || ai_output_status_raw.get().as_str()} " | open: "
-                        {move || open_ai_raw.get()}
-                    </span>
-                    <div class="ui-muted">
-                        "Inspect data-ui-stream-support / data-ui-stream-fallback / data-ui-stream-mode / data-ui-output-status on the underlay root."
-                    </div>
-                    <div class="ui-muted">
-                        "Copy-ready snippets auto-include `use leptos::prelude::*; use ui_components::*;` (requires `ui-components` with `component-underlay`)."
-                    </div>
-                    <AiSpace mode=ai_mode output_status=ai_output_status>
-                        <Underlay
-                            id_base="docs-underlay-ai".to_string()
-                            is_open=open_ai
-                            on_open_change=on_ai_open_change
-                            on_close=close_ai
-                        />
-                    </AiSpace>
+                <span class="ui-muted" data-slot="underlay-workbench-feedback">
+                    "open: " {move || workbench_open_raw.get()}
+                    " · on_open_change: " {move || workbench_open_change_count.get()}
+                    " · on_close: " {move || workbench_close_count.get()}
+                </span>
+                <Underlay
+                    id_base="docs-underlay-workbench".to_string()
+                    is_open=workbench_open_signal
+                    open=workbench_open_signal
+                    default_open=false
+                    on_open_change=on_workbench_open_change
+                    on_close=on_workbench_close
+                    is_transparent=workbench_is_transparent.get()
+                    transparent=workbench_transparent_alias.get()
+                    is_disabled=workbench_is_disabled.get()
+                    disabled=workbench_disabled_alias.get()
+                    lang=if workbench_zh_lang.get() {
+                        "zh-CN".to_string()
+                    } else {
+                        "en-US".to_string()
+                    }
+                    dir=if workbench_rtl_dir.get() {
+                        ui_headless::A11yDirection::Rtl
+                    } else {
+                        ui_headless::A11yDirection::Ltr
+                    }
+                    motion=workbench_motion.get()
+                    class_name=if workbench_custom_class_name.get() {
+                        "docs-underlay-workbench".to_string()
+                    } else {
+                        String::new()
+                    }
+                />
+            </Playground>
+
+            <Playground title="State Matrix (Default / Transparent / Disabled)" code_signal=matrix_code>
+                <div class="docs-row" data-slot="underlay-matrix-controls">
+                    <Button variant=ButtonVariant::Secondary on_press=open_matrix_default>
+                        "Open Default"
+                    </Button>
+                    <Button variant=ButtonVariant::Secondary on_press=open_matrix_transparent>
+                        "Open Transparent"
+                    </Button>
                 </div>
+                <Underlay
+                    id_base="docs-underlay-matrix-default".to_string()
+                    is_open=matrix_default_open
+                    on_open_change=on_matrix_default_open_change
+                    on_close=close_matrix_default
+                />
+                <Underlay
+                    id_base="docs-underlay-matrix-transparent".to_string()
+                    is_open=matrix_transparent_open
+                    on_open_change=on_matrix_transparent_open_change
+                    on_close=close_matrix_transparent
+                    is_transparent=true
+                    transparent=true
+                />
+                <Underlay
+                    id_base="docs-underlay-matrix-disabled".to_string()
+                    is_open=Signal::derive(|| true)
+                    is_disabled=true
+                    disabled=true
+                    class_name="docs-underlay-disabled".to_string()
+                />
             </Playground>
         </ComponentPage>
     }

@@ -9,7 +9,7 @@
 
 ```rust
 use leptos::prelude::*;
-use ui_components::ColorPicker;
+use ui::ColorPicker;
 
 view! {
     <ColorPicker id_base="demo-color-picker".to_string()>
@@ -22,7 +22,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{ColorPicker, ColorSwatchPicker, ColorSwatchPickerItem};
+use ui::{ColorPicker, ColorSwatchPicker, ColorSwatchPickerItem};
 
 let (selected_color, set_selected_color) = signal(Some("#ef4444".to_string()));
 let on_selected_change = Callback::new(move |next: Option<String>| set_selected_color.set(next));

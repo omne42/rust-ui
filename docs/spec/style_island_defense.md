@@ -68,7 +68,7 @@ pub const FALLBACK_RADIUS_MD: &str = "4px";
 
 ## 4. 规范约束（Required）
 
-- `ui-components/src/**/styles.rs` 中：
+- `ui/src/**/styles.rs` 中：
   - 必须优先使用 `var(--ui-*)`。
   - 必须为关键视觉属性提供 fallback 变量链（至少背景/前景/边框/圆角/关键排版）。
   - 禁止直接写颜色 Hex/RGB 与裸尺寸终值作为 fallback 终点。
@@ -87,7 +87,7 @@ pub const FALLBACK_RADIUS_MD: &str = "4px";
 
 ```bash
 # 样式与契约回归
-cargo test -p ui-components --test style_rules --no-default-features --features inject-css
+cargo test -p ui --test style_rules --no-default-features --features inject-css
 
 # 主题变量输出回归
 cargo test -p ui-theme

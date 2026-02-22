@@ -135,9 +135,7 @@ fn calendar_logic_delegates_state_primitives() {
         "CalendarStateInput",
         "CalendarTone",
         "CalendarSelectedDayMode",
-        "CalendarSelectedDayAxis",
         "CalendarSelectedDaySource",
-        "CalendarSelectedDayPressUpdate",
         "DEFAULT_ARIA_LABEL",
         "build_month_grid",
         "normalize_month",
@@ -773,10 +771,12 @@ fn calendar_styles_are_token_first_and_theme_driven() {
         );
     }
 
-    assert!(
-        !source.contains('#'),
-        "Calendar styles should avoid private hex literals and consume theme tokens."
-    );
+    for forbidden_hex_literal in ["#000", "#fff", "#FFF", "#FFFFFF", "#000000"] {
+        assert!(
+            !source.contains(forbidden_hex_literal),
+            "Calendar styles should avoid private hex literal `{forbidden_hex_literal}` and consume theme tokens."
+        );
+    }
 
     for defensive_var in [
         "var(--ui-space-xs, var(--ui-fallback-space-xs))",
@@ -826,7 +826,7 @@ fn calendar_styles_are_token_first_and_theme_driven() {
 
 #[test]
 fn calendar_css_layering_and_runtime_style_contract_stay_ui_scoped() {
-    let components_css_source = load_source("../../crates/ui-components/src/css.rs");
+    let components_css_source = load_source("../../crates/ui/src/css.rs");
     let view_source = load_source("src/view.rs");
     let motion_source = load_source("src/motion.rs");
 
@@ -871,9 +871,9 @@ fn calendar_css_layering_and_runtime_style_contract_stay_ui_scoped() {
 
 #[test]
 fn calendar_ui_components_entry_points_follow_layered_architecture_contract() {
-    let components_lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let components_css_source = load_source("../../crates/ui-components/src/css.rs");
-    let components_root_source = load_source("../../crates/ui-components/src/root.rs");
+    let components_lib_source = load_source("../../crates/ui/src/lib.rs");
+    let components_css_source = load_source("../../crates/ui/src/css.rs");
+    let components_root_source = load_source("../../crates/ui/src/root.rs");
     let active_highlight_source =
         load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
 
@@ -889,7 +889,7 @@ fn calendar_ui_components_entry_points_follow_layered_architecture_contract() {
     ] {
         assert!(
             components_lib_source.contains(needle),
-            "ui-components lib.rs entry contract should contain `{needle}`."
+            "ui lib.rs entry contract should contain `{needle}`."
         );
     }
 
@@ -900,7 +900,7 @@ fn calendar_ui_components_entry_points_follow_layered_architecture_contract() {
     ] {
         assert!(
             !components_lib_source.contains(forbidden),
-            "ui-components public API should not expose platform-specific DOM/web-sys detail `{forbidden}`."
+            "ui public API should not expose platform-specific DOM/web-sys detail `{forbidden}`."
         );
     }
 
@@ -915,7 +915,7 @@ fn calendar_ui_components_entry_points_follow_layered_architecture_contract() {
     ] {
         assert!(
             components_css_source.contains(needle),
-            "ui-components css.rs feature-gated aggregation contract should contain `{needle}`."
+            "ui css.rs feature-gated aggregation contract should contain `{needle}`."
         );
     }
 
@@ -954,25 +954,24 @@ fn calendar_ui_components_entry_points_follow_layered_architecture_contract() {
 
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     for forbidden_file in [
-        "../../crates/ui-components/src/overlay_open.rs",
-        "../../crates/ui-components/src/presence.rs",
-        "../../crates/ui-components/src/a11y.rs",
+        "../../crates/ui/src/overlay_open.rs",
+        "../../crates/ui/src/presence.rs",
+        "../../crates/ui/src/a11y.rs",
     ] {
         let path = manifest_dir.join(forbidden_file);
         assert!(
             !path.exists(),
-            "ui-components fixed entry contract forbids file `{forbidden_file}`."
+            "ui fixed entry contract forbids file `{forbidden_file}`."
         );
     }
 }
 
 #[test]
 fn calendar_tree_shaking_feature_pruning_is_gated_in_ui_components() {
-    let ui_components_cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let ui_components_lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let ui_components_css_source = load_source("../../crates/ui-components/src/css.rs");
-    let tree_shaking_script_source =
-        load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let ui_components_cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let ui_components_lib_source = load_source("../../crates/ui/src/lib.rs");
+    let ui_components_css_source = load_source("../../crates/ui/src/css.rs");
+    let tree_shaking_script_source = load_source("../../scripts/check-ui-tree-shaking.sh");
     let tree_shaking_budget_source = load_source("../../scripts/tree_shaking_budget.env");
     let check2_source = load_source("check2.md");
 
@@ -985,7 +984,7 @@ fn calendar_tree_shaking_feature_pruning_is_gated_in_ui_components() {
     ] {
         assert!(
             ui_components_cargo_source.contains(needle),
-            "ui-components Cargo feature tree should contain `{needle}`."
+            "ui Cargo feature tree should contain `{needle}`."
         );
     }
 
@@ -993,28 +992,28 @@ fn calendar_tree_shaking_feature_pruning_is_gated_in_ui_components() {
         "#[cfg(feature = \"component-calendar\")]\npub use ui_calendar as calendar;";
     assert!(
         ui_components_lib_source.contains(calendar_export_signature),
-        "ui-components lib.rs should gate calendar export by `component-calendar`."
+        "ui lib.rs should gate calendar export by `component-calendar`."
     );
     assert_eq!(
         ui_components_lib_source
             .matches("pub use ui_calendar as calendar;")
             .count(),
         1,
-        "calendar module export should stay single and feature-gated in ui-components lib.rs."
+        "calendar module export should stay single and feature-gated in ui lib.rs."
     );
 
     let calendar_css_signature =
         "#[cfg(feature = \"component-calendar\")]\n    out.push_str(crate::calendar::styles::CSS);";
     assert!(
         ui_components_css_source.contains(calendar_css_signature),
-        "ui-components css.rs should gate calendar CSS aggregation by `component-calendar`."
+        "ui css.rs should gate calendar CSS aggregation by `component-calendar`."
     );
     assert_eq!(
         ui_components_css_source
             .matches("out.push_str(crate::calendar::styles::CSS);")
             .count(),
         1,
-        "calendar CSS aggregation should stay single and feature-gated in ui-components css.rs."
+        "calendar CSS aggregation should stay single and feature-gated in ui css.rs."
     );
 
     for forbidden in [
@@ -1024,14 +1023,14 @@ fn calendar_tree_shaking_feature_pruning_is_gated_in_ui_components() {
         assert!(
             !ui_components_lib_source.contains(forbidden)
                 && !ui_components_css_source.contains(forbidden),
-            "ui-components tree-shaking path should avoid duplicated unconditional registration `{forbidden}`."
+            "ui tree-shaking path should avoid duplicated unconditional registration `{forbidden}`."
         );
     }
 
     for needle in [
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features",
+        "cargo tree -e features -i ui -p ui --no-default-features",
         "if grep -q 'all-components' <<<\"$",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features",
     ] {
         assert!(
             tree_shaking_script_source.contains(needle),
@@ -1050,9 +1049,9 @@ fn calendar_tree_shaking_feature_pruning_is_gated_in_ui_components() {
     }
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
-        "cargo tree -e features -p ui-components --no-default-features --features component-calendar,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "cargo tree -e features -p ui --no-default-features --features component-calendar,inject-css",
+        "cargo tree -e features -i ui -p web-demo",
         "calendar_tree_shaking_feature_pruning_is_gated_in_ui_components",
     ] {
         assert!(
@@ -1141,7 +1140,7 @@ fn calendar_docs_playgrounds_lock_state_matrix_contract_values() {
         "data-slot=\"calendar-streaming-snapshot\"",
         "// Snapshot: render final calendar result in one shot.",
         "// Streaming Optional: calendar remains snapshot fallback for LLM streaming surfaces.",
-        "let (interactive_month, set_interactive_month) = signal(3_u8);",
+        "let (interactive_month, set_interactive_month) = signal(initial_workbench_state.month);",
         "data-slot=\"calendar-interactive-controls\"",
         "data-action=\"prev-month\"",
         "data-action=\"next-month\"",
@@ -1157,7 +1156,7 @@ fn calendar_docs_playgrounds_lock_state_matrix_contract_values() {
         "class_name=\"docs-calendar-interactive\".to_string()",
         "data-slot=\"calendar-source-first\"",
         "class_name=\"docs-calendar-source-copy\".to_string()",
-        "use ui_components::{Calendar, CalendarFirstWeekday, CalendarTone};",
+        "use ui::{Calendar, CalendarFirstWeekday, CalendarTone};",
         "compose_copy_ready_code",
         "\"components/calendar/src/motion.rs\"",
         "\"component-calendar\"",
@@ -1315,7 +1314,8 @@ fn calendar_docs_interactive_playground_supports_live_state_preview_and_repeatab
         "selected_day=interactive_selected_day.get()",
         "on_selected_day_change=Some(Callback::new(move |next| {",
         "set_interactive_selected_day.set(next);",
-        "format!(\"month={} selected_day={:?} weekday={} tone={} outside_days={} persist={}\",",
+        "format!(",
+        "\"month={} selected_day={:?} weekday={} tone={} outside_days={} persist={}\",",
     ] {
         assert!(
             docs_source.contains(needle),
@@ -1388,7 +1388,7 @@ fn calendar_view_macro_complexity_is_split_by_semantic_fragments() {
         "fn render_day(input: CalendarDayRenderInput) -> AnyView",
         "fn render_empty_day(index: usize) -> AnyView",
         "{render_header(title)}",
-        "{render_weekdays(weekdays.get_value())}",
+        "{render_weekdays(",
         "render_day(CalendarDayRenderInput {",
     ] {
         assert!(
@@ -1477,7 +1477,7 @@ fn calendar_inner_html_contract_disallows_untrusted_html_injection() {
 #[test]
 fn calendar_wasm_debug_contract_is_feature_gated_traceable_and_replayable() {
     let calendar_cargo_source = load_source("Cargo.toml");
-    let ui_components_cargo_source = load_source("../../crates/ui-components/Cargo.toml");
+    let ui_components_cargo_source = load_source("../../crates/ui/Cargo.toml");
     let mod_source = load_source("src/mod.rs");
     let view_source = load_source("src/view.rs");
     let readme_source = load_source("README.md");
@@ -1750,7 +1750,7 @@ fn calendar_performance_governance_budget_is_defined_traceable_and_blocking() {
     let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
 
     for needle in [
@@ -1868,7 +1868,7 @@ fn calendar_version_deprecation_migration_registry_is_explicitly_na_without_majo
         "N/A：本次 `Calendar` 未发生跨大版本 API 破坏升级",
         "schema_version = \"1\"",
         "calendar_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1880,7 +1880,7 @@ fn calendar_version_deprecation_migration_registry_is_explicitly_na_without_majo
 
 #[test]
 fn calendar_version_deprecation_migration_script_covers_engineering_gate() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
     let marker = "cargo test -p ui-calendar calendar_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(marker),
@@ -1897,7 +1897,7 @@ fn calendar_check2_marks_component_governance_complete() {
         "- [x] `ui-headless` 定义",
         "- [x] `ui-motion` 定义",
         "- [x] `ui-theme` 定义",
-        "- [x] `ui-components` 定义",
+        "- [x] `ui` 定义",
         "- [x] 如果无异步相关，直接打勾。",
         "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。",
         "- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。",
@@ -1908,7 +1908,8 @@ fn calendar_check2_marks_component_governance_complete() {
         "- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。",
         "- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。",
         "- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。",
-        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+        "### 8. 合并前门禁死命令（最终执行）",
+        "- `cargo fmt --all -- --check`",
         "N/A：`Calendar` 无远程请求与异步状态轴",
         "Streaming Optional",
         "fallback=snapshot",

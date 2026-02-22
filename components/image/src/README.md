@@ -295,15 +295,15 @@
   - `Image` does not allocate local ids and does not initialize logic from `now()`/random UUID sources.
   - `view.rs` / `logic.rs` / `motion.rs` remain deterministic from props + resource events only.
 - Deterministic seed boundary is owned by root assembly:
-  - `UiRoot` exposes `id_seed` and calls `provide_ui_id_provider(id_seed)` in `crates/ui-components/src/root.rs`.
+  - `UiRoot` exposes `id_seed` and calls `provide_ui_id_provider(id_seed)` in `crates/ui/src/root.rs`.
   - components that need generated ids consume this root-provided provider instead of local randomness.
 
 ## SSR / Cross-Platform Compile Contract
 
 - Compile-only verification commands (web/ssr/native):
-  - `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-image,inject-css`
+  - `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-image,inject-css`
   - `cargo check -p ui-headless --no-default-features --features ssr`
-  - `cargo check -p ui-components`
+  - `cargo check -p ui`
 - Platform split is explicit in `components/image/src/motion.rs`:
   - wasm implementation uses `#[cfg(target_arch = "wasm32")]` for DOM-backed zoom spring attach.
   - non-wasm implementation uses `#[cfg(not(target_arch = "wasm32"))]` and keeps deterministic no-op semantics.
@@ -471,7 +471,7 @@
 
 - Static style source and injection path:
   - component style rules live in `components/image/src/styles.rs`.
-  - component CSS is aggregated in `crates/ui-components/src/css.rs` behind `component-image` feature.
+  - component CSS is aggregated in `crates/ui/src/css.rs` behind `component-image` feature.
   - global injection is centralized in `UiRoot` via `crate::css::push_components_css`.
 - Token-first value policy:
   - visual primitives (background/border/radius/shadow) consume `var(--ui-*)` variables.
@@ -497,7 +497,7 @@
 ## Cascade Layer Contract
 
 - CSS aggregation layer:
-  - component stylesheet is aggregated by `crates/ui-components/src/css.rs::push_components_css`.
+  - component stylesheet is aggregated by `crates/ui/src/css.rs::push_components_css`.
   - aggregation is wrapped by `@layer ui` and includes image CSS behind `component-image` feature gate.
 - Runtime style mutation boundary:
   - `view.rs` does not emit business inline styles (`style="..."` / `style:top=...`).
@@ -535,39 +535,39 @@
 ## Tree Shaking Contract
 
 - Package-mode feature slicing:
-  - `crates/ui-components/Cargo.toml` keeps `component-image = ["dep:ui-image"]`.
+  - `crates/ui/Cargo.toml` keeps `component-image = ["dep:ui-image"]`.
   - `ui-image` dependency stays `optional = true`, so image code path is not mandatory in minimal feature builds.
 - Export and CSS aggregation gates:
-  - `crates/ui-components/src/lib.rs` exports `image` behind `#[cfg(feature = "component-image")]`.
-  - `crates/ui-components/src/css.rs` injects image CSS behind `#[cfg(feature = "component-image")]`.
+  - `crates/ui/src/lib.rs` exports `image` behind `#[cfg(feature = "component-image")]`.
+  - `crates/ui/src/css.rs` injects image CSS behind `#[cfg(feature = "component-image")]`.
   - CSS aggregation itself is behind `inject-css`; non-inject path is explicit no-op.
 - Source-mode boundary:
   - source consumers can depend on `components/image` directly without requiring an always-reachable central registry.
 - Verification commands used:
-  - `cargo tree -e features -p ui-components --no-default-features --features component-image,inject-css`
-  - `cargo tree -e features -i ui-components -p web-demo`
+  - `cargo tree -e features -p ui --no-default-features --features component-image,inject-css`
+  - `cargo tree -e features -i ui -p web-demo`
 - Current verification snapshot:
   - minimal feature tree shows `component-image` chain without `all-components`.
   - reverse dependency tree for `web-demo` is driven by `web-demo-components`, not hidden all-component enablement.
 
 ## Ui-Components Fixed Entry Contract
 
-- `crates/ui-components/src/lib.rs` remains the public export boundary:
+- `crates/ui/src/lib.rs` remains the public export boundary:
   - `image` export is behind `#[cfg(feature = "component-image")]`.
   - no direct `web-sys`/DOM details are re-exported through the image public API.
-- `crates/ui-components/src/css.rs` remains the component-css aggregation entry:
+- `crates/ui/src/css.rs` remains the component-css aggregation entry:
   - `push_components_css` is the fixed aggregation function.
   - image stylesheet injection is feature-gated (`component-image`) and not unconditional.
-- `crates/ui-components/src/root.rs` remains centralized injection + i18n entry:
+- `crates/ui/src/root.rs` remains centralized injection + i18n entry:
   - `UiRoot` provides `UiI18n` + deterministic id provider.
   - base css + theme css vars + optional component css are composed in one place.
 - `crates/ui-visual-primitive/src/active_highlight.rs` remains shared visual primitive:
   - file contains generic highlight style/motion contract (`ActiveHighlightMotion + attach_active_highlight_motion`).
   - no image-specific business semantics are embedded.
 - Forbidden file-path checks stay enforced:
-  - `crates/ui-components/src/overlay_open.rs` does not exist.
-  - `crates/ui-components/src/presence.rs` does not exist.
-  - `crates/ui-components/src/a11y.rs` does not exist.
+  - `crates/ui/src/overlay_open.rs` does not exist.
+  - `crates/ui/src/presence.rs` does not exist.
+  - `crates/ui/src/a11y.rs` does not exist.
 - Headless ownership stays canonical:
   - open-state primitive remains in `crates/ui-headless/src/controllable_state.rs`.
   - presence primitive remains in `crates/ui-headless/src/presence.rs`.

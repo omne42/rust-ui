@@ -9,7 +9,7 @@ Use the default API first. No internal state machine wiring is required.
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{ActionBar, ActionButton};
+use ui::{ActionBar, ActionButton};
 
 view! {
     <ActionBar default_selected_count=1>
@@ -24,7 +24,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{ActionBar, ActionButton};
+use ui::{ActionBar, ActionButton};
 
 let (selected_count, set_selected_count) = signal(2_usize);
 let selected_count_signal = Signal::derive(move || selected_count.get());
@@ -47,7 +47,7 @@ view! {
 
 ```rust
 use leptos::prelude::*;
-use ui_components::{ActionBar, ActionButton};
+use ui::{ActionBar, ActionButton};
 
 view! {
     <ActionBar default_selected_count=2>

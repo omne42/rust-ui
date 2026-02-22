@@ -33,20 +33,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（通用执行能力落在 `crates/ui-motion/src/lib.rs`；`TextField` 组件仅在 `components/text-input/src/text_field/motion.rs` 做语义到 contract 的映射与 attach。回归：`components/text-input/test/text_field_semantics.rs` 的 `text_field_architecture_foundation_layers_are_checked_individually`、`text_field_motion_module_exposes_sanitized_contract_and_attach_api`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`TextField` 样式仅消费 `var(--ui-*)` 变量，不自建并行 token 体系；主题注入仍由 `UiRoot` 统一完成。回归：`components/text-input/test/text_field_semantics.rs` 的 `text_field_architecture_foundation_layers_are_checked_individually`、`text_field_styles_use_explicit_state_selectors_and_runtime_css_vars_only`。）
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`TextField` 已按 `logic/view/styles/motion` 分责装配，且 `mod.rs` 维持最小稳定导出面，不泄露平台细节。回归：`components/text-input/test/text_field_semantics.rs` 的 `text_field_architecture_foundation_layers_are_checked_individually`、`text_field_component_directory_standard_files_follow_contracts`。）
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`TextField` 已按 `logic/view/styles/motion` 分责装配，且 `mod.rs` 维持最小稳定导出面，不泄露平台细节。回归：`components/text-input/test/text_field_semantics.rs` 的 `text_field_architecture_foundation_layers_are_checked_individually`、`text_field_component_directory_standard_files_follow_contracts`。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -120,8 +120,8 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`TextField` 视觉值已走 `var(--ui-*)` 与组件级 token 变量链（如 `--ui-text-field-label-font-size` -> `--ui-font-size-150`）；样式仅在 `components/text-input/src/text_field/styles.rs`，并由 `crates/ui-components/src/css.rs` 聚合、`UiRoot` 条件注入。运行时仅透传 motion CSS variables，不引入 Utility-First/CSS-in-Rust 作为默认实现。回归：`components/text-input/test/text_field_semantics.rs`）
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`TextField` 视觉值已走 `var(--ui-*)` 与组件级 token 变量链（如 `--ui-text-field-label-font-size` -> `--ui-font-size-150`）；样式仅在 `components/text-input/src/text_field/styles.rs`，并由 `crates/ui/src/css.rs` 聚合、`UiRoot` 条件注入。运行时仅透传 motion CSS variables，不引入 Utility-First/CSS-in-Rust 作为默认实现。回归：`components/text-input/test/text_field_semantics.rs`）
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -130,14 +130,14 @@
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui-components` 已以 `#[cfg(feature = "component-text_field")]` gating 模块导出（`crates/ui-components/src/lib.rs`）与 CSS 聚合（`crates/ui-components/src/css.rs`）；最小特性树验证：`cargo tree -e features -p ui-components --no-default-features --features component-text_field,inject-css` 根节点仅启用 `component-text_field,inject-css`；示例命令 `component-accordion` 同样仅启用目标链；反向依赖检查 `cargo tree -e features -i ui-components -p web-demo` 显示 `web-demo` 通过 `web-demo-components` 设计性拉起演示组件集，不影响组件级 feature 可裁剪性；最小特性 wasm 编译通过：`CARGO_TARGET_DIR=target-codex-textfield-minfeat cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`。）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui` 已以 `#[cfg(feature = "component-text_field")]` gating 模块导出（`crates/ui/src/lib.rs`）与 CSS 聚合（`crates/ui/src/css.rs`）；最小特性树验证：`cargo tree -e features -p ui --no-default-features --features component-text_field,inject-css` 根节点仅启用 `component-text_field,inject-css`；示例命令 `component-accordion` 同样仅启用目标链；反向依赖检查 `cargo tree -e features -i ui -p web-demo` 显示 `web-demo` 通过 `web-demo-components` 设计性拉起演示组件集，不影响组件级 feature 可裁剪性；最小特性 wasm 编译通过：`CARGO_TARGET_DIR=target-codex-textfield-minfeat cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（离散状态轴已类型化：`ValueControlMode`（`controlled/uncontrolled`）与 `ValueChangeSource`（`on_value_change/set_value/none`）在 `components/text-input/src/text_field/logic.rs` 以 `enum + as_attr()` 输出封闭集合；无效组合通过 `normalize_value_axis`/`normalize_accessibility_state` 统一归一并由单元测试覆盖；`view.rs` 对外暴露稳定 marker（如 `data-value-control-mode`、`data-default-value-source`、`data-value-change-source`）供自动化消费；契约破坏可由 `components/text-input/src/text_field/logic.rs` 单元测试与 `components/text-input/test/text_field_semantics.rs` 语义测试直接定位。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -146,7 +146,7 @@
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
-- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（compile-only 证据：1) native 默认目标：`CARGO_TARGET_DIR=target-codex-textfield-plat-native cargo check -p ui-components --no-default-features --features component-text_field,inject-css` 通过；2) web/wasm：`CARGO_TARGET_DIR=target-codex-textfield-plat-wasm cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-text_field,inject-css` 通过；3) SSR 语义依赖层：`CARGO_TARGET_DIR=target-codex-textfield-plat-ssr cargo check -p ui-headless --no-default-features --features ssr` 通过。平台分支显式 `cfg` 由 `components/text-input/src/text_field/motion.rs` 的 `#[cfg(target_arch = "wasm32")] / #[cfg(not(target_arch = "wasm32"))]` 管理；non-wasm 路径不直接依赖浏览器对象，回归由 `components/text-input/test/text_field_semantics.rs` 的 `text_field_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_web_sys_usage` 锁定。）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（compile-only 证据：1) native 默认目标：`CARGO_TARGET_DIR=target-codex-textfield-plat-native cargo check -p ui --no-default-features --features component-text_field,inject-css` 通过；2) web/wasm：`CARGO_TARGET_DIR=target-codex-textfield-plat-wasm cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-text_field,inject-css` 通过；3) SSR 语义依赖层：`CARGO_TARGET_DIR=target-codex-textfield-plat-ssr cargo check -p ui-headless --no-default-features --features ssr` 通过。平台分支显式 `cfg` 由 `components/text-input/src/text_field/motion.rs` 的 `#[cfg(target_arch = "wasm32")] / #[cfg(not(target_arch = "wasm32"))]` 管理；non-wasm 路径不直接依赖浏览器对象，回归由 `components/text-input/test/text_field_semantics.rs` 的 `text_field_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_web_sys_usage` 锁定。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
@@ -158,7 +158,7 @@
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`reduced-motion` 路径：`components/text-input/src/text_field/motion.rs` 在 wasm 分支通过 `if !motion.enabled || ui_motion::web::prefers_reduced_motion() { return; }` 跳过动画，并由 `motion_style_vars` 在禁用时输出 `--ui-text-field-motion-duration: 0ms`；`components/text-input/src/text_field/styles.rs` 通过 `@media (prefers-reduced-motion: reduce) { transition: none; }` 降级到最小反馈。SSR/wasm 一致性：`motion.rs` 采用显式 `#[cfg(target_arch = "wasm32")] / #[cfg(not(target_arch = "wasm32"))]` 分支，non-wasm `attach_motion` no-op；`view.rs` 不含平台分裂渲染分支，语义标记与 `lang/dir` 契约一致，避免 hydration 首帧语义错位。compile-only 证据：`TMPDIR=/root/autodl-tmp/.codex-tmp CARGO_TARGET_DIR=target-codex-textfield-plat-native cargo check -p ui-components --no-default-features --features component-text_field,inject-css`、`TMPDIR=/root/autodl-tmp/.codex-tmp CARGO_TARGET_DIR=target-codex-textfield-plat-wasm cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-text_field,inject-css`、`TMPDIR=/root/autodl-tmp/.codex-tmp CARGO_TARGET_DIR=/root/autodl-tmp/.codex-targets/headless-ssr cargo check -p ui-headless --no-default-features --features ssr` 均通过；回归锁定：`components/text-input/test/text_field_semantics.rs` 的 `text_field_reduced_motion_ssr_wasm_paths_stay_semantically_consistent`。）
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`reduced-motion` 路径：`components/text-input/src/text_field/motion.rs` 在 wasm 分支通过 `if !motion.enabled || ui_motion::web::prefers_reduced_motion() { return; }` 跳过动画，并由 `motion_style_vars` 在禁用时输出 `--ui-text-field-motion-duration: 0ms`；`components/text-input/src/text_field/styles.rs` 通过 `@media (prefers-reduced-motion: reduce) { transition: none; }` 降级到最小反馈。SSR/wasm 一致性：`motion.rs` 采用显式 `#[cfg(target_arch = "wasm32")] / #[cfg(not(target_arch = "wasm32"))]` 分支，non-wasm `attach_motion` no-op；`view.rs` 不含平台分裂渲染分支，语义标记与 `lang/dir` 契约一致，避免 hydration 首帧语义错位。compile-only 证据：`TMPDIR=/root/autodl-tmp/.codex-tmp CARGO_TARGET_DIR=target-codex-textfield-plat-native cargo check -p ui --no-default-features --features component-text_field,inject-css`、`TMPDIR=/root/autodl-tmp/.codex-tmp CARGO_TARGET_DIR=target-codex-textfield-plat-wasm cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-text_field,inject-css`、`TMPDIR=/root/autodl-tmp/.codex-tmp CARGO_TARGET_DIR=/root/autodl-tmp/.codex-targets/headless-ssr cargo check -p ui-headless --no-default-features --features ssr` 均通过；回归锁定：`components/text-input/test/text_field_semantics.rs` 的 `text_field_reduced_motion_ssr_wasm_paths_stay_semantically_consistent`。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
@@ -199,14 +199,14 @@
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 文件落点检查（必须提及）
-- [x] `ui-components` 固定入口文件落点正确。（入口落点约束已由 `TextField` 语义回归锁定：`lib.rs` 保持组件 feature-gated 模块导出（含 `component-text_field`）与稳定公共面（`UiRoot`），`css.rs` 保持 `push_components_css` 按 feature 条件聚合（含 `active_highlight` 与 `text_field`），`root.rs` 统一执行 base css + theme vars + 可选组件 CSS 注入并提供全局 `provide_ui_i18n`。`active_highlight.rs` 保持共享动效能力实现且无组件业务语义耦合；`overlay_open.rs/presence.rs/a11y.rs` 在 `ui-components/src` 下不存在，能力固定由 `ui-headless` 提供（`use_controllable_open_state_traced` / `use_presence` / `aria_controls_when_open`）。回归：`components/text-input/test/text_field_semantics.rs` 的 `text_field_ui_components_fixed_entry_files_follow_layer_contracts`。）
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。（入口落点约束已由 `TextField` 语义回归锁定：`lib.rs` 保持组件 feature-gated 模块导出（含 `component-text_field`）与稳定公共面（`UiRoot`），`css.rs` 保持 `push_components_css` 按 feature 条件聚合（含 `active_highlight` 与 `text_field`），`root.rs` 统一执行 base css + theme vars + 可选组件 CSS 注入并提供全局 `provide_ui_i18n`。`active_highlight.rs` 保持共享动效能力实现且无组件业务语义耦合；`overlay_open.rs/presence.rs/a11y.rs` 在 `ui/src` 下不存在，能力固定由 `ui-headless` 提供（`use_controllable_open_state_traced` / `use_presence` / `aria_controls_when_open`）。回归：`components/text-input/test/text_field_semantics.rs` 的 `text_field_ui_components_fixed_entry_files_follow_layer_contracts`。）
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。（`TextField` 目录已固定为 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`，且无 `render.rs/spec.rs` 漂移；`mod.rs` 仅保留最小稳定导出面（`TextField`、`TextFieldMotion`、`DEFAULT_LABEL`），`logic.rs` 专注 props 归一/状态派生来源标记，`styles.rs` 保持 token-first 静态 CSS，`view.rs` 仅做 Leptos 结构渲染与 headless 语义挂载，`motion.rs` 仅做 `TextFieldMotion + attach_motion` 动效契约映射。回归：`components/text-input/test/text_field_semantics.rs` 的 `text_field_component_directory_standard_files_follow_contracts`。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -300,4 +300,4 @@
 - [x] 暴露必要语义标记。（回归：`text_field_emits_observable_state_and_source_markers`、`text_field_agent_contract_schema_is_typed_traceable_and_whitelisted`。）
 - [x] 覆盖 reduced-motion / SSR / wasm 分支。（回归：`text_field_reduced_motion_ssr_wasm_paths_stay_semantically_consistent`、`text_field_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_web_sys_usage`。）
 - [x] 文档与示例同步更新。（回归：`text_field_docs_page_syncs_api_matrix_state_matrix_and_source_first_contracts`、`text_field_docs_entry_is_indexed_and_beginner_friendly`、`text_field_heroui_alignment_doc_records_text_field_sync`。）
-- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（已按 TextField 责任范围逐项执行并通过：`$HOME/.cargo/bin/rustfmt --edition 2024 --check components/text-input/src/text_field/logic.rs components/text-input/src/text_field/view.rs components/text-input/test/text_field_semantics.rs`；`$HOME/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-text_field,inject-css --lib --test text_field_semantics -- -D warnings`；`$HOME/.cargo/bin/cargo test -p ui-components --test text_field_semantics --no-default-features --features component-text_field,inject-css`；`$HOME/.cargo/bin/cargo check -p ui-components --no-default-features --features component-text_field,inject-css`；`$HOME/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-text_field,inject-css`；`TMPDIR=/root/autodl-tmp/zjj/p/rust-ui/.codex-tmp CARGO_TARGET_DIR=target-codex-textfield-smoke bash ./scripts/smoke-csr.sh apps/docs-app "body:not(:has(#boot))"`。回归锁定：`components/text-input/test/text_field_semantics.rs` 的 `text_field_gate_completion_records_full_responsible_chain_commands`。）
+- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（已按 TextField 责任范围逐项执行并通过：`$HOME/.cargo/bin/rustfmt --edition 2024 --check components/text-input/src/text_field/logic.rs components/text-input/src/text_field/view.rs components/text-input/test/text_field_semantics.rs`；`$HOME/.cargo/bin/cargo clippy -p ui --no-default-features --features component-text_field,inject-css --lib --test text_field_semantics -- -D warnings`；`$HOME/.cargo/bin/cargo test -p ui --test text_field_semantics --no-default-features --features component-text_field,inject-css`；`$HOME/.cargo/bin/cargo check -p ui --no-default-features --features component-text_field,inject-css`；`$HOME/.cargo/bin/cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-text_field,inject-css`；`TMPDIR=/root/autodl-tmp/zjj/p/rust-ui/.codex-tmp CARGO_TARGET_DIR=target-codex-textfield-smoke bash ./scripts/smoke-csr.sh apps/docs-app "body:not(:has(#boot))"`。回归锁定：`components/text-input/test/text_field_semantics.rs` 的 `text_field_gate_completion_records_full_responsible_chain_commands`。）

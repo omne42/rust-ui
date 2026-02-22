@@ -38,7 +38,7 @@ check_root() {
 }
 
 echo "[protocol-check] enforcing protocol.rs in component directories"
-check_root "crates/ui-components/src"
+check_root "crates/ui/src"
 check_root "crates/ui-layout/src"
 
 if [[ "$failures" -ne 0 ]]; then

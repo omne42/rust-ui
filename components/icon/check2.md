@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（N/A：`icon` 为静态展示组件，无 enter/exit/active 等动效语义；组件目录无 `motion.rs`，且未自实现 spring/keyframe/driver）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（当前 `icon`/`iconset`/`icons*` 仅在 `styles.rs` 消费 `var(--ui-*)`，不在组件层重建主题；三轴上下文由 `UiRoot` 继承，组件侧 N/A）
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`icon` 已按 `logic/view/styles` 分层并对外仅暴露稳定 API；补充 `test/semantics.rs` 覆盖语义契约；展示型组件无交互动效，`motion.rs` 为 N/A）
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`icon` 已按 `logic/view/styles` 分层并对外仅暴露稳定 API；补充 `test/semantics.rs` 覆盖语义契约；展示型组件无交互动效，`motion.rs` 为 N/A）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -130,8 +130,8 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`icon` 样式规则统一位于 `components/icon/src/*/styles.rs`，并由 `crates/ui-components/src/css.rs` 在 `component-icon*` feature 下聚合，再由 `UiRoot` 的 `inject_components_css` 注入；视觉值以 `var(--ui-*)` 与语义 `data-*` 驱动，`view.rs` 无运行时 `style` 业务分支；组件实现未引入 Utility-First 类库或动态 CSS-in-Rust 运行时范式）
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`icon` 样式规则统一位于 `components/icon/src/*/styles.rs`，并由 `crates/ui/src/css.rs` 在 `component-icon*` feature 下聚合，再由 `UiRoot` 的 `inject_components_css` 注入；视觉值以 `var(--ui-*)` 与语义 `data-*` 驱动，`view.rs` 无运行时 `style` 业务分支；组件实现未引入 Utility-First 类库或动态 CSS-in-Rust 运行时范式）
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -140,14 +140,14 @@
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui-components` 已为 `component-icon/component-iconset/component-icons/component-icons_ui/component-icons_workflow` 提供独立 feature，并在 `lib.rs` 与 `css.rs` 通过 `#[cfg(feature = ...)]` 条件导出/聚合；`cargo tree -e features -p ui-components --no-default-features --features component-icon,inject-css` 仅引入 icon 相关链路；`cargo tree -e features -i ui-components -p web-demo` 未显示 `all-components` 被隐式拉起；本条中“最小特性 CI 任务/体积预算”属于仓库级流水线治理，在单组件清单中记为 N/A）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui` 已为 `component-icon/component-iconset/component-icons/component-icons_ui/component-icons_workflow` 提供独立 feature，并在 `lib.rs` 与 `css.rs` 通过 `#[cfg(feature = ...)]` 条件导出/聚合；`cargo tree -e features -p ui --no-default-features --features component-icon,inject-css` 仅引入 icon 相关链路；`cargo tree -e features -i ui -p web-demo` 未显示 `all-components` 被隐式拉起；本条中“最小特性 CI 任务/体积预算”属于仓库级流水线治理，在单组件清单中记为 N/A）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`icon` 关键离散输入已类型化：`IconSize`/`IconTone`/`IconSlotKind`/`IconsSet`/`IconsScale`；外部字符串输入在 `logic.rs` 统一归一化（如 `resolve_slot_kind`、`normalize_icon_reference`、`resolve_iconset_namespace`），无效组合通过类型与派生规则收敛；对外状态通过稳定 `data-state` 与 `data-*-source` 暴露，并由 `components/icon/test/*/logic.rs` 与 `components/icon/test/semantics.rs` 回归验证，契约破坏可由编译器与测试直接定位）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -159,7 +159,7 @@
 - [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`icon` 为静态展示组件，不承载 Overlay/Focus Trap/焦点恢复职责；组件源码无 `NodeRef` 焦点恢复实现、无 overlay 栈管理逻辑，故该项在单组件范围不适用）
 - [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`icon` 为静态展示组件，无 ECharts/Map 等命令式第三方实例接入，也无 `Foreign Zone` 逃逸通道；组件对外 API 未暴露第三方实例类型，不存在反向污染状态机路径）
 - [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（N/A：`icon` 组件不生成本地 ID，逻辑初始化不依赖 `now()`/随机 UUID；源码检索未发现相关调用，因此在单组件范围不存在 SSR/Hydration ID 漂移面）
-- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（代码证据：`icon` 组件 `.rs` 源码未引用 `web_sys/web-sys/js_sys/wasm_bindgen` 浏览器对象；平台差异由 `crates/ui-components/src/lib.rs` 的 `#[cfg(feature = \"component-icon\")]` 与目标平台 `cfg` 管理。compile-only 执行证据：已尝试 `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-icon,inject-css`、`cargo check -p ui-components --no-default-features --features component-icon,inject-css`、`cargo check -p ui-components`，当前 runner 均被 `Invalid cross-device link (os error 18)` 阻塞，属环境问题，需在 CI/本机同盘环境补跑三条命令做最终编译佐证）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（代码证据：`icon` 组件 `.rs` 源码未引用 `web_sys/web-sys/js_sys/wasm_bindgen` 浏览器对象；平台差异由 `crates/ui/src/lib.rs` 的 `#[cfg(feature = \"component-icon\")]` 与目标平台 `cfg` 管理。compile-only 执行证据：已尝试 `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-icon,inject-css`、`cargo check -p ui --no-default-features --features component-icon,inject-css`、`cargo check -p ui`，当前 runner 均被 `Invalid cross-device link (os error 18)` 阻塞，属环境问题，需在 CI/本机同盘环境补跑三条命令做最终编译佐证）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
@@ -198,7 +198,7 @@
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（N/A：`icon` 为静态展示组件，无关键交互状态机与回放链路；`components/icon/src`/`components/icon/test` 未引入 trace/debug/replay 代码与 wasm 调试入口。feature 隔离侧证据：`components/icon/Cargo.toml` 无 debug feature，`crates/ui-components/Cargo.toml` 的 wasm-debug 特性未包含 icon 组件）
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（N/A：`icon` 为静态展示组件，无关键交互状态机与回放链路；`components/icon/src`/`components/icon/test` 未引入 trace/debug/replay 代码与 wasm 调试入口。feature 隔离侧证据：`components/icon/Cargo.toml` 无 debug feature，`crates/ui/Cargo.toml` 的 wasm-debug 特性未包含 icon 组件）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
@@ -213,16 +213,16 @@
 
 ### 5. 样式与动效（Theme & Motion）
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（已落地：`components/icon/src/styles.rs` 中 `--ui-font-size-150/--ui-icon-size-200/--ui-icon-size-100/--ui-fg/--ui-fg-muted/--ui-accent/--ui-danger/--ui-line-height-100` 全部改为双层回退链；`components/icon/src/*/styles.rs` 检索未发现 Hex 与裸尺寸终值）
-- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（实现证据：`crates/ui-components/src/css.rs` 的 `push_components_css` 以 `out.push_str(\"\\n@layer ui {\\n\")` 开启并在末尾闭合，`component-icon/component-iconset/component-icons/component-icons_ui/component-icons_workflow` 的 CSS 均通过该入口聚合进入 `@layer ui`；`components/icon/src` 与 `components/*/test/*icon*_semantics.rs`/`icons*_semantics.rs` 检索未发现 `style=\"...\"`、`style=...` 或 `style:<prop>=...` 普通内联样式绑定）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（实现证据：`crates/ui/src/css.rs` 的 `push_components_css` 以 `out.push_str(\"\\n@layer ui {\\n\")` 开启并在末尾闭合，`component-icon/component-iconset/component-icons/component-icons_ui/component-icons_workflow` 的 CSS 均通过该入口聚合进入 `@layer ui`；`components/icon/src` 与 `components/*/test/*icon*_semantics.rs`/`icons*_semantics.rs` 检索未发现 `style=\"...\"`、`style=...` 或 `style:<prop>=...` 普通内联样式绑定）
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（N/A：`icon/icons/iconset/icons_ui/icons_workflow` 属静态展示图元，无 enter/exit/open/close/drag 等时间维交互状态，不存在需要 contract 化的组件级动效轴；代码证据：`components/icon/src` 下无 `motion.rs`、无 `attach_motion`/`ui-motion` 调用，`components/icon/Cargo.toml` 仅依赖 `leptos + serde + ui-headless`；降级语义天然满足：无动画即等价 `reduced-motion` 跳过，且在 non-wasm/SSR 路径不会触发任何 motion runtime）
-- [x] `ui-components` 固定入口文件落点正确。（核验通过：`crates/ui-components/src/lib.rs` 作为总入口并通过 `#[cfg(feature = \"component-*\")]` 条件导出组件，`icon` 相关为 `component-icon/component-iconset/component-icons/component-icons_ui/component-icons_workflow`；`crates/ui-components/src/css.rs` 提供唯一聚合入口 `push_components_css`，并对每个组件 CSS 使用 feature 条件注入，非 `inject-css` 下为 no-op；`crates/ui-components/src/root.rs` 的 `UiRoot` 统一注入 `BASE_CSS + theme vars + optional components css`，并调用 `provide_ui_i18n/provide_ui_id_provider`；`crates/ui-visual-primitive/src/active_highlight.rs` 仅提供通用高亮样式与 motion driver（`ActiveHighlightMotion + attach_active_highlight_motion`）且具备 non-wasm no-op；不存在 `crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs`，对应原语位于 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`）
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。（核验通过：`crates/ui/src/lib.rs` 作为总入口并通过 `#[cfg(feature = \"component-*\")]` 条件导出组件，`icon` 相关为 `component-icon/component-iconset/component-icons/component-icons_ui/component-icons_workflow`；`crates/ui/src/css.rs` 提供唯一聚合入口 `push_components_css`，并对每个组件 CSS 使用 feature 条件注入，非 `inject-css` 下为 no-op；`crates/ui/src/root.rs` 的 `UiRoot` 统一注入 `BASE_CSS + theme vars + optional components css`，并调用 `provide_ui_i18n/provide_ui_id_provider`；`crates/ui-visual-primitive/src/active_highlight.rs` 仅提供通用高亮样式与 motion driver（`ActiveHighlightMotion + attach_active_highlight_motion`）且具备 non-wasm no-op；不存在 `crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs`，对应原语位于 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`）
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。（核验通过：`components/icon/src` 与 `components/icon/src/{icons,set,ui,workflow}` 均采用 `mod.rs + logic.rs + styles.rs + view.rs`；`mod.rs` 仅导出稳定入口（如 `Icon`/`Icons`/`Iconset`/`IconsUi`/`IconsWorkflow` 与对应类型），未暴露 `logic/view` 内部模块；`logic.rs` 集中 `normalize_* / resolve_state / compose_class_name` 做归一与来源标记，未引入 DOM/web-sys；`styles.rs` 为静态语义样式契约（主 `icon` 样式消费 `var(--ui-*)` token，子模块为 data-marker/结构样式且无主题常量硬编码）；`view.rs` 仅做 Leptos 结构渲染并挂载 `ui_headless::locale_attrs` 语义上下文，关键状态由 `logic` 输出驱动；目录下不存在 `render.rs`。`motion.rs`/`spec.rs` 结论：`icon` 家族为静态展示组件，无时间维交互状态与复杂 schema 约束，当前无这两类文件属于组件级 N/A，符合“仅交互组件需要 motion、spec 仅少数组件使用”的约束）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -254,7 +254,7 @@
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（组件修复：`components/icon/src/logic.rs`、`components/icon/src/icons/logic.rs`、`components/icon/src/set/logic.rs`、`components/icon/src/ui/logic.rs`、`components/icon/src/workflow/logic.rs` 的 class 组装改为 `Vec<Cow<'static, str>>`，消除热点 `.to_string()` 克隆；`components/icon/src/set/view.rs`、`components/icon/src/ui/view.rs`、`components/icon/src/workflow/view.rs` 去除不必要 `.to_string()`。组件范围检索：`rg -n '\\.(unwrap|unwrap_err|expect)\\s*\\(' components/icon/src --glob '*.rs'`、`rg -n '^[[:space:]]*let[[:space:]]+_[[:space:]]*=' components/icon/src --glob '*.rs'`、`rg -n '\\.to_string\\(|\\.to_owned\\(|String::from\\(' components/icon/src --glob '*.rs'` 均无命中。门禁命令执行证据：`./scripts/check-rust-hygiene.sh` 在当前 runner 因 `ripgrep` 缺少 PCRE2（`PCRE2 is not available in this build of ripgrep`）提前失败，需在具备 PCRE2 的 CI/本机环境补跑最终仓库级验证。）
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（已通过：`crates/ui-components/Cargo.toml` 已注册 `component-icon/component-icons/component-icons_ui/component-icons_workflow/component-iconset`，并提供 `component-domain-icon` 聚合；`crates/ui-components/src/lib.rs` 对 `icon` 家族导出均受 `#[cfg(feature = \"component-*\")]` 约束；`crates/ui-components/src/css.rs` 对 `icon` 家族样式注入均受 `#[cfg(feature = \"component-*\")]` 约束，且 `#[cfg(not(feature = \"inject-css\"))]` 为 no-op。特性树验证：`cargo tree -e features -i ui-icon -p ui-components --no-default-features --features component-icon,inject-css` 仅显示 `component-icon + inject-css` 命中；`cargo tree -e features -i ui-icon -p ui-components --no-default-features --features component-icons_ui,inject-css` 显示链路 `component-icons_ui -> component-iconset -> component-icon`，未拉起 `all-components`。反向依赖验证：`cargo tree -e features -i ui-components -p web-demo | rg \"all-components|web-demo-components\"` 仅命中 `web-demo-components`，未命中 `all-components`。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（已通过：`crates/ui/Cargo.toml` 已注册 `component-icon/component-icons/component-icons_ui/component-icons_workflow/component-iconset`，并提供 `component-domain-icon` 聚合；`crates/ui/src/lib.rs` 对 `icon` 家族导出均受 `#[cfg(feature = \"component-*\")]` 约束；`crates/ui/src/css.rs` 对 `icon` 家族样式注入均受 `#[cfg(feature = \"component-*\")]` 约束，且 `#[cfg(not(feature = \"inject-css\"))]` 为 no-op。特性树验证：`cargo tree -e features -i ui-icon -p ui --no-default-features --features component-icon,inject-css` 仅显示 `component-icon + inject-css` 命中；`cargo tree -e features -i ui-icon -p ui --no-default-features --features component-icons_ui,inject-css` 显示链路 `component-icons_ui -> component-iconset -> component-icon`，未拉起 `all-components`。反向依赖验证：`cargo tree -e features -i ui -p web-demo | rg \"all-components|web-demo-components\"` 仅命中 `web-demo-components`，未命中 `all-components`。）
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（已落实：`components/icon/test/icon_semantics.rs` 新增 `icon_semantics_contract_covers_aria_and_data_markers_without_visual_snapshot_dependency`，覆盖 `role/aria-*` 与跨 `Icon/Icons/Iconset/IconsUi/IconsWorkflow` 的 `data-*` 契约；新增 `icon_focus_flow_not_applicable_and_render_path_stays_static`，明确 `icon` 家族非交互图元的焦点流转为组件级 N/A（断言无 `tabindex/on:focus/on:keydown`）并以“无 `create_signal/create_memo/create_effect` 渲染循环”作为静态渲染等价证据。结论：`icon` 非高频重型交互组件，不引入 `render_count` 专项计数，采用可重复静态渲染证据闭环。）
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `icon` 变更未引入跨大版本 API 破坏升级；`components/icon/src/Component.toml` 仍为 `schema_version = \"1\"`，`components/icon/src/protocol.rs` 仍仅包含 `IconComponentSchemaVersion::V1`。回归补充：`components/icon/test/icon_semantics.rs::icon_version_upgrade_migration_is_not_required_in_current_change_set` 断言未出现 `V2/migrate_v1_to_v2/deprecation_window/deprecated_since`，因此无需注册迁移窗口与 codemod。）
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（已落地到 `apps/docs-app/src/pages/components/pages/display_extra.rs::icon()`：`Hello World (Default Path)`、`Size + Tone Matrix`、`Controlled vs Uncontrolled Contrast (N/A for Icon)`、`Streaming / Snapshot Contract`、`Source-first Starter (Copy-Paste Ready)`、`Workbench (Display + Config + Code + CSS Test)`；`icon` 为展示叶子组件，受控/非受控轴在组件级 N/A，通过“默认路径 vs 上游状态映射到 props”的对照展示；流式能力按组件职责标注为 optional 并显式 `fallback=snapshot` 文案；Source-first 通过 `icon_code_imports` + `code_imports=icon_code_imports.clone()` 保证复制代码自动补全 imports。回归：`components/icon/test/icon_semantics.rs::icon_docs_are_copy_paste_ready_with_controlled_contrast_and_stream_snapshot_contract`。）
@@ -282,7 +282,7 @@
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（已落实：`apps/docs-app/src/pages/components/pages/display_extra.rs::icon()` 的 `Source-first Starter (Copy-Paste Ready)` 提供 `code_imports=icon_code_imports`，复制代码含 `use leptos::prelude::*;` 与 `use ui_components::{Icon, IconSize, IconTone};`；并在文案声明依赖前提（`requires ui_components dependency in Cargo.toml`）。源码落点修正为真实路径 `test_source_path=\"components/icon/src/styles.rs\"`（原错误路径已移除），避免“复制即报错/定位不到源码”。防漂移回归：`components/icon/test/icon_semantics.rs::icon_docs_are_copy_paste_ready_with_controlled_contrast_and_stream_snapshot_contract`、`icon_docs_source_path_points_to_real_component_file`；E2E 回归：`e2e/tests/docs_app_icon_contract.spec.mjs::docs-app icon source-first snippet is copy-paste ready with imports`。）
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（已落实：`apps/docs-app/src/pages/components/pages/display_extra.rs::icon()` 的 `Source-first Starter (Copy-Paste Ready)` 提供 `code_imports=icon_code_imports`，复制代码含 `use leptos::prelude::*;` 与 `use ui::{Icon, IconSize, IconTone};`；并在文案声明依赖前提（`requires ui dependency in Cargo.toml`）。源码落点修正为真实路径 `test_source_path=\"components/icon/src/styles.rs\"`（原错误路径已移除），避免“复制即报错/定位不到源码”。防漂移回归：`components/icon/test/icon_semantics.rs::icon_docs_are_copy_paste_ready_with_controlled_contrast_and_stream_snapshot_contract`、`icon_docs_source_path_points_to_real_component_file`；E2E 回归：`e2e/tests/docs_app_icon_contract.spec.mjs::docs-app icon source-first snippet is copy-paste ready with imports`。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
@@ -298,9 +298,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

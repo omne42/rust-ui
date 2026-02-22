@@ -1,14 +1,14 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
+use ui::{
     Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyMediaVariant, EmptyTitle,
     SegmentedControl, SegmentedControlSize, Snippet, Switch,
 };
 
 pub(super) fn empty() -> AnyView {
     let empty_code_imports =
-        "use leptos::prelude::*;\nuse ui_components::{Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyMediaVariant, EmptyTitle};".to_string();
+        "use leptos::prelude::*;\nuse ui::{Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyMediaVariant, EmptyTitle};".to_string();
     let media_options = vec!["default".to_string(), "icon".to_string()];
     let (workbench_media_index, set_workbench_media_index) = signal(Some(0));
     let (workbench_show_content, set_workbench_show_content) = signal(true);
@@ -78,7 +78,7 @@ pub(super) fn empty() -> AnyView {
     let empty_test_css_source = Signal::derive(move || {
         format!(
             "/* components/empty/src/styles.rs */\n{}",
-            ui_components::empty::styles::CSS
+            ui::empty::styles::CSS
         )
     });
 
@@ -181,7 +181,7 @@ pub(super) fn empty() -> AnyView {
 
     let source_first_code = Signal::derive(move || {
         r##"use leptos::prelude::*;
-use ui_components::{Empty, EmptyHeader, EmptyTitle};
+use ui::{Empty, EmptyHeader, EmptyTitle};
 
 <Empty>
   <EmptyHeader>

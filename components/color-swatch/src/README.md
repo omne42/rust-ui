@@ -63,7 +63,7 @@ ColorSwatchActualConfig {
 ## css test（Scoped CSS Test）
 
 - `test_source_path="components/color-swatch/src/styles.rs"`
-- `test_css_source=ui_components::color::swatch::styles::CSS`
+- `test_css_source=ui::color::swatch::styles::CSS`
 
 ```css
 :scope .ui-color-swatch[data-alpha="translucent"] {

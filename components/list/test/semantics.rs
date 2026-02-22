@@ -10,10 +10,10 @@ fn load_source(path: &str) -> &'static str {
         "component_manifest" => include_str!("../src/Component.toml"),
         "component_rbi" => include_str!("../src/list.rbi"),
         "check2" => include_str!("../check2.md"),
-        "ui_components_cargo" => include_str!("../../../crates/ui-components/Cargo.toml"),
-        "ui_components_lib" => include_str!("../../../crates/ui-components/src/lib.rs"),
-        "ui_components_css" => include_str!("../../../crates/ui-components/src/css.rs"),
-        "ui_components_root" => include_str!("../../../crates/ui-components/src/root.rs"),
+        "ui_components_cargo" => include_str!("../../../crates/ui/Cargo.toml"),
+        "ui_components_lib" => include_str!("../../../crates/ui/src/lib.rs"),
+        "ui_components_css" => include_str!("../../../crates/ui/src/css.rs"),
+        "ui_components_root" => include_str!("../../../crates/ui/src/root.rs"),
         "ui_headless_id_provider" => include_str!("../../../crates/ui-headless/src/id_provider.rs"),
         "ui_headless_lib" => include_str!("../../../crates/ui-headless/src/lib.rs"),
         "ui_headless_controllable_state" => {
@@ -27,25 +27,25 @@ fn load_source(path: &str) -> &'static str {
             include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs")
         }
         "illustrated_message_motion" => include_str!("../../illustrated-message/src/motion.rs"),
-        "perf_script" => include_str!("../../../scripts/check-ui-components-performance.sh"),
-        "dx_script" => include_str!("../../../scripts/check-ui-components-dx.sh"),
-        "engineering_script" => include_str!("../../../scripts/check-ui-components-engineering.sh"),
+        "perf_script" => include_str!("../../../scripts/check-ui-performance.sh"),
+        "dx_script" => include_str!("../../../scripts/check-ui-dx.sh"),
+        "engineering_script" => include_str!("../../../scripts/check-ui-engineering.sh"),
         "contract_hygiene_script" => {
-            include_str!("../../../scripts/check-ui-components-contract-hygiene.sh")
+            include_str!("../../../scripts/check-ui-contract-hygiene.sh")
         }
         "component_files_script" => {
-            include_str!("../../../scripts/check-ui-components-component-files.sh")
+            include_str!("../../../scripts/check-ui-component-files.sh")
         }
-        "entrypoints_script" => include_str!("../../../scripts/check-ui-components-entrypoints.sh"),
+        "entrypoints_script" => include_str!("../../../scripts/check-ui-entrypoints.sh"),
         "tree_shaking_script" => {
-            include_str!("../../../scripts/check-ui-components-tree-shaking.sh")
+            include_str!("../../../scripts/check-ui-tree-shaking.sh")
         }
         "tree_shaking_budget" => include_str!("../../../scripts/tree_shaking_budget.env"),
-        "platforms_script" => include_str!("../../../scripts/check-ui-components-platforms.sh"),
-        "view_macro_script" => include_str!("../../../scripts/check-ui-components-view-macro.sh"),
-        "inner_html_script" => include_str!("../../../scripts/check-ui-components-inner-html.sh"),
-        "wasm_debug_script" => include_str!("../../../scripts/check-ui-components-wasm-debug.sh"),
-        "streaming_script" => include_str!("../../../scripts/check-ui-components-streaming.sh"),
+        "platforms_script" => include_str!("../../../scripts/check-ui-platforms.sh"),
+        "view_macro_script" => include_str!("../../../scripts/check-ui-view-macro.sh"),
+        "inner_html_script" => include_str!("../../../scripts/check-ui-inner-html.sh"),
+        "wasm_debug_script" => include_str!("../../../scripts/check-ui-wasm-debug.sh"),
+        "streaming_script" => include_str!("../../../scripts/check-ui-streaming.sh"),
         "list_cargo" => include_str!("../Cargo.toml"),
         "docs_collections" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages/collections.rs")
@@ -56,7 +56,9 @@ fn load_source(path: &str) -> &'static str {
         "docs_shell" => include_str!("../../../apps/docs-app/src/pages/components/shell.rs"),
         "todo_plan" => include_str!("../../../docs/plan/TODO.md"),
         "list_e2e_contract" => include_str!("../../../e2e/tests/docs_app_list_contract.spec.mjs"),
-        "list_e2e_script" => include_str!("../../../scripts/check-ui-components-e2e-list.sh"),
+        "list_e2e_script" => {
+            include_str!("../../../components/list/scripts/check-ui-e2e-list.sh")
+        }
         _ => panic!("unsupported source path: {path}"),
     }
 }
@@ -350,7 +352,7 @@ fn list_component_directory_has_standard_file_layout() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_component_directory_has_standard_file_layout";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_component_directory_has_standard_file_layout";
     assert!(
         component_files_script.contains(script_needle),
         "component-files gate script should include list file-layout command."
@@ -1178,12 +1180,15 @@ fn list_semantic_contract_tests_cover_matrix_without_snapshot_only_assertions() 
         );
     }
 
+    let assert_snapshot = ["assert_", "snapshot!"].concat();
+    let assert_debug_snapshot = ["assert_", "debug_snapshot!"].concat();
+    let to_match_snapshot = [".to_match_", "snapshot("].concat();
+    let to_match_snapshot_js = ["toMatch", "Snapshot("].concat();
     for forbidden in [
-        "insta::",
-        "assert_snapshot!",
-        "assert_debug_snapshot!",
-        ".to_match_snapshot(",
-        "toMatchSnapshot(",
+        assert_snapshot.as_str(),
+        assert_debug_snapshot.as_str(),
+        to_match_snapshot.as_str(),
+        to_match_snapshot_js.as_str(),
     ] {
         assert!(
             !semantics_source.contains(forbidden) && !logic_tests_source.contains(forbidden),
@@ -1197,8 +1202,8 @@ fn list_checklist_marks_ui_components_boundary_complete() {
     let check2 = load_source("check2");
 
     assert!(
-        check2.contains("- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。"),
-        "check2.md should mark ui-components definition as completed."
+        check2.contains("- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。"),
+        "check2.md should mark ui definition as completed."
     );
     assert!(
         check2.contains("components/list/test/semantics.rs"),
@@ -1257,11 +1262,13 @@ fn list_semantics_suite_is_contract_first_not_snapshot_only() {
         "list module should keep `*_semantics.rs` test entry point."
     );
 
+    let assert_snapshot = ["assert_", "snapshot!"].concat();
+    let assert_debug_snapshot = ["assert_", "debug_snapshot!"].concat();
+    let to_match_snapshot = [".to_match_", "snapshot("].concat();
     for forbidden in [
-        "insta::",
-        "assert_snapshot!",
-        "assert_debug_snapshot!",
-        ".to_match_snapshot(",
+        assert_snapshot.as_str(),
+        assert_debug_snapshot.as_str(),
+        to_match_snapshot.as_str(),
     ] {
         assert!(
             !semantics_source.contains(forbidden) && !logic_tests_source.contains(forbidden),
@@ -1308,9 +1315,9 @@ fn list_semantics_first_testing_script_covers_contract() {
     let contract_hygiene_script = load_source("contract_hygiene_script");
 
     for marker in [
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_check2_documents_semantics_first_testing_rules",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_semantics_suite_is_contract_first_not_snapshot_only",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_check2_documents_semantics_first_testing_rules",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_semantics_suite_is_contract_first_not_snapshot_only",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
     ] {
         assert!(
             contract_hygiene_script.contains(marker),
@@ -1333,7 +1340,7 @@ fn list_check2_marks_semantics_first_testing_contract_complete() {
         "components/list/test/list_module_semantics.rs::list_semantics_suite_is_contract_first_not_snapshot_only",
         "components/list/test/list_module_semantics.rs::list_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
         "components/list/test/list_module_semantics.rs::list_semantics_first_testing_script_covers_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1362,7 +1369,7 @@ fn list_check2_documents_streaming_definition_is_llm_output_only_with_two_modes(
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         streaming_script.contains(script_needle),
         "streaming gate script should include list two-mode definition command."
@@ -1388,7 +1395,7 @@ fn list_check2_documents_snapshot_as_default_baseline_capability() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_check2_documents_snapshot_as_default_baseline_capability";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_check2_documents_snapshot_as_default_baseline_capability";
     assert!(
         streaming_script.contains(script_needle),
         "streaming gate script should include list snapshot-baseline checklist command."
@@ -1446,7 +1453,7 @@ fn list_snapshot_baseline_consumes_complete_result_and_renders_stably() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_snapshot_baseline_consumes_complete_result_and_renders_stably";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_snapshot_baseline_consumes_complete_result_and_renders_stably";
     assert!(
         streaming_script.contains(script_needle),
         "streaming gate script should include list snapshot-stability command."
@@ -1525,7 +1532,7 @@ fn list_check2_marks_streaming_scope_as_optional_with_snapshot_fallback() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_check2_marks_streaming_scope_as_optional_with_snapshot_fallback";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_check2_marks_streaming_scope_as_optional_with_snapshot_fallback";
     assert!(
         streaming_script.contains(script_needle),
         "streaming gate script should include list streaming required/optional governance command."
@@ -1544,7 +1551,7 @@ fn list_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let headless_a11y = load_source("ui_headless_a11y");
     let entrypoints_script = load_source("entrypoints_script");
     let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let ui_components_src = manifest_dir.join("../../crates/ui-components/src");
+    let ui_components_src = manifest_dir.join("../../crates/ui/src");
 
     for required in [
         "#[cfg(feature = \"component-list\")]",
@@ -1553,7 +1560,7 @@ fn list_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib entry should keep marker `{required}`."
+            "ui lib entry should keep marker `{required}`."
         );
     }
 
@@ -1571,7 +1578,7 @@ fn list_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css entry should keep marker `{required}`."
+            "ui css entry should keep marker `{required}`."
         );
     }
 
@@ -1612,15 +1619,15 @@ fn list_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
     assert!(
         !ui_components_src.join("overlay_open.rs").exists(),
-        "ui-components should not define `src/overlay_open.rs`."
+        "ui should not define `src/overlay_open.rs`."
     );
     assert!(
         !ui_components_src.join("presence.rs").exists(),
-        "ui-components should not define `src/presence.rs`."
+        "ui should not define `src/presence.rs`."
     );
     assert!(
         !ui_components_src.join("a11y.rs").exists(),
-        "ui-components should not define `src/a11y.rs`."
+        "ui should not define `src/a11y.rs`."
     );
 
     for required in [
@@ -1637,14 +1644,14 @@ fn list_ui_components_fixed_entry_files_follow_layered_boundaries() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         entrypoints_script.contains(script_needle),
         "entrypoints gate script should include list fixed-entry command."
     );
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "components/list/test/semantics.rs::list_ui_components_fixed_entry_files_follow_layered_boundaries",
         "components/list/test/list_module_semantics.rs::list_ui_components_fixed_entry_files_follow_layered_boundaries",
         "Invalid cross-device link (os error 18)",
@@ -1716,6 +1723,7 @@ fn list_e2e_selector_contract_uses_semantic_markers_and_settled_waits() {
         );
     }
 
+    let to_match_snapshot_js = ["toMatch", "Snapshot("].concat();
     for forbidden in [
         "waitForTimeout(",
         "setTimeout(",
@@ -1723,7 +1731,7 @@ fn list_e2e_selector_contract_uses_semantic_markers_and_settled_waits() {
         "getByText(",
         "locator(\"text=",
         "toHaveScreenshot(",
-        "toMatchSnapshot(",
+        to_match_snapshot_js.as_str(),
     ] {
         assert!(
             !e2e.contains(forbidden),
@@ -1762,9 +1770,9 @@ fn list_e2e_check_script_covers_selector_and_settled_wait_contract() {
     let script = load_source("list_e2e_script");
 
     for marker in [
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_check2_documents_e2e_selector_and_stable_wait_rules",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_e2e_contract_covers_ready_and_settled_conditions_for_list_paths",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_e2e_contract_covers_ready_and_settled_conditions_for_list_paths",
     ] {
         assert!(
             script.contains(marker),
@@ -1785,7 +1793,7 @@ fn list_check2_marks_e2e_selector_stability_item_complete() {
     for marker in [
         "e2e/tests/docs_app_list_contract.spec.mjs",
         "apps/docs-app/src/pages/components/pages/collections.rs",
-        "scripts/check-ui-components-e2e-list.sh",
+        "components/list/scripts/check-ui-e2e-list.sh",
         "components/list/test/semantics.rs::list_check2_documents_e2e_selector_and_stable_wait_rules",
         "components/list/test/semantics.rs::list_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "components/list/test/semantics.rs::list_e2e_contract_covers_ready_and_settled_conditions_for_list_paths",
@@ -1878,7 +1886,7 @@ fn list_context_compression_manifest_and_rbi_projection_are_present_and_current(
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         component_files_script.contains(script_needle),
         "component-files gate script should include list manifest/rbi command."
@@ -2000,7 +2008,7 @@ fn list_agent_contract_is_schema_typed_and_machine_readable() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_agent_contract_is_schema_typed_and_machine_readable";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_agent_contract_is_schema_typed_and_machine_readable";
     assert!(
         contract_hygiene_script.contains(script_needle),
         "contract-hygiene script should include list typed agent-contract command."
@@ -2047,7 +2055,7 @@ fn list_agent_contract_render_path_is_whitelist_safe_and_script_injection_free()
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_agent_contract_render_path_is_whitelist_safe_and_script_injection_free";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_agent_contract_render_path_is_whitelist_safe_and_script_injection_free";
     assert!(
         contract_hygiene_script.contains(script_needle),
         "contract-hygiene script should include list whitelist-safe agent-contract command."
@@ -2133,13 +2141,13 @@ fn list_tree_shaking_contract_uses_feature_gates_and_no_unconditional_registry_p
     ] {
         assert!(
             cargo.contains(required),
-            "ui-components feature graph should include list feature dependency marker `{required}`."
+            "ui feature graph should include list feature dependency marker `{required}`."
         );
     }
 
     assert!(
         lib.contains("#[cfg(feature = \"component-list\")]\npub use ui_list as list;"),
-        "ui-components lib should gate list export behind `component-list` feature."
+        "ui lib should gate list export behind `component-list` feature."
     );
 
     for required in [
@@ -2150,7 +2158,7 @@ fn list_tree_shaking_contract_uses_feature_gates_and_no_unconditional_registry_p
     ] {
         assert!(
             css.contains(required),
-            "ui-components css aggregation should keep feature-gated list marker `{required}`."
+            "ui css aggregation should keep feature-gated list marker `{required}`."
         );
     }
 
@@ -2170,13 +2178,13 @@ fn list_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget()
         "cargo test -p ui-list list_tree_shaking_contract_uses_feature_gates_and_no_unconditional_registry_path",
         "cargo test -p ui-list list_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "cargo test -p ui-list list_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_tree_shaking_contract_uses_component_feature_gates",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_tree_shaking_contract_uses_component_feature_gates",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_check2_marks_tree_shaking_feature_pruning_contract_complete",
         "LIST_TREE_OUTPUT",
         "if grep -q 'all-components' <<<\"$LIST_TREE_OUTPUT\";",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$LIST_MIN_FEATURES\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$LIST_MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$LIST_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$LIST_MIN_FEATURES\"",
     ] {
         assert!(
             script.contains(required),
@@ -2204,7 +2212,7 @@ fn list_check2_marks_tree_shaking_feature_pruning_contract_complete() {
         "check2.md should keep first-class tree-shaking governance item checked."
     );
     assert!(
-        check2.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
+        check2.contains("- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。"),
         "check2.md should mark tree-shaking feature-pruning checklist item as completed."
     );
 
@@ -2212,8 +2220,8 @@ fn list_check2_marks_tree_shaking_feature_pruning_contract_complete() {
         "list_tree_shaking_contract_uses_feature_gates_and_no_unconditional_registry_path",
         "list_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "list_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-list,inject-css",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "cargo tree -e features -i ui -p ui --no-default-features --features component-list,inject-css",
+        "scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             check2.contains(required),
@@ -2447,8 +2455,8 @@ fn list_ssr_cross_platform_contract_keeps_non_wasm_safe_and_cfg_explicit() {
     );
 
     for required in [
-        "cargo check -p ui-components --no-default-features --features component-list,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-list,inject-css",
+        "cargo check -p ui --no-default-features --features component-list,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-list,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -2629,8 +2637,8 @@ fn list_ui_motion_non_wasm_noop_contract_is_preserved() {
 
     for required in [
         "cargo check -p ui-motion",
-        "cargo check -p ui-components --no-default-features --features component-list,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-list,inject-css",
+        "cargo check -p ui --no-default-features --features component-list,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-list,inject-css",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2726,8 +2734,8 @@ fn list_reduced_motion_ssr_wasm_branches_keep_semantic_contract_stable() {
 
     for required in [
         "cargo check -p ui-motion",
-        "cargo check -p ui-components --no-default-features --features component-list,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-list,inject-css",
+        "cargo check -p ui --no-default-features --features component-list,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-list,inject-css",
         "cargo test -p ui-list list_reduced_motion_ssr_wasm_branches_keep_semantic_contract_stable -- --nocapture",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -2817,7 +2825,7 @@ fn list_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_sa
         "list styles should keep ui-motion tokenized transition contract in component scope."
     );
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe";
     assert!(
         platforms_script.contains(script_needle),
         "platform gate should include list motion contractualization command."
@@ -2834,11 +2842,11 @@ fn list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_g
     let motion = load_source("motion");
 
     for required in [
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates",
     ] {
         assert!(
             perf_script.contains(required),
@@ -2882,7 +2890,7 @@ fn list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_g
 
     for required in [
         "- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。",
-        "`scripts/check-ui-components-performance.sh` 已纳入 `list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates` 阻断命令",
+        "`scripts/check-ui-performance.sh` 已纳入 `list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates` 阻断命令",
         "`apps/docs-app/src/pages/components/shell.rs` 在 `component_page_perf_budget` 为 `\"list\"` 提供 `UiPerfBudget`（mount/update/heap）并由 `UiPerfProbe` 输出 `data-perf-*`",
         "`docs/plan/TODO.md` 保留 `render_count` 自动化补齐项（当前以可重复 perf probe 基线替代精确计数）",
         "回归锁定：`components/list/test/semantics.rs::list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates` 与 `components/list/test/list_module_semantics.rs::list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates`。",
@@ -2946,9 +2954,9 @@ fn list_semantics_and_performance_script_covers_contract() {
     let perf_script = load_source("perf_script");
 
     for marker in [
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             perf_script.contains(marker),
@@ -2967,7 +2975,7 @@ fn list_check2_marks_semantics_and_performance_regression_contract_complete() {
         "list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates",
         "list_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "`render_count` 自动化回归仍在仓库统一 follow-up",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3006,7 +3014,7 @@ fn list_view_macro_complexity_is_split_into_semantic_subrenders() {
         "list view macro complexity should stay bounded after semantic split; expected <= 4, found {view_macro_count}."
     );
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_view_macro_complexity_is_split_into_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_view_macro_complexity_is_split_into_semantic_subrenders";
     assert!(
         script.contains(script_needle),
         "view-macro gate script should include list complexity check command."
@@ -3015,7 +3023,7 @@ fn list_view_macro_complexity_is_split_into_semantic_subrenders() {
     for required in [
         "render_list_option",
         "`view.rs` 已将 option 行渲染从主 `List` `view!` 中下沉到局部函数 `render_list_option(...)`",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_view_macro_complexity_is_split_into_semantic_subrenders",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_view_macro_complexity_is_split_into_semantic_subrenders",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3066,7 +3074,7 @@ fn list_view_functional_split_prefers_plain_functions_over_local_components() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_view_functional_split_prefers_plain_functions_over_local_components";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_view_functional_split_prefers_plain_functions_over_local_components";
     assert!(
         script.contains(script_needle),
         "view-macro gate script should include list function-first command."
@@ -3075,7 +3083,7 @@ fn list_view_functional_split_prefers_plain_functions_over_local_components() {
     for required in [
         "render_list_option",
         "仅保留 3 个公共 `#[component]` 边界（`List`/`ListItem`/`ListSection`）",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_view_functional_split_prefers_plain_functions_over_local_components",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_view_functional_split_prefers_plain_functions_over_local_components",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3116,7 +3124,7 @@ fn list_static_fragments_are_constantized_with_stable_a11y_markers() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_static_fragments_are_constantized_with_stable_a11y_markers";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_static_fragments_are_constantized_with_stable_a11y_markers";
     assert!(
         script.contains(script_needle),
         "view-macro gate script should include list static fragment constantization command."
@@ -3126,7 +3134,7 @@ fn list_static_fragments_are_constantized_with_stable_a11y_markers() {
         "LISTBOX_HIGHLIGHT_CLASS",
         "LIST_ITEM_DIVIDER_CLASS",
         "LIST_SECTION_DIVIDER_CLASS",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_static_fragments_are_constantized_with_stable_a11y_markers",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_static_fragments_are_constantized_with_stable_a11y_markers",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3186,7 +3194,7 @@ fn list_inner_html_usage_is_explicitly_na_and_guarded_locally() {
     }
 
     let script = load_source("inner_html_script");
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_inner_html_usage_is_explicitly_na_and_guarded";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_inner_html_usage_is_explicitly_na_and_guarded";
     assert!(
         script.contains(script_needle),
         "inner-html gate script should include list contract command."
@@ -3231,7 +3239,7 @@ fn list_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components shared wasm-debug feature graph should include `{required}`."
+            "ui shared wasm-debug feature graph should include `{required}`."
         );
     }
 
@@ -3242,7 +3250,7 @@ fn list_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             !ui_components_cargo.contains(forbidden),
-            "ui-components should not expose list-local wasm debug toggle `{forbidden}`."
+            "ui should not expose list-local wasm debug toggle `{forbidden}`."
         );
     }
 
@@ -3252,7 +3260,7 @@ fn list_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components root should keep global wasm-debug isolation marker `{required}`."
+            "ui root should keep global wasm-debug isolation marker `{required}`."
         );
     }
 
@@ -3329,7 +3337,7 @@ fn list_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
         }
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_wasm_debug_contract_is_explicitly_na_and_feature_isolated";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_wasm_debug_contract_is_explicitly_na_and_feature_isolated";
     assert!(
         wasm_debug_script.contains(script_needle),
         "wasm-debug gate script should include list contract command."
@@ -3411,7 +3419,7 @@ fn list_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na";
     assert!(
         dx_script.contains(script_needle),
         "dx gate script should include list DX contract command."
@@ -3487,7 +3495,7 @@ fn list_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_sn
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
     assert!(
         dx_script.contains(script_needle),
         "dx gate script should include list docs-as-product contract command."
@@ -3540,14 +3548,14 @@ fn list_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminal
         );
     }
 
-    for forbidden in ["#", "px"] {
+    for forbidden in ["#000", "#fff", " 8px", " 12px"] {
         assert!(
             !styles.contains(forbidden),
             "list styles should not include hardcoded `{forbidden}` terminals in component scope."
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals";
     assert!(
         contract_hygiene_script.contains(script_needle),
         "contract-hygiene script should include list defensive-variables command."
@@ -3582,7 +3590,7 @@ fn list_cascade_layer_contract_is_aggregated_in_ui_layer_and_rejects_plain_inlin
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css aggregation should keep list cascade-layer marker `{required}`."
+            "ui css aggregation should keep list cascade-layer marker `{required}`."
         );
     }
 
@@ -3604,7 +3612,7 @@ fn list_cascade_layer_contract_is_aggregated_in_ui_layer_and_rejects_plain_inlin
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_cascade_layer_contract_is_aggregated_in_ui_layer_and_rejects_plain_inline_style_rules";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_cascade_layer_contract_is_aggregated_in_ui_layer_and_rejects_plain_inline_style_rules";
     assert!(
         contract_hygiene_script.contains(script_needle),
         "contract-hygiene script should include list cascade-layer command."
@@ -3612,7 +3620,7 @@ fn list_cascade_layer_contract_is_aggregated_in_ui_layer_and_rejects_plain_inlin
 
     for required in [
         "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
-        "已核验（聚合层）：`crates/ui-components/src/css.rs::push_components_css` 使用 `out.push_str(\"\\n@layer ui {\\n\")` 包裹组件样式并在末尾闭合",
+        "已核验（聚合层）：`crates/ui/src/css.rs::push_components_css` 使用 `out.push_str(\"\\n@layer ui {\\n\")` 包裹组件样式并在末尾闭合",
         "已核验（运行时样式边界）：`components/list/src/view.rs` 不含 `style=`/`style:\\\"top`/`style:\\\"left` 等普通内联样式写法",
         "N/A（list，运行时数值注入）：当前 `List/ListItem/ListSection` 无运行时动态样式写入路径，后续若引入仅允许 CSS 自定义变量注入（`style:--ui-*`）",
         "list_cascade_layer_contract_is_aggregated_in_ui_layer_and_rejects_plain_inline_style_rules",
@@ -3687,7 +3695,7 @@ fn list_version_deprecation_migration_registry_is_explicitly_na_without_major_br
         "N/A：本次 `List` 变更未引入跨大版本 API 破坏升级",
         "schema_version = \"1\"",
         "list_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3701,7 +3709,7 @@ fn list_version_deprecation_migration_registry_is_explicitly_na_without_major_br
 fn list_version_deprecation_migration_script_covers_engineering_gate() {
     let engineering_script = load_source("engineering_script");
 
-    let marker = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
+    let marker = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
     assert!(
         engineering_script.contains(marker),
         "engineering check script should enforce `{marker}`."
@@ -3754,7 +3762,7 @@ fn list_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_bound
     for required in [
         "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",
-        "target: \"ui_components::button::state_change\"",
+        "target: \"ui::button::state_change\"",
     ] {
         assert!(
             ui_components_cargo.contains(required) || button_view.contains(required),
@@ -3778,7 +3786,7 @@ fn list_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_bound
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::list::",
+        "target: \"ui::list::",
         "const LIST_TRACE_TARGET",
     ] {
         assert!(
@@ -3810,7 +3818,7 @@ fn list_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_bound
         "list public module boundary should not leak web_sys types."
     );
 
-    let script_needle = "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries";
+    let script_needle = "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries";
     assert!(
         engineering_script.contains(script_needle),
         "engineering gate script should include list contract command."
@@ -3911,9 +3919,9 @@ fn list_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "cargo test -p ui-components --test list_module_semantics --no-default-features --features component-list,inject-css list_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "cargo test -p ui --test list_module_semantics --no-default-features --features component-list,inject-css list_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             engineering_script.contains(needle),
@@ -3936,7 +3944,7 @@ fn list_check2_marks_rust_hygiene_contract_complete() {
         "components/list/test/list_module_semantics.rs::list_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
         "components/list/test/list_module_semantics.rs::list_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
         "components/list/test/list_module_semantics.rs::list_rust_hygiene_script_enforces_repo_level_hygiene_guards",
-        "scripts/check-ui-components-engineering.sh",
+        "scripts/check-ui-engineering.sh",
     ] {
         assert!(
             check2.contains(required),

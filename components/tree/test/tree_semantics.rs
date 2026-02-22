@@ -11,11 +11,11 @@ fn load_source(rel_path: &str) -> String {
     let path = if let Some(suffix) = rel_path.strip_prefix("src/tree/") {
         workspace_dir.join("components/tree/src").join(suffix)
     } else if rel_path == "src/lib.rs" {
-        workspace_dir.join("crates/ui-components/src/lib.rs")
+        workspace_dir.join("crates/ui/src/lib.rs")
     } else if rel_path == "src/css.rs" {
-        workspace_dir.join("crates/ui-components/src/css.rs")
+        workspace_dir.join("crates/ui/src/css.rs")
     } else if rel_path == "Cargo.toml" {
-        workspace_dir.join("crates/ui-components/Cargo.toml")
+        workspace_dir.join("crates/ui/Cargo.toml")
     } else if let Some(suffix) = rel_path.strip_prefix("../ui-state-primitives/") {
         workspace_dir
             .join("crates/ui-state-primitives")
@@ -390,7 +390,7 @@ fn tree_motion_layer_is_split_and_view_only_attaches() {
 
     assert!(
         lib_source.contains("pub use tree::{Tree, TreeDensity, TreeMotion, TreeNode, TreeTone};"),
-        "ui-components crate root should re-export `TreeMotion` with tree API."
+        "ui crate root should re-export `TreeMotion` with tree API."
     );
 }
 

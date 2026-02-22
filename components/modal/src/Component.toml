@@ -156,5 +156,5 @@ name = "ui-theme"
 kind = "token-source"
 
 [[dependencies]]
-name = "ui-components/overlay"
+name = "ui/overlay"
 kind = "overlay-shell"

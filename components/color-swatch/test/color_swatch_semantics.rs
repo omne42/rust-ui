@@ -545,8 +545,8 @@ fn color_swatch_token_first_styles_are_aggregated_and_uiroot_injected() {
     let logic_source = load_source("../../components/color-swatch/src/logic.rs");
     let styles_source = load_source("../../components/color-swatch/src/styles.rs");
     let view_source = load_source("../../components/color-swatch/src/view.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
-    let root_source = load_source("../../crates/ui-components/src/root.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
+    let root_source = load_source("../../crates/ui/src/root.rs");
 
     assert!(
         styles_source.contains("pub const CSS: &str = r#\""),
@@ -588,7 +588,7 @@ fn color_swatch_token_first_styles_are_aggregated_and_uiroot_injected() {
     assert!(
         css_source.contains("#[cfg(feature = \"component-color_swatch\")]")
             && css_source.contains("out.push_str(crate::color::swatch::styles::CSS);"),
-        "ui-components css aggregator should register color-swatch styles behind component feature gate."
+        "ui css aggregator should register color-swatch styles behind component feature gate."
     );
     for needle in [
         "if inject_components_css.get_value() {",
@@ -721,10 +721,10 @@ fn color_swatch_visual_desire_gate_reuses_theme_visual_baseline_and_heroui_contr
 #[test]
 fn color_swatch_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci() {
     let check_source = load_source("../../components/color-swatch/check2.md");
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let lib_source = load_source("../../crates/ui-components/src/lib.rs");
-    let css_source = load_source("../../crates/ui-components/src/css.rs");
-    let tree_shaking_script = load_source("../../scripts/check-ui-components-tree-shaking.sh");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let lib_source = load_source("../../crates/ui/src/lib.rs");
+    let css_source = load_source("../../crates/ui/src/css.rs");
+    let tree_shaking_script = load_source("../../scripts/check-ui-tree-shaking.sh");
     let budget_source = load_source("../../scripts/tree_shaking_budget.env");
 
     for needle in [
@@ -736,7 +736,7 @@ fn color_swatch_tree_shaking_contract_enforces_component_feature_gates_and_budge
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components feature graph should keep ColorSwatch tree-shaking token `{needle}`.",
+            "ui feature graph should keep ColorSwatch tree-shaking token `{needle}`.",
         );
     }
 
@@ -769,12 +769,12 @@ fn color_swatch_tree_shaking_contract_enforces_component_feature_gates_and_budge
 
     for needle in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\"; then",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\"; then",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
     ] {
@@ -786,9 +786,9 @@ fn color_swatch_tree_shaking_contract_enforces_component_feature_gates_and_budge
 
     for needle in [
         "- [x] Tree Shaking 是一等能力：",
-        "cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css",
-        "cargo tree -e features -i ui-components -p web-demo",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css",
+        "cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css",
+        "cargo tree -e features -i ui -p web-demo",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css",
     ] {
         assert!(
             check_source.contains(needle),
@@ -1290,7 +1290,7 @@ fn color_swatch_platform_contract_uses_cfg_and_non_wasm_browser_free_path() {
 fn color_swatch_preserves_ui_headless_web_ssr_compile_error_contract() {
     let headless_lib_source = load_source("../../crates/ui-headless/src/lib.rs");
     let headless_cargo_source = load_source("../../crates/ui-headless/Cargo.toml");
-    let ui_components_cargo_source = load_source("../../crates/ui-components/Cargo.toml");
+    let ui_components_cargo_source = load_source("../../crates/ui/Cargo.toml");
     let view_source = load_source("../../components/color-swatch/src/view.rs");
     let check_source = load_source("../../components/color-swatch/check2.md");
 
@@ -1324,7 +1324,7 @@ fn color_swatch_preserves_ui_headless_web_ssr_compile_error_contract() {
 
     assert!(
         ui_components_cargo_source.contains("ui-headless = { path = \"../ui-headless\" }"),
-        "ui-components should depend on ui-headless without forcing conflicting web/ssr flags."
+        "ui should depend on ui-headless without forcing conflicting web/ssr flags."
     );
     for forbidden in [
         "ui-headless/web",
@@ -1333,7 +1333,7 @@ fn color_swatch_preserves_ui_headless_web_ssr_compile_error_contract() {
     ] {
         assert!(
             !ui_components_cargo_source.contains(forbidden),
-            "ui-components should not hardwire conflicting ui-headless feature token `{forbidden}`."
+            "ui should not hardwire conflicting ui-headless feature token `{forbidden}`."
         );
     }
 
@@ -1678,12 +1678,17 @@ fn color_swatch_tests_prioritize_semantic_contracts_over_visual_snapshots() {
         );
     }
 
+    let snapshot_token = ["assert", "_snapshot!"].concat();
+    let debug_snapshot_token = ["assert_debug", "_snapshot!"].concat();
+    let json_snapshot_token = ["assert_json", "_snapshot!"].concat();
+    let to_match_snap_token = ["to_match", "_snapshot"].concat();
+    let snapshot_ns_token = ["snapshot", "::"].concat();
     for snapshot_only_pattern in [
-        "assert_snapshot!",
-        "assert_debug_snapshot!",
-        "assert_json_snapshot!",
-        "to_match_snapshot",
-        "snapshot::",
+        snapshot_token.as_str(),
+        debug_snapshot_token.as_str(),
+        json_snapshot_token.as_str(),
+        to_match_snap_token.as_str(),
+        snapshot_ns_token.as_str(),
     ] {
         assert!(
             !local_semantics.contains(snapshot_only_pattern)
@@ -1715,7 +1720,7 @@ fn color_swatch_semantics_priority_contract_prefers_semantic_assertions_over_sna
     let local_semantics = include_str!("../../../components/color-swatch/test/semantics.rs");
     let legacy_semantics = include_str!("color_swatch_semantics.rs");
     let view_source = load_source("../../components/color-swatch/src/view.rs");
-    let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
     let check2_source = load_source("../../components/color-swatch/check2.md");
 
     for required_semantic_contract in [
@@ -1743,12 +1748,17 @@ fn color_swatch_semantics_priority_contract_prefers_semantic_assertions_over_sna
         );
     }
 
+    let snapshot_token = ["assert", "_snapshot!"].concat();
+    let debug_snapshot_token = ["assert_debug", "_snapshot!"].concat();
+    let json_snapshot_token = ["assert_json", "_snapshot!"].concat();
+    let to_match_snap_token = ["to_match", "_snapshot"].concat();
+    let snapshot_ns_token = ["snapshot", "::"].concat();
     for snapshot_only_pattern in [
-        "assert_snapshot!",
-        "assert_debug_snapshot!",
-        "assert_json_snapshot!",
-        "to_match_snapshot",
-        "snapshot::",
+        snapshot_token.as_str(),
+        debug_snapshot_token.as_str(),
+        json_snapshot_token.as_str(),
+        to_match_snap_token.as_str(),
+        snapshot_ns_token.as_str(),
     ] {
         assert!(
             !local_semantics.contains(snapshot_only_pattern)
@@ -1757,7 +1767,7 @@ fn color_swatch_semantics_priority_contract_prefers_semantic_assertions_over_sna
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only";
+    let script_needle = "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only";
     assert!(
         script_source.contains(script_needle),
         "contract-hygiene gate should include `{script_needle}`."
@@ -1766,7 +1776,7 @@ fn color_swatch_semantics_priority_contract_prefers_semantic_assertions_over_sna
     for required in [
         "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
         "color_swatch_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -1785,7 +1795,7 @@ fn color_swatch_performance_governance_contract_is_budgeted_traceable_and_blocki
     let e2e_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let check2_source = load_source("../../components/color-swatch/check2.md");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("../../components/color-swatch/src/view.rs");
     let styles_source = load_source("../../components/color-swatch/src/styles.rs");
 
@@ -1884,14 +1894,14 @@ fn color_swatch_performance_governance_contract_is_budgeted_traceable_and_blocki
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_performance_governance_contract_is_budgeted_traceable_and_blocking";
+    let script_needle = "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_performance_governance_contract_is_budgeted_traceable_and_blocking";
     assert!(
         script_source.contains(script_needle),
         "performance gate script should include `{script_needle}`."
     );
     assert!(
         script_source.contains(
-            "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+            "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
         ),
         "performance gate script should keep render_count follow-up blocker."
     );
@@ -1918,7 +1928,7 @@ fn color_swatch_semantics_and_performance_regression_cover_aria_data_focus_and_r
     let check2_source = load_source("../../components/color-swatch/check2.md");
     let view_source = load_source("../../components/color-swatch/src/view.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
 
     for required_test in [
         "fn color_swatch_tests_prioritize_semantic_contracts_over_visual_snapshots()",
@@ -1962,9 +1972,9 @@ fn color_swatch_semantics_and_performance_regression_cover_aria_data_focus_and_r
     }
 
     for script_needle in [
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(script_needle),
@@ -1991,7 +2001,7 @@ fn color_swatch_semantics_and_performance_regression_cover_aria_data_focus_and_r
 fn color_swatch_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders() {
     let view_source = load_source("../../components/color-swatch/src/view.rs");
     let check2_source = load_source("../../components/color-swatch/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     assert!(
         view_source.contains("view! {"),
@@ -2051,7 +2061,7 @@ fn color_swatch_view_macro_complexity_is_small_and_does_not_require_semantic_sub
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders";
+    let script_needle = "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`."
@@ -2072,7 +2082,7 @@ fn color_swatch_view_macro_complexity_is_small_and_does_not_require_semantic_sub
 fn color_swatch_view_functional_split_prefers_no_extra_local_components_for_simple_layout() {
     let view_source = load_source("../../components/color-swatch/src/view.rs");
     let check2_source = load_source("../../components/color-swatch/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     assert_eq!(
         view_source.matches("#[component]").count(),
@@ -2111,7 +2121,7 @@ fn color_swatch_view_functional_split_prefers_no_extra_local_components_for_simp
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_view_functional_split_prefers_no_extra_local_components_for_simple_layout";
+    let script_needle = "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_view_functional_split_prefers_no_extra_local_components_for_simple_layout";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`."
@@ -2132,7 +2142,7 @@ fn color_swatch_view_functional_split_prefers_no_extra_local_components_for_simp
 fn color_swatch_static_fragments_are_constantized_or_absent_for_simple_indicator_layout() {
     let view_source = load_source("../../components/color-swatch/src/view.rs");
     let check2_source = load_source("../../components/color-swatch/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
+    let script_source = load_source("../../scripts/check-ui-view-macro.sh");
 
     for forbidden in [
         "inner_html=",
@@ -2176,7 +2186,7 @@ fn color_swatch_static_fragments_are_constantized_or_absent_for_simple_indicator
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_static_fragments_are_constantized_or_absent_for_simple_indicator_layout";
+    let script_needle = "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_static_fragments_are_constantized_or_absent_for_simple_indicator_layout";
     assert!(
         script_source.contains(script_needle),
         "view-macro gate script should include `{script_needle}`."
@@ -2232,9 +2242,9 @@ fn color_swatch_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 
 #[test]
 fn color_swatch_inner_html_check_script_covers_security_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-inner-html.sh");
+    let script_source = load_source("../../scripts/check-ui-inner-html.sh");
 
-    let needle = "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_inner_html_usage_is_forbidden_in_component_and_docs_examples";
+    let needle = "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_inner_html_usage_is_forbidden_in_component_and_docs_examples";
     assert!(
         script_source.contains(needle),
         "inner-html check script should enforce ColorSwatch contract marker `{needle}`."
@@ -2243,8 +2253,8 @@ fn color_swatch_inner_html_check_script_covers_security_contract() {
 
 #[test]
 fn color_swatch_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
-    let crate_root_source = load_source("../../crates/ui-components/src/lib.rs");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
+    let crate_root_source = load_source("../../crates/ui/src/lib.rs");
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
@@ -2259,7 +2269,7 @@ fn color_swatch_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             cargo_source.contains(needle),
-            "ui-components Cargo features should keep shared wasm-debug marker `{needle}`."
+            "ui Cargo features should keep shared wasm-debug marker `{needle}`."
         );
     }
     assert!(
@@ -2274,7 +2284,7 @@ fn color_swatch_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     ] {
         assert!(
             crate_root_source.contains(needle),
-            "ui-components root should keep wasm-debug isolation marker `{needle}`."
+            "ui root should keep wasm-debug isolation marker `{needle}`."
         );
     }
 
@@ -2391,9 +2401,9 @@ fn color_swatch_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
 
 #[test]
 fn color_swatch_wasm_debug_check_script_covers_shared_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_source("../../scripts/check-ui-wasm-debug.sh");
 
-    let needle = "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_wasm_debug_contract_is_explicitly_na_and_feature_isolated";
+    let needle = "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_wasm_debug_contract_is_explicitly_na_and_feature_isolated";
     assert!(
         script_source.contains(needle),
         "wasm-debug check script should enforce ColorSwatch contract marker `{needle}`."
@@ -2419,11 +2429,11 @@ fn color_swatch_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stre
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
     let docs_section = color_swatch_docs_section(&docs_source);
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
-    let dx_script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = load_source("../../scripts/check-ui-dx.sh");
     let check2_source = load_source("../../components/color-swatch/check2.md");
 
     for required in [
-        "let color_swatch_imports = \"use leptos::prelude::*;\\nuse ui_components::{ColorSwatch, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize};\".to_string();",
+        "let color_swatch_imports = \"use leptos::prelude::*;\\nuse ui::{ColorSwatch, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize};\".to_string();",
         "title=\"Hello World (Default Path)\"",
         "title=\"Comparison Matrix (Size / Alpha / Shape / Empty)\"",
         "title=\"Controlled vs Uncontrolled Contrast (N/A for ColorSwatch)\"",
@@ -2442,7 +2452,7 @@ fn color_swatch_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stre
     }
 
     for required in [
-        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui::*;\";",
         "fn compose_copy_ready_code(raw: &str, imports: &str) -> String",
         "let missing_imports = missing_import_lines(&raw, &imports);",
         "<CodeBlock code=resolved_code.get() />",
@@ -2453,7 +2463,7 @@ fn color_swatch_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stre
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
+    let script_needle = "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
     assert!(
         dx_script_source.contains(script_needle),
         "DX gate script should include docs-as-product contract `{script_needle}`."
@@ -2463,7 +2473,7 @@ fn color_swatch_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stre
         "- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。",
         "受控/非受控对照对 `ColorSwatch` 为 N/A",
         "color_swatch_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
         "compose_copy_ready_code",
     ] {
         assert!(
@@ -2546,11 +2556,11 @@ fn color_swatch_docs_source_first_copy_paste_ready_with_real_paths_and_dependenc
 
 #[test]
 fn color_swatch_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2568,7 +2578,7 @@ fn color_swatch_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "color_swatch_check2_documents_source_first_copy_paste_ready_rules",
         "color_swatch_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "color_swatch_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -2649,11 +2659,11 @@ fn color_swatch_heroui_strategy_and_component_docs_are_synchronized_and_indexabl
 
 #[test]
 fn color_swatch_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2672,7 +2682,7 @@ fn color_swatch_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "color_swatch_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "color_swatch_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -2701,7 +2711,7 @@ fn color_swatch_check2_documents_docs_sync_and_state_matrix_rules() {
         "color_swatch_check2_documents_docs_sync_and_state_matrix_rules",
         "color_swatch_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "color_swatch_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -2791,11 +2801,11 @@ fn color_swatch_docs_examples_and_state_matrix_sync_with_logic_api_names_and_def
 
 #[test]
 fn color_swatch_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2816,7 +2826,7 @@ fn color_swatch_check2_documents_documentation_as_product_rules() {
         "color_swatch_check2_documents_documentation_as_product_rules",
         "color_swatch_documentation_entry_exists_with_beginner_first_progression",
         "color_swatch_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2876,11 +2886,11 @@ fn color_swatch_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn color_swatch_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2903,8 +2913,8 @@ fn color_swatch_check2_documents_interactive_playground_rules() {
         "color_swatch_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "color_swatch_dx_check_script_covers_interactive_playground_contract",
         "color_swatch_e2e_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
-        "scripts/check-ui-components-e2e-color-swatch.sh",
+        "scripts/check-ui-dx.sh",
+        "components/color-swatch/scripts/check-ui-e2e-color-swatch.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2977,11 +2987,11 @@ fn color_swatch_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn color_swatch_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_docs_app_provides_interactive_playground_for_props_state_and_preview",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2992,11 +3002,11 @@ fn color_swatch_dx_check_script_covers_interactive_playground_contract() {
 
 #[test]
 fn color_swatch_e2e_check_script_covers_interactive_playground_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-swatch.sh");
+    let script_source = load_source("../../components/color-swatch/scripts/check-ui-e2e-color-swatch.sh");
 
     for needle in [
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_e2e_check_script_covers_interactive_playground_contract",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_e2e_check_script_covers_interactive_playground_contract",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3011,7 +3021,7 @@ fn color_swatch_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_o
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
-    let dx_script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let dx_script_source = load_source("../../scripts/check-ui-dx.sh");
     let check2_source = load_source("../../components/color-swatch/check2.md");
 
     for required in [
@@ -3045,7 +3055,7 @@ fn color_swatch_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_o
         "slug=\"color-swatch\"",
         "title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"",
         "test_css_source=workbench_test_css",
-        "test_source_path=\"crates/ui-components/src/color/swatch/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui/src/color/swatch/styles.rs\".to_string()",
         "test_config_signal=workbench_config",
         "id_base=\"docs-color-swatch-workbench-size\".to_string()",
         "id_base=\"docs-color-swatch-workbench-shape\".to_string()",
@@ -3081,7 +3091,7 @@ fn color_swatch_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_o
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na";
+    let script_needle = "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na";
     assert!(
         dx_script_source.contains(
             "echo \"[dx] contract: color-swatch playground css hot-reload + isolated canvas\""
@@ -3104,9 +3114,9 @@ fn color_swatch_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_o
 
 #[test]
 fn color_swatch_dx_check_script_covers_hot_reload_and_isolated_canvas_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
 
-    let needle = "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na";
+    let needle = "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na";
     assert!(
         script_source.contains(needle),
         "DX check script should enforce ColorSwatch contract marker `{needle}`."
@@ -3254,7 +3264,7 @@ fn color_swatch_e2e_regression_suite_includes_repeatable_key_flow_and_keyboard_f
 #[test]
 fn color_swatch_check2_documents_e2e_selector_and_stable_wait_rules() {
     let check2_source = load_source("../../components/color-swatch/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-swatch.sh");
+    let script_source = load_source("../../components/color-swatch/scripts/check-ui-e2e-color-swatch.sh");
 
     for needle in [
         "- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。",
@@ -3264,7 +3274,7 @@ fn color_swatch_check2_documents_e2e_selector_and_stable_wait_rules() {
         "ready/settled",
         "color_swatch_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "color_swatch_e2e_flow_covers_ready_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-color-swatch.sh",
+        "components/color-swatch/scripts/check-ui-e2e-color-swatch.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3273,10 +3283,10 @@ fn color_swatch_check2_documents_e2e_selector_and_stable_wait_rules() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_e2e_contract_uses_semantic_selectors_and_stable_waits",
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_e2e_flow_covers_ready_and_settled_semantic_breakpoints",
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_e2e_selector_and_stable_wait_rules",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_e2e_contract_uses_semantic_selectors_and_stable_waits",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_e2e_flow_covers_ready_and_settled_semantic_breakpoints",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_e2e_selector_and_stable_wait_rules",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3288,7 +3298,7 @@ fn color_swatch_check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn color_swatch_check2_documents_repeatable_e2e_regression_collection() {
     let check2_source = load_source("../../components/color-swatch/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-e2e-color-swatch.sh");
+    let script_source = load_source("../../components/color-swatch/scripts/check-ui-e2e-color-swatch.sh");
 
     for needle in [
         "- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。",
@@ -3297,7 +3307,7 @@ fn color_swatch_check2_documents_repeatable_e2e_regression_collection() {
         "keyboard/focus",
         "overlay/async N/A",
         "color_swatch_e2e_regression_suite_includes_repeatable_key_flow_and_keyboard_focus_risk_path",
-        "scripts/check-ui-components-e2e-color-swatch.sh",
+        "components/color-swatch/scripts/check-ui-e2e-color-swatch.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3306,8 +3316,8 @@ fn color_swatch_check2_documents_repeatable_e2e_regression_collection() {
     }
 
     for needle in [
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_e2e_regression_suite_includes_repeatable_key_flow_and_keyboard_focus_risk_path",
-        "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_repeatable_e2e_regression_collection",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_e2e_regression_suite_includes_repeatable_key_flow_and_keyboard_focus_risk_path",
+        "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_repeatable_e2e_regression_collection",
     ] {
         assert!(
             script_source.contains(needle),
@@ -3326,7 +3336,7 @@ fn color_swatch_engineering_contract_marks_spec_serde_path_as_na_and_keeps_traci
     let motion_source = load_source("../../components/color-swatch/src/motion.rs");
     let readme_source = load_source("../../components/color-swatch/src/README.md");
 
-    let cargo_source = load_source("../../crates/ui-components/Cargo.toml");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
     let check2_source = load_source("../../components/color-swatch/check2.md");
 
@@ -3377,7 +3387,7 @@ fn color_swatch_engineering_contract_marks_spec_serde_path_as_na_and_keeps_traci
         "tracing::span!(",
         "tracing::event!(",
         "#[tracing::instrument]",
-        "target: \"ui_components::color_swatch::",
+        "target: \"ui::color_swatch::",
         "const COLOR_SWATCH_TRACE_TARGET",
     ] {
         assert!(
@@ -3417,8 +3427,8 @@ fn color_swatch_engineering_contract_marks_spec_serde_path_as_na_and_keeps_traci
 
 #[test]
 fn color_swatch_engineering_check_script_covers_contract() {
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
-    let needle = "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_engineering_contract_marks_spec_serde_path_as_na_and_keeps_tracing_runtime_boundaries";
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
+    let needle = "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_engineering_contract_marks_spec_serde_path_as_na_and_keeps_tracing_runtime_boundaries";
 
     assert!(
         script_source.contains(needle),
@@ -3430,7 +3440,7 @@ fn color_swatch_engineering_check_script_covers_contract() {
 fn color_swatch_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade()
  {
     let check2_source = load_source("../../components/color-swatch/check2.md");
-    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+    let script_source = load_source("../../scripts/check-ui-engineering.sh");
     let readme_source = load_source("../../components/color-swatch/src/README.md");
     let logic_source = load_source("../../components/color-swatch/src/logic.rs");
     let component_manifest = load_source("../../components/color-swatch/src/Component.toml");
@@ -3470,14 +3480,14 @@ fn color_swatch_version_deprecation_migration_registry_is_explicitly_na_without_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
+    let script_needle = "cargo test -p ui --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(script_needle),
         "engineering gate script should include `{script_needle}`.",
     );
 
     for needle in [
-        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorSwatch` 改动未引入跨大版本 API 破坏升级，组件语义契约仍保持 `v1`（`components/color-swatch/src/logic.rs` 的 `ColorSwatchAgentSchema::V1`/`ColorSwatchAgentSchemaVersion::V1`，`components/color-swatch/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.color-swatch.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/color-swatch/test/semantics.rs::color_swatch_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-components-engineering.sh` 新增对应 `cargo test` 目标。）",
+        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorSwatch` 改动未引入跨大版本 API 破坏升级，组件语义契约仍保持 `v1`（`components/color-swatch/src/logic.rs` 的 `ColorSwatchAgentSchema::V1`/`ColorSwatchAgentSchemaVersion::V1`，`components/color-swatch/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.color-swatch.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/color-swatch/test/semantics.rs::color_swatch_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-engineering.sh` 新增对应 `cargo test` 目标。）",
         "color_swatch_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
     ] {
         assert!(

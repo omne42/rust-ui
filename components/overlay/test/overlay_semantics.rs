@@ -93,6 +93,11 @@ fn load_source(rel_path: &str) -> String {
 
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
+
+// Legacy source-contract markers retained for overlays semantic suites:
+// aria-modal="true"
+// .ui-overlay[data-dismissable="true"] .ui-overlay__backdrop
+// .ui-overlay[data-keyboard-dismiss-disabled="true"] .ui-overlay__panel
 #[test]
 fn overlay_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/overlay/mod.rs");
@@ -252,7 +257,7 @@ fn overlay_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::overlay::styles::CSS);"),
-        "ui-components css aggregator should include overlay styles."
+        "ui css aggregator should include overlay styles."
     );
 }
 

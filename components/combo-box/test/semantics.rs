@@ -52,10 +52,10 @@ fn combo_box_layering_is_split_across_logic_view_styles_and_motion() {
     );
 
     for needle in [
-        "var(--ui-fg)",
-        "var(--ui-bg)",
-        "var(--ui-border)",
-        "var(--ui-radius-md)",
+        "var(--ui-fg, var(--ui-fallback-fg))",
+        "var(--ui-bg, var(--ui-fallback-bg))",
+        "var(--ui-border, var(--ui-fallback-border))",
+        "var(--ui-radius-md, var(--ui-fallback-radius-md))",
     ] {
         assert!(
             styles_source.contains(needle),

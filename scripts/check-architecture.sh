@@ -83,7 +83,7 @@ for path in "${files[@]}"; do
   content="$(read_snapshot "$path" || true)"
   [[ -n "$content" ]] || continue
   if printf '%s\n' "$content" | rg -n "\bui_(components|theme)::" >/dev/null; then
-    report "ui-headless dependency direction violation" "$path references ui_components/ui_theme."
+    report "ui-headless dependency direction violation" "$path references ui/ui_theme."
   fi
 done
 
@@ -92,7 +92,7 @@ for path in "${files[@]}"; do
   content="$(read_snapshot "$path" || true)"
   [[ -n "$content" ]] || continue
   if printf '%s\n' "$content" | rg -n "\bui_components::" >/dev/null; then
-    report "ui-theme dependency direction violation" "$path references ui_components."
+    report "ui-theme dependency direction violation" "$path references ui."
   fi
 done
 
@@ -101,16 +101,16 @@ for path in "${files[@]}"; do
   content="$(read_snapshot "$path" || true)"
   [[ -n "$content" ]] || continue
   if printf '%s\n' "$content" | rg -n "\bui_components::" >/dev/null; then
-    report "ui-motion dependency direction violation" "$path references ui_components."
+    report "ui-motion dependency direction violation" "$path references ui."
   fi
 done
 
-# 3) ui-components module structure: touched component dirs must keep logic/styles/view split.
+# 3) ui module structure: touched component dirs must keep logic/styles/view split.
 #    Alias-only facade modules are exempt (mod.rs contains no module declarations).
 component_dirs=()
 for path in "${files[@]}"; do
-  [[ "$path" == crates/ui-components/src/*/* ]] || continue
-  comp="${path#crates/ui-components/src/}"
+  [[ "$path" == crates/ui/src/*/* ]] || continue
+  comp="${path#crates/ui/src/}"
   comp="${comp%%/*}"
   [[ -n "$comp" ]] || continue
   case "$comp" in
@@ -122,12 +122,12 @@ done
 if [[ "${#component_dirs[@]}" -gt 0 ]]; then
   mapfile -t uniq_component_dirs < <(printf '%s\n' "${component_dirs[@]}" | sort -u)
   for comp in "${uniq_component_dirs[@]}"; do
-    mod_path="crates/ui-components/src/$comp/mod.rs"
+    mod_path="crates/ui/src/$comp/mod.rs"
     mod_content="$(read_snapshot "$mod_path" || true)"
     [[ -n "$mod_content" ]] || continue
 
     if printf '%s\n' "$mod_content" | rg -n "^mod render;" >/dev/null; then
-      report "ui-components naming violation" "$mod_path uses render.rs; use view.rs."
+      report "ui naming violation" "$mod_path uses render.rs; use view.rs."
     fi
 
     if ! printf '%s\n' "$mod_content" | rg -q "^(pub\s+mod|mod)\s+[A-Za-z_][A-Za-z0-9_]*\s*;"; then
@@ -135,9 +135,9 @@ if [[ "${#component_dirs[@]}" -gt 0 ]]; then
     fi
 
     for req in logic.rs styles.rs view.rs; do
-      req_path="crates/ui-components/src/$comp/$req"
+      req_path="crates/ui/src/$comp/$req"
       if ! snapshot_exists "$req_path"; then
-        report "ui-components structure violation" "$comp is missing required file: $req"
+        report "ui structure violation" "$comp is missing required file: $req"
       fi
     done
   done
@@ -145,8 +145,8 @@ fi
 
 # 4) Block introducing render.rs files in component modules.
 for path in "${files[@]}"; do
-  [[ "$path" == crates/ui-components/src/*/render.rs ]] || continue
-  report "ui-components forbidden file" "$path should be renamed to view.rs."
+  [[ "$path" == crates/ui/src/*/render.rs ]] || continue
+  report "ui forbidden file" "$path should be renamed to view.rs."
 done
 
 # 5) Block introducing historical compatibility debt markers in source files.

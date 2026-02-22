@@ -1007,6 +1007,8 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
         "  --ui-fallback-color-swatch-border-width: {}px;",
         color_swatch_layout.border_width_px
     );
+    css_writeln!(css, "  --ui-color-swatch-y: 0px;");
+    css_writeln!(css, "  --ui-fallback-color-swatch-y: 0px;");
     css_writeln!(css, "  --ui-color-thumb-x-start: 16%;");
     css_writeln!(css, "  --ui-color-thumb-x-center: 50%;");
     css_writeln!(css, "  --ui-color-thumb-x-end: 84%;");

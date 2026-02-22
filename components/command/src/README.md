@@ -20,7 +20,7 @@
 
 ```rust
 use std::sync::Arc;
-use ui_components::{Command, CommandGroup, CommandItem};
+use ui::{Command, CommandGroup, CommandItem};
 
 let groups: Arc<[CommandGroup]> = Arc::from(vec![CommandGroup::new(
     "Navigation",
@@ -88,7 +88,7 @@ view! {
 ## Source-first
 
 - 组件源码：`components/command/src/{mod,logic,view,styles,motion}.rs`
-- 组合组件：`crates/ui-components/src/command_dialog/`
+- 组合组件：`crates/ui/src/command_dialog/`
 - package feature：`component-command`（可选叠加 `inject-css`）
 
 ## Docs Playground

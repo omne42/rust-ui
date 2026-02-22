@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -130,8 +130,8 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（通过：组件样式集中在 `styles.rs`，由 `crates/ui-components/src/css.rs` 按 feature 聚合；视觉值使用 `var(--ui-*)`；组件运行时无业务 inline style）
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（通过：组件样式集中在 `styles.rs`，由 `crates/ui/src/css.rs` 按 feature 聚合；视觉值使用 `var(--ui-*)`；组件运行时无业务 inline style）
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -140,14 +140,14 @@
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（通过：`crates/ui-components/Cargo.toml` 提供 `component-field_label` 独立特性并按 `all-components` 汇总；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 对 `field_label` 导出/样式聚合均受 `#[cfg(feature = "component-field_label")]` 约束；`scripts/check-ui-components-tree-shaking.sh` 已固定执行特性树、反向依赖、最小 wasm 编译与体积预算检查，并由 `.github/workflows/ci.yml` 接入）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（通过：`crates/ui/Cargo.toml` 提供 `component-field_label` 独立特性并按 `all-components` 汇总；`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 对 `field_label` 导出/样式聚合均受 `#[cfg(feature = "component-field_label")]` 约束；`scripts/check-ui-tree-shaking.sh` 已固定执行特性树、反向依赖、最小 wasm 编译与体积预算检查，并由 `.github/workflows/ci.yml` 接入）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（通过：离散输入 `tone` 使用 `FieldLabelTone` 枚举（`ui-state-primitives/field_label.rs`）；无效输入先在 `logic.rs` 统一归一化再进入 `resolve_state`；`view.rs` 稳定输出 `data-tone/data-state/data-required/data-disabled/data-*-source` 等 marker；回归测试覆盖 primitives/headless/component 三层（`crates/ui-state-primitives/src/test/field_label.rs`、`crates/ui-headless/src/test/field_label.rs`、`components/field-label/test/logic.rs`、`components/field-label/test/semantics.rs`、`components/field-label/test/field_label_semantics.rs`），契约破坏可被编译器类型检查与语义测试直接定位）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -159,15 +159,15 @@
 - [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`FieldLabel` 为静态表单标签组件，不承载 overlay 叠层、焦点陷阱或焦点恢复职责；组件实现仅渲染 `<label>` 语义与 marker（见 `components/field-label/src/view.rs`），未私存 `NodeRef` 或实现焦点回落逻辑）
 - [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`FieldLabel` 不集成命令式第三方实例（无 ECharts/Map/外部 imperative runtime），组件 API 仅暴露标签语义 props；测试已约束不暴露 `web_sys`/`wasm_bindgen` 平台细节）
 - [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（N/A：`FieldLabel` 不在组件/logic/headless/primitives 内生成 ID，也不依赖时间或随机源；`for_id` 由外部显式传入并透传渲染，因此不存在 SSR/Hydration 期间的随机 ID 漂移问题）
-- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（通过：仓库级 `scripts/check-ui-components-platforms.sh` 已覆盖 web/ssr/wasm compile-only 路径（含 `ui-headless --features ssr`、`ui-headless --target wasm32 --features web`、`ui-components --target wasm32`）；`field-label` 侧 `components/field-label/test/semantics.rs` 明确约束不暴露/引用 `web_sys` 与浏览器对象，`view.rs` 无平台分支偶然行为依赖。注：本地尝试执行 compile-only 命令时受环境 `Invalid cross-device link (os error 18)` 阻断，按仓库既有 CI 门禁证据判定）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（通过：仓库级 `scripts/check-ui-platforms.sh` 已覆盖 web/ssr/wasm compile-only 路径（含 `ui-headless --features ssr`、`ui-headless --target wasm32 --features web`、`ui --target wasm32`）；`field-label` 侧 `components/field-label/test/semantics.rs` 明确约束不暴露/引用 `web_sys` 与浏览器对象，`view.rs` 无平台分支偶然行为依赖。注：本地尝试执行 compile-only 命令时受环境 `Invalid cross-device link (os error 18)` 阻断，按仓库既有 CI 门禁证据判定）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（通过：`crates/ui-headless/src/lib.rs` 顶层含 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)` 互斥保护；`scripts/check-ui-components-platforms.sh` 包含 `ui-headless --features web,ssr` 必失败门禁并校验 `mutually exclusive` 错误文本；`FieldLabel` 仅通过 `use_field_label(FieldLabelOptions { .. })` 消费 headless 契约，不会绕过该特性约束）
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（通过：`crates/ui-headless/src/lib.rs` 顶层含 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)` 互斥保护；`scripts/check-ui-platforms.sh` 包含 `ui-headless --features web,ssr` 必失败门禁并校验 `mutually exclusive` 错误文本；`FieldLabel` 仅通过 `use_field_label(FieldLabelOptions { .. })` 消费 headless 契约，不会绕过该特性约束）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（通过：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion()` 与 `web::animate()` 可预测 no-op，并有 non-wasm 测试；`scripts/check-ui-components-platforms.sh` 已纳入 `ui-motion` non-wasm stub 测试。组件侧 N/A：`FieldLabel` 无 `motion.rs`、无动画句柄假设，不存在 non-wasm panic 风险）
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（通过：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion()` 与 `web::animate()` 可预测 no-op，并有 non-wasm 测试；`scripts/check-ui-platforms.sh` 已纳入 `ui-motion` non-wasm stub 测试。组件侧 N/A：`FieldLabel` 无 `motion.rs`、无动画句柄假设，不存在 non-wasm panic 风险）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
@@ -175,7 +175,7 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（通过：`FieldLabel` 为轻量静态标签组件，关键路径限定为 `logic.rs` 归一化 + `view.rs` 语义挂载（无动效循环/高频状态更新）；仓库统一预算与阻断链路由 `scripts/check-ui-components-performance.sh` 提供（覆盖 `button/input` 等基线与性能契约）；当前测试基建对通用精确 `render_count` 仍在补齐阶段，`docs/plan/TODO.md` 已显式跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（通过：`FieldLabel` 为轻量静态标签组件，关键路径限定为 `logic.rs` 归一化 + `view.rs` 语义挂载（无动效循环/高频状态更新）；仓库统一预算与阻断链路由 `scripts/check-ui-performance.sh` 提供（覆盖 `button/input` 等基线与性能契约）；当前测试基建对通用精确 `render_count` 仍在补齐阶段，`docs/plan/TODO.md` 已显式跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
@@ -213,16 +213,16 @@
 
 ### 5. 样式与动效（Theme & Motion）
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（通过：`components/field-label/src/styles.rs` 已将颜色/间距/字号/行高/边框等关键视觉值统一改为双层回退链（如 `var(--ui-fg, var(--ui-fallback-fg))`、`var(--ui-font-size-150, var(--ui-fallback-font-size-150))`）；并移除 `14px/20px/0.85em` 终值。新增回归 `components/field-label/test/field_label_semantics.rs::field_label_styles_use_defensive_variable_fallback_chain` 锁定 fallback 契约）
-- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（通过：`crates/ui-components/src/css.rs` 的 `push_components_css` 统一以 `@layer ui` 包裹组件样式并聚合 `field_label::styles::CSS`；`components/field-label/src/view.rs` 无普通 `style=` 内联样式。新增回归 `components/field-label/test/field_label_semantics.rs::field_label_css_is_aggregated_in_ui_layer_and_view_avoids_inline_style` 锁定该契约）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（通过：`crates/ui/src/css.rs` 的 `push_components_css` 统一以 `@layer ui` 包裹组件样式并聚合 `field_label::styles::CSS`；`components/field-label/src/view.rs` 无普通 `style=` 内联样式。新增回归 `components/field-label/test/field_label_semantics.rs::field_label_css_is_aggregated_in_ui_layer_and_view_avoids_inline_style` 锁定该契约）
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（N/A：`FieldLabel` 为静态标签组件，无 enter/exit/active 动画语义，不需要 `motion.rs`/`attach_motion`；组件现状已由回归锁定：`components/field-label/test/field_label_semantics.rs` 断言不存在 `motion.rs` 与 `mod motion` 导出，`components/field-label/test/semantics.rs` 断言 `view.rs` 不出现 `attach_motion`/`ui_motion::`。non-wasm no-op 与 reduced-motion 降级由仓库级 `ui-motion` 契约保障）
-- [x] `ui-components` 固定入口文件落点正确。（通过：`crates/ui-components/src/lib.rs` 保持总入口与 `field_label` 的 feature-gate 导出，`crates/ui-components/src/css.rs` 通过 `push_components_css` 在 `@layer ui` 下按 feature 聚合 `field_label::styles::CSS`，`crates/ui-components/src/root.rs` 统一注入 base css/theme vars/components css 并提供 i18n 上下文，`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮动效能力；并在 `components/field-label/test/field_label_semantics.rs::field_label_ui_components_entry_files_follow_architecture_contract` 回归断言 `overlay_open.rs/presence.rs/a11y.rs` 不存在）
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。（通过：`crates/ui/src/lib.rs` 保持总入口与 `field_label` 的 feature-gate 导出，`crates/ui/src/css.rs` 通过 `push_components_css` 在 `@layer ui` 下按 feature 聚合 `field_label::styles::CSS`，`crates/ui/src/root.rs` 统一注入 base css/theme vars/components css 并提供 i18n 上下文，`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮动效能力；并在 `components/field-label/test/field_label_semantics.rs::field_label_ui_components_entry_files_follow_architecture_contract` 回归断言 `overlay_open.rs/presence.rs/a11y.rs` 不存在）
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。（通过：`components/field-label/src` 当前仅包含 `mod.rs/logic.rs/styles.rs/view.rs`（加协议文件 `protocol.rs`），`mod.rs` 维持最小导出面（`FieldLabel` + 稳定 API 类型）；`logic.rs` 负责归一与状态派生、`view.rs` 仅挂载 headless 语义、`styles.rs` 提供静态 token-first CSS；`FieldLabel` 非交互动效组件，`motion.rs` 按适用范围 N/A；`spec.rs` 不存在。回归测试已锁定 `spec.rs/motion.rs/render.rs` 不得出现：`components/field-label/test/field_label_semantics.rs::field_label_component_files_follow_expected_layout_and_no_spec_file`）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -254,7 +254,7 @@
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（通过：`components/field-label/src/*.rs` 已清理为无 `unwrap/expect`、无裸 `let _ = ...`，并将类名拼接热点收敛到 `Vec<Cow<'static, str>>`（`components/field-label/src/logic.rs`）；回归测试新增 `components/field-label/test/semantics.rs::rust_hygiene_contract_no_unwrap_expect_or_let_underscore_and_cow_hotpath` 与 `components/field-label/test/field_label_semantics.rs::field_label_non_test_sources_follow_rust_hygiene_contract`。验证说明：尝试执行 `./scripts/check-rust-hygiene.sh` 时被脚本内部依赖权限阻断（`./scripts/check-api-contracts.sh: Permission denied`），已用组件级等价检查补证）
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（通过：`crates/ui-components/Cargo.toml` 已注册 `component-field_label = [\"dep:ui-field-label\"]` 且 `ui-field-label` 为 `optional = true`；`crates/ui-components/src/lib.rs` 对 `field_form` 与 `FieldLabel` 导出受 `component-field_label` 条件门控；`crates/ui-components/src/css.rs` 对 `field_label` CSS 聚合受 `#[cfg(feature = \"component-field_label\")]` 门控。回归测试补充：`components/field-label/test/field_label_semantics.rs::field_label_tree_shaking_feature_contract_is_registered`。命令验证：`cargo tree -e features -p ui-components --no-default-features --features component-field_label,inject-css` 仅出现 `ui-field-label` 目标链；`cargo tree -e features -i ui-components -p web-demo` 显示由 `web-demo-components` 拉起，而非隐式无条件全量依赖）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（通过：`crates/ui/Cargo.toml` 已注册 `component-field_label = [\"dep:ui-field-label\"]` 且 `ui-field-label` 为 `optional = true`；`crates/ui/src/lib.rs` 对 `field_form` 与 `FieldLabel` 导出受 `component-field_label` 条件门控；`crates/ui/src/css.rs` 对 `field_label` CSS 聚合受 `#[cfg(feature = \"component-field_label\")]` 门控。回归测试补充：`components/field-label/test/field_label_semantics.rs::field_label_tree_shaking_feature_contract_is_registered`。命令验证：`cargo tree -e features -p ui --no-default-features --features component-field_label,inject-css` 仅出现 `ui-field-label` 目标链；`cargo tree -e features -i ui -p web-demo` 显示由 `web-demo-components` 拉起，而非隐式无条件全量依赖）
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（通过：`components/field-label/test/semantics.rs` 与 `components/field-label/test/field_label_semantics.rs` 已断言 `aria-label/aria-disabled`、完整 `data-*` 状态来源标记，并新增 `for=for_id + data-has-for` 聚焦关联契约，覆盖 label->control 焦点流转语义；`FieldLabel` 属轻量静态标签组件，非高频/重型交互路径，本项 `render_count` 要求按适用范围 N/A）
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：`FieldLabel` 本轮未发生跨大版本 API 破坏升级，协议仍为 `schema_version = \"1\"`，不存在 `v1 -> v2` 迁移窗口；并以 `components/field-label/test/protocol.rs::protocol_default_stays_v1` 锁定默认版本契约）
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（通过：`apps/docs-app/src/pages/components/pages/forms_extra_field_label.rs` 已包含 `Hello World`、`Tone + Required` 状态矩阵、`Controlled vs Uncontrolled (N/A for FieldLabel)`、`Streaming / Snapshot Contract` 四类 Playground；全部示例挂载 `code_imports=FIELD_LABEL_DOC_IMPORTS.to_string()`，满足 Source-first copy-ready imports。`FieldLabel` 无可控值轴，对照以 N/A 明示；流式/快照以 `snapshot-first + fallback` 文案与契约标记示例明确。回归锁定见 `components/field-label/test/field_label_semantics.rs::field_label_docs_page_covers_primary_playgrounds` 与 `...::field_label_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract`）
@@ -282,7 +282,7 @@
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（通过：`apps/docs-app/src/pages/components/pages/forms_extra_field_label.rs` 所有 playground 使用 `code_imports=FIELD_LABEL_DOC_IMPORTS.to_string()`，并在 Workbench 提供 `test_source_path` 指向真实源码落点 `crates/ui-components/src/field_form/field_label/styles.rs`；回归覆盖 `components/field-label/test/field_label_semantics.rs::field_label_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract` 与 `e2e/tests/docs_app_field_label_contract.spec.mjs::docs-app field-label playground source is copy-paste ready`（断言 code-block 可复制、imports 完整、最小 `<FieldLabel` 片段存在）。）
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（通过：`apps/docs-app/src/pages/components/pages/forms_extra_field_label.rs` 所有 playground 使用 `code_imports=FIELD_LABEL_DOC_IMPORTS.to_string()`，并在 Workbench 提供 `test_source_path` 指向真实源码落点 `crates/ui/src/field_form/field_label/styles.rs`；回归覆盖 `components/field-label/test/field_label_semantics.rs::field_label_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract` 与 `e2e/tests/docs_app_field_label_contract.spec.mjs::docs-app field-label playground source is copy-paste ready`（断言 code-block 可复制、imports 完整、最小 `<FieldLabel` 片段存在）。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
@@ -298,9 +298,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

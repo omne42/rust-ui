@@ -1,6 +1,6 @@
 use crate::search_index::search;
 use leptos::{ev, html, prelude::*};
-use ui_components::{Button, ButtonSize, ButtonVariant, Dialog, DialogSize, SearchInputButton};
+use ui::{Button, ButtonSize, ButtonVariant, Dialog, DialogSize, SearchInputButton};
 use ui_layout::{Flex, FlexAlign, FlexDirection, FlexGap};
 
 fn truncate_chars(input: &str, max_chars: usize) -> String {

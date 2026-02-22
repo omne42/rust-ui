@@ -34,20 +34,20 @@
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（N/A：`Keyboard` 为静态展示组件，无 open/close 等动效状态轴，不需要组件级 `motion.rs`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
-  - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
+  - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
+  - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
   - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（已补本地语义回归：`components/keyboard/test/semantics.rs`，并将旧入口 `components/keyboard/test/keyboard_semantics.rs` 迁移为桥接 `include!`。）
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（已补本地语义回归：`components/keyboard/test/semantics.rs`，并将旧入口 `components/keyboard/test/keyboard_semantics.rs` 迁移为桥接 `include!`。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -130,8 +130,8 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`Keyboard` 样式集中在 `components/keyboard/src/styles.rs`，并由 `crates/ui-components/src/css.rs` 通过 `component-keyboard` 聚合，再由 `UiRoot` 的 `inject_components_css` 路径注入；视觉值使用 `var(--ui-*)` token，组件层未引入 Utility-First/CSS-in-Rust 方案。）
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`Keyboard` 样式集中在 `components/keyboard/src/styles.rs`，并由 `crates/ui/src/css.rs` 通过 `component-keyboard` 聚合，再由 `UiRoot` 的 `inject_components_css` 路径注入；视觉值使用 `var(--ui-*)` token，组件层未引入 Utility-First/CSS-in-Rust 方案。）
+  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
@@ -140,14 +140,14 @@
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui-components` 已为 `Keyboard` 提供 `component-keyboard = ["dep:ui-keyboard"]` 可选特性，且 `ui-keyboard` 依赖为 `optional`；`lib.rs` 与 `css.rs` 分别以 `#[cfg(feature = "component-keyboard")]` 条件导出与样式聚合。验证命令 `cargo tree -e features -p ui-components --no-default-features --features component-keyboard,inject-css` 与 `cargo tree -e features -i ui-components -p web-demo` 已确认最小特性链与 `web-demo` 未启用 `all-components`。CI 最小特性编译与体积预算属于仓库流水线门禁，组件侧已满足接入前提。）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui` 已为 `Keyboard` 提供 `component-keyboard = ["dep:ui-keyboard"]` 可选特性，且 `ui-keyboard` 依赖为 `optional`；`lib.rs` 与 `css.rs` 分别以 `#[cfg(feature = "component-keyboard")]` 条件导出与样式聚合。验证命令 `cargo tree -e features -p ui --no-default-features --features component-keyboard,inject-css` 与 `cargo tree -e features -i ui -p web-demo` 已确认最小特性链与 `web-demo` 未启用 `all-components`。CI 最小特性编译与体积预算属于仓库流水线门禁，组件侧已满足接入前提。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`Keyboard` 的离散输入由 `KeyboardTone` 枚举与 `KeyboardStateInput` 新类型承载；`logic.rs` 统一通过 `normalize_root_state -> resolve_state` 归一无效输入；`view.rs` 稳定输出 `data-tone/data-state/data-aria-source/data-class-source` 封闭语义域，`components/keyboard/test/logic.rs` 与 `components/keyboard/test/semantics.rs` 可直接定位类型或标记契约回归。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
@@ -198,7 +198,7 @@
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（N/A：`Keyboard` 为静态语义展示组件，无关键交互状态机与事件回放链路；组件实现未引入 `TraceId/tracing` 调试埋点。调试能力隔离由上层 `ui-components` 的 `*-wasm-debug` 特性治理，且当前不存在 `keyboard-wasm-debug` 特性，默认产物不携带组件调试开关。）
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（N/A：`Keyboard` 为静态语义展示组件，无关键交互状态机与事件回放链路；组件实现未引入 `TraceId/tracing` 调试埋点。调试能力隔离由上层 `ui` 的 `*-wasm-debug` 特性治理，且当前不存在 `keyboard-wasm-debug` 特性，默认产物不携带组件调试开关。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
@@ -213,16 +213,16 @@
 
 ### 5. 样式与动效（Theme & Motion）
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（`components/keyboard/src/styles.rs` 已将边框/圆角/前景/背景/字号/行高/尺寸与内边距统一为双层回退链，并以 `calc + var(--ui-*, var(--ui-fallback-*))` 消除组件内裸尺寸终值；终值 fallback 由 `crates/ui-theme/src/css.rs` 统一生成（如 `--ui-fallback-border-width`、`--ui-fallback-radius-sm`、`--ui-fallback-space-xs`、`--ui-fallback-font-size-100`、`--ui-fallback-component-height-100`）。）
-- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`crates/ui-components/src/css.rs` 的 `push_components_css` 已以 `out.push_str(\"\\n@layer ui {\\n\")` 包裹组件样式并在末尾闭合，`Keyboard` 样式通过 `component-keyboard` 条件聚合进入该层；`components/keyboard/src/view.rs` 未使用 `style=\"...\"` 或 `style:*` 普通内联样式，运行时视觉状态仅通过 `data-*` 语义标记与 CSS 变量契约驱动。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`crates/ui/src/css.rs` 的 `push_components_css` 已以 `out.push_str(\"\\n@layer ui {\\n\")` 包裹组件样式并在末尾闭合，`Keyboard` 样式通过 `component-keyboard` 条件聚合进入该层；`components/keyboard/src/view.rs` 未使用 `style=\"...\"` 或 `style:*` 普通内联样式，运行时视觉状态仅通过 `data-*` 语义标记与 CSS 变量契约驱动。）
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（N/A：`Keyboard` 为静态语义展示组件，无 enter/exit/active 等动效状态轴，不引入 `motion.rs`、`attach_motion` 与 `stiffness/damping` 组件级动效 contract。`reduced-motion` 与 non-wasm/SSR 降级能力由 `crates/ui-motion/src/lib.rs` 的 no-op/stub 统一提供，且 `components/keyboard/test/semantics.rs` 已覆盖该能力与 SSR/wasm 语义一致性回归。）
-- [x] `ui-components` 固定入口文件落点正确。（`crates/ui-components/src/lib.rs` 作为总入口并以 `#[cfg(feature = \"component-*\")]` 条件导出组件（含 `component-keyboard -> pub use ui_keyboard as keyboard`）；`crates/ui-components/src/css.rs` 通过 `push_components_css` 在 `@layer ui` 内按 feature 条件聚合组件 CSS；`crates/ui-components/src/root.rs` 的 `UiRoot` 统一注入 `BASE_CSS + theme vars + 可选 components css`，并集中提供 `provide_ui_i18n/provide_ui_id_provider`。共享高亮能力位于 `crates/ui-visual-primitive/src/active_highlight.rs`，仅提供通用样式与 motion driver。`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 当前不存在；对应原语分别固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。）
-  - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
-  - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
-  - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
+- [x] `ui` 固定入口文件落点正确。（`crates/ui/src/lib.rs` 作为总入口并以 `#[cfg(feature = \"component-*\")]` 条件导出组件（含 `component-keyboard -> pub use ui_keyboard as keyboard`）；`crates/ui/src/css.rs` 通过 `push_components_css` 在 `@layer ui` 内按 feature 条件聚合组件 CSS；`crates/ui/src/root.rs` 的 `UiRoot` 统一注入 `BASE_CSS + theme vars + 可选 components css`，并集中提供 `provide_ui_i18n/provide_ui_id_provider`。共享高亮能力位于 `crates/ui-visual-primitive/src/active_highlight.rs`，仅提供通用样式与 motion driver。`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 当前不存在；对应原语分别固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。）
+  - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
+  - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
+  - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
   - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
-  - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
-  - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
-  - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
+  - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
+  - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+  - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
 - [x] 组件目录标准文件落点正确。（`components/keyboard/src` 维持 `mod.rs + logic.rs + styles.rs + view.rs` 主职责落点：`mod.rs` 仅保留最小稳定导出（`Keyboard/KeyboardTone`），`logic.rs` 仅做 props 归一与状态派生，`styles.rs` 仅承载 token-first 静态 CSS，`view.rs` 仅做 Leptos 结构与 headless 语义挂载；目录中不存在 `render.rs`。`Keyboard` 为静态语义展示组件，无组件级动效状态轴与复杂 schema 需求，`motion.rs/spec.rs` 按 N/A 处理且当前未引入。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -254,7 +254,7 @@
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`Keyboard` 组件范围内 `components/keyboard/src/*.rs` 与相关原语文件未出现非测试 `unwrap/expect` 或 `let _ = ...`；`components/keyboard/src/logic.rs` 的 class 组装已收敛为 `Cow<'static, str>`。本地执行 `./scripts/check-rust-hygiene.sh` 受仓库其余组件历史项影响未全绿，`Keyboard` 范围检查通过。）
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`crates/ui-components/Cargo.toml` 已注册 `component-keyboard = ["dep:ui-keyboard"]` 且 `ui-keyboard` 为 optional；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 均以 `#[cfg(feature = "component-keyboard")]` 条件导出/聚合，未无条件引入 keyboard。验证：`cargo tree -e features -p ui-components --no-default-features --features component-keyboard,inject-css` 可见 keyboard 特性链；`cargo tree -e features -i ui-components -p web-demo` 未出现 `all-components` 拉起。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`crates/ui/Cargo.toml` 已注册 `component-keyboard = ["dep:ui-keyboard"]` 且 `ui-keyboard` 为 optional；`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 均以 `#[cfg(feature = "component-keyboard")]` 条件导出/聚合，未无条件引入 keyboard。验证：`cargo tree -e features -p ui --no-default-features --features component-keyboard,inject-css` 可见 keyboard 特性链；`cargo tree -e features -i ui -p web-demo` 未出现 `all-components` 拉起。）
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（`components/keyboard/test/semantics.rs` 已覆盖 `<kbd>`、`aria-label` 与关键 `data-*`（含 `data-state/data-aria-source/data-class-source/data-ui-*`）语义契约，且断言不依赖视觉快照。`Keyboard` 为非交互展示组件，不存在焦点流转链路（无 focus trap/roving/overlay 恢复），该维度按 N/A 记录；性能侧已通过单节点 `<kbd>` + 两个 `Memo` + 无事件热循环给出等价回归证据，`render_count` 对“高频/重型组件”要求在本组件按适用范围 N/A。）
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本轮 `Keyboard` 变更未引入跨大版本 API 破坏；`components/keyboard/src/protocol.rs` 仍为单一 `KeyboardComponentSchemaVersion::V1` 与 `KeyboardComponentSpec`，不存在 `v2` 协议切换、弃用窗口或 `migrate_v1_to_v2` 迁移函数需求。）
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/display_extra.rs` 的 `keyboard()` 已补齐 `Playground`：`Hello World (Default Path)`、`State Matrix (Tone / Compact / Source Markers)`、`Controlled vs Uncontrolled Contrast (N/A for Keyboard)`、`Streaming / Snapshot Contract`、`Source-first Starter (Copy-Paste Ready)` 与 `Interactive Playground`；示例统一配置 `code_imports=keyboard_imports`，复制代码由 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports 后可直接运行。`Keyboard` 无可控状态轴，受控/非受控对照按 N/A 语义展示“上游状态映射到 props”路径。）
@@ -282,7 +282,7 @@
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/display_extra.rs` 的 `keyboard()` 已提供 `Source-first Starter (Copy-Paste Ready)`，并通过 `code_imports=keyboard_imports` 接入 `Playground` 的 `compose_copy_ready_code(...)` 自动补齐 imports。`e2e/tests/docs_app_keyboard_contract.spec.mjs` 新增 `docs-app keyboard source-first snippet is copy-paste ready with imports`，断言代码块 `data-copyable=\"true\"` 且包含 `use leptos::prelude::*;`、`use ui_components::{Keyboard, KeyboardTone};` 与可运行示例。`components/keyboard/src/README.md` 的 `Source-first Copy-Paste Ready` 节已指向真实源码落点（`mod/logic/view/styles`）并补充依赖前提（`ui-components` + `component-keyboard`）。）
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/display_extra.rs` 的 `keyboard()` 已提供 `Source-first Starter (Copy-Paste Ready)`，并通过 `code_imports=keyboard_imports` 接入 `Playground` 的 `compose_copy_ready_code(...)` 自动补齐 imports。`e2e/tests/docs_app_keyboard_contract.spec.mjs` 新增 `docs-app keyboard source-first snippet is copy-paste ready with imports`，断言代码块 `data-copyable=\"true\"` 且包含 `use leptos::prelude::*;`、`use ui::{Keyboard, KeyboardTone};` 与可运行示例。`components/keyboard/src/README.md` 的 `Source-first Copy-Paste Ready` 节已指向真实源码落点（`mod/logic/view/styles`）并补充依赖前提（`ui` + `component-keyboard`）。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
@@ -298,9 +298,9 @@
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
 - `./scripts/check-rust-hygiene.sh`
-- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui --target wasm32-unknown-unknown`
 - `cargo check -p ui-headless --no-default-features --features ssr`
-- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+- `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
 
 依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
 

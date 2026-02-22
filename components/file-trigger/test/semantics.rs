@@ -1339,8 +1339,8 @@ fn component_does_not_introduce_spec_rs_for_simple_surface() {
 fn component_follows_token_first_static_style_contract() {
     let styles_source = include_str!("../src/styles.rs");
     let view_source = include_str!("../src/view.rs");
-    let css_aggregate_source = include_str!("../../../crates/ui-components/src/css.rs");
-    let root_source = include_str!("../../../crates/ui-components/src/root.rs");
+    let css_aggregate_source = include_str!("../../../crates/ui/src/css.rs");
+    let root_source = include_str!("../../../crates/ui/src/root.rs");
     let readme_source = include_str!("../src/README.md");
 
     for required in [
@@ -1360,7 +1360,7 @@ fn component_follows_token_first_static_style_contract() {
     ] {
         assert!(
             css_aggregate_source.contains(required),
-            "ui-components css aggregation should include file-trigger behind feature gate: `{required}`"
+            "ui css aggregation should include file-trigger behind feature gate: `{required}`"
         );
     }
 
@@ -1411,15 +1411,15 @@ fn component_marks_visual_desire_as_repo_level_concern() {
 
 #[test]
 fn component_supports_tree_shaking_feature_gates() {
-    let ui_components_cargo = include_str!("../../../crates/ui-components/Cargo.toml");
-    let ui_components_lib = include_str!("../../../crates/ui-components/src/lib.rs");
-    let ui_components_css = include_str!("../../../crates/ui-components/src/css.rs");
+    let ui_components_cargo = include_str!("../../../crates/ui/Cargo.toml");
+    let ui_components_lib = include_str!("../../../crates/ui/src/lib.rs");
+    let ui_components_css = include_str!("../../../crates/ui/src/css.rs");
     let web_demo_cargo = include_str!("../../../apps/web-demo/Cargo.toml");
     let readme_source = include_str!("../src/README.md");
 
     assert!(
         ui_components_cargo.contains("component-file_trigger = []"),
-        "ui-components should expose a dedicated `component-file_trigger` feature."
+        "ui should expose a dedicated `component-file_trigger` feature."
     );
     assert!(
         ui_components_lib.contains("#[cfg(feature = \"component-file_trigger\")]")
@@ -1437,8 +1437,8 @@ fn component_supports_tree_shaking_feature_gates() {
         "css aggregation should remain behind explicit `inject-css` gate."
     );
     assert!(
-        web_demo_cargo.contains("ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"),
-        "web-demo should keep ui-components usage feature-scoped and avoid implicit default/all-components pull-up."
+        web_demo_cargo.contains("ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }"),
+        "web-demo should keep ui usage feature-scoped and avoid implicit default/all-components pull-up."
     );
     assert!(
         !web_demo_cargo.contains("all-components"),
@@ -1530,7 +1530,7 @@ fn component_styles_follow_defensive_variable_contract() {
 #[test]
 fn component_css_layering_and_inline_style_policy_hold() {
     let view_source = include_str!("../src/view.rs");
-    let css_source = include_str!("../../../crates/ui-components/src/css.rs");
+    let css_source = include_str!("../../../crates/ui/src/css.rs");
 
     assert!(
         css_source.contains("@layer ui"),
@@ -1587,11 +1587,11 @@ fn component_and_ui_components_entry_layout_contract_holds() {
         );
     }
 
-    let ui_components_dir = root.join("crates/ui-components/src");
+    let ui_components_dir = root.join("crates/ui/src");
     for forbidden in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(
             !ui_components_dir.join(forbidden).exists(),
-            "ui-components src should not contain forbidden shared file: `{forbidden}`"
+            "ui src should not contain forbidden shared file: `{forbidden}`"
         );
     }
 

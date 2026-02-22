@@ -344,7 +344,7 @@ fn avatar_group_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_entry_source.contains(required),
-            "ui-components css entry should keep cascade-layer contract marker `{required}`."
+            "ui css entry should keep cascade-layer contract marker `{required}`."
         );
     }
 
@@ -454,7 +454,7 @@ fn avatar_group_docs_playgrounds_lock_state_matrix_contract_values() {
         "title=\"Source-first Starter (Copy-Paste Ready)\"",
         "Copy action auto-injects missing imports for direct run.",
         "let code_imports =",
-        "use ui_components::{AvatarGroup, AvatarGroupItem, AvatarSize};",
+        "use ui::{AvatarGroup, AvatarGroupItem, AvatarSize};",
         "data-slot=\"avatar-group-copy-ready-hint\"",
     ] {
         assert!(
@@ -743,7 +743,7 @@ fn avatar_group_readme_is_beginner_friendly_with_default_path_before_advanced() 
         "# AvatarGroup",
         "## 先用起来（Quick Start / Hello World）",
         "不需要先理解分层架构",
-        "use ui_components::{AvatarGroup, AvatarGroupItem};",
+        "use ui::{AvatarGroup, AvatarGroupItem};",
         "<AvatarGroup items=Vec::<AvatarGroupItem>::new() />",
         "## 常见用法（Common Usage）",
         "基础头像组 + overflow",
@@ -1068,7 +1068,7 @@ fn avatar_group_hydration_discontinuity_contract_is_explicitly_na_without_time_o
 fn avatar_group_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_clean() {
     let manifest_source = load_source("../../components/avatar-group/Cargo.toml");
     let check2_source = load_source("../../components/avatar-group/check2.md");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let mod_source = load_source("src/avatar/mod.rs");
     let logic_source = load_source("src/avatar/logic.rs");
     let view_source = load_source("src/avatar/view.rs");
@@ -1078,9 +1078,9 @@ fn avatar_group_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm
     let ui_components_manifest_source = load_source("Cargo.toml");
 
     for required in [
-        "cargo check -p ui-components",
+        "cargo check -p ui",
         "cargo check -p ui-headless --no-default-features --features ssr",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css",
     ] {
         assert!(
             check2_source.contains(required),
@@ -1089,8 +1089,8 @@ fn avatar_group_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm
     }
 
     for required in [
-        "cargo check -p ui-components --no-default-features --features component-avatar_group,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-avatar_group,inject-css",
+        "cargo check -p ui --no-default-features --features component-avatar_group,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-avatar_group,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
     ] {
@@ -1122,7 +1122,7 @@ fn avatar_group_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm
         ui_components_manifest_source
             .contains("[target.'cfg(target_arch = \"wasm32\")'.dependencies]")
             && ui_components_manifest_source.contains("web-sys = { version = \"0.3.85\""),
-        "wasm-only browser dependency should stay behind explicit target cfg in ui-components."
+        "wasm-only browser dependency should stay behind explicit target cfg in ui."
     );
 
     for forbidden in [
@@ -1161,7 +1161,7 @@ fn avatar_group_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm
 #[test]
 fn avatar_group_ui_headless_web_ssr_feature_mutex_contract_is_enforced() {
     let check2_source = load_source("../../components/avatar-group/check2.md");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let ui_headless_manifest_source = load_source("../ui-headless/Cargo.toml");
     let ui_headless_lib_source = load_source("../ui-headless/src/lib.rs");
 
@@ -1210,7 +1210,7 @@ fn avatar_group_ui_headless_web_ssr_feature_mutex_contract_is_enforced() {
 #[test]
 fn avatar_group_ui_motion_non_wasm_noop_stub_contract_is_enforced() {
     let check2_source = load_source("../../components/avatar-group/check2.md");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let ui_motion_lib_source = load_source("../ui-motion/src/lib.rs");
     let ui_motion_non_wasm_stub_test_source = load_source("../ui-motion/tests/non_wasm_stub.rs");
     let logic_source = load_source("src/avatar/logic.rs");
@@ -1272,7 +1272,7 @@ fn avatar_group_ui_motion_non_wasm_noop_stub_contract_is_enforced() {
 #[test]
 fn avatar_group_reduced_motion_ssr_wasm_branch_contract_is_explicitly_na_and_consistent() {
     let check2_source = load_source("../../components/avatar-group/check2.md");
-    let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_source("../../scripts/check-ui-platforms.sh");
     let ui_motion_lib_source = load_source("../ui-motion/src/lib.rs");
     let ui_motion_non_wasm_stub_test_source = load_source("../ui-motion/tests/non_wasm_stub.rs");
     let logic_source = load_source("src/avatar/logic.rs");
@@ -1285,8 +1285,8 @@ fn avatar_group_reduced_motion_ssr_wasm_branch_contract_is_explicitly_na_and_con
     );
 
     for required in [
-        "cargo check -p ui-components --no-default-features --features component-avatar_group,inject-css",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-avatar_group,inject-css",
+        "cargo check -p ui --no-default-features --features component-avatar_group,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-avatar_group,inject-css",
         "cargo check -p ui-motion",
         "cargo check -p ui-motion --target wasm32-unknown-unknown",
         "cargo test -p ui-motion --test non_wasm_stub",
@@ -1349,7 +1349,7 @@ fn avatar_group_performance_governance_budget_is_defined_and_blocking() {
     let coverage_e2e_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let check2_source = load_source("../../components/avatar-group/check2.md");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let script_source = load_source("../../scripts/check-ui-performance.sh");
     let view_source = load_source("src/avatar/view.rs");
     let styles_source = load_source("src/avatar/styles.rs");
 
@@ -1418,9 +1418,9 @@ fn avatar_group_performance_governance_budget_is_defined_and_blocking() {
     }
 
     for required in [
-        "cargo test -p ui-components --test avatar_group_semantics --no-default-features --features component-avatar_group,inject-css avatar_group_performance_governance_budget_is_defined_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test avatar_group_semantics --no-default-features --features component-avatar_group,inject-css avatar_group_performance_governance_budget_is_defined_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             script_source.contains(required),
@@ -1779,7 +1779,7 @@ fn avatar_group_dx_contract_prefers_playground_isolation_and_fast_style_feedback
     }
 
     for required in [
-        "<section class=\"playground\" id=anchor_id attr:data-slot=\"playground\">",
+        "<section class=section_class id=anchor_id data-slot=\"playground\">",
         "<style>{move || compose_scoped_css(&scope_selector.get_value(), &test_css.get())}</style>",
         "data-playground-scope=scope_id.clone()",
         "let (test_css, set_test_css) = signal(default_test_css.get_untracked());",
@@ -2186,7 +2186,7 @@ fn avatar_group_stays_as_ui_components_assembly_layer_without_platform_leakage()
 
     assert!(
         lib_source.contains("AvatarGroup") && lib_source.contains("AvatarGroupItem"),
-        "ui-components public API should expose stable AvatarGroup exports."
+        "ui public API should expose stable AvatarGroup exports."
     );
 
     for forbidden in [
@@ -2196,7 +2196,7 @@ fn avatar_group_stays_as_ui_components_assembly_layer_without_platform_leakage()
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components public API should not leak platform detail `{forbidden}`."
+            "ui public API should not leak platform detail `{forbidden}`."
         );
     }
 }
@@ -2949,7 +2949,7 @@ fn avatar_group_ui_components_entrypoints_and_headless_boundaries_are_correct() 
     ] {
         assert!(
             lib_source.contains(required),
-            "ui-components lib.rs should keep stable feature-gated entrypoint `{required}`."
+            "ui lib.rs should keep stable feature-gated entrypoint `{required}`."
         );
     }
 
@@ -2960,7 +2960,7 @@ fn avatar_group_ui_components_entrypoints_and_headless_boundaries_are_correct() 
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib.rs should not leak platform detail `{forbidden}`."
+            "ui lib.rs should not leak platform detail `{forbidden}`."
         );
     }
 
@@ -2973,7 +2973,7 @@ fn avatar_group_ui_components_entrypoints_and_headless_boundaries_are_correct() 
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css.rs should keep centralized feature-gated css aggregation `{required}`."
+            "ui css.rs should keep centralized feature-gated css aggregation `{required}`."
         );
     }
 
@@ -2988,7 +2988,7 @@ fn avatar_group_ui_components_entrypoints_and_headless_boundaries_are_correct() 
     ] {
         assert!(
             root_source.contains(required),
-            "ui-components root.rs should keep centralized theme/i18n/css injection boundary `{required}`."
+            "ui root.rs should keep centralized theme/i18n/css injection boundary `{required}`."
         );
     }
 
@@ -3011,13 +3011,13 @@ fn avatar_group_ui_components_entrypoints_and_headless_boundaries_are_correct() 
     }
 
     for relative in [
-        "../../crates/ui-components/src/overlay_open.rs",
-        "../../crates/ui-components/src/presence.rs",
-        "../../crates/ui-components/src/a11y.rs",
+        "../../crates/ui/src/overlay_open.rs",
+        "../../crates/ui/src/presence.rs",
+        "../../crates/ui/src/a11y.rs",
     ] {
         assert!(
             !manifest_dir.join(relative).exists(),
-            "ui-components should not define `{relative}`; primitive must stay in ui-headless."
+            "ui should not define `{relative}`; primitive must stay in ui-headless."
         );
     }
 
@@ -3035,7 +3035,7 @@ fn avatar_group_ui_components_entrypoints_and_headless_boundaries_are_correct() 
     }
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
+        "- [x] `ui` 固定入口文件落点正确。",
         "avatar_group_ui_components_entrypoints_and_headless_boundaries_are_correct",
         "avatar_group_ui_components_entrypoints_and_headless_boundaries_are_correct_local",
     ] {

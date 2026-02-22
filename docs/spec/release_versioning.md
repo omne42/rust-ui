@@ -20,7 +20,7 @@
 
 - 策略：**Fixed Mode（同步版本）**
 - 实现：通过 `release-plz` 的 `version_group` + `release_always = true` 把 UI 包绑定到同一版本节奏
-- 结果：`ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-layout/ui-components/ui-ai-runtime/ui-accordion` 在每次发布窗口统一 bump，版本保持同步
+- 结果：`ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-layout/ui/ui-ai-runtime/ui-accordion` 在每次发布窗口统一 bump，版本保持同步
 
 ### 2.3 为什么不用 Independent Mode
 

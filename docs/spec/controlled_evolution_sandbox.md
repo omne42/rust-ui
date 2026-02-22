@@ -13,7 +13,7 @@
 
 ### 1.1 Cleanroom（核心洁净区）
 
-适用范围：`ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components` 主路径。  
+适用范围：`ui-state-primitives/ui-headless/ui-theme/ui-motion/ui` 主路径。  
 要求：完整门禁、A11y 基线、SSR/WASM 契约、分层不破、语义测试可回归。
 
 ### 1.2 Sandbox（演化培养皿）

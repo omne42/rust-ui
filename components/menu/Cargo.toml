@@ -15,7 +15,7 @@ component-menu_section = []
 
 [dependencies]
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
-ui-components = { path = "../../crates/ui-components", default-features = false, features = ["component-button", "component-popover"] }
+ui = { path = "../../crates/ui", default-features = false, features = ["component-button", "component-popover"] }
 ui-headless = { path = "../../crates/ui-headless" }
 ui-motion = { path = "../../crates/ui-motion" }
 ui-observability = { path = "../../crates/ui-observability" }

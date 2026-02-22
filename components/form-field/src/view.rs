@@ -31,7 +31,7 @@ fn render_switch_view(
     });
 
     let class = if class_name.trim().is_empty() {
-        "ui-switch".to_string()
+        "ui-switch".to_owned()
     } else {
         format!("ui-switch {class_name}")
     };

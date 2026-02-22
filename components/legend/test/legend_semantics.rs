@@ -45,7 +45,7 @@ fn legend_does_not_expose_logic_or_view_modules() {
     assert!(
         crate_source.contains("pub use ui_legend as legend;")
             && crate_source.contains("pub use legend::{Legend, LegendTone};"),
-        "ui-components crate root should re-export ui-legend contracts."
+        "ui crate root should re-export ui-legend contracts."
     );
     assert!(
         cargo_source.contains("component-legend = [\"dep:ui-legend\"]"),
@@ -54,7 +54,7 @@ fn legend_does_not_expose_logic_or_view_modules() {
     assert!(
         cargo_source
             .contains("ui-legend = { path = \"../../components/legend\", optional = true }"),
-        "ui-components Cargo.toml should include optional ui-legend dependency."
+        "ui Cargo.toml should include optional ui-legend dependency."
     );
 }
 
@@ -1302,7 +1302,7 @@ fn legend_wasm_debug_contract_is_not_applicable_and_feature_isolation_is_preserv
 
     assert!(
         !ui_components_cargo_source.contains("legend-wasm-debug"),
-        "ui-components feature graph should not add unused legend wasm debug toggle."
+        "ui feature graph should not add unused legend wasm debug toggle."
     );
     for needle in ["accordion-wasm-debug", "button-wasm-debug"] {
         assert!(
@@ -1873,7 +1873,7 @@ fn legend_token_first_static_style_contract_is_enforced() {
     ] {
         assert!(
             css_aggregate_source.contains(needle),
-            "ui-components css aggregator should include legend style injection hook `{needle}`."
+            "ui css aggregator should include legend style injection hook `{needle}`."
         );
     }
 
@@ -2044,13 +2044,13 @@ fn legend_ui_components_entrypoints_follow_layered_contract_boundaries() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entrypoint should keep feature-gated public boundary `{needle}`."
+            "ui lib entrypoint should keep feature-gated public boundary `{needle}`."
         );
     }
     for forbidden in ["web_sys", "wasm_bindgen"] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entrypoint should not expose platform detail `{forbidden}`."
+            "ui lib entrypoint should not expose platform detail `{forbidden}`."
         );
     }
 
@@ -2060,7 +2060,7 @@ fn legend_ui_components_entrypoints_follow_layered_contract_boundaries() {
             && css_source.contains("out.push_str(\"\\n@layer ui {\\n\");")
             && css_source.contains("#[cfg(feature = \"component-legend\")]")
             && css_source.contains("out.push_str(crate::legend::styles::CSS);"),
-        "ui-components css entrypoint should aggregate by feature in @layer ui."
+        "ui css entrypoint should aggregate by feature in @layer ui."
     );
 
     for needle in [
@@ -2098,7 +2098,7 @@ fn legend_ui_components_entrypoints_follow_layered_contract_boundaries() {
     for path in ["src/overlay_open.rs", "src/presence.rs", "src/a11y.rs"] {
         assert!(
             !manifest_dir.join(path).exists(),
-            "ui-components should not host `{path}`; semantic primitives belong to ui-headless."
+            "ui should not host `{path}`; semantic primitives belong to ui-headless."
         );
     }
 }
@@ -2713,7 +2713,7 @@ fn legend_tree_shaking_contract_is_feature_gated_end_to_end() {
     ] {
         assert!(
             ui_components_cargo.contains(needle),
-            "ui-components Cargo feature graph should keep legend tree-shake anchor `{needle}`."
+            "ui Cargo feature graph should keep legend tree-shake anchor `{needle}`."
         );
     }
 
@@ -2723,7 +2723,7 @@ fn legend_tree_shaking_contract_is_feature_gated_end_to_end() {
     ] {
         assert!(
             ui_components_lib.contains(needle),
-            "ui-components lib export should be feature-gated for legend with `{needle}`."
+            "ui lib export should be feature-gated for legend with `{needle}`."
         );
     }
 
@@ -2745,9 +2745,9 @@ fn legend_tree_shaking_contract_is_feature_gated_end_to_end() {
 
     assert!(
         web_demo_cargo.contains(
-            "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
+            "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
         ),
-        "web-demo should consume ui-components with default-features disabled and explicit feature slice."
+        "web-demo should consume ui with default-features disabled and explicit feature slice."
     );
     assert!(
         !web_demo_cargo.contains("all-components"),
@@ -2887,11 +2887,11 @@ fn legend_docs_copy_paste_ready_stream_snapshot_and_controlled_comparison_are_ex
     for needle in [
         "Streaming Optional; fallback=snapshot.",
         "Snapshot mode renders verified full output for legend semantics.",
-        "Copy-ready snippets prepend imports automatically: use ui_components::{Legend, LegendTone, Switch};",
+        "Copy-ready snippets prepend imports automatically: use ui::{Legend, LegendTone, Switch};",
         "Uncontrolled path keeps default props; controlled path keeps parent signal as source of truth.",
-        "use ui_components::Legend;",
-        "use ui_components::{Legend, LegendTone};",
-        "use ui_components::{Legend, LegendTone, Switch};",
+        "use ui::Legend;",
+        "use ui::{Legend, LegendTone};",
+        "use ui::{Legend, LegendTone, Switch};",
     ] {
         assert!(
             source.contains(needle),
@@ -2934,7 +2934,7 @@ fn legend_source_first_docs_are_copy_paste_ready_and_traceable() {
         "data-copyable",
         "data-slot=\"code-block-code\"",
         "use leptos::prelude::*;",
-        "use ui_components::*;",
+        "use ui::*;",
         "data-slot=\"legend-source-paths\"",
         "data-slot=\"legend-source-prerequisites\"",
     ] {

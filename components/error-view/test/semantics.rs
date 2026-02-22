@@ -41,7 +41,7 @@ fn ui_components_reexports_error_view_component_crate() {
     assert!(
         lib_source.contains("#[cfg(feature = \"component-error_view\")]")
             && lib_source.contains("pub use ui_error_view as error_view;"),
-        "ui-components should re-export the external ui-error-view crate as `error_view`.",
+        "ui should re-export the external ui-error-view crate as `error_view`.",
     );
     assert!(
         cargo_source.contains("component-error_view = [\"dep:ui-error-view\"]"),
@@ -51,7 +51,7 @@ fn ui_components_reexports_error_view_component_crate() {
         cargo_source.contains(
             "ui-error-view = { path = \"../../components/error-view\", optional = true }"
         ),
-        "ui-components Cargo.toml should include the optional ui-error-view dependency.",
+        "ui Cargo.toml should include the optional ui-error-view dependency.",
     );
 }
 
@@ -305,11 +305,11 @@ fn error_view_does_not_introduce_spec_rs_for_simple_component() {
 
 #[test]
 fn error_view_component_files_check_script_covers_directory_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-component-files.sh");
+    let script_source = load_workspace_source("scripts/check-ui-component-files.sh");
 
     for needle in [
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_component_files_respect_layered_responsibility_boundaries",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_does_not_introduce_spec_rs_for_simple_component",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_component_files_respect_layered_responsibility_boundaries",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_does_not_introduce_spec_rs_for_simple_component",
     ] {
         assert!(
             script_source.contains(needle),
@@ -337,7 +337,7 @@ fn error_view_check2_marks_component_directory_standard_file_layout_complete() {
         "error_view_component_files_respect_layered_responsibility_boundaries",
         "error_view_does_not_introduce_spec_rs_for_simple_component",
         "error_view_component_files_check_script_covers_directory_contract",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
     ] {
         assert!(
             source.contains(required),
@@ -350,7 +350,7 @@ fn error_view_check2_marks_component_directory_standard_file_layout_complete() {
 fn error_view_file_placement_discipline_is_strict_for_component_scope() {
     let mod_source = load_error_view_component_source("src/mod.rs");
     let check2_source = load_error_view_component_source("check2.md");
-    let script_source = load_workspace_source("scripts/check-ui-components-component-files.sh");
+    let script_source = load_workspace_source("scripts/check-ui-component-files.sh");
     let src_dir = workspace_dir().join("components/error-view/src");
 
     for required in ["mod.rs", "logic.rs", "styles.rs", "view.rs", "motion.rs"] {
@@ -395,7 +395,7 @@ fn error_view_file_placement_discipline_is_strict_for_component_scope() {
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_file_placement_discipline_is_strict_for_component_scope";
+    let script_needle = "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_file_placement_discipline_is_strict_for_component_scope";
     assert!(
         script_source.contains(script_needle),
         "component-files script should include `{script_needle}`."
@@ -414,9 +414,9 @@ fn error_view_file_placement_discipline_is_strict_for_component_scope() {
 
 #[test]
 fn error_view_file_placement_discipline_check_script_covers_semantics_gate() {
-    let script_source = load_workspace_source("scripts/check-ui-components-component-files.sh");
+    let script_source = load_workspace_source("scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_file_placement_discipline_is_strict_for_component_scope";
+    let needle = "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_file_placement_discipline_is_strict_for_component_scope";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`."
@@ -434,7 +434,7 @@ fn error_view_check2_marks_file_placement_discipline_complete() {
 
     for required in [
         "error_view_file_placement_discipline_is_strict_for_component_scope",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
     ] {
         assert!(
             source.contains(required),
@@ -448,7 +448,7 @@ fn error_view_hyper_structure_builder_spec_is_not_applicable_for_simple_componen
     let mod_source = load_error_view_component_source("src/mod.rs");
     let readme_source = load_error_view_component_source("src/README.md");
     let check2_source = load_error_view_component_source("check2.md");
-    let script_source = load_workspace_source("scripts/check-ui-components-component-files.sh");
+    let script_source = load_workspace_source("scripts/check-ui-component-files.sh");
     let src_dir = workspace_dir().join("components/error-view/src");
 
     assert!(
@@ -470,7 +470,7 @@ fn error_view_hyper_structure_builder_spec_is_not_applicable_for_simple_componen
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
+    let script_needle = "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_hyper_structure_builder_spec_is_not_applicable_for_simple_component";
     assert!(
         script_source.contains(script_needle),
         "component-files script should include `{script_needle}`."
@@ -555,9 +555,9 @@ fn error_view_context_compression_manifest_and_rbi_projection_are_present_and_cu
 
 #[test]
 fn error_view_component_files_check_script_covers_context_compression_manifest_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-component-files.sh");
+    let script_source = load_workspace_source("scripts/check-ui-component-files.sh");
 
-    let needle = "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_context_compression_manifest_and_rbi_projection_are_present_and_current";
+    let needle = "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_context_compression_manifest_and_rbi_projection_are_present_and_current";
     assert!(
         script_source.contains(needle),
         "component-files check script should enforce `{needle}`."
@@ -578,7 +578,7 @@ fn error_view_check2_marks_context_compression_manifest_and_rbi_contract_complet
         "components/error-view/src/error_view.rbi",
         "error_view_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "error_view_component_files_check_script_covers_context_compression_manifest_contract",
-        "scripts/check-ui-components-component-files.sh",
+        "scripts/check-ui-component-files.sh",
     ] {
         assert!(
             source.contains(required),
@@ -600,7 +600,7 @@ fn error_view_check2_documents_agent_contract_schema_governance_rules() {
         "error_view_agent_contract_is_schema_typed_and_machine_readable",
         "error_view_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
         "error_view_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
     ] {
         assert!(
             checklist_source.contains(required),
@@ -758,13 +758,13 @@ fn error_view_agent_contract_render_path_is_whitelist_safe_and_script_injection_
 
 #[test]
 fn error_view_contract_hygiene_script_covers_agent_contract_schema_guards() {
-    let script_source = load_workspace_source("scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_workspace_source("scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_agent_contract_schema_governance_rules",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_agent_contract_is_schema_typed_and_machine_readable",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_agent_contract_schema_governance_rules",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_agent_contract_is_schema_typed_and_machine_readable",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
     ] {
         assert!(
             script_source.contains(needle),
@@ -780,7 +780,7 @@ fn error_view_check2_documents_streaming_definition_is_llm_output_only_with_two_
     let logic_source = load_error_view_component_source("src/logic.rs");
     let mod_source = load_error_view_component_source("src/mod.rs");
     let motion_source = load_error_view_component_source("src/motion.rs");
-    let script_source = load_workspace_source("scripts/check-ui-components-streaming.sh");
+    let script_source = load_workspace_source("scripts/check-ui-streaming.sh");
     let combined = format!("{view_source}\n{logic_source}\n{mod_source}\n{motion_source}");
 
     for required in [
@@ -808,7 +808,7 @@ fn error_view_check2_documents_streaming_definition_is_llm_output_only_with_two_
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let script_needle = "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(script_needle),
         "streaming check script should include `{script_needle}`."
@@ -817,9 +817,9 @@ fn error_view_check2_documents_streaming_definition_is_llm_output_only_with_two_
 
 #[test]
 fn error_view_streaming_script_covers_two_mode_definition_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-streaming.sh");
+    let script_source = load_workspace_source("scripts/check-ui-streaming.sh");
 
-    let needle = "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
+    let needle = "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_streaming_definition_is_llm_output_only_with_two_modes";
     assert!(
         script_source.contains(needle),
         "streaming check script should enforce `{needle}`."
@@ -838,7 +838,7 @@ fn error_view_check2_marks_streaming_two_mode_definition_complete() {
     for needle in [
         "error_view_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
         "error_view_streaming_script_covers_two_mode_definition_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             source.contains(needle),
@@ -946,11 +946,11 @@ fn error_view_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
 #[test]
 fn error_view_streaming_script_covers_snapshot_baseline_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-streaming.sh");
+    let script_source = load_workspace_source("scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_snapshot_as_default_baseline_capability",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_snapshot_as_default_baseline_capability",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_snapshot_baseline_consumes_complete_result_and_renders_stably",
     ] {
         assert!(
             script_source.contains(needle),
@@ -972,7 +972,7 @@ fn error_view_check2_marks_snapshot_baseline_capability_complete() {
         "error_view_check2_documents_snapshot_as_default_baseline_capability",
         "error_view_snapshot_baseline_consumes_complete_result_and_renders_stably",
         "error_view_streaming_script_covers_snapshot_baseline_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             source.contains(needle),
@@ -1069,12 +1069,12 @@ fn error_view_streaming_validation_retry_resilience_boundaries_stay_outside_comp
 
 #[test]
 fn error_view_streaming_script_covers_required_optional_classification_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-streaming.sh");
+    let script_source = load_workspace_source("scripts/check-ui-streaming.sh");
 
     for needle in [
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_streaming_required_optional_classification_rules",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_streaming_required_optional_classification_rules",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1097,7 +1097,7 @@ fn error_view_check2_marks_streaming_required_optional_classification_complete()
         "error_view_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
         "error_view_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
         "error_view_streaming_script_covers_required_optional_classification_contract",
-        "scripts/check-ui-components-streaming.sh",
+        "scripts/check-ui-streaming.sh",
     ] {
         assert!(
             source.contains(needle),
@@ -1167,12 +1167,12 @@ fn error_view_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
 
 #[test]
 fn error_view_engineering_script_covers_rust_hygiene_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-engineering.sh");
+    let script_source = load_workspace_source("scripts/check-ui-engineering.sh");
 
     for needle in [
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_rust_hygiene_string_clone_hotspots_converge_to_cow_or_static_borrow",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_rust_hygiene_string_clone_hotspots_converge_to_cow_or_static_borrow",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_rust_hygiene_script_enforces_repo_level_hygiene_guards",
     ] {
         assert!(
             script_source.contains(needle),
@@ -1790,9 +1790,9 @@ fn error_view_styles_use_defensive_variable_fallback_chain() {
 
 #[test]
 fn error_view_defensive_variables_check_script_covers_style_fallback_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_workspace_source("scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_styles_use_defensive_variable_fallback_chain";
+    let needle = "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_styles_use_defensive_variable_fallback_chain";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -1811,7 +1811,7 @@ fn error_view_check2_marks_defensive_variables_contract_complete() {
     for needle in [
         "error_view_styles_use_defensive_variable_fallback_chain",
         "error_view_defensive_variables_check_script_covers_style_fallback_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
+        "scripts/check-ui-contract-hygiene.sh",
         "components/error-view/src/styles.rs",
         "crates/ui-theme/src/css.rs",
     ] {
@@ -1835,7 +1835,7 @@ fn error_view_cascade_layer_and_runtime_style_contract_is_enforced() {
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css aggregation should keep `{required}` for error-view @layer contract."
+            "ui css aggregation should keep `{required}` for error-view @layer contract."
         );
     }
 
@@ -1880,9 +1880,9 @@ fn error_view_cascade_layer_and_runtime_style_contract_is_enforced() {
 
 #[test]
 fn error_view_cascade_layer_check_script_covers_runtime_style_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-contract-hygiene.sh");
+    let script_source = load_workspace_source("scripts/check-ui-contract-hygiene.sh");
 
-    let needle = "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_cascade_layer_and_runtime_style_contract_is_enforced";
+    let needle = "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_cascade_layer_and_runtime_style_contract_is_enforced";
     assert!(
         script_source.contains(needle),
         "contract-hygiene check script should enforce `{needle}`."
@@ -1901,8 +1901,8 @@ fn error_view_check2_marks_cascade_layer_contract_complete() {
     for needle in [
         "error_view_cascade_layer_and_runtime_style_contract_is_enforced",
         "error_view_cascade_layer_check_script_covers_runtime_style_contract",
-        "scripts/check-ui-components-contract-hygiene.sh",
-        "crates/ui-components/src/css.rs",
+        "scripts/check-ui-contract-hygiene.sh",
+        "crates/ui/src/css.rs",
         "components/error-view/src/view.rs",
         "components/error-view/src/motion.rs",
     ] {
@@ -1960,7 +1960,7 @@ fn error_view_token_first_style_contract_flows_through_styles_css_aggregator_and
     ] {
         assert!(
             css_source.contains(required),
-            "ui-components css aggregator should include ErrorView token `{required}`."
+            "ui css aggregator should include ErrorView token `{required}`."
         );
     }
 
@@ -2027,7 +2027,7 @@ fn error_view_motion_contract_is_present() {
 fn error_view_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe() {
     let motion_source = load_error_view_component_source("src/motion.rs");
     let view_source = load_error_view_component_source("src/view.rs");
-    let platform_script_source = load_workspace_source("scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_workspace_source("scripts/check-ui-platforms.sh");
 
     for required in [
         "pub struct ErrorViewMotion",
@@ -2063,7 +2063,7 @@ fn error_view_motion_contract_is_component_scoped_reduced_motion_aware_and_non_w
 
     for required in [
         "echo \"[platform] error-view motion contractualization (spring contract + reduced-motion + non-wasm no-op)\"",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
     ] {
         assert!(
             platform_script_source.contains(required),
@@ -2092,7 +2092,7 @@ fn error_view_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             lib_source.contains(needle),
-            "ui-components lib entry should keep stable export/gate marker `{needle}`."
+            "ui lib entry should keep stable export/gate marker `{needle}`."
         );
     }
 
@@ -2105,7 +2105,7 @@ fn error_view_ui_components_fixed_entry_files_follow_layered_boundaries() {
     ] {
         assert!(
             !lib_source.contains(forbidden),
-            "ui-components lib entry should not expose internal platform/details marker `{forbidden}`."
+            "ui lib entry should not expose internal platform/details marker `{forbidden}`."
         );
     }
 
@@ -2157,19 +2157,19 @@ fn error_view_ui_components_fixed_entry_files_follow_layered_boundaries() {
         manifest_dir
             .join("../ui-visual-primitive/src/active_highlight.rs")
             .exists(),
-        "ui-components should keep shared `../ui-visual-primitive/src/active_highlight.rs` entry."
+        "ui should keep shared `../ui-visual-primitive/src/active_highlight.rs` entry."
     );
     assert!(
         !manifest_dir.join("src/overlay_open.rs").exists(),
-        "ui-components should not define `src/overlay_open.rs`; open-state primitive belongs to ui-headless."
+        "ui should not define `src/overlay_open.rs`; open-state primitive belongs to ui-headless."
     );
     assert!(
         !manifest_dir.join("src/presence.rs").exists(),
-        "ui-components should not define `src/presence.rs`; presence primitive belongs to ui-headless."
+        "ui should not define `src/presence.rs`; presence primitive belongs to ui-headless."
     );
     assert!(
         !manifest_dir.join("src/a11y.rs").exists(),
-        "ui-components should not define `src/a11y.rs`; shared a11y helpers belong to ui-headless."
+        "ui should not define `src/a11y.rs`; shared a11y helpers belong to ui-headless."
     );
 
     for needle in [
@@ -2189,9 +2189,9 @@ fn error_view_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
 #[test]
 fn error_view_entrypoints_check_script_covers_fixed_entry_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-entrypoints.sh");
+    let script_source = load_workspace_source("scripts/check-ui-entrypoints.sh");
 
-    let needle = "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_ui_components_fixed_entry_files_follow_layered_boundaries";
+    let needle = "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_ui_components_fixed_entry_files_follow_layered_boundaries";
     assert!(
         script_source.contains(needle),
         "entrypoints check script should enforce `{needle}`."
@@ -2203,17 +2203,17 @@ fn error_view_check2_marks_ui_components_fixed_entry_contract_complete() {
     let source = load_error_view_component_source("check2.md");
 
     for required in [
-        "- [x] `ui-components` 固定入口文件落点正确。",
-        "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
-        "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
-        "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
+        "- [x] `ui` 固定入口文件落点正确。",
+        "`crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
+        "`crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
+        "`crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
         "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
-        "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
-        "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
-        "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
+        "`crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
+        "`crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
+        "`crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
         "error_view_ui_components_fixed_entry_files_follow_layered_boundaries",
         "error_view_entrypoints_check_script_covers_fixed_entry_contract",
-        "scripts/check-ui-components-entrypoints.sh",
+        "scripts/check-ui-entrypoints.sh",
     ] {
         assert!(
             source.contains(required),
@@ -2251,7 +2251,7 @@ fn error_view_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stream
     let docs_source =
         load_workspace_source("apps/docs-app/src/pages/components/pages/display_extra.rs");
     let check2_source = load_error_view_component_source("check2.md");
-    let dx_script_source = load_workspace_source("scripts/check-ui-components-dx.sh");
+    let dx_script_source = load_workspace_source("scripts/check-ui-dx.sh");
 
     for required in [
         "pub(super) fn error_view() -> AnyView {",
@@ -2289,7 +2289,7 @@ fn error_view_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stream
         "`Source-first Starter (Copy-Paste Ready)`",
         "`apps/docs-app/src/playground.rs::compose_copy_ready_code`",
         "error_view_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(required),
@@ -2297,7 +2297,7 @@ fn error_view_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stream
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
+    let script_needle = "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot";
     assert!(
         dx_script_source.contains(script_needle),
         "dx gate script should include `{script_needle}`."
@@ -2386,11 +2386,11 @@ fn error_view_docs_source_first_copy_paste_ready_with_real_paths_and_dependencie
 
 #[test]
 fn error_view_dx_check_script_covers_source_first_copy_paste_ready_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-dx.sh");
+    let script_source = load_workspace_source("scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_source_first_copy_paste_ready_rules",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_source_first_copy_paste_ready_rules",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2408,7 +2408,7 @@ fn error_view_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "error_view_check2_documents_source_first_copy_paste_ready_rules",
         "error_view_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
         "error_view_dx_check_script_covers_source_first_copy_paste_ready_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -2488,11 +2488,11 @@ fn error_view_heroui_strategy_and_component_docs_are_synchronized_and_indexable(
 
 #[test]
 fn error_view_dx_check_script_covers_heroui_benchmark_docs_sync_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-dx.sh");
+    let script_source = load_workspace_source("scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_heroui_benchmark_docs_sync_rules",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_heroui_benchmark_docs_sync_rules",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
     ] {
         assert!(
             script_source.contains(needle),
@@ -2511,7 +2511,7 @@ fn error_view_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "error_view_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "error_view_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -2583,7 +2583,7 @@ fn error_view_tree_shaking_contract_is_feature_gated_and_budgeted() {
     let ui_components_css = load_ui_components_source("src/css.rs");
     let error_view_cargo = load_error_view_component_source("Cargo.toml");
     let web_demo_cargo = load_workspace_source("apps/web-demo/Cargo.toml");
-    let tree_shaking_script = load_workspace_source("scripts/check-ui-components-tree-shaking.sh");
+    let tree_shaking_script = load_workspace_source("scripts/check-ui-tree-shaking.sh");
     let budget_source = load_workspace_source("scripts/tree_shaking_budget.env");
     let ci_source = load_workspace_source(".github/workflows/ci.yml");
 
@@ -2593,7 +2593,7 @@ fn error_view_tree_shaking_contract_is_feature_gated_and_budgeted() {
     ] {
         assert!(
             ui_components_cargo.contains(required),
-            "ui-components Cargo feature graph should include `{required}` for package-mode component gating."
+            "ui Cargo feature graph should include `{required}` for package-mode component gating."
         );
     }
 
@@ -2603,7 +2603,7 @@ fn error_view_tree_shaking_contract_is_feature_gated_and_budgeted() {
     ] {
         assert!(
             ui_components_lib.contains(required),
-            "ui-components lib export should keep feature-gated error_view token `{required}`."
+            "ui lib export should keep feature-gated error_view token `{required}`."
         );
     }
 
@@ -2613,7 +2613,7 @@ fn error_view_tree_shaking_contract_is_feature_gated_and_budgeted() {
     ] {
         assert!(
             ui_components_css.contains(required),
-            "ui-components css aggregation should keep feature-gated error_view token `{required}`."
+            "ui css aggregation should keep feature-gated error_view token `{required}`."
         );
     }
 
@@ -2622,12 +2622,12 @@ fn error_view_tree_shaking_contract_is_feature_gated_and_budgeted() {
         "ui-error-view component crate should keep source-mode minimal default feature surface."
     );
     assert!(
-        !error_view_cargo.contains("ui-components"),
-        "ui-error-view source crate should not depend on ui-components central registry path."
+        !error_view_cargo.contains("ui"),
+        "ui-error-view source crate should not depend on ui central registry path."
     );
 
     for required in [
-        "ui-components = { path = \"../../crates/ui-components\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
+        "ui = { path = \"../../crates/ui\", default-features = false, features = [\"inject-css\", \"web-demo-components\"] }",
         "default-features = false",
         "web-demo-components",
     ] {
@@ -2639,13 +2639,13 @@ fn error_view_tree_shaking_contract_is_feature_gated_and_budgeted() {
 
     for required in [
         "MIN_FEATURES=\"component-accordion,inject-css\"",
-        "cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo tree -e features -i ui -p ui --no-default-features --features \"$MIN_FEATURES\"",
         "if grep -q 'all-components' <<<\"$MIN_TREE_OUTPUT\";",
-        "cargo tree -e features -i ui-components -p web-demo",
+        "cargo tree -e features -i ui -p web-demo",
         "if grep -q 'all-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
         "if ! grep -q 'web-demo-components' <<<\"$WEB_DEMO_TREE_OUTPUT\";",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
-        "cargo build -p ui-components --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$MIN_FEATURES\"",
+        "cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features \"$MIN_FEATURES\"",
         "source \"$BUDGET_FILE\"",
         "TREE_SHAKING_BASELINE_RLIB_BYTES",
         "TREE_SHAKING_MAX_RATIO_PERCENT",
@@ -2668,25 +2668,25 @@ fn error_view_tree_shaking_contract_is_feature_gated_and_budgeted() {
     }
 
     assert!(
-        ci_source.contains("run: ./scripts/check-ui-components-tree-shaking.sh"),
+        ci_source.contains("run: ./scripts/check-ui-tree-shaking.sh"),
         "CI should execute tree-shaking budget gate script."
     );
 }
 
 #[test]
 fn error_view_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget() {
-    let script_source = load_workspace_source("scripts/check-ui-components-tree-shaking.sh");
+    let script_source = load_workspace_source("scripts/check-ui-tree-shaking.sh");
 
     for required in [
         "ERROR_VIEW_MIN_FEATURES=\"component-error_view,inject-css\"",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_tree_shaking_contract_is_feature_gated_and_budgeted",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "ERROR_VIEW_TREE_OUTPUT=\"$(cargo tree -e features -i ui-components -p ui-components --no-default-features --features \"$ERROR_VIEW_MIN_FEATURES\")\"",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_tree_shaking_contract_is_feature_gated_and_budgeted",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "ERROR_VIEW_TREE_OUTPUT=\"$(cargo tree -e features -i ui -p ui --no-default-features --features \"$ERROR_VIEW_MIN_FEATURES\")\"",
         "feature \"component-error_view\" (command-line)",
         "feature \"inject-css\" (command-line)",
         "error-view minimal feature tree should not pull all-components",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features \"$ERROR_VIEW_MIN_FEATURES\"",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features \"$ERROR_VIEW_MIN_FEATURES\"",
     ] {
         assert!(
             script_source.contains(required),
@@ -2700,13 +2700,13 @@ fn error_view_check2_marks_tree_shaking_feature_pruning_contract_complete() {
     let check2_source = load_error_view_component_source("check2.md");
 
     for needle in [
-        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
+        "- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。",
         "component-error_view",
-        "crates/ui-components/src/lib.rs",
-        "crates/ui-components/src/css.rs",
+        "crates/ui/src/lib.rs",
+        "crates/ui/src/css.rs",
         "error_view_tree_shaking_contract_is_feature_gated_and_budgeted",
         "error_view_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "scripts/check-ui-components-tree-shaking.sh",
+        "scripts/check-ui-tree-shaking.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -2852,7 +2852,7 @@ fn error_view_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_opt
     let playground_source = load_workspace_source("apps/docs-app/src/playground.rs");
     let docs_source =
         load_workspace_source("apps/docs-app/src/pages/components/pages/display_extra.rs");
-    let dx_script_source = load_workspace_source("scripts/check-ui-components-dx.sh");
+    let dx_script_source = load_workspace_source("scripts/check-ui-dx.sh");
 
     for required in [
         "let scope_selector = format!(\"[data-playground-scope=\\\"{scope_id}\\\"]\");",
@@ -2919,7 +2919,7 @@ fn error_view_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_opt
 
     for required in [
         "echo \"[dx] contract: error-view playground css hot-reload + isolated canvas\"",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na",
     ] {
         assert!(
             dx_script_source.contains(required),
@@ -2939,7 +2939,7 @@ fn error_view_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime
     let headless_trace_source = load_workspace_source("crates/ui-headless/src/trace.rs");
     let debug_overlay_source = load_workspace_source("apps/docs-app/src/debug_overlay.rs");
     let engineering_script_source =
-        load_workspace_source("scripts/check-ui-components-engineering.sh");
+        load_workspace_source("scripts/check-ui-engineering.sh");
 
     for required in [
         "use serde::{Deserialize, Serialize};",
@@ -3015,7 +3015,7 @@ fn error_view_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime
 
     for required in [
         "echo \"[engineering] contract: error-view serde protocol + tracing semantics + runtime boundary leakage\"",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries",
     ] {
         assert!(
             engineering_script_source.contains(required),
@@ -3028,7 +3028,7 @@ fn error_view_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime
 fn error_view_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade()
  {
     let check2_source = load_error_view_component_source("check2.md");
-    let script_source = load_workspace_source("scripts/check-ui-components-engineering.sh");
+    let script_source = load_workspace_source("scripts/check-ui-engineering.sh");
     let readme_source = load_error_view_component_source("src/README.md");
     let protocol_source = load_error_view_component_source("src/protocol.rs");
     let component_manifest = load_error_view_component_source("src/Component.toml");
@@ -3075,14 +3075,14 @@ fn error_view_version_deprecation_migration_registry_is_explicitly_na_without_ma
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
+    let script_needle = "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade";
     assert!(
         script_source.contains(script_needle),
         "engineering gate script should include `{script_needle}`.",
     );
 
     for needle in [
-        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ErrorView` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/error-view/src/protocol.rs` 的 `ErrorViewComponentSchemaVersion::V1`、`components/error-view/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.error-view.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/error-view/test/semantics.rs::error_view_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-components-engineering.sh` 新增对应 `cargo test` 目标。）",
+        "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ErrorView` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/error-view/src/protocol.rs` 的 `ErrorViewComponentSchemaVersion::V1`、`components/error-view/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.error-view.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/error-view/test/semantics.rs::error_view_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-engineering.sh` 新增对应 `cargo test` 目标。）",
         "error_view_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
     ] {
         assert!(
@@ -3665,7 +3665,7 @@ fn error_view_has_no_unified_causality_bus_trace_chain() {
 
 #[test]
 fn error_view_platform_contract_covers_native_ssr_wasm_and_non_wasm_source_guards() {
-    let script_source = load_workspace_source("scripts/check-ui-components-platforms.sh");
+    let script_source = load_workspace_source("scripts/check-ui-platforms.sh");
     let mod_source = load_error_view_component_source("src/mod.rs");
     let logic_source = load_error_view_component_source("src/logic.rs");
     let styles_source = load_error_view_component_source("src/styles.rs");
@@ -3680,9 +3680,9 @@ fn error_view_platform_contract_covers_native_ssr_wasm_and_non_wasm_source_guard
         "echo \"[platform] compile-only: web wasm path (ui-headless)\"",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
         "echo \"[platform] compile-only: error-view native path\"",
-        "cargo check -p ui-components --no-default-features --features component-error_view,inject-css",
+        "cargo check -p ui --no-default-features --features component-error_view,inject-css",
         "echo \"[platform] compile-only: error-view wasm path\"",
-        "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-error_view,inject-css",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-error_view,inject-css",
         "echo \"[platform] source guard: non-wasm error-view files must not reference web_sys\"",
         "components/error-view/src/mod.rs",
         "components/error-view/src/logic.rs",
@@ -3724,7 +3724,7 @@ fn error_view_platform_contract_covers_native_ssr_wasm_and_non_wasm_source_guard
 #[test]
 fn error_view_headless_web_ssr_feature_mutex_is_guarded_by_compile_error_contract() {
     let headless_lib_source = load_workspace_source("crates/ui-headless/src/lib.rs");
-    let platform_script_source = load_workspace_source("scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_workspace_source("scripts/check-ui-platforms.sh");
     let view_source = load_error_view_component_source("src/view.rs");
 
     for required in [
@@ -3764,7 +3764,7 @@ fn error_view_headless_web_ssr_feature_mutex_is_guarded_by_compile_error_contrac
 #[test]
 fn error_view_ui_motion_non_wasm_stub_contract_keeps_ssr_tooling_compilable() {
     let ui_motion_lib_source = load_workspace_source("crates/ui-motion/src/lib.rs");
-    let platform_script_source = load_workspace_source("scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_workspace_source("scripts/check-ui-platforms.sh");
     let motion_source = load_error_view_component_source("src/motion.rs");
 
     for required in [
@@ -3822,7 +3822,7 @@ fn error_view_ui_motion_non_wasm_stub_contract_keeps_ssr_tooling_compilable() {
 fn error_view_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
     let motion_source = load_error_view_component_source("src/motion.rs");
     let view_source = load_error_view_component_source("src/view.rs");
-    let platform_script_source = load_workspace_source("scripts/check-ui-components-platforms.sh");
+    let platform_script_source = load_workspace_source("scripts/check-ui-platforms.sh");
 
     for required in [
         "#[cfg(target_arch = \"wasm32\")]",
@@ -3874,7 +3874,7 @@ fn error_view_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
 
     for required in [
         "echo \"[platform] error-view reduced-motion/ssr/wasm contract\"",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_reduced_motion_ssr_wasm_branches_keep_semantics_consistent",
     ] {
         assert!(
             platform_script_source.contains(required),
@@ -3893,7 +3893,7 @@ fn error_view_performance_governance_contract_is_budgeted_traceable_and_blocking
     let todo_source = load_workspace_source("docs/plan/TODO.md");
     let view_source = load_error_view_component_source("src/view.rs");
     let motion_source = load_error_view_component_source("src/motion.rs");
-    let perf_script_source = load_workspace_source("scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_workspace_source("scripts/check-ui-performance.sh");
 
     for needle in [
         "\"button\" => UiPerfBudget {",
@@ -3995,10 +3995,10 @@ fn error_view_performance_governance_contract_is_budgeted_traceable_and_blocking
     }
 
     for needle in [
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             perf_script_source.contains(needle),
@@ -4016,7 +4016,7 @@ fn error_view_semantics_and_performance_regression_cover_aria_data_focus_and_ren
         load_workspace_source("apps/docs-app/src/pages/components/pages/display_extra.rs");
     let docs_shell_source = load_workspace_source("apps/docs-app/src/pages/components/shell.rs");
     let e2e_source = load_workspace_source("e2e/tests/docs_app_error_view_contract.spec.mjs");
-    let perf_script_source = load_workspace_source("scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_workspace_source("scripts/check-ui-performance.sh");
     let check2_source = load_error_view_component_source("check2.md");
     let todo_source = load_workspace_source("docs/plan/TODO.md");
 
@@ -4045,7 +4045,7 @@ fn error_view_semantics_and_performance_regression_cover_aria_data_focus_and_ren
     for marker in [
         "Playground title=\"Custom Content + Motion + Actions\"",
         "actions=move || {",
-        "<ui_components::Button variant=ui_components::ButtonVariant::Secondary>",
+        "<ui::Button variant=ui::ButtonVariant::Secondary>",
         "\"Retry\"",
     ] {
         assert!(
@@ -4078,9 +4078,9 @@ fn error_view_semantics_and_performance_regression_cover_aria_data_focus_and_ren
     }
 
     for marker in [
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_performance_governance_contract_is_budgeted_traceable_and_blocking",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
-        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
     ] {
         assert!(
             perf_script_source.contains(marker),
@@ -4120,7 +4120,7 @@ fn error_view_semantics_and_performance_regression_cover_aria_data_focus_and_ren
 #[test]
 fn error_view_view_macro_complexity_is_bounded_with_semantic_subblocks() {
     let view_source = load_error_view_component_source("src/view.rs");
-    let script_source = load_workspace_source("scripts/check-ui-components-view-macro.sh");
+    let script_source = load_workspace_source("scripts/check-ui-view-macro.sh");
 
     let view_macro_count = view_source.matches("view! {").count();
     assert!(
@@ -4146,7 +4146,7 @@ fn error_view_view_macro_complexity_is_bounded_with_semantic_subblocks() {
 
     for required in [
         "echo \"[view-macro] contract: error-view view macro complexity\"",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_view_macro_complexity_is_bounded_with_semantic_subblocks",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_view_macro_complexity_is_bounded_with_semantic_subblocks",
     ] {
         assert!(
             script_source.contains(required),
@@ -4158,7 +4158,7 @@ fn error_view_view_macro_complexity_is_bounded_with_semantic_subblocks() {
 #[test]
 fn error_view_view_functional_split_prefers_plain_functions_over_local_components() {
     let view_source = load_error_view_component_source("src/view.rs");
-    let script_source = load_workspace_source("scripts/check-ui-components-view-macro.sh");
+    let script_source = load_workspace_source("scripts/check-ui-view-macro.sh");
 
     for required in [
         "fn render_content(children: Option<Children>, message: StoredValue<String>) -> AnyView {",
@@ -4205,7 +4205,7 @@ fn error_view_view_functional_split_prefers_plain_functions_over_local_component
 
     for required in [
         "echo \"[view-macro] contract: error-view function-first split\"",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_view_functional_split_prefers_plain_functions_over_local_components",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_view_functional_split_prefers_plain_functions_over_local_components",
     ] {
         assert!(
             script_source.contains(required),
@@ -4217,7 +4217,7 @@ fn error_view_view_functional_split_prefers_plain_functions_over_local_component
 #[test]
 fn error_view_static_fragments_are_constantized_or_absent_for_simple_layout() {
     let view_source = load_error_view_component_source("src/view.rs");
-    let script_source = load_workspace_source("scripts/check-ui-components-view-macro.sh");
+    let script_source = load_workspace_source("scripts/check-ui-view-macro.sh");
 
     for required in [
         "fn render_content(children: Option<Children>, message: StoredValue<String>) -> AnyView {",
@@ -4261,7 +4261,7 @@ fn error_view_static_fragments_are_constantized_or_absent_for_simple_layout() {
 
     for required in [
         "echo \"[view-macro] contract: error-view static fragment constantization\"",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_static_fragments_are_constantized_or_absent_for_simple_layout",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_static_fragments_are_constantized_or_absent_for_simple_layout",
     ] {
         assert!(
             script_source.contains(required),
@@ -4281,7 +4281,7 @@ fn error_view_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
     let docs_source =
         load_workspace_source("apps/docs-app/src/pages/components/pages/display_extra.rs");
     let e2e_source = load_workspace_source("e2e/tests/docs_app_error_view_contract.spec.mjs");
-    let script_source = load_workspace_source("scripts/check-ui-components-inner-html.sh");
+    let script_source = load_workspace_source("scripts/check-ui-inner-html.sh");
 
     for forbidden in [
         "inner_html",
@@ -4305,7 +4305,7 @@ fn error_view_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 
     for required in [
         "echo \"[inner-html] contract: error-view component/docs reject raw html injection\"",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_inner_html_usage_is_forbidden_in_component_and_docs_examples",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_inner_html_usage_is_forbidden_in_component_and_docs_examples",
     ] {
         assert!(
             script_source.contains(required),
@@ -4325,7 +4325,7 @@ fn error_view_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated
     let debug_overlay_source = load_workspace_source("apps/docs-app/src/debug_overlay.rs");
     let headless_trace_source = load_workspace_source("crates/ui-headless/src/trace.rs");
     let ui_components_cargo = load_ui_components_source("Cargo.toml");
-    let script_source = load_workspace_source("scripts/check-ui-components-wasm-debug.sh");
+    let script_source = load_workspace_source("scripts/check-ui-wasm-debug.sh");
 
     for required in [
         "let debug_overlay_enabled = cfg!(debug_assertions);",
@@ -4413,13 +4413,13 @@ fn error_view_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated
     ] {
         assert!(
             !ui_components_cargo.contains(forbidden),
-            "ui-components Cargo feature surface should avoid component-specific wasm debug pollution token `{forbidden}`."
+            "ui Cargo feature surface should avoid component-specific wasm debug pollution token `{forbidden}`."
         );
     }
 
     for required in [
         "echo \"[wasm-debug] contract: error-view reuses global wasm debug trace contract\"",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated",
     ] {
         assert!(
             script_source.contains(required),
@@ -4642,7 +4642,7 @@ fn error_view_docs_playgrounds_lock_state_matrix_contract_values() {
         "hidden_translate_px: 12.0",
         "hidden_opacity: 0.0",
         "hidden_scale: 0.95",
-        "variant=ui_components::ButtonVariant::Secondary",
+        "variant=ui::ButtonVariant::Secondary",
         "\"Retry\"",
         "\"Validation failed. Check highlighted fields and retry.\"",
     ] {
@@ -4673,7 +4673,7 @@ fn error_view_check2_documents_docs_sync_and_state_matrix_rules() {
         "error_view_check2_documents_docs_sync_and_state_matrix_rules",
         "error_view_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
         "error_view_dx_check_script_covers_docs_sync_and_state_matrix_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -4757,11 +4757,11 @@ fn error_view_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defau
 
 #[test]
 fn error_view_dx_check_script_covers_docs_sync_and_state_matrix_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-dx.sh");
+    let script_source = load_workspace_source("scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_docs_sync_and_state_matrix_rules",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_docs_sync_and_state_matrix_rules",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4867,11 +4867,11 @@ fn error_view_documentation_entry_exists_with_beginner_first_progression() {
 
 #[test]
 fn error_view_dx_check_script_covers_documentation_as_product_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-dx.sh");
+    let script_source = load_workspace_source("scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_documentation_as_product_rules",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_documentation_entry_exists_with_beginner_first_progression",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_documentation_as_product_rules",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_documentation_entry_exists_with_beginner_first_progression",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4889,7 +4889,7 @@ fn error_view_check2_marks_documentation_as_product_contract_complete() {
         "error_view_check2_documents_documentation_as_product_rules",
         "error_view_documentation_entry_exists_with_beginner_first_progression",
         "error_view_dx_check_script_covers_documentation_as_product_contract",
-        "scripts/check-ui-components-dx.sh",
+        "scripts/check-ui-dx.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -4980,11 +4980,11 @@ fn error_view_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn error_view_dx_check_script_covers_interactive_playground_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-dx.sh");
+    let script_source = load_workspace_source("scripts/check-ui-dx.sh");
 
     for needle in [
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_interactive_playground_rules",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_check2_documents_interactive_playground_rules",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_docs_app_provides_interactive_playground_for_props_state_and_preview",
     ] {
         assert!(
             script_source.contains(needle),
@@ -4995,11 +4995,11 @@ fn error_view_dx_check_script_covers_interactive_playground_contract() {
 
 #[test]
 fn error_view_e2e_check_script_covers_interactive_playground_contract() {
-    let script_source = load_workspace_source("scripts/check-ui-components-e2e-error-view.sh");
+    let script_source = load_workspace_source("components/error-view/scripts/check-ui-e2e-error-view.sh");
 
     for needle in [
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_e2e_check_script_covers_interactive_playground_contract",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_e2e_check_script_covers_interactive_playground_contract",
     ] {
         assert!(
             script_source.contains(needle),
@@ -5020,8 +5020,8 @@ fn error_view_check2_marks_interactive_playground_contract_complete() {
         "error_view_interactive_playground_reuses_repeatable_semantic_e2e_flow",
         "error_view_dx_check_script_covers_interactive_playground_contract",
         "error_view_e2e_check_script_covers_interactive_playground_contract",
-        "scripts/check-ui-components-dx.sh",
-        "scripts/check-ui-components-e2e-error-view.sh",
+        "scripts/check-ui-dx.sh",
+        "components/error-view/scripts/check-ui-e2e-error-view.sh",
     ] {
         assert!(
             check2_source.contains(marker),
@@ -5076,7 +5076,7 @@ fn error_view_check2_documents_e2e_selector_and_stable_wait_rules() {
         "ready/settled",
         "error_view_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "error_view_e2e_flow_covers_ready_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-error-view.sh",
+        "components/error-view/scripts/check-ui-e2e-error-view.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -5153,7 +5153,7 @@ fn error_view_check2_documents_e2e_repeatable_flow_rules() {
         "overlay、async 路径当前 N/A",
         "error_view_e2e_flow_is_repeatable_and_failure_points_are_semantic",
         "error_view_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-error-view.sh",
+        "components/error-view/scripts/check-ui-e2e-error-view.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -5196,7 +5196,7 @@ fn error_view_e2e_flow_is_repeatable_and_failure_points_are_semantic() {
 fn error_view_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints() {
     let e2e_source = load_workspace_source("e2e/tests/docs_app_error_view_contract.spec.mjs");
     let check2_source = load_error_view_component_source("check2.md");
-    let script_source = load_workspace_source("scripts/check-ui-components-e2e-error-view.sh");
+    let script_source = load_workspace_source("components/error-view/scripts/check-ui-e2e-error-view.sh");
 
     for needle in [
         "[data-slot=\"error-view\"][data-state=\"hidden\"][aria-hidden=\"true\"]",
@@ -5216,7 +5216,7 @@ fn error_view_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_brea
         "- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。",
         "overlay、async 路径当前 N/A",
         "error_view_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "scripts/check-ui-components-e2e-error-view.sh",
+        "components/error-view/scripts/check-ui-e2e-error-view.sh",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -5224,7 +5224,7 @@ fn error_view_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_brea
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints";
+    let script_needle = "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints";
     assert!(
         script_source.contains(script_needle),
         "error-view e2e check script should include `{script_needle}`."
@@ -5384,7 +5384,7 @@ fn error_view_semantic_test_priority_prefers_data_aria_role_and_source_contracts
     let local_semantics_source = load_error_view_component_source("test/semantics.rs");
     let suite_source = load_workspace_source("components/error-view/test/error_view_semantics.rs");
     let check2_source = load_error_view_component_source("check2.md");
-    let perf_script_source = load_workspace_source("scripts/check-ui-components-performance.sh");
+    let perf_script_source = load_workspace_source("scripts/check-ui-performance.sh");
 
     for marker in [
         "data-state=move || state.get().state_attr",
@@ -5416,7 +5416,7 @@ fn error_view_semantic_test_priority_prefers_data_aria_role_and_source_contracts
 
     assert!(
         suite_source.contains("include!(\"../../../components/error-view/test/semantics.rs\");"),
-        "ui-components error_view_semantics suite should include local component *_semantics.rs."
+        "ui error_view_semantics suite should include local component *_semantics.rs."
     );
 
     for forbidden in [
@@ -5431,7 +5431,7 @@ fn error_view_semantic_test_priority_prefers_data_aria_role_and_source_contracts
         );
     }
 
-    let script_needle = "cargo test -p ui-components --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
+    let script_needle = "cargo test -p ui --test error_view_semantics --no-default-features --features component-error_view,inject-css error_view_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks";
     assert!(
         perf_script_source.contains(script_needle),
         "performance gate script should include semantic-priority command `{script_needle}`."
@@ -5444,7 +5444,7 @@ fn error_view_semantic_test_priority_prefers_data_aria_role_and_source_contracts
         "error_view_state_markers_use_closed_enumerable_contract_values",
         "error_view_a11y_i18n_l10n_contract_reuses_headless_and_keeps_text_overrideable",
         "error_view_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
-        "scripts/check-ui-components-performance.sh",
+        "scripts/check-ui-performance.sh",
     ] {
         assert!(
             check2_source.contains(marker),

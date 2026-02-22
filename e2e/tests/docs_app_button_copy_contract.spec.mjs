@@ -36,7 +36,7 @@ test("docs-app button-copy flow uses semantic selectors with settled async copy 
   await expect(status).toContainText("Copied!");
   await expect
     .poll(() => page.evaluate(() => window.__copiedText))
-    .toBe("cargo add ui-components");
+    .toBe("cargo add ui");
 
   await expect(copyRoot).toHaveAttribute("data-copy-status", "idle", { timeout: 3500 });
   await expect(copyRoot).not.toHaveAttribute("data-copied", "true", { timeout: 3500 });

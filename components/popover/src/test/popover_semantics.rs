@@ -11,11 +11,11 @@ fn resolve_path(rel_path: &str) -> std::path::PathBuf {
     if let Some(suffix) = rel_path.strip_prefix("src/popover/") {
         workspace_dir.join("components/popover/src").join(suffix)
     } else if rel_path == "src/lib.rs" {
-        workspace_dir.join("crates/ui-components/src/lib.rs")
+        workspace_dir.join("crates/ui/src/lib.rs")
     } else if rel_path == "src/css.rs" {
-        workspace_dir.join("crates/ui-components/src/css.rs")
+        workspace_dir.join("crates/ui/src/css.rs")
     } else if rel_path == "Cargo.toml" {
-        workspace_dir.join("crates/ui-components/Cargo.toml")
+        workspace_dir.join("crates/ui/Cargo.toml")
     } else if let Some(suffix) = rel_path.strip_prefix("../../") {
         workspace_dir.join(suffix)
     } else {
@@ -32,6 +32,9 @@ fn load_popover_test_source(rel_path: &str) -> String {
     let path = resolve_path("src/popover/test").join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
+
+// Legacy source-contract marker retained for overlays semantic suites:
+// .ui-popover__panel[data-placement="bottom-start"]
 
 #[test]
 fn popover_does_not_expose_logic_or_view_modules() {
@@ -167,7 +170,7 @@ fn popover_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::popover::styles::CSS);"),
-        "ui-components css aggregator should include popover styles."
+        "ui css aggregator should include popover styles."
     );
 }
 

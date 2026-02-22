@@ -154,7 +154,7 @@ fn toggle_css_is_aggregated() {
 
     assert!(
         source.contains("out.push_str(crate::button::toggle::styles::CSS);"),
-        "ui-components css aggregator should include toggle styles."
+        "ui css aggregator should include toggle styles."
     );
 }
 
