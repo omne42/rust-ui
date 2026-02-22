@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "mod" => include_str!("../src/mod.rs"),
@@ -10,9 +12,10 @@ fn load_source(path: &str) -> &'static str {
         "controllable_state" => {
             include_str!("../../../crates/ui-headless/src/controllable_state.rs")
         }
-        "forms_native_docs" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/forms_native.rs")
-        }
+        "forms_native_docs" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_native.rs",
+        ),
         "docs_component_catalog" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }
@@ -46,7 +49,10 @@ fn load_source(path: &str) -> &'static str {
             include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs")
         }
         "headless_presence" => include_str!("../../../crates/ui-headless/src/presence.rs"),
-        "ui_theme_css" => include_str!("../../../crates/ui-theme/src/css.rs"),
+        "ui_theme_css" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../crates/ui-theme/src/css.rs",
+        ),
         "component_semantics_self" => include_str!("semantics.rs"),
         _ => panic!("unsupported source path: {path}"),
     }

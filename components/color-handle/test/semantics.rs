@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "lib" => include_str!("../src/lib.rs"),
@@ -10,9 +12,10 @@ fn load_source(path: &str) -> &'static str {
         "check2" => include_str!("../check2.md"),
         "todo_plan" => include_str!("../../../docs/plan/TODO.md"),
         "perf_script" => include_str!("../../../scripts/check-ui-performance.sh"),
-        "docs_forms_color" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/forms_color.rs")
-        }
+        "docs_forms_color" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
+        ),
         "docs_pages_catalog" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }

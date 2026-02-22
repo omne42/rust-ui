@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "mod" => include_str!("../src/mod.rs"),
@@ -19,7 +21,10 @@ fn load_source(path: &str) -> &'static str {
         "ui_components_css" => include_str!("../../../crates/ui/src/css.rs"),
         "ui_components_root" => include_str!("../../../crates/ui/src/root.rs"),
         "ui_components_cargo" => include_str!("../../../crates/ui/Cargo.toml"),
-        "ui_theme_css" => include_str!("../../../crates/ui-theme/src/css.rs"),
+        "ui_theme_css" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../crates/ui-theme/src/css.rs",
+        ),
         "cross_crate_direction_semantics" => {
             include_str!("../../../components/direction/test/direction_semantics.rs")
         }
@@ -44,13 +49,13 @@ fn load_source(path: &str) -> &'static str {
         "heroui_research_doc" => {
             include_str!("../../../docs/research/spectrum-heroui-style-interface-study.md")
         }
-        "docs_page" => {
-            include_str!(
-                "../../../apps/docs-app/src/pages/components/pages/layout_extra_direction.rs"
-            )
-        }
-        "theme_visual_baseline_page" => include_str!(
-            "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs"
+        "docs_page" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/layout_extra_direction.rs",
+        ),
+        "theme_visual_baseline_page" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs",
         ),
         "theme_visual_baseline_registry" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")

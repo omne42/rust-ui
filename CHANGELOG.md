@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-test-support` + `docs-app` + `scripts`: adds shared source-contract loader utilities (`ui_test_support::source_contract`) for component/docs tests, removes per-test `#[path = ...]` source-loader coupling, blocks non-test/check `include_str!/include_bytes!` reads of `.rs` files via `scripts/check-rs-source-include.sh` (wired into rust-hygiene), and replaces runtime docs source coupling in `forms_extra` with exported component CSS constants.
+
 - `ui-popover` + `ui-autocomplete` + `ui-hover-card` + `ui-preview-card` + `ui-preview-link-card` + `ui-disclosure` + `scripts`: converges popover-family motion defaults to shared popover motion contracts, aligns disclosure/accordion motion defaults to `ui-theme` tokens, adds `scripts/check-motion-default-hardcode.sh` with baseline allowlist, and wires the check into rust-hygiene to block future hardcoded motion-default drift.
 
 - `docs-app`: normalizes migrated playground/source marker strings across oversized component pages to keep source-contract checks aligned with architecture guardrails (no legacy compatibility marker keywords in docs source).

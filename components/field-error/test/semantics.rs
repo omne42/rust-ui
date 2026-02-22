@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(rel_path: &str) -> &'static str {
     match rel_path {
         "../../components/field-error/src/mod.rs" => include_str!("../src/mod.rs"),
@@ -33,7 +35,10 @@ fn load_source(rel_path: &str) -> &'static str {
             include_str!("../../../crates/ui-state-primitives/src/field_error.rs")
         }
         "../../apps/docs-app/src/pages/components/pages/forms_extra.rs" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/forms_extra.rs")
+            source_contract::source_from_file_relative(
+                file!(),
+                "../../../apps/docs-app/src/pages/components/pages/forms_extra.rs",
+            )
         }
         "legacy_semantics" => {
             include_str!("../../../components/field-error/test/field_error_semantics.rs")

@@ -1,6 +1,7 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
+use ui_test_support::source_contract;
 
 fn docs_pages_rs() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("src/pages/components/pages.rs")
@@ -14,9 +15,7 @@ fn docs_page_module_path(module: &str) -> PathBuf {
 
 fn read_actions_source() -> String {
     let path = docs_page_module_path("actions");
-    fs::read_to_string(&path).unwrap_or_else(|err| {
-        panic!("failed to read {path:?}: {err}");
-    })
+    source_contract::source_from_path(&path)
 }
 
 fn component_pages_root() -> PathBuf {
@@ -44,7 +43,12 @@ fn walk_rs_files(root: &Path, out: &mut Vec<PathBuf>) {
             continue;
         }
 
-        if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
+        if path.extension().and_then(|ext| ext.to_str()) == Some("rs")
+            && !path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.starts_with("part_"))
+        {
             out.push(path);
         }
     }
@@ -299,9 +303,7 @@ fn load_fn_block(
 ) -> Option<String> {
     let source = module_sources.entry(module.to_string()).or_insert_with(|| {
         let path = docs_page_module_path(module);
-        fs::read_to_string(&path).unwrap_or_else(|err| {
-            panic!("failed to read {path:?}: {err}");
-        })
+        source_contract::source_from_path(&path)
     });
 
     slice_fn_block(source, func).map(|block| block.to_string())
@@ -310,9 +312,7 @@ fn load_fn_block(
 #[test]
 fn all_component_pages_have_at_least_one_playground() {
     let pages_rs_path = docs_pages_rs();
-    let pages_rs_source = fs::read_to_string(&pages_rs_path).unwrap_or_else(|err| {
-        panic!("failed to read {pages_rs_path:?}: {err}");
-    });
+    let pages_rs_source = source_contract::source_from_path(&pages_rs_path);
 
     let entries = extract_catalog_entries(&pages_rs_source);
     assert!(
@@ -383,9 +383,7 @@ fn playgrounds_with_controls_define_code_signal() {
     walk_rs_files(&component_pages_root(), &mut files);
 
     for file in files {
-        let source = fs::read_to_string(&file).unwrap_or_else(|err| {
-            panic!("failed to read {file:?}: {err}");
-        });
+        let source = source_contract::source_from_path(&file);
 
         let mut scan_from = 0;
 
@@ -555,9 +553,7 @@ fn all_playground_tags_use_code_signal() {
     walk_rs_files(&component_pages_root(), &mut files);
 
     for file in files {
-        let source = fs::read_to_string(&file).unwrap_or_else(|err| {
-            panic!("failed to read {file:?}: {err}");
-        });
+        let source = source_contract::source_from_path(&file);
 
         let mut scan_from = 0usize;
 
@@ -624,9 +620,7 @@ fn snippets_are_self_contained_without_external_bindings() {
     ];
 
     for file in files {
-        let source = fs::read_to_string(&file).unwrap_or_else(|err| {
-            panic!("failed to read {file:?}: {err}");
-        });
+        let source = source_contract::source_from_path(&file);
 
         for (line, snippet) in extract_code_snippets(&source) {
             for placeholder in ["{content}", "{rows}", "{chips}", "{grid}"] {

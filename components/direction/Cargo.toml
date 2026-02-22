@@ -15,3 +15,6 @@ leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-headless = { path = "../../crates/ui-headless" }
 ui-state-primitives = { path = "../../crates/ui-state-primitives" }
 serde = { version = "1.0", features = ["derive"] }
+
+[dev-dependencies]
+ui-test-support = { path = "../../crates/ui-test-support" }

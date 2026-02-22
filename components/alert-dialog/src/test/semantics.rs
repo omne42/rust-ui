@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 #[test]
 fn view_contract_exposes_overlay_and_semantic_markers() {
     let source = include_str!("../view.rs");
@@ -53,8 +55,9 @@ fn module_contract_keeps_layered_public_surface() {
 
 #[test]
 fn docs_page_covers_primary_playgrounds() {
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
 
     for needle in [
@@ -73,8 +76,9 @@ fn docs_page_covers_primary_playgrounds() {
 
 #[test]
 fn docs_playgrounds_lock_state_matrix_contract_values() {
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
 
     for needle in [
@@ -229,7 +233,10 @@ fn styles_follow_token_first_and_avoid_component_level_utility_patterns() {
 #[test]
 fn styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals() {
     let styles_source = include_str!("../styles.rs");
-    let theme_css_source = include_str!("../../../../crates/ui-theme/src/css.rs");
+    let theme_css_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../crates/ui-theme/src/css.rs",
+    );
 
     for required in [
         "var(--ui-space-md, var(--ui-fallback-space-md))",
@@ -991,8 +998,9 @@ fn inner_html_usage_is_forbidden_in_component_and_docs_examples() {
         }
     }
 
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
     for forbidden in [
         "inner_html",
@@ -1135,8 +1143,9 @@ fn wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated() {
         );
     }
 
-    let docs_alert_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_alert_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
     for needle in [
         "Playground title=\"State + Source Markers\"",
@@ -1190,8 +1199,9 @@ fn wasm_debug_check_script_covers_alert_dialog_shared_contract() {
 #[test]
 fn dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
     let playground_source = include_str!("../../../../apps/docs-app/src/playground.rs");
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
 
     for needle in [
@@ -1230,8 +1240,9 @@ fn dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
 #[test]
 fn dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na() {
     let playground_source = include_str!("../../../../apps/docs-app/src/playground.rs");
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
     let check2_source = include_str!("../check2.md");
 
@@ -1308,8 +1319,9 @@ fn dx_check_script_covers_hot_reload_and_isolated_canvas_contract() {
 
 #[test]
 fn docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot() {
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
 
     for needle in [
@@ -1334,8 +1346,9 @@ fn docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapsho
 
 #[test]
 fn docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync() {
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
     let playground_source = include_str!("../../../../apps/docs-app/src/playground.rs");
     let code_block_view = include_str!("../../../code-block/src/view.rs");
@@ -1446,8 +1459,9 @@ fn check2_documents_docs_sync_and_state_matrix_rules() {
 
 #[test]
 fn docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults() {
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
     let view_source = include_str!("../view.rs");
     let logic_source = include_str!("../logic.rs");
@@ -1602,8 +1616,9 @@ fn check2_documents_documentation_as_product_rules() {
 fn documentation_entry_exists_with_beginner_first_progression() {
     let readme_source = include_str!("../README.md");
     let pages_source = include_str!("../../../../apps/docs-app/src/pages/components/pages.rs");
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
 
     for needle in [
@@ -1751,8 +1766,9 @@ fn check2_documents_interactive_playground_rules() {
 
 #[test]
 fn docs_app_provides_interactive_playground_for_props_state_and_preview() {
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
 
     docs_page_covers_primary_playgrounds();
@@ -1785,8 +1801,9 @@ fn docs_app_provides_interactive_playground_for_props_state_and_preview() {
 #[test]
 fn interactive_playground_reuses_repeatable_semantic_e2e_flow() {
     let e2e_source = include_str!("../../../../e2e/tests/docs_app_alert_dialog_contract.spec.mjs");
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
 
     for needle in [
@@ -1889,8 +1906,9 @@ fn check2_documents_source_first_copy_paste_ready_rules() {
 
 #[test]
 fn docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() {
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
     let playground_source = include_str!("../../../../apps/docs-app/src/playground.rs");
     let code_block_view = include_str!("../../../code-block/src/view.rs");
@@ -3870,8 +3888,9 @@ fn check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn e2e_selector_contract_uses_semantic_markers_and_settled_waits() {
     let e2e_source = include_str!("../../../../e2e/tests/docs_app_alert_dialog_contract.spec.mjs");
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
 
     for marker in [
@@ -4138,8 +4157,9 @@ fn check2_documents_heroui_benchmark_docs_sync_rules() {
 fn heroui_strategy_and_component_docs_are_synchronized_and_indexable() {
     let strategy_source = include_str!("../../../../docs/spec/heroui-parameter-design-strategy.md");
     let pages_source = include_str!("../../../../apps/docs-app/src/pages/components/pages.rs");
-    let docs_source = include_str!(
-        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs"
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs",
     );
     let readme_source = include_str!("../README.md");
 

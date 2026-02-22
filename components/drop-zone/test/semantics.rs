@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "mod" => include_str!("../src/mod.rs"),
@@ -1807,7 +1809,10 @@ fn drop_zone_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
 
 #[test]
 fn drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canvas() {
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/files.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/files.rs",
+    );
     let check2 = load_source("check2");
 
     for required in [
@@ -1861,7 +1866,10 @@ fn drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canva
 
 #[test]
 fn drop_zone_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot() {
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/files.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/files.rs",
+    );
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
     let check2 = load_source("check2");
 
@@ -1960,7 +1968,10 @@ fn drop_zone_check2_documents_docs_sync_and_state_matrix_rules() {
 
 #[test]
 fn drop_zone_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults() {
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/files.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/files.rs",
+    );
     let view_source = load_source("view");
     let logic_source = load_source("logic");
     let check2 = load_source("check2");
@@ -2071,7 +2082,10 @@ fn drop_zone_check2_documents_documentation_as_product_rules() {
 #[test]
 fn drop_zone_documentation_entry_exists_with_beginner_first_progression() {
     let readme = include_str!("../src/README.md");
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/files.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/files.rs",
+    );
 
     for marker in [
         "# DropZone",
@@ -2202,7 +2216,10 @@ fn drop_zone_check2_documents_interactive_playground_rules() {
 
 #[test]
 fn drop_zone_docs_app_provides_interactive_playground_for_props_state_and_preview() {
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/files.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/files.rs",
+    );
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
 
     let section_start = docs_source
@@ -2328,7 +2345,10 @@ fn drop_zone_check2_documents_source_first_copy_paste_ready_rules() {
 
 #[test]
 fn drop_zone_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() {
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/files.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/files.rs",
+    );
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
     let code_block_view_source = include_str!("../../../components/code-block/src/view.rs");
     let readme_source = include_str!("../src/README.md");
@@ -2470,7 +2490,10 @@ fn drop_zone_check2_documents_heroui_benchmark_docs_sync_rules() {
 fn drop_zone_heroui_strategy_and_component_docs_are_synchronized_and_indexable() {
     let strategy_source = include_str!("../../../docs/spec/heroui-parameter-design-strategy.md");
     let pages_source = include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/files.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/files.rs",
+    );
     let readme_source = include_str!("../src/README.md");
 
     for marker in [
@@ -3572,7 +3595,8 @@ fn drop_zone_token_first_static_styles_are_aggregated_and_do_not_use_utility_or_
 #[test]
 fn drop_zone_styles_use_defensive_variable_fallback_chain() {
     let styles = load_source("styles");
-    let theme_css = include_str!("../../../crates/ui-theme/src/css.rs");
+    let theme_css =
+        source_contract::source_from_file_relative(file!(), "../../../crates/ui-theme/src/css.rs");
     let check2 = load_source("check2");
 
     for required in [
@@ -4097,7 +4121,10 @@ fn drop_zone_check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn drop_zone_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
     let e2e_contract = include_str!("../../../e2e/tests/docs_app_drop_zone_contract.spec.mjs");
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/files.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/files.rs",
+    );
 
     for required in [
         "docs-app drop-zone uses semantic selectors with wasm-stable ready waits",
@@ -4287,9 +4314,14 @@ fn drop_zone_check2_marks_e2e_repeatable_key_flow_item_complete() {
 #[test]
 fn drop_zone_visual_desire_baseline_is_documented_and_backed_by_theme_visual_regression() {
     let check2 = load_source("check2");
-    let drop_zone_docs = include_str!("../../../apps/docs-app/src/pages/components/pages/files.rs");
-    let theme_visual_baseline =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs");
+    let drop_zone_docs = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/files.rs",
+    );
+    let theme_visual_baseline = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs",
+    );
     let theme_visual_baseline_e2e =
         include_str!("../../../e2e/tests/docs_app_theme_visual_baseline.spec.mjs");
 

@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(rel_path: &str) -> &'static str {
     match rel_path {
         "../../components/color-swatch/src/lib.rs" => include_str!("../src/lib.rs"),
@@ -15,7 +17,10 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../components/color-swatch/src/styles.rs" => include_str!("../src/styles.rs"),
         "../../components/color-swatch/src/view.rs" => include_str!("../src/view.rs"),
         "../../apps/docs-app/src/pages/components/pages/display_extra.rs" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/display_extra.rs")
+            source_contract::source_from_file_relative(
+                file!(),
+                "../../../apps/docs-app/src/pages/components/pages/display_extra.rs",
+            )
         }
         "../../apps/docs-app/src/playground.rs" => {
             include_str!("../../../apps/docs-app/src/playground.rs")
@@ -34,8 +39,9 @@ fn load_source(rel_path: &str) -> &'static str {
             include_str!("../../../apps/docs-app/src/perf_probe.rs")
         }
         "../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs" => {
-            include_str!(
-                "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs"
+            source_contract::source_from_file_relative(
+                file!(),
+                "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs",
             )
         }
         "../../e2e/tests/docs_app_components_coverage.spec.mjs" => {
@@ -1975,7 +1981,8 @@ fn color_swatch_token_first_styles_are_aggregated_and_uiroot_injected() {
 #[test]
 fn color_swatch_styles_use_defensive_variable_fallback_chain() {
     let styles_source = load_source("../../components/color-swatch/src/styles.rs");
-    let theme_css_source = include_str!("../../../crates/ui-theme/src/css.rs");
+    let theme_css_source =
+        source_contract::source_from_file_relative(file!(), "../../../crates/ui-theme/src/css.rs");
     let check2_source = load_source("../../components/color-swatch/check2.md");
     let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 

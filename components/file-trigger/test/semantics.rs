@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 #[test]
 fn component_layer_keeps_structural_responsibilities() {
     let mod_source = include_str!("../src/mod.rs");
@@ -142,7 +144,10 @@ fn component_has_no_async_loading_protocol() {
 fn component_dx_default_path_is_minimal_and_docs_first() {
     let view_source = include_str!("../src/view.rs");
     let readme_source = include_str!("../src/README.md");
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/files.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/files.rs",
+    );
 
     assert!(
         readme_source.contains("<FileTrigger on_files=on_files>\"Pick files\"</FileTrigger>"),
@@ -171,7 +176,10 @@ fn component_is_not_composite_container_api() {
     let mod_source = include_str!("../src/mod.rs");
     let view_source = include_str!("../src/view.rs");
     let readme_source = include_str!("../src/README.md");
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/files.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/files.rs",
+    );
 
     assert!(
         readme_source.contains("## Composite API"),
@@ -1454,7 +1462,10 @@ fn component_supports_tree_shaking_feature_gates() {
 #[test]
 fn component_dx_workbench_contract_is_documented_and_live() {
     let readme_source = include_str!("../src/README.md");
-    let docs_file = include_str!("../../../apps/docs-app/src/pages/components/pages/files.rs");
+    let docs_file = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/files.rs",
+    );
 
     assert!(
         readme_source.contains("## DX Requirements"),
@@ -1726,7 +1737,10 @@ fn component_rust_hygiene_local_guards_hold() {
 #[test]
 fn component_docs_and_copy_ready_contract_are_present() {
     let readme_source = include_str!("../src/README.md");
-    let docs_file = include_str!("../../../apps/docs-app/src/pages/components/pages/files.rs");
+    let docs_file = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/files.rs",
+    );
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
 
     assert!(

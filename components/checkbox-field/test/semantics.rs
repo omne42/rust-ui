@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "logic" => include_str!("../src/logic.rs"),
@@ -7,9 +9,10 @@ fn load_source(path: &str) -> &'static str {
         "mod" => include_str!("../src/mod.rs"),
         "checkbox_view" => include_str!("../../checkbox/src/view.rs"),
         "docs_todo" => include_str!("../../../docs/plan/TODO.md"),
-        "docs_checkbox_field_page" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs")
-        }
+        "docs_checkbox_field_page" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs",
+        ),
         "readme" => include_str!("../src/README.md"),
         "check2" => include_str!("../check2.md"),
         "dx_script" => include_str!("../../../scripts/check-ui-dx.sh"),

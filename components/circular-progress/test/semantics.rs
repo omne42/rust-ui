@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "mod" => include_str!("../src/mod.rs"),
@@ -12,9 +14,10 @@ fn load_source(path: &str) -> &'static str {
         "src/logic.rs" => include_str!("../src/logic.rs"),
         "src/view.rs" => include_str!("../src/view.rs"),
         "src/styles.rs" => include_str!("../src/styles.rs"),
-        "docs_display" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/display.rs")
-        }
+        "docs_display" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display.rs",
+        ),
         _ => panic!("unsupported source path: {path}"),
     }
 }
@@ -1610,8 +1613,10 @@ fn circular_progress_token_first_style_contract_flows_from_styles_to_css_aggrega
 #[test]
 fn circular_progress_visual_desire_baseline_is_backed_by_docs_and_playwright_screenshots() {
     let check2 = load_source("check2");
-    let baseline_page =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs");
+    let baseline_page = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs",
+    );
     let docs_registry = include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
     let visual_e2e = include_str!("../../../e2e/tests/docs_app_theme_visual_baseline.spec.mjs");
     let heroui_strategy = include_str!("../../../docs/spec/heroui-parameter-design-strategy.md");
@@ -2629,7 +2634,10 @@ fn circular_progress_static_fragments_are_constantized_or_absent_for_simple_indi
 fn circular_progress_inner_html_usage_is_forbidden_in_component_and_docs_examples_locally() {
     let check2 = load_source("check2");
     let script = include_str!("../../../scripts/check-ui-inner-html.sh");
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/display.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/display.rs",
+    );
 
     for (rel_path, source) in [
         ("mod", load_source("mod")),
@@ -3540,7 +3548,8 @@ fn circular_progress_version_deprecation_migration_is_na_without_major_breaking_
 fn circular_progress_styles_use_defensive_variable_fallback_chain_locally() {
     let styles = load_source("styles");
     let check2 = load_source("check2");
-    let theme_css = include_str!("../../../crates/ui-theme/src/css.rs");
+    let theme_css =
+        source_contract::source_from_file_relative(file!(), "../../../crates/ui-theme/src/css.rs");
     let script = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [

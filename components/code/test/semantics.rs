@@ -1,9 +1,12 @@
+use ui_test_support::source_contract;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "readme" => include_str!("../src/README.md"),
-        "docs_display" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/display.rs")
-        }
+        "docs_display" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display.rs",
+        ),
         "docs_pages_catalog" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }

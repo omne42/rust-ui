@@ -17,3 +17,6 @@ ui-motion = { path = "../../crates/ui-motion" }
 ui-state-primitives = { path = "../../crates/ui-state-primitives" }
 ui-visual-primitive = { path = "../../crates/ui-visual-primitive" }
 serde = { version = "1.0", features = ["derive"] }
+
+[dev-dependencies]
+ui-test-support = { path = "../../crates/ui-test-support" }

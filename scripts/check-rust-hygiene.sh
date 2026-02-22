@@ -15,6 +15,7 @@ else
 fi
 
 bash ./scripts/check-motion-default-hardcode.sh
+bash ./scripts/check-rs-source-include.sh
 
 unwrap_expect_count=0
 let_underscore_count=0

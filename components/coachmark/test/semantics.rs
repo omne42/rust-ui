@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "mod" => include_str!("../src/mod.rs"),
@@ -19,11 +21,10 @@ fn load_source(path: &str) -> &'static str {
         "legacy_semantics" => {
             include_str!("../../../components/coachmark/test/coachmark_semantics.rs")
         }
-        "theme_visual_baseline_page" => {
-            include_str!(
-                "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs"
-            )
-        }
+        "theme_visual_baseline_page" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs",
+        ),
         "theme_visual_baseline_e2e" => {
             include_str!("../../../e2e/tests/docs_app_theme_visual_baseline.spec.mjs")
         }
@@ -59,11 +60,10 @@ fn load_source(path: &str) -> &'static str {
         "docs_pages_catalog" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }
-        "docs_coachmark_page" => {
-            include_str!(
-                "../../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs"
-            )
-        }
+        "docs_coachmark_page" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs",
+        ),
         "coachmark_checklist" => include_str!("../check2.md"),
         "perf_script" => include_str!("../../../scripts/check-ui-performance.sh"),
         "headless_a11y" => include_str!("../../../crates/ui-headless/src/a11y.rs"),
@@ -926,8 +926,9 @@ fn coachmark_check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn coachmark_e2e_selector_contract_uses_semantic_markers_and_settled_waits() {
     let e2e_source = load_source("coachmark_e2e_contract");
-    let docs_page_source = include_str!(
-        "../../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs"
+    let docs_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs",
     );
 
     for marker in [
@@ -3343,8 +3344,9 @@ fn coachmark_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated(
 fn coachmark_dx_playground_supports_hot_reload_context_and_isolated_workbench() {
     let check2_source = load_source("coachmark_checklist");
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
-    let docs_page_source = include_str!(
-        "../../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs"
+    let docs_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs",
     );
     let script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
@@ -3401,8 +3403,9 @@ fn coachmark_dx_playground_supports_hot_reload_context_and_isolated_workbench() 
 
 #[test]
 fn coachmark_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot() {
-    let docs_page_source = include_str!(
-        "../../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs"
+    let docs_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs",
     );
 
     for required in [
@@ -3428,8 +3431,9 @@ fn coachmark_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streami
 
 #[test]
 fn coachmark_docs_are_source_first_copy_paste_ready_with_imports_copy_button_and_sync() {
-    let docs_page_source = include_str!(
-        "../../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs"
+    let docs_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs",
     );
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
     let code_block_view = include_str!("../../../components/code-block/src/view.rs");
@@ -3695,8 +3699,9 @@ fn coachmark_check2_documents_docs_sync_and_state_matrix_rules() {
 
 #[test]
 fn coachmark_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults() {
-    let docs_page_source = include_str!(
-        "../../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs"
+    let docs_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs",
     );
     let logic_source = load_source("logic");
     let view_source = load_source("view");
@@ -4348,7 +4353,8 @@ fn coachmark_engineering_check_script_covers_serde_tracing_and_runtime_boundarie
 #[test]
 fn coachmark_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals() {
     let styles_source = load_source("styles");
-    let theme_css_source = include_str!("../../../crates/ui-theme/src/css.rs");
+    let theme_css_source =
+        source_contract::source_from_file_relative(file!(), "../../../crates/ui-theme/src/css.rs");
     let check2_source = load_source("coachmark_checklist");
     let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 

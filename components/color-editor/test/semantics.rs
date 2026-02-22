@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(rel_path: &str) -> &'static str {
     match rel_path {
         "../../components/color-editor/src/lib.rs" => include_str!("../src/lib.rs"),
@@ -16,7 +18,10 @@ fn load_source(rel_path: &str) -> &'static str {
             include_str!("../../../crates/ui-state-primitives/src/color_editor.rs")
         }
         "../../apps/docs-app/src/pages/components/pages/forms_color.rs" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/forms_color.rs")
+            source_contract::source_from_file_relative(
+                file!(),
+                "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
+            )
         }
         "../../apps/docs-app/src/pages/components/pages.rs" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
@@ -403,7 +408,8 @@ fn color_editor_styles_consume_ui_theme_tokens_with_component_scoped_aliases() {
 fn color_editor_styles_use_defensive_variable_fallback_chain() {
     let styles_source = load_source("../../components/color-editor/src/styles.rs");
     let check2_source = load_source("../../components/color-editor/check2.md");
-    let theme_css_source = include_str!("../../../crates/ui-theme/src/css.rs");
+    let theme_css_source =
+        source_contract::source_from_file_relative(file!(), "../../../crates/ui-theme/src/css.rs");
     let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [

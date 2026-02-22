@@ -17,3 +17,6 @@ ui-headless = { path = "../../crates/ui-headless" }
 ui = { path = "../../crates/ui", default-features = false, features = ["component-coachmark"] }
 ui-state-primitives = { path = "../../crates/ui-state-primitives" }
 serde = { version = "1.0", features = ["derive"] }
+
+[dev-dependencies]
+ui-test-support = { path = "../../crates/ui-test-support" }

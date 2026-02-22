@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 #[test]
 fn command_view_mounts_headless_semantics_contracts() {
     let source = include_str!("../src/view.rs");
@@ -216,7 +218,8 @@ fn command_token_first_static_style_contract_is_enforced() {
 #[test]
 fn command_styles_use_defensive_variable_fallback_chain() {
     let styles_source = include_str!("../src/styles.rs");
-    let theme_css_source = include_str!("../../../crates/ui-theme/src/css.rs");
+    let theme_css_source =
+        source_contract::source_from_file_relative(file!(), "../../../crates/ui-theme/src/css.rs");
     let check2_source = include_str!("../check2.md");
     let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
@@ -450,8 +453,10 @@ fn command_check2_marks_tree_shaking_feature_pruning_contract_complete() {
 #[test]
 fn command_default_visual_quality_contract_has_hierarchy_and_feedback() {
     let styles_source = include_str!("../src/styles.rs");
-    let docs_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
 
     for needle in [
         ".ui-command {",
@@ -763,8 +768,10 @@ fn command_async_contract_is_not_applicable_and_unintroduced() {
 fn command_dx_default_path_is_simple_and_state_not_required() {
     let view_source = include_str!("../src/view.rs");
     let readme_source = include_str!("../src/README.md");
-    let docs_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
 
     assert!(
         view_source.contains("#[prop(into)] groups: Arc<[CommandGroup]>"),
@@ -796,8 +803,10 @@ fn command_composite_api_uses_typed_item_tree_not_parallel_arrays() {
     let mod_source = include_str!("../src/mod.rs");
     let view_source = include_str!("../src/view.rs");
     let readme_source = include_str!("../src/README.md");
-    let docs_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
 
     assert!(
         mod_source.contains("CommandGroup, CommandItem"),
@@ -1518,8 +1527,10 @@ fn command_performance_governance_budget_is_mount_only_traceable_and_blocking() 
     let check2_source = include_str!("../check2.md");
     let shell_source = include_str!("../../../apps/docs-app/src/pages/components/shell.rs");
     let pages_source = include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
-    let docs_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
     let perf_probe_source = include_str!("../../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = include_str!("../../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = include_str!("../../../docs/plan/TODO.md");
@@ -1913,8 +1924,10 @@ fn command_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isolated() 
     let command_cargo_source = include_str!("../Cargo.toml");
     let ui_components_cargo_source = include_str!("../../../crates/ui/Cargo.toml");
     let docs_lib_source = include_str!("../../../apps/docs-app/src/lib.rs");
-    let docs_command_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_command_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
     let debug_overlay_source = include_str!("../../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = include_str!("../../../crates/ui-headless/src/trace.rs");
 
@@ -2031,8 +2044,10 @@ fn command_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isolated() 
 #[test]
 fn command_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na() {
     let check2_source = include_str!("../check2.md");
-    let docs_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
     let command_cargo_source = include_str!("../Cargo.toml");
     let script_source = include_str!("../../../scripts/check-ui-dx.sh");
@@ -2119,8 +2134,10 @@ fn command_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_option
 
 #[test]
 fn command_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot() {
-    let docs_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
 
     for needle in [
@@ -2223,8 +2240,10 @@ fn command_check2_documents_docs_sync_and_state_matrix_rules() {
 
 #[test]
 fn command_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults() {
-    let docs_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
     let view_source = include_str!("../src/view.rs");
     let logic_source = include_str!("../src/logic.rs");
 
@@ -2336,8 +2355,10 @@ fn command_check2_documents_interactive_playground_rules() {
 
 #[test]
 fn command_docs_app_provides_interactive_playground_for_props_state_and_preview() {
-    let docs_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
 
     for needle in [
         "title=\"Interactive Playground\"",
@@ -2451,8 +2472,10 @@ fn command_check2_documents_source_first_copy_paste_ready_rules() {
 
 #[test]
 fn command_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() {
-    let docs_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
     let code_block_view_source = include_str!("../../../components/code-block/src/view.rs");
     let readme_source = include_str!("../src/README.md");
@@ -2551,8 +2574,10 @@ fn command_check2_documents_documentation_as_product_rules() {
 #[test]
 fn command_documentation_entry_exists_with_beginner_first_progression() {
     let readme = include_str!("../src/README.md");
-    let docs_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
 
     for needle in [
         "# Command",
@@ -2680,8 +2705,10 @@ fn command_check2_documents_heroui_benchmark_docs_sync_rules() {
 fn command_heroui_strategy_and_component_docs_are_synchronized_and_indexable() {
     let strategy_source = include_str!("../../../docs/spec/heroui-parameter-design-strategy.md");
     let pages_source = include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
-    let docs_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
     let readme_source = include_str!("../src/README.md");
 
     for needle in [
@@ -2926,8 +2953,10 @@ fn command_check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn command_e2e_selector_contract_uses_semantic_markers_and_settled_waits() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_command.spec.mjs");
-    let docs_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
 
     for required in [
         "[data-slot=\"command-e2e-default\"]",
@@ -3949,8 +3978,10 @@ fn command_check2_documents_snapshot_as_default_baseline_capability() {
 fn command_snapshot_baseline_consumes_complete_result_and_renders_stably() {
     let view_source = include_str!("../src/view.rs");
     let logic_source = include_str!("../src/logic.rs");
-    let docs_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/collections_command.rs",
+    );
 
     for marker in [
         "pub fn Command(",

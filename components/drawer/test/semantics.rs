@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn snapshot_only_forbidden_patterns() -> [String; 4] {
     [
         ["assert", "_snapshot!"].concat(),
@@ -495,7 +497,8 @@ fn drawer_token_first_static_style_contract_is_enforced() {
 #[test]
 fn drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals() {
     let styles_source = include_str!("../src/styles.rs");
-    let theme_css_source = include_str!("../../../crates/ui-theme/src/css.rs");
+    let theme_css_source =
+        source_contract::source_from_file_relative(file!(), "../../../crates/ui-theme/src/css.rs");
 
     for needle in [
         "var(--ui-space-md, var(--ui-fallback-space-md))",
@@ -1326,7 +1329,10 @@ fn drawer_check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn drawer_e2e_selector_contract_uses_semantic_markers_and_settled_waits() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_drawer_contract.spec.mjs");
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
 
     for marker in [
         "page.goto(\"/#/components/drawer\")",
@@ -1562,8 +1568,10 @@ fn drawer_check2_marks_replayable_e2e_critical_flow_item_complete() {
 
 #[test]
 fn drawer_visual_desire_gate_reuses_theme_visual_baseline_and_screenshot_contracts() {
-    let theme_visual_baseline_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs");
+    let theme_visual_baseline_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs",
+    );
     let baseline_e2e_source =
         include_str!("../../../e2e/tests/docs_app_theme_visual_baseline.spec.mjs");
 
@@ -3989,7 +3997,10 @@ fn drawer_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
         }
     }
 
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
     for forbidden in [
         "inner_html",
         "set_inner_html",
@@ -4038,8 +4049,10 @@ fn drawer_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
         include_str!("../../../crates/ui-headless/src/controllable_state.rs");
     let drawer_view_source = include_str!("../src/view.rs");
     let drawer_logic_source = include_str!("../src/logic.rs");
-    let docs_overlays_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let docs_overlays_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
     let check2_source = include_str!("../check2.md");
 
     for needle in [
@@ -4195,7 +4208,10 @@ fn drawer_wasm_debug_check_script_covers_shared_contract() {
 #[test]
 fn drawer_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
 
     for needle in [
         "let (show_settings_panel, set_show_settings_panel) = signal(false);",
@@ -4235,7 +4251,10 @@ fn drawer_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
 fn drawer_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na()
 {
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
     let check2_source = include_str!("../check2.md");
 
     for needle in [
@@ -4330,7 +4349,10 @@ fn drawer_check2_documents_docs_sync_and_state_matrix_rules() {
 
 #[test]
 fn drawer_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults() {
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
     let logic_source = include_str!("../src/logic.rs");
     let view_source = include_str!("../src/view.rs");
     let primitive_source = include_str!("../../../crates/ui-state-primitives/src/drawer.rs");
@@ -4467,7 +4489,10 @@ fn drawer_check2_documents_documentation_as_product_rules() {
 fn drawer_documentation_entry_exists_with_beginner_first_progression() {
     let readme_source = include_str!("../src/README.md");
     let pages_source = include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
 
     for needle in [
         "# Drawer",
@@ -4584,7 +4609,10 @@ fn drawer_check2_documents_heroui_benchmark_docs_sync_rules() {
 fn drawer_heroui_strategy_and_component_docs_are_synchronized_and_indexable() {
     let strategy_source = include_str!("../../../docs/spec/heroui-parameter-design-strategy.md");
     let pages_source = include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
     let readme_source = include_str!("../src/README.md");
 
     for needle in [
@@ -4688,7 +4716,10 @@ fn drawer_check2_documents_interactive_playground_rules() {
 
 #[test]
 fn drawer_docs_app_provides_interactive_playground_for_props_state_and_preview() {
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
 
     for needle in [
         "pub(super) fn drawer() -> AnyView",
@@ -4721,7 +4752,10 @@ fn drawer_docs_app_provides_interactive_playground_for_props_state_and_preview()
 #[test]
 fn drawer_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_drawer_contract.spec.mjs");
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
 
     for needle in [
         "docs-app drawer key flow is repeatable with semantic breakpoints",
@@ -4807,7 +4841,10 @@ fn drawer_check2_marks_interactive_playground_item_complete() {
 
 #[test]
 fn drawer_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract() {
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
 
     for needle in [
@@ -4900,7 +4937,10 @@ fn drawer_check2_documents_source_first_copy_paste_ready_rules() {
 
 #[test]
 fn drawer_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() {
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
 
     for needle in [

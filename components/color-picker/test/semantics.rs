@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(rel_path: &str) -> &'static str {
     match rel_path {
         "../../components/color-picker/src/lib.rs" => include_str!("../src/lib.rs"),
@@ -70,7 +72,10 @@ fn load_source(rel_path: &str) -> &'static str {
             include_str!("../../../crates/ui-headless/src/test/popover_position.rs")
         }
         "../../apps/docs-app/src/pages/components/pages/forms_color.rs" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/forms_color.rs")
+            source_contract::source_from_file_relative(
+                file!(),
+                "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
+            )
         }
         "../../apps/docs-app/src/pages/components/shell.rs" => {
             include_str!("../../../apps/docs-app/src/pages/components/shell.rs")
@@ -2069,7 +2074,8 @@ fn color_picker_default_theme_visual_desire_baseline_is_documented_and_token_dri
 fn color_picker_styles_use_defensive_variable_fallback_chain() {
     let styles_source = load_source("../../components/color-picker/src/styles.rs");
     let check2_source = load_source("../../components/color-picker/check2.md");
-    let theme_css_source = include_str!("../../../crates/ui-theme/src/css.rs");
+    let theme_css_source =
+        source_contract::source_from_file_relative(file!(), "../../../crates/ui-theme/src/css.rs");
     let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
     for required in [

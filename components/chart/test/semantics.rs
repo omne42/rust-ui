@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 use std::{fs, path::Path};
 
 fn load_source(path: &str) -> &'static str {
@@ -11,9 +13,10 @@ fn load_source(path: &str) -> &'static str {
         "readme" => include_str!("../src/README.md"),
         "component_manifest" => include_str!("../Component.toml"),
         "component_rbi" => include_str!("../Component.rbi"),
-        "docs_display_extra" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/display_extra.rs")
-        }
+        "docs_display_extra" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display_extra.rs",
+        ),
         "docs_components_pages" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }
@@ -25,11 +28,10 @@ fn load_source(path: &str) -> &'static str {
         "docs_components_coverage_e2e" => {
             include_str!("../../../e2e/tests/docs_app_components_coverage.spec.mjs")
         }
-        "docs_theme_visual_baseline_page" => {
-            include_str!(
-                "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs"
-            )
-        }
+        "docs_theme_visual_baseline_page" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs",
+        ),
         "docs_theme_visual_baseline_e2e" => {
             include_str!("../../../e2e/tests/docs_app_theme_visual_baseline.spec.mjs")
         }
@@ -2108,7 +2110,8 @@ fn chart_check2_marks_cascade_layer_contract_complete_locally() {
 #[test]
 fn chart_styles_use_defensive_variable_fallback_chain() {
     let styles_source = load_source("styles");
-    let theme_css_source = include_str!("../../../crates/ui-theme/src/css.rs");
+    let theme_css_source =
+        source_contract::source_from_file_relative(file!(), "../../../crates/ui-theme/src/css.rs");
 
     for required in [
         "var(--ui-space-sm, var(--ui-fallback-space-sm))",

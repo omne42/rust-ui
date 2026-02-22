@@ -5172,10 +5172,8 @@ pub(super) fn date_picker() -> AnyView {
         )
     });
 
-    let workbench_test_css_source: Signal<String> = Signal::derive(move || {
-        include_str!("../../../../../../components/text-input/src/date_picker/styles.rs")
-            .to_string()
-    });
+    let workbench_test_css_source: Signal<String> =
+        Signal::derive(move || ui::text_input::date_picker::styles::CSS.to_string());
 
     view! {
         <ComponentPage

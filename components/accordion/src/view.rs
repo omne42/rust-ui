@@ -78,11 +78,71 @@ mod wasm_debug {
     pub fn format_indices(values: &BTreeSet<usize>) -> String {
         format!("{values:?}")
     }
+
+    pub fn render_debug_panel(
+        debug_store: DebugStore,
+        request_open_change: Callback<(BTreeSet<usize>, logic::AccordionOpenChangeSource)>,
+    ) -> impl IntoView {
+        let events = debug_store.events;
+
+        view! {
+            <details class="ui-accordion__debug" data-slot="accordion-debug" open>
+                <summary data-slot="accordion-debug-entry">
+                    "Accordion Debug (wasm dev)"
+                </summary>
+                <ul class="ui-accordion__debug-list" data-slot="accordion-debug-list">
+                    {move || {
+                        events
+                            .get()
+                            .into_iter()
+                            .map(|event| {
+                                let replay_next = event.after.clone();
+                                let sequence = event.sequence;
+                                let source = event.source.as_str();
+                                let before_text = format_indices(&event.before);
+                                let after_text = format_indices(&event.after);
+                                let timestamp_text = format!("{:.0}", event.timestamp_ms);
+                                view! {
+                                    <li
+                                        class="ui-accordion__debug-item"
+                                        data-slot="accordion-debug-event"
+                                        data-debug-sequence=sequence
+                                        data-debug-source=source
+                                        data-debug-timestamp-ms=timestamp_text.clone()
+                                        data-debug-before=before_text.clone()
+                                        data-debug-after=after_text.clone()
+                                    >
+                                        <button
+                                            type="button"
+                                            class="ui-accordion__debug-replay"
+                                            data-slot="accordion-debug-replay"
+                                            on:click=move |_| {
+                                                request_open_change.run((
+                                                    replay_next.clone(),
+                                                    logic::AccordionOpenChangeSource::Programmatic,
+                                                ));
+                                            }
+                                        >
+                                            "Replay"
+                                        </button>
+                                        <span class="ui-accordion__debug-meta">
+                                            {format!(
+                                                "#{sequence} t={timestamp_text}ms source={source} before={before_text} after={after_text}"
+                                            )}
+                                        </span>
+                                    </li>
+                                }
+                            })
+                            .collect_view()
+                    }}
+                </ul>
+            </details>
+        }
+    }
 }
 
 const ACCORDION_BASE_CLASS: &str = "ui-accordion";
 const ACCORDION_INDICATOR_GLYPH: &str = "›";
-
 mod item_collection {
     use super::{AccordionPanelLifecycleEvent, Arc, Children, logic};
     use leptos::prelude::*;
@@ -460,72 +520,6 @@ fn focus_trigger(trigger_refs: &Arc<Vec<NodeRef<html::Button>>>, index: usize) {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn focus_trigger(_trigger_refs: &Arc<Vec<NodeRef<html::Button>>>, _index: usize) {}
-
-#[cfg(all(
-    feature = "accordion-wasm-debug",
-    debug_assertions,
-    target_arch = "wasm32"
-))]
-fn render_debug_panel(
-    debug_store: wasm_debug::DebugStore,
-    request_open_change: Callback<(BTreeSet<usize>, logic::AccordionOpenChangeSource)>,
-) -> impl IntoView {
-    let events = debug_store.events;
-
-    view! {
-        <details class="ui-accordion__debug" data-slot="accordion-debug" open>
-            <summary data-slot="accordion-debug-entry">
-                "Accordion Debug (wasm dev)"
-            </summary>
-            <ul class="ui-accordion__debug-list" data-slot="accordion-debug-list">
-                {move || {
-                    events
-                        .get()
-                        .into_iter()
-                        .map(|event| {
-                            let replay_next = event.after.clone();
-                            let sequence = event.sequence;
-                            let source = event.source.as_str();
-                            let before_text = wasm_debug::format_indices(&event.before);
-                            let after_text = wasm_debug::format_indices(&event.after);
-                            let timestamp_text = format!("{:.0}", event.timestamp_ms);
-                            view! {
-                                <li
-                                    class="ui-accordion__debug-item"
-                                    data-slot="accordion-debug-event"
-                                    data-debug-sequence=sequence
-                                    data-debug-source=source
-                                    data-debug-timestamp-ms=timestamp_text.clone()
-                                    data-debug-before=before_text.clone()
-                                    data-debug-after=after_text.clone()
-                                >
-                                    <button
-                                        type="button"
-                                        class="ui-accordion__debug-replay"
-                                        data-slot="accordion-debug-replay"
-                                        on:click=move |_| {
-                                            request_open_change.run((
-                                                replay_next.clone(),
-                                                logic::AccordionOpenChangeSource::Programmatic,
-                                            ));
-                                        }
-                                    >
-                                        "Replay"
-                                    </button>
-                                    <span class="ui-accordion__debug-meta">
-                                        {format!(
-                                            "#{sequence} t={timestamp_text}ms source={source} before={before_text} after={after_text}"
-                                        )}
-                                    </span>
-                                </li>
-                            }
-                        })
-                        .collect_view()
-                }}
-            </ul>
-        </details>
-    }
-}
 
 /// Accordion component with roving focus, disclosure semantics, and optional spring motion.
 ///
@@ -922,7 +916,7 @@ pub fn Accordion(
 
     let debug_panel: Option<AnyView> = crate::wasm_debug_proxy!(
         "accordion-wasm-debug",
-        { Some(render_debug_panel(debug_store, request_open_change).into_any()) },
+        { Some(wasm_debug::render_debug_panel(debug_store, request_open_change).into_any()) },
         { None }
     );
 

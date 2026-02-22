@@ -1,6 +1,7 @@
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
+use ui_test_support::source_contract;
 
 fn docs_page_module_path(module: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -32,16 +33,19 @@ fn walk_rs_files(root: &Path, out: &mut Vec<PathBuf>) {
             continue;
         }
 
-        if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
+        if path.extension().and_then(|ext| ext.to_str()) == Some("rs")
+            && !path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.starts_with("part_"))
+        {
             out.push(path);
         }
     }
 }
 
 fn read_file(path: &Path) -> String {
-    fs::read_to_string(path).unwrap_or_else(|err| {
-        panic!("failed to read {path:?}: {err}");
-    })
+    source_contract::source_from_path(path)
 }
 
 fn slice_fn_block<'a>(source: &'a str, fn_name: &str) -> &'a str {

@@ -12,3 +12,6 @@ default = []
 component-file_trigger = []
 
 [dependencies]
+
+[dev-dependencies]
+ui-test-support = { path = "../../crates/ui-test-support" }

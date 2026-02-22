@@ -14,3 +14,6 @@ default = []
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-headless = { path = "../../crates/ui-headless" }
 ui-state-primitives = { path = "../../crates/ui-state-primitives" }
+
+[dev-dependencies]
+ui-test-support = { path = "../../crates/ui-test-support" }

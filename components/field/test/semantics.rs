@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 #[test]
 fn field_component_layering_contract_is_explicit() {
     let mod_source = include_str!("../src/mod.rs");
@@ -388,8 +390,10 @@ fn field_dx_default_api_path_is_minimal_and_no_state_wiring() {
     let view_source = include_str!("../src/view.rs");
     let group_view_source = include_str!("../src/group/view.rs");
     let readme_source = include_str!("../src/README.md");
-    let docs_field_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let docs_field_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/forms_extra.rs",
+    );
 
     for forbidden in [
         "#[prop(optional)] state:",
@@ -458,8 +462,10 @@ fn field_dx_default_api_path_is_minimal_and_no_state_wiring() {
 
 #[test]
 fn field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot() {
-    let docs_field_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let docs_field_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/forms_extra.rs",
+    );
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
     let check2_source = include_str!("../check2.md");
 
@@ -527,8 +533,10 @@ fn field_check2_documents_source_first_copy_paste_ready_rules() {
 
 #[test]
 fn field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() {
-    let docs_field_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let docs_field_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/forms_extra.rs",
+    );
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
     let code_block_view_source = include_str!("../../../components/code-block/src/view.rs");
     let view_source = include_str!("../src/view.rs");
@@ -676,8 +684,10 @@ fn field_check2_documents_heroui_benchmark_docs_sync_rules() {
 fn field_heroui_strategy_and_component_docs_are_synchronized_and_indexable() {
     let strategy_source = include_str!("../../../docs/spec/heroui-parameter-design-strategy.md");
     let pages_source = include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
-    let docs_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/forms_extra.rs",
+    );
     let readme_source = include_str!("../src/README.md");
 
     for required in [
@@ -783,8 +793,10 @@ fn field_check2_documents_docs_sync_and_state_matrix_rules() {
 
 #[test]
 fn field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults() {
-    let docs_field_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let docs_field_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/forms_extra.rs",
+    );
     let view_source = include_str!("../src/view.rs");
     let logic_source = include_str!("../src/logic.rs");
     let primitive_source = include_str!("../../../crates/ui-state-primitives/src/field.rs");
@@ -878,8 +890,10 @@ fn field_check2_documents_documentation_as_product_rules() {
 #[test]
 fn field_documentation_entry_exists_with_beginner_first_progression() {
     let readme_source = include_str!("../src/README.md");
-    let docs_field_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let docs_field_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/forms_extra.rs",
+    );
 
     for required in [
         "# Field",
@@ -955,8 +969,10 @@ fn field_dx_check_script_covers_documentation_as_product_contract() {
 #[test]
 fn field_group_api_prefers_explicit_parent_child_composition() {
     let group_view_source = include_str!("../src/group/view.rs");
-    let docs_groups_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/forms_groups.rs");
+    let docs_groups_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/forms_groups.rs",
+    );
 
     assert!(
         group_view_source.contains("children: Children"),
@@ -2545,8 +2561,10 @@ fn field_motion_contract_is_component_scoped_and_respects_reduced_motion_with_no
 fn field_visual_desire_baseline_is_documented_and_has_interaction_cues() {
     let field_styles_source = include_str!("../src/styles.rs");
     let group_styles_source = include_str!("../src/group/styles.rs");
-    let docs_baseline_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs");
+    let docs_baseline_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs",
+    );
     let docs_pages_source = include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
     let check2_source = include_str!("../check2.md");
 
@@ -4164,8 +4182,10 @@ fn field_wasm_debug_contract_is_explicitly_na_with_dev_only_observability_entry(
 
 #[test]
 fn field_dx_contract_keeps_css_fast_feedback_context_persistence_and_workbench_canvas() {
-    let forms_extra_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let forms_extra_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/forms_extra.rs",
+    );
     let check2_source = include_str!("../check2.md");
 
     for required in [
@@ -4225,8 +4245,10 @@ fn field_engineering_capability_contract_is_serde_versioned_trace_aligned_and_ru
     let group_protocol_source = include_str!("../src/group/protocol.rs");
     let protocol_test_source = include_str!("../test/protocol.rs");
     let group_protocol_test_source = include_str!("../test/group/protocol.rs");
-    let forms_extra_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let forms_extra_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/forms_extra.rs",
+    );
     let docs_app_source = include_str!("../../../apps/docs-app/src/lib.rs");
     let check2_source = include_str!("../check2.md");
 
@@ -5005,8 +5027,10 @@ fn field_check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn field_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_field_contract.spec.mjs");
-    let docs_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let docs_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/forms_extra.rs",
+    );
 
     for required in [
         "/#/components/field",
@@ -5204,8 +5228,10 @@ fn field_check2_documents_interactive_playground_rules() {
 
 #[test]
 fn field_docs_app_provides_interactive_playground_for_props_state_and_preview() {
-    let docs_field_page_source =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let docs_field_page_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/forms_extra.rs",
+    );
     let e2e_source = include_str!("../../../e2e/tests/docs_app_field_contract.spec.mjs");
 
     for required in [

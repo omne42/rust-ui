@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "mod" => include_str!("../src/mod.rs"),
@@ -8,9 +10,10 @@ fn load_source(path: &str) -> &'static str {
         "manifest" => include_str!("../src/Component.toml"),
         "rbi" => include_str!("../src/form_field.rbi"),
         "check2" => include_str!("../check2.md"),
-        "docs_form_field_page" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs")
-        }
+        "docs_form_field_page" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs",
+        ),
         _ => panic!("unsupported source path: {path}"),
     }
 }

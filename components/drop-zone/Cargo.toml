@@ -21,3 +21,6 @@ ui-theme = { path = "../../crates/ui-theme" }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = "0.3.85"
 web-sys = { version = "0.3.85", features = ["DataTransfer", "DragEvent", "File", "FileList", "HtmlInputElement", "ResizeObserver", "ResizeObserverEntry"] }
+
+[dev-dependencies]
+ui-test-support = { path = "../../crates/ui-test-support" }

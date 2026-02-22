@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 const MOD_SOURCE: &str = include_str!("../src/mod.rs");
 const LOGIC_SOURCE: &str = include_str!("../src/logic.rs");
 const VIEW_SOURCE: &str = include_str!("../src/view.rs");
@@ -15,7 +17,9 @@ const UI_COMPONENTS_CSS_SOURCE: &str = include_str!("../../../crates/ui/src/css.
 const UI_COMPONENTS_ROOT_SOURCE: &str = include_str!("../../../crates/ui/src/root.rs");
 const UI_VISUAL_PRIMITIVE_ACTIVE_HIGHLIGHT_SOURCE: &str =
     include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
-const UI_THEME_CSS_SOURCE: &str = include_str!("../../../crates/ui-theme/src/css.rs");
+static UI_THEME_CSS_SOURCE: std::sync::LazyLock<&'static str> = std::sync::LazyLock::new(|| {
+    source_contract::source_from_file_relative(file!(), "../../../crates/ui-theme/src/css.rs")
+});
 const HEADLESS_A11Y_SOURCE: &str = include_str!("../../../crates/ui-headless/src/a11y.rs");
 const HEADLESS_LIB_SOURCE: &str = include_str!("../../../crates/ui-headless/src/lib.rs");
 const HEADLESS_CONTROLLABLE_STATE_SOURCE: &str =
@@ -30,8 +34,13 @@ const HEADLESS_POPOVER_TEST_SOURCE: &str =
     include_str!("../../../crates/ui-headless/src/test/popover_position.rs");
 const DOCS_COMPONENT_PAGES_SOURCE: &str =
     include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
-const DOCS_COLLECTIONS_SOURCE: &str =
-    include_str!("../../../apps/docs-app/src/pages/components/pages/collections.rs");
+static DOCS_COLLECTIONS_SOURCE: std::sync::LazyLock<&'static str> =
+    std::sync::LazyLock::new(|| {
+        source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/collections.rs",
+        )
+    });
 const DOCS_PLAYGROUND_SOURCE: &str = include_str!("../../../apps/docs-app/src/playground.rs");
 const DOCS_COMPONENT_SHELL_SOURCE: &str =
     include_str!("../../../apps/docs-app/src/pages/components/shell.rs");
@@ -39,8 +48,13 @@ const DOCS_APP_LIB_SOURCE: &str = include_str!("../../../apps/docs-app/src/lib.r
 const DOCS_PERF_PROBE_SOURCE: &str = include_str!("../../../apps/docs-app/src/perf_probe.rs");
 const DOCS_DEBUG_OVERLAY_SOURCE: &str = include_str!("../../../apps/docs-app/src/debug_overlay.rs");
 const DOCS_PLAN_TODO_SOURCE: &str = include_str!("../../../docs/plan/TODO.md");
-const DOCS_THEME_VISUAL_BASELINE_SOURCE: &str =
-    include_str!("../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs");
+static DOCS_THEME_VISUAL_BASELINE_SOURCE: std::sync::LazyLock<&'static str> =
+    std::sync::LazyLock::new(|| {
+        source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs",
+        )
+    });
 const HEROUI_PARAMETER_STRATEGY_SOURCE: &str =
     include_str!("../../../docs/spec/heroui-parameter-design-strategy.md");
 const E2E_COMPONENTS_COVERAGE_SOURCE: &str =

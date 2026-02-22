@@ -805,6 +805,7 @@ dependencies = [
  "ui",
  "ui-headless",
  "ui-layout",
+ "ui-test-support",
  "web-sys",
 ]
 
@@ -4797,6 +4798,7 @@ name = "ui-alert-dialog"
 version = "0.0.0"
 dependencies = [
  "ui-observability",
+ "ui-test-support",
 ]
 
 [[package]]
@@ -4806,6 +4808,7 @@ dependencies = [
  "leptos",
  "serde",
  "ui-state-primitives",
+ "ui-test-support",
  "ui-thumbnail",
 ]
 
@@ -4820,6 +4823,7 @@ dependencies = [
  "ui-observability",
  "ui-popover",
  "ui-state-primitives",
+ "ui-test-support",
  "ui-visual-primitive",
 ]
 
@@ -4840,6 +4844,7 @@ dependencies = [
  "ui-avatar",
  "ui-headless",
  "ui-state-primitives",
+ "ui-test-support",
 ]
 
 [[package]]
@@ -4917,6 +4922,7 @@ dependencies = [
  "ui-headless",
  "ui-motion",
  "ui-state-primitives",
+ "ui-test-support",
  "ui-visual-primitive",
 ]
 
@@ -4930,6 +4936,7 @@ dependencies = [
  "ui-motion",
  "ui-observability",
  "ui-state-primitives",
+ "ui-test-support",
  "web-sys",
 ]
 
@@ -4943,6 +4950,7 @@ dependencies = [
  "ui-headless",
  "ui-motion",
  "ui-state-primitives",
+ "ui-test-support",
  "ui-theme",
 ]
 
@@ -4967,6 +4975,7 @@ dependencies = [
  "ui-motion",
  "ui-observability",
  "ui-state-primitives",
+ "ui-test-support",
 ]
 
 [[package]]
@@ -4976,6 +4985,7 @@ dependencies = [
  "leptos",
  "ui-headless",
  "ui-state-primitives",
+ "ui-test-support",
 ]
 
 [[package]]
@@ -4987,6 +4997,7 @@ dependencies = [
  "ui",
  "ui-headless",
  "ui-state-primitives",
+ "ui-test-support",
 ]
 
 [[package]]
@@ -4997,6 +5008,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-state-primitives",
+ "ui-test-support",
 ]
 
 [[package]]
@@ -5040,6 +5052,7 @@ name = "ui-color-editor"
 version = "0.0.0"
 dependencies = [
  "ui-observability",
+ "ui-test-support",
 ]
 
 [[package]]
@@ -5049,14 +5062,23 @@ version = "0.0.0"
 [[package]]
 name = "ui-color-handle"
 version = "0.0.0"
+dependencies = [
+ "ui-test-support",
+]
 
 [[package]]
 name = "ui-color-loupe"
 version = "0.0.0"
+dependencies = [
+ "ui-test-support",
+]
 
 [[package]]
 name = "ui-color-picker"
 version = "0.0.0"
+dependencies = [
+ "ui-test-support",
+]
 
 [[package]]
 name = "ui-color-slider"
@@ -5076,15 +5098,22 @@ name = "ui-color-swatch"
 version = "0.0.0"
 dependencies = [
  "ui-observability",
+ "ui-test-support",
 ]
 
 [[package]]
 name = "ui-color-swatch-picker"
 version = "0.0.0"
+dependencies = [
+ "ui-test-support",
+]
 
 [[package]]
 name = "ui-color-thumb"
 version = "0.0.0"
+dependencies = [
+ "ui-test-support",
+]
 
 [[package]]
 name = "ui-color-wheel"
@@ -5096,6 +5125,7 @@ dependencies = [
  "ui-motion",
  "ui-observability",
  "ui-state-primitives",
+ "ui-test-support",
  "ui-theme",
 ]
 
@@ -5119,6 +5149,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-state-primitives",
+ "ui-test-support",
  "ui-visual-primitive",
 ]
 
@@ -5129,6 +5160,9 @@ version = "0.0.0"
 [[package]]
 name = "ui-contextual-help"
 version = "0.0.0"
+dependencies = [
+ "ui-test-support",
+]
 
 [[package]]
 name = "ui-date-input-group"
@@ -5163,6 +5197,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-state-primitives",
+ "ui-test-support",
 ]
 
 [[package]]
@@ -5192,6 +5227,7 @@ dependencies = [
  "ui-motion",
  "ui-sheet",
  "ui-state-primitives",
+ "ui-test-support",
 ]
 
 [[package]]
@@ -5204,6 +5240,7 @@ dependencies = [
  "ui-motion",
  "ui-observability",
  "ui-state-primitives",
+ "ui-test-support",
  "ui-theme",
  "web-sys",
 ]
@@ -5266,6 +5303,7 @@ dependencies = [
  "ui-headless",
  "ui-motion",
  "ui-state-primitives",
+ "ui-test-support",
  "ui-theme",
 ]
 
@@ -5277,6 +5315,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-state-primitives",
+ "ui-test-support",
 ]
 
 [[package]]
@@ -5304,6 +5343,9 @@ dependencies = [
 [[package]]
 name = "ui-file-trigger"
 version = "0.0.0"
+dependencies = [
+ "ui-test-support",
+]
 
 [[package]]
 name = "ui-flip-card"
@@ -5332,6 +5374,7 @@ dependencies = [
  "ui-checkbox",
  "ui-headless",
  "ui-state-primitives",
+ "ui-test-support",
 ]
 
 [[package]]
@@ -5423,6 +5466,7 @@ dependencies = [
  "leptos",
  "serde",
  "ui-state-primitives",
+ "ui-test-support",
 ]
 
 [[package]]
@@ -5433,11 +5477,15 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-state-primitives",
+ "ui-test-support",
 ]
 
 [[package]]
 name = "ui-label"
 version = "0.0.0"
+dependencies = [
+ "ui-test-support",
+]
 
 [[package]]
 name = "ui-labeled-value"
@@ -5499,6 +5547,7 @@ dependencies = [
  "ui-illustrated-message",
  "ui-motion",
  "ui-state-primitives",
+ "ui-test-support",
  "ui-visual-primitive",
 ]
 
@@ -5552,6 +5601,7 @@ dependencies = [
  "leptos",
  "ui-headless",
  "ui-state-primitives",
+ "ui-test-support",
 ]
 
 [[package]]
@@ -5828,6 +5878,10 @@ dependencies = [
  "ui-headless",
  "ui-state-primitives",
 ]
+
+[[package]]
+name = "ui-test-support"
+version = "0.0.0"
 
 [[package]]
 name = "ui-text"

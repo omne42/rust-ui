@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "mod" => include_str!("../src/mod.rs"),
@@ -47,9 +49,10 @@ fn load_source(path: &str) -> &'static str {
         "wasm_debug_script" => include_str!("../../../scripts/check-ui-wasm-debug.sh"),
         "streaming_script" => include_str!("../../../scripts/check-ui-streaming.sh"),
         "list_cargo" => include_str!("../Cargo.toml"),
-        "docs_collections" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/collections.rs")
-        }
+        "docs_collections" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/collections.rs",
+        ),
         "docs_app_lib" => include_str!("../../../apps/docs-app/src/lib.rs"),
         "debug_overlay" => include_str!("../../../apps/docs-app/src/debug_overlay.rs"),
         "ui_headless_trace" => include_str!("../../../crates/ui-headless/src/trace.rs"),

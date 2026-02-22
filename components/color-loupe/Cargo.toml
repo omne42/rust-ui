@@ -12,3 +12,6 @@ default = []
 component-color_loupe = []
 
 [dependencies]
+
+[dev-dependencies]
+ui-test-support = { path = "../../crates/ui-test-support" }

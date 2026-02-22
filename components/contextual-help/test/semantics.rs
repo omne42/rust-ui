@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "mod" => include_str!("../src/mod.rs"),
@@ -1200,8 +1202,10 @@ fn contextual_help_wasm_debug_contract_is_traceable_replayable_and_dev_scoped() 
 #[test]
 fn contextual_help_dx_workbench_keeps_css_hot_edit_context_and_isolated_canvas() {
     let docs_dev_script = include_str!("../../../scripts/dev-docs-app.sh");
-    let overlays_page =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let overlays_page = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
     let playground = include_str!("../../../apps/docs-app/src/playground.rs");
 
     for needle in [
@@ -1245,8 +1249,10 @@ fn contextual_help_dx_workbench_keeps_css_hot_edit_context_and_isolated_canvas()
 
 #[test]
 fn contextual_help_docs_interactive_playground_supports_live_props_state_and_spec_linkage() {
-    let overlays_page =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let overlays_page = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
     let e2e_source = include_str!("../../../e2e/tests/docs_app_contextual_help_contract.spec.mjs");
     let check2_source = include_str!("../check2.md");
 
@@ -1285,8 +1291,10 @@ fn contextual_help_docs_interactive_playground_supports_live_props_state_and_spe
 
 #[test]
 fn contextual_help_source_first_docs_are_copy_paste_ready_and_synced() {
-    let overlays_page =
-        include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let overlays_page = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
     let check2_source = include_str!("../check2.md");
 
@@ -1452,7 +1460,10 @@ fn contextual_help_e2e_key_flow_is_repeatable_and_semantic_breakpointed() {
 
 #[test]
 fn contextual_help_docs_sync_keeps_examples_and_matrixes_aligned_with_logic() {
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
     let logic_source = load_source("logic");
     let check2_source = include_str!("../check2.md");
 
@@ -1579,7 +1590,8 @@ fn contextual_help_engineering_contract_uses_structured_serde_trace_and_runtime_
 #[test]
 fn contextual_help_styles_use_defensive_variable_fallback_chain() {
     let styles = load_source("styles");
-    let theme_css = include_str!("../../../crates/ui-theme/src/css.rs");
+    let theme_css =
+        source_contract::source_from_file_relative(file!(), "../../../crates/ui-theme/src/css.rs");
 
     let has_css_hex_literal = styles.as_bytes().windows(2).enumerate().any(|(idx, pair)| {
         if pair[0] != b'#' {

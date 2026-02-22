@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 const MOD_SOURCE: &str = include_str!("../src/mod.rs");
 const LOGIC_SOURCE: &str = include_str!("../src/logic.rs");
 const VIEW_SOURCE: &str = include_str!("../src/view.rs");
@@ -16,7 +18,9 @@ const UI_COMPONENTS_LIB_SOURCE: &str = include_str!("../../../crates/ui/src/lib.
 const UI_COMPONENTS_ROOT_SOURCE: &str = include_str!("../../../crates/ui/src/root.rs");
 const UI_VISUAL_ACTIVE_HIGHLIGHT_SOURCE: &str =
     include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs");
-const UI_THEME_CSS_SOURCE: &str = include_str!("../../../crates/ui-theme/src/css.rs");
+static UI_THEME_CSS_SOURCE: std::sync::LazyLock<&'static str> = std::sync::LazyLock::new(|| {
+    source_contract::source_from_file_relative(file!(), "../../../crates/ui-theme/src/css.rs")
+});
 const UI_HEADLESS_A11Y_SOURCE: &str = include_str!("../../../crates/ui-headless/src/a11y.rs");
 const UI_HEADLESS_CONTROLLABLE_STATE_SOURCE: &str =
     include_str!("../../../crates/ui-headless/src/controllable_state.rs");
@@ -26,8 +30,12 @@ const UI_TRACE_SOURCE: &str = include_str!("../../../crates/ui-headless/src/trac
 const UI_DEBUG_OVERLAY_SOURCE: &str = include_str!("../../../apps/docs-app/src/debug_overlay.rs");
 const DOCS_APP_LIB_SOURCE: &str = include_str!("../../../apps/docs-app/src/lib.rs");
 const PLAYGROUND_SOURCE: &str = include_str!("../../../apps/docs-app/src/playground.rs");
-const FORMS_EXTRA_SOURCE: &str =
-    include_str!("../../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+static FORMS_EXTRA_SOURCE: std::sync::LazyLock<&'static str> = std::sync::LazyLock::new(|| {
+    source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/forms_extra.rs",
+    )
+});
 const COMPONENT_PAGES_SOURCE: &str =
     include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
 const HEROUI_PARAMETER_STRATEGY_SOURCE: &str =

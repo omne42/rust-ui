@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "mod" => include_str!("../src/mod.rs"),
@@ -8,7 +10,10 @@ fn load_source(path: &str) -> &'static str {
         "component_toml" => include_str!("../src/Component.toml"),
         "rbi" => include_str!("../src/checkbox.rbi"),
         "readme" => include_str!("../src/README.md"),
-        "docs_forms" => include_str!("../../../apps/docs-app/src/pages/components/pages/forms.rs"),
+        "docs_forms" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms.rs",
+        ),
         "primitive" => include_str!("../../../crates/ui-state-primitives/src/checkbox.rs"),
         "headless_checkbox" => include_str!("../../../crates/ui-headless/src/checkbox.rs"),
         "ui_headless_lib" => include_str!("../../../crates/ui-headless/src/lib.rs"),
@@ -35,8 +40,9 @@ fn load_source(path: &str) -> &'static str {
         "docs_pages_registry" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }
-        "docs_theme_visual_baseline" => include_str!(
-            "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs"
+        "docs_theme_visual_baseline" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs",
         ),
         "e2e_theme_visual_baseline" => {
             include_str!("../../../e2e/tests/docs_app_theme_visual_baseline.spec.mjs")
@@ -522,7 +528,8 @@ fn checkbox_styles_depend_on_explicit_semantic_state_markers() {
 #[test]
 fn checkbox_styles_use_defensive_variable_fallback_chain_locally() {
     let styles_source = load_source("styles");
-    let theme_css_source = include_str!("../../../crates/ui-theme/src/css.rs");
+    let theme_css_source =
+        source_contract::source_from_file_relative(file!(), "../../../crates/ui-theme/src/css.rs");
     let check2_source = include_str!("../check2.md");
     let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
 
@@ -2315,7 +2322,10 @@ fn checkbox_static_fragments_are_constantized_with_stable_semantics_locally() {
 fn checkbox_inner_html_usage_is_forbidden_in_component_and_docs_examples_locally() {
     let check2_source = include_str!("../check2.md");
     let script_source = include_str!("../../../scripts/check-ui-inner-html.sh");
-    let docs_source = include_str!("../../../apps/docs-app/src/pages/components/pages/forms.rs");
+    let docs_source = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/forms.rs",
+    );
 
     for (rel_path, source) in [
         ("mod", load_source("mod")),

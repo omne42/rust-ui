@@ -13,3 +13,6 @@ component-color_swatch = []
 
 [dependencies]
 ui-observability = { path = "../../crates/ui-observability" }
+
+[dev-dependencies]
+ui-test-support = { path = "../../crates/ui-test-support" }

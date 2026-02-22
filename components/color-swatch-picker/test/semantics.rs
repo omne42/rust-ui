@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(rel_path: &str) -> &'static str {
     match rel_path {
         "../../components/color-swatch-picker/src/lib.rs" => include_str!("../src/lib.rs"),
@@ -43,7 +45,10 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../crates/ui-motion/src/lib.rs" => {
             include_str!("../../../crates/ui-motion/src/lib.rs")
         }
-        "../../crates/ui-theme/src/css.rs" => include_str!("../../../crates/ui-theme/src/css.rs"),
+        "../../crates/ui-theme/src/css.rs" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../crates/ui-theme/src/css.rs",
+        ),
         "../../crates/ui/Cargo.toml" => {
             include_str!("../../../crates/ui/Cargo.toml")
         }
@@ -110,8 +115,9 @@ fn load_source(rel_path: &str) -> &'static str {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }
         "../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs" => {
-            include_str!(
-                "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs"
+            source_contract::source_from_file_relative(
+                file!(),
+                "../../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs",
             )
         }
         "../../e2e/tests/docs_app_theme_visual_baseline.spec.mjs" => {
@@ -128,7 +134,10 @@ fn load_source(rel_path: &str) -> &'static str {
             include_str!("../../../docs/spec/heroui-parameter-design-strategy.md")
         }
         "../../apps/docs-app/src/pages/components/pages/display_extra.rs" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/display_extra.rs")
+            source_contract::source_from_file_relative(
+                file!(),
+                "../../../apps/docs-app/src/pages/components/pages/display_extra.rs",
+            )
         }
         "../../components/color-swatch-picker/scripts/check-ui-e2e-color-swatch-picker.sh" => {
             include_str!(

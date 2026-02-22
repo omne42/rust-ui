@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 const ASSET_MOD_SOURCE: &str = include_str!("../src/mod.rs");
 const ASSET_LOGIC_SOURCE: &str = include_str!("../src/logic.rs");
 const ASSET_VIEW_SOURCE: &str = include_str!("../src/view.rs");
@@ -24,8 +26,12 @@ const PLATFORM_CHECK_SCRIPT_SOURCE: &str = include_str!("../../../scripts/check-
 const PERFORMANCE_CHECK_SCRIPT_SOURCE: &str =
     include_str!("../../../scripts/check-ui-performance.sh");
 const WEB_DEMO_CARGO_SOURCE: &str = include_str!("../../../apps/web-demo/Cargo.toml");
-const DOCS_PAGE_SOURCE: &str =
-    include_str!("../../../apps/docs-app/src/pages/components/pages/display_extra_asset.rs");
+static DOCS_PAGE_SOURCE: std::sync::LazyLock<&'static str> = std::sync::LazyLock::new(|| {
+    source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/display_extra_asset.rs",
+    )
+});
 const DOCS_PLAYGROUND_SOURCE: &str = include_str!("../../../apps/docs-app/src/playground.rs");
 const DOCS_COMPONENTS_PAGES_SOURCE: &str =
     include_str!("../../../apps/docs-app/src/pages/components/pages.rs");

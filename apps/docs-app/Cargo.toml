@@ -15,6 +15,7 @@ ui-headless = { path = "../../crates/ui-headless" }
 
 [dev-dependencies]
 any_spawner = { version = "0.3", features = ["futures-executor"] }
+ui-test-support = { path = "../../crates/ui-test-support" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"

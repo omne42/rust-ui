@@ -18,3 +18,6 @@ ui-headless = { path = "../../crates/ui-headless" }
 ui-motion = { path = "../../crates/ui-motion" }
 ui-state-primitives = { path = "../../crates/ui-state-primitives" }
 ui-theme = { path = "../../crates/ui-theme" }
+
+[dev-dependencies]
+ui-test-support = { path = "../../crates/ui-test-support" }

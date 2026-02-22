@@ -1,3 +1,5 @@
+use ui_test_support::source_contract;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "mod" => include_str!("../src/mod.rs"),
@@ -24,16 +26,20 @@ fn load_source(path: &str) -> &'static str {
         "web_demo_cargo" => include_str!("../../../apps/web-demo/Cargo.toml"),
         "ui_headless_lib" => include_str!("../../../crates/ui-headless/src/lib.rs"),
         "ui_motion_lib" => include_str!("../../../crates/ui-motion/src/lib.rs"),
-        "ui_theme_css" => include_str!("../../../crates/ui-theme/src/css.rs"),
+        "ui_theme_css" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../crates/ui-theme/src/css.rs",
+        ),
         "primitive_keyboard" => include_str!("../../../crates/ui-state-primitives/src/keyboard.rs"),
         "headless_keyboard" => include_str!("../../../crates/ui-headless/src/keyboard.rs"),
         "logic_test" => include_str!("logic.rs"),
         "component_readme" => include_str!("../src/README.md"),
         "component_manifest" => include_str!("../src/Component.toml"),
         "component_rbi" => include_str!("../src/keyboard.rbi"),
-        "docs_display_extra" => {
-            include_str!("../../../apps/docs-app/src/pages/components/pages/display_extra.rs")
-        }
+        "docs_display_extra" => source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display_extra.rs",
+        ),
         "docs_playground" => include_str!("../../../apps/docs-app/src/playground.rs"),
         "docs_pages_index" => include_str!("../../../apps/docs-app/src/pages/components/pages.rs"),
         "heroui_strategy" => include_str!("../../../docs/spec/heroui-parameter-design-strategy.md"),
