@@ -85,6 +85,12 @@ if [[ "${RUST_UI_ALLOW_OVERSIZED_RS:-}" != "1" ]]; then
   while IFS= read -r path; do
     [[ -z "$path" ]] && continue
     [[ "$path" == *.rs ]] || continue
+    # semantics.rs under test trees are intentionally allowed to be long.
+    # Scope includes both .../test/semantics.rs and nested forms like
+    # .../tests/<domain>/semantics.rs.
+    if [[ "$path" =~ /(test|tests)/(.*/)?semantics\.rs$ ]]; then
+      continue
+    fi
     lines="$(git show ":$path" 2>/dev/null | awk 'END{print NR}')"
     [[ "${lines:-0}" -ge "$max_rs_lines" ]] || continue
 

@@ -315,7 +315,7 @@
   - `crates/ui/src/command_dialog/mod.rs`（导出 `motion` 与 `CommandDialogMotion`）
   - `crates/ui/src/command_dialog/README.md`（新增新手友好文档）
   - `e2e/tests/docs_app_command_dialog.spec.mjs`（新增关键流程 E2E 用例）
-  - `components/command-dialog/test/command_dialog_semantics.rs`（新增 README / E2E / motion / Agent 标记语义守卫）
+  - `components/command-dialog/test/command_dialog/semantics.rs`（新增 README / E2E / motion / Agent 标记语义守卫）
 - 关键命令：
   - `cargo test -p ui --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css`
   - `cargo check -p ui --no-default-features --features component-command_dialog,inject-css`

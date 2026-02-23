@@ -309,7 +309,7 @@
 - [x] 门禁完整通过（fmt/clippy/test/smoke 等）。
 
 ### 10. 本次核验记录（2026-02-19）
-- `rustfmt components/pagination/test/pagination_semantics.rs`
+- `rustfmt components/pagination/test/semantics.rs`
 - `CARGO_TARGET_DIR=/tmp/codex-error-view-target cargo test -p ui --test pagination_semantics --no-default-features --features component-pagination,inject-css`
 - `CARGO_TARGET_DIR=/tmp/codex-error-view-target cargo check -p ui --no-default-features --features component-pagination,inject-css`
 - `CARGO_TARGET_DIR=/tmp/codex-error-view-target cargo clippy -p ui --no-default-features --features component-pagination,inject-css -- -D warnings`

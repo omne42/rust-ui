@@ -52,7 +52,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
@@ -254,7 +254,7 @@
   - 预算与可重复基线：`apps/docs-app/src/pages/components/shell.rs` 通过 `UiPerfProbe + UiPerfBudget` 为组件页提供统一预算入口（`component_page_perf_budget`），并有 mount-only 基线兜底。
   - 阻断式回归检查：`scripts/check-ui-performance.sh` 已将 `Button`、`Input` 预算契约测试与 `render_count` 后续计划检查纳入 gate，失败可直接阻断。
   - 可归因性：`ContextualHelp` 在 `view.rs` 输出 `data-open-source` / `data-open-change-source` / `data-motion-source` 等来源标记，语义测试可直接定位回归来源。
-  - `render_count` 自动化现状：当前以“等价证据 + 明确追踪”执行，`components/accordion/test/accordion_semantics.rs` 维护 `perf_render_count_follow_up_is_tracked_in_plan`；待测试框架支持精确计数后补齐自动化断言。
+  - `render_count` 自动化现状：当前以“等价证据 + 明确追踪”执行，`components/accordion/test/semantics.rs` 维护 `perf_render_count_follow_up_is_tracked_in_plan`；待测试框架支持精确计数后补齐自动化断言。
   - 组件回归证据：`components/contextual-help/test/semantics.rs::contextual_help_performance_governance_has_budgeted_equivalent_evidence`。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 语义拆分已落地：`components/contextual-help/src/view.rs` 把 trigger icon 提取为 `render_trigger_icon(...)`，把触发器与面板渲染拆为 `trigger_view` / `panel_view`，主 `view!` 仅做装配。

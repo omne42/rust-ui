@@ -9,15 +9,31 @@ fn load_source(path: &str) -> &'static str {
         "mod" => include_str!("../src/mod.rs"),
         "checkbox_view" => include_str!("../../checkbox/src/view.rs"),
         "docs_todo" => include_str!("../../../docs/plan/TODO.md"),
-        "docs_checkbox_field_page" => source_contract::source_from_file_relative(
-            file!(),
-            "../../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs",
-        ),
+        "docs_checkbox_field_page" => docs_checkbox_field_page_source(),
         "readme" => include_str!("../src/README.md"),
         "check2" => include_str!("../check2.md"),
         "dx_script" => include_str!("../../../scripts/check-ui-dx.sh"),
         _ => panic!("unsupported source path: {path}"),
     }
+}
+
+fn docs_checkbox_field_page_source() -> &'static str {
+    static DOCS: std::sync::LazyLock<&'static str> = std::sync::LazyLock::new(|| {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs",
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_groups_extra/checkbox_field.rs",
+        );
+        let compat = child.replace(
+            "pub(crate) fn checkbox_field() -> AnyView {",
+            "pub(super) fn checkbox_field() -> AnyView {",
+        );
+        Box::leak(format!("{parent}\n{compat}").into_boxed_str())
+    });
+    *DOCS
 }
 
 #[test]
@@ -484,9 +500,9 @@ fn checkbox_field_check2_marks_docs_sync_and_state_matrix_item_complete() {
     for required in [
         "components/checkbox-field/test/semantics.rs::checkbox_field_check2_documents_docs_sync_and_state_matrix_rules",
         "components/checkbox-field/test/semantics.rs::checkbox_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_check2_documents_docs_sync_and_state_matrix_rules",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_docs_sync_and_state_matrix_contract",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_check2_documents_docs_sync_and_state_matrix_rules",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_dx_check_script_covers_docs_sync_and_state_matrix_contract",
         "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -589,9 +605,9 @@ fn checkbox_field_check2_marks_documentation_as_product_contract_complete() {
         "apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::checkbox_field",
         "components/checkbox-field/test/semantics.rs::checkbox_field_check2_documents_documentation_as_product_rules",
         "components/checkbox-field/test/semantics.rs::checkbox_field_documentation_entry_exists_with_beginner_first_progression",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_check2_documents_documentation_as_product_rules",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_documentation_entry_exists_with_beginner_first_progression",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_documentation_as_product_contract",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_check2_documents_documentation_as_product_rules",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_documentation_entry_exists_with_beginner_first_progression",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_dx_check_script_covers_documentation_as_product_contract",
         "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -703,10 +719,10 @@ fn checkbox_field_check2_marks_interactive_playground_contract_complete() {
         "components/checkbox-field/test/semantics.rs::checkbox_field_check2_documents_interactive_playground_rules",
         "components/checkbox-field/test/semantics.rs::checkbox_field_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "components/checkbox-field/test/semantics.rs::checkbox_field_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_check2_documents_interactive_playground_rules",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_interactive_playground_contract",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_check2_documents_interactive_playground_rules",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_dx_check_script_covers_interactive_playground_contract",
         "scripts/check-ui-dx.sh",
         "AI Spec 相关联动示例：N/A（`checkbox-field` 非 Spec 构建器组件）",
         "Invalid cross-device link (os error 18)",
@@ -803,9 +819,9 @@ fn checkbox_field_check2_marks_source_first_copy_paste_ready_contract_complete()
         "e2e/tests/docs_app_checkbox_field_contract.spec.mjs::docs-app checkbox-field playground source is copy-paste ready",
         "components/checkbox-field/test/semantics.rs::checkbox_field_check2_documents_source_first_copy_paste_ready_rules",
         "components/checkbox-field/test/semantics.rs::checkbox_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_check2_documents_source_first_copy_paste_ready_rules",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_source_first_copy_paste_ready_contract",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_check2_documents_source_first_copy_paste_ready_rules",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_dx_check_script_covers_source_first_copy_paste_ready_contract",
         "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -916,9 +932,9 @@ fn checkbox_field_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "components/checkbox-field/test/semantics.rs::checkbox_field_check2_documents_heroui_benchmark_docs_sync_rules",
         "components/checkbox-field/test/semantics.rs::checkbox_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "components/checkbox-field/test/semantics.rs::checkbox_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_check2_documents_heroui_benchmark_docs_sync_rules",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
-        "components/checkbox-field/test/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_check2_documents_heroui_benchmark_docs_sync_rules",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "components/checkbox-field/test/checkbox_field/semantics.rs::checkbox_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
         "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",

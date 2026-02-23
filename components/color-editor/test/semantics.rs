@@ -1,5 +1,22 @@
 use ui_test_support::source_contract;
 
+static DOCS_FORMS_COLOR_SOURCE: std::sync::LazyLock<&'static str> =
+    std::sync::LazyLock::new(|| {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_color/color_editor.rs",
+        );
+        let child_compat = child.replace(
+            "pub(crate) fn color_editor() -> AnyView {",
+            "pub(super) fn color_editor() -> AnyView {",
+        );
+        Box::leak(format!("{parent}\n{child_compat}").into_boxed_str())
+    });
+
 fn load_source(rel_path: &str) -> &'static str {
     match rel_path {
         "../../components/color-editor/src/lib.rs" => include_str!("../src/lib.rs"),
@@ -17,12 +34,7 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../crates/ui-state-primitives/src/color_editor.rs" => {
             include_str!("../../../crates/ui-state-primitives/src/color_editor.rs")
         }
-        "../../apps/docs-app/src/pages/components/pages/forms_color.rs" => {
-            source_contract::source_from_file_relative(
-                file!(),
-                "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-            )
-        }
+        "../../apps/docs-app/src/pages/components/pages/forms_color.rs" => *DOCS_FORMS_COLOR_SOURCE,
         "../../apps/docs-app/src/pages/components/pages.rs" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }

@@ -108,35 +108,35 @@
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_styles_are_state_marker_driven_and_inline_style_is_css_var_only` + `resizable_styles_include_orientation_and_handle_markers`）
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_styles_are_state_marker_driven_and_inline_style_is_css_var_only` + `resizable_styles_include_orientation_and_handle_markers`）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_wires_pointer_drag_and_keyboard_contracts` + `resizable_emits_baseline_root_state_data_attributes` + `resizable_supports_controlled_and_uncontrolled_split_state` + `resizable_platform_tree_shaking_and_cross_layer_guards_hold` + `resizable_semantics_suite_is_contract_first_not_snapshot_only`）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_wires_pointer_drag_and_keyboard_contracts` + `resizable_emits_baseline_root_state_data_attributes` + `resizable_supports_controlled_and_uncontrolled_split_state` + `resizable_platform_tree_shaking_and_cross_layer_guards_hold` + `resizable_semantics_suite_is_contract_first_not_snapshot_only`）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_component_files_keep_single_responsibility_boundaries`）
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_component_files_keep_single_responsibility_boundaries`）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`resizable` 目录无 `spec.rs`，且 `mod.rs` 无 `spec` 导出；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_does_not_add_unnecessary_spec_rs_surface`）
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`resizable` 目录无 `spec.rs`，且 `mod.rs` 无 `spec` 导出；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_does_not_add_unnecessary_spec_rs_surface`）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`styles.rs` 仅使用 `var(--ui-*)`；`css.rs` 通过 `#[cfg(feature = "component-resizable")]` 聚合并由 `UiRoot` 注入；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_token_first_static_style_contract_is_enforced`）
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`styles.rs` 仅使用 `var(--ui-*)`；`css.rs` 通过 `#[cfg(feature = "component-resizable")]` 聚合并由 `UiRoot` 注入；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_token_first_static_style_contract_is_enforced`）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-layout/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（`styles.rs` 提供层次/对比/focus+dragging 反馈；`theme-visual-baseline` 页面纳入 Button/Input/Overlay 可视基线与截图回归；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_visual_baseline_styles_cover_hierarchy_contrast_and_feedback` + `crates/ui-layout/tests/resizable_semantics.rs::resizable_visual_desire_contract_links_theme_baseline_and_screenshot_regression`）
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（`styles.rs` 提供层次/对比/focus+dragging 反馈；`theme-visual-baseline` 页面纳入 Button/Input/Overlay 可视基线与截图回归；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_visual_baseline_styles_cover_hierarchy_contrast_and_feedback` + `crates/ui-layout/tests/resizable/semantics.rs::resizable_visual_desire_contract_links_theme_baseline_and_screenshot_regression`）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（证据：`crates/ui-layout/Cargo.toml` 存在 `component-resizable`；`lib.rs/css.rs` 均对 `component-resizable` 条件导出/聚合；`apps/web-demo/Cargo.toml` 以 `default-features = false` + `web-demo-components` 依赖 `ui-layout` 且未拉起 `all-components`；命令实测：`cargo tree -e features -i ui-layout -p ui-layout --no-default-features --features component-resizable,inject-css` 仅显示 `component-resizable + inject-css`，`cargo tree -e features -i ui-layout -p web-demo | rg 'all-components'` 无输出，`cargo check -p ui-layout --target wasm32-unknown-unknown --no-default-features --features component-resizable,inject-css` 通过；体积基线：`target/wasm32-unknown-unknown/release/deps/libui_layout-1338b0127e21d85c.rlib = 1,901,306 bytes`，后续以该最小特性产物做回归对比；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_platform_tree_shaking_and_cross_layer_guards_hold` + `crates/ui-layout/tests/resizable_semantics.rs::resizable_tree_shaking_feature_graph_contract_is_explicit_and_minimal`）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（证据：`crates/ui-layout/Cargo.toml` 存在 `component-resizable`；`lib.rs/css.rs` 均对 `component-resizable` 条件导出/聚合；`apps/web-demo/Cargo.toml` 以 `default-features = false` + `web-demo-components` 依赖 `ui-layout` 且未拉起 `all-components`；命令实测：`cargo tree -e features -i ui-layout -p ui-layout --no-default-features --features component-resizable,inject-css` 仅显示 `component-resizable + inject-css`，`cargo tree -e features -i ui-layout -p web-demo | rg 'all-components'` 无输出，`cargo check -p ui-layout --target wasm32-unknown-unknown --no-default-features --features component-resizable,inject-css` 通过；体积基线：`target/wasm32-unknown-unknown/release/deps/libui_layout-1338b0127e21d85c.rlib = 1,901,306 bytes`，后续以该最小特性产物做回归对比；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_platform_tree_shaking_and_cross_layer_guards_hold` + `crates/ui-layout/tests/resizable/semantics.rs::resizable_tree_shaking_feature_graph_contract_is_explicit_and_minimal`）
   - package 模式必须有组件级 feature（如 `component-resizable`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -145,67 +145,67 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-layout -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-layout --target wasm32-unknown-unknown --no-default-features --features component-resizable,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`logic.rs` 使用 `enum`/新类型约束来源与 Agent Contract，并在 `normalize_*` 中统一归一化；`view.rs` 挂载稳定 `data-ui-*` + `data-*-source` 语义标记；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_type_system_and_semantic_markers_form_machine_readable_contract` + `crates/ui-layout/tests/resizable_semantics.rs::resizable_agent_contract_markers_are_typed_and_snapshot_based`）
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`logic.rs` 使用 `enum`/新类型约束来源与 Agent Contract，并在 `normalize_*` 中统一归一化；`view.rs` 挂载稳定 `data-ui-*` + `data-*-source` 语义标记；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_type_system_and_semantic_markers_form_machine_readable_contract` + `crates/ui-layout/tests/resizable/semantics.rs::resizable_agent_contract_markers_are_typed_and_snapshot_based`）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
-- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（compile-only 证据：`cargo check -p ui-layout --no-default-features --features component-resizable,inject-css`（native）+ `cargo check -p ui-layout --target wasm32-unknown-unknown --no-default-features --features component-resizable,inject-css`（wasm32/web）+ `cargo check -p ui-headless --no-default-features --features ssr`（ssr/native）均通过；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_ssr_cross_platform_compile_contract_is_explicit`）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（compile-only 证据：`cargo check -p ui-layout --no-default-features --features component-resizable,inject-css`（native）+ `cargo check -p ui-layout --target wasm32-unknown-unknown --no-default-features --features component-resizable,inject-css`（wasm32/web）+ `cargo check -p ui-headless --no-default-features --features ssr`（ssr/native）均通过；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_ssr_cross_platform_compile_contract_is_explicit`）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（命令实测：`cargo check -p ui-headless --no-default-features --features web` 通过、`cargo check -p ui-headless --no-default-features --features ssr` 通过、`cargo check -p ui-headless --no-default-features --features web,ssr` 失败且命中 `compile_error!`；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_headless_web_ssr_mutual_exclusion_guard_is_preserved`）
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（命令实测：`cargo check -p ui-headless --no-default-features --features web` 通过、`cargo check -p ui-headless --no-default-features --features ssr` 通过、`cargo check -p ui-headless --no-default-features --features web,ssr` 失败且命中 `compile_error!`；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_headless_web_ssr_mutual_exclusion_guard_is_preserved`）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（命令实测：`cargo check -p ui-motion` 通过、`cargo test -p ui-motion non_wasm_web_backend_is_predictable_noop` 通过、`cargo check -p ui-layout --no-default-features --features component-resizable,inject-css` 通过；`resizable/motion.rs` non-wasm `attach_motion` 为 no-op，`ui-motion` 非 wasm `web` 模块存在 stub；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_motion_non_wasm_noop_stub_contract_is_predictable`）
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（命令实测：`cargo check -p ui-motion` 通过、`cargo test -p ui-motion non_wasm_web_backend_is_predictable_noop` 通过、`cargo check -p ui-layout --no-default-features --features component-resizable,inject-css` 通过；`resizable/motion.rs` non-wasm `attach_motion` 为 no-op，`ui-motion` 非 wasm `web` 模块存在 stub；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_motion_non_wasm_noop_stub_contract_is_predictable`）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（命令实测：`cargo check -p ui-layout --no-default-features --features component-resizable,inject-css`（native）+ `cargo check -p ui-layout --target wasm32-unknown-unknown --no-default-features --features component-resizable,inject-css`（wasm32）+ `cargo check -p ui-headless --no-default-features --features ssr`（ssr）通过；`resizable/motion.rs` 显式 wasm/non-wasm `cfg` 且 wasm 分支接入 `prefers_reduced_motion()` 降级为最小反馈；`view.rs` 语义标记不按平台分叉；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_reduced_motion_ssr_wasm_branch_contract_is_consistent`）
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（命令实测：`cargo check -p ui-layout --no-default-features --features component-resizable,inject-css`（native）+ `cargo check -p ui-layout --target wasm32-unknown-unknown --no-default-features --features component-resizable,inject-css`（wasm32）+ `cargo check -p ui-headless --no-default-features --features ssr`（ssr）通过；`resizable/motion.rs` 显式 wasm/non-wasm `cfg` 且 wasm 分支接入 `prefers_reduced_motion()` 降级为最小反馈；`view.rs` 语义标记不按平台分叉；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_reduced_motion_ssr_wasm_branch_contract_is_consistent`）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`apps/docs-app/src/pages/components/shell.rs` 已为 `resizable` 定义 `UiPerfBudget { max_mount_ms: 34.0, max_update_ms: Some(12.0), max_heap_kb: Some(640.0) }`，并通过 `UiPerfProbe` 统一暴露 `data-perf-*`；`resizable/view.rs` 输出稳定状态与来源标记用于归因；当前框架暂未提供精确 render_count 自动计数，采用等价 probe/trace 基线并在 `docs/plan/TODO.md` 保留 `render_count` 自动化补齐任务；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_performance_governance_budget_is_repeatable_attributable_and_blocking`）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`apps/docs-app/src/pages/components/shell.rs` 已为 `resizable` 定义 `UiPerfBudget { max_mount_ms: 34.0, max_update_ms: Some(12.0), max_heap_kb: Some(640.0) }`，并通过 `UiPerfProbe` 统一暴露 `data-perf-*`；`resizable/view.rs` 输出稳定状态与来源标记用于归因；当前框架暂未提供精确 render_count 自动计数，采用等价 probe/trace 基线并在 `docs/plan/TODO.md` 保留 `render_count` 自动化补齐任务；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_performance_governance_budget_is_repeatable_attributable_and_blocking`）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `crates/ui-layout/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`view.rs` 已将重复 panel/grip 片段提取为普通函数 `render_panel`/`render_handle_grip`，主 `view!` 只保留语义装配；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_view_macro_complexity_is_semantically_split`）
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`view.rs` 已将重复 panel/grip 片段提取为普通函数 `render_panel`/`render_handle_grip`，主 `view!` 只保留语义装配；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_view_macro_complexity_is_semantically_split`）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`view.rs` 已将轻逻辑片段拆为普通函数 `render_panel`/`render_handle_grip`，并保持单个 `#[component]` 入口；拆分后 `data-slot` 语义标记保持稳定；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_prefers_functional_subviews_over_extra_components`）
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`view.rs` 已将轻逻辑片段拆为普通函数 `render_panel`/`render_handle_grip`，并保持单个 `#[component]` 入口；拆分后 `data-slot` 语义标记保持稳定；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_prefers_functional_subviews_over_extra_components`）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（`Resizable` 无复杂 SVG/长静态片段场景，handle grip 已集中在 `render_handle_grip` 模板函数，固定 3-dot 片段无动态拼接；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_static_fragments_are_template_scoped_accessible_and_non_dynamic`）
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（`Resizable` 无复杂 SVG/长静态片段场景，handle grip 已集中在 `render_handle_grip` 模板函数，固定 3-dot 片段无动态拼接；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_static_fragments_are_template_scoped_accessible_and_non_dynamic`）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（`resizable` 渲染链路无 `inner_html`，且 `view/logic/styles/motion` 均无动态 HTML 注入路径；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_inner_html_contract_rejects_dynamic_html_sources`）
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（`resizable` 渲染链路无 `inner_html`，且 `view/logic/styles/motion` 均无动态 HTML 注入路径；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_inner_html_contract_rejects_dynamic_html_sources`）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（关键状态来源通过稳定 `data-*-source` 与 `data-state` 标记追踪；关键交互回放由 docs Playground + e2e 键盘链路 before/event/after 断点覆盖；未引入组件专属 wasm debug feature 或公共 debug API 污染产物面。回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_wasm_debug_contract_is_traceable_replayable_and_feature_isolated`）
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（关键状态来源通过稳定 `data-*-source` 与 `data-state` 标记追踪；关键交互回放由 docs Playground + e2e 键盘链路 before/event/after 断点覆盖；未引入组件专属 wasm debug feature 或公共 debug API 污染产物面。回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_wasm_debug_contract_is_traceable_replayable_and_feature_isolated`）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（docs-app `Resizable` 提供独立 Playground 验收面（Horizontal/Controlled 两组）与状态反馈；e2e 覆盖 focus+keyboard 交互链路保持上下文；样式契约为 token-first CSS variables，常见样式调整可走快速反馈路径；且未引入组件专属 DX/debug feature 污染产物面。回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_dx_workbench_context_and_fast_style_feedback_contract_is_explicit`）
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（docs-app `Resizable` 提供独立 Playground 验收面（Horizontal/Controlled 两组）与状态反馈；e2e 覆盖 focus+keyboard 交互链路保持上下文；样式契约为 token-first CSS variables，常见样式调整可走快速反馈路径；且未引入组件专属 DX/debug feature 污染产物面。回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_dx_workbench_context_and_fast_style_feedback_contract_is_explicit`）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（N/A：`Resizable` 无 spec 序列化输入与异步运行时边界；公共 API 未泄露 runtime 细节；并通过专测锁定 `resizable` 实现无 `serde/tracing/tokio/async-std` 协议面泄露。回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_engineering_contract_is_runtime_agnostic_and_structured`）
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（N/A：`Resizable` 无 spec 序列化输入与异步运行时边界；公共 API 未泄露 runtime 细节；并通过专测锁定 `resizable` 实现无 `serde/tracing/tokio/async-std` 协议面泄露。回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_engineering_contract_is_runtime_agnostic_and_structured`）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 文件落点检查（必须提及）
-- [x] `ui-layout` 固定入口文件落点正确。（`lib.rs/css.rs` 对 `component-resizable` 条件导出/聚合，`root.rs` 统一注入 base+theme+optional components css 并提供 i18n 上下文，`active_highlight.rs` 保持通用高亮能力；`ui-layout/src` 不存在 `overlay_open.rs/presence.rs/a11y.rs`，对应原语固定在 `ui-headless`；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_ui_layout_entrypoint_files_follow_boundary_contract`）
+- [x] `ui-layout` 固定入口文件落点正确。（`lib.rs/css.rs` 对 `component-resizable` 条件导出/聚合，`root.rs` 统一注入 base+theme+optional components css 并提供 i18n 上下文，`active_highlight.rs` 保持通用高亮能力；`ui-layout/src` 不存在 `overlay_open.rs/presence.rs/a11y.rs`，对应原语固定在 `ui-headless`；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_ui_layout_entrypoint_files_follow_boundary_contract`）
   - `crates/ui-layout/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-layout/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-layout/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -213,7 +213,7 @@
   - `crates/ui-layout/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-layout/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-layout/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [x] 组件目录标准文件落点正确。（`resizable` 目录固定为 `mod/logic/styles/view/motion`，且不存在 `render.rs/spec.rs`；`mod.rs` 仅保留最小稳定导出（`Resizable/ResizableOrientation/ResizableMotion`）；回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_component_files_keep_single_responsibility_boundaries`）
+- [x] 组件目录标准文件落点正确。（`resizable` 目录固定为 `mod/logic/styles/view/motion`，且不存在 `render.rs/spec.rs`；`mod.rs` 仅保留最小稳定导出（`Resizable/ResizableOrientation/ResizableMotion`）；回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_component_files_keep_single_responsibility_boundaries`）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -222,25 +222,25 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力（Agent Contract + 流式）
-- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`logic.rs` 以类型化 enum + `as_attr()` 生成 Agent Contract；`view.rs` 仅通过 `agent_contract.*` 挂载 `data-ui-*` 字段，禁止硬编码 schema 字符串；渲染链路无 `inner_html/set_inner_html/dangerously_set_inner_html/<script/javascript:` 注入面。回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_agent_contract_markers_are_typed_and_snapshot_based`）
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`logic.rs` 以类型化 enum + `as_attr()` 生成 Agent Contract；`view.rs` 仅通过 `agent_contract.*` 挂载 `data-ui-*` 字段，禁止硬编码 schema 字符串；渲染链路无 `inner_html/set_inner_html/dangerously_set_inner_html/<script/javascript:` 注入面。回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_agent_contract_markers_are_typed_and_snapshot_based`）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（`Resizable` 非 LLM 正文渲染组件；本组件仅声明流式策略元数据（`unsupported + snapshot`），不承载流式传输协议实现。回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_streaming_definition_is_llm_output_modes_only`）
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（`Resizable` 非 LLM 正文渲染组件；本组件仅声明流式策略元数据（`unsupported + snapshot`），不承载流式传输协议实现。回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_streaming_definition_is_llm_output_modes_only`）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`Resizable` 始终消费完整 props 配置并稳定渲染；`view.rs` 支持完整输入面并输出 `data-ui-stream-fallback/mode`，docs Playground 覆盖受控/非受控完整路径。回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_snapshot_is_base_capability_for_complete_configs`）
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`Resizable` 始终消费完整 props 配置并稳定渲染；`view.rs` 支持完整输入面并输出 `data-ui-stream-fallback/mode`，docs Playground 覆盖受控/非受控完整路径。回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_snapshot_is_base_capability_for_complete_configs`）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`Resizable` 判定为 `Streaming Optional`，显式输出 `data-ui-stream-support="unsupported"` + `data-ui-stream-fallback="snapshot"` + `data-ui-output-status`，并保持 `role/aria/data-*` 连续可读；数据校验/断线恢复/重试不在组件层实现。回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_streaming_optional_contract_is_explicit_and_render_only`）
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`Resizable` 判定为 `Streaming Optional`，显式输出 `data-ui-stream-support="unsupported"` + `data-ui-stream-fallback="snapshot"` + `data-ui-output-status`，并保持 `role/aria/data-*` 连续可读；数据校验/断线恢复/重试不在组件层实现。回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_streaming_optional_contract_is_explicit_and_render_only`）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试与文档（验证闭环）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`resizable_semantics.rs` 以语义断言为主，覆盖状态来源/可访问性/键盘路径与 Agent Contract；并显式阻止快照优先断言模式。回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_semantic_checks_are_contract_first_and_snapshot_secondary`）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`resizable/semantics.rs` 以语义断言为主，覆盖状态来源/可访问性/键盘路径与 Agent Contract；并显式阻止快照优先断言模式。回归：`crates/ui-layout/tests/resizable/semantics.rs::resizable_semantic_checks_are_contract_first_and_snapshot_secondary`）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
@@ -306,4 +306,4 @@
 - [x] 暴露必要语义标记。
 - [x] 覆盖 reduced-motion / SSR / wasm 分支。
 - [x] 文档与示例同步更新。
-- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（已执行：`$HOME/.cargo/bin/rustfmt --edition 2024 --check crates/ui-layout/src/resizable/logic.rs crates/ui-layout/src/resizable/view.rs crates/ui-layout/tests/resizable_semantics.rs apps/docs-app/src/pages/components/pages/layout_extra.rs`；`$HOME/.cargo/bin/cargo check -p ui-layout --no-default-features --features component-resizable,inject-css`；`$HOME/.cargo/bin/cargo check -p ui-layout --target wasm32-unknown-unknown --no-default-features --features component-resizable,inject-css`；`$HOME/.cargo/bin/cargo clippy -p ui-headless --lib -- -D warnings`；`$HOME/.cargo/bin/cargo clippy -p ui-state-primitives --lib -- -D warnings`；`$HOME/.cargo/bin/cargo clippy -p ui-layout --test resizable_semantics --no-default-features --features component-resizable,inject-css -- -D warnings`；`$HOME/.cargo/bin/cargo test -p ui-state-primitives resizable`；`$HOME/.cargo/bin/cargo test -p ui-headless --lib resizable`；`$HOME/.cargo/bin/cargo test -p ui-layout --test resizable_semantics --no-default-features --features component-resizable,inject-css`；manual smoke（等价 `smoke-csr`）：`trunk serve apps/docs-app + playwright screenshot body:not(:has(#boot))` 通过。）
+- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（已执行：`$HOME/.cargo/bin/rustfmt --edition 2024 --check crates/ui-layout/src/resizable/logic.rs crates/ui-layout/src/resizable/view.rs crates/ui-layout/tests/resizable/semantics.rs apps/docs-app/src/pages/components/pages/layout_extra.rs`；`$HOME/.cargo/bin/cargo check -p ui-layout --no-default-features --features component-resizable,inject-css`；`$HOME/.cargo/bin/cargo check -p ui-layout --target wasm32-unknown-unknown --no-default-features --features component-resizable,inject-css`；`$HOME/.cargo/bin/cargo clippy -p ui-headless --lib -- -D warnings`；`$HOME/.cargo/bin/cargo clippy -p ui-state-primitives --lib -- -D warnings`；`$HOME/.cargo/bin/cargo clippy -p ui-layout --test resizable_semantics --no-default-features --features component-resizable,inject-css -- -D warnings`；`$HOME/.cargo/bin/cargo test -p ui-state-primitives resizable`；`$HOME/.cargo/bin/cargo test -p ui-headless --lib resizable`；`$HOME/.cargo/bin/cargo test -p ui-layout --test resizable_semantics --no-default-features --features component-resizable,inject-css`；manual smoke（等价 `smoke-csr`）：`trunk serve apps/docs-app + playwright screenshot body:not(:has(#boot))` 通过。）

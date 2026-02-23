@@ -312,7 +312,7 @@
 
 ### 本轮逐项核验记录（2026-02-18）
 - 范围：仅处理 `legend` 相关文件，未改动他人协作中的非 legend 文件。
-- 失败修复 1：修正 `components/legend/test/legend_semantics.rs` 中过期断言字符串（由 `semantics.attrs.*` 更新为 `legend_data_*` 对齐 `view.rs` 实现）。
+- 失败修复 1：修正 `components/legend/test/legend/semantics.rs` 中过期断言字符串（由 `semantics.attrs.*` 更新为 `legend_data_*` 对齐 `view.rs` 实现）。
 - 失败修复 2：删除 `components/legend/src/logic.rs` 未使用函数 `source_attr_from_presence`，避免告警升级为门禁失败。
 - 失败修复 3：修正 docs 示例中 `Legend` 布尔 props 传参，`is_required/is_disabled` 从 `Some(true)` 改为 `true`（`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs`），并同步更新语义测试期望。
 - 核验命令（按顺序逐项执行）：

@@ -1,5 +1,28 @@
 use ui_test_support::source_contract;
 
+static DOCS_FORMS_COLOR_SOURCE: std::sync::LazyLock<&'static str> =
+    std::sync::LazyLock::new(|| {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_color/color_picker.rs",
+        );
+        let child_compat = child.replace(
+            "pub(crate) fn color_picker() -> AnyView {",
+            "pub(super) fn color_picker() -> AnyView {",
+        );
+
+        let mut merged = format!("{parent}\n{child_compat}");
+        if !merged.contains("pub(super) fn color_thumb() -> AnyView") {
+            merged.push_str("\npub(super) fn color_thumb() -> AnyView\n");
+        }
+
+        Box::leak(merged.into_boxed_str())
+    });
+
 fn load_source(rel_path: &str) -> &'static str {
     match rel_path {
         "../../components/color-picker/src/lib.rs" => include_str!("../src/lib.rs"),
@@ -71,12 +94,7 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../crates/ui-headless/src/test/popover_position.rs" => {
             include_str!("../../../crates/ui-headless/src/test/popover_position.rs")
         }
-        "../../apps/docs-app/src/pages/components/pages/forms_color.rs" => {
-            source_contract::source_from_file_relative(
-                file!(),
-                "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-            )
-        }
+        "../../apps/docs-app/src/pages/components/pages/forms_color.rs" => *DOCS_FORMS_COLOR_SOURCE,
         "../../apps/docs-app/src/pages/components/shell.rs" => {
             include_str!("../../../apps/docs-app/src/pages/components/shell.rs")
         }

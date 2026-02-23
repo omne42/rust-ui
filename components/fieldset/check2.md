@@ -52,7 +52,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
@@ -144,7 +144,7 @@
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-  - 已满足：`components/fieldset/test/fieldset_semantics.rs` 以 `data-*`/`aria-*`/`role`/来源标记断言为主，覆盖 `data-state`、`data-*-source`、`data-*-control-mode`、`aria-*` 与 `role="alert"`。
+  - 已满足：`components/fieldset/test/fieldset/semantics.rs` 以 `data-*`/`aria-*`/`role`/来源标记断言为主，覆盖 `data-state`、`data-*-source`、`data-*-control-mode`、`aria-*` 与 `role="alert"`。
   - 分支覆盖：workbench/contract 测试覆盖 `required/disabled/invalid` 矩阵与受控来源标记；键盘/指针路径 N/A（`Fieldset` 本身是分组容器而非交互控件，输入事件路径由其子控件承担）；SSR/wasm 差异 N/A（组件无 web-only 事件分支，语义输出由纯状态归一与属性映射决定）。
   - 非快照导向：docs-app 合同测试使用语义选择器与属性断言，不依赖视觉截图快照作为主断言。
 - [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
@@ -166,7 +166,7 @@
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
   - 已满足：`components/fieldset/src/styles.rs` 以静态 `CSS` 常量承载组件样式；`crates/ui/src/css.rs` 通过 `#[cfg(feature = "component-fieldset")] out.push_str(crate::field_form::fieldset::styles::CSS);` 聚合注入并置于 `@layer ui`。
   - 运行时路径仅注入必要 motion custom properties：`components/fieldset/src/view.rs` 仅挂载 `style=move || motion_style.get_value()`，由 `components/fieldset/src/motion.rs::attach_motion` 输出 `--ui-fieldset-motion-duration/--ui-fieldset-motion-distance`，不承载业务样式规则。
-  - 视觉值来源收敛到 `var(--ui-*)` / `var(--ui-fallback-*)`，组件层无 Utility-First 与 CSS-in-Rust 方案依赖；语义回归见 `components/fieldset/test/fieldset_semantics.rs`。
+  - 视觉值来源收敛到 `var(--ui-*)` / `var(--ui-fallback-*)`，组件层无 Utility-First 与 CSS-in-Rust 方案依赖；语义回归见 `components/fieldset/test/fieldset/semantics.rs`。
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
@@ -174,7 +174,7 @@
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
   - 已满足（共享视觉基线）：docs-app 存在 `theme-visual-baseline` 页面（`apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs`），在默认主题下集中展示层级/对比/交互反馈，并纳入 `Button/Input/Overlay` 同屏对照。
   - 截图基线已落地：`e2e/tests/docs_app_theme_visual_baseline.spec.mjs` 提供 `E2E_VISUAL_BASELINE=on` 的页面级与组件级截图断言（page/button/input/overlay 四张基线图）。
-  - Fieldset 侧视觉语义保持对齐：`components/fieldset/src/styles.rs` 提供 legend/description/error/invalid/disabled 等层级与反馈样式契约；回归锁定见 `components/fieldset/test/fieldset_semantics.rs::fieldset_visual_desire_reuses_theme_visual_baseline_and_form_quality_contracts`。
+  - Fieldset 侧视觉语义保持对齐：`components/fieldset/src/styles.rs` 提供 legend/description/error/invalid/disabled 等层级与反馈样式契约；回归锁定见 `components/fieldset/test/fieldset/semantics.rs::fieldset_visual_desire_reuses_theme_visual_baseline_and_form_quality_contracts`。
 - [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
@@ -189,7 +189,7 @@
   - 组件特性树验证命令：`cargo tree -e features -i ui -p ui --no-default-features --features component-fieldset,inject-css`。
   - 反向依赖验证命令：`cargo tree -e features -i ui -p web-demo`。
   - 仓库级 CI/预算门禁：`bash ./scripts/check-ui-tree-shaking.sh`（含 wasm 最小特性编译与 `scripts/tree_shaking_budget.env` 体积预算阈值）。
-  - 回归：`components/fieldset/test/fieldset_semantics.rs::fieldset_tree_shaking_keeps_component_feature_and_css_boundaries`、`components/fieldset/test/fieldset_semantics.rs::fieldset_tree_shaking_check_script_covers_feature_tree_wasm_and_budget`。
+  - 回归：`components/fieldset/test/fieldset/semantics.rs::fieldset_tree_shaking_keeps_component_feature_and_css_boundaries`、`components/fieldset/test/fieldset/semantics.rs::fieldset_tree_shaking_check_script_covers_feature_tree_wasm_and_budget`。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
@@ -198,27 +198,27 @@
   - 已满足（类型约束）：`crates/ui-state-primitives/src/fieldset.rs` 使用 `FieldsetOrientation`、`FieldsetTone`、`FieldsetMessageKind`、`FieldsetDataState` 建模离散输入与状态轴；`components/fieldset/src/view.rs` 的公共离散输入是类型化 `orientation: FieldsetOrientation` 与 `tone: FieldsetTone`，未暴露字符串协议入口。
   - 已满足（无效状态归一）：`resolve_state(FieldsetStateInput)` 统一收敛 `invalid/disabled/required/orientation/tone` 到封闭 `FieldsetDataState` 集合，并同步产出 `message_kind_attr/data_state_attr`；`normalize_boolean_axis` 统一受控/非受控与来源标记，避免布尔爆炸在视图层扩散。
   - 已满足（机器可读语义）：`view.rs` 暴露稳定标记 `data-state`、`data-message-kind`、`data-required/disabled/invalid-*`、`data-ui-state`；e2e 合同使用语义选择器消费这些标记，不依赖 DOM 猜测。
-  - 测试闭环：`crates/ui-state-primitives/src/test/fieldset.rs` 覆盖归一优先级与来源映射；`components/fieldset/test/fieldset_semantics.rs::fieldset_type_system_and_semantic_markers_keep_machine_readable_contract` 固化类型与语义契约；`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_type_system_semantic_contract_complete` 防止 checklist 回退。
+  - 测试闭环：`crates/ui-state-primitives/src/test/fieldset.rs` 覆盖归一优先级与来源映射；`components/fieldset/test/fieldset/semantics.rs::fieldset_type_system_and_semantic_markers_keep_machine_readable_contract` 固化类型与语义契约；`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_type_system_semantic_contract_complete` 防止 checklist 回退。
 
 ### 4. DOM/环境边界治理
 - [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
   - N/A（Fieldset 非 Overlay）：`Fieldset` 不创建层叠浮层，不承担焦点恢复策略；组件职责是表单分组语义与状态标记装配。
   - `components/fieldset/src/view.rs`、`components/fieldset/src/logic.rs`、`components/fieldset/src/motion.rs` 未出现 `NodeRef`、`FallbackTo/Selector`、`FocusManager`、`document.body` 等 overlay 焦点恢复协议实现。
-  - 回归：`components/fieldset/test/fieldset_semantics.rs::fieldset_has_no_focus_stack_overlay_restore_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_focus_stack_item_complete_as_na`。
+  - 回归：`components/fieldset/test/fieldset/semantics.rs::fieldset_has_no_focus_stack_overlay_restore_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_focus_stack_item_complete_as_na`。
 - [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
   - N/A（Fieldset 非命令式第三方承载组件）：`Fieldset` 不集成 ECharts/Map/Canvas 等命令式实例，职责仅限分组语义装配与状态标记映射。
   - `components/fieldset/src/view.rs`、`components/fieldset/src/logic.rs`、`components/fieldset/src/motion.rs` 未出现 `Foreign Zone`、`YieldControl`、`CleanupForeign`、`echarts`、`mapbox` 等协议与第三方实例桥接实现。
-  - 回归：`components/fieldset/test/fieldset_semantics.rs::fieldset_has_no_foreign_zone_escape_hatch_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_escape_hatch_item_complete_as_na`。
+  - 回归：`components/fieldset/test/fieldset/semantics.rs::fieldset_has_no_foreign_zone_escape_hatch_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_escape_hatch_item_complete_as_na`。
 - [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
   - N/A（Fieldset 当前无本地 ID 生成需求）：`Fieldset` 只装配分组语义与状态标记，不在组件内部生成 hydration 相关 ID。
   - 已满足（禁用不确定性初始化）：`components/fieldset/src/mod.rs`、`components/fieldset/src/logic.rs`、`components/fieldset/src/view.rs`、`components/fieldset/src/motion.rs` 未使用 `SystemTime::now`/`Instant::now`/`Date::now`、`Uuid::new_v4`、`rand::*` 等时间或随机源。
   - 约束（未来新增本地 ID 时）：必须沿 `UiRoot(id_seed) -> provide_ui_id_provider(id_seed) -> use_ui_id_provider()` 的确定性链路接入，禁止直接引入时间/随机 UUID 初始化。
-  - 回归：`components/fieldset/test/fieldset_semantics.rs::fieldset_hydration_discontinuity_contract_is_explicitly_na_without_time_or_random_id_init`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_hydration_discontinuity_item_complete_as_na`。
+  - 回归：`components/fieldset/test/fieldset/semantics.rs::fieldset_hydration_discontinuity_contract_is_explicitly_na_without_time_or_random_id_init`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_hydration_discontinuity_item_complete_as_na`。
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
   - 已满足（compile-only 证据）：`cargo check -p ui --no-default-features --features component-fieldset,inject-css`（native）、`cargo check -p ui-headless --no-default-features --features ssr`（ssr/native）、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-fieldset,inject-css`（web/wasm32）。
   - 已满足（平台分支显式管理）：`crates/ui/Cargo.toml` 通过 `component-fieldset` feature 门控组件可达性；`crates/ui-motion/src/lib.rs` 通过 `#[cfg(target_arch = "wasm32")] / #[cfg(not(target_arch = "wasm32"))]` 显式切分 web backend 与 non-wasm stub，组件仅消费该抽象，不依赖运行时偶然行为。
   - 已满足（non-wasm 路径洁净）：`components/fieldset/src/mod.rs`、`components/fieldset/src/logic.rs`、`components/fieldset/src/styles.rs`、`components/fieldset/src/view.rs`、`components/fieldset/src/motion.rs`、`components/fieldset/src/protocol.rs` 无 `web-sys/web_sys/js_sys/window/document/wasm_bindgen` 浏览器对象引用；并在 `scripts/check-ui-platforms.sh` 固化 source guard。
-  - 回归：`components/fieldset/test/fieldset_semantics.rs::fieldset_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_clean`、`components/fieldset/test/fieldset_semantics.rs::fieldset_platform_check_script_covers_native_ssr_wasm_paths_and_source_guards`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_ssr_cross_platform_item_complete`。
+  - 回归：`components/fieldset/test/fieldset/semantics.rs::fieldset_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_clean`、`components/fieldset/test/fieldset/semantics.rs::fieldset_platform_check_script_covers_native_ssr_wasm_paths_and_source_guards`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_ssr_cross_platform_item_complete`。
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
@@ -226,7 +226,7 @@
   - 已满足（互斥硬保护）：`crates/ui-headless/src/lib.rs` 包含 `#[cfg(all(feature = "web", feature = "ssr"))]` 与 `compile_error!("features \`web\` and \`ssr\` are mutually exclusive; enable exactly one")`。
   - 已满足（组件依赖不破坏互斥）：`components/fieldset/Cargo.toml` 通过 `ui-headless` 依赖接入契约；`components/fieldset/src/view.rs` 仅消费 `A11yDirection/fieldset_attrs/use_controllable_state`，未在组件层绕过 headless feature 约束。
   - 已满足（web/ssr 编译路径与负向断言）：`scripts/check-ui-platforms.sh` 固化 `cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`，并以 `cargo check -p ui-headless --no-default-features --features web,ssr` + `mutually exclusive` 日志匹配做失败断言。
-  - 回归：`components/fieldset/test/fieldset_semantics.rs::fieldset_ui_headless_web_ssr_feature_mutex_contract_is_enforced`、`components/fieldset/test/fieldset_semantics.rs::fieldset_platform_script_covers_ui_headless_web_ssr_mutex_checks`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_ui_headless_mutex_item_complete`。
+  - 回归：`components/fieldset/test/fieldset/semantics.rs::fieldset_ui_headless_web_ssr_feature_mutex_contract_is_enforced`、`components/fieldset/test/fieldset/semantics.rs::fieldset_platform_script_covers_ui_headless_web_ssr_mutex_checks`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_ui_headless_mutex_item_complete`。
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
@@ -234,7 +234,7 @@
   - 已满足（non-wasm stub）：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(...)` no-op，实现 SSR/tooling 可编译且行为可预测。
   - 已满足（组件 non-wasm 安全降级）：`components/fieldset/src/motion.rs` 仅通过 `ui_motion::web::prefers_reduced_motion()` 决定降级参数，并输出 CSS 变量字符串；不持有/暴露动画句柄，不依赖 wasm 专属对象。
   - 已满足（门禁证据）：`scripts/check-ui-platforms.sh` 固化 `cargo check -p ui-motion`、`cargo check -p ui-motion --target wasm32-unknown-unknown` 与 `cargo test -p ui-motion --test non_wasm_stub`，避免 toolchain 场景因 motion 依赖阻塞。
-  - 回归：`components/fieldset/test/fieldset_semantics.rs::fieldset_ui_motion_non_wasm_noop_stub_contract_is_enforced`、`components/fieldset/test/fieldset_semantics.rs::fieldset_motion_module_degrades_safely_without_animation_handle_assumption`、`components/fieldset/test/fieldset_semantics.rs::fieldset_platform_script_covers_ui_motion_non_wasm_stub_checks`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_ui_motion_non_wasm_stub_item_complete`。
+  - 回归：`components/fieldset/test/fieldset/semantics.rs::fieldset_ui_motion_non_wasm_noop_stub_contract_is_enforced`、`components/fieldset/test/fieldset/semantics.rs::fieldset_motion_module_degrades_safely_without_animation_handle_assumption`、`components/fieldset/test/fieldset/semantics.rs::fieldset_platform_script_covers_ui_motion_non_wasm_stub_checks`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_ui_motion_non_wasm_stub_item_complete`。
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
@@ -243,7 +243,7 @@
   - 已满足（SSR/Hydration 语义稳定）：`components/fieldset/src/view.rs` 语义标记（`role/aria/data-*`）走单一路径输出，无 `#[cfg(target_arch = "wasm32")]` / `#[cfg(not(target_arch = "wasm32"))]` 平台分裂；平台差异封装在 `ui-motion` 后端，不影响首帧语义契约。
   - 已满足（wasm 增强不分裂语义）：wasm 与 non-wasm 差异仅体现在动效执行层（`crates/ui-motion`），`Fieldset` 语义状态与 A11y 契约仍由同一 `view.rs` 路径挂载。
   - 门禁：`scripts/check-ui-platforms.sh` 固化 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`。
-  - 回归：`components/fieldset/test/fieldset_semantics.rs::fieldset_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`、`components/fieldset/test/fieldset_semantics.rs::fieldset_platform_script_covers_reduced_motion_ssr_wasm_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_reduced_motion_ssr_wasm_item_complete`。
+  - 回归：`components/fieldset/test/fieldset/semantics.rs::fieldset_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`、`components/fieldset/test/fieldset/semantics.rs::fieldset_platform_script_covers_reduced_motion_ssr_wasm_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_reduced_motion_ssr_wasm_item_complete`。
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
@@ -251,7 +251,7 @@
   - 已满足（预算项定义）：`apps/docs-app/src/pages/components/shell.rs` 为 `fieldset` 固化预算 `UiPerfBudget { max_mount_ms: 24.0, max_update_ms: Some(8.0), max_heap_kb: Some(384.0) }`，并继续保留基础组件 `button/input` 的初始化预算（渲染次数预算为 `1` 的仓库级基线）。
   - 已满足（可重复基线与阻断）：`apps/docs-app/src/perf_probe.rs` 输出稳定 `data-perf-*`（`mount/budget/update/heap/violation/observability`）阈值标记；`e2e/tests/docs_app_fieldset_contract.spec.mjs` 与 `e2e/tests/docs_app_components_coverage.spec.mjs` 对 `data-perf-violation != true` 做回归断言；`scripts/check-ui-performance.sh` 已纳入 `fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking` 阻断门禁。
   - 已满足（可归因）：`components/fieldset/src/view.rs` 暴露 `data-state/data-*-source/data-motion-source/data-ui-source`，可将问题定位到状态归一、渲染语义或动效参数路径；`components/fieldset/src/motion.rs` 保持有界、无高频循环（无 `Effect::new/request_animation_frame/set_interval`）。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking`、`components/fieldset/test/fieldset_semantics.rs::fieldset_performance_check_script_covers_budget_and_follow_up_gates`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_performance_governance_item_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking`、`components/fieldset/test/fieldset/semantics.rs::fieldset_performance_check_script_covers_budget_and_follow_up_gates`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_performance_governance_item_complete`。
   - 门禁命令：`cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking`。
   - `render_count` 现状：当前测试框架仍未提供通用精确 `render_count` 自动化计数，按仓库约定采用可重复 profiling/trace 等价证据；后续由 `docs/plan/TODO.md` 的 `render_count` 任务持续跟踪补齐自动化。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
@@ -262,33 +262,33 @@
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 已满足（语义分块）：`components/fieldset/src/view.rs` 将原始巨型渲染路径拆为 `render_legend_block/render_actions_block/render_message_block` 三个局部函数，主组件仅负责组装与契约挂载。
-  - 已满足（复杂度可检测）：`components/fieldset/test/fieldset_semantics.rs::fieldset_view_macro_complexity_is_split_into_semantic_subblocks` 固化 `view!` 数量上限、行数上限和“仅一个 `#[component]` 边界”约束，阻断宏展开体量回退。
+  - 已满足（复杂度可检测）：`components/fieldset/test/fieldset/semantics.rs::fieldset_view_macro_complexity_is_split_into_semantic_subblocks` 固化 `view!` 数量上限、行数上限和“仅一个 `#[component]` 边界”约束，阻断宏展开体量回退。
   - 已满足（门禁可阻断）：`scripts/check-ui-view-macro.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_view_macro_complexity_is_split_into_semantic_subblocks`。
-  - 已满足（check2 回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_view_macro_check_script_covers_complexity_gate`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_view_macro_complexity_item_complete`。
+  - 已满足（check2 回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_view_macro_check_script_covers_complexity_gate`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_view_macro_complexity_item_complete`。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
 - [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
   - 已满足（函数化拆分）：`components/fieldset/src/view.rs` 采用 `render_legend_block/render_actions_block/render_message_block` 三个普通函数拆分轻逻辑 UI 片段，未新增局部 `#[component]`。
-  - 已满足（抽象噪音约束）：`components/fieldset/test/fieldset_semantics.rs::fieldset_view_functional_split_prefers_plain_functions_over_local_components` 固化“仅一个 `#[component]` 边界 + 禁止局部组件升级”。
+  - 已满足（抽象噪音约束）：`components/fieldset/test/fieldset/semantics.rs::fieldset_view_functional_split_prefers_plain_functions_over_local_components` 固化“仅一个 `#[component]` 边界 + 禁止局部组件升级”。
   - 已满足（语义稳定）：同一测试同时断言 `data-slot=\"fieldset\"/\"fieldset-legend\"/\"fieldset-field-group\"/\"fieldset-actions\"/\"fieldset-description\"/\"fieldset-error\"` 持续存在，确保拆分后测试定位与语义契约不漂移。
   - 已满足（门禁可阻断）：`scripts/check-ui-view-macro.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_view_functional_split_prefers_plain_functions_over_local_components`。
-  - 已满足（check2 回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_view_macro_check_script_covers_functional_split_gate`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_functional_split_item_complete`。
+  - 已满足（check2 回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_view_macro_check_script_covers_functional_split_gate`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_functional_split_item_complete`。
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
 - [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
   - 已满足（静态常量化）：`components/fieldset/src/view.rs` 将稳定静态片段集中为常量：`SLOT_FIELDSET/SLOT_FIELDSET_LEGEND/SLOT_FIELDSET_REQUIRED/SLOT_FIELDSET_FIELD_GROUP/SLOT_FIELDSET_ACTIONS/SLOT_FIELDSET_DESCRIPTION/SLOT_FIELDSET_ERROR`、`FIELDSET_REQUIRED_INDICATOR_TEXT`、`ROLE_ALERT`，并在 `view!` 内统一引用，避免散落内联字面量。
-  - 已满足（可访问语义保持）：常量化后仍保留 `aria-hidden=\"true\"`、`aria-label/aria-disabled/aria-invalid` 与 `role=ROLE_ALERT` 路径；`components/fieldset/test/fieldset_semantics.rs::fieldset_static_fragments_are_constantized_or_absent_for_simple_layout` 对语义连续性做回归断言。
+  - 已满足（可访问语义保持）：常量化后仍保留 `aria-hidden=\"true\"`、`aria-label/aria-disabled/aria-invalid` 与 `role=ROLE_ALERT` 路径；`components/fieldset/test/fieldset/semantics.rs::fieldset_static_fragments_are_constantized_or_absent_for_simple_layout` 对语义连续性做回归断言。
   - 已满足（门禁可阻断）：`scripts/check-ui-view-macro.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_static_fragments_are_constantized_or_absent_for_simple_layout`。
-  - 已满足（check2 回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_view_macro_check_script_covers_static_fragment_gate`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_static_fragment_item_complete`。
+  - 已满足（check2 回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_view_macro_check_script_covers_static_fragment_gate`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_static_fragment_item_complete`。
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
 - [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
   - 已满足（组件路径禁用）：`components/fieldset/src/{mod,logic,styles,view,motion,protocol}.rs` 未使用 `inner_html=`/`set_inner_html(`/`dangerously_set_inner_html`，也未引入 `markdown_to_html` 或模板拼接 HTML 路径。
   - 已满足（docs 路径禁用）：`apps/docs-app/src/pages/components/pages/forms_extra.rs` 的 `fieldset` 示例未包含 `inner_html` 注入入口，避免示例层回灌不受信任 HTML。
-  - 已满足（安全回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_inner_html_usage_is_forbidden_in_component_and_docs_examples`、`components/fieldset/test/fieldset_semantics.rs::fieldset_inner_html_check_script_covers_security_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_inner_html_item_complete`。
+  - 已满足（安全回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_inner_html_usage_is_forbidden_in_component_and_docs_examples`、`components/fieldset/test/fieldset/semantics.rs::fieldset_inner_html_check_script_covers_security_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_inner_html_item_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-inner-html.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_inner_html_usage_is_forbidden_in_component_and_docs_examples`。
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
@@ -298,7 +298,7 @@
   - 已满足（时间线与最小回放）：`apps/docs-app/src/debug_overlay.rs` 通过 `use_ui_trace` 渲染 `data-slot=\"ui-debug-overlay-events\"`，保留 `events.into_iter().rev().take(40)` 最近事件并展示 `ts_ms/component/kind`，支持关键交互链路最小可复现记录。
   - 已满足（状态来源可追踪）：`components/fieldset/src/view.rs` 暴露 `data-required-source/data-disabled-source/data-invalid-source/data-motion-source/data-ui-source` 等稳定语义标记，结合 Inspect 事件可追踪状态来源与节点上下文。
   - 已满足（feature 隔离）：`crates/ui/Cargo.toml` 中 `fieldset` 仅通过 `component-fieldset` 暴露，未引入 `fieldset-wasm-debug/fieldset_wasm_debug`；`components/fieldset/src/{logic,view,motion}.rs` 未暴露 debug prop 或局部 trace API，避免污染公共接口与产物。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_isolated`、`components/fieldset/test/fieldset_semantics.rs::fieldset_wasm_debug_check_script_covers_shared_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_wasm_debug_item_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_isolated`、`components/fieldset/test/fieldset/semantics.rs::fieldset_wasm_debug_check_script_covers_shared_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_wasm_debug_item_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-wasm-debug.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_isolated`。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
@@ -308,7 +308,7 @@
   - 已满足（上下文保持）：`apps/docs-app/src/pages/components/pages/forms_extra.rs::fieldset` 的 workbench 状态由本地 `signal` 维护（`workbench_required/workbench_disabled/workbench_invalid/...`），切换 code/test/settings 面板不丢失当前交互上下文。
   - 已满足（可选状态保留）：当前实现将 optional persisted workbench state as N/A；未引入 `FIELDSET_WORKBENCH_STORAGE_KEY/load_fieldset_workbench_state/save_fieldset_workbench_state` 等持久化路径，避免过早增加存储耦合。
   - 已满足（隔离演练入口）：`Fieldset Workbench (Display + Config + Code + CSS Test)` 提供独立 controls + compare 画布（`data-slot=\"fieldset-workbench-controls\"` / `data-slot=\"fieldset-workbench-compare\"`），满足复杂交互隔离演练。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/fieldset/test/fieldset_semantics.rs::fieldset_dx_workbench_keeps_context_and_isolated_canvas_with_optional_persist_na`、`components/fieldset/test/fieldset_semantics.rs::fieldset_dx_check_script_covers_hot_reload_and_workbench_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_dx_contract_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/fieldset/test/fieldset/semantics.rs::fieldset_dx_workbench_keeps_context_and_isolated_canvas_with_optional_persist_na`、`components/fieldset/test/fieldset/semantics.rs::fieldset_dx_check_script_covers_hot_reload_and_workbench_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_dx_contract_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-dx.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_dx_playground_supports_css_hot_reload_without_wasm_rebuild` 与 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_dx_workbench_keeps_context_and_isolated_canvas_with_optional_persist_na`。
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
@@ -317,7 +317,7 @@
   - 已满足（serde 结构化路径）：`components/fieldset/src/protocol.rs` 以 `FieldsetComponentSchemaVersion` + `FieldsetComponentSpec` 提供版本化协议类型，使用 `serde::{Serialize, Deserialize}` + `#[serde(default)]`，且未引入 `serde_json` 临时解析分支。
   - 已满足（tracing 语义统一）：`fieldset` 侧未新增组件私有 tracing 事件/target；继续复用全库基线（`button-wasm-debug` 与 `ui::button::state_change`）约束，避免“各组件各写一套 tracing 语义”。
   - 已满足（runtime 边界）：`components/fieldset/src/{mod,logic,view,styles,motion,protocol}.rs` 与 `components/fieldset/Cargo.toml` 未泄露 `tokio/async-std/smol/runtime::Handle` 等运行时实现细节到组件 API。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_engineering_contract_uses_serde_protocol_and_structured_schema_defaults`、`components/fieldset/test/fieldset_semantics.rs::fieldset_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`、`components/fieldset/test/fieldset_semantics.rs::fieldset_engineering_contract_avoids_runtime_leaks_in_public_api_surface`、`components/fieldset/test/fieldset_semantics.rs::fieldset_engineering_check_script_covers_serde_tracing_and_runtime_boundaries`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_engineering_contract_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_engineering_contract_uses_serde_protocol_and_structured_schema_defaults`、`components/fieldset/test/fieldset/semantics.rs::fieldset_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`、`components/fieldset/test/fieldset/semantics.rs::fieldset_engineering_contract_avoids_runtime_leaks_in_public_api_surface`、`components/fieldset/test/fieldset/semantics.rs::fieldset_engineering_check_script_covers_serde_tracing_and_runtime_boundaries`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_engineering_contract_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-engineering.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_engineering_contract_uses_serde_protocol_and_structured_schema_defaults`、`cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`、`cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_engineering_contract_avoids_runtime_leaks_in_public_api_surface`。
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
@@ -328,19 +328,19 @@
   - 已满足（双层回退链）：`components/fieldset/src/styles.rs` 关键视觉轴统一为 `var(--ui-*, var(--ui-fallback-*))`，包括 `space/fg/fg-muted/danger/accent/radius/border-width` 与横向布局列宽（`--ui-fieldset-horizontal-legend-*-inline-size`）。
   - 已满足（移除组件内裸终值）：`styles.rs` 已移除 `8rem/14rem` 与 `outline: 1px solid`、`outline-offset: 2px` 这类裸尺寸终值；样式中不含 Hex 色值字面量。
   - 已满足（fallback SSOT）：`crates/ui-theme/src/css.rs` 新增并统一输出 `--ui-fieldset-horizontal-legend-min-inline-size` / `--ui-fallback-fieldset-horizontal-legend-min-inline-size` / `--ui-fieldset-horizontal-legend-max-inline-size` / `--ui-fallback-fieldset-horizontal-legend-max-inline-size`。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_styles_use_defensive_variable_fallback_chain`、`components/fieldset/test/fieldset_semantics.rs::fieldset_defensive_variables_check_script_covers_style_fallback_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_defensive_variables_contract_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_styles_use_defensive_variable_fallback_chain`、`components/fieldset/test/fieldset/semantics.rs::fieldset_defensive_variables_check_script_covers_style_fallback_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_defensive_variables_contract_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-contract-hygiene.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_styles_use_defensive_variable_fallback_chain`。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
   - 已满足（`@layer ui` 聚合）：`crates/ui/src/css.rs` 通过 `out.push_str("\\n@layer ui {\\n"); ... out.push_str("\\n}\\n");` 聚合组件 CSS，并由 `#[cfg(feature = "component-fieldset")] out.push_str(crate::field_form::fieldset::styles::CSS);` 受特性门控注入。
   - 已满足（集中注入路径）：`crates/ui/src/root.rs` 保持 `inject_components_css` 分支统一注入（`crate::css::push_components_css(&mut out); <style>{move || css_text.get()}</style>`），不在组件层分散注入样式块。
   - 已满足（runtime 仅 CSS 变量）：`components/fieldset/src/view.rs` 仅保留 `style=move || motion_style.get_value()` 一条 runtime style 路径；`components/fieldset/src/motion.rs::attach_motion` 仅输出 `--ui-fieldset-motion-*` 自定义属性，不包含 `top/left/right/bottom/width/height` 普通内联样式键。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_cascade_layer_and_runtime_style_contract_is_enforced`、`components/fieldset/test/fieldset_semantics.rs::fieldset_cascade_layer_check_script_covers_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_cascade_layer_contract_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_cascade_layer_and_runtime_style_contract_is_enforced`、`components/fieldset/test/fieldset/semantics.rs::fieldset_cascade_layer_check_script_covers_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_cascade_layer_contract_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-contract-hygiene.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_cascade_layer_and_runtime_style_contract_is_enforced`。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 已满足（组件内置 contract）：`components/fieldset/src/motion.rs` 的 `FieldsetMotion` 已收敛为 `duration_ms + distance_px + stiffness + damping` 四轴；`sanitize_motion` 对四轴统一做有限值/边界归一。
   - 已满足（attach 挂载）：`components/fieldset/src/motion.rs::attach_motion` 统一输出 `--ui-fieldset-motion-duration`、`--ui-fieldset-motion-distance`、`--ui-fieldset-motion-stiffness`、`--ui-fieldset-motion-damping` 四个 CSS Custom Properties。
   - 已满足（reduced-motion + non-wasm/SSR 降级）：`resolve_effective_motion` 在 `prefers_reduced_motion` 下收敛为最小反馈（`duration_ms = MIN_DURATION_MS`、`distance_px = 0.0`）；`ui_motion::web::prefers_reduced_motion()` 在 non-wasm stub 恒为 `true`（`crates/ui-motion/src/lib.rs`），因此 SSR/tooling 路径稳定走 no-op 风格降级。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`、`components/fieldset/test/fieldset_semantics.rs::fieldset_platform_script_covers_motion_contractualization`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_motion_contractualization_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`、`components/fieldset/test/fieldset/semantics.rs::fieldset_platform_script_covers_motion_contractualization`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_motion_contractualization_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-platforms.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`。
 - [x] `ui` 固定入口文件落点正确。
   - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
@@ -353,7 +353,7 @@
   - 已满足（入口分层边界）：`crates/ui/src/lib.rs` 维持 feature-gated 公共面；`crates/ui/src/css.rs` 维持 `push_components_css` 的按特性聚合；`crates/ui/src/root.rs` 维持 `UiRoot` 统一主题/CSS/i18n 注入。
   - 已满足（共享 primitive 边界）：`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载通用高亮样式与 motion driver（`ActiveHighlightMotion + attach_active_highlight_motion`），未混入组件业务语义。
   - 已满足（禁止入口文件）：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 当前均不存在；对应 canonical 原语路径位于 `crates/ui-headless/src/{controllable_state,presence,a11y}.rs`。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_ui_components_fixed_entry_files_follow_layered_boundaries`、`components/fieldset/test/fieldset_semantics.rs::fieldset_entrypoints_script_covers_fixed_entry_file_boundaries`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_ui_components_fixed_entry_files_item_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_ui_components_fixed_entry_files_follow_layered_boundaries`、`components/fieldset/test/fieldset/semantics.rs::fieldset_entrypoints_script_covers_fixed_entry_file_boundaries`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_ui_components_fixed_entry_files_item_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-entrypoints.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_ui_components_fixed_entry_files_follow_layered_boundaries`。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
@@ -364,7 +364,7 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
   - 已满足（标准文件集）：`components/fieldset/src/mod.rs`、`components/fieldset/src/logic.rs`、`components/fieldset/src/styles.rs`、`components/fieldset/src/view.rs`、`components/fieldset/src/motion.rs` 均存在；`components/fieldset/src/render.rs` 与 `components/fieldset/src/spec.rs` 均不存在（simple component 路径）。
   - 已满足（职责边界）：`mod.rs` 保持最小导出面；`logic.rs` 只做归一/派生/来源标记；`styles.rs` 保持 token-first 静态 CSS；`view.rs` 仅做结构渲染与 headless 挂载；`motion.rs` 仅做动效 contract 映射与 attach。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_component_directory_standard_files_follow_contract_and_na_paths`、`components/fieldset/test/fieldset_semantics.rs::fieldset_component_files_script_covers_standard_file_layout_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_component_directory_layout_item_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_component_directory_standard_files_follow_contract_and_na_paths`、`components/fieldset/test/fieldset/semantics.rs::fieldset_component_files_script_covers_standard_file_layout_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_component_directory_layout_item_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-component-files.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_component_directory_standard_files_follow_contract_and_na_paths`。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
@@ -372,16 +372,16 @@
   - 已满足（目录纪律）：`components/fieldset/src/mod.rs`、`components/fieldset/src/logic.rs`、`components/fieldset/src/styles.rs`、`components/fieldset/src/view.rs`、`components/fieldset/src/motion.rs` 为唯一核心文件；`components/fieldset/src/render.rs` 不存在。
   - 已满足（spec 约束）：`components/fieldset/src/spec.rs` 当前不存在；`Fieldset` 作为 simple component 不引入 spec builder 路径，避免抽象噪音。
   - 已满足（职责边界）：`mod.rs` 仅维护导出边界；`logic.rs` 仅归一派生与来源标记；`styles.rs` 仅 token-first 静态样式；`view.rs` 仅渲染与 headless 挂载；`motion.rs` 仅语义到动效 contract 映射与 attach。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_file_placement_discipline_is_strict_for_component_scope`、`components/fieldset/test/fieldset_semantics.rs::fieldset_component_files_script_covers_file_placement_discipline_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_file_placement_discipline_item_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_file_placement_discipline_is_strict_for_component_scope`、`components/fieldset/test/fieldset/semantics.rs::fieldset_component_files_script_covers_file_placement_discipline_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_file_placement_discipline_item_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-component-files.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_file_placement_discipline_is_strict_for_component_scope`。
 - [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
   - N/A（Fieldset 复杂度）：`Fieldset` 当前是 simple component（语义分组 + 状态标记映射），不属于需要独立 `spec.rs` 与 `*Spec::new()...render()` builder 的复杂配置组件。
   - 已满足（无 spec 泄漏）：`components/fieldset/src/spec.rs` 不存在，且 `components/fieldset/src/{mod,logic,styles,view,motion}.rs` 未引入 `FieldsetSpec` / `Spec::new(` 路径。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_hyper_structure_builder_spec_is_not_applicable_for_simple_component`、`components/fieldset/test/fieldset_semantics.rs::fieldset_component_files_script_covers_hyper_structure_builder_na_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_hyper_structure_builder_item_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_hyper_structure_builder_spec_is_not_applicable_for_simple_component`、`components/fieldset/test/fieldset/semantics.rs::fieldset_component_files_script_covers_hyper_structure_builder_na_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_hyper_structure_builder_item_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-component-files.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_hyper_structure_builder_spec_is_not_applicable_for_simple_component`。
 - [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
   - 已满足（文件落点）：新增 `components/fieldset/src/Component.toml` 与 `components/fieldset/src/fieldset.rbi`，并与 `Fieldset` 当前公开输入轴（`is/default/on` 三组布尔受控轴）保持一致。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_context_compression_manifest_and_rbi_projection_are_present_and_current`、`components/fieldset/test/fieldset_semantics.rs::fieldset_component_files_script_covers_context_compression_manifest_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_context_compression_manifest_and_rbi_contract_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_context_compression_manifest_and_rbi_projection_are_present_and_current`、`components/fieldset/test/fieldset/semantics.rs::fieldset_component_files_script_covers_context_compression_manifest_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_context_compression_manifest_and_rbi_contract_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-component-files.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_context_compression_manifest_and_rbi_projection_are_present_and_current`。
   - 当前环境验证说明：本地执行该命令仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
@@ -392,14 +392,14 @@
   - 已满足（机器可读语义）：`components/fieldset/src/view.rs` 暴露 `data-ui-schema`、`data-ui-intent`、`data-ui-action`、`data-ui-state`、`data-ui-source` 与 `data-ui-stream-*`，并保留 `data-*-source` 状态来源轴。
   - 已满足（类型化 schema 输出）：`components/fieldset/src/logic.rs` 使用 `FieldsetAgentContract` 类型统一承载 schema 字段，`resolve_agent_contract` 返回结构化字段，`view.rs` 仅挂载 `agent_contract.get().*`，无自由字符串拼接 schema。
   - 已满足（白名单边界）：`components/fieldset/src/Component.toml` 新增 `[agent_contract]` 与 `[[agent_contract_whitelist]]`，`render_path` 允许路径收敛到 `logic::resolve_view_state/logic::resolve_agent_contract/view::Fieldset/view::render_*/motion::attach_motion`，并阻断 `inner_html`/`<script`/`javascript:`。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_documents_agent_contract_schema_governance_rules`、`components/fieldset/test/fieldset_semantics.rs::fieldset_agent_contract_is_schema_typed_and_machine_readable`、`components/fieldset/test/fieldset_semantics.rs::fieldset_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`、`components/fieldset/test/fieldset_semantics.rs::fieldset_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`、`components/fieldset/test/fieldset_semantics.rs::fieldset_contract_hygiene_script_covers_agent_contract_schema_governance`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_documents_agent_contract_schema_governance_rules`、`components/fieldset/test/fieldset/semantics.rs::fieldset_agent_contract_is_schema_typed_and_machine_readable`、`components/fieldset/test/fieldset/semantics.rs::fieldset_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`、`components/fieldset/test/fieldset/semantics.rs::fieldset_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`、`components/fieldset/test/fieldset/semantics.rs::fieldset_contract_hygiene_script_covers_agent_contract_schema_governance`。
   - 已满足（门禁可阻断）：`scripts/check-ui-contract-hygiene.sh` 已纳入上述四条 `fieldset_*agent_contract*` 定向测试命令。
   - 当前环境验证说明：本地执行定向测试仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
   - 已满足（两态定义收敛）：`components/fieldset/src/logic.rs::resolve_agent_contract` 固定 `stream_support_attr: "unsupported"`、`stream_fallback_attr: "snapshot"`、`stream_mode_attr: "snapshot"`；`components/fieldset/src/view.rs` 挂载 `data-ui-stream-support`、`data-ui-stream-fallback`、`data-ui-stream-mode`。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_streaming_definition_is_llm_output_only_with_two_modes`、`components/fieldset/test/fieldset_semantics.rs::fieldset_streaming_script_covers_two_mode_definition_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_streaming_definition_item_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_streaming_definition_is_llm_output_only_with_two_modes`、`components/fieldset/test/fieldset/semantics.rs::fieldset_streaming_script_covers_two_mode_definition_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_streaming_definition_item_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-streaming.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_definition_is_llm_output_only_with_two_modes`。
   - 当前环境验证说明：本地执行该命令仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
@@ -407,7 +407,7 @@
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
   - 已满足（默认 snapshot 能力）：`components/fieldset/src/logic.rs::resolve_agent_contract` 固定 `stream_support_attr: "unsupported"`、`stream_fallback_attr: "snapshot"`、`stream_mode_attr: "snapshot"`、`output_status_attr: "verified"`，组件默认消费完整结果并稳定输出。
   - 已满足（语义挂载稳定）：`components/fieldset/src/view.rs` 持续挂载 `data-ui-stream-support`、`data-ui-stream-fallback`、`data-ui-stream-mode`、`data-ui-output-status`，保证快照态可观测。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_snapshot_baseline_consumes_complete_result_and_renders_stably`、`components/fieldset/test/fieldset_semantics.rs::fieldset_streaming_script_covers_snapshot_baseline_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_snapshot_baseline_item_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_snapshot_baseline_consumes_complete_result_and_renders_stably`、`components/fieldset/test/fieldset/semantics.rs::fieldset_streaming_script_covers_snapshot_baseline_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_snapshot_baseline_item_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-streaming.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_snapshot_baseline_consumes_complete_result_and_renders_stably`。
   - 当前环境验证说明：本地执行该命令仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
@@ -419,7 +419,7 @@
   - 已满足（显式 fallback + 输出状态）：`components/fieldset/src/logic.rs::resolve_agent_contract` 固定 `stream_support_attr: "unsupported"`、`stream_fallback_attr: "snapshot"`、`stream_mode_attr: "snapshot"`、`output_status_attr: "verified"`；`components/fieldset/src/view.rs` 挂载 `data-ui-stream-support`、`data-ui-stream-fallback`、`data-ui-stream-mode`、`data-ui-output-status`。
   - 已满足（语义连续可读）：`components/fieldset/src/view.rs` 通过 `<fieldset>` 原生语义 + `aria-label/aria-disabled/aria-invalid` + `data-state/data-message-kind/data-ui-*` 保持 role/aria/data 连续可读。
   - 已满足（上层职责边界）：`components/fieldset/src/{mod.rs,logic.rs,view.rs,motion.rs,styles.rs}` 未下沉 `retry/reconnect/backoff/resume_stream` 等断线恢复与重试编排，数据校验与恢复策略继续由上层处理。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_documents_streaming_required_optional_classification_rules`、`components/fieldset/test/fieldset_semantics.rs::fieldset_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/fieldset/test/fieldset_semantics.rs::fieldset_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`、`components/fieldset/test/fieldset_semantics.rs::fieldset_streaming_script_covers_streaming_responsibility_contract`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_documents_streaming_required_optional_classification_rules`、`components/fieldset/test/fieldset/semantics.rs::fieldset_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/fieldset/test/fieldset/semantics.rs::fieldset_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`、`components/fieldset/test/fieldset/semantics.rs::fieldset_streaming_script_covers_streaming_responsibility_contract`。
   - 已满足（门禁可阻断）：`scripts/check-ui-streaming.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_check2_documents_streaming_required_optional_classification_rules`、`cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`。
   - 当前环境验证说明：本地执行上述命令仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 
@@ -427,7 +427,7 @@
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
   - 已满足（非测试源码禁用）：`components/fieldset/src/{mod.rs,logic.rs,styles.rs,view.rs,motion.rs,protocol.rs}` 未出现 `unwrap/expect` 与吞错 `let _ = ...`。
   - 已满足（字符串热点收敛）：`components/fieldset/src/logic.rs::compose_class_name` 已改为 `Vec<Cow<'static, str>>`，静态类名通过 `Cow::Borrowed` 复用，仅自定义类名使用 `Cow::Owned`，去除常量类名 `to_string()` 热点分配。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/fieldset/test/fieldset_semantics.rs::fieldset_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/fieldset/test/fieldset_semantics.rs::fieldset_rust_hygiene_script_enforces_repo_level_hygiene_guards`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_rust_hygiene_contract_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/fieldset/test/fieldset/semantics.rs::fieldset_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/fieldset/test/fieldset/semantics.rs::fieldset_rust_hygiene_script_enforces_repo_level_hygiene_guards`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_rust_hygiene_contract_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-engineering.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_rust_hygiene_script_enforces_repo_level_hygiene_guards`。
   - `./scripts/check-rust-hygiene.sh` 运行结果：当前环境失败，主因是 `ripgrep` 缺少 PCRE2（持续输出 `PCRE2 is not available in this build of ripgrep`），且 `scripts/check-api-contracts.sh` 的 baseline 对比出现 drift；因此此处以组件级静态契约 + 定向门禁作为可复验证据。
 - [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
@@ -435,19 +435,19 @@
   - 已满足（导出门控）：`crates/ui/src/lib.rs` 与 `crates/ui/src/field_form.rs` 通过 `#[cfg(feature = "component-fieldset")]` 控制 `fieldset` 模块/导出，不存在无条件全局引用。
   - 已满足（CSS 聚合门控）：`crates/ui/src/css.rs` 通过 `#[cfg(feature = "component-fieldset")] out.push_str(crate::field_form::fieldset::styles::CSS);` 按特性注入，未启用组件不会进入 CSS 聚合路径。
   - 已满足（脚本门禁）：`scripts/check-ui-tree-shaking.sh` 新增 `FIELDSET_MIN_FEATURES="component-fieldset,inject-css"`，并执行 `cargo tree -e features -i ui -p ui --no-default-features --features "$FIELDSET_MIN_FEATURES"` + `all-components` 负向断言 + wasm 最小特性编译检查。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_tree_shaking_keeps_component_feature_and_css_boundaries`、`components/fieldset/test/fieldset_semantics.rs::fieldset_tree_shaking_script_enforces_component_minimal_feature_tree`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_tree_shaking_feature_pruning_contract_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_tree_shaking_keeps_component_feature_and_css_boundaries`、`components/fieldset/test/fieldset/semantics.rs::fieldset_tree_shaking_script_enforces_component_minimal_feature_tree`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_tree_shaking_feature_pruning_contract_complete`。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-  - 已满足（语义覆盖）：`components/fieldset/src/view.rs` 持续输出 `aria-label/aria-disabled/aria-invalid` 与 `data-state/data-*-source` 契约标记；`components/fieldset/test/fieldset_semantics.rs::fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 固化回归。
-  - 已满足（焦点流转边界）：`Fieldset` 作为分组语义容器，不承载 roving/focus-trap；`components/fieldset/test/fieldset_semantics.rs::fieldset_has_no_focus_stack_overlay_restore_contract` 与 `components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_focus_stack_item_complete_as_na` 固定 N/A 边界。
-  - 已满足（非快照优先）：`e2e/tests/docs_app_fieldset_contract.spec.mjs` 断言 `data-*` 语义选择器与稳定等待，`components/fieldset/test/fieldset_semantics.rs::fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 额外阻断 `toHaveScreenshot/toMatchSnapshot` 依赖。
-  - 已满足（性能脚本门禁）：`scripts/check-ui-performance.sh` 新增 `fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`，并由 `components/fieldset/test/fieldset_semantics.rs::fieldset_performance_script_covers_semantics_and_performance_regression_matrix` 校验。
-  - 已满足（`render_count` 跟踪）：`components/fieldset/test/fieldset_semantics.rs::fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking` 与本项回归共同验证 `docs/plan/TODO.md` 中 `render_count` follow-up；`render_count` 自动化回归仍在仓库统一 follow-up。
+  - 已满足（语义覆盖）：`components/fieldset/src/view.rs` 持续输出 `aria-label/aria-disabled/aria-invalid` 与 `data-state/data-*-source` 契约标记；`components/fieldset/test/fieldset/semantics.rs::fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 固化回归。
+  - 已满足（焦点流转边界）：`Fieldset` 作为分组语义容器，不承载 roving/focus-trap；`components/fieldset/test/fieldset/semantics.rs::fieldset_has_no_focus_stack_overlay_restore_contract` 与 `components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_focus_stack_item_complete_as_na` 固定 N/A 边界。
+  - 已满足（非快照优先）：`e2e/tests/docs_app_fieldset_contract.spec.mjs` 断言 `data-*` 语义选择器与稳定等待，`components/fieldset/test/fieldset/semantics.rs::fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 额外阻断 `toHaveScreenshot/toMatchSnapshot` 依赖。
+  - 已满足（性能脚本门禁）：`scripts/check-ui-performance.sh` 新增 `fieldset_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`，并由 `components/fieldset/test/fieldset/semantics.rs::fieldset_performance_script_covers_semantics_and_performance_regression_matrix` 校验。
+  - 已满足（`render_count` 跟踪）：`components/fieldset/test/fieldset/semantics.rs::fieldset_performance_governance_contract_is_budgeted_traceable_and_blocking` 与本项回归共同验证 `docs/plan/TODO.md` 中 `render_count` follow-up；`render_count` 自动化回归仍在仓库统一 follow-up。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - N/A：本次 `Fieldset` 未发生跨大版本 API 破坏升级，`components/fieldset/src/Component.toml` 仍固定 `schema_version = "1"`，`components/fieldset/src/protocol.rs` 仅存在 `FieldsetComponentSchemaVersion::V1`。
   - 已满足（迁移层边界）：当前组件未引入 `schema_version = "2"`、`migrate_v1_to_v2`、`deprecation_window`、`SchemaRegistry` 等跨大版本迁移标记，避免制造伪需求。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_version_deprecation_migration_is_na_without_major_breaking_upgrade`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_version_deprecation_migration_item_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_version_deprecation_migration_is_na_without_major_breaking_upgrade`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_version_deprecation_migration_item_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-engineering.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_version_deprecation_migration_is_na_without_major_breaking_upgrade`。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
@@ -455,7 +455,7 @@
   - 已满足（状态矩阵 + 受控/非受控对照）：docs 页面同时覆盖 `default_is_invalid` 非受控快照、`is_invalid + on_is_invalid_change` 受控快照，以及 workbench 场景矩阵（required/disabled/invalid/actions/lang/dir）。
   - 已满足（流式/快照展现）：`Streaming Optional (fallback=snapshot)` playground 明确展示 snapshot 回退文案，并引导检查 `data-ui-stream-support/data-ui-stream-fallback/data-ui-stream-mode`。
   - 已满足（Source-first 一键复制 + imports）：`apps/docs-app/src/playground.rs` 通过 `DEFAULT_PLAYGROUND_IMPORTS` + `compose_copy_ready_code` 自动补全导入；`e2e/tests/docs_app_fieldset_contract.spec.mjs` 已断言代码面板包含 `use leptos::prelude::*;`、`use ui::*;` 与 `<Fieldset`。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`components/fieldset/test/fieldset_semantics.rs::fieldset_dx_check_script_covers_docs_product_copy_paste_ready_contract`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_docs_product_copy_paste_ready_item_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`components/fieldset/test/fieldset/semantics.rs::fieldset_dx_check_script_covers_docs_product_copy_paste_ready_contract`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_docs_product_copy_paste_ready_item_complete`。
   - 已满足（门禁可阻断）：`scripts/check-ui-dx.sh` 已纳入 `cargo test -p ui --test fieldset_semantics --no-default-features --features component-fieldset,inject-css fieldset_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
@@ -463,9 +463,9 @@
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
   - 已满足（组件级语义测试入口）：`components/fieldset/test/semantics.rs` 已覆盖公开 API、分层边界与本地语义回归入口，确保字段变更不会绕过 `*_semantics.rs`。
-  - 已满足（语义契约优先）：`components/fieldset/test/fieldset_semantics.rs::fieldset_semantics_matrix_prefers_contract_assertions_over_visual_snapshots` 与 `components/fieldset/test/fieldset_semantics.rs::fieldset_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks` 断言 `data-*` / `aria-*` / `role` / 来源标记，并显式阻断 `toHaveScreenshot/toMatchSnapshot` 与 `insta` 快照依赖。
-  - 已满足（脚本门禁）：`scripts/check-ui-performance.sh` 已纳入 `fieldset_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`，并由 `components/fieldset/test/fieldset_semantics.rs::fieldset_performance_script_covers_semantic_test_priority_contract` 校验。
-  - 已满足（check2 回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_semantic_test_priority_item_complete` 固化该条勾选状态与证据引用，防止回退。
+  - 已满足（语义契约优先）：`components/fieldset/test/fieldset/semantics.rs::fieldset_semantics_matrix_prefers_contract_assertions_over_visual_snapshots` 与 `components/fieldset/test/fieldset/semantics.rs::fieldset_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks` 断言 `data-*` / `aria-*` / `role` / 来源标记，并显式阻断 `toHaveScreenshot/toMatchSnapshot` 与 `insta` 快照依赖。
+  - 已满足（脚本门禁）：`scripts/check-ui-performance.sh` 已纳入 `fieldset_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`，并由 `components/fieldset/test/fieldset/semantics.rs::fieldset_performance_script_covers_semantic_test_priority_contract` 校验。
+  - 已满足（check2 回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_semantic_test_priority_item_complete` 固化该条勾选状态与证据引用，防止回退。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
@@ -473,7 +473,7 @@
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
   - 已满足（语义选择器优先）：`e2e/tests/docs_app_fieldset_contract.spec.mjs` 关键断言使用 `[data-component="fieldset"] [data-slot="fieldset"]`、`[data-slot="ui-perf-probe"]`、`[data-required="true"]`、`[data-invalid="true"]`，避免依赖脆弱 DOM 层级。
   - 已满足（稳定等待策略）：E2E 统一以 `body:not(:has(#boot))` 作为 WASM 就绪/settled 断点，且未使用 `waitForTimeout/setTimeout/sleep` 固定延时等待。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_documents_e2e_selector_and_stable_wait_rules`、`components/fieldset/test/fieldset_semantics.rs::fieldset_e2e_selector_contract_uses_semantic_markers_and_settled_waits`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_e2e_selector_stability_item_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_documents_e2e_selector_and_stable_wait_rules`、`components/fieldset/test/fieldset/semantics.rs::fieldset_e2e_selector_contract_uses_semantic_markers_and_settled_waits`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_e2e_selector_stability_item_complete`。
   - 已满足（脚本门禁）：新增 `components/fieldset/scripts/check-ui-e2e-fieldset.sh`，纳入上述两个定向回归用例，确保契约退化可阻断。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。
@@ -483,7 +483,7 @@
   - 已满足（可重复关键流程）：`e2e/tests/docs_app_fieldset_contract.spec.mjs::docs-app fieldset key flow is repeatable with semantic breakpoints` 覆盖加载 -> 语义状态断言 -> `focus + Enter + click` 交互 -> reload 复验，形成稳定可重复路径。
   - 已满足（语义断点可定位）：关键断点统一落在 `data-required-source/data-invalid-source/data-error-source` 与 `[data-slot="button"]`，失败可直接定位到语义契约而非页面像素差异。
   - 已满足（高风险路径优先）：该流程显式覆盖 `focus/keyboard` 路径；`overlay` 对 `Fieldset` 组件不适用，`async` 由 `data-perf-*` 与 `body:not(:has(#boot))` settled 断点保障稳定等待。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_documents_e2e_repeatable_key_flow_rules`、`components/fieldset/test/fieldset_semantics.rs::fieldset_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_e2e_repeatable_key_flow_item_complete`。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_documents_e2e_repeatable_key_flow_rules`、`components/fieldset/test/fieldset/semantics.rs::fieldset_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_e2e_repeatable_key_flow_item_complete`。
   - 已满足（脚本门禁）：`components/fieldset/scripts/check-ui-e2e-fieldset.sh` 已纳入 `fieldset_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`，确保关键流程回归可阻断。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
@@ -493,8 +493,8 @@
   - 已满足（docs 示例同步）：`apps/docs-app/src/pages/components/pages/forms_extra.rs::fieldset` 已覆盖 `Hello World`、`Legend + Description`、`Horizontal + Invalid + Actions`、`Controlled vs Uncontrolled (Snapshot Contrast)` 与 `Fieldset Workbench (Display + Config + Code + CSS Test)`。
   - 已满足（参数矩阵/状态矩阵）：workbench 场景通过 `workbench_required/workbench_disabled/workbench_invalid/workbench_show_actions/workbench_rtl` 与 `orientation/tone/locale` 分支输出 `FieldsetActualConfig`，并在 `data-slot=\"fieldset-workbench-compare\"` 下提供多场景对照。
   - 已满足（API 名称与默认值一致）：文档示例使用 `is_invalid/on_is_invalid_change/default_is_invalid` 与 `is_required/is_disabled` 命名；`components/fieldset/src/view.rs` 与 `components/fieldset/src/logic.rs` 对应维持 `normalize_boolean_axis` 归一及 `value/default/change` 来源标记一致。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_documents_docs_sync_and_state_matrix_rules`、`components/fieldset/test/fieldset_semantics.rs::fieldset_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_docs_sync_and_state_matrix_item_complete`。
-  - 已满足（脚本门禁）：`scripts/check-ui-dx.sh` 已纳入 `fieldset_check2_documents_docs_sync_and_state_matrix_rules` 与 `fieldset_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`，并由 `components/fieldset/test/fieldset_semantics.rs::fieldset_dx_check_script_covers_docs_sync_and_state_matrix_contract` 固化。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_documents_docs_sync_and_state_matrix_rules`、`components/fieldset/test/fieldset/semantics.rs::fieldset_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_docs_sync_and_state_matrix_item_complete`。
+  - 已满足（脚本门禁）：`scripts/check-ui-dx.sh` 已纳入 `fieldset_check2_documents_docs_sync_and_state_matrix_rules` 与 `fieldset_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`，并由 `components/fieldset/test/fieldset/semantics.rs::fieldset_dx_check_script_covers_docs_sync_and_state_matrix_contract` 固化。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
@@ -503,8 +503,8 @@
   - 已满足（README/入口存在）：`components/fieldset/src/README.md` 与 `apps/docs-app/src/pages/components/pages/forms_extra.rs::fieldset` 均为可索引入口，避免“只有源码没有文档”。
   - 已满足（新手优先内容）：README 已显式提供 `## Hello World`、`## 常见用法`、`## 先用起来，再进阶`，默认调用路径先于架构细节出现。
   - 已满足（docs 渐进顺序）：docs-app 页面保持 `Hello World -> Legend + Description -> Controlled vs Uncontrolled -> Fieldset Workbench`，先默认路径再高级控制。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_documents_documentation_as_product_rules`、`components/fieldset/test/fieldset_semantics.rs::fieldset_documentation_entry_exists_with_beginner_first_progression`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_documentation_as_product_contract_complete`。
-  - 已满足（脚本门禁）：`scripts/check-ui-dx.sh` 已纳入 `fieldset_check2_documents_documentation_as_product_rules` 与 `fieldset_documentation_entry_exists_with_beginner_first_progression`，并由 `components/fieldset/test/fieldset_semantics.rs::fieldset_dx_check_script_covers_documentation_as_product_contract` 固化。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_documents_documentation_as_product_rules`、`components/fieldset/test/fieldset/semantics.rs::fieldset_documentation_entry_exists_with_beginner_first_progression`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_documentation_as_product_contract_complete`。
+  - 已满足（脚本门禁）：`scripts/check-ui-dx.sh` 已纳入 `fieldset_check2_documents_documentation_as_product_rules` 与 `fieldset_documentation_entry_exists_with_beginner_first_progression`，并由 `components/fieldset/test/fieldset/semantics.rs::fieldset_dx_check_script_covers_documentation_as_product_contract` 固化。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
@@ -513,8 +513,8 @@
   - 已满足（交互调参入口）：`apps/docs-app/src/pages/components/pages/forms_extra.rs::fieldset` 已提供 `Fieldset Workbench (Display + Config + Code + CSS Test)`，并开放 `orientation/tone/locale/required/disabled/invalid/actions/custom-class/rtl` 控件联动预览。
   - 已满足（状态切换与实时预览）：workbench 使用 `Switch checked=workbench_*` 与 `SegmentedControl` 驱动 `Fieldset` 的 `is_required/is_disabled/is_invalid` 与样式分支，`data-slot=\"fieldset-workbench-compare\"` 提供可视化对照与实时反馈。
   - 已满足（关键流程可复现）：`e2e/tests/docs_app_fieldset_contract.spec.mjs::docs-app fieldset key flow is repeatable with semantic breakpoints` 覆盖稳定等待、语义断点、键盘交互（`Enter`）与 reload 后复验。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_documents_interactive_playground_rules`、`components/fieldset/test/fieldset_semantics.rs::fieldset_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/fieldset/test/fieldset_semantics.rs::fieldset_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_interactive_playground_item_complete`。
-  - 已满足（脚本门禁）：`scripts/check-ui-dx.sh` 已纳入 `fieldset_check2_documents_interactive_playground_rules`、`fieldset_docs_app_provides_interactive_playground_for_props_state_and_preview`、`fieldset_interactive_playground_reuses_repeatable_semantic_e2e_flow`，并由 `components/fieldset/test/fieldset_semantics.rs::fieldset_dx_check_script_covers_interactive_playground_contract` 固化。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_documents_interactive_playground_rules`、`components/fieldset/test/fieldset/semantics.rs::fieldset_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/fieldset/test/fieldset/semantics.rs::fieldset_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_interactive_playground_item_complete`。
+  - 已满足（脚本门禁）：`scripts/check-ui-dx.sh` 已纳入 `fieldset_check2_documents_interactive_playground_rules`、`fieldset_docs_app_provides_interactive_playground_for_props_state_and_preview`、`fieldset_interactive_playground_reuses_repeatable_semantic_e2e_flow`，并由 `components/fieldset/test/fieldset/semantics.rs::fieldset_dx_check_script_covers_interactive_playground_contract` 固化。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
@@ -523,8 +523,8 @@
   - 已满足（复制按钮 + 可运行片段）：`apps/docs-app/src/pages/components/pages/forms_extra.rs::fieldset` 新增 `data-slot="fieldset-source-first"`，并通过 `Show code + copy` 与 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 保证复制代码默认补全 imports。
   - 已满足（真实源码落点 + 依赖前提）：source-first 区块显式列出 `components/fieldset/src/{mod,logic,view,styles,motion}.rs` 与 `crates/ui/src/field_form/fieldset/{mod,logic,view,styles,motion}.rs`，并给出 `component-fieldset` + `inject-css` 依赖基线。
   - 已满足（文档同步实现）：`components/fieldset/src/README.md` 增补 `## Source-first`，与 docs-app 的复制路径、源码落点、feature 约束保持一致。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_documents_source_first_copy_paste_ready_rules`、`components/fieldset/test/fieldset_semantics.rs::fieldset_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_source_first_copy_paste_ready_contract_complete`。
-  - 已满足（脚本门禁）：`scripts/check-ui-dx.sh` 已纳入 `fieldset_check2_documents_source_first_copy_paste_ready_rules` 与 `fieldset_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`，并由 `components/fieldset/test/fieldset_semantics.rs::fieldset_dx_check_script_covers_source_first_copy_paste_ready_contract` 固化。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_documents_source_first_copy_paste_ready_rules`、`components/fieldset/test/fieldset/semantics.rs::fieldset_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_source_first_copy_paste_ready_contract_complete`。
+  - 已满足（脚本门禁）：`scripts/check-ui-dx.sh` 已纳入 `fieldset_check2_documents_source_first_copy_paste_ready_rules` 与 `fieldset_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`，并由 `components/fieldset/test/fieldset/semantics.rs::fieldset_dx_check_script_covers_source_first_copy_paste_ready_contract` 固化。
   - 已满足（E2E 语义入口）：`e2e/tests/docs_app_fieldset_contract.spec.mjs::docs-app fieldset source-first section is copy-paste ready and traceable` 覆盖 source-first 区块可见性、源码路径与依赖标记。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
@@ -533,8 +533,8 @@
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。
   - 已满足（对标策略文档同步）：`docs/spec/heroui-parameter-design-strategy.md` 新增 `### Fieldset 同步记录（2026-02-20）`，明确参数主轴、docs 入口、示例矩阵与 source-first 前提，并显式记录“仅代码更新无文档更新”禁止合入。
   - 已满足（组件文档入口可索引）：`apps/docs-app/src/pages/components/pages.rs` 保持 `component_doc!("Fieldset", "fieldset", "Forms", forms_extra::fieldset)`；`apps/docs-app/src/pages/components/pages/forms_extra.rs::fieldset()` 与 `components/fieldset/src/README.md` 均为可检索入口。
-  - 已满足（自动化回归）：`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_documents_heroui_benchmark_docs_sync_rules`、`components/fieldset/test/fieldset_semantics.rs::fieldset_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/fieldset/test/fieldset_semantics.rs::fieldset_check2_marks_heroui_benchmark_docs_sync_contract_complete`。
-  - 已满足（脚本门禁）：`scripts/check-ui-dx.sh` 已纳入 `fieldset_check2_documents_heroui_benchmark_docs_sync_rules` 与 `fieldset_heroui_strategy_and_component_docs_are_synchronized_and_indexable`，并由 `components/fieldset/test/fieldset_semantics.rs::fieldset_dx_check_script_covers_heroui_benchmark_docs_sync_contract` 固化。
+  - 已满足（自动化回归）：`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_documents_heroui_benchmark_docs_sync_rules`、`components/fieldset/test/fieldset/semantics.rs::fieldset_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/fieldset/test/fieldset/semantics.rs::fieldset_check2_marks_heroui_benchmark_docs_sync_contract_complete`。
+  - 已满足（脚本门禁）：`scripts/check-ui-dx.sh` 已纳入 `fieldset_check2_documents_heroui_benchmark_docs_sync_rules` 与 `fieldset_heroui_strategy_and_component_docs_are_synchronized_and_indexable`，并由 `components/fieldset/test/fieldset/semantics.rs::fieldset_dx_check_script_covers_heroui_benchmark_docs_sync_contract` 固化。
   - 当前环境验证说明：本地执行定向 `cargo test` 仍受构建环境限制报错 `Invalid cross-device link (os error 18)`；因此以静态契约检查 + 脚本门禁覆盖作为可复验证据。
 
 ### 8. 合并前门禁死命令（最终执行）

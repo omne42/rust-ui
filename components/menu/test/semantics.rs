@@ -30,7 +30,55 @@ fn load_component_source(rel_path: &str) -> String {
 }
 
 fn load_workspace_source(rel_path: &str) -> String {
-    let path = component_dir().join("../..").join(rel_path);
+    let workspace_root = component_dir().join("../..");
+
+    if rel_path == "apps/docs-app/src/pages/components/pages/collections.rs" {
+        let parent_path = workspace_root.join(rel_path);
+        let parent = fs::read_to_string(&parent_path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {parent_path:?}: {e}"));
+        let mut child_paths = Vec::new();
+        collect_paths_with_extension(
+            &workspace_root.join("apps/docs-app/src/pages/components/pages/collections"),
+            "rs",
+            &mut child_paths,
+        );
+        child_paths.sort();
+
+        let mut combined = parent;
+        for child_path in child_paths {
+            let child = fs::read_to_string(&child_path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {child_path:?}: {e}"));
+            combined.push('\n');
+            combined.push_str(&child);
+        }
+
+        return combined.replace("pub(crate) fn ", "pub(super) fn ");
+    }
+
+    if rel_path == "apps/docs-app/src/pages/components/pages/actions.rs" {
+        let parent_path = workspace_root.join(rel_path);
+        let parent = fs::read_to_string(&parent_path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {parent_path:?}: {e}"));
+        let mut child_paths = Vec::new();
+        collect_paths_with_extension(
+            &workspace_root.join("apps/docs-app/src/pages/components/pages/actions"),
+            "rs",
+            &mut child_paths,
+        );
+        child_paths.sort();
+
+        let mut combined = parent;
+        for child_path in child_paths {
+            let child = fs::read_to_string(&child_path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {child_path:?}: {e}"));
+            combined.push('\n');
+            combined.push_str(&child);
+        }
+
+        return combined.replace("pub(crate) fn ", "pub(super) fn ");
+    }
+
+    let path = workspace_root.join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 

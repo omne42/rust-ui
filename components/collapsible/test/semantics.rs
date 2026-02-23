@@ -2030,7 +2030,7 @@ fn collapsible_semantic_markers_changed_in_view_must_be_covered_by_semantics_che
     let view = load_source("src/view.rs");
     let local_semantics = include_str!("semantics.rs");
     let aggregated_semantics =
-        include_str!("../../../components/collapsible/test/collapsible_semantics.rs");
+        include_str!("../../../components/collapsible/test/collapsible/semantics.rs");
 
     for marker in [
         "role=aria.attrs.role",
@@ -2768,7 +2768,7 @@ fn collapsible_semantics_and_performance_regression_cover_aria_data_focus_and_re
  {
     let local_semantics = load_source("test/semantics.rs");
     let aggregated_semantics =
-        load_source("../../components/collapsible/test/collapsible_semantics.rs");
+        load_source("../../components/collapsible/test/collapsible/semantics.rs");
     let view = load_source("src/view.rs");
     let e2e = load_source("../../e2e/tests/docs_app_collapsible.spec.mjs");
     let todo = load_source("../../docs/plan/TODO.md");

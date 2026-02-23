@@ -10,7 +10,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 大骨架（架构边界与层职责）
-- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`Select` 纯状态不变量已下沉到 `crates/ui-state-primitives/src/select.rs` 并在 `crates/ui-state-primitives/src/lib.rs` 导出；`crates/ui/src/select/logic.rs` 仅 `pub use ui_state_primitives::select::{...}` 作为消费层，`view.rs` 仅装配调用。对应回归：`components/select/test/select_semantics.rs` 的 `select_uses_logic_state_model`、`select_status_primitives_layer_is_pure_and_component_only_consumes`。）
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`Select` 纯状态不变量已下沉到 `crates/ui-state-primitives/src/select.rs` 并在 `crates/ui-state-primitives/src/lib.rs` 导出；`crates/ui/src/select/logic.rs` 仅 `pub use ui_state_primitives::select::{...}` 作为消费层，`view.rs` 仅装配调用。对应回归：`components/select/test/semantics.rs` 的 `select_uses_logic_state_model`、`select_status_primitives_layer_is_pure_and_component_only_consumes`。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -20,7 +20,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`Select` 交互/A11y 通过 `ui_headless` 契约消费：`use_controllable_open_state_traced`（开闭交互）、`use_presence`（可见性契约）、`aria_controls_when_open`（ARIA 映射）、`locale_attrs + lang/dir`（国际化方向接入）；组件层未在 `view.rs` 重写 headless 语义工具。对应回归：`components/select/test/select_semantics.rs` 的 `select_headless_contracts_drive_interaction_and_a11y_boundaries`。）
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`Select` 交互/A11y 通过 `ui_headless` 契约消费：`use_controllable_open_state_traced`（开闭交互）、`use_presence`（可见性契约）、`aria_controls_when_open`（ARIA 映射）、`locale_attrs + lang/dir`（国际化方向接入）；组件层未在 `view.rs` 重写 headless 语义工具。对应回归：`components/select/test/semantics.rs` 的 `select_headless_contracts_drive_interaction_and_a11y_boundaries`。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -31,14 +31,14 @@
   - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`Select` 组件仅在 `select/motion.rs` 做语义到动效 contract 的映射，并委托 `PopoverMotion` 执行 attach；未在 `select/motion.rs` 自实现 spring/keyframe/driver。共享执行能力仍位于 `crates/ui-motion`（`spring.rs`、`wasm/non-wasm` backend），non-wasm 路径保留可预测 no-op/stub。对应回归：`components/select/test/select_semantics.rs` 的 `select_ui_motion_layer_keeps_engine_vs_component_mapping_boundary`、`select_ui_motion_non_wasm_stub_contract_is_predictable`。）
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`Select` 组件仅在 `select/motion.rs` 做语义到动效 contract 的映射，并委托 `PopoverMotion` 执行 attach；未在 `select/motion.rs` 自实现 spring/keyframe/driver。共享执行能力仍位于 `crates/ui-motion`（`spring.rs`、`wasm/non-wasm` backend），non-wasm 路径保留可预测 no-op/stub。对应回归：`components/select/test/semantics.rs` 的 `select_ui_motion_layer_keeps_engine_vs_component_mapping_boundary`、`select_ui_motion_non_wasm_stub_contract_is_predictable`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`Select` 仅在 `crates/ui/src/select/styles.rs` 消费 `var(--ui-overlay-panel-min-width)`，不在组件层重建三轴主题映射；token/theme/css 基线来源保持在 `crates/ui-theme/src/tokens.rs`、`crates/ui-theme/src/theme.rs`、`crates/ui-theme/src/css.rs`。可追溯规范在 `docs/spec/styling.md`，尺寸回归由 `crates/ui-theme/tests/token_scale_baseline.rs` 提供。对应回归：`components/select/test/select_semantics.rs` 的 `select_ui_theme_layer_uses_shared_token_pipeline_without_rebuilding_theme`、`select_check2_marks_ui_theme_layer_complete`。）
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`Select` 仅在 `crates/ui/src/select/styles.rs` 消费 `var(--ui-overlay-panel-min-width)`，不在组件层重建三轴主题映射；token/theme/css 基线来源保持在 `crates/ui-theme/src/tokens.rs`、`crates/ui-theme/src/theme.rs`、`crates/ui-theme/src/css.rs`。可追溯规范在 `docs/spec/styling.md`，尺寸回归由 `crates/ui-theme/tests/token_scale_baseline.rs` 提供。对应回归：`components/select/test/semantics.rs` 的 `select_ui_theme_layer_uses_shared_token_pipeline_without_rebuilding_theme`、`select_check2_marks_ui_theme_layer_complete`。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -46,7 +46,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`Select` 目录职责分层保持清晰：`mod.rs` 最小导出面、`logic.rs` 仅消费 `ui-state-primitives`、`view.rs` 只做结构渲染与 headless 挂载、`styles.rs` token-first 消费变量、`motion.rs` 仅做动效 contract 映射；`crates/ui/src/lib.rs` 通过 `component-select` feature gate 暴露 `Select/SelectMotion`，未暴露 `web-sys`/DOM 细节类型。对应回归：`components/select/test/select_semantics.rs` 的 `select_ui_components_layer_keeps_assembly_boundaries_and_public_api_clean`、`select_check2_marks_ui_components_layer_complete`。）
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`Select` 目录职责分层保持清晰：`mod.rs` 最小导出面、`logic.rs` 仅消费 `ui-state-primitives`、`view.rs` 只做结构渲染与 headless 挂载、`styles.rs` token-first 消费变量、`motion.rs` 仅做动效 contract 映射；`crates/ui/src/lib.rs` 通过 `component-select` feature gate 暴露 `Select/SelectMotion`，未暴露 `web-sys`/DOM 细节类型。对应回归：`components/select/test/semantics.rs` 的 `select_ui_components_layer_keeps_assembly_boundaries_and_public_api_clean`、`select_check2_marks_ui_components_layer_complete`。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -58,85 +58,85 @@
   - 通知边界：切片值实现 `PartialEq` 时，若值未变化则不通知下游，相关 DOM 绑定不更新。
   - 成本边界：每次 `set/update` 仍会执行状态转移与切片重算；大状态或高频路径必须拆分 `Signal`/状态域，避免把 clone 成本当作恒定可忽略。
   - 反模式禁止：`view.rs` 只做挂载与消费切片，禁止重新实现状态机分支或复制 `logic.rs` 判定规则。
-- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`Select` 布尔轴已采用 `is_disabled`，并保留 `disabled` 兼容别名；在 `crates/ui/src/select/logic.rs` 通过 `normalize_is_disabled(is_disabled, disabled)` 统一归一，确保 prefixed 命名优先。开闭轴沿用全库同名 `open + default_open + on_open_change`。docs 示例已切换优先使用 `is_disabled`。迁移策略：短期兼容 `disabled`，推荐新代码只使用 `is_disabled`，后续在破坏性版本移除别名。对应回归：`components/select/test/select_semantics.rs` 的 `select_api_naming_uses_prefixed_boolean_props_with_legacy_alias_migration_path`、`select_check2_marks_api_naming_contract_complete`。）
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`Select` 布尔轴已采用 `is_disabled`，并保留 `disabled` 兼容别名；在 `crates/ui/src/select/logic.rs` 通过 `normalize_is_disabled(is_disabled, disabled)` 统一归一，确保 prefixed 命名优先。开闭轴沿用全库同名 `open + default_open + on_open_change`。docs 示例已切换优先使用 `is_disabled`。迁移策略：短期兼容 `disabled`，推荐新代码只使用 `is_disabled`，后续在破坏性版本移除别名。对应回归：`components/select/test/semantics.rs` 的 `select_api_naming_uses_prefixed_boolean_props_with_legacy_alias_migration_path`、`select_check2_marks_api_naming_contract_complete`。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`Select` 开闭状态轴已成对提供 `open + on_open_change + default_open`，并通过 `ui_headless::use_controllable_open_state_traced` 统一受控/非受控语义（受控时外部值单一事实来源，非受控时仅初始化一次默认值后内部管理）。对应回归：`components/select/test/select_semantics.rs` 的 `select_open_state_contract_requires_value_default_callback_triplet`。）
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`Select` 开闭状态轴已成对提供 `open + on_open_change + default_open`，并通过 `ui_headless::use_controllable_open_state_traced` 统一受控/非受控语义（受控时外部值单一事实来源，非受控时仅初始化一次默认值后内部管理）。对应回归：`components/select/test/semantics.rs` 的 `select_open_state_contract_requires_value_default_callback_triplet`。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`Select` 默认文案/id 归一分别通过 `logic::resolve_placeholder`、`logic::normalize_id_base`，开闭默认值优先级由 headless controllable-state primitive 统一处理；`view.rs` 不再分散 `unwrap_or` 二次兜底。对应回归：`components/select/test/select_semantics.rs` 的 `select_defaults_are_not_rewritten_in_view_layer`。）
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`Select` 默认文案/id 归一分别通过 `logic::resolve_placeholder`、`logic::normalize_id_base`，开闭默认值优先级由 headless controllable-state primitive 统一处理；`view.rs` 不再分散 `unwrap_or` 二次兜底。对应回归：`components/select/test/semantics.rs` 的 `select_defaults_are_not_rewritten_in_view_layer`。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`Select` 根状态由 `logic::resolve_state(logic::SelectStateInput { ... })` 单点派生，水平导航/typeahead 等状态派生调用均复用 logic→primitive 能力；`styles.rs` 仅消费语义标记，不承载状态机规则。对应回归：`components/select/test/select_semantics.rs` 的 `select_state_normalization_is_centralized_in_logic`。）
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`Select` 根状态由 `logic::resolve_state(logic::SelectStateInput { ... })` 单点派生，水平导航/typeahead 等状态派生调用均复用 logic→primitive 能力；`styles.rs` 仅消费语义标记，不承载状态机规则。对应回归：`components/select/test/semantics.rs` 的 `select_state_normalization_is_centralized_in_logic`。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`Select` 离散轴已类型化：`SelectOpenFocusStrategy`、`SelectHorizontalNav`、`PopoverPlacement`、`A11yDirection`；未以字符串协议/布尔爆炸表达互斥状态。对应回归：`components/select/test/select_semantics.rs` 的 `select_discrete_axes_are_modeled_with_enums`。）
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`Select` 离散轴已类型化：`SelectOpenFocusStrategy`、`SelectHorizontalNav`、`PopoverPlacement`、`A11yDirection`；未以字符串协议/布尔爆炸表达互斥状态。对应回归：`components/select/test/semantics.rs` 的 `select_discrete_axes_are_modeled_with_enums`。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`select/logic.rs` 持续以 `pub use ui_state_primitives::select::{...}` 作为唯一状态原语入口；组件层未绑定业务 store 类型，可复用状态机与归一化能力保持在 `ui-state-primitives`。对应回归：`components/select/test/select_semantics.rs` 的 `select_only_consumes_state_primitives_without_business_store_binding`。）
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`select/logic.rs` 持续以 `pub use ui_state_primitives::select::{...}` 作为唯一状态原语入口；组件层未绑定业务 store 类型，可复用状态机与归一化能力保持在 `ui-state-primitives`。对应回归：`components/select/test/semantics.rs` 的 `select_only_consumes_state_primitives_without_business_store_binding`。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`Select` 组件无远程请求与异步状态，当前交互均为同步本地状态切换与列表导航。对应回归：`components/select/test/select_semantics.rs` 的 `select_async_semantics_are_not_applicable`。）
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`Select` 组件无远程请求与异步状态，当前交互均为同步本地状态切换与列表导航。对应回归：`components/select/test/semantics.rs` 的 `select_async_semantics_are_not_applicable`。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`Select` 基础路径保持直接调用：`<Select ... />` 仅需 items + selected signals 即可运行，内部 `ui-state-primitives/ui-headless` 接线未暴露给调用者；docs 侧提供默认路径示例与受控增强示例。对应回归：`components/select/test/select_semantics.rs` 的 `select_api_dx_paradox_keeps_simple_usage_and_hides_internal_wiring`、`select_docs_page_covers_primary_playgrounds`。）
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`Select` 基础路径保持直接调用：`<Select ... />` 仅需 items + selected signals 即可运行，内部 `ui-state-primitives/ui-headless` 接线未暴露给调用者；docs 侧提供默认路径示例与受控增强示例。对应回归：`components/select/test/semantics.rs` 的 `select_api_dx_paradox_keeps_simple_usage_and_hides_internal_wiring`、`select_docs_page_covers_primary_playgrounds`。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A-解释：`Select` 当前为输入基元而非组合容器组件，不采用并行槽位/并行数组协议；对选项输入仅使用显式 `items: Vec<String>`，未引入 `labels + children/titles + panels` 隐式配对语法糖。对应回归：`components/select/test/select_semantics.rs` 的 `select_composition_api_avoids_parallel_arrays_and_implicit_pairing`。）
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A-解释：`Select` 当前为输入基元而非组合容器组件，不采用并行槽位/并行数组协议；对选项输入仅使用显式 `items: Vec<String>`，未引入 `labels + children/titles + panels` 隐式配对语法糖。对应回归：`components/select/test/semantics.rs` 的 `select_composition_api_avoids_parallel_arrays_and_implicit_pairing`。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`Select` 通过 headless 契约输出完整语义（`aria-haspopup/aria-expanded/aria-controls` + listbox role/keyboard 路径），并接入 `lang/dir`（`locale_attrs(lang, dir)`）；组件层未重写共享 A11y 工具。对应回归：`components/select/test/select_semantics.rs` 的 `select_headless_contracts_drive_interaction_and_a11y_boundaries`、`select_trigger_is_labeled_and_owns_a_listbox`、`select_a11y_i18n_observability_and_style_contracts_are_explicit`。）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`Select` 通过 headless 契约输出完整语义（`aria-haspopup/aria-expanded/aria-controls` + listbox role/keyboard 路径），并接入 `lang/dir`（`locale_attrs(lang, dir)`）；组件层未重写共享 A11y 工具。对应回归：`components/select/test/semantics.rs` 的 `select_headless_contracts_drive_interaction_and_a11y_boundaries`、`select_trigger_is_labeled_and_owns_a_listbox`、`select_a11y_i18n_observability_and_style_contracts_are_explicit`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`Select` 根节点已暴露稳定 `data-*`/`aria-*` 契约，覆盖 open/closed/disabled/selection/source 等关键轴，且字段值为可枚举集合。对应回归：`components/select/test/select_semantics.rs` 的 `select_exposes_root_state_and_slot_data_attributes`、`select_type_system_and_semantic_markers_form_machine_readable_contract`、`select_semantics_contract_checks_cover_state_and_interaction_matrix`。）
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`Select` 根节点已暴露稳定 `data-*`/`aria-*` 契约，覆盖 open/closed/disabled/selection/source 等关键轴，且字段值为可枚举集合。对应回归：`components/select/test/semantics.rs` 的 `select_exposes_root_state_and_slot_data_attributes`、`select_type_system_and_semantic_markers_form_machine_readable_contract`、`select_semantics_contract_checks_cover_state_and_interaction_matrix`。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`Select` 样式分支基于稳定 `data-*` source marker 与 class，未使用结构猜测选择器；运行时未注入业务 inline style。对应回归：`components/select/test/select_semantics.rs` 的 `select_styles_include_source_marker_selectors`、`select_a11y_i18n_observability_and_style_contracts_are_explicit`。）
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`Select` 样式分支基于稳定 `data-*` source marker 与 class，未使用结构猜测选择器；运行时未注入业务 inline style。对应回归：`components/select/test/semantics.rs` 的 `select_styles_include_source_marker_selectors`、`select_a11y_i18n_observability_and_style_contracts_are_explicit`。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（`Select` 语义测试以 role/aria/data-* 契约断言为主，不依赖视觉快照；并覆盖受控/非受控（`open/default_open/on_open_change`）、disabled（`is_disabled/disabled`）、键盘路径（Arrow/Enter/typeahead）、指针路径（listbox option pointer/click）、SSR/wasm 分支（`ui-motion` 与 `popover` cfg）。对应回归：`components/select/test/select_semantics.rs` 的 `select_semantics_contract_checks_cover_state_and_interaction_matrix`、`select_check2_marks_semantics_and_file_responsibility_items_complete`。）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`Select` 语义测试以 role/aria/data-* 契约断言为主，不依赖视觉快照；并覆盖受控/非受控（`open/default_open/on_open_change`）、disabled（`is_disabled/disabled`）、键盘路径（Arrow/Enter/typeahead）、指针路径（listbox option pointer/click）、SSR/wasm 分支（`ui-motion` 与 `popover` cfg）。对应回归：`components/select/test/semantics.rs` 的 `select_semantics_contract_checks_cover_state_and_interaction_matrix`、`select_check2_marks_semantics_and_file_responsibility_items_complete`。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`Select` 当前文件职责保持单一：`mod.rs` 仅最小导出，`logic.rs` 仅原语归一桥接，`styles.rs` 仅 token-first CSS，`view.rs` 仅结构渲染与 headless 挂载，`motion.rs` 仅语义到 popover motion contract 映射；未在错误层重写 primitive 或 motion engine。对应回归：`components/select/test/select_semantics.rs` 的 `select_component_files_keep_single_responsibility_boundaries`、`select_check2_marks_semantics_and_file_responsibility_items_complete`。）
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`Select` 当前文件职责保持单一：`mod.rs` 仅最小导出，`logic.rs` 仅原语归一桥接，`styles.rs` 仅 token-first CSS，`view.rs` 仅结构渲染与 headless 挂载，`motion.rs` 仅语义到 popover motion contract 映射；未在错误层重写 primitive 或 motion engine。对应回归：`components/select/test/semantics.rs` 的 `select_component_files_keep_single_responsibility_boundaries`、`select_check2_marks_semantics_and_file_responsibility_items_complete`。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`Select` 未引入 `spec.rs`，目录结构保持 `mod.rs + logic.rs + styles.rs + view.rs + motion.rs`；`mod.rs` 未声明/导出 `spec` 模块。该组件当前不存在稳定外部 Schema 契约与复杂配置固化需求，说明留在 `check2.md` 与 docs 侧即可。对应回归：`components/select/test/select_semantics.rs` 的 `select_spec_file_is_not_introduced_for_simple_component`、`select_check2_marks_spec_file_scope_item_complete`。）
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`Select` 未引入 `spec.rs`，目录结构保持 `mod.rs + logic.rs + styles.rs + view.rs + motion.rs`；`mod.rs` 未声明/导出 `spec` 模块。该组件当前不存在稳定外部 Schema 契约与复杂配置固化需求，说明留在 `check2.md` 与 docs 侧即可。对应回归：`components/select/test/semantics.rs` 的 `select_spec_file_is_not_introduced_for_simple_component`、`select_check2_marks_spec_file_scope_item_complete`。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`Select` 样式规则集中在 `crates/ui/src/select/styles.rs`，并通过 `crates/ui/src/css.rs` 在 `component-select` feature 条件下聚合到 `@layer ui`，最终由 `crates/ui/src/root.rs` 的 `UiRoot` 在 `inject_components_css` 打开时统一注入；`select/view.rs` 未使用 inline 业务样式。视觉尺寸基线消费 `var(--ui-overlay-panel-min-width)`，未引入 utility-first 或 CSS-in-Rust 默认范式。对应回归：`components/select/test/select_semantics.rs` 的 `select_token_first_static_style_contract_is_aggregated_and_injected_via_ui_root`、`select_check2_marks_token_first_static_style_contract_complete`。）
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`Select` 样式规则集中在 `crates/ui/src/select/styles.rs`，并通过 `crates/ui/src/css.rs` 在 `component-select` feature 条件下聚合到 `@layer ui`，最终由 `crates/ui/src/root.rs` 的 `UiRoot` 在 `inject_components_css` 打开时统一注入；`select/view.rs` 未使用 inline 业务样式。视觉尺寸基线消费 `var(--ui-overlay-panel-min-width)`，未引入 utility-first 或 CSS-in-Rust 默认范式。对应回归：`components/select/test/semantics.rs` 的 `select_token_first_static_style_contract_is_aggregated_and_injected_via_ui_root`、`select_check2_marks_token_first_static_style_contract_complete`。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（`Select` 复用仓库级默认主题视觉基线门禁：docs-app 的 `theme_visual_baseline` 页面明确覆盖层级/对比/交互反馈，并包含 Button/Input/Overlay 基线场景；`e2e/tests/docs_app_theme_visual_baseline.spec.mjs` 提供基线截图回归（page/button/input/overlay）；HeroUI 对标策略文档 `docs/spec/heroui-parameter-design-strategy.md` 保持“视觉语言与体验质量对齐，不做无差别 API 表层复制”约束。`Select` 自身样式继续通过 `data-open/data-empty/data-has-disabled-options` 等状态标记提供交互反馈层次。对应回归：`components/select/test/select_semantics.rs` 的 `select_visual_desire_reuses_theme_visual_baseline_and_heroui_contracts`、`select_check2_marks_visual_desire_gate_complete`。）
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（`Select` 复用仓库级默认主题视觉基线门禁：docs-app 的 `theme_visual_baseline` 页面明确覆盖层级/对比/交互反馈，并包含 Button/Input/Overlay 基线场景；`e2e/tests/docs_app_theme_visual_baseline.spec.mjs` 提供基线截图回归（page/button/input/overlay）；HeroUI 对标策略文档 `docs/spec/heroui-parameter-design-strategy.md` 保持“视觉语言与体验质量对齐，不做无差别 API 表层复制”约束。`Select` 自身样式继续通过 `data-open/data-empty/data-has-disabled-options` 等状态标记提供交互反馈层次。对应回归：`components/select/test/semantics.rs` 的 `select_visual_desire_reuses_theme_visual_baseline_and_heroui_contracts`、`select_check2_marks_visual_desire_gate_complete`。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui` 已具备组件级 feature（`component-select`），`lib.rs` 与 `css.rs` 对 `select` 均为条件导出/聚合（`#[cfg(feature = "component-select")]`），不存在全量注册表强制保持可达；`web-demo` 依赖 `web-demo-components`（非 `all-components`），`docs-app` 显式依赖 `all-components`。本次已真实执行：`cargo tree -e features -i ui -p ui --no-default-features --features component-select,inject-css`（仅命令行特性链与必要依赖链，无 `all-components`）、`cargo tree -e features -i ui -p web-demo`（存在 `web-demo-components`，无 `all-components`）、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-select,inject-css`（通过）、`bash ./scripts/check-ui-tree-shaking.sh`（通过，含 wasm release 体积预算阻断）。对应回归：`components/select/test/select_semantics.rs` 的 `select_tree_shaking_keeps_component_feature_and_css_boundaries`、`select_tree_shaking_check_script_covers_feature_tree_wasm_and_budget`、`select_check2_marks_tree_shaking_contract_complete`。）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui` 已具备组件级 feature（`component-select`），`lib.rs` 与 `css.rs` 对 `select` 均为条件导出/聚合（`#[cfg(feature = "component-select")]`），不存在全量注册表强制保持可达；`web-demo` 依赖 `web-demo-components`（非 `all-components`），`docs-app` 显式依赖 `all-components`。本次已真实执行：`cargo tree -e features -i ui -p ui --no-default-features --features component-select,inject-css`（仅命令行特性链与必要依赖链，无 `all-components`）、`cargo tree -e features -i ui -p web-demo`（存在 `web-demo-components`，无 `all-components`）、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-select,inject-css`（通过）、`bash ./scripts/check-ui-tree-shaking.sh`（通过，含 wasm release 体积预算阻断）。对应回归：`components/select/test/semantics.rs` 的 `select_tree_shaking_keeps_component_feature_and_css_boundaries`、`select_tree_shaking_check_script_covers_feature_tree_wasm_and_budget`、`select_check2_marks_tree_shaking_contract_complete`。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -145,67 +145,67 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`Select` 的关键输入空间已由类型系统约束：离散轴通过 `enum`（`SelectOpenFocusStrategy`、`SelectHorizontalNav`、`PopoverPlacement`、`A11yDirection`）建模；无效状态在 primitive 侧统一归一（如 `selected_index` 越界过滤、disabled 索引越界过滤）。对外机器可读契约通过稳定 `data-*` 语义标记暴露（`data-open/data-disabled/data-selected-index/data-class-source/data-motion-source` 等），标记值为封闭集合（如 source 仅 `default/custom`）。对应回归：`components/select/test/select_semantics.rs` 的 `select_type_system_and_semantic_markers_form_machine_readable_contract`、`select_discrete_axes_are_modeled_with_enums`、`select_state_normalization_is_centralized_in_logic`、`select_exposes_root_state_and_slot_data_attributes`、`select_check2_marks_type_system_and_semantic_marker_contract_complete`。）
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`Select` 的关键输入空间已由类型系统约束：离散轴通过 `enum`（`SelectOpenFocusStrategy`、`SelectHorizontalNav`、`PopoverPlacement`、`A11yDirection`）建模；无效状态在 primitive 侧统一归一（如 `selected_index` 越界过滤、disabled 索引越界过滤）。对外机器可读契约通过稳定 `data-*` 语义标记暴露（`data-open/data-disabled/data-selected-index/data-class-source/data-motion-source` 等），标记值为封闭集合（如 source 仅 `default/custom`）。对应回归：`components/select/test/semantics.rs` 的 `select_type_system_and_semantic_markers_form_machine_readable_contract`、`select_discrete_axes_are_modeled_with_enums`、`select_state_normalization_is_centralized_in_logic`、`select_exposes_root_state_and_slot_data_attributes`、`select_check2_marks_type_system_and_semantic_marker_contract_complete`。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
-- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（本次已提供 compile-only 证据并实跑通过：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-select,inject-css`（web/wasm 组件路径）、`cargo check -p ui-headless --no-default-features --features ssr`（ssr/native 语义层路径）、`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`（web/wasm 语义层路径）、`cargo check -p ui --no-default-features --features component-select,inject-css`（最小 native 组件路径）、`cargo check -p ui`（默认本地构建路径）。平台差异由 `cfg/feature` 显式管理（`ui-headless` 的 `web/ssr` feature + `compile_error!` 互斥保护，`popover/motion.rs` 的 wasm/non-wasm `cfg` 分支）；`select` non-wasm 源文件（`mod.rs/logic.rs/styles.rs/view.rs/motion.rs`）均未引用 `web_sys`。对应回归：`components/select/test/select_semantics.rs` 的 `select_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_web_sys_free`、`select_check2_marks_ssr_cross_platform_item_complete`。）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（本次已提供 compile-only 证据并实跑通过：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-select,inject-css`（web/wasm 组件路径）、`cargo check -p ui-headless --no-default-features --features ssr`（ssr/native 语义层路径）、`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`（web/wasm 语义层路径）、`cargo check -p ui --no-default-features --features component-select,inject-css`（最小 native 组件路径）、`cargo check -p ui`（默认本地构建路径）。平台差异由 `cfg/feature` 显式管理（`ui-headless` 的 `web/ssr` feature + `compile_error!` 互斥保护，`popover/motion.rs` 的 wasm/non-wasm `cfg` 分支）；`select` non-wasm 源文件（`mod.rs/logic.rs/styles.rs/view.rs/motion.rs`）均未引用 `web_sys`。对应回归：`components/select/test/semantics.rs` 的 `select_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_web_sys_free`、`select_check2_marks_ssr_cross_platform_item_complete`。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（已真实验证：`cargo check -p ui-headless --no-default-features --features ssr` 通过、`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web` 通过、`cargo check -p ui-headless --no-default-features --features web,ssr` 失败并命中 `compile_error!` 文案 `mutually exclusive`。`Select` 组件对 headless 能力的接入仍通过 `use_controllable_open_state_traced/use_presence`，未绕开互斥约束。脚本门禁也保持该契约：`scripts/check-ui-platforms.sh` 包含双路径编译与 `web+ssr` 失败检查。对应回归：`components/select/test/select_semantics.rs` 的 `select_ui_headless_web_ssr_mutex_contract_is_explicit_and_component_safe`、`select_ui_headless_platform_script_enforces_mutex_failure_and_dual_compile_paths`、`select_check2_marks_ui_headless_web_ssr_mutex_item_complete`。）
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（已真实验证：`cargo check -p ui-headless --no-default-features --features ssr` 通过、`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web` 通过、`cargo check -p ui-headless --no-default-features --features web,ssr` 失败并命中 `compile_error!` 文案 `mutually exclusive`。`Select` 组件对 headless 能力的接入仍通过 `use_controllable_open_state_traced/use_presence`，未绕开互斥约束。脚本门禁也保持该契约：`scripts/check-ui-platforms.sh` 包含双路径编译与 `web+ssr` 失败检查。对应回归：`components/select/test/semantics.rs` 的 `select_ui_headless_web_ssr_mutex_contract_is_explicit_and_component_safe`、`select_ui_headless_platform_script_enforces_mutex_failure_and_dual_compile_paths`、`select_check2_marks_ui_headless_web_ssr_mutex_item_complete`。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（本次已真实执行并通过：`cargo check -p ui-motion`（native/non-wasm 编译）、`cargo test -p ui-motion --test non_wasm_stub`（验证 `prefers_reduced_motion=true` 与 `animate` no-op 安全）、`cargo check -p ui --no-default-features --features component-select,inject-css`（组件在 toolchain 场景可编译，不被 motion 阻塞）。`select` 侧通过 `popover/motion.rs` 的 non-wasm `attach_motion` 分支在 `is_open=false` 时直接 `on_exit_complete.run(())`，保证安全降级且行为可预测。对应回归：`components/select/test/select_semantics.rs` 的 `select_ui_motion_non_wasm_stub_contract_is_predictable`、`select_check2_marks_ui_motion_non_wasm_stub_item_complete`。）
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（本次已真实执行并通过：`cargo check -p ui-motion`（native/non-wasm 编译）、`cargo test -p ui-motion --test non_wasm_stub`（验证 `prefers_reduced_motion=true` 与 `animate` no-op 安全）、`cargo check -p ui --no-default-features --features component-select,inject-css`（组件在 toolchain 场景可编译，不被 motion 阻塞）。`select` 侧通过 `popover/motion.rs` 的 non-wasm `attach_motion` 分支在 `is_open=false` 时直接 `on_exit_complete.run(())`，保证安全降级且行为可预测。对应回归：`components/select/test/semantics.rs` 的 `select_ui_motion_non_wasm_stub_contract_is_predictable`、`select_check2_marks_ui_motion_non_wasm_stub_item_complete`。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`Select` 动效执行复用 `popover/motion.rs`：wasm 分支保留增强交互（spring attach），non-wasm 分支安全 no-op 降级；`reduced-motion` 由 `ui-motion/spring.rs` 的 `prefers_reduced_motion()` 快速路径统一处理（同步落值 + 同步 `on_rest`），避免动画依赖导致语义漂移。`Select` 的 `view.rs` 不做 `target_arch` 条件渲染分叉，`role/aria/data-*` 语义输出在 SSR/wasm 保持一致，降低 hydration 首帧错位风险。已真实执行：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-select,inject-css`、`cargo check -p ui --no-default-features --features component-select,inject-css`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo test -p ui-motion --test spring`。对应回归：`components/select/test/select_semantics.rs` 的 `select_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`、`select_check2_marks_reduced_motion_ssr_wasm_item_complete`。）
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`Select` 动效执行复用 `popover/motion.rs`：wasm 分支保留增强交互（spring attach），non-wasm 分支安全 no-op 降级；`reduced-motion` 由 `ui-motion/spring.rs` 的 `prefers_reduced_motion()` 快速路径统一处理（同步落值 + 同步 `on_rest`），避免动画依赖导致语义漂移。`Select` 的 `view.rs` 不做 `target_arch` 条件渲染分叉，`role/aria/data-*` 语义输出在 SSR/wasm 保持一致，降低 hydration 首帧错位风险。已真实执行：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-select,inject-css`、`cargo check -p ui --no-default-features --features component-select,inject-css`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo test -p ui-motion --test spring`。对应回归：`components/select/test/semantics.rs` 的 `select_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`、`select_check2_marks_reduced_motion_ssr_wasm_item_complete`。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`Select` 当前走 docs 统一 `ComponentPage` 性能探针链路：`apps/docs-app/src/pages/components/pages/collections.rs` 的 `slug="select"` 页面通过 `ComponentPage` 包装，`apps/docs-app/src/pages/components/shell.rs` 统一注入 `<UiPerfProbe name=perf_name budget=perf_budget>`，并使用默认预算 `_ => UiPerfBudget::mount_only(120.0)`；`apps/docs-app/src/perf_probe.rs` 提供稳定 `data-perf-*` 标记（`data-perf-mount-ms/data-perf-budget-ms/data-perf-violation/data-perf-observability`）用于回归阻断。`e2e/tests/docs_app_components_coverage.spec.mjs` 对组件页面统一断言 `data-perf-*` 且禁止 `data-perf-violation="true"`。本次真实执行：`cargo test -p ui --test select_semantics --no-default-features --features component-select,inject-css select_performance_governance_contract_is_mount_only_traceable_and_blocking`、`cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages`、`cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan`。N/A：`Select` 暂未接入精确 `render_count` 自动化计数，当前采用可重复 `UiPerfProbe + data-perf-*` 等价证据，后续自动化跟踪项已在 `docs/plan/TODO.md` 的 `render_count` 条目中维护。对应回归：`components/select/test/select_semantics.rs` 的 `select_performance_governance_contract_is_mount_only_traceable_and_blocking`、`select_check2_marks_performance_governance_item_complete`。）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`Select` 当前走 docs 统一 `ComponentPage` 性能探针链路：`apps/docs-app/src/pages/components/pages/collections.rs` 的 `slug="select"` 页面通过 `ComponentPage` 包装，`apps/docs-app/src/pages/components/shell.rs` 统一注入 `<UiPerfProbe name=perf_name budget=perf_budget>`，并使用默认预算 `_ => UiPerfBudget::mount_only(120.0)`；`apps/docs-app/src/perf_probe.rs` 提供稳定 `data-perf-*` 标记（`data-perf-mount-ms/data-perf-budget-ms/data-perf-violation/data-perf-observability`）用于回归阻断。`e2e/tests/docs_app_components_coverage.spec.mjs` 对组件页面统一断言 `data-perf-*` 且禁止 `data-perf-violation="true"`。本次真实执行：`cargo test -p ui --test select_semantics --no-default-features --features component-select,inject-css select_performance_governance_contract_is_mount_only_traceable_and_blocking`、`cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages`、`cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan`。N/A：`Select` 暂未接入精确 `render_count` 自动化计数，当前采用可重复 `UiPerfProbe + data-perf-*` 等价证据，后续自动化跟踪项已在 `docs/plan/TODO.md` 的 `render_count` 条目中维护。对应回归：`components/select/test/semantics.rs` 的 `select_performance_governance_contract_is_mount_only_traceable_and_blocking`、`select_check2_marks_performance_governance_item_complete`。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`Select` 的 `view.rs` 已拆分为主渲染 + 语义子渲染函数，核心结构由 `render_select_trigger`、`render_select_list`、`render_select_panel` 组合，避免巨型单块 `view!`。对应回归：`components/select/test/select_semantics.rs` 的 `select_view_macro_complexity_is_split_into_semantic_subrenders`。）
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`Select` 的 `view.rs` 已拆分为主渲染 + 语义子渲染函数，核心结构由 `render_select_trigger`、`render_select_list`、`render_select_panel` 组合，避免巨型单块 `view!`。对应回归：`components/select/test/semantics.rs` 的 `select_view_macro_complexity_is_split_into_semantic_subrenders`。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`Select` 当前仅保留单个公共 `#[component]` 入口，其余局部 UI 片段均函数化拆分，避免局部抽象噪音。对应回归：`components/select/test/select_semantics.rs` 的 `select_view_functional_split_prefers_plain_functions_over_local_components`。）
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`Select` 当前仅保留单个公共 `#[component]` 入口，其余局部 UI 片段均函数化拆分，避免局部抽象噪音。对应回归：`components/select/test/semantics.rs` 的 `select_view_functional_split_prefers_plain_functions_over_local_components`。）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（`Select` 将稳定 slot/class/布尔字面量提取为常量（如 `SLOT_SELECT`、`SLOT_SELECT_PANEL`、`CLASS_SELECT_PANEL`、`BOOL_TRUE`），且无重型静态 SVG/长文片段重复构造。对应回归：`components/select/test/select_semantics.rs` 的 `select_static_fragments_are_constantized_or_absent_for_select_layout`。）
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（`Select` 将稳定 slot/class/布尔字面量提取为常量（如 `SLOT_SELECT`、`SLOT_SELECT_PANEL`、`CLASS_SELECT_PANEL`、`BOOL_TRUE`），且无重型静态 SVG/长文片段重复构造。对应回归：`components/select/test/semantics.rs` 的 `select_static_fragments_are_constantized_or_absent_for_select_layout`。）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（`Select` 组件与 docs 示例均未使用 `inner_html`/`dangerously_set_inner_html`，当前无 HTML 注入面。对应回归：`components/select/test/select_semantics.rs` 的 `select_inner_html_usage_is_forbidden_in_component_and_docs_examples`。）
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（`Select` 组件与 docs 示例均未使用 `inner_html`/`dangerously_set_inner_html`，当前无 HTML 注入面。对应回归：`components/select/test/semantics.rs` 的 `select_inner_html_usage_is_forbidden_in_component_and_docs_examples`。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（`Select` 复用全局 trace/debug-overlay 契约，不引入组件私有 debug feature；关键状态通过稳定 `data-*` 标记和 `use_controllable_open_state_traced("select", ...)` 保持可追踪，调试入口由 docs-app 开发态统一提供。对应回归：`components/select/test/select_semantics.rs` 的 `select_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。）
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（`Select` 复用全局 trace/debug-overlay 契约，不引入组件私有 debug feature；关键状态通过稳定 `data-*` 标记和 `use_controllable_open_state_traced("select", ...)` 保持可追踪，调试入口由 docs-app 开发态统一提供。对应回归：`components/select/test/semantics.rs` 的 `select_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（`Select` docs 使用统一 `Playground`（含 CSS test panel 热更新）并提供受控开闭/选择状态演练，形成隔离验收画布；组件当前范围内持久化状态为可选 N/A。对应回归：`components/select/test/select_semantics.rs` 的 `select_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`select_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na`。）
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（`Select` docs 使用统一 `Playground`（含 CSS test panel 热更新）并提供受控开闭/选择状态演练，形成隔离验收画布；组件当前范围内持久化状态为可选 N/A。对应回归：`components/select/test/semantics.rs` 的 `select_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`select_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na`。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`Select` 简单组件路径保持 `spec/serde` 为 N/A（无 `spec.rs`、无 `serde` 序列化链）；追踪语义复用全库约定并避免组件私有 tracing 分叉；公共 API 未泄露任何 runtime 细节。对应回归：`components/select/test/select_semantics.rs` 的 `select_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope`、`select_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`、`select_engineering_contract_avoids_runtime_leaks_in_public_api_surface`。）
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`Select` 简单组件路径保持 `spec/serde` 为 N/A（无 `spec.rs`、无 `serde` 序列化链）；追踪语义复用全库约定并避免组件私有 tracing 分叉；公共 API 未泄露任何 runtime 细节。对应回归：`components/select/test/semantics.rs` 的 `select_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope`、`select_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`、`select_engineering_contract_avoids_runtime_leaks_in_public_api_surface`。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 文件落点检查（必须提及）
-- [x] `ui` 固定入口文件落点正确。（`Select` 相关固定入口满足分层落点：`lib.rs` 按 `component-select` gate 导出、`css.rs` 条件聚合样式、`root.rs` 统一注入 base/theme/components css + i18n、`active_highlight.rs` 保持共享能力；并确认 `overlay_open.rs/presence.rs/a11y.rs` 不在 `ui` 层重复出现。对应回归：`components/select/test/select_semantics.rs` 的 `select_ui_components_fixed_entry_files_follow_layered_boundaries`。）
+- [x] `ui` 固定入口文件落点正确。（`Select` 相关固定入口满足分层落点：`lib.rs` 按 `component-select` gate 导出、`css.rs` 条件聚合样式、`root.rs` 统一注入 base/theme/components css + i18n、`active_highlight.rs` 保持共享能力；并确认 `overlay_open.rs/presence.rs/a11y.rs` 不在 `ui` 层重复出现。对应回归：`components/select/test/semantics.rs` 的 `select_ui_components_fixed_entry_files_follow_layered_boundaries`。）
   - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -213,7 +213,7 @@
   - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [x] 组件目录标准文件落点正确。（`Select` 目录保持 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 标准布局，且无 `render.rs/spec.rs` 漂移；各文件职责与导出边界符合契约。对应回归：`components/select/test/select_semantics.rs` 的 `select_component_directory_has_standard_file_layout_and_boundaries`。）
+- [x] 组件目录标准文件落点正确。（`Select` 目录保持 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 标准布局，且无 `render.rs/spec.rs` 漂移；各文件职责与导出边界符合契约。对应回归：`components/select/test/semantics.rs` 的 `select_component_directory_has_standard_file_layout_and_boundaries`。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -222,29 +222,29 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力（Agent Contract + 流式）
-- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`Select` 已引入类型化 Agent Contract（`SelectAgentContract` + `resolve_agent_contract`），并在 `view.rs` 挂载 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source` 等稳定机器可读字段。对应回归：`components/select/test/select_semantics.rs` 的 `select_agent_contract_is_schema_typed_and_machine_readable_in_view`。）
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`Select` 已引入类型化 Agent Contract（`SelectAgentContract` + `resolve_agent_contract`），并在 `view.rs` 挂载 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source` 等稳定机器可读字段。对应回归：`components/select/test/semantics.rs` 的 `select_agent_contract_is_schema_typed_and_machine_readable_in_view`。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（`Select` 通过类型化流式契约显式标注：`stream_support=optional`、`stream_fallback=snapshot`、`stream_mode=snapshot`，并保留输出状态字段，组件层仅负责稳定渲染。对应回归：`components/select/test/select_semantics.rs` 的 `select_streaming_contract_is_optional_with_snapshot_fallback_and_explicit_output_status`。）
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（`Select` 通过类型化流式契约显式标注：`stream_support=optional`、`stream_fallback=snapshot`、`stream_mode=snapshot`，并保留输出状态字段，组件层仅负责稳定渲染。对应回归：`components/select/test/semantics.rs` 的 `select_streaming_contract_is_optional_with_snapshot_fallback_and_explicit_output_status`。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`Select` 默认以 `snapshot` 模式稳定渲染并对外暴露 `data-ui-stream-mode`、`data-ui-stream-fallback`、`data-ui-output-status`，满足非正文组件的基础快照能力。对应回归：`components/select/test/select_semantics.rs` 的 `select_snapshot_mode_is_default_and_stable_for_non_text_component`。）
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`Select` 默认以 `snapshot` 模式稳定渲染并对外暴露 `data-ui-stream-mode`、`data-ui-stream-fallback`、`data-ui-output-status`，满足非正文组件的基础快照能力。对应回归：`components/select/test/semantics.rs` 的 `select_snapshot_mode_is_default_and_stable_for_non_text_component`。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`Select` 属于非正文阅读面，采用 `Streaming Optional` 策略并显式声明 `fallback=snapshot`；同时持续输出可读 `role/aria/data-*` 与输出状态字段。对应回归：`components/select/test/select_semantics.rs` 的 `select_streaming_contract_is_optional_with_snapshot_fallback_and_explicit_output_status`、`select_snapshot_mode_is_default_and_stable_for_non_text_component`。）
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`Select` 属于非正文阅读面，采用 `Streaming Optional` 策略并显式声明 `fallback=snapshot`；同时持续输出可读 `role/aria/data-*` 与输出状态字段。对应回归：`components/select/test/semantics.rs` 的 `select_streaming_contract_is_optional_with_snapshot_fallback_and_explicit_output_status`、`select_snapshot_mode_is_default_and_stable_for_non_text_component`。）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试与文档（验证闭环）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`Select` 语义测试矩阵覆盖 role/aria/data-*、受控/非受控、disabled、键盘与指针路径，且显式禁止“仅快照”替代语义断言。对应回归：`components/select/test/select_semantics.rs` 的 `select_semantics_contract_checks_cover_state_and_interaction_matrix`、`select_check2_marks_semantics_and_file_responsibility_items_complete`。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`Select` 语义测试矩阵覆盖 role/aria/data-*、受控/非受控、disabled、键盘与指针路径，且显式禁止“仅快照”替代语义断言。对应回归：`components/select/test/semantics.rs` 的 `select_semantics_contract_checks_cover_state_and_interaction_matrix`、`select_check2_marks_semantics_and_file_responsibility_items_complete`。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。（新增 `e2e/tests/docs_app_select_contract.spec.mjs`，选择器基于 `data-slot`/稳定 id，并使用 `body:not(:has(#boot))` 与语义状态断言等待，不依赖固定 sleep。对应回归：`components/select/test/select_semantics.rs` 的 `select_docs_and_e2e_contracts_use_semantic_selectors_and_repeatable_flow`。）
+- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。（新增 `e2e/tests/docs_app_select_contract.spec.mjs`，选择器基于 `data-slot`/稳定 id，并使用 `body:not(:has(#boot))` 与语义状态断言等待，不依赖固定 sleep。对应回归：`components/select/test/semantics.rs` 的 `select_docs_and_e2e_contracts_use_semantic_selectors_and_repeatable_flow`。）
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
@@ -252,44 +252,44 @@
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（`Select` docs 页面同步维护 `Hello World`、`Controlled Open + Selection`、`Disabled + Empty` 三组 Playground，覆盖默认路径与受控/disabled/empty 状态矩阵，且 API 命名与实现一致。对应回归：`components/select/test/select_semantics.rs` 的 `select_docs_page_covers_primary_playgrounds`、`select_docs_playgrounds_lock_state_matrix_contract_values`。）
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（`Select` docs 页面同步维护 `Hello World`、`Controlled Open + Selection`、`Disabled + Empty` 三组 Playground，覆盖默认路径与受控/disabled/empty 状态矩阵，且 API 命名与实现一致。对应回归：`components/select/test/semantics.rs` 的 `select_docs_page_covers_primary_playgrounds`、`select_docs_playgrounds_lock_state_matrix_contract_values`。）
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（`Select` 通过 docs-app 组件页作为等价文档入口，首屏提供零门槛 `Hello World` 最小示例，并保持“默认路径在前、进阶控制在后”的排序。对应回归：`components/select/test/select_semantics.rs` 的 `select_docs_page_covers_primary_playgrounds`、`select_docs_documentation_as_product_keeps_hello_world_first_and_default_path_first`。）
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（`Select` 通过 docs-app 组件页作为等价文档入口，首屏提供零门槛 `Hello World` 最小示例，并保持“默认路径在前、进阶控制在后”的排序。对应回归：`components/select/test/semantics.rs` 的 `select_docs_page_covers_primary_playgrounds`、`select_docs_documentation_as_product_keeps_hello_world_first_and_default_path_first`。）
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。（`Select` 页面基于统一 `Playground` 提供交互态演练，支持基础 props 组合示例、状态切换与实时反馈观察；AI Spec 联动示例对 `Select` 属 N/A（该组件非 Spec 输入/正文渲染组件）；关键交互可重复性由 `e2e/tests/docs_app_select_contract.spec.mjs` 覆盖。对应回归：`components/select/test/select_semantics.rs` 的 `select_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`select_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na`、`select_docs_and_e2e_contracts_use_semantic_selectors_and_repeatable_flow`。）
+- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。（`Select` 页面基于统一 `Playground` 提供交互态演练，支持基础 props 组合示例、状态切换与实时反馈观察；AI Spec 联动示例对 `Select` 属 N/A（该组件非 Spec 输入/正文渲染组件）；关键交互可重复性由 `e2e/tests/docs_app_select_contract.spec.mjs` 覆盖。对应回归：`components/select/test/semantics.rs` 的 `select_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`select_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na`、`select_docs_and_e2e_contracts_use_semantic_selectors_and_repeatable_flow`。）
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（docs Playground 代码面板由 `CodeBlock` 承载并默认提供复制按钮；`compose_copy_ready_code` 会补齐 import-ready 片段，`Select` 文档各 Playground 已挂接 `code_signal`。`Select` 当前不属于 source-first/spec 输入组件，因此“真实源码路径 + 依赖前提提示”按组件专属 source-first 要求记为 N/A。对应回归：`components/select/test/select_semantics.rs` 的 `select_docs_and_e2e_contracts_use_semantic_selectors_and_repeatable_flow`、`select_source_first_docs_are_copy_paste_ready_via_playground_and_code_block`。）
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（docs Playground 代码面板由 `CodeBlock` 承载并默认提供复制按钮；`compose_copy_ready_code` 会补齐 import-ready 片段，`Select` 文档各 Playground 已挂接 `code_signal`。`Select` 当前不属于 source-first/spec 输入组件，因此“真实源码路径 + 依赖前提提示”按组件专属 source-first 要求记为 N/A。对应回归：`components/select/test/semantics.rs` 的 `select_docs_and_e2e_contracts_use_semantic_selectors_and_repeatable_flow`、`select_source_first_docs_are_copy_paste_ready_via_playground_and_code_block`。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（当前对标文档仍保留 Select 与统一命名契约条目，docs 组件页可索引访问。对应回归：`components/select/test/select_semantics.rs` 的 `select_heroui_strategy_docs_keep_select_contract_traceable`、`select_docs_page_covers_primary_playgrounds`。）
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（当前对标文档仍保留 Select 与统一命名契约条目，docs 组件页可索引访问。对应回归：`components/select/test/semantics.rs` 的 `select_heroui_strategy_docs_keep_select_contract_traceable`、`select_docs_page_covers_primary_playgrounds`。）
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。
 
 ### 8. 明确禁止的反模式
-- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。（通过：`Select` primitive 层保持纯 Rust，无 DOM/style 依赖。对应回归：`components/select/test/select_semantics.rs` 的 `select_status_primitives_layer_is_pure_and_component_only_consumes`。）
+- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。（通过：`Select` primitive 层保持纯 Rust，无 DOM/style 依赖。对应回归：`components/select/test/semantics.rs` 的 `select_status_primitives_layer_is_pure_and_component_only_consumes`。）
   - 发现 `ui-state-primitives` 引入 DOM/样式依赖即判架构越层，必须回滚并迁移到正确层。
-- [x] 在 `ui-headless` 写视觉和动画编排。（通过：`ui-headless` 在 `Select` 路径仅输出交互/A11y 契约，无组件视觉与动画编排逻辑。对应回归：`components/select/test/select_semantics.rs` 的 `select_headless_contracts_drive_interaction_and_a11y_boundaries`。）
+- [x] 在 `ui-headless` 写视觉和动画编排。（通过：`ui-headless` 在 `Select` 路径仅输出交互/A11y 契约，无组件视觉与动画编排逻辑。对应回归：`components/select/test/semantics.rs` 的 `select_headless_contracts_drive_interaction_and_a11y_boundaries`。）
   - headless 只输出交互/A11y 契约；出现 class/CSS/动效时间线即判职责污染。
-- [x] 在 `view` 层隐藏关键状态决策。（通过：关键归一化与状态机规则集中在 `logic.rs`/primitives，`view.rs` 只消费结果并挂载语义。对应回归：`components/select/test/select_semantics.rs` 的 `select_defaults_are_not_rewritten_in_view_layer`、`select_state_normalization_is_centralized_in_logic`。）
+- [x] 在 `view` 层隐藏关键状态决策。（通过：关键归一化与状态机规则集中在 `logic.rs`/primitives，`view.rs` 只消费结果并挂载语义。对应回归：`components/select/test/semantics.rs` 的 `select_defaults_are_not_rewritten_in_view_layer`、`select_state_normalization_is_centralized_in_logic`。）
   - `view.rs` 只消费归一化结果；关键业务分支若散落在 view，必须回收至 `logic.rs`。
-- [x] 新增参数但不纳入统一命名与契约。（通过：新增/兼容参数遵循 `is_* / on_* / default_*` 与受控配对契约，并有语义回归覆盖。对应回归：`components/select/test/select_semantics.rs` 的 `select_api_naming_uses_prefixed_boolean_props_with_legacy_alias_migration_path`、`select_open_state_contract_requires_value_default_callback_triplet`。）
+- [x] 新增参数但不纳入统一命名与契约。（通过：新增/兼容参数遵循 `is_* / on_* / default_*` 与受控配对契约，并有语义回归覆盖。对应回归：`components/select/test/semantics.rs` 的 `select_api_naming_uses_prefixed_boolean_props_with_legacy_alias_migration_path`、`select_open_state_contract_requires_value_default_callback_triplet`。）
   - 新参数必须进入命名体系、类型约束、默认值归一和语义测试；缺任一项不得合并。
-- [x] 用并行数组/隐式约定替代显式语义结构（如 `labels + children`）。（通过：`Select` API 未引入并行数组/并行槽位隐式配对，保持单一 items 输入轴。对应回归：`components/select/test/select_semantics.rs` 的 `select_composition_api_avoids_parallel_arrays_and_implicit_pairing`。）
+- [x] 用并行数组/隐式约定替代显式语义结构（如 `labels + children`）。（通过：`Select` API 未引入并行数组/并行槽位隐式配对，保持单一 items 输入轴。对应回归：`components/select/test/semantics.rs` 的 `select_composition_api_avoids_parallel_arrays_and_implicit_pairing`。）
   - 标题、语义、内容必须显式绑定在同一 item 结构；依赖位置索引配对视为反模式。
   - 发现“少写几行但语义变弱”的接口设计，默认拒绝合入。
-- [x] 公共 API 泄露底层实现细节类型。（通过：`Select` 对外 API 未暴露 `web-sys`/runtime 私有类型。对应回归：`components/select/test/select_semantics.rs` 的 `select_ui_components_layer_keeps_assembly_boundaries_and_public_api_clean`、`select_engineering_contract_avoids_runtime_leaks_in_public_api_surface`。）
+- [x] 公共 API 泄露底层实现细节类型。（通过：`Select` 对外 API 未暴露 `web-sys`/runtime 私有类型。对应回归：`components/select/test/semantics.rs` 的 `select_ui_components_layer_keeps_assembly_boundaries_and_public_api_clean`、`select_engineering_contract_avoids_runtime_leaks_in_public_api_surface`。）
   - 公共接口不得暴露 `web-sys`/运行时私有类型；平台细节只允许存在于内部模块。
-- [x] 用临时补丁破坏跨组件一致性。（通过：`Select` 变更沿用统一命名/状态/语义契约，未绕开全库规则。对应回归：`components/select/test/select_semantics.rs` 的 `select_api_naming_uses_prefixed_boolean_props_with_legacy_alias_migration_path`、`select_type_system_and_semantic_markers_form_machine_readable_contract`。）
+- [x] 用临时补丁破坏跨组件一致性。（通过：`Select` 变更沿用统一命名/状态/语义契约，未绕开全库规则。对应回归：`components/select/test/semantics.rs` 的 `select_api_naming_uses_prefixed_boolean_props_with_legacy_alias_migration_path`、`select_type_system_and_semantic_markers_form_machine_readable_contract`。）
   - 临时 patch 若绕开统一契约（命名/状态/语义），必须在同 PR 里修正或显式回退计划。
-- [x] 明明是跨组件可复用状态原语，却长期留在某个组件 `logic.rs` 不下沉。（通过：`Select` 可复用状态能力已下沉至 `ui-state-primitives/ui-headless`，组件层仅装配映射。对应回归：`components/select/test/select_semantics.rs` 的 `select_only_consumes_state_primitives_without_business_store_binding`、`select_status_primitives_layer_is_pure_and_component_only_consumes`。）
+- [x] 明明是跨组件可复用状态原语，却长期留在某个组件 `logic.rs` 不下沉。（通过：`Select` 可复用状态能力已下沉至 `ui-state-primitives/ui-headless`，组件层仅装配映射。对应回归：`components/select/test/semantics.rs` 的 `select_only_consumes_state_primitives_without_business_store_binding`、`select_status_primitives_layer_is_pure_and_component_only_consumes`。）
   - 一旦确认具备可复用状态不变量，应下沉至 `ui-state-primitives`/`ui-headless`，组件层仅保留装配映射。
 
 ### 9. 合并门禁（最终裁决）
@@ -297,7 +297,7 @@
 - [x] 行为正确（状态与交互语义成立）。（证据见 `select_semantics_contract_checks_cover_state_and_interaction_matrix` 与 E2E 契约。）
 - [x] 可访问性达标（默认可用）。（证据见 `select_headless_contracts_drive_interaction_and_a11y_boundaries`、`select_trigger_is_labeled_and_owns_a_listbox`。）
 - [x] 默认主题美学质量达标（与可访问性同级门禁）。（证据见 `select_visual_desire_reuses_theme_visual_baseline_and_heroui_contracts`。）
-- [x] 可测试（契约可断言）。（证据见 `components/select/test/select_semantics.rs` 全量语义/契约回归。）
+- [x] 可测试（契约可断言）。（证据见 `components/select/test/semantics.rs` 全量语义/契约回归。）
 - [x] 可维护（命名和模式一致）。（证据见命名、分层与文件职责回归。）
 - [x] 可解释（人和自动化都能读懂）。（证据见 Agent Contract 与稳定 `data-*` 标记。）
 - [x] 改动在正确层。（证据见 status-primitives/headless/motion/theme/components 分层回归。）

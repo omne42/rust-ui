@@ -33,7 +33,7 @@
   - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-  - 本组件落实：`components/help-text/src/logic.rs` 通过 `ui_headless::locale_attrs/live_region_attrs` 输出类型化 A11y attrs（`A11yLocaleAttrs` + `HelpTextErrorLiveRegionAttrs`），`components/help-text/src/view.rs` 仅挂载 `lang/dir/role/aria-live`；组件未在本地重写 A11y 语义工具。语义契约回归由 `components/help-text/test/semantics.rs` 与 `components/help-text/test/help_text_semantics.rs`、`e2e/tests/docs_app_help_text_contract.spec.mjs` 覆盖。
+  - 本组件落实：`components/help-text/src/logic.rs` 通过 `ui_headless::locale_attrs/live_region_attrs` 输出类型化 A11y attrs（`A11yLocaleAttrs` + `HelpTextErrorLiveRegionAttrs`），`components/help-text/src/view.rs` 仅挂载 `lang/dir/role/aria-live`；组件未在本地重写 A11y 语义工具。语义契约回归由 `components/help-text/test/semantics.rs` 与 `components/help-text/test/help_semantics.rs`、`e2e/tests/docs_app_help_text_contract.spec.mjs` 覆盖。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
@@ -56,8 +56,8 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
-  - 本组件落实：`logic.rs` 仅消费 `ui-state-primitives` + `ui-headless`（`resolve_locale_attrs/resolve_error_live_region_attrs`），`view.rs` 仅做结构渲染与 headless 语义挂载，`styles.rs` 只含 token-first CSS，`motion.rs` 只做语义到 `ui-motion` 映射；公共导出不暴露 `web-sys`/DOM 类型。已新增本地语义回归 `components/help-text/test/semantics.rs`，并保留 `components/help-text/test/help_text_semantics.rs` 作为跨 crate 集成回归。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
+  - 本组件落实：`logic.rs` 仅消费 `ui-state-primitives` + `ui-headless`（`resolve_locale_attrs/resolve_error_live_region_attrs`），`view.rs` 仅做结构渲染与 headless 语义挂载，`styles.rs` 只含 token-first CSS，`motion.rs` 只做语义到 `ui-motion` 映射；公共导出不暴露 `web-sys`/DOM 类型。已新增本地语义回归 `components/help-text/test/semantics.rs`，并保留 `components/help-text/test/help_semantics.rs` 作为跨 crate 集成回归。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
@@ -80,7 +80,7 @@
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-  - 本组件落实：新增 `logic::HelpTextLogicInput` + `logic::resolve_render_model` 作为唯一输入归一/状态派生入口；`view.rs` 不再直接调用 `normalize_*` / `resolve_state`，仅消费 `HelpTextRenderModel` 与语义挂载。`components/help-text/test/logic.rs` 与 `components/help-text/test/semantics.rs`、`components/help-text/test/help_text_semantics.rs` 已加回归断言防止回退。
+  - 本组件落实：新增 `logic::HelpTextLogicInput` + `logic::resolve_render_model` 作为唯一输入归一/状态派生入口；`view.rs` 不再直接调用 `normalize_*` / `resolve_state`，仅消费 `HelpTextRenderModel` 与语义挂载。`components/help-text/test/logic.rs` 与 `components/help-text/test/semantics.rs`、`components/help-text/test/help_semantics.rs` 已加回归断言防止回退。
 - [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
@@ -90,7 +90,7 @@
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-  - 本组件落实：`components/help-text/src/logic.rs` 通过 `ui_state_primitives::help_text` 导入并调用 `resolve_state(HelpTextStateInput)`，只做输入归一与渲染模型装配（`resolve_render_model`）；`view.rs` 仅消费 `logic` 输出，不存在业务 store 类型依赖。`components/help-text/test/logic.rs`、`components/help-text/test/semantics.rs` 与 `components/help-text/test/help_text_semantics.rs` 已覆盖该分层边界回归。
+  - 本组件落实：`components/help-text/src/logic.rs` 通过 `ui_state_primitives::help_text` 导入并调用 `resolve_state(HelpTextStateInput)`，只做输入归一与渲染模型装配（`resolve_render_model`）；`view.rs` 仅消费 `logic` 输出，不存在业务 store 类型依赖。`components/help-text/test/logic.rs`、`components/help-text/test/semantics.rs` 与 `components/help-text/test/help_semantics.rs` 已覆盖该分层边界回归。
 - [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
@@ -135,17 +135,17 @@
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-  - 本组件落实：`components/help-text/src/view.rs` 挂载稳定 `data-*`/`aria-*`（`data-tone/data-state/data-message-kind/data-invalid/data-disabled/data-aria-source/data-error-source/data-class-source` 与 `aria-label/aria-invalid/aria-disabled`），覆盖核心状态轴与来源标记；离散标记值来自 `crates/ui-state-primitives/src/help_text.rs` 的枚举 `as_attr()`（`HelpTextMessageKind/HelpTextDataState/HelpTextSourceAttr/HelpTextErrorSourceAttr`），保证封闭集合。语义选择器契约由 `components/help-text/test/semantics.rs` 与 `components/help-text/test/help_text_semantics.rs` 回归锁定。
+  - 本组件落实：`components/help-text/src/view.rs` 挂载稳定 `data-*`/`aria-*`（`data-tone/data-state/data-message-kind/data-invalid/data-disabled/data-aria-source/data-error-source/data-class-source` 与 `aria-label/aria-invalid/aria-disabled`），覆盖核心状态轴与来源标记；离散标记值来自 `crates/ui-state-primitives/src/help_text.rs` 的枚举 `as_attr()`（`HelpTextMessageKind/HelpTextDataState/HelpTextSourceAttr/HelpTextErrorSourceAttr`），保证封闭集合。语义选择器契约由 `components/help-text/test/semantics.rs` 与 `components/help-text/test/help_semantics.rs` 回归锁定。
 - [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-  - 本组件落实：`components/help-text/src/styles.rs` 的状态分支统一使用稳定 class 与 `data-*`（如 `.ui-help-text--invalid`、`.ui-help-text[data-invalid=\"true\"]`、`[data-tone]`、`[data-disabled]`、`[data-custom-class]`），未使用 `:nth-child` 或深层结构猜测。`components/help-text/src/view.rs` 不含 `style=` 运行时业务样式分支，视觉状态完全由语义标记驱动；`components/help-text/test/help_text_semantics.rs` 已锁定关键选择器契约。
+  - 本组件落实：`components/help-text/src/styles.rs` 的状态分支统一使用稳定 class 与 `data-*`（如 `.ui-help-text--invalid`、`.ui-help-text[data-invalid=\"true\"]`、`[data-tone]`、`[data-disabled]`、`[data-custom-class]`），未使用 `:nth-child` 或深层结构猜测。`components/help-text/src/view.rs` 不含 `style=` 运行时业务样式分支，视觉状态完全由语义标记驱动；`components/help-text/test/help_semantics.rs` 已锁定关键选择器契约。
 - [x] 测试验证“语义契约”而不只验证视觉快照。
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-  - 本组件落实：`components/help-text/test/semantics.rs` 与 `components/help-text/test/help_text_semantics.rs` 已对 `role/aria/data-*` 与来源标记（`data-state/data-aria-source/data-error-source/data-class-source`）做契约断言；`components/help-text/test/logic.rs` 覆盖 `disabled` 等关键状态分支。矩阵适用性说明：受控/非受控 N/A（组件无该状态轴）、键盘/指针路径 N/A（无交互控件）；SSR/wasm 差异按适用范围由 `components/help-text/src/motion.rs` 的 `#[cfg(target_arch = \"wasm32\")]`/`#[cfg(not(target_arch = \"wasm32\"))]` 双路径与 `components/help-text/test/motion.rs` 覆盖核心动效契约。未使用视觉快照替代语义断言。
+  - 本组件落实：`components/help-text/test/semantics.rs` 与 `components/help-text/test/help_semantics.rs` 已对 `role/aria/data-*` 与来源标记（`data-state/data-aria-source/data-error-source/data-class-source`）做契约断言；`components/help-text/test/logic.rs` 覆盖 `disabled` 等关键状态分支。矩阵适用性说明：受控/非受控 N/A（组件无该状态轴）、键盘/指针路径 N/A（无交互控件）；SSR/wasm 差异按适用范围由 `components/help-text/src/motion.rs` 的 `#[cfg(target_arch = \"wasm32\")]`/`#[cfg(not(target_arch = \"wasm32\"))]` 双路径与 `components/help-text/test/motion.rs` 覆盖核心动效契约。未使用视觉快照替代语义断言。
 - [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
@@ -185,7 +185,7 @@
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
-  - 本组件落实：离散状态已在 `crates/ui-state-primitives/src/help_text.rs` 以 `HelpTextTone/HelpTextMessageKind/HelpTextDataState/HelpTextSourceAttr/HelpTextErrorSourceAttr` 枚举建模，并由 `resolve_state` 统一归一；`components/help-text/src/view.rs` 将类型状态映射为稳定语义标记（`data-state/data-message-kind/data-aria-source/data-error-source/data-class-source` 等）。回归层面，`components/help-text/test/logic.rs` 断言状态归一结果，`components/help-text/test/semantics.rs` 与 `components/help-text/test/help_text_semantics.rs` 以明确断言消息约束枚举与语义标记契约，破坏点可被直接定位。
+  - 本组件落实：离散状态已在 `crates/ui-state-primitives/src/help_text.rs` 以 `HelpTextTone/HelpTextMessageKind/HelpTextDataState/HelpTextSourceAttr/HelpTextErrorSourceAttr` 枚举建模，并由 `resolve_state` 统一归一；`components/help-text/src/view.rs` 将类型状态映射为稳定语义标记（`data-state/data-message-kind/data-aria-source/data-error-source/data-class-source` 等）。回归层面，`components/help-text/test/logic.rs` 断言状态归一结果，`components/help-text/test/semantics.rs` 与 `components/help-text/test/help_semantics.rs` 以明确断言消息约束枚举与语义标记契约，破坏点可被直接定位。
 
 ### 4. DOM/环境边界治理
 - [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
@@ -231,7 +231,7 @@
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-  - 本组件落实：`components/help-text/src/view.rs` 仅保留对外 `HelpText` 单一 `#[component]` 入口，未引入局部 `#[component]` 噪音；内部 UI 片段以 `Show` 分支直接表达，未出现“为轻逻辑片段额外建组件”的过度抽象。语义标记与测试定位保持稳定（`components/help-text/test/semantics.rs`、`components/help-text/test/help_text_semantics.rs`）。
+  - 本组件落实：`components/help-text/src/view.rs` 仅保留对外 `HelpText` 单一 `#[component]` 入口，未引入局部 `#[component]` 噪音；内部 UI 片段以 `Show` 分支直接表达，未出现“为轻逻辑片段额外建组件”的过度抽象。语义标记与测试定位保持稳定（`components/help-text/test/semantics.rs`、`components/help-text/test/help_semantics.rs`）。
 - [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
@@ -241,7 +241,7 @@
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-  - N/A（有依据）：`components/help-text/src/` 与 `components/help-text/test/help_text_semantics.rs` 范围内不存在 `inner_html`/`set_inner_html` 使用；`HelpText` 仅通过类型化 props 与文本节点渲染内容，无 HTML 字符串注入路径，因此不存在该类 XSS/语义回归风险。
+  - N/A（有依据）：`components/help-text/src/` 与 `components/help-text/test/help_semantics.rs` 范围内不存在 `inner_html`/`set_inner_html` 使用；`HelpText` 仅通过类型化 props 与文本节点渲染内容，无 HTML 字符串注入路径，因此不存在该类 XSS/语义回归风险。
 - [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
@@ -295,7 +295,7 @@
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-  - 本组件落实：`components/help-text/src/logic.rs` 新增类型化 Agent Contract 常量与枚举（`HELP_TEXT_AGENT_SCHEMA`、`HelpTextAgentIntent/Action/OutputStatus/Stream*`）及 `resolve_agent_contract_attrs(HelpTextState)`；`components/help-text/src/view.rs` 挂载稳定 `data-ui-*`（`data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source/data-ui-stream-support/data-ui-stream-mode/data-ui-stream-fallback/data-ui-output-status`），不依赖 DOM 猜测。`components/help-text/src/Component.toml` 补充 `agent-contract` 输出与 `agent_contract_whitelist`（显式阻断 `inner_html`/`dangerously_set_inner_html`/`<script`/`javascript:`）；`components/help-text/src/help_text.rbi` 同步接口投影。回归由 `components/help-text/test/semantics.rs` 与 `components/help-text/test/help_text_semantics.rs` 锁定。
+  - 本组件落实：`components/help-text/src/logic.rs` 新增类型化 Agent Contract 常量与枚举（`HELP_TEXT_AGENT_SCHEMA`、`HelpTextAgentIntent/Action/OutputStatus/Stream*`）及 `resolve_agent_contract_attrs(HelpTextState)`；`components/help-text/src/view.rs` 挂载稳定 `data-ui-*`（`data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source/data-ui-stream-support/data-ui-stream-mode/data-ui-stream-fallback/data-ui-output-status`），不依赖 DOM 猜测。`components/help-text/src/Component.toml` 补充 `agent-contract` 输出与 `agent_contract_whitelist`（显式阻断 `inner_html`/`dangerously_set_inner_html`/`<script`/`javascript:`）；`components/help-text/src/help_text.rbi` 同步接口投影。回归由 `components/help-text/test/semantics.rs` 与 `components/help-text/test/help_semantics.rs` 锁定。
 - [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
@@ -303,13 +303,13 @@
 - [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-  - 本组件落实：`components/help-text/src/logic.rs` 的 `resolve_agent_contract_attrs` 固定输出 `data-ui-stream-mode="snapshot"` 与 `data-ui-stream-fallback="snapshot"`，`components/help-text/src/view.rs` 挂载对应 `data-ui-*` 标记，确保上层提供完整结果时组件走稳定一次性渲染路径；回归由 `components/help-text/test/logic.rs::snapshot_mode_is_the_default_agent_contract_for_full_result_rendering` 与语义测试 `components/help-text/test/semantics.rs`、`components/help-text/test/help_text_semantics.rs` 锁定。
+  - 本组件落实：`components/help-text/src/logic.rs` 的 `resolve_agent_contract_attrs` 固定输出 `data-ui-stream-mode="snapshot"` 与 `data-ui-stream-fallback="snapshot"`，`components/help-text/src/view.rs` 挂载对应 `data-ui-*` 标记，确保上层提供完整结果时组件走稳定一次性渲染路径；回归由 `components/help-text/test/logic.rs::snapshot_mode_is_the_default_agent_contract_for_full_result_rendering` 与语义测试 `components/help-text/test/semantics.rs`、`components/help-text/test/help_semantics.rs` 锁定。
 - [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
-  - 本组件落实：`HelpText` 属于表单辅助语义组件而非正文阅读面，`Streaming Required` 对本组件 N/A；按 `Streaming Optional` 路径固定使用 `Snapshot`，并在 `components/help-text/src/logic.rs` 明确输出 `data-ui-stream-support="optional"`、`data-ui-stream-mode="snapshot"`、`data-ui-stream-fallback="snapshot"`、`data-ui-output-status="verified"`。`components/help-text/src/view.rs` 连续挂载 `role/aria-*` 与 `data-ui-*`，保证语义可读；回归由 `components/help-text/test/logic.rs::snapshot_mode_is_the_default_agent_contract_for_full_result_rendering`、`components/help-text/test/semantics.rs` 与 `components/help-text/test/help_text_semantics.rs` 锁定。数据校验/断线恢复/重试仍由上层负责，组件仅做稳定渲染。
+  - 本组件落实：`HelpText` 属于表单辅助语义组件而非正文阅读面，`Streaming Required` 对本组件 N/A；按 `Streaming Optional` 路径固定使用 `Snapshot`，并在 `components/help-text/src/logic.rs` 明确输出 `data-ui-stream-support="optional"`、`data-ui-stream-mode="snapshot"`、`data-ui-stream-fallback="snapshot"`、`data-ui-output-status="verified"`。`components/help-text/src/view.rs` 连续挂载 `role/aria-*` 与 `data-ui-*`，保证语义可读；回归由 `components/help-text/test/logic.rs::snapshot_mode_is_the_default_agent_contract_for_full_result_rendering`、`components/help-text/test/semantics.rs` 与 `components/help-text/test/help_semantics.rs` 锁定。数据校验/断线恢复/重试仍由上层负责，组件仅做稳定渲染。
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
@@ -317,7 +317,7 @@
 - [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
   - 本组件落实：`crates/ui/Cargo.toml` 已声明 `component-help_text = ["dep:ui-help-text"]` 且 `ui-help-text` 为 optional 依赖；`crates/ui/src/lib.rs` 仅在 `#[cfg(feature = "component-help_text")]` 下启用 `field_form` 相关导出，`crates/ui/src/field_form.rs` 仅在同 feature 下 `pub use ui_help_text as help_text`；`crates/ui/src/css.rs` 仅在 `#[cfg(feature = "component-help_text")]` 时聚合 `help_text` 样式，无无条件全局注册。验证：`cargo tree -e features -p ui --no-default-features --features component-help_text,inject-css` 可见 `ui-help-text` 与 `inject-css`，未出现 `all-components`；`cargo tree -e features -i ui -p web-demo` 显示由 `web-demo-components` 拉起 `component-help_text`，特性路径可追踪。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-  - 本组件落实：`components/help-text/test/semantics.rs` 与 `components/help-text/test/help_text_semantics.rs` 已对 `aria-*`（`aria-label/aria-invalid/aria-disabled/aria-live`）与关键 `data-*`（`data-state/data-message-kind/data-aria-source/data-error-source/data-class-source/data-ui-*`）做语义契约断言，非视觉快照路径。焦点流转 N/A（`HelpText` 为非交互展示组件，无可聚焦控件与焦点管理协议）。`render_count` 仅对高频/重型组件强制，本组件非高频路径；性能回归证据沿用组件既有“性能治理”门禁说明（可归因路径 + 共享性能脚本基线）。
+  - 本组件落实：`components/help-text/test/semantics.rs` 与 `components/help-text/test/help_semantics.rs` 已对 `aria-*`（`aria-label/aria-invalid/aria-disabled/aria-live`）与关键 `data-*`（`data-state/data-message-kind/data-aria-source/data-error-source/data-class-source/data-ui-*`）做语义契约断言，非视觉快照路径。焦点流转 N/A（`HelpText` 为非交互展示组件，无可聚焦控件与焦点管理协议）。`render_count` 仅对高频/重型组件强制，本组件非高频路径；性能回归证据沿用组件既有“性能治理”门禁说明（可归因路径 + 共享性能脚本基线）。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - N/A（有依据）：本次 `help-text` 变更未引入跨大版本 API 破坏升级；`components/help-text/src/protocol.rs` 仍为 `HelpTextComponentSchemaVersion::V1`，未出现 `V2` schema 切换或旧字段废弃窗口，因此当前无需新增 `Schema Registry` 条目与 `migrate_v1_to_v2`。若后续引入 `V2`，再按该条强制补齐迁移层与弃用窗口。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
@@ -326,7 +326,7 @@
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-  - 本组件落实：已具备组件内 `components/help-text/test/semantics.rs` 与跨 crate `components/help-text/test/help_text_semantics.rs` 双层 `*_semantics.rs` 回归，断言覆盖 `data-*`（`data-state/data-message-kind/data-aria-source/data-error-source/data-class-source/data-ui-*`）与 `aria-* / role`（`aria-label/aria-invalid/aria-disabled/aria-live/role`）契约；本组件未使用视觉快照替代语义断言，语义字段变更已同步到上述测试。
+  - 本组件落实：已具备组件内 `components/help-text/test/semantics.rs` 与跨 crate `components/help-text/test/help_semantics.rs` 双层 `*_semantics.rs` 回归，断言覆盖 `data-*`（`data-state/data-message-kind/data-aria-source/data-error-source/data-class-source/data-ui-*`）与 `aria-* / role`（`aria-label/aria-invalid/aria-disabled/aria-live/role`）契约；本组件未使用视觉快照替代语义断言，语义字段变更已同步到上述测试。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
@@ -341,12 +341,12 @@
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-  - 本组件落实：`apps/docs-app/src/pages/components/pages/forms_extra.rs::help_text()` 已同步包含 `Hello World (Default API)`、`State Matrix (Description / Error / Disabled)`、`Controlled vs Uncontrolled (Stateless Contract)` 与 `Interactive Playground`，覆盖状态矩阵与参数切换路径；示例与交互区统一使用当前 API 命名（`is_invalid/is_disabled/is_error_icon_visible`），无旧别名。默认路径与 `components/help-text/src/view.rs` 的 optional props 默认值一致（仅传 `description` 即可渲染），`HelpTextTone::Auto` 默认行为由 `components/help-text/src/logic.rs` 归一到当前语义状态。契约由 `components/help-text/test/help_text_semantics.rs` 的 docs 同步测试持续守护。
+  - 本组件落实：`apps/docs-app/src/pages/components/pages/forms_extra.rs::help_text()` 已同步包含 `Hello World (Default API)`、`State Matrix (Description / Error / Disabled)`、`Controlled vs Uncontrolled (Stateless Contract)` 与 `Interactive Playground`，覆盖状态矩阵与参数切换路径；示例与交互区统一使用当前 API 命名（`is_invalid/is_disabled/is_error_icon_visible`），无旧别名。默认路径与 `components/help-text/src/view.rs` 的 optional props 默认值一致（仅传 `description` 即可渲染），`HelpTextTone::Auto` 默认行为由 `components/help-text/src/logic.rs` 归一到当前语义状态。契约由 `components/help-text/test/help_semantics.rs` 的 docs 同步测试持续守护。
 - [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-  - 本组件落实：`components/help-text/src/README.md` 已重排为新手优先结构，明确包含 `## 先用起来（默认路径）`、`### Hello World（最小可用）`、`## 常见用法` 与 `## 再进阶（高级控制）`，并保留 docs-app 入口 `apps/docs-app/src/pages/components/pages/forms_extra.rs::help_text()`。默认路径明确说明“默认 API 路径优先、无需手动接线 `ui-state-primitives/ui-headless`”，进阶参数与状态模型后置，避免“先讲架构后才能上手”。对应守卫测试为 `components/help-text/test/help_text_semantics.rs::help_text_documentation_is_beginner_friendly_with_readme_or_equivalent_entry`。
+  - 本组件落实：`components/help-text/src/README.md` 已重排为新手优先结构，明确包含 `## 先用起来（默认路径）`、`### Hello World（最小可用）`、`## 常见用法` 与 `## 再进阶（高级控制）`，并保留 docs-app 入口 `apps/docs-app/src/pages/components/pages/forms_extra.rs::help_text()`。默认路径明确说明“默认 API 路径优先、无需手动接线 `ui-state-primitives/ui-headless`”，进阶参数与状态模型后置，避免“先讲架构后才能上手”。对应守卫测试为 `components/help-text/test/help_semantics.rs::help_text_documentation_is_beginner_friendly_with_readme_or_equivalent_entry`。
 - [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
@@ -356,12 +356,12 @@
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-  - 本组件落实：`apps/docs-app/src/pages/components/pages/forms_extra.rs::help_text()` 已提供 `Source-first / Copy-Paste Ready` 区块（`data-slot="help-text-source-first"`），包含 `Snippet copyable=true` 的一键复制入口（`docs-help-text-source-copy`），复制片段自带 imports（`use leptos::prelude::*; use ui::{HelpText, HelpTextTone};`）。所有 playground 均通过 `code_imports=help_text_imports.clone()` 走 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 生成 import-ready 代码；同时文档显式给出源码落点（`mod.rs/logic.rs/view.rs/styles.rs/motion.rs`）。对应守卫测试为 `components/help-text/test/help_text_semantics.rs::help_text_source_first_docs_are_copy_paste_ready_and_traceable`。
+  - 本组件落实：`apps/docs-app/src/pages/components/pages/forms_extra.rs::help_text()` 已提供 `Source-first / Copy-Paste Ready` 区块（`data-slot="help-text-source-first"`），包含 `Snippet copyable=true` 的一键复制入口（`docs-help-text-source-copy`），复制片段自带 imports（`use leptos::prelude::*; use ui::{HelpText, HelpTextTone};`）。所有 playground 均通过 `code_imports=help_text_imports.clone()` 走 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 生成 import-ready 代码；同时文档显式给出源码落点（`mod.rs/logic.rs/view.rs/styles.rs/motion.rs`）。对应守卫测试为 `components/help-text/test/help_semantics.rs::help_text_source_first_docs_are_copy_paste_ready_and_traceable`。
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。
-  - 本组件落实：已在 `docs/spec/heroui-parameter-design-strategy.md` 新增 `### HelpText 同步记录（2026-02-20）`，同步参数主轴（`tone/is_invalid/is_disabled/is_error_icon_visible/...`）、docs 入口（`component_doc!("HelpText", "help-text", "Forms", forms_extra::help_text)`）与 Source-first 依赖前提。`apps/docs-app/src/pages/components/pages.rs` 与 `apps/docs-app/src/pages/components/pages/forms_extra.rs::help_text()` 维持可索引入口，`components/help-text/src/README.md` 提供等价文档入口；研究文档补充判定为 N/A（未引入新的 Spectrum/HeroUI 风格结论）。对应守卫测试为 `components/help-text/test/help_text_semantics.rs::help_text_heroui_strategy_and_component_docs_stay_synced`。
+  - 本组件落实：已在 `docs/spec/heroui-parameter-design-strategy.md` 新增 `### HelpText 同步记录（2026-02-20）`，同步参数主轴（`tone/is_invalid/is_disabled/is_error_icon_visible/...`）、docs 入口（`component_doc!("HelpText", "help-text", "Forms", forms_extra::help_text)`）与 Source-first 依赖前提。`apps/docs-app/src/pages/components/pages.rs` 与 `apps/docs-app/src/pages/components/pages/forms_extra.rs::help_text()` 维持可索引入口，`components/help-text/src/README.md` 提供等价文档入口；研究文档补充判定为 N/A（未引入新的 Spectrum/HeroUI 风格结论）。对应守卫测试为 `components/help-text/test/help_semantics.rs::help_text_heroui_strategy_and_component_docs_stay_synced`。
 
 ### 8. 合并前门禁死命令（最终执行）
 在发起 PR 或完成任务前，必须保证本地/CI 以下命令全部通过：

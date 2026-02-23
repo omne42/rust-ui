@@ -7,7 +7,43 @@ fn crate_dir() -> PathBuf {
 
 fn load_source(rel_path: &str) -> String {
     let path = crate_dir().join(rel_path);
-    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+    let source = fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+
+    if rel_path.contains("apps/docs-app/src/pages/components/pages/") && rel_path.ends_with(".rs") {
+        let Some(stem) = path.file_stem().and_then(|name| name.to_str()) else {
+            return source;
+        };
+        let subdir = path
+            .parent()
+            .unwrap_or_else(|| panic!("docs page path should have parent: {path:?}"))
+            .join(stem);
+        if !subdir.is_dir() {
+            return source;
+        }
+
+        let mut combined = source.clone();
+        for line in source.lines() {
+            let trimmed = line.trim();
+            let prefix = format!("#[path = \"{stem}/");
+            let Some(rest) = trimmed.strip_prefix(&prefix) else {
+                continue;
+            };
+            let Some(rel_end) = rest.find("\"]") else {
+                continue;
+            };
+            let child_rel = &rest[..rel_end];
+            let child_path = subdir.join(child_rel);
+            let child_source = fs::read_to_string(&child_path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {child_path:?}: {e}"));
+            let compat_child = child_source.replace("pub(crate) fn ", "pub(super) fn ");
+            combined.push('\n');
+            combined.push_str(&compat_child);
+        }
+        return combined;
+    }
+
+    source
 }
 
 fn path_exists(rel_path: &str) -> bool {
@@ -421,9 +457,9 @@ fn carousel_check2_marks_tree_shaking_feature_pruning_contract_complete() {
         "carousel_tree_shaking_contract_keeps_feature_gated_entrypoints",
         "carousel_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "carousel_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "components/carousel/test/carousel_semantics.rs::carousel_tree_shaking_contract_keeps_feature_gated_entrypoints",
-        "components/carousel/test/carousel_semantics.rs::carousel_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "components/carousel/test/carousel_semantics.rs::carousel_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "components/carousel/test/carousel/semantics.rs::carousel_tree_shaking_contract_keeps_feature_gated_entrypoints",
+        "components/carousel/test/carousel/semantics.rs::carousel_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "components/carousel/test/carousel/semantics.rs::carousel_check2_marks_tree_shaking_feature_pruning_contract_complete",
         "cargo tree -e features -i ui -p ui --no-default-features --features component-carousel,inject-css",
         "cargo tree -e features -i ui -p web-demo",
         "scripts/check-ui-tree-shaking.sh",
@@ -1027,7 +1063,7 @@ fn carousel_component_directory_standard_files_follow_contract_and_na_paths() {
         "导出边界证据：`mod.rs` 维持最小稳定导出（`Carousel/CarouselMotion` 与必要常量、类型）；未出现 `pub mod logic/view/motion` 过度导出。",
         "职责证据：`logic.rs` 仅做 props 归一化、状态派生与来源标记；`styles.rs` 仅承载 token-first 静态 CSS；`view.rs` 仅做 Leptos 结构渲染 + headless 语义挂载；`motion.rs` 仅做 `CarouselMotion + attach_carousel_indicator_motion` 合同映射与挂载。",
         "spec N/A 证据：`components/carousel/src/spec.rs` 不存在，`mod.rs` 未声明 `mod spec;`；简单组件不引入 spec。",
-        "回归覆盖：`components/carousel/test/semantics.rs::{carousel_component_directory_standard_files_follow_contract_and_na_paths,carousel_component_files_check_script_covers_standard_layout_contract}` 与 `components/carousel/test/carousel_semantics.rs::{carousel_component_directory_standard_files_follow_contract_and_na_paths,carousel_component_files_check_script_covers_standard_layout_contract}`。",
+        "回归覆盖：`components/carousel/test/semantics.rs::{carousel_component_directory_standard_files_follow_contract_and_na_paths,carousel_component_files_check_script_covers_standard_layout_contract}` 与 `components/carousel/test/carousel/semantics.rs::{carousel_component_directory_standard_files_follow_contract_and_na_paths,carousel_component_files_check_script_covers_standard_layout_contract}`。",
         "门禁证据：`scripts/check-ui-component-files.sh` 新增 `cargo test -p ui --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_component_directory_standard_files_follow_contract_and_na_paths`。",
     ] {
         assert!(
@@ -1461,7 +1497,7 @@ fn carousel_performance_governance_contract_is_mount_only_traceable_and_blocking
 fn carousel_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement()
  {
     let local_semantics = load_source("test/semantics.rs");
-    let aggregated_semantics = load_source("../../components/carousel/test/carousel_semantics.rs");
+    let aggregated_semantics = load_source("../../components/carousel/test/carousel/semantics.rs");
     let view_source = load_source("src/view.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let script_source = load_source("../../scripts/check-ui-performance.sh");
@@ -3594,7 +3630,7 @@ fn carousel_semantic_contract_matrix_covers_state_interaction_and_non_snapshot_p
     let logic_source = load_source("src/logic.rs");
     let semantics_source = load_source("test/semantics.rs");
     let workspace_semantics_source =
-        load_source("../../components/carousel/test/carousel_semantics.rs");
+        load_source("../../components/carousel/test/carousel/semantics.rs");
 
     for required in [
         "role=root_a11y.attrs.role",
@@ -3728,12 +3764,12 @@ fn carousel_semantic_test_priority_prefers_data_aria_role_and_source_contracts_o
     let view_source = load_source("src/view.rs");
     let local_semantics_source = load_source("test/semantics.rs");
     let workspace_semantics_source =
-        load_source("../../components/carousel/test/carousel_semantics.rs");
+        load_source("../../components/carousel/test/carousel/semantics.rs");
     let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
 
     assert!(
         path_exists("test/semantics.rs")
-            && path_exists("../../components/carousel/test/carousel_semantics.rs"),
+            && path_exists("../../components/carousel/test/carousel/semantics.rs"),
         "Carousel semantic-priority gate requires component/local `*_semantics.rs` suites.",
     );
 

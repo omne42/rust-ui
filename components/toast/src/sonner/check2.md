@@ -20,7 +20,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`Sonner` 本身仅做 host 装配并委托 `<ToastViewport />`；`components/toast/src/sonner/view.rs` 无键盘/指针状态机分支，交互与 A11y 契约由 `components/toast/src/toast/view.rs` 的 `ui_headless::live_region_attrs/use_button/use_controllable_open_state_traced` 与 handlers 提供；并在根节点通过 `ui_headless::region_attrs` 挂载 `lang/dir` locale 接入。回归见 `components/toast/test/sonner_semantics.rs::sonner_delegates_interaction_semantics_to_toast_headless_layer` 与 `::sonner_mounts_headless_region_a11y_contract_in_view`。）
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`Sonner` 本身仅做 host 装配并委托 `<ToastViewport />`；`components/toast/src/sonner/view.rs` 无键盘/指针状态机分支，交互与 A11y 契约由 `components/toast/src/toast/view.rs` 的 `ui_headless::live_region_attrs/use_button/use_controllable_open_state_traced` 与 handlers 提供；并在根节点通过 `ui_headless::region_attrs` 挂载 `lang/dir` locale 接入。回归见 `components/toast/test/sonner/semantics.rs::sonner_delegates_interaction_semantics_to_toast_headless_layer` 与 `::sonner_mounts_headless_region_a11y_contract_in_view`。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -38,7 +38,7 @@
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`components/toast/src/sonner/styles.rs` 使用 `var(--ui-overlay-viewport-inset)`、`var(--ui-overlay-panel-min-width)`、`var(--ui-space-md)` 等主题变量，并去除 `420px` 组件私有 fallback；回归见 `components/toast/test/sonner_semantics.rs::sonner_styles_include_state_and_source_marker_contracts`。）
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`components/toast/src/sonner/styles.rs` 使用 `var(--ui-overlay-viewport-inset)`、`var(--ui-overlay-panel-min-width)`、`var(--ui-space-md)` 等主题变量，并去除 `420px` 组件私有 fallback；回归见 `components/toast/test/sonner/semantics.rs::sonner_styles_include_state_and_source_marker_contracts`。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -46,7 +46,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`components/toast/src/sonner/mod.rs` 提供最小公共导出，`logic.rs` 仅做 props 归一/状态派生并委托 `ui-state-primitives`，`view.rs` 仅做结构渲染与 headless 语义挂载，`styles.rs` 只消费 token，`motion.rs` 仅委托共享动效 sanitize；公共导出面不泄露 `web-sys`/DOM 类型。回归：`components/toast/test/sonner_semantics.rs::sonner_ui_components_layer_assembles_four_layers_without_public_dom_leakage`、`::sonner_component_files_respect_layered_responsibilities`。）
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`components/toast/src/sonner/mod.rs` 提供最小公共导出，`logic.rs` 仅做 props 归一/状态派生并委托 `ui-state-primitives`，`view.rs` 仅做结构渲染与 headless 语义挂载，`styles.rs` 只消费 token，`motion.rs` 仅委托共享动效 sanitize；公共导出面不泄露 `web-sys`/DOM 类型。回归：`components/toast/test/sonner/semantics.rs::sonner_ui_components_layer_assembles_four_layers_without_public_dom_leakage`、`::sonner_component_files_respect_layered_responsibilities`。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -58,7 +58,7 @@
   - 通知边界：切片值实现 `PartialEq` 时，若值未变化则不通知下游，相关 DOM 绑定不更新。
   - 成本边界：每次 `set/update` 仍会执行状态转移与切片重算；大状态或高频路径必须拆分 `Signal`/状态域，避免把 clone 成本当作恒定可忽略。
   - 反模式禁止：`view.rs` 只做挂载与消费切片，禁止重新实现状态机分支或复制 `logic.rs` 判定规则。
-- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`components/toast/src/sonner/view.rs` 保持 `portal/max_toasts/aria_label/class_name/motion` 命名，并与 `toast/toaster` 同语义同名；本次未引入新公共命名。兼容策略：维持现有稳定命名，不新增同义别名；若后续全库推进 `is_*` 统一，采用“先加别名并标注弃用周期，再移除旧名”的迁移路径。回归：`components/toast/test/sonner_semantics.rs::sonner_api_naming_contract_matches_overlay_family_without_alias_drift`。）
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`components/toast/src/sonner/view.rs` 保持 `portal/max_toasts/aria_label/class_name/motion` 命名，并与 `toast/toaster` 同语义同名；本次未引入新公共命名。兼容策略：维持现有稳定命名，不新增同义别名；若后续全库推进 `is_*` 统一，采用“先加别名并标注弃用周期，再移除旧名”的迁移路径。回归：`components/toast/test/sonner/semantics.rs::sonner_api_naming_contract_matches_overlay_family_without_alias_drift`。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
@@ -112,7 +112,7 @@
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（`components/toast/test/sonner_semantics.rs` 聚焦 `data-* / aria-* / role / source` 字段与契约来源，无 snapshot-only 依赖；并通过 `e2e/tests/docs_app_sonner_contract.spec.mjs` 覆盖键盘/指针路径与 wasm 稳定等待。回归：`sonner_view_uses_logic_state_contracts`、`sonner_state_markers_are_closed_sets_and_selector_friendly`、`sonner_semantic_test_matrix_covers_contract_paths_not_snapshot_only`。）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`components/toast/test/sonner/semantics.rs` 聚焦 `data-* / aria-* / role / source` 字段与契约来源，无 snapshot-only 依赖；并通过 `e2e/tests/docs_app_sonner_contract.spec.mjs` 覆盖键盘/指针路径与 wasm 稳定等待。回归：`sonner_view_uses_logic_state_contracts`、`sonner_state_markers_are_closed_sets_and_selector_friendly`、`sonner_semantic_test_matrix_covers_contract_paths_not_snapshot_only`。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -168,22 +168,22 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`Sonner` 复用 docs `UiPerfProbe` 预算链路与 `data-perf-*` 阈值标记，页面纳入 `component_doc!("Sonner", "sonner", ...)` 覆盖；归因通过 `sonner/view.rs` 的 `data-state/data-queue/data-position/data-motion-source/data-store-source` 与 `toast/motion.rs` 的有界 effect/spring 路径（`Effect::new <= 3`、`SpringAnimator::new <= 3`）提供；阻断回归：`components/toast/test/sonner_semantics.rs::sonner_performance_governance_contract_is_budgeted_repeatable_attributable_and_blocking`。实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_performance_governance_contract_is_budgeted_repeatable_attributable_and_blocking` 通过。当前框架仍无通用精确 `render_count` 自动化，按清单采用可重复等价证据，并由 `docs/plan/TODO.md` 的 `render_count` 项持续跟踪补齐。）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`Sonner` 复用 docs `UiPerfProbe` 预算链路与 `data-perf-*` 阈值标记，页面纳入 `component_doc!("Sonner", "sonner", ...)` 覆盖；归因通过 `sonner/view.rs` 的 `data-state/data-queue/data-position/data-motion-source/data-store-source` 与 `toast/motion.rs` 的有界 effect/spring 路径（`Effect::new <= 3`、`SpringAnimator::new <= 3`）提供；阻断回归：`components/toast/test/sonner/semantics.rs::sonner_performance_governance_contract_is_budgeted_repeatable_attributable_and_blocking`。实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_performance_governance_contract_is_budgeted_repeatable_attributable_and_blocking` 通过。当前框架仍无通用精确 `render_count` 自动化，按清单采用可重复等价证据，并由 `docs/plan/TODO.md` 的 `render_count` 项持续跟踪补齐。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`sonner/view.rs` 维持单层宿主结构 + `ToastViewport` 组合；回归：`components/toast/test/sonner_semantics.rs::sonner_view_macro_complexity_stays_bounded_and_semantically_flat`（约束单 `view!` 块、单 host section、单 viewport 挂载、文件体量与缩进深度上限，并禁止嵌套 `view!`/循环型宏膨胀模式）；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_view_macro_complexity_stays_bounded_and_semantically_flat` 通过。）
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`sonner/view.rs` 维持单层宿主结构 + `ToastViewport` 组合；回归：`components/toast/test/sonner/semantics.rs::sonner_view_macro_complexity_stays_bounded_and_semantically_flat`（约束单 `view!` 块、单 host section、单 viewport 挂载、文件体量与缩进深度上限，并禁止嵌套 `view!`/循环型宏膨胀模式）；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_view_macro_complexity_stays_bounded_and_semantically_flat` 通过。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`Sonner` 仅保留单公开组件，轻逻辑均下沉到 `logic.rs/motion.rs` 普通函数；回归：`components/toast/test/sonner_semantics.rs::sonner_view_functional_split_prefers_no_extra_local_components_for_simple_layout`（约束单 `#[component]` 边界、禁止本地 `render_*` 组件化噪音，并验证语义标记稳定）；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_view_functional_split_prefers_no_extra_local_components_for_simple_layout` 通过。）
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`Sonner` 仅保留单公开组件，轻逻辑均下沉到 `logic.rs/motion.rs` 普通函数；回归：`components/toast/test/sonner/semantics.rs::sonner_view_functional_split_prefers_no_extra_local_components_for_simple_layout`（约束单 `#[component]` 边界、禁止本地 `render_*` 组件化噪音，并验证语义标记稳定）；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_view_functional_split_prefers_no_extra_local_components_for_simple_layout` 通过。）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（`Sonner` 本体无复杂静态片段；默认文案常量在 primitives `DEFAULT_ARIA_LABEL`。回归：`components/toast/test/sonner_semantics.rs::sonner_static_fragments_are_constantized_or_absent_for_simple_host_layout`（约束 `view.rs` 不内联重静态片段，并锁定 `DEFAULT_ARIA_LABEL` 常量来源与 a11y 挂载路径）；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_static_fragments_are_constantized_or_absent_for_simple_host_layout` 通过。）
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（`Sonner` 本体无复杂静态片段；默认文案常量在 primitives `DEFAULT_ARIA_LABEL`。回归：`components/toast/test/sonner/semantics.rs::sonner_static_fragments_are_constantized_or_absent_for_simple_host_layout`（约束 `view.rs` 不内联重静态片段，并锁定 `DEFAULT_ARIA_LABEL` 常量来源与 a11y 挂载路径）；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_static_fragments_are_constantized_or_absent_for_simple_host_layout` 通过。）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
@@ -191,15 +191,15 @@
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（`data-*-source` + `data-ui-*` 提供状态来源可追踪；关键交互由 `docs_app_sonner_contract.spec.mjs` 的可重复键盘链路覆盖（focus -> Enter -> settled）；开发态可视化入口由 docs-app `cfg!(debug_assertions)` 下的 `UiDebugOverlay + provide_ui_trace` 提供；`Sonner` 无独立 `sonner-wasm-debug` feature，调试能力复用全局 trace，不污染公共 API。回归：`components/toast/test/sonner_semantics.rs::sonner_wasm_debug_capability_reuses_global_trace_overlay_and_stays_feature_isolated`；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_wasm_debug_capability_reuses_global_trace_overlay_and_stays_feature_isolated`、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug` 均通过。）
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（`data-*-source` + `data-ui-*` 提供状态来源可追踪；关键交互由 `docs_app_sonner_contract.spec.mjs` 的可重复键盘链路覆盖（focus -> Enter -> settled）；开发态可视化入口由 docs-app `cfg!(debug_assertions)` 下的 `UiDebugOverlay + provide_ui_trace` 提供；`Sonner` 无独立 `sonner-wasm-debug` feature，调试能力复用全局 trace，不污染公共 API。回归：`components/toast/test/sonner/semantics.rs::sonner_wasm_debug_capability_reuses_global_trace_overlay_and_stays_feature_isolated`；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_wasm_debug_capability_reuses_global_trace_overlay_and_stays_feature_isolated`、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug` 均通过。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（回归：`components/toast/test/sonner_semantics.rs::sonner_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/toast/test/sonner_semantics.rs::sonner_dx_workbench_uses_interactive_playground_and_marks_persist_state_na`；约束 docs `Playground` scoped CSS 热重载（`compose_scoped_css + data-playground-scope + playground-test`）与 Sonner 隔离交互演练入口（Hello World + 三个进阶场景），并明确“状态保留”为可选 N/A（未引入 Sonner 专属持久化键）；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_dx_workbench_uses_interactive_playground_and_marks_persist_state_na` 通过。）
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（回归：`components/toast/test/sonner/semantics.rs::sonner_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/toast/test/sonner/semantics.rs::sonner_dx_workbench_uses_interactive_playground_and_marks_persist_state_na`；约束 docs `Playground` scoped CSS 热重载（`compose_scoped_css + data-playground-scope + playground-test`）与 Sonner 隔离交互演练入口（Hello World + 三个进阶场景），并明确“状态保留”为可选 N/A（未引入 Sonner 专属持久化键）；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_dx_workbench_uses_interactive_playground_and_marks_persist_state_na` 通过。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`Sonner` 无 spec/async runtime API 面，按 N/A 收口；trace 语义复用 toast/headless 统一链路。回归：`components/toast/test/sonner_semantics.rs::sonner_engineering_capability_contract_keeps_serde_tracing_and_async_runtime_boundaries`（约束 `component-sonner` 维持轻特性 `[]`、组件边界不泄露 `serde/tokio/async-std` 细节、tracing 走 `ui-headless` 统一 `use_controllable_open_state_traced + UiTraceEventKind` 链路）；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_engineering_capability_contract_keeps_serde_tracing_and_async_runtime_boundaries` 通过。）
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`Sonner` 无 spec/async runtime API 面，按 N/A 收口；trace 语义复用 toast/headless 统一链路。回归：`components/toast/test/sonner/semantics.rs::sonner_engineering_capability_contract_keeps_serde_tracing_and_async_runtime_boundaries`（约束 `component-sonner` 维持轻特性 `[]`、组件边界不泄露 `serde/tokio/async-std` 细节、tracing 走 `ui-headless` 统一 `use_controllable_open_state_traced + UiTraceEventKind` 链路）；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_engineering_capability_contract_keeps_serde_tracing_and_async_runtime_boundaries` 通过。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
@@ -240,7 +240,7 @@
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试与文档（验证闭环）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`sonner_semantics.rs` 扩展为语义契约断言集，覆盖状态轴、来源轴、A11y、Agent Contract、docs/e2e 证据，并强制语义字段变更与测试断言同步。回归：`sonner_view_uses_logic_state_contracts`、`sonner_state_markers_are_closed_sets_and_selector_friendly`、`sonner_semantic_test_matrix_covers_contract_paths_not_snapshot_only`；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_semantic_test_matrix_covers_contract_paths_not_snapshot_only` 通过。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`sonner/semantics.rs` 扩展为语义契约断言集，覆盖状态轴、来源轴、A11y、Agent Contract、docs/e2e 证据，并强制语义字段变更与测试断言同步。回归：`sonner_view_uses_logic_state_contracts`、`sonner_state_markers_are_closed_sets_and_selector_friendly`、`sonner_semantic_test_matrix_covers_contract_paths_not_snapshot_only`；实测命令：`cargo test -p ui --no-default-features --features component-sonner,component-toast --test sonner_semantics sonner_semantic_test_matrix_covers_contract_paths_not_snapshot_only` 通过。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。

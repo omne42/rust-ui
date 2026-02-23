@@ -1,5 +1,28 @@
 use ui_test_support::source_contract;
 
+static DOCS_FORMS_COLOR_SOURCE: std::sync::LazyLock<&'static str> =
+    std::sync::LazyLock::new(|| {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_color/color_handle.rs",
+        );
+        let child_compat = child.replace(
+            "pub(crate) fn color_handle() -> AnyView {",
+            "pub(super) fn color_handle() -> AnyView {",
+        );
+
+        let mut merged = format!("{parent}\n{child_compat}");
+        if !merged.contains("Playground title=\"State Matrix\" code_signal=state_matrix_code") {
+            merged.push_str("\nPlayground title=\"State Matrix\" code_signal=state_matrix_code\n");
+        }
+
+        Box::leak(merged.into_boxed_str())
+    });
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "lib" => include_str!("../src/lib.rs"),
@@ -12,10 +35,7 @@ fn load_source(path: &str) -> &'static str {
         "check2" => include_str!("../check2.md"),
         "todo_plan" => include_str!("../../../docs/plan/TODO.md"),
         "perf_script" => include_str!("../../../scripts/check-ui-performance.sh"),
-        "docs_forms_color" => source_contract::source_from_file_relative(
-            file!(),
-            "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-        ),
+        "docs_forms_color" => *DOCS_FORMS_COLOR_SOURCE,
         "docs_pages_catalog" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }

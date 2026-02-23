@@ -52,12 +52,12 @@
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
 - [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
-  - 已满足（适用边界已论证）：`example-theme` 为主题导出壳 crate（仅 `example_theme() -> Theme`），不承载 Leptos `logic/view/styles/motion` 组件装配职责；对外 API 仅暴露 `Theme`，不存在 `web-sys`/DOM 泄漏；语义回归由 `components/example-theme/tests/example_theme_semantics.rs` 覆盖。
+  - 已满足（适用边界已论证）：`example-theme` 为主题导出壳 crate（仅 `example_theme() -> Theme`），不承载 Leptos `logic/view/styles/motion` 组件装配职责；对外 API 仅暴露 `Theme`，不存在 `web-sys`/DOM 泄漏；语义回归由 `components/example-theme/tests/semantics.rs` 覆盖。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
@@ -141,7 +141,7 @@
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
 - [x] 测试验证“语义契约”而不只验证视觉快照。
-  - 已满足（按适用范围）：`components/example-theme/tests/example_theme_semantics.rs` 断言 `example_theme() -> Theme` 的语义契约（返回稳定 `Theme::light().ctx`）；该 crate 无 UI 渲染与视觉快照测试，受控/非受控、disabled、键盘/指针路径与 role/aria/data-state 标记在本组件上均为 N/A。
+  - 已满足（按适用范围）：`components/example-theme/tests/semantics.rs` 断言 `example_theme() -> Theme` 的语义契约（返回稳定 `Theme::light().ctx`）；该 crate 无 UI 渲染与视觉快照测试，受控/非受控、disabled、键盘/指针路径与 role/aria/data-state 标记在本组件上均为 N/A。
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -180,7 +180,7 @@
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
-  - 已满足（按适用范围）：`example-theme` 公开契约为强类型 `example_theme() -> Theme`，不存在字符串/多布尔状态输入；契约回归由 `components/example-theme/tests/example_theme_semantics.rs` 覆盖。该 crate 非可视组件，无 `data-*`/`aria-*` 运行时语义标记面，判定为 N/A（已论证）。
+  - 已满足（按适用范围）：`example-theme` 公开契约为强类型 `example_theme() -> Theme`，不存在字符串/多布尔状态输入；契约回归由 `components/example-theme/tests/semantics.rs` 覆盖。该 crate 非可视组件，无 `data-*`/`aria-*` 运行时语义标记面，判定为 N/A（已论证）。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
@@ -316,13 +316,13 @@
 - [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
   - N/A（已论证）：`example-theme` 是独立轻量 crate（`default = []`，仅依赖 `ui-theme`），不参与 `ui` 的 `css.rs/lib.rs` 聚合路径与 `component-*` 特性树；本组件不存在“无条件全局依赖”拉起全组件的问题。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-  - 已满足（按适用范围）：`components/example-theme/tests/example_theme_semantics.rs` 已覆盖本组件核心语义契约（`example_theme() -> Theme::light()`）；`example-theme` 非可视/非交互/非高频渲染组件，`aria-*`/`data-*`/焦点流转与 `render_count` 预算在本组件维度为 N/A（已论证）。
+  - 已满足（按适用范围）：`components/example-theme/tests/semantics.rs` 已覆盖本组件核心语义契约（`example_theme() -> Theme::light()`）；`example-theme` 非可视/非交互/非高频渲染组件，`aria-*`/`data-*`/焦点流转与 `render_count` 预算在本组件维度为 N/A（已论证）。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - N/A（已论证）：本次 `example-theme` 仅执行 checklist 文档完善，公开 API 仍为 `example_theme() -> Theme`，未发生跨大版本破坏性变更，因此不触发 Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
   - N/A（已论证）：`example-theme` 为非交互主题导出 crate（仅 `example_theme() -> Theme`），不承载组件交互示例面；Playground 与流式/快照文档能力属于 `apps/docs-app` 组件页面治理范围，而非本 crate 内部实现职责。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
-  - 已满足（按适用范围）：`components/example-theme/tests/example_theme_semantics.rs` 已提供语义契约测试（`example_theme() -> Theme::light()`）；`example-theme` 非交互可视组件，`data-*`/`aria-*`/`role` 与键盘路径断言在本组件维度为 N/A（已论证）。
+  - 已满足（按适用范围）：`components/example-theme/tests/semantics.rs` 已提供语义契约测试（`example_theme() -> Theme::light()`）；`example-theme` 非交互可视组件，`data-*`/`aria-*`/`role` 与键盘路径断言在本组件维度为 N/A（已论证）。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。

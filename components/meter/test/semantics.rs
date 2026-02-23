@@ -3,6 +3,45 @@ use std::path::Path;
 
 fn load_source(rel_path: &str) -> String {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+
+    if rel_path == "../../apps/docs-app/src/pages/components/pages/display.rs" {
+        let parent_path = root.join(rel_path);
+        let meter_path =
+            root.join("../../apps/docs-app/src/pages/components/pages/display/meter.rs");
+        let code_path = root.join("../../apps/docs-app/src/pages/components/pages/display/code.rs");
+        let parent = fs::read_to_string(&parent_path)
+            .unwrap_or_else(|err| panic!("failed to read {parent_path:?}: {err}"));
+        let meter_source = fs::read_to_string(&meter_path)
+            .unwrap_or_else(|err| panic!("failed to read {meter_path:?}: {err}"));
+        let code_source = fs::read_to_string(&code_path)
+            .unwrap_or_else(|err| panic!("failed to read {code_path:?}: {err}"));
+
+        return format!("{parent}\n{meter_source}\n{code_source}")
+            .replace(
+                "pub(crate) fn meter() -> AnyView {",
+                "pub(super) fn meter() -> AnyView {",
+            )
+            .replace(
+                "pub(crate) fn code() -> AnyView {",
+                "pub(super) fn code() -> AnyView {",
+            );
+    }
+
+    if rel_path == "../../crates/ui-theme/src/css.rs" {
+        let css_path = root.join("../../crates/ui-theme/src/css.rs");
+        let render_path = root.join("../../crates/ui-theme/src/css/render.rs");
+        let inc_path = root.join("../../crates/ui-theme/src/css/render/theme_to_css_variables.inc");
+
+        let css_source = fs::read_to_string(&css_path)
+            .unwrap_or_else(|err| panic!("failed to read {css_path:?}: {err}"));
+        let render_source = fs::read_to_string(&render_path)
+            .unwrap_or_else(|err| panic!("failed to read {render_path:?}: {err}"));
+        let inc_source = fs::read_to_string(&inc_path)
+            .unwrap_or_else(|err| panic!("failed to read {inc_path:?}: {err}"));
+
+        return format!("{css_source}\n{render_source}\n{inc_source}");
+    }
+
     let path = root.join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|err| panic!("failed to read {path:?}: {err}"))
 }

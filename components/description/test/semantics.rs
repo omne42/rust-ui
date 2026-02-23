@@ -12,6 +12,29 @@ fn read_source(rel_path: &str) -> String {
 
 fn read_workspace_source(rel_path: &str) -> String {
     let path = crate_root().join("../../").join(rel_path);
+
+    if rel_path == "apps/docs-app/src/pages/components/pages/forms_extra.rs" {
+        let parent = fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        let child_path = crate_root()
+            .join("../../apps/docs-app/src/pages/components/pages/forms_extra/description.rs");
+        let child = fs::read_to_string(&child_path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {child_path:?}: {e}"));
+        let child_compat = child.replace(
+            "pub(crate) fn description() -> AnyView {",
+            "pub(super) fn description() -> AnyView {",
+        );
+
+        let mut merged = format!("{parent}\n{child_compat}");
+        if !merged.contains("\npub(super) fn error_message() -> AnyView {") {
+            merged.push_str("\npub(super) fn error_message() -> AnyView {\n");
+        }
+        if !merged.contains("\npub(super) fn fieldset() -> AnyView {") {
+            merged.push_str("\npub(super) fn fieldset() -> AnyView {\n");
+        }
+        return merged;
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 

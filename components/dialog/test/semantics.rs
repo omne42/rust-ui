@@ -1936,7 +1936,7 @@ fn dialog_rust_hygiene_script_enforces_repo_level_hygiene_guards() {
 fn dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement()
 {
     let local_semantics = load_source("test/semantics.rs");
-    let aggregated_semantics = load_source("../../components/dialog/test/dialog_semantics.rs");
+    let aggregated_semantics = load_source("../../components/dialog/test/dialog/semantics.rs");
     let dialog_view_source = load_source("src/view.rs");
     let overlay_view_source = load_source("../overlay/src/view.rs");
     let focus_trap_source = load_source("../../crates/ui-headless/src/focus_trap.rs");
@@ -3612,7 +3612,7 @@ fn dialog_check2_marks_e2e_selector_stability_item_complete() {
         "components/dialog/test/semantics.rs::dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "components/dialog/test/semantics.rs::dialog_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
         "components/dialog/test/semantics.rs::dialog_e2e_check_script_covers_selector_and_settled_wait_contract",
-        "components/dialog/test/dialog_semantics.rs::dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "components/dialog/test/dialog/semantics.rs::dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "components/dialog/scripts/check-ui-e2e-dialog.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -3631,7 +3631,7 @@ fn dialog_check2_marks_e2e_repeatable_key_flow_contract_complete() {
         "- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。",
         "components/dialog/test/semantics.rs::dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "components/dialog/test/semantics.rs::dialog_e2e_check_script_covers_selector_and_key_flow_contracts",
-        "components/dialog/test/dialog_semantics.rs::dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "components/dialog/test/dialog/semantics.rs::dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "components/dialog/scripts/check-ui-e2e-dialog.sh",
         "Invalid cross-device link (os error 18)",
     ] {

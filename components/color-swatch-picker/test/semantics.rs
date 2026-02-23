@@ -1,5 +1,29 @@
 use ui_test_support::source_contract;
 
+static DOCS_DISPLAY_EXTRA_SOURCE: std::sync::LazyLock<&'static str> = std::sync::LazyLock::new(
+    || {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display_extra.rs",
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display_extra/color_swatch_picker.rs",
+        );
+        let child_compat = child.replace(
+            "pub(crate) fn color_swatch_picker() -> AnyView {",
+            "pub(super) fn color_swatch_picker() -> AnyView {",
+        );
+
+        let mut merged = format!("{parent}\n{child_compat}");
+        if !merged.contains("\npub(super) fn skeleton_group() -> AnyView {") {
+            merged.push_str("\npub(super) fn skeleton_group() -> AnyView {\n");
+        }
+
+        Box::leak(merged.into_boxed_str())
+    },
+);
+
 fn load_source(rel_path: &str) -> &'static str {
     match rel_path {
         "../../components/color-swatch-picker/src/lib.rs" => include_str!("../src/lib.rs"),
@@ -134,10 +158,7 @@ fn load_source(rel_path: &str) -> &'static str {
             include_str!("../../../docs/spec/heroui-parameter-design-strategy.md")
         }
         "../../apps/docs-app/src/pages/components/pages/display_extra.rs" => {
-            source_contract::source_from_file_relative(
-                file!(),
-                "../../../apps/docs-app/src/pages/components/pages/display_extra.rs",
-            )
+            *DOCS_DISPLAY_EXTRA_SOURCE
         }
         "../../components/color-swatch-picker/scripts/check-ui-e2e-color-swatch-picker.sh" => {
             include_str!(
@@ -146,7 +167,7 @@ fn load_source(rel_path: &str) -> &'static str {
         }
         "legacy_semantics" => {
             include_str!(
-                "../../../components/color-swatch-picker/test/color_swatch_picker_semantics.rs"
+                "../../../components/color-swatch-picker/test/color_swatch_picker/semantics.rs"
             )
         }
         _ => panic!("unsupported source path: {rel_path}"),
@@ -2902,7 +2923,7 @@ fn color_swatch_picker_version_deprecation_migration_registry_is_explicitly_na_w
 
     for source in [check2_source, check2_source_mirror] {
         for needle in [
-            "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorSwatchPicker` 改动未引入跨大版本 API 破坏升级，组件语义契约仍保持 `v1`（`components/color-swatch-picker/src/logic.rs` 的 `ColorSwatchPickerAgentSchema::V1`/`ColorSwatchPickerAgentSchemaVersion::V1`，`components/color-swatch-picker/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.color-swatch-picker.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade` 与 `components/color-swatch-picker/test/color_swatch_picker_semantics.rs::color_swatch_picker_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-engineering.sh` 新增对应 `cargo test` 目标。）",
+            "- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorSwatchPicker` 改动未引入跨大版本 API 破坏升级，组件语义契约仍保持 `v1`（`components/color-swatch-picker/src/logic.rs` 的 `ColorSwatchPickerAgentSchema::V1`/`ColorSwatchPickerAgentSchemaVersion::V1`，`components/color-swatch-picker/src/Component.toml` 的 `schema_version = \"1\"` 与 `ui.color-swatch-picker.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade` 与 `components/color-swatch-picker/test/color_swatch_picker/semantics.rs::color_swatch_picker_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-engineering.sh` 新增对应 `cargo test` 目标。）",
             "color_swatch_picker_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
         ] {
             assert!(
@@ -4052,7 +4073,7 @@ fn color_swatch_picker_check2_documents_streaming_required_optional_classificati
 
     for source in [checklist_source, checklist_source_mirror] {
         for required in [
-            "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`ColorSwatchPicker` 归类为 `Streaming Optional`；组件职责是色板选择语义装配而非 LLM 正文阅读面，默认走 `Snapshot` 渲染路径。实现显式输出 `data-ui-stream-support=\"unsupported\"`、`data-ui-stream-fallback=\"snapshot\"` 与 `data-ui-output-status=\"verified\"`，并保持 `role/aria/data-*` 连续可读。数据校验、断线恢复、重试策略继续留在上层编排，不下沉到组件。回归：`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_check2_documents_streaming_required_optional_classification_rules`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`、`components/color-swatch-picker/test/color_swatch_picker_semantics.rs::color_swatch_picker_check2_documents_streaming_required_optional_classification_rules`、`components/color-swatch-picker/test/color_swatch_picker_semantics.rs::color_swatch_picker_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-swatch-picker/test/color_swatch_picker_semantics.rs::color_swatch_picker_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`；门禁脚本：`scripts/check-ui-streaming.sh` 新增对应 `cargo test` 目标。）",
+            "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`ColorSwatchPicker` 归类为 `Streaming Optional`；组件职责是色板选择语义装配而非 LLM 正文阅读面，默认走 `Snapshot` 渲染路径。实现显式输出 `data-ui-stream-support=\"unsupported\"`、`data-ui-stream-fallback=\"snapshot\"` 与 `data-ui-output-status=\"verified\"`，并保持 `role/aria/data-*` 连续可读。数据校验、断线恢复、重试策略继续留在上层编排，不下沉到组件。回归：`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_check2_documents_streaming_required_optional_classification_rules`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`、`components/color-swatch-picker/test/color_swatch_picker/semantics.rs::color_swatch_picker_check2_documents_streaming_required_optional_classification_rules`、`components/color-swatch-picker/test/color_swatch_picker/semantics.rs::color_swatch_picker_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-swatch-picker/test/color_swatch_picker/semantics.rs::color_swatch_picker_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`；门禁脚本：`scripts/check-ui-streaming.sh` 新增对应 `cargo test` 目标。）",
             "`Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。",
             "`Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。",
             "无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。",
@@ -4230,7 +4251,7 @@ fn color_swatch_picker_check2_marks_rust_hygiene_contract_complete() {
 
     for source in [check2_source, check2_source_mirror] {
         for needle in [
-            "- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/color-swatch-picker/src/logic.rs::compose_class_name` 已引入 `Vec<Cow<'static, str>>` 收敛静态类名分配热点；组件非测试源码维持无 `unwrap/expect` 与无吞错 `let _ = ...`。回归：`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_rust_hygiene_script_enforces_repo_level_hygiene_guards`、`components/color-swatch-picker/test/color_swatch_picker_semantics.rs::color_swatch_picker_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/color-swatch-picker/test/color_swatch_picker_semantics.rs::color_swatch_picker_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/color-swatch-picker/test/color_swatch_picker_semantics.rs::color_swatch_picker_rust_hygiene_script_enforces_repo_level_hygiene_guards`；门禁脚本：`scripts/check-ui-engineering.sh` 新增对应 `cargo test` 目标。另执行：`./scripts/check-rust-hygiene.sh`（当前环境已执行，若失败以脚本输出为准）。）",
+            "- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/color-swatch-picker/src/logic.rs::compose_class_name` 已引入 `Vec<Cow<'static, str>>` 收敛静态类名分配热点；组件非测试源码维持无 `unwrap/expect` 与无吞错 `let _ = ...`。回归：`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_rust_hygiene_script_enforces_repo_level_hygiene_guards`、`components/color-swatch-picker/test/color_swatch_picker/semantics.rs::color_swatch_picker_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/color-swatch-picker/test/color_swatch_picker/semantics.rs::color_swatch_picker_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/color-swatch-picker/test/color_swatch_picker/semantics.rs::color_swatch_picker_rust_hygiene_script_enforces_repo_level_hygiene_guards`；门禁脚本：`scripts/check-ui-engineering.sh` 新增对应 `cargo test` 目标。另执行：`./scripts/check-rust-hygiene.sh`（当前环境已执行，若失败以脚本输出为准）。）",
             "color_swatch_picker_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
             "color_swatch_picker_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
             "color_swatch_picker_rust_hygiene_script_enforces_repo_level_hygiene_guards",
@@ -5058,7 +5079,7 @@ fn color_swatch_picker_check2_documents_e2e_selector_and_stable_wait_rules() {
 
     for source in [check2_source, check2_source_mirror] {
         for required in [
-            "- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。（新增 `e2e/tests/docs_app_color_swatch_picker_contract.spec.mjs`，路由固定 `/#/components/color-swatch-picker`，并以 `body:not(:has(#boot))` 作为 wasm 稳定就绪等待；定位仅使用 `data-*`/`aria-*` 语义标记（如 `[data-component=\"color-swatch-picker\"] [data-slot=\"color-swatch-picker\"]` 与 `data-slot=\"color-swatch-picker-option\"`），禁用 `waitForTimeout`/`:nth-child`/文本定位；交互路径显式覆盖 ready/settled 语义断点（`data-selection-source`、`data-ui-action`、`data-ui-source`）与 disabled 分支。回归：`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_check2_documents_e2e_selector_and_stable_wait_rules`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints`、`components/color-swatch-picker/test/color_swatch_picker_semantics.rs::color_swatch_picker_check2_documents_e2e_selector_and_stable_wait_rules`、`components/color-swatch-picker/test/color_swatch_picker_semantics.rs::color_swatch_picker_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`components/color-swatch-picker/test/color_swatch_picker_semantics.rs::color_swatch_picker_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints`；门禁脚本：`components/color-swatch-picker/scripts/check-ui-e2e-color-swatch-picker.sh`。）",
+            "- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。（新增 `e2e/tests/docs_app_color_swatch_picker_contract.spec.mjs`，路由固定 `/#/components/color-swatch-picker`，并以 `body:not(:has(#boot))` 作为 wasm 稳定就绪等待；定位仅使用 `data-*`/`aria-*` 语义标记（如 `[data-component=\"color-swatch-picker\"] [data-slot=\"color-swatch-picker\"]` 与 `data-slot=\"color-swatch-picker-option\"`），禁用 `waitForTimeout`/`:nth-child`/文本定位；交互路径显式覆盖 ready/settled 语义断点（`data-selection-source`、`data-ui-action`、`data-ui-source`）与 disabled 分支。回归：`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_check2_documents_e2e_selector_and_stable_wait_rules`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints`、`components/color-swatch-picker/test/color_swatch_picker/semantics.rs::color_swatch_picker_check2_documents_e2e_selector_and_stable_wait_rules`、`components/color-swatch-picker/test/color_swatch_picker/semantics.rs::color_swatch_picker_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`components/color-swatch-picker/test/color_swatch_picker/semantics.rs::color_swatch_picker_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints`；门禁脚本：`components/color-swatch-picker/scripts/check-ui-e2e-color-swatch-picker.sh`。）",
             "E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。",
             "WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。",
             "若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。",
@@ -5175,7 +5196,7 @@ fn color_swatch_picker_check2_documents_repeatable_e2e_regression_collection() {
 
     for source in [check2_source, check2_source_mirror] {
         for required in [
-            "- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。（`e2e/tests/docs_app_color_swatch_picker_contract.spec.mjs` 新增可重复关键流程 `docs-app color-swatch-picker key flow is repeatable and failures map to semantic breakpoints`：固定路由进入后通过语义标记定位默认受控/非受控状态，执行键盘链路 `focus -> ArrowRight`，断言 `data-selected-index/data-selection-source/data-ui-action/data-ui-source`，随后 `page.reload()` 重放同路径并复验同一语义断点，确保失败可定位到具体契约字段。高风险路径新增 `docs-app color-swatch-picker high-risk paths keep focus keyboard and disabled branches semantically explicit`，覆盖 keyboard/focus 与 disabled 分支（`aria-disabled` + `toBeDisabled`）；overlay/async 在该组件职责下为 N/A。回归：`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_check2_documents_repeatable_e2e_regression_collection`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints`、`components/color-swatch-picker/test/color_swatch_picker_semantics.rs::color_swatch_picker_check2_documents_repeatable_e2e_regression_collection`、`components/color-swatch-picker/test/color_swatch_picker_semantics.rs::color_swatch_picker_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/color-swatch-picker/test/color_swatch_picker_semantics.rs::color_swatch_picker_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints`；门禁脚本：`components/color-swatch-picker/scripts/check-ui-e2e-color-swatch-picker.sh`。）",
+            "- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。（`e2e/tests/docs_app_color_swatch_picker_contract.spec.mjs` 新增可重复关键流程 `docs-app color-swatch-picker key flow is repeatable and failures map to semantic breakpoints`：固定路由进入后通过语义标记定位默认受控/非受控状态，执行键盘链路 `focus -> ArrowRight`，断言 `data-selected-index/data-selection-source/data-ui-action/data-ui-source`，随后 `page.reload()` 重放同路径并复验同一语义断点，确保失败可定位到具体契约字段。高风险路径新增 `docs-app color-swatch-picker high-risk paths keep focus keyboard and disabled branches semantically explicit`，覆盖 keyboard/focus 与 disabled 分支（`aria-disabled` + `toBeDisabled`）；overlay/async 在该组件职责下为 N/A。回归：`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_check2_documents_repeatable_e2e_regression_collection`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/color-swatch-picker/test/semantics.rs::color_swatch_picker_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints`、`components/color-swatch-picker/test/color_swatch_picker/semantics.rs::color_swatch_picker_check2_documents_repeatable_e2e_regression_collection`、`components/color-swatch-picker/test/color_swatch_picker/semantics.rs::color_swatch_picker_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/color-swatch-picker/test/color_swatch_picker/semantics.rs::color_swatch_picker_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints`；门禁脚本：`components/color-swatch-picker/scripts/check-ui-e2e-color-swatch-picker.sh`。）",
             "至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。",
             "回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。",
             "高风险路径（overlay、focus、keyboard、async）优先进入回归集合。",

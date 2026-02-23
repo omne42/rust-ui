@@ -56,7 +56,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
   - 本组件判定：目录职责满足 `logic.rs + view.rs + styles.rs`（`motion.rs` 维度在本组件按 N/A）；`view.rs` 仅做结构渲染与 headless 语义挂载，`logic.rs` 未重写 `status-primitives` 状态机，公共导出面 `components/form/src/mod.rs` 未暴露 `web-sys`/DOM 细节；语义回归位于 `components/form/test/semantics.rs`。回归：`components/form/test/semantics.rs::form_component_stays_in_ui_components_assembly_boundary`。
 
 ### 2. API 设计与状态内核（Logic/Kernel）

@@ -1,5 +1,28 @@
 use ui_test_support::source_contract;
 
+static DOCS_DISPLAY_EXTRA_SOURCE: std::sync::LazyLock<&'static str> =
+    std::sync::LazyLock::new(|| {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display_extra.rs",
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display_extra/color_swatch.rs",
+        );
+        let child_compat = child.replace(
+            "pub(crate) fn color_swatch() -> AnyView {",
+            "pub(super) fn color_swatch() -> AnyView {",
+        );
+
+        let mut merged = format!("{parent}\n{child_compat}");
+        if !merged.contains("\npub(super) fn color_swatch_picker() -> AnyView {") {
+            merged.push_str("\npub(super) fn color_swatch_picker() -> AnyView {\n");
+        }
+
+        Box::leak(merged.into_boxed_str())
+    });
+
 fn load_source(rel_path: &str) -> &'static str {
     match rel_path {
         "../../components/color-swatch/src/lib.rs" => include_str!("../src/lib.rs"),
@@ -17,10 +40,7 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../components/color-swatch/src/styles.rs" => include_str!("../src/styles.rs"),
         "../../components/color-swatch/src/view.rs" => include_str!("../src/view.rs"),
         "../../apps/docs-app/src/pages/components/pages/display_extra.rs" => {
-            source_contract::source_from_file_relative(
-                file!(),
-                "../../../apps/docs-app/src/pages/components/pages/display_extra.rs",
-            )
+            *DOCS_DISPLAY_EXTRA_SOURCE
         }
         "../../apps/docs-app/src/playground.rs" => {
             include_str!("../../../apps/docs-app/src/playground.rs")
@@ -145,7 +165,7 @@ fn load_source(rel_path: &str) -> &'static str {
             include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs")
         }
         "legacy_semantics" => {
-            include_str!("../../../components/color-swatch/test/color_swatch_semantics.rs")
+            include_str!("../../../components/color-swatch/test/color_swatch/semantics.rs")
         }
         _ => panic!("unsupported source path: {rel_path}"),
     }
@@ -2550,7 +2570,7 @@ fn color_swatch_tests_prioritize_semantic_contracts_over_visual_snapshots() {
 fn color_swatch_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only() {
     let local_semantics = include_str!("../../../components/color-swatch/test/semantics.rs");
     let legacy_semantics =
-        include_str!("../../../components/color-swatch/test/color_swatch_semantics.rs");
+        include_str!("../../../components/color-swatch/test/color_swatch/semantics.rs");
     let view_source = load_source("../../components/color-swatch/src/view.rs");
     let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
     let check2_source = load_source("../../components/color-swatch/check2.md");

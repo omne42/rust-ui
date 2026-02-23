@@ -7,6 +7,15 @@ fn load_source(rel_path: &str) -> String {
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn load_card_docs_source() -> String {
+    let parent = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let child = load_source("../../apps/docs-app/src/pages/components/pages/layout/card.rs");
+    format!("{parent}\n{child}").replace(
+        "pub(crate) fn card() -> AnyView {",
+        "pub(super) fn card() -> AnyView {",
+    )
+}
+
 #[test]
 fn card_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/card/mod.rs");
@@ -90,7 +99,7 @@ fn card_styles_include_variant_and_padding_markers() {
 
 #[test]
 fn card_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let source = load_card_docs_source();
 
     for needle in [
         "pub(super) fn card() -> AnyView",
@@ -110,7 +119,7 @@ fn card_docs_page_covers_primary_playgrounds() {
 
 #[test]
 fn card_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let source = load_card_docs_source();
 
     for needle in [
         "title=\"Variants\"",

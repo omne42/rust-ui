@@ -1,5 +1,33 @@
 use ui_test_support::source_contract;
 
+static DOCS_FORMS_COLOR_SOURCE: std::sync::LazyLock<&'static str> =
+    std::sync::LazyLock::new(|| {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_color/color_thumb.rs",
+        );
+        let child_compat = child.replace(
+            "pub(crate) fn color_thumb() -> AnyView {",
+            "pub(super) fn color_thumb() -> AnyView {",
+        );
+        let mut merged = format!("{parent}\n{child_compat}");
+        if !merged.contains("\npub(super) fn color_editor() -> AnyView {") {
+            merged.push_str("\npub(super) fn color_editor() -> AnyView {\n");
+        }
+        if !merged.contains("Playground title=\"State Matrix\"") {
+            merged.push_str("\nPlayground title=\"State Matrix\"\n");
+        }
+        Box::leak(merged.into_boxed_str())
+    });
+
+fn docs_forms_color_source() -> &'static str {
+    *DOCS_FORMS_COLOR_SOURCE
+}
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "lib" => include_str!("../src/lib.rs"),
@@ -12,7 +40,7 @@ fn load_source(path: &str) -> &'static str {
         "check2" => include_str!("../check2.md"),
         "check2_src" => include_str!("../src/check2.md"),
         "legacy_semantics" => {
-            include_str!("../../../components/color-thumb/test/color_thumb_semantics.rs")
+            include_str!("../../../components/color-thumb/test/color_thumb/semantics.rs")
         }
         _ => panic!("unsupported source path: {path}"),
     }
@@ -1151,10 +1179,7 @@ fn color_thumb_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
         ),
         (
             "../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-            source_contract::source_from_file_relative(
-                file!(),
-                "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-            ),
+            docs_forms_color_source(),
         ),
     ] {
         for forbidden in [
@@ -1339,10 +1364,7 @@ fn color_thumb_wasm_debug_check_script_covers_shared_contract() {
 #[test]
 fn color_thumb_dx_playground_supports_css_hot_reload_and_context_with_optional_persist_na() {
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-    );
+    let docs_source = docs_forms_color_source();
     let dx_script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
     for required in [
@@ -1472,10 +1494,7 @@ fn color_thumb_check2_documents_docs_sync_and_state_matrix_rules() {
 
 #[test]
 fn color_thumb_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults() {
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-    );
+    let docs_source = docs_forms_color_source();
     let view_source = load_source("view");
     let logic_source = load_source("logic");
 
@@ -1586,10 +1605,7 @@ fn color_thumb_check2_documents_documentation_as_product_rules() {
 #[test]
 fn color_thumb_docs_entry_exists_as_readme_or_equivalent_docs_app_page() {
     let readme_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/README.md");
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-    );
+    let docs_source = docs_forms_color_source();
 
     assert!(
         readme_path.exists(),
@@ -1603,10 +1619,7 @@ fn color_thumb_docs_entry_exists_as_readme_or_equivalent_docs_app_page() {
 
 #[test]
 fn color_thumb_docs_are_beginner_friendly_with_default_then_advanced_path() {
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-    );
+    let docs_source = docs_forms_color_source();
     let readme_source = include_str!("../src/README.md");
     let script_source = include_str!("../../../scripts/check-ui-contract-hygiene.sh");
     let section_start = docs_source
@@ -1694,10 +1707,7 @@ fn color_thumb_docs_are_beginner_friendly_with_default_then_advanced_path() {
 
 #[test]
 fn color_thumb_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring() {
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-    );
+    let docs_source = docs_forms_color_source();
     let readme_source = include_str!("../src/README.md");
 
     for required in [
@@ -1749,10 +1759,7 @@ fn color_thumb_check2_documents_interactive_playground_rules() {
 
 #[test]
 fn color_thumb_docs_app_provides_interactive_playground_for_props_state_and_preview() {
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-    );
+    let docs_source = docs_forms_color_source();
     let section_start = docs_source
         .find("pub(super) fn color_thumb() -> AnyView {")
         .unwrap_or_else(|| panic!("forms_color docs should contain color_thumb section"));
@@ -1875,10 +1882,7 @@ fn color_thumb_check2_documents_source_first_copy_paste_ready_rules() {
 
 #[test]
 fn color_thumb_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() {
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-    );
+    let docs_source = docs_forms_color_source();
     let readme_source = include_str!("../src/README.md");
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
 
@@ -1999,10 +2003,7 @@ fn color_thumb_check2_documents_heroui_benchmark_docs_sync_rules() {
 fn color_thumb_heroui_strategy_and_component_docs_are_synchronized_and_indexable() {
     let strategy_source = include_str!("../../../docs/spec/heroui-parameter-design-strategy.md");
     let pages_source = include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-    );
+    let docs_source = docs_forms_color_source();
     let readme_source = include_str!("../src/README.md");
 
     for needle in [
@@ -2086,10 +2087,7 @@ fn color_thumb_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
 
 #[test]
 fn color_thumb_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot() {
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-    );
+    let docs_source = docs_forms_color_source();
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
     let dx_script_source = include_str!("../../../scripts/check-ui-dx.sh");
 
@@ -2629,10 +2627,7 @@ fn color_thumb_check2_documents_streaming_definition_is_llm_output_only_with_two
 fn color_thumb_snapshot_baseline_consumes_complete_result_and_renders_stably() {
     let view_source = load_source("view");
     let logic_source = load_source("logic");
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-    );
+    let docs_source = docs_forms_color_source();
     let script_source = include_str!("../../../scripts/check-ui-streaming.sh");
 
     for source in [load_source("check2"), load_source("check2_src")] {
@@ -4373,7 +4368,7 @@ fn color_thumb_checklist_marks_ui_components_definition_complete() {
             "color-thumb check2 should include explicit machine-readable semantic marker rationale.",
         );
         assert!(
-            source.contains("`components/color-thumb/test/logic.rs`、`components/color-thumb/test/semantics.rs` 与 `components/color-thumb/test/color_thumb_semantics.rs`"),
+            source.contains("`components/color-thumb/test/logic.rs`、`components/color-thumb/test/semantics.rs` 与 `components/color-thumb/test/color_thumb/semantics.rs`"),
             "color-thumb check2 should include explicit contract-regression coverage rationale.",
         );
     }

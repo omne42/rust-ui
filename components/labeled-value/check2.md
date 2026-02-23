@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（已核对：`crates/ui-headless/src/labeled_value.rs` 提供 `LabeledValueContract{attrs,handlers,state}` 与 `lang/dir` 接入；`components/labeled-value/src/view.rs` 仅挂载 `use_labeled_value(...)` 输出；回归见 `crates/ui-headless/src/test/labeled_value.rs` 与 `components/labeled-value/tests/labeled_value_semantics.rs`）
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（已核对：`crates/ui-headless/src/labeled_value.rs` 提供 `LabeledValueContract{attrs,handlers,state}` 与 `lang/dir` 接入；`components/labeled-value/src/view.rs` 仅挂载 `use_labeled_value(...)` 输出；回归见 `crates/ui-headless/src/test/labeled_value.rs` 与 `components/labeled-value/tests/semantics.rs`）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -47,12 +47,12 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（已核对：`components/labeled-value/src/logic.rs` 仅做状态归一与样式映射，`components/labeled-value/src/view.rs` 仅结构渲染并挂载 `ui-headless` 语义，`components/labeled-value/src/styles.rs` 为 token-first 样式，`components/labeled-value/src/motion.rs` 仅动效 attach；`components/labeled-value/src/mod.rs` 对外未暴露 `web-sys/DOM` 细节；语义回归位于 `components/labeled-value/tests/labeled_value_semantics.rs`）
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（已核对：`components/labeled-value/src/logic.rs` 仅做状态归一与样式映射，`components/labeled-value/src/view.rs` 仅结构渲染并挂载 `ui-headless` 语义，`components/labeled-value/src/styles.rs` 为 token-first 样式，`components/labeled-value/src/motion.rs` 仅动效 attach；`components/labeled-value/src/mod.rs` 对外未暴露 `web-sys/DOM` 细节；语义回归位于 `components/labeled-value/tests/semantics.rs`）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（N/A 说明：`LabeledValue` 为展示型组件，公开 API 无交互回调与受控状态轴；`components/labeled-value/src/view.rs` 仅暴露 `label/value/description/orientation/tone/aria_label/class_name/lang/dir/motion`，无 `on_*`/`default_*` 漂移命名；事件表在 `components/labeled-value/src/README.md` 标注为 `N/A`）
@@ -107,16 +107,16 @@
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（已核对：`components/labeled-value/src/view.rs` 稳定暴露 `data-orientation/data-tone/data-state/data-has-description/data-*-source` 与 `role/aria-label`；来源区分通过 `custom|default` 封闭集合输出于 `crates/ui-state-primitives/src/labeled_value.rs` + `crates/ui-headless/src/labeled_value.rs`；自动化选择器在 `components/labeled-value/tests/labeled_value_semantics.rs` 基于语义标记断言而非 DOM 结构；`open/expanded/selected` 等状态轴对本组件为 N/A，当前关键状态轴为 orientation/tone/description/source）
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（已核对：`components/labeled-value/src/view.rs` 稳定暴露 `data-orientation/data-tone/data-state/data-has-description/data-*-source` 与 `role/aria-label`；来源区分通过 `custom|default` 封闭集合输出于 `crates/ui-state-primitives/src/labeled_value.rs` + `crates/ui-headless/src/labeled_value.rs`；自动化选择器在 `components/labeled-value/tests/semantics.rs` 基于语义标记断言而非 DOM 结构；`open/expanded/selected` 等状态轴对本组件为 N/A，当前关键状态轴为 orientation/tone/description/source）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（已核对：`components/labeled-value/src/styles.rs` 的状态分支全部基于稳定 class 与 `data-*`（如 `data-orientation/data-tone/data-*-source`），未使用 `:nth-child` 或深层结构猜测；`components/labeled-value/src/view.rs` 无 `style=`/`style:` 业务样式注入；视觉切换由 `data-has-description`、`data-*-source` 等语义标记直接解释；语义/样式契约由 `components/labeled-value/tests/labeled_value_semantics.rs` 固化）
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（已核对：`components/labeled-value/src/styles.rs` 的状态分支全部基于稳定 class 与 `data-*`（如 `data-orientation/data-tone/data-*-source`），未使用 `:nth-child` 或深层结构猜测；`components/labeled-value/src/view.rs` 无 `style=`/`style:` 业务样式注入；视觉切换由 `data-has-description`、`data-*-source` 等语义标记直接解释；语义/样式契约由 `components/labeled-value/tests/semantics.rs` 固化）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（已核对：`components/labeled-value/tests/labeled_value_semantics.rs` 直接断言 `role/aria-*` 与 `data-state/data-*-source` 语义契约，且 `styles` 选择器契约也被语义测试覆盖；仓库内未发现该组件以视觉快照替代语义断言的测试。矩阵适用性说明：`LabeledValue` 无受控/非受控交互轴、无 disabled、无键盘/指针交互路径，上述分支为 N/A；`components/labeled-value/src/motion.rs` 提供 `wasm` 与 `non-wasm` 分支（non-wasm no-op）以覆盖平台差异边界）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（已核对：`components/labeled-value/tests/semantics.rs` 直接断言 `role/aria-*` 与 `data-state/data-*-source` 语义契约，且 `styles` 选择器契约也被语义测试覆盖；仓库内未发现该组件以视觉快照替代语义断言的测试。矩阵适用性说明：`LabeledValue` 无受控/非受控交互轴、无 disabled、无键盘/指针交互路径，上述分支为 N/A；`components/labeled-value/src/motion.rs` 提供 `wasm` 与 `non-wasm` 分支（non-wasm no-op）以覆盖平台差异边界）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -149,7 +149,7 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（已核对：离散状态轴在 `crates/ui-state-primitives/src/labeled_value.rs` 以 `LabeledValueOrientation`/`LabeledValueTone` 枚举建模；无效输入经 `normalize_*` + `resolve_state` 统一归一并由 `components/labeled-value/test/logic.rs` 覆盖；关键状态通过 `components/labeled-value/src/view.rs` 的稳定 `data-orientation/data-tone/data-state/data-*-source` 对外暴露，`components/labeled-value/tests/labeled_value_semantics.rs` 对类型约束、语义标记与契约回归提供可定位断言闭环）
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（已核对：离散状态轴在 `crates/ui-state-primitives/src/labeled_value.rs` 以 `LabeledValueOrientation`/`LabeledValueTone` 枚举建模；无效输入经 `normalize_*` + `resolve_state` 统一归一并由 `components/labeled-value/test/logic.rs` 覆盖；关键状态通过 `components/labeled-value/src/view.rs` 的稳定 `data-orientation/data-tone/data-state/data-*-source` 对外暴露，`components/labeled-value/tests/semantics.rs` 对类型约束、语义标记与契约回归提供可定位断言闭环）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
@@ -243,7 +243,7 @@
 - [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（N/A 说明：`LabeledValue` 不是 LLM 正文阅读/生成组件，`components/labeled-value/src/view.rs` 仅消费一次性完整 props（`label/value/description/...`）进行稳定渲染，不存在 token/chunk 流式输入通道或增量拼接逻辑；因此本组件渲染模式固定为 `fallback=snapshot`。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（已核对：`components/labeled-value/src/view.rs` 仅消费完整 props（`label/value/description/orientation/tone/aria_label/...`）并通过 `logic::normalize_* + resolve_state` 一次性归一后稳定渲染，不依赖流式中间片段；语义输出使用稳定 `role/aria-*` 与 `data-*` 标记，满足“完整生成结果可直接渲染”的 Snapshot 基线。回归证据见 `components/labeled-value/tests/labeled_value_semantics.rs` 对归一化调用与语义挂载的断言。）
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（已核对：`components/labeled-value/src/view.rs` 仅消费完整 props（`label/value/description/orientation/tone/aria_label/...`）并通过 `logic::normalize_* + resolve_state` 一次性归一后稳定渲染，不依赖流式中间片段；语义输出使用稳定 `role/aria-*` 与 `data-*` 标记，满足“完整生成结果可直接渲染”的 Snapshot 基线。回归证据见 `components/labeled-value/tests/semantics.rs` 对归一化调用与语义挂载的断言。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
 - [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（已落实：`LabeledValue` 非正文阅读面，按职责归类为 `Streaming Optional`，组件仅支持 `fallback=snapshot`；`components/labeled-value/src/view.rs` 根节点已输出稳定 `data-output-mode=\"snapshot\"` 与 `data-output-status=\"validated\"`，并保持 `role/aria-*`/`data-*` 连续可读。Agent Contract 侧 `components/labeled-value/src/Component.toml` 同步声明 `output_mode/output_status` 标记；数据校验/断线恢复/重试仍由上层负责，组件层仅负责稳定渲染。）
@@ -255,8 +255,8 @@
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（已落实：`components/labeled-value/src/logic.rs` 的 `compose_class_name` 已改为 `Vec<Cow<'static, str>>`，静态 class token 不再 `.to_string()` 复制；非测试 Rust 源静态扫描 `rg -n "unwrap\\(|expect\\(|let _ =|\\.to_string\\(|\\.to_owned\\(|String::from\\(" components/labeled-value/src -g '*.rs' -g '!**/test/**'` 无命中。脚本执行已尝试：`bash ./scripts/check-rust-hygiene.sh`，当前环境因子脚本执行权限阻塞（`./scripts/check-api-contracts.sh: Permission denied`），该阻塞与本组件代码改动无关。）
 - [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（已核对：`crates/ui/Cargo.toml` 存在 `component-labeled_value = [\"dep:ui-labeled-value\"]`，且 `ui-labeled-value` 为 optional 依赖；`all-components` 特性树包含 `component-labeled_value`。聚合门控正确：`crates/ui/src/lib.rs` 以 `#[cfg(feature = \"component-labeled_value\")] pub use ui_labeled_value as labeled_value;` 导出，`crates/ui/src/css.rs` 以 `#[cfg(feature = \"component-labeled_value\")] out.push_str(crate::labeled_value::styles::CSS);` 注入样式。验证命令：`cargo tree -e features -p ui --no-default-features --features component-labeled_value,inject-css -f '{p} {f}'` 显示根特性为 `component-labeled_value,inject-css` 且拉起 `ui-labeled-value`；`cargo tree -e features -i ui -p web-demo -f '{p} {f}'` 显示 `web-demo` 走 `web-demo-components + inject-css`，未被 `all-components` 隐式拉起。）
-- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（已落实：`components/labeled-value/tests/labeled_value_semantics.rs` 对 `role`/`aria-label` 与 `data-orientation/data-tone/data-state/data-*-source` 做语义断言（非快照）；新增 `labeled_value_focus_flow_is_explicitly_non_interactive`，锁定组件不暴露 `tabindex` 与 `on:focus/on:blur/on:keydown/on:click`，并断言 `crates/ui-headless/src/labeled_value.rs` 保持空 `LabeledValueHandlers`，明确焦点流转在本组件为“非交互 N/A”。性能侧：`LabeledValue` 非高频/重型交互组件（无输入事件处理器、无列表批量更新路径），`render_count` 强制预算按条款适用于高频/重型组件，本组件按适用范围 N/A。）
-- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `LabeledValue` 变更未引入跨大版本 API 破坏升级；协议仍为 `V1`（`components/labeled-value/src/protocol.rs` + `components/labeled-value/src/Component.toml` 的 `schema_version = \"1\"`），公开签名保持兼容（`components/labeled-value/src/labeled_value.rbi`）。已补回归 `components/labeled-value/tests/labeled_value_semantics.rs::labeled_value_version_deprecation_migration_is_na_without_major_breaking_upgrade`，锁定当前不应出现 `migrate_v1_to_v2`/`schema_version = \"2\"`/`contract.v2` 等迁移注册标记。）
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（已落实：`components/labeled-value/tests/semantics.rs` 对 `role`/`aria-label` 与 `data-orientation/data-tone/data-state/data-*-source` 做语义断言（非快照）；新增 `labeled_value_focus_flow_is_explicitly_non_interactive`，锁定组件不暴露 `tabindex` 与 `on:focus/on:blur/on:keydown/on:click`，并断言 `crates/ui-headless/src/labeled_value.rs` 保持空 `LabeledValueHandlers`，明确焦点流转在本组件为“非交互 N/A”。性能侧：`LabeledValue` 非高频/重型交互组件（无输入事件处理器、无列表批量更新路径），`render_count` 强制预算按条款适用于高频/重型组件，本组件按适用范围 N/A。）
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `LabeledValue` 变更未引入跨大版本 API 破坏升级；协议仍为 `V1`（`components/labeled-value/src/protocol.rs` + `components/labeled-value/src/Component.toml` 的 `schema_version = \"1\"`），公开签名保持兼容（`components/labeled-value/src/labeled_value.rbi`）。已补回归 `components/labeled-value/tests/semantics.rs::labeled_value_version_deprecation_migration_is_na_without_major_breaking_upgrade`，锁定当前不应出现 `migrate_v1_to_v2`/`schema_version = \"2\"`/`contract.v2` 等迁移注册标记。）
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（已落实：`apps/docs-app/src/pages/components/pages/display_extra.rs` 的 `labeled_value()` 新增 `Hello World (Default API)`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Source-first Starter (Copy-Paste Ready)` Playground；其中受控/非受控按组件性质标注 N/A（`LabeledValue` 无可控状态轴），流式按职责标注 `optional + fallback=snapshot` 并在页面输出 `data-output-mode/data-output-status` 说明。`Playground` 统一走 `code_imports=labeled_value_imports.clone()`，复制链路由 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补全 imports，满足 Source-first 一键复制。）
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。

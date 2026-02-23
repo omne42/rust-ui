@@ -319,7 +319,7 @@
    - 组件目录补齐标准文件：`crates/ui/src/color/slider/motion.rs`。
    - 新增新手文档入口：`crates/ui/src/color/slider/README.md`（Hello World + 受控示例 + API 约定 + source-first 路径）。
 6. 回归测试更新：
-   - `components/color-slider/test/color_slider_semantics.rs` 新增/更新：
+   - `components/color-slider/test/color_semantics.rs` 新增/更新：
      - `color_slider_feature_dependencies_are_self_contained`
      - `color_slider_readme_is_copy_paste_ready`
      - 语义标记断言补齐（`data-control-mode` + `data-ui-*`）。

@@ -10,10 +10,7 @@ fn load_source(path: &str) -> &'static str {
         "component_toml" => include_str!("../src/Component.toml"),
         "rbi" => include_str!("../src/checkbox.rbi"),
         "readme" => include_str!("../src/README.md"),
-        "docs_forms" => source_contract::source_from_file_relative(
-            file!(),
-            "../../../apps/docs-app/src/pages/components/pages/forms.rs",
-        ),
+        "docs_forms" => docs_forms_source(),
         "primitive" => include_str!("../../../crates/ui-state-primitives/src/checkbox.rs"),
         "headless_checkbox" => include_str!("../../../crates/ui-headless/src/checkbox.rs"),
         "ui_headless_lib" => include_str!("../../../crates/ui-headless/src/lib.rs"),
@@ -53,6 +50,25 @@ fn load_source(path: &str) -> &'static str {
         "test_semantics" => include_str!("semantics.rs"),
         _ => panic!("unsupported source path: {path}"),
     }
+}
+
+fn docs_forms_source() -> &'static str {
+    static DOCS: std::sync::LazyLock<&'static str> = std::sync::LazyLock::new(|| {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms.rs",
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms/checkbox.rs",
+        );
+        let compat = child.replace(
+            "pub(crate) fn checkbox() -> AnyView {",
+            "pub(super) fn checkbox() -> AnyView {",
+        );
+        Box::leak(format!("{parent}\n{compat}").into_boxed_str())
+    });
+    *DOCS
 }
 
 #[test]
@@ -2322,10 +2338,7 @@ fn checkbox_static_fragments_are_constantized_with_stable_semantics_locally() {
 fn checkbox_inner_html_usage_is_forbidden_in_component_and_docs_examples_locally() {
     let check2_source = include_str!("../check2.md");
     let script_source = include_str!("../../../scripts/check-ui-inner-html.sh");
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/forms.rs",
-    );
+    let docs_source = docs_forms_source();
 
     for (rel_path, source) in [
         ("mod", load_source("mod")),

@@ -205,7 +205,7 @@ fn drop_zone_component_files_follow_mod_logic_styles_view_motion_responsibilitie
     for required in [
         "- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。",
         "职责证据：`mod.rs` 仅导出 `DropZone/DroppedFile/DropZoneMotion`；`logic.rs` 仅保留归一化与状态派生（不含 DOM 文件采集）；`styles.rs` 仅导出 token-first 静态 CSS；`view.rs` 负责结构与 headless 语义挂载并承载平台事件适配；`motion.rs` 仅做语义到动效 contract 的 attach。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_component_files_follow_mod_logic_styles_view_motion_responsibilities`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_component_files_follow_mod_logic_styles_view_motion_responsibilities`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_component_files_follow_mod_logic_styles_view_motion_responsibilities`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_component_files_follow_mod_logic_styles_view_motion_responsibilities`。",
     ] {
         assert!(
             check2.contains(required),
@@ -230,7 +230,7 @@ fn drop_zone_spec_rs_is_not_introduced_for_simple_component() {
         "- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。",
         "N/A 说明：`DropZone` 为简单交互容器组件，当前无稳定外部 Schema 契约与复杂配置固化需求，不引入 `spec.rs`。",
         "边界证据：组件目录保持 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 五文件职责拆分，`mod.rs` 未声明 `mod spec;`，目录中不存在 `src/spec.rs`。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_spec_rs_is_not_introduced_for_simple_component`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_spec_rs_is_not_introduced_for_simple_component`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_spec_rs_is_not_introduced_for_simple_component`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_spec_rs_is_not_introduced_for_simple_component`。",
     ] {
         assert!(
             check2.contains(required),
@@ -430,7 +430,7 @@ fn drop_zone_component_directory_standard_files_follow_contract_and_na_paths() {
         "导出边界证据：`mod.rs` 仅导出 `DropZone/DroppedFile/DropZoneMotion`，未出现 `pub mod logic/view` 过度导出。",
         "职责证据：`logic.rs` 仅做 props 归一化与状态派生；`styles.rs` 仅承载 token-first 静态 CSS；`view.rs` 仅做 Leptos 结构渲染 + headless 语义挂载；`motion.rs` 仅做 `DropZoneMotion + attach_motion` 映射。",
         "spec N/A 证据：`components/drop-zone/src/spec.rs` 不存在，`mod.rs` 未声明 `mod spec;`；简单组件不引入 spec。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_component_directory_standard_files_follow_contract_and_na_paths`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_component_directory_standard_files_follow_contract_and_na_paths`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_component_directory_standard_files_follow_contract_and_na_paths`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_component_directory_standard_files_follow_contract_and_na_paths`。",
         "门禁证据：`scripts/check-ui-component-files.sh` 新增 `drop_zone_component_directory_standard_files_follow_contract_and_na_paths` 命令，阻断目录落点回归。",
     ] {
         assert!(
@@ -493,7 +493,7 @@ fn drop_zone_hyper_structure_builder_spec_is_not_applicable_for_simple_component
         "- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。",
         "适用性结论：N/A（`drop-zone` 为简单文件交互容器，不属于复杂 schema/builder 组件；不引入 `*Spec::new()...render()`，避免抽象噪音）。",
         "已落实（N/A 证据）：`components/drop-zone/src/spec.rs` 不存在；`components/drop-zone/src/mod.rs` 未声明 `mod spec;` 且公共导出未暴露 `DropZoneSpec`。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_hyper_structure_builder_spec_is_not_applicable_for_simple_component`、`components/drop-zone/test/semantics.rs::drop_zone_hyper_structure_builder_check_script_covers_na_contract`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_hyper_structure_builder_spec_is_not_applicable_for_simple_component`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_hyper_structure_builder_check_script_covers_na_contract`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_hyper_structure_builder_spec_is_not_applicable_for_simple_component`、`components/drop-zone/test/semantics.rs::drop_zone_hyper_structure_builder_check_script_covers_na_contract`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_hyper_structure_builder_spec_is_not_applicable_for_simple_component`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_hyper_structure_builder_check_script_covers_na_contract`。",
     ] {
         assert!(
             check2.contains(required),
@@ -573,7 +573,7 @@ fn drop_zone_context_compression_manifest_and_rbi_projection_are_present_and_cur
     for required in [
         "- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。",
         "已落实（工件落点）：`components/drop-zone/src/Component.toml` 与 `components/drop-zone/src/drop_zone.rbi` 已新增并纳入组件目录，避免 AI 检索使用过时接口上下文。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_context_compression_manifest_and_rbi_projection_are_present_and_current`、`components/drop-zone/test/semantics.rs::drop_zone_component_files_check_script_covers_context_compression_manifest_contract`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_context_compression_manifest_and_rbi_projection_are_present_and_current`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_component_files_check_script_covers_context_compression_manifest_contract`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_context_compression_manifest_and_rbi_projection_are_present_and_current`、`components/drop-zone/test/semantics.rs::drop_zone_component_files_check_script_covers_context_compression_manifest_contract`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_context_compression_manifest_and_rbi_projection_are_present_and_current`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_component_files_check_script_covers_context_compression_manifest_contract`。",
     ] {
         assert!(
             check2.contains(required),
@@ -1184,7 +1184,7 @@ fn drop_zone_ssr_and_cross_platform_compile_paths_are_cfg_gated_and_non_wasm_saf
         "compile-only 命令矩阵：`cargo check -p ui-drop-zone`（default 本地 native）、`cargo check -p ui --no-default-features --features component-drop_zone,inject-css`（ssr native）、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-drop_zone,inject-css`（web wasm32）。",
         "平台分支证据：`components/drop-zone/src/view.rs` 的 `collect_files_from_drag_event/collect_files_from_clipboard_event` 与 `components/drop-zone/src/motion.rs` 的 `attach_motion` 均通过 `#[cfg(target_arch = \"wasm32\")]` / `#[cfg(not(target_arch = \"wasm32\"))]` 显式分支管理。",
         "non-wasm 安全证据：`view.rs` non-wasm 分支仅返回 `Vec::new()`；`motion.rs` non-wasm 分支仅执行 `std::hint::black_box(sanitize_motion(motion))` no-op，不引用 `web-sys`/`window`/`document` 浏览器对象。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ssr_and_cross_platform_compile_paths_are_cfg_gated_and_non_wasm_safe`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_ssr_and_cross_platform_compile_paths_are_cfg_gated_and_non_wasm_safe`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ssr_and_cross_platform_compile_paths_are_cfg_gated_and_non_wasm_safe`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_ssr_and_cross_platform_compile_paths_are_cfg_gated_and_non_wasm_safe`。",
     ] {
         assert!(
             check2.contains(required),
@@ -1224,7 +1224,7 @@ fn drop_zone_ui_headless_web_ssr_feature_mutex_contract_is_preserved() {
         "互斥保护证据：`crates/ui-headless/src/lib.rs` 顶部存在 `#[cfg(all(feature = \"web\", feature = \"ssr\"))] compile_error!(\"features `web` and `ssr` are mutually exclusive; enable exactly one\");`，同时启用 web+ssr 会在编译期硬失败。",
         "组件依赖边界证据：`components/drop-zone/Cargo.toml` 通过 `ui-headless = { path = \"../../crates/ui-headless\" }` 接入，不在组件层追加会导致“双 feature 同时开启”的覆盖配置，未破坏互斥契约。",
         "compile-only 验证矩阵：`cargo check -p ui-headless --no-default-features --features web`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui-headless --no-default-features --features web,ssr`（预期触发 `compile_error!`）。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ui_headless_web_ssr_feature_mutex_contract_is_preserved`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_ui_headless_web_ssr_feature_mutex_contract_is_preserved`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ui_headless_web_ssr_feature_mutex_contract_is_preserved`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_ui_headless_web_ssr_feature_mutex_contract_is_preserved`。",
     ] {
         assert!(
             check2.contains(required),
@@ -1283,7 +1283,7 @@ fn drop_zone_ui_motion_non_wasm_noop_stub_keeps_ssr_tooling_compilable() {
         "no-op/stub 证据：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = \"wasm32\"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(...) {}` 空实现，并有 `non_wasm_web_backend_is_predictable_noop` 测试锁定可预测行为。",
         "组件降级证据：`components/drop-zone/src/motion.rs` 的 `#[cfg(not(target_arch = \"wasm32\"))] attach_motion` 仅执行 `std::hint::black_box(sanitize_motion(motion))`，不创建 `SpringAnimator`、不触发 DOM/WAAPI 调用，不会因动画句柄缺失而 panic。",
         "compile-only 验证矩阵：`cargo check -p ui-motion`（native toolchain）、`cargo check -p ui --no-default-features --features component-drop_zone,inject-css`（SSR/tooling 路径）、`cargo check -p ui-motion --target wasm32-unknown-unknown`（wasm 分支）。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ui_motion_non_wasm_noop_stub_keeps_ssr_tooling_compilable`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_ui_motion_non_wasm_noop_stub_keeps_ssr_tooling_compilable`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ui_motion_non_wasm_noop_stub_keeps_ssr_tooling_compilable`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_ui_motion_non_wasm_noop_stub_keeps_ssr_tooling_compilable`。",
     ] {
         assert!(
             check2.contains(required),
@@ -1359,7 +1359,7 @@ fn drop_zone_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
         "reduced-motion 证据：`components/drop-zone/src/motion.rs` 的 wasm `attach_motion` 在 `ui_motion::web::prefers_reduced_motion()` 为真时直接走降级路径，仅同步写入 `--ui-drop-zone-scale/--ui-drop-zone-highlight` 目标值并 `return`，跳过 `SpringAnimator` 驱动。",
         "SSR/hydration 兼容证据：`components/drop-zone/src/view.rs` 的关键语义标记（`data-drag-phase/data-drop-target/data-disabled/aria-disabled`）不依赖 wasm 专属分支；non-wasm 的 `collect_files_from_*` 返回稳定空集合，保证 SSR 首帧语义与 hydration 后契约一致。",
         "wasm 增强且不分裂证据：wasm 分支仅增强交互采集与动效执行（`collect_files_from_data_transfer`、spring attach）；语义状态源仍统一来自 `logic.rs` 派生与同一组 `data-*`/`aria-*` 输出，不引入独立 wasm 语义协议。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`。",
     ] {
         assert!(
             check2.contains(required),
@@ -1734,7 +1734,7 @@ fn drop_zone_async_semantics_are_not_applicable_without_async_state_axis() {
     for required in [
         "- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。",
         "N/A 说明：`DropZone` 无远程请求与异步状态轴；组件仅处理同步 drag/paste 事件并通过 `on_drop_files` 回调上报结果，不涉及 `is_loading`/`aria-busy`/retry 协议。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_async_semantics_are_not_applicable_without_async_state_axis`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_async_semantics_are_not_applicable_without_async_state_axis`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_async_semantics_are_not_applicable_without_async_state_axis`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_async_semantics_are_not_applicable_without_async_state_axis`。",
     ] {
         assert!(
             check2.contains(required),
@@ -1854,7 +1854,7 @@ fn drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canva
         "热样式路径证据：`apps/docs-app/src/playground.rs` 通过 `test_css_source + compose_scoped_css` 提供 scoped CSS 热编辑反馈，常见样式调整无需完整 wasm 重编译。",
         "Workbench 证据：`apps/docs-app/src/pages/components/pages/files.rs::drop_zone` 新增 `Workbench（展示 + Config + Code + CSS Test）`，并提供 `data-slot=\"drop-zone-workbench-canvas\"` 隔离画布。",
         "上下文保留证据：workbench 提供 `Persist workbench state` 开关；`load/save/clear_drop_zone_workbench_state` 在 wasm32 持久化 `is_disabled/custom_motion`，non-wasm 下安全 no-op。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/drop-zone/test/semantics.rs::drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canvas`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canvas`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/drop-zone/test/semantics.rs::drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canvas`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_dx_workbench_supports_optional_state_persistence_and_isolated_canvas`。",
         "门禁证据：`scripts/check-ui-dx.sh` 新增 drop-zone DX 合同命令，阻断热重载/隔离画布/可选状态保留回归。",
     ] {
         assert!(
@@ -2737,7 +2737,7 @@ fn drop_zone_engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
 
     for required in [
         "async/runtime 边界：`DropZone` 无 async runtime 依赖；公共 API 仅暴露 `DropZone/DroppedFile/DropZoneMotion` 与 `Callback<Vec<DroppedFile>>`，未泄露 `tokio/async-std/runtime handle` 类型。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::{drop_zone_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope,drop_zone_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events,drop_zone_engineering_contract_avoids_runtime_leaks_in_public_api_surface}`、`components/drop-zone/test/drop_zone_semantics.rs::{drop_zone_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope,drop_zone_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events,drop_zone_engineering_contract_avoids_runtime_leaks_in_public_api_surface}`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::{drop_zone_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope,drop_zone_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events,drop_zone_engineering_contract_avoids_runtime_leaks_in_public_api_surface}`、`components/drop-zone/test/drop_zone/semantics.rs::{drop_zone_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope,drop_zone_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events,drop_zone_engineering_contract_avoids_runtime_leaks_in_public_api_surface}`。",
     ] {
         assert!(
             check2.contains(required),
@@ -3225,7 +3225,7 @@ fn drop_zone_focus_stack_global_gc_is_not_applicable_without_layered_overlay() {
         "N/A 说明：`DropZone` 非层叠 `Overlay` 组件，不存在“打开/关闭 Overlay 后焦点恢复”链路，因此不适用全局 Focus Stack 恢复策略约束。",
         "边界证据：`components/drop-zone/src/view.rs` 未接入 `Overlay`/`on_close`/`on_exit_complete`/`FallbackTo`/`Selector`，也未实现 `document.body` 回退路径。",
         "NodeRef 使用边界：`zone_ref` 与 `focus_button_ref` 仅用于本地拖拽区域动效 attach 与焦点代理按钮（click/paste/focus），不作为 Overlay 关闭后的恢复目标句柄。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_focus_stack_global_gc_is_not_applicable_without_layered_overlay`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_focus_stack_global_gc_is_not_applicable_without_layered_overlay`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_focus_stack_global_gc_is_not_applicable_without_layered_overlay`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_focus_stack_global_gc_is_not_applicable_without_layered_overlay`。",
     ] {
         assert!(
             check2.contains(required),
@@ -3287,7 +3287,7 @@ fn drop_zone_escape_hatches_foreign_zone_is_not_applicable_without_third_party_i
         "N/A 说明：`DropZone` 未集成 ECharts/Map 等命令式第三方实例，不存在 `Foreign Zone` 生命周期托管需求（`YieldControl/CleanupForeign` 不适用）。",
         "边界证据：`components/drop-zone/src/mod.rs` 仅导出 `DropZone/DroppedFile/DropZoneMotion`；`logic.rs/view.rs/motion.rs` 未出现 `YieldControl`、`CleanupForeign`、`ECharts`、`Mapbox`、`Leaflet`、`google.maps` 等命令式第三方接入协议。",
         "API 安全边界：公共 API 未暴露第三方实例句柄（无 `pub use` 第三方 runtime type）；`components/drop-zone/Cargo.toml` 仅依赖 Leptos 与仓库内 `ui-*` crates。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_escape_hatches_foreign_zone_is_not_applicable_without_third_party_imperative_instances`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_escape_hatches_foreign_zone_is_not_applicable_without_third_party_imperative_instances`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_escape_hatches_foreign_zone_is_not_applicable_without_third_party_imperative_instances`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_escape_hatches_foreign_zone_is_not_applicable_without_third_party_imperative_instances`。",
     ] {
         assert!(
             check2.contains(required),
@@ -3353,7 +3353,7 @@ fn drop_zone_hydration_discontinuity_is_not_applicable_without_runtime_id_genera
         "边界证据：`components/drop-zone/src/logic.rs`、`view.rs`、`motion.rs` 未出现 `now()`、`Date::now`、`uuid`、`random`、`create_unique_id` 等非确定性 ID 生成逻辑。",
         "当前实现证据：组件语义通过稳定 `data-*` 与 `aria-*` 标记表达状态（如 `data-drag-phase`、`data-drop-target`、`data-disabled-source`），未依赖运行时拼接 ID。",
         "升级约束：若未来新增 `aria-labelledby/aria-describedby` 等动态 ID 需求，必须接入 `ui-headless::id_provider`（`provide_ui_id_provider/use_ui_id_provider`）并以确定性 seed 保证 SSR/Hydration 一致。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_hydration_discontinuity_is_not_applicable_without_runtime_id_generation`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_hydration_discontinuity_is_not_applicable_without_runtime_id_generation`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_hydration_discontinuity_is_not_applicable_without_runtime_id_generation`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_hydration_discontinuity_is_not_applicable_without_runtime_id_generation`。",
     ] {
         assert!(
             check2.contains(required),
@@ -3583,7 +3583,7 @@ fn drop_zone_token_first_static_styles_are_aggregated_and_do_not_use_utility_or_
         "聚合链路证据：`components/drop-zone/src/styles.rs` 以 `pub const CSS` 导出静态样式；`crates/ui/src/css.rs` 在 `#[cfg(feature = \"component-drop_zone\")]` 下聚合 `crate::drop_zone::styles::CSS`；`crates/ui/src/root.rs` 通过 `inject_components_css` 调用 `crate::css::push_components_css(&mut out)` 注入到 `UiRoot`。",
         "token-first 证据：`drop-zone` 的颜色/间距/圆角/阴影与尺寸均使用 `var(--ui-*)`（含 `var(--ui-drop-zone-*, var(--ui-fallback-drop-zone-*))` 回退链），未引入组件私有平行 token 体系。",
         "运行时与范式边界：`components/drop-zone/src/view.rs` 无业务 `style=` 内联样式；组件未引入 Utility-First class 协议或 CSS-in-Rust `style!`/运行时样式 DSL 作为默认实现。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_token_first_static_styles_are_aggregated_and_do_not_use_utility_or_css_in_rust_defaults`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_token_first_static_styles_are_aggregated_and_do_not_use_utility_or_css_in_rust_defaults`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_token_first_static_styles_are_aggregated_and_do_not_use_utility_or_css_in_rust_defaults`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_token_first_static_styles_are_aggregated_and_do_not_use_utility_or_css_in_rust_defaults`。",
     ] {
         assert!(
             check2.contains(required),
@@ -3664,7 +3664,7 @@ fn drop_zone_styles_use_defensive_variable_fallback_chain() {
         "- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。",
         "回退链证据：`components/drop-zone/src/styles.rs` 的颜色/间距/圆角/阴影/焦点均升级为双层回退链（如 `var(--ui-fg, var(--ui-fallback-fg))`、`var(--ui-space-lg, var(--ui-fallback-space-lg))`、`var(--ui-drop-zone-border-width, var(--ui-fallback-drop-zone-border-width))`）。",
         "SSOT 证据：fallback 终值统一来自 `crates/ui-theme/src/css.rs`（`--ui-fallback-*` 与 `--ui-fallback-drop-zone-*`），组件层不自带终值常量。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_styles_use_defensive_variable_fallback_chain`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_styles_use_defensive_variable_fallback_chain`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_styles_use_defensive_variable_fallback_chain`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_styles_use_defensive_variable_fallback_chain`。",
         "门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `drop_zone_styles_use_defensive_variable_fallback_chain` 命令，防止回退链回归。",
     ] {
         assert!(
@@ -3715,7 +3715,7 @@ fn drop_zone_cascade_layer_and_runtime_style_contract_is_enforced() {
         "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
         "聚合层证据：`crates/ui/src/css.rs` 通过 `out.push_str(\"\\n@layer ui {\\n\"); ... out.push_str(crate::drop_zone::styles::CSS); ... out.push_str(\"\\n}\\n\");` 将 `drop-zone` CSS 聚合在 `@layer ui` 内。",
         "运行时数值策略（DropZone N/A）：`components/drop-zone/src/view.rs` 当前无运行时数值内联样式路径（无 `style=`/`style:`），因此不存在 `style=\"top: ...\"` 一类普通内联样式；若未来新增动态数值，仅允许 `style:--ui-*` 自定义变量透传。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_cascade_layer_and_runtime_style_contract_is_enforced`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_cascade_layer_and_runtime_style_contract_is_enforced`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_cascade_layer_and_runtime_style_contract_is_enforced`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_cascade_layer_and_runtime_style_contract_is_enforced`。",
         "门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `drop_zone_cascade_layer_and_runtime_style_contract_is_enforced` 命令，阻断 `@layer ui` 边界和 inline style 约束回归。",
     ] {
         assert!(
@@ -3788,7 +3788,7 @@ fn drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non
         "Contract 证据：`components/drop-zone/src/motion.rs::DropZoneMotion` 内置 `spring/hover_scale/drop_scale/hover_highlight`，`Default` 从 `ui_theme::default_drop_zone_motion_tokens()` 映射 `stiffness/damping/mass/precision`，并经 `sanitize_motion` 统一归一。",
         "挂载证据：`components/drop-zone/src/view.rs` 通过 `motion::attach_motion(zone_ref, hover.is_hovered, is_drop_target, focus_ring.is_focused, is_disabled, motion)` 执行组件语义到动效 contract 的绑定。",
         "reduced-motion + non-wasm 证据：wasm `attach_motion` 在 `ui_motion::web::prefers_reduced_motion()` 为真时只同步写 `--ui-drop-zone-scale/--ui-drop-zone-highlight` 并 `return`；`#[cfg(not(target_arch = \"wasm32\"))] attach_motion` 仅 `std::hint::black_box(sanitize_motion(motion))` no-op，SSR/tooling 可预测降级。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop`。",
         "门禁证据：`scripts/check-ui-contract-hygiene.sh` 新增 `drop_zone_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop` 命令，阻断 motion contract / reduced-motion / non-wasm no-op 回归。",
     ] {
         assert!(
@@ -3933,7 +3933,7 @@ fn drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries() {
         "Root 入口证据：`crates/ui/src/root.rs::UiRoot` 统一执行 `provide_ui_i18n` / `provide_ui_id_provider` 与 base css + theme vars +（可选）components css 注入，主题与注入策略集中不下沉到组件层。",
         "共享原语落点证据：`crates/ui-visual-primitive/src/active_highlight.rs` 仅提供通用高亮样式与 motion driver（`ActiveHighlightMotion` + `attach_active_highlight_motion`），不承载 DropZone/业务语义。",
         "禁止文件证据：`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 均不存在；对应原语固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries`。",
         "门禁证据：`scripts/check-ui-entrypoints.sh` 新增 `drop_zone_ui_components_fixed_entry_files_follow_layered_boundaries` 命令，阻断入口落点与禁止文件回归。",
     ] {
         assert!(
@@ -3996,7 +3996,7 @@ fn drop_zone_semantics_contract_tests_are_primary_and_not_snapshot_only() {
     for required in [
         "- [x] 测试验证“语义契约”而不只验证视觉快照。",
         "矩阵覆盖：`受控/非受控` 轴对 `DropZone` 标注 N/A（无持久可控状态轴），`disabled` 由 `data-disabled/aria-disabled/data-disabled-source` 断言覆盖，键盘路径由隐藏 button + focus ring + paste 契约覆盖，指针路径由 drag/hover/drop 语义断言覆盖，SSR/wasm 差异由 `collect_files_from_*` 的 `cfg(target_arch = \"wasm32\")` / `cfg(not(target_arch = \"wasm32\"))` 分支断言覆盖。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_semantics_contract_tests_are_primary_and_not_snapshot_only`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_semantics_contract_tests_are_primary_and_not_snapshot_only`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_semantics_contract_tests_are_primary_and_not_snapshot_only`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_semantics_contract_tests_are_primary_and_not_snapshot_only`。",
     ] {
         assert!(
             check2.contains(required),
@@ -4010,7 +4010,7 @@ fn drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_
  {
     let view = load_source("view");
     let local_semantics = include_str!("../test/semantics.rs");
-    let semantics = include_str!("../../../components/drop-zone/test/drop_zone_semantics.rs");
+    let semantics = include_str!("../../../components/drop-zone/test/drop_zone/semantics.rs");
     let perf_script = include_str!("../../../scripts/check-ui-performance.sh");
 
     for needle in [
@@ -4089,7 +4089,7 @@ fn drop_zone_check2_marks_semantic_test_priority_item_complete() {
 
     for required in [
         "components/drop-zone/test/semantics.rs::drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
-        "components/drop-zone/test/drop_zone_semantics.rs::drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "components/drop-zone/test/drop_zone/semantics.rs::drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "drop_zone_performance_script_covers_semantic_test_priority_contract",
         "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
@@ -4214,8 +4214,8 @@ fn drop_zone_check2_marks_e2e_selector_stability_item_complete() {
     for required in [
         "components/drop-zone/test/semantics.rs::drop_zone_check2_documents_e2e_selector_and_stable_wait_rules",
         "components/drop-zone/test/semantics.rs::drop_zone_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
-        "components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_e2e_selector_and_stable_wait_rules",
-        "components/drop-zone/test/drop_zone_semantics.rs::drop_zone_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
+        "components/drop-zone/test/drop_zone/semantics.rs::drop_zone_check2_documents_e2e_selector_and_stable_wait_rules",
+        "components/drop-zone/test/drop_zone/semantics.rs::drop_zone_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "e2e/tests/docs_app_drop_zone_contract.spec.mjs",
         "components/drop-zone/scripts/check-ui-e2e-drop-zone.sh",
         "Invalid cross-device link (os error 18)",
@@ -4298,9 +4298,9 @@ fn drop_zone_check2_marks_e2e_repeatable_key_flow_item_complete() {
         "components/drop-zone/test/semantics.rs::drop_zone_check2_documents_e2e_repeatable_key_flow_rules",
         "components/drop-zone/test/semantics.rs::drop_zone_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "components/drop-zone/test/semantics.rs::drop_zone_check2_marks_e2e_repeatable_key_flow_item_complete",
-        "components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_documents_e2e_repeatable_key_flow_rules",
-        "components/drop-zone/test/drop_zone_semantics.rs::drop_zone_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "components/drop-zone/test/drop_zone_semantics.rs::drop_zone_check2_marks_e2e_repeatable_key_flow_item_complete",
+        "components/drop-zone/test/drop_zone/semantics.rs::drop_zone_check2_documents_e2e_repeatable_key_flow_rules",
+        "components/drop-zone/test/drop_zone/semantics.rs::drop_zone_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "components/drop-zone/test/drop_zone/semantics.rs::drop_zone_check2_marks_e2e_repeatable_key_flow_item_complete",
         "components/drop-zone/scripts/check-ui-e2e-drop-zone.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -4370,7 +4370,7 @@ fn drop_zone_visual_desire_baseline_is_documented_and_backed_by_theme_visual_reg
         "全局视觉基线证据：`apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs` 提供 `theme-visual-baseline` 页面，覆盖 `Button/Input/Overlay` 默认主题层级与对比说明。",
         "截图回归证据：`e2e/tests/docs_app_theme_visual_baseline.spec.mjs` 对 `data-slot=\"theme-visual-baseline\"`、`theme-visual-baseline-button`、`theme-visual-baseline-input`、`theme-visual-baseline-overlay` 执行 `toHaveScreenshot`，用于阻断默认主题视觉退化。",
         "对标边界：遵循 `HeroUI` 的视觉语言与体验质量对齐目标，不复制其 API 表层；`DropZone` 保持本仓库统一命名与语义契约。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_visual_desire_baseline_is_documented_and_backed_by_theme_visual_regression`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_visual_desire_baseline_is_documented_and_backed_by_theme_visual_regression`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_visual_desire_baseline_is_documented_and_backed_by_theme_visual_regression`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_visual_desire_baseline_is_documented_and_backed_by_theme_visual_regression`。",
     ] {
         assert!(
             check2.contains(required),
@@ -4643,7 +4643,7 @@ fn drop_zone_view_macro_complexity_is_split_into_semantic_subviews() {
         "语义拆分证据：`components/drop-zone/src/view.rs` 将 label 与 zone 内部内容拆为 `render_label_slot`、`render_zone_content` 两个局部渲染函数，主 `DropZone` 仅保留容器装配与语义挂载。",
         "宏展开控制证据：`view.rs` 中 `view!` 拆分为“根容器 + label 子块 + zone content 子块”，不再由单个巨型 `view!` 同时承载深层嵌套结构与所有子节点。",
         "排障约束：若后续出现编译时间或 wasm 产物体积异常增长，优先排查 `view!` 体量与局部子块是否退化为单块拼装。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_view_macro_complexity_is_split_into_semantic_subviews`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_view_macro_complexity_is_split_into_semantic_subviews`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_view_macro_complexity_is_split_into_semantic_subviews`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_view_macro_complexity_is_split_into_semantic_subviews`。",
     ] {
         assert!(
             check2.contains(required),
@@ -4701,7 +4701,7 @@ fn drop_zone_functional_split_prefers_plain_view_functions_over_extra_components
         "函数化证据：`components/drop-zone/src/view.rs` 使用 `render_label_slot` 与 `render_zone_content` 两个普通函数承载轻逻辑 UI 片段，返回 `impl IntoView`，未把局部片段升格为独立组件。",
         "组件边界证据：`view.rs` 仅保留一个 `#[component]`（`DropZone`），避免“所有局部片段都变组件”的抽象噪音。",
         "语义稳定证据：拆分后关键语义标记仍挂载在主渲染路径（`data-slot=\"drop-zone-label\"`、`data-slot=\"drop-zone-zone\"`、`aria-*`/`data-*`），测试定位不依赖 DOM 偶然结构。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_functional_split_prefers_plain_view_functions_over_extra_components`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_functional_split_prefers_plain_view_functions_over_extra_components`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_functional_split_prefers_plain_view_functions_over_extra_components`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_functional_split_prefers_plain_view_functions_over_extra_components`。",
     ] {
         assert!(
             check2.contains(required),
@@ -4748,7 +4748,7 @@ fn drop_zone_static_fragments_are_templateized_and_large_static_assets_are_not_a
         "模板化证据：`components/drop-zone/src/view.rs` 通过 `render_zone_content` 集中承载静态按钮结构（`type/class/data-slot/aria-label`），避免在多个 `view!` 片段重复构造同一静态子树。",
         "A11y 语义保持：静态片段模板化后仍保留 `role=\"group\"`、`aria-label`、`aria-disabled` 等可访问标记，未因拆分丢失语义契约。",
         "变更路径清晰：静态片段入口集中在 `view.rs` 的 `render_label_slot`/`render_zone_content`，后续静态结构调整无需跨多处 `view!` 搜索替换。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_static_fragments_are_templateized_and_large_static_assets_are_not_applicable`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_static_fragments_are_templateized_and_large_static_assets_are_not_applicable`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_static_fragments_are_templateized_and_large_static_assets_are_not_applicable`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_static_fragments_are_templateized_and_large_static_assets_are_not_applicable`。",
     ] {
         assert!(
             check2.contains(required),
@@ -4790,7 +4790,7 @@ fn drop_zone_inner_html_contract_disallows_untrusted_html_injection() {
         "安全证据：组件对外输入仅通过类型化 props 与事件回调流转（`label/aria_label/on_drop_files`），未将用户输入或远端文本拼接为 HTML 字符串再注入 DOM。",
         "语义保持：可访问语义通过显式属性挂载（`role=\"group\"`、`aria-label`、`aria-disabled`），未依赖 `inner_html` 注入语义节点。",
         "升级约束：若未来确需 `inner_html`，仅允许编译期静态常量或白名单模板，并必须补充语义与安全回归测试后再启用。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_inner_html_contract_disallows_untrusted_html_injection`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_inner_html_contract_disallows_untrusted_html_injection`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_inner_html_contract_disallows_untrusted_html_injection`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_inner_html_contract_disallows_untrusted_html_injection`。",
     ] {
         assert!(
             check2.contains(required),
@@ -4880,7 +4880,7 @@ fn drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated(
         "可视化入口证据：`apps/docs-app/src/lib.rs` 在开发模式 `cfg!(debug_assertions)` 下启用 `UiDebugOverlay`，提供 `Inspect + Events` 面板用于 wasm 调试可视化。",
         "隔离证据：`provide_ui_trace(debug_overlay_enabled)` 仅在开发模式启用；`emit_drop_zone_debug_note` 在 `#[cfg(all(target_arch = \"wasm32\", debug_assertions))]` 下才真正写入事件，默认产物与公共 API 不暴露调试开关。",
         "门禁证据：`scripts/check-ui-wasm-debug.sh` 新增 `drop-zone` 调试契约测试命令，确保约束可回归。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。",
     ] {
         assert!(
             check2.contains(required),
@@ -4980,7 +4980,7 @@ fn drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_chec
         "特性树实测：执行 `cargo tree -e features -i ui -p ui --no-default-features --features component-drop_zone,inject-css` 输出仅含 `feature \"component-drop_zone\" (command-line)` 与 `feature \"inject-css\" (command-line)`，未出现 `all-components`。",
         "反向依赖实测：执行 `cargo tree -e features -i ui -p web-demo` 输出包含 `feature \"web-demo-components\"`、`feature \"component-drop_zone\"` 与 `feature \"inject-css\"`，未出现 `all-components`。",
         "CI 证据：`.github/workflows/ci.yml` 已调用 `./scripts/check-ui-tree-shaking.sh`；脚本包含最小特性 wasm 编译检查（`cargo check ... --no-default-features --features component-accordion,inject-css`）与 release 产物预算检查（读取 `scripts/tree_shaking_budget.env` 的 `TREE_SHAKING_BASELINE_RLIB_BYTES` / `TREE_SHAKING_MAX_RATIO_PERCENT`，并阻断超预算）。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks`。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_tree_shaking_contract_uses_feature_gated_exports_and_ci_budget_checks`。",
     ] {
         assert!(
             check2.contains(required),
@@ -5062,8 +5062,8 @@ fn drop_zone_type_system_and_semantic_markers_form_machine_readable_contract() {
         "类型约束证据：`components/drop-zone/src/logic.rs` 使用 `DisabledInput/DisabledSource/MotionSource/AriaLabelSource/DragLifecyclePhase` 等闭集 `enum` 建模关键状态轴；来源值统一通过 `as_attr()` 输出，避免自由字符串协议。",
         "归一化证据：`components/drop-zone/src/logic.rs::classify_disabled_input`、`resolve_is_disabled`、`resolve_aria_label_source`、`resolve_props` 将输入先归一化再派生为 `DropZoneResolvedProps`，无效组合不在 `view.rs` 分散处理。",
         "语义标记证据：`components/drop-zone/src/view.rs` 挂载稳定标记 `data-drag-phase/data-drop-target/data-disabled/data-disabled-source/data-motion-source/data-aria-source` 与 `aria-label/aria-disabled`，机器可直接检索关键状态和来源。",
-        "闭环证据：类型约束由编译期签名锁定（`enum` + typed props），语义契约由测试回归锁定（`components/drop-zone/test/semantics.rs` 与 `components/drop-zone/test/drop_zone_semantics.rs`）。",
-        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_type_system_and_semantic_markers_form_machine_readable_contract`、`components/drop-zone/test/drop_zone_semantics.rs::drop_zone_type_system_and_semantic_markers_form_machine_readable_contract`。",
+        "闭环证据：类型约束由编译期签名锁定（`enum` + typed props），语义契约由测试回归锁定（`components/drop-zone/test/semantics.rs` 与 `components/drop-zone/test/drop_zone/semantics.rs`）。",
+        "回归覆盖：`components/drop-zone/test/semantics.rs::drop_zone_type_system_and_semantic_markers_form_machine_readable_contract`、`components/drop-zone/test/drop_zone/semantics.rs::drop_zone_type_system_and_semantic_markers_form_machine_readable_contract`。",
     ] {
         assert!(
             check2.contains(required),

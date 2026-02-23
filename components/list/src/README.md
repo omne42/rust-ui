@@ -166,7 +166,7 @@ view! { <List id_base="list-hello".to_string() items=items aria_label="Settings 
 
 ## Testing Contract
 
-- 模块/文档契约测试：`components/list/test/list_module_semantics.rs`
+- 模块/文档契约测试：`components/list/test/list_module/semantics.rs`
 - docs 页面示例：`apps/docs-app/src/pages/components/pages/collections.rs`、`apps/docs-app/src/pages/components/pages/collections_extra.rs`
 - 组件页 E2E 覆盖：`e2e/tests/docs_app_components_coverage.spec.mjs`
 

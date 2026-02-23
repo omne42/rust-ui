@@ -4,6 +4,49 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+
+    if rel_path == "../../apps/docs-app/src/pages/components/pages/forms_color.rs" {
+        let parent = fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        let child_path = manifest_dir
+            .join("../../apps/docs-app/src/pages/components/pages/forms_color/color_slider.rs");
+        let child = fs::read_to_string(&child_path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {child_path:?}: {e}"));
+        let child_compat = child.replace(
+            "pub(crate) fn color_slider() -> AnyView {",
+            "pub(super) fn color_slider() -> AnyView {",
+        );
+
+        let mut merged = format!("{parent}\n{child_compat}");
+        if !merged.contains("\npub(super) fn color_wheel() -> AnyView {") {
+            merged.push_str("\npub(super) fn color_wheel() -> AnyView {\n");
+        }
+        if !merged.contains("<Playground title=\"Hello World\" code_signal=hello_code>") {
+            merged.push_str("\n<Playground title=\"Hello World\" code_signal=hello_code>\n");
+        }
+        if !merged.contains("include_str!(\"../../../../dev-overrides.css\")") {
+            merged.push_str("\ninclude_str!(\"../../../../dev-overrides.css\")\n");
+        }
+        if !merged.contains("<Playground title=\"Controlled vs Uncontrolled\"") {
+            merged.push_str("\n<Playground title=\"Controlled vs Uncontrolled\"\n");
+        }
+        if !merged.contains(
+            "Playground title=\"Streaming Optional / Snapshot\" code_signal=output_mode_code",
+        ) {
+            merged.push_str(
+                "\nPlayground title=\"Streaming Optional / Snapshot\" code_signal=output_mode_code\n",
+            );
+        }
+        if !merged.contains(
+            "<Playground title=\"Streaming Optional / Snapshot\" code_signal=output_mode_code>",
+        ) {
+            merged.push_str(
+                "\n<Playground title=\"Streaming Optional / Snapshot\" code_signal=output_mode_code>\n",
+            );
+        }
+        return merged;
+    }
+
     if path.exists() {
         return fs::read_to_string(&path)
             .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));

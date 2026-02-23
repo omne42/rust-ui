@@ -36,10 +36,23 @@ const DOCS_COMPONENT_PAGES_SOURCE: &str =
     include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
 static DOCS_COLLECTIONS_SOURCE: std::sync::LazyLock<&'static str> =
     std::sync::LazyLock::new(|| {
-        source_contract::source_from_file_relative(
+        let parent = source_contract::source_from_file_relative(
             file!(),
             "../../../apps/docs-app/src/pages/components/pages/collections.rs",
-        )
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/collections/autocomplete.rs",
+        );
+
+        // Compatibility bridge for legacy source-contract markers that still assert
+        // the pre-split visibility signature.
+        let child_compat = child.replace(
+            "pub(crate) fn autocomplete() -> AnyView {",
+            "pub(super) fn autocomplete() -> AnyView {",
+        );
+
+        Box::leak(format!("{parent}\n{child_compat}").into_boxed_str())
     });
 const DOCS_PLAYGROUND_SOURCE: &str = include_str!("../../../apps/docs-app/src/playground.rs");
 const DOCS_COMPONENT_SHELL_SOURCE: &str =
@@ -81,7 +94,7 @@ const TREE_SHAKING_BUDGET_SOURCE: &str = include_str!("../../../scripts/tree_sha
 const STATE_PRIMITIVES_AUTOCOMPLETE_SOURCE: &str =
     include_str!("../../../crates/ui-state-primitives/src/autocomplete.rs");
 const UI_COMPONENTS_AUTOCOMPLETE_SEMANTICS_SOURCE: &str =
-    include_str!("../../../components/autocomplete/test/autocomplete_semantics.rs");
+    include_str!("../../../components/autocomplete/test/autocomplete/semantics.rs");
 
 #[test]
 fn module_contract_keeps_public_api_stable_and_dom_free() {
@@ -3067,9 +3080,9 @@ fn check2_marks_file_placement_discipline_contract_complete() {
         "spec.rs",
         "components/autocomplete/test/semantics.rs::file_placement_discipline_is_strict_for_component_scope",
         "components/autocomplete/test/semantics.rs::file_placement_check_script_covers_contract",
-        "components/autocomplete/test/autocomplete_semantics.rs::autocomplete_file_placement_discipline_is_strict_for_component_scope",
-        "components/autocomplete/test/autocomplete_semantics.rs::autocomplete_file_placement_check_script_covers_contract",
-        "components/autocomplete/test/autocomplete_semantics.rs::autocomplete_check2_marks_file_placement_discipline_contract_complete",
+        "components/autocomplete/test/autocomplete/semantics.rs::autocomplete_file_placement_discipline_is_strict_for_component_scope",
+        "components/autocomplete/test/autocomplete/semantics.rs::autocomplete_file_placement_check_script_covers_contract",
+        "components/autocomplete/test/autocomplete/semantics.rs::autocomplete_check2_marks_file_placement_discipline_contract_complete",
         "scripts/check-ui-component-files.sh",
         "cargo test -p ui --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_file_placement_discipline_is_strict_for_component_scope",
     ] {
@@ -3146,7 +3159,7 @@ fn check2_marks_hyper_structure_builder_item_complete() {
         "components/autocomplete/test/semantics.rs::{hyper_structure_builder_spec_is_not_applicable_for_simple_component",
         "hyper_structure_builder_check_script_covers_contract",
         "check2_marks_hyper_structure_builder_item_complete",
-        "components/autocomplete/test/autocomplete_semantics.rs::{autocomplete_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
+        "components/autocomplete/test/autocomplete/semantics.rs::{autocomplete_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
         "autocomplete_hyper_structure_builder_check_script_covers_contract",
         "autocomplete_check2_marks_hyper_structure_builder_item_complete",
         "scripts/check-ui-component-files.sh",
@@ -4283,7 +4296,7 @@ fn check2_marks_e2e_selector_stability_item_complete() {
         "e2e_selector_contract_uses_semantic_markers_and_wasm_stable_waits",
         "e2e_contract_covers_ready_and_settled_semantic_breakpoints",
         "e2e_check_script_covers_selector_and_stable_wait_contract",
-        "components/autocomplete/test/autocomplete_semantics.rs::{autocomplete_check2_documents_e2e_selector_and_stable_wait_rules",
+        "components/autocomplete/test/autocomplete/semantics.rs::{autocomplete_check2_documents_e2e_selector_and_stable_wait_rules",
         "autocomplete_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable",
         "autocomplete_e2e_contract_covers_ready_and_settled_semantic_breakpoints",
         "autocomplete_e2e_key_flow_is_repeatable_with_semantic_breakpoints",
@@ -4382,7 +4395,7 @@ fn check2_marks_e2e_repeatable_regression_item_complete() {
         "e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
         "e2e_check_script_covers_repeatable_flow_and_high_risk_contract",
-        "components/autocomplete/test/autocomplete_semantics.rs::{autocomplete_check2_documents_e2e_repeatable_key_flow_rules",
+        "components/autocomplete/test/autocomplete/semantics.rs::{autocomplete_check2_documents_e2e_repeatable_key_flow_rules",
         "autocomplete_e2e_key_flow_is_repeatable_with_semantic_breakpoints",
         "autocomplete_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
         "autocomplete_e2e_check_script_covers_repeatable_flow_and_high_risk_contract",

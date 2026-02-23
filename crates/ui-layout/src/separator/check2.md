@@ -112,7 +112,7 @@
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（`separator_semantics.rs` 以 `role/aria/data-state/data-state-source` 契约断言为主（如 `separator_emits_baseline_style_state_data_attributes`、`separator_state_markers_are_observable_searchable_and_enumerated`、`separator_a11y_i18n_l10n_contract_is_headless_backed_and_locale_ready`）；测试矩阵按适用范围覆盖：N/A：`Separator` 无可控状态轴，不存在受控/非受控与 disabled 交互分支；N/A：`Separator` 非交互原语，无 keyboard/pointer 路径；SSR/wasm 差异由 `separator_motion_stays_ui_motion_driven_and_semantic_free` 约束 `cfg(wasm32/non-wasm)`。无 snapshot 断言依赖。回归：`separator_semantics_checks_prioritize_contract_over_snapshots`。）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`separator/semantics.rs` 以 `role/aria/data-state/data-state-source` 契约断言为主（如 `separator_emits_baseline_style_state_data_attributes`、`separator_state_markers_are_observable_searchable_and_enumerated`、`separator_a11y_i18n_l10n_contract_is_headless_backed_and_locale_ready`）；测试矩阵按适用范围覆盖：N/A：`Separator` 无可控状态轴，不存在受控/非受控与 disabled 交互分支；N/A：`Separator` 非交互原语，无 keyboard/pointer 路径；SSR/wasm 差异由 `separator_motion_stays_ui_motion_driven_and_semantic_free` 约束 `cfg(wasm32/non-wasm)`。无 snapshot 断言依赖。回归：`separator_semantics_checks_prioritize_contract_over_snapshots`。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -240,7 +240,7 @@
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试与文档（验证闭环）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`separator_semantics.rs` 已覆盖关键语义轴与来源字段：`data-state/data-state-source/data-ui-schema/data-ui-intent/data-ui-action/data-output-mode/data-streaming-fallback/data-output-status + role/aria-*`；快照断言被显式禁止。回归：`separator_semantics_checks_prioritize_contract_over_snapshots`、`separator_agent_contract_schema_is_typed_and_traceable`、`separator_streaming_scope_is_snapshot_only_and_machine_readable`。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`separator/semantics.rs` 已覆盖关键语义轴与来源字段：`data-state/data-state-source/data-ui-schema/data-ui-intent/data-ui-action/data-output-mode/data-streaming-fallback/data-output-status + role/aria-*`；快照断言被显式禁止。回归：`separator_semantics_checks_prioritize_contract_over_snapshots`、`separator_agent_contract_schema_is_typed_and_traceable`、`separator_streaming_scope_is_snapshot_only_and_machine_readable`。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
@@ -306,4 +306,4 @@
 - [x] 暴露必要语义标记。（证据：`separator_emits_baseline_style_state_data_attributes` + `separator_streaming_scope_is_snapshot_only_and_machine_readable`。）
 - [x] 覆盖 reduced-motion / SSR / wasm 分支。（证据：`separator_reduced_motion_ssr_wasm_contract_is_preserved`、`separator_ui_motion_non_wasm_stub_contract_is_preserved`。）
 - [x] 文档与示例同步更新。（证据：`separator_docs_page_covers_primary_playgrounds` + `separator_docs_playgrounds_lock_state_matrix_contract_values`。）
-- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（按 `separator` 负责范围逐项实测通过：`rustfmt crates/ui-layout/tests/separator_semantics.rs`、`cargo test -p ui-layout --test separator_semantics --no-default-features --features component-separator,inject-css`、`cargo clippy -p ui-layout --test separator_semantics --no-default-features --features component-separator,inject-css -- -D warnings`、`bash scripts/check-ui-layout-e2e-separator.sh`。）
+- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（按 `separator` 负责范围逐项实测通过：`rustfmt crates/ui-layout/tests/separator/semantics.rs`、`cargo test -p ui-layout --test separator_semantics --no-default-features --features component-separator,inject-css`、`cargo clippy -p ui-layout --test separator_semantics --no-default-features --features component-separator,inject-css -- -D warnings`、`bash scripts/check-ui-layout-e2e-separator.sh`。）

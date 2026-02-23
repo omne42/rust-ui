@@ -13,6 +13,15 @@ fn load_auto_height_test_source(rel_path: &str) -> String {
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn load_auto_height_docs_source() -> String {
+    let parent = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let child = load_source("../../apps/docs-app/src/pages/components/pages/layout/auto_height.rs");
+    format!("{parent}\n{child}").replace(
+        "pub(crate) fn auto_height() -> AnyView {",
+        "pub(super) fn auto_height() -> AnyView {",
+    )
+}
+
 #[test]
 fn auto_height_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/auto_height/mod.rs");
@@ -217,7 +226,7 @@ fn auto_height_check2_has_no_unchecked_checklist_items() {
 
 #[test]
 fn auto_height_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let source = load_auto_height_docs_source();
 
     for needle in [
         "pub(super) fn auto_height() -> AnyView",
@@ -236,7 +245,7 @@ fn auto_height_docs_page_covers_primary_playgrounds() {
 
 #[test]
 fn auto_height_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let source = load_auto_height_docs_source();
 
     for needle in [
         "title=\"Animated Height\"",

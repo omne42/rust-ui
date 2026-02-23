@@ -112,7 +112,7 @@
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（`components/tree/test/tree_semantics.rs` 覆盖状态原语来源、headless 挂载、受控/非受控、来源标记、跨平台约束与 feature gate；未依赖视觉快照作为唯一证据。）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`components/tree/test/semantics.rs` 覆盖状态原语来源、headless 挂载、受控/非受控、来源标记、跨平台约束与 feature gate；未依赖视觉快照作为唯一证据。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。

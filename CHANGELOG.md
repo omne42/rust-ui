@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `workspace` (**breaking**): completes `crates/ui-components` 拆分迁移收尾（组件语义测试统一落位到 `components/*/test(s)`、`*_semantics.rs` 收敛为 `semantics.rs`、docs-app 组件页拆分为父页+子页目录结构），并通过语义测试 source-loader 合成适配保持 source-contract 断言稳定，最终全量通过 `cargo fmt --all`、`./scripts/check.sh` 与 `cargo test --workspace`。
+
 - `ui-test-support` + `docs-app` + `scripts`: adds shared source-contract loader utilities (`ui_test_support::source_contract`) for component/docs tests, removes per-test `#[path = ...]` source-loader coupling, blocks non-test/check `include_str!/include_bytes!` reads of `.rs` files via `scripts/check-rs-source-include.sh` (wired into rust-hygiene), and replaces runtime docs source coupling in `forms_extra` with exported component CSS constants.
 
 - `ui-popover` + `ui-autocomplete` + `ui-hover-card` + `ui-preview-card` + `ui-preview-link-card` + `ui-disclosure` + `scripts`: converges popover-family motion defaults to shared popover motion contracts, aligns disclosure/accordion motion defaults to `ui-theme` tokens, adds `scripts/check-motion-default-hardcode.sh` with baseline allowlist, and wires the check into rust-hygiene to block future hardcoded motion-default drift.

@@ -9,6 +9,13 @@ fn docs_page_module_path(module: &str) -> PathBuf {
         .join(format!("{module}.rs"))
 }
 
+fn docs_page_submodule_path(module: &str, submodule: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("src/pages/components/pages")
+        .join(module)
+        .join(format!("{submodule}.rs"))
+}
+
 fn component_pages_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("src/pages/components/pages")
 }
@@ -48,29 +55,63 @@ fn read_file(path: &Path) -> String {
     source_contract::source_from_path(path)
 }
 
-fn slice_fn_block<'a>(source: &'a str, fn_name: &str) -> &'a str {
+fn slice_fn_block_opt<'a>(source: &'a str, fn_name: &str) -> Option<&'a str> {
     let patterns = [
+        format!("pub(crate) fn {fn_name}("),
         format!("pub(super) fn {fn_name}("),
         format!("pub fn {fn_name}("),
     ];
-    let start = patterns
-        .iter()
-        .find_map(|pattern| source.find(pattern))
-        .unwrap_or_else(|| panic!("missing function `{fn_name}`"));
+    let start = patterns.iter().find_map(|pattern| source.find(pattern))?;
 
     let after_start = &source[start + 1..];
+    let next_pub_crate = after_start
+        .find("\npub(crate) fn ")
+        .map(|pos| start + 1 + pos);
     let next_pub_super = after_start
         .find("\npub(super) fn ")
         .map(|pos| start + 1 + pos);
     let next_pub = after_start.find("\npub fn ").map(|pos| start + 1 + pos);
-    let end = match (next_pub_super, next_pub) {
-        (Some(a), Some(b)) => a.min(b),
-        (Some(a), None) => a,
-        (None, Some(b)) => b,
-        (None, None) => source.len(),
-    };
 
-    &source[start..end]
+    let end = [next_pub_crate, next_pub_super, next_pub]
+        .into_iter()
+        .flatten()
+        .min()
+        .unwrap_or(source.len());
+
+    Some(&source[start..end])
+}
+
+fn extract_reexport_submodule(source: &str, fn_name: &str) -> Option<String> {
+    for line in source.lines() {
+        let trimmed = line.trim().trim_end_matches(';');
+        let Some(rest) = trimmed.strip_prefix("pub(super) use ") else {
+            continue;
+        };
+        let Some((submodule, target)) = rest.split_once("::") else {
+            continue;
+        };
+        if target.trim() == fn_name {
+            return Some(submodule.trim().to_string());
+        }
+    }
+
+    None
+}
+
+fn load_fn_block(module: &str, fn_name: &str) -> String {
+    let module_source = read_file(&docs_page_module_path(module));
+    if let Some(block) = slice_fn_block_opt(&module_source, fn_name) {
+        return block.to_string();
+    }
+
+    if let Some(submodule) = extract_reexport_submodule(&module_source, fn_name) {
+        let sub_source = read_file(&docs_page_submodule_path(module, &submodule));
+        if let Some(block) = slice_fn_block_opt(&sub_source, fn_name) {
+            return block.to_string();
+        }
+    }
+
+    panic!("missing function `{module}::{fn_name}`");
 }
 
 fn slice_between<'a>(source: &'a str, start_marker: &str, end_marker: &str) -> &'a str {
@@ -151,8 +192,7 @@ fn assert_props_covered(
 
 #[test]
 fn accordion_playground_standard_is_enforced() {
-    let docs_source = read_file(&docs_page_module_path("collections"));
-    let accordion_block = slice_fn_block(&docs_source, "accordion");
+    let accordion_block = load_fn_block("collections", "accordion");
 
     for marker in [
         "title=\"Hello World (Uncontrolled)\"",
@@ -170,12 +210,12 @@ fn accordion_playground_standard_is_enforced() {
     }
 
     let workbench_config_block = slice_between(
-        accordion_block,
+        &accordion_block,
         "let workbench_actual_config = Signal::derive(move || {",
         "let item_api_code = Signal::derive(move || {",
     );
     let item_api_config_block = slice_between(
-        accordion_block,
+        &accordion_block,
         "let item_api_actual_config = Signal::derive(move || {",
         "view! {",
     );

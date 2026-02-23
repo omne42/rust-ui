@@ -14,12 +14,36 @@ fn load_source(path: &str) -> &'static str {
         "src/logic.rs" => include_str!("../src/logic.rs"),
         "src/view.rs" => include_str!("../src/view.rs"),
         "src/styles.rs" => include_str!("../src/styles.rs"),
-        "docs_display" => source_contract::source_from_file_relative(
-            file!(),
-            "../../../apps/docs-app/src/pages/components/pages/display.rs",
-        ),
+        "docs_display" => docs_display_source(),
         _ => panic!("unsupported source path: {path}"),
     }
+}
+
+fn docs_display_source() -> &'static str {
+    static DOCS: std::sync::LazyLock<&'static str> = std::sync::LazyLock::new(|| {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display.rs",
+        );
+        let circular = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display/circular_progress.rs",
+        );
+        let spinner = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display/spinner.rs",
+        );
+        let circular_compat = circular.replace(
+            "pub(crate) fn circular_progress() -> AnyView {",
+            "pub(super) fn circular_progress() -> AnyView {",
+        );
+        let spinner_compat = spinner.replace(
+            "pub(crate) fn spinner() -> AnyView {",
+            "pub(super) fn spinner() -> AnyView {",
+        );
+        Box::leak(format!("{parent}\n{circular_compat}\n{spinner_compat}").into_boxed_str())
+    });
+    *DOCS
 }
 
 #[test]
@@ -1089,7 +1113,7 @@ fn circular_progress_semantic_test_priority_prefers_data_aria_role_and_source_co
     let view = load_source("view");
     let local_semantics = include_str!("semantics.rs");
     let workspace_semantics =
-        include_str!("../../../components/circular-progress/test/circular_progress_semantics.rs");
+        include_str!("../../../components/circular-progress/test/circular_progress/semantics.rs");
     let perf_script = include_str!("../../../scripts/check-ui-performance.sh");
     let check2 = load_source("check2");
 
@@ -1808,7 +1832,7 @@ fn circular_progress_tree_shaking_feature_pruning_contract_is_gated_in_lib_css_a
         "CircularProgress checklist should mark tree-shaking feature-pruning item complete.",
     );
     assert!(
-        check2.contains("components/circular-progress/test/circular_progress_semantics.rs::circular_progress_check2_marks_tree_shaking_feature_pruning_contract_complete"),
+        check2.contains("components/circular-progress/test/circular_progress/semantics.rs::circular_progress_check2_marks_tree_shaking_feature_pruning_contract_complete"),
         "check2 should reference the ui tree-shaking feature-pruning regression test.",
     );
 }
@@ -2398,7 +2422,7 @@ fn circular_progress_semantics_and_performance_regression_cover_aria_data_focus_
     let view = load_source("view");
     let local_semantics = include_str!("semantics.rs");
     let aggregated_semantics =
-        include_str!("../../../components/circular-progress/test/circular_progress_semantics.rs");
+        include_str!("../../../components/circular-progress/test/circular_progress/semantics.rs");
     let focus_trap = include_str!("../../../crates/ui-headless/src/focus_trap.rs");
     let todo = include_str!("../../../docs/plan/TODO.md");
     let script = include_str!("../../../scripts/check-ui-performance.sh");

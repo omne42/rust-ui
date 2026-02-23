@@ -52,7 +52,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`CheckboxGroup` 公共布尔 props 已统一为 `is_invalid/is_required/is_disabled`：`components/checkbox-group/src/view.rs`、`components/checkbox-group/src/Component.toml`、`components/checkbox-group/src/checkbox_group.rbi` 同步；docs 示例与代码字符串同步到 `apps/docs-app/src/pages/components/pages/forms.rs`。兼容策略：本次按组件 API 规范执行破坏性收敛，不保留旧别名 `invalid/required/disabled`；迁移路径为机械替换 `invalid -> is_invalid`、`required -> is_required`、`disabled -> is_disabled`，并由 `components/checkbox-group/test/semantics.rs` 的命名契约断言锁定。）

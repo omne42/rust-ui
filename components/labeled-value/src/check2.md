@@ -306,4 +306,4 @@
 - [x] 暴露必要语义标记。
 - [x] 覆盖 reduced-motion / SSR / wasm 分支。
 - [x] 文档与示例同步更新。
-- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（本次执行：`cargo test -p ui-state-primitives labeled_value --lib`、`cargo test -p ui-headless labeled_value --lib`、`cargo test -p ui-labeled-value --test labeled_value_semantics`、`cargo check -p ui-labeled-value`、`cargo check -p ui-labeled-value --target wasm32-unknown-unknown`；语义回归文件：`components/labeled-value/tests/labeled_value_semantics.rs`）
+- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（本次执行：`cargo test -p ui-state-primitives labeled_value --lib`、`cargo test -p ui-headless labeled_value --lib`、`cargo test -p ui-labeled-value --test labeled_value_semantics`、`cargo check -p ui-labeled-value`、`cargo check -p ui-labeled-value --target wasm32-unknown-unknown`；语义回归文件：`components/labeled-value/tests/semantics.rs`）

@@ -64,7 +64,7 @@
   - 成本边界：每次 `set/update` 仍会执行状态转移与切片重算；大状态或高频路径必须拆分 `Signal`/状态域，避免把 clone 成本当作恒定可忽略。
   - 反模式禁止：`view.rs` 只做挂载与消费切片，禁止重新实现状态机分支或复制 `logic.rs` 判定规则。
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
-  - `MotionRipple` 布尔输入统一为 `is_bounded: Option<bool>`，docs 示例同步迁移到 `is_bounded=false`；回归锁定：`components/ripple/test/ripple_semantics.rs::ripple_api_naming_and_control_contract_are_explicit`。
+  - `MotionRipple` 布尔输入统一为 `is_bounded: Option<bool>`，docs 示例同步迁移到 `is_bounded=false`；回归锁定：`components/ripple/test/semantics.rs::ripple_api_naming_and_control_contract_are_explicit`。
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
@@ -130,7 +130,7 @@
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
 - [x] 测试验证“语义契约”而不只验证视觉快照。
-  - `components/ripple/test/ripple_semantics.rs` 已覆盖状态源标记、API 命名、docs 契约、motion contract；未使用视觉快照替代语义断言。
+  - `components/ripple/test/semantics.rs` 已覆盖状态源标记、API 命名、docs 契约、motion contract；未使用视觉快照替代语义断言。
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -155,7 +155,7 @@
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 证据：默认主题基线页面与视觉回归已存在并可索引：`apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs` + `e2e/tests/docs_app_theme_visual_baseline.spec.mjs`（覆盖 page/button/input/overlay 四张截图基线）。
   - 证据：`MotionRipple` 视觉参数与文档对标已同步到 `docs/spec/heroui-parameter-design-strategy.md::MotionRipple 同步记录（2026-02-17）`；参数保持 `is_bounded/motion/class_name/lang/dir`。
-  - 证据：`components/ripple/test/ripple_semantics.rs::ripple_visual_desire_reuses_default_theme_baseline_and_visual_regression_gates` 锁定 visual baseline + HeroUI 对标契约。
+  - 证据：`components/ripple/test/semantics.rs::ripple_visual_desire_reuses_default_theme_baseline_and_visual_regression_gates` 锁定 visual baseline + HeroUI 对标契约。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
@@ -165,7 +165,7 @@
   - 证据（反向依赖）：`cargo tree -e features -i ui -p web-demo` 路径经 `web-demo-components`，未出现 `all-components`。
   - 证据（最小特性编译）：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-ripple,inject-css --offline` 通过。
   - 证据（体积预算）：`cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features component-ripple,inject-css --offline` 后 `libui_components-*.rlib` = `1,031,206` bytes，预算上限 `3,806,222` bytes（`scripts/tree_shaking_budget.env`）内，通过。
-  - 证据：`components/ripple/test/ripple_semantics.rs::ripple_tree_shaking_keeps_component_feature_and_css_boundaries` 锁定 feature gate + CSS 聚合边界 + 脚本/预算文件契约。
+  - 证据：`components/ripple/test/semantics.rs::ripple_tree_shaking_keeps_component_feature_and_css_boundaries` 锁定 feature gate + CSS 聚合边界 + 脚本/预算文件契约。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -208,7 +208,7 @@
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
   - 证据：全库预算探针已接入（`apps/docs-app/src/pages/components/shell.rs::component_page_perf_budget` + `apps/docs-app/src/perf_probe.rs::UiPerfProbe`），并由 `e2e/tests/docs_app_components_coverage.spec.mjs` 断言 `data-perf-*` 契约。
   - 证据：ripple 路径提供可重复等价证据：`e2e/tests/docs_app_ripple_contract.spec.mjs` 使用 `getAnimations().length` settled 断点 + reload 重放链路；`view.rs` 暴露 `data-state/data-boundary/data-motion-source/data-class-source/data-duration-ms` 用于归因。
-  - 证据：`docs/plan/TODO.md` 保留 `render_count` 自动化 follow-up；`components/ripple/test/ripple_semantics.rs::ripple_performance_governance_budget_is_defined_and_blocking` 锁定预算/探针/等价证据契约。
+  - 证据：`docs/plan/TODO.md` 保留 `render_count` 自动化 follow-up；`components/ripple/test/semantics.rs::ripple_performance_governance_budget_is_defined_and_blocking` 锁定预算/探针/等价证据契约。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
@@ -231,21 +231,21 @@
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
 - [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
-  - 证据：`rg -n "inner_html" crates/ui/src/ripple components/ripple/test/ripple_semantics.rs apps/docs-app/src/pages/components/pages/display.rs` 仅命中 `check2.md` 文档本身，ripple 实现无 `inner_html` 使用。
+  - 证据：`rg -n "inner_html" crates/ui/src/ripple components/ripple/test/semantics.rs apps/docs-app/src/pages/components/pages/display.rs` 仅命中 `check2.md` 文档本身，ripple 实现无 `inner_html` 使用。
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
 - [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
   - 证据：开发可视化入口复用全局调试覆盖层：`apps/docs-app/src/lib.rs` 通过 `debug_assertions` 启用 `provide_ui_trace` 并挂载 `UiDebugOverlay`；事件时间线来自 `apps/docs-app/src/debug_overlay.rs` + `crates/ui-headless/src/trace.rs`。
   - 证据：ripple 关键交互可回放由 `e2e/tests/docs_app_ripple_contract.spec.mjs::docs-app ripple key flow is repeatable with semantic breakpoints` 覆盖（focus -> Enter -> 语义断点 -> reload 重放）。
-  - 证据：ripple 未新增 `ripple-wasm-debug` 或 debug props，保持 feature 隔离与产物不污染；`components/ripple/test/ripple_semantics.rs::ripple_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated` 锁定。
+  - 证据：ripple 未新增 `ripple-wasm-debug` 或 debug props，保持 feature 隔离与产物不污染；`components/ripple/test/semantics.rs::ripple_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated` 锁定。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
 - [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
   - 证据：`apps/docs-app/src/playground.rs` 统一提供 scoped CSS 热编辑（无需重编 wasm）；`motion_ripple` 文档通过 `Playground` 提供隔离预览画布与交互上下文。
   - 证据：ripple 为轻交互演示面，`optional persist` 判定 N/A（不引入本地存储状态机）；交互上下文保留由 NodeRef + trigger handlers + e2e 重放链路保证。
-  - 证据：`components/ripple/test/ripple_semantics.rs::ripple_dx_playground_supports_css_hot_reload_without_wasm_rebuild` 与 `ripple_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na` 锁定 DX 契约。
+  - 证据：`components/ripple/test/semantics.rs::ripple_dx_playground_supports_css_hot_reload_without_wasm_rebuild` 与 `ripple_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na` 锁定 DX 契约。
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
@@ -276,7 +276,7 @@
 
 ### 6. AI 原生能力（Agent Contract + 流式）
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
-  - 证据：`MotionRipple` 输出 `data-ui-schema="ripple.v1"`，并配套稳定 `data-*` 状态来源标记；`components/ripple/test/ripple_semantics.rs::ripple_emits_baseline_style_state_data_attributes` 已断言。
+  - 证据：`MotionRipple` 输出 `data-ui-schema="ripple.v1"`，并配套稳定 `data-*` 状态来源标记；`components/ripple/test/semantics.rs::ripple_emits_baseline_style_state_data_attributes` 已断言。
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
@@ -322,7 +322,7 @@
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
 - [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
-  - 证据：`display.rs::motion_ripple()` 首屏提供 `Playground title="Hello World"`（默认路径），其后才是 `Animation Matrix` 与 `Custom Boundary + Class` 进阶示例；顺序由 `components/ripple/test/ripple_semantics.rs::ripple_docs_default_path_is_before_advanced_examples` 锁定。
+  - 证据：`display.rs::motion_ripple()` 首屏提供 `Playground title="Hello World"`（默认路径），其后才是 `Animation Matrix` 与 `Custom Boundary + Class` 进阶示例；顺序由 `components/ripple/test/semantics.rs::ripple_docs_default_path_is_before_advanced_examples` 锁定。
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
@@ -385,7 +385,7 @@
 - [x] 覆盖 reduced-motion / SSR / wasm 分支。
 - [x] 文档与示例同步更新。
 - [x] 门禁完整通过（fmt/clippy/test/smoke 等）。
-  - 证据（fmt）：`$HOME/.cargo/bin/rustfmt --edition 2024 --check components/ripple/test/ripple_semantics.rs` 通过。
+  - 证据（fmt）：`$HOME/.cargo/bin/rustfmt --edition 2024 --check components/ripple/test/semantics.rs` 通过。
   - 证据（clippy）：`$HOME/.cargo/bin/cargo clippy -p ui --no-deps --no-default-features --features component-ripple,inject-css --test ripple_semantics -- -D warnings` 通过。
   - 证据（test）：`$HOME/.cargo/bin/cargo test -p ui --test ripple_semantics --no-default-features --features component-ripple,inject-css --offline` 通过（15/15）。
   - 证据（smoke + e2e）：手工 smoke（docs-app 启动 + Playwright screenshot）通过，且 `cd e2e && E2E_BASE_URL=http://127.0.0.1:4173 npx playwright test tests/docs_app_ripple_contract.spec.mjs --project=chromium` 通过（3/3）。

@@ -1,3 +1,5 @@
+use std::sync::OnceLock;
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "view" => include_str!("../src/view.rs"),
@@ -10,10 +12,32 @@ fn load_source(path: &str) -> &'static str {
 }
 
 fn load_docs_forms_page() -> String {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../apps/docs-app/src/pages/components/pages/forms.rs");
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|err| panic!("failed to read docs forms page {}: {err}", path.display()))
+    static SOURCE: OnceLock<String> = OnceLock::new();
+    SOURCE
+        .get_or_init(|| {
+            let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+            let parent_path =
+                manifest_dir.join("../../apps/docs-app/src/pages/components/pages/forms.rs");
+            let child_path =
+                manifest_dir.join("../../apps/docs-app/src/pages/components/pages/forms/form.rs");
+            let parent = std::fs::read_to_string(&parent_path).unwrap_or_else(|err| {
+                panic!(
+                    "failed to read docs forms parent page {}: {err}",
+                    parent_path.display()
+                )
+            });
+            let child = std::fs::read_to_string(&child_path).unwrap_or_else(|err| {
+                panic!(
+                    "failed to read docs forms child page {}: {err}",
+                    child_path.display()
+                )
+            });
+            format!("{parent}\n\n{child}").replace(
+                "pub(crate) fn form() -> AnyView {",
+                "pub(super) fn form() -> AnyView {",
+            )
+        })
+        .clone()
 }
 
 fn load_ui_components_source(path: &str) -> String {

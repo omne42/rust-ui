@@ -16,6 +16,19 @@ fn resolve_workspace_dir(manifest_dir: &Path) -> PathBuf {
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let workspace_dir = resolve_workspace_dir(manifest_dir);
+    if rel_path == "../../apps/docs-app/src/pages/components/pages/display.rs" {
+        let parent_path = workspace_dir.join("apps/docs-app/src/pages/components/pages/display.rs");
+        let child_path =
+            workspace_dir.join("apps/docs-app/src/pages/components/pages/display/progress_bar.rs");
+        let parent = fs::read_to_string(&parent_path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {parent_path:?}: {e}"));
+        let child = fs::read_to_string(&child_path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {child_path:?}: {e}"));
+        return format!("{parent}\n{child}").replace(
+            "pub(crate) fn progress_bar() -> AnyView {",
+            "pub(super) fn progress_bar() -> AnyView {",
+        );
+    }
     let path = if let Some(suffix) = rel_path.strip_prefix("src/bar/") {
         manifest_dir.join("src/bar").join(suffix)
     } else if let Some(suffix) = rel_path.strip_prefix("../../") {

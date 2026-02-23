@@ -1,10 +1,36 @@
 use std::fs;
 use std::path::Path;
+use std::sync::OnceLock;
 
 fn load_source(rel_path: &str) -> String {
+    if rel_path == "../../apps/docs-app/src/pages/components/pages/display.rs" {
+        return docs_display_source().to_string();
+    }
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+fn docs_display_source() -> &'static str {
+    static SOURCE: OnceLock<String> = OnceLock::new();
+    SOURCE
+        .get_or_init(|| {
+            let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+            let parent_path =
+                manifest_dir.join("../../apps/docs-app/src/pages/components/pages/display.rs");
+            let child_path = manifest_dir.join(
+                "../../apps/docs-app/src/pages/components/pages/display/illustrated_message.rs",
+            );
+            let parent = fs::read_to_string(&parent_path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {parent_path:?}: {e}"));
+            let child = fs::read_to_string(&child_path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {child_path:?}: {e}"));
+            format!("{parent}\n\n{child}").replace(
+                "pub(crate) fn illustrated_message() -> AnyView {",
+                "pub(super) fn illustrated_message() -> AnyView {",
+            )
+        })
+        .as_str()
 }
 
 fn load_docs_illustrated_message_section() -> String {

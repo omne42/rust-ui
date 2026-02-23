@@ -277,7 +277,7 @@ fn image_semantic_test_matrix_is_contract_first_and_snapshot_free() {
     let view_source = load_source("src/view.rs");
     let motion_source = load_source("src/motion.rs");
     let local_semantics = load_source("test/semantics.rs");
-    let workspace_semantics = load_source("../../components/image/test/image_semantics.rs");
+    let workspace_semantics = load_source("../../components/image/test/image/semantics.rs");
 
     assert!(
         readme.contains("## Semantic Testing Contract"),
@@ -353,7 +353,7 @@ fn image_semantic_contract_priority_is_data_aria_role_and_source_not_snapshot() 
     let readme = load_source("src/README.md");
     let view_source = load_source("src/view.rs");
     let local_semantics = load_source("test/semantics.rs");
-    let workspace_semantics = load_source("../../components/image/test/image_semantics.rs");
+    let workspace_semantics = load_source("../../components/image/test/image/semantics.rs");
 
     assert!(
         check2.contains(

@@ -1,12 +1,25 @@
 use ui_test_support::source_contract;
 
+static DOCS_DISPLAY_SOURCE: std::sync::LazyLock<&'static str> = std::sync::LazyLock::new(|| {
+    let parent = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/display.rs",
+    );
+    let child = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/display/code.rs",
+    );
+    let child_compat = child.replace(
+        "pub(crate) fn code() -> AnyView {",
+        "pub(super) fn code() -> AnyView {",
+    );
+    Box::leak(format!("{parent}\n{child_compat}").into_boxed_str())
+});
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "readme" => include_str!("../src/README.md"),
-        "docs_display" => source_contract::source_from_file_relative(
-            file!(),
-            "../../../apps/docs-app/src/pages/components/pages/display.rs",
-        ),
+        "docs_display" => *DOCS_DISPLAY_SOURCE,
         "docs_pages_catalog" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }

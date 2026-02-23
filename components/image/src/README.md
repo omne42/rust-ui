@@ -585,7 +585,7 @@
   - SSR/wasm split: covered by motion contract assertions (`#[cfg(target_arch = \"wasm32\")]` + non-wasm no-op path).
 - Test locations:
   - component-local: `components/image/test/semantics.rs`.
-  - workspace contract: `components/image/test/image_semantics.rs`.
+  - workspace contract: `components/image/test/image/semantics.rs`.
 - Snapshot policy:
   - no snapshot assertions are used as the primary acceptance signal for this component contract.
 

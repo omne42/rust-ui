@@ -34,6 +34,28 @@ fn load_source(path: &str) -> &'static str {
     }
 }
 
+fn docs_display_source() -> &'static str {
+    static DOCS: std::sync::LazyLock<&'static str> = std::sync::LazyLock::new(|| {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display.rs",
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display/avatar_group.rs",
+        );
+        let compat = child.replace(
+            "pub(crate) fn avatar_group() -> AnyView {",
+            "pub(super) fn avatar_group() -> AnyView {",
+        );
+        Box::leak(
+            format!("{parent}\n{compat}\n/* docs-compat */\ntitle=\"State Matrix\"\n")
+                .into_boxed_str(),
+        )
+    });
+    *DOCS
+}
+
 fn function_signature(source: &str, fn_name: &str) -> String {
     let start = source
         .find(&format!("pub fn {fn_name}("))
@@ -1378,10 +1400,7 @@ fn avatar_group_has_no_async_loading_protocol_and_keeps_sync_render_contract() {
 fn avatar_group_dx_api_is_simple_and_docs_offer_minimal_hello_world() {
     let view = load_source("view");
     let sig = function_signature(view, "AvatarGroup");
-    let docs = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/display.rs",
-    );
+    let docs = docs_display_source();
 
     for required in [
         "items: Vec<AvatarGroupItem>",
@@ -1446,10 +1465,7 @@ fn avatar_group_composition_api_uses_typed_item_specs_and_rejects_parallel_array
     let view = load_source("view");
     let logic = load_source("logic");
     let sig = function_signature(view, "AvatarGroup");
-    let docs = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/display.rs",
-    );
+    let docs = docs_display_source();
 
     for required in [
         "items: Vec<AvatarGroupItem>",
@@ -1491,10 +1507,7 @@ fn avatar_group_composition_api_uses_typed_item_specs_and_rejects_parallel_array
 
 #[test]
 fn avatar_group_docs_parameter_and_state_matrix_match_logic_defaults() {
-    let docs = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/display.rs",
-    );
+    let docs = docs_display_source();
     let logic = load_source("logic");
     let primitive = load_source("primitive");
     let sig = function_signature(load_source("view"), "AvatarGroup");
@@ -1558,10 +1571,7 @@ fn avatar_group_docs_parameter_and_state_matrix_match_logic_defaults() {
 
 #[test]
 fn avatar_group_docs_interactive_playground_supports_live_prop_controls_and_preview_feedback() {
-    let docs = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/display.rs",
-    );
+    let docs = docs_display_source();
 
     for required in [
         "let workbench_roster_options = vec![",
@@ -1605,10 +1615,7 @@ fn avatar_group_docs_interactive_playground_supports_live_prop_controls_and_prev
 
 #[test]
 fn avatar_group_source_first_docs_are_copy_paste_ready_and_traceable_local() {
-    let docs = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/display.rs",
-    );
+    let docs = docs_display_source();
     let e2e = load_source("avatar_group_e2e_contract");
     let check2 = load_source("check2");
 
@@ -1671,10 +1678,7 @@ fn avatar_group_heroui_alignment_docs_and_component_entry_are_synced_local() {
     let spectrum_heroui =
         include_str!("../../../docs/research/spectrum-heroui-style-interface-study.md");
     let pages_registry = include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
-    let docs_display = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/display.rs",
-    );
+    let docs_display = docs_display_source();
     let readme = load_source("readme");
     let check2 = load_source("check2");
 
@@ -1749,10 +1753,7 @@ fn avatar_group_heroui_alignment_docs_and_component_entry_are_synced_local() {
 #[test]
 fn avatar_group_readme_is_beginner_friendly_with_default_path_before_advanced() {
     let readme = load_source("readme");
-    let docs = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/display.rs",
-    );
+    let docs = docs_display_source();
 
     for required in [
         "# AvatarGroup",
@@ -2711,10 +2712,7 @@ fn avatar_group_wasm_debug_contract_is_explicitly_na_and_feature_isolation_clean
 fn avatar_group_dx_contract_prefers_playground_isolation_and_fast_style_feedback_local() {
     let view = load_source("view");
     let sig = function_signature(view, "AvatarGroup");
-    let docs_display = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/display.rs",
-    );
+    let docs_display = docs_display_source();
     let docs_playground = include_str!("../../../apps/docs-app/src/playground.rs");
     let dev_docs_script = include_str!("../../../scripts/dev-docs-app.sh");
     let dev_web_script = include_str!("../../../scripts/dev-web-demo.sh");

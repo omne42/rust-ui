@@ -418,8 +418,8 @@ fn overlays_checklist_marks_semantic_contract_testing_complete() {
     );
     assert!(
         check2.contains("`components/overlay/test/overlay_semantics.rs`")
-            && check2.contains("`popover_semantics.rs`")
-            && check2.contains("`modal_semantics.rs`")
+            && check2.contains("`semantics.rs`")
+            && check2.contains("`modal/semantics.rs`")
             && check2.contains("normalize_open_state_supports_controlled_and_uncontrolled_modes")
             && check2.contains("`e2e/tests/docs_app_nav_sheet.spec.mjs`")
             && check2.contains("#[cfg(target_arch = \\\"wasm32\\\")]")

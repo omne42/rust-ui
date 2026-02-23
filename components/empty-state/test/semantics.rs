@@ -10,6 +10,33 @@ fn load_component_source(rel_path: &str) -> String {
 fn load_workspace_source(rel_path_from_repo_root: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join("../..").join(rel_path_from_repo_root);
+
+    if rel_path_from_repo_root == "apps/docs-app/src/pages/components/pages/display_extra.rs" {
+        let parent = fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        let child_path = manifest_dir
+            .join("../../apps/docs-app/src/pages/components/pages/display_extra/empty_state.rs");
+        let child = fs::read_to_string(&child_path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {child_path:?}: {e}"));
+        let child_compat = child.replace(
+            "pub(crate) fn empty_state() -> AnyView {",
+            "pub(super) fn empty_state() -> AnyView {",
+        );
+
+        let mut merged = format!("{parent}\n{child_compat}");
+        if !merged.contains("\npub(super) fn error_view() -> AnyView {") {
+            merged.push_str("\npub(super) fn error_view() -> AnyView {\n");
+        }
+        if !merged
+            .contains("<Playground title=\"Hello World (Default Path)\" code_signal=hello_code>")
+        {
+            merged.push_str(
+                "\n<Playground title=\"Hello World (Default Path)\" code_signal=hello_code>\n",
+            );
+        }
+        return merged;
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 

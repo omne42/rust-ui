@@ -18,8 +18,8 @@
   - `~/.cargo/bin/cargo test -p ui --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking`（通过）
   - `~/.cargo/bin/cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan`（通过）
   - `~/.cargo/bin/cargo check -p ui --no-default-features --features component-snippet`（通过）
-  - `~/.cargo/bin/rustfmt --edition 2024 --check crates/ui/src/snippet/*.rs components/snippet/test/snippet_semantics.rs`（通过）
-  - `~/.cargo/bin/rustfmt --edition 2024 --check components/snippet/test/snippet_semantics.rs`（通过）
+  - `~/.cargo/bin/rustfmt --edition 2024 --check crates/ui/src/snippet/*.rs components/snippet/test/semantics.rs`（通过）
+  - `~/.cargo/bin/rustfmt --edition 2024 --check components/snippet/test/semantics.rs`（通过）
   - `~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-snippet --all-targets -- -D warnings`（阻塞于 `components/example-theme/test/css.rs` 缺少 `inject-css` feature 的现有导入前提，以及 `components/*/test/*{thumbnail,switch,selection_indicator_module}_semantics.rs` 的现有 `clippy::single_element_loop`，非 snippet 改动）
   - `~/.cargo/bin/cargo clippy -p ui --lib --no-default-features --features component-snippet -- -D warnings`（通过）
   - `~/.cargo/bin/cargo clippy -p ui --test snippet_semantics --no-default-features --features component-snippet -- -D warnings`（通过）
@@ -43,7 +43,7 @@
   - `~/.cargo/bin/cargo clippy -p ui-state-primitives --all-targets -- -D warnings`（阻塞于 `crates/ui-state-primitives/src/swatch.rs` 的 `clippy::too_many_arguments`，非 snippet 改动）
   - `~/.cargo/bin/cargo test -p ui --test snippet_semantics --no-default-features --features component-snippet -- --list`（通过：列出 44 条语义契约测试）
   - 逐条单独执行 44 条：`for t in $(... --list); do cargo test ... "$t" -- --exact; done`（通过，`ONE_BY_ONE_SUMMARY: 44/44 passed`）
-  - `~/.cargo/bin/rustfmt --edition 2024 --check crates/ui/src/snippet/*.rs components/snippet/test/snippet_semantics.rs`（通过，复验）
+  - `~/.cargo/bin/rustfmt --edition 2024 --check crates/ui/src/snippet/*.rs components/snippet/test/semantics.rs`（通过，复验）
   - `~/.cargo/bin/cargo clippy -p ui --lib --no-default-features --features component-snippet -- -D warnings`（通过，复验）
   - `~/.cargo/bin/cargo clippy -p ui --test snippet_semantics --no-default-features --features component-snippet -- -D warnings`（通过，复验）
   - `~/.cargo/bin/cargo test -p ui --test snippet_semantics --no-default-features --features component-snippet -- --nocapture`（通过，44/44，复验）
@@ -52,18 +52,18 @@
   - `view.rs` 透传 `lang/dir`，交互语义由 `ui-headless::use_snippet_copy` 与 `locale_attrs` 提供，组件层仅挂载。
 - 样式/测试/文件职责补充：
   - `styles.rs` 已显式消费 `data-copy-status/data-copying/data-copy-error`，无 `:nth-child/:nth-of-type` 依赖。
-  - `snippet_semantics.rs` 已覆盖状态矩阵（受控/非受控、disabled、键盘/指针、wasm/non-wasm 分支）与组件目录职责边界（含 `spec.rs` 不存在断言）。
-  - `snippet_semantics.rs` 新增 `snippet_visual_desire_baseline_is_backed_by_docs_registry_and_e2e_snapshots`，锁定 `theme_visual_baseline.rs`、`pages.rs` 注册项与 `e2e/tests/docs_app_theme_visual_baseline.spec.mjs` 截图基线（page/button/input/overlay）。
-  - `snippet_semantics.rs` 新增 `snippet_is_non_composite_api_and_avoids_parallel_array_conventions`，锁定 Snippet 为单体组件 API（非 Parent/Item 组合），并禁止 `labels/titles/panels/items` 并行数组契约回流。
-  - `snippet_semantics.rs` 新增 `snippet_tree_shaking_contract_is_feature_gated_and_budget_guarded`，锁定 `Cargo.toml/lib.rs/css.rs` 组件级 feature gate 以及 `scripts/check-ui-tree-shaking.sh` + `scripts/tree_shaking_budget.env` 的最小特性与预算门禁。
-  - `snippet_semantics.rs` 新增 `snippet_type_system_and_semantic_markers_form_machine_readable_state_contract`，锁定 `ui-state-primitives::snippet` 的 `enum + SnippetStateInput + resolve_state` 类型建模、闭合集 marker 测试，以及 `view.rs` 关键 `data-*` 机器可读状态输出。
-  - `snippet_semantics.rs` 新增 `snippet_platform_contract_uses_explicit_cfg_branches_and_keeps_non_wasm_web_api_free`，锁定 `snippet/motion.rs` 与 `ui-headless/src/snippet.rs` 的 wasm/non-wasm 显式 `cfg` 分支，且 non-wasm 路径不依赖 `web_sys`。
-  - `snippet_semantics.rs` 新增 `snippet_headless_web_ssr_mutex_guard_is_enforced_and_regression_checked`，锁定 `ui-headless/src/lib.rs` 的 `web/ssr` 互斥 `compile_error!` 与 `scripts/check-ui-platforms.sh` 的失败门禁检查。
-  - `snippet_semantics.rs` 新增 `snippet_motion_non_wasm_noop_contract_is_present_and_toolchain_safe`，锁定 `ui-motion/src/lib.rs` 的 non-wasm `web` stub（`prefers_reduced_motion + animate no-op`）与 `snippet/motion.rs` 的 non-wasm 安全降级分支。
-  - `snippet_semantics.rs` 新增 `snippet_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`，锁定 `snippet/motion.rs` 的 `reduced-motion` 分支和 wasm/non-wasm `cfg`，并确认 `view.rs` 语义标记不做 target 分裂。
-  - `snippet_semantics.rs` 新增 `snippet_performance_governance_contract_is_budgeted_traceable_and_blocking` 与 `snippet_performance_check_script_covers_budget_and_follow_up_gates`，锁定 docs `UiPerfProbe` 预算链路、e2e 阈值断言、trace 归因、`render_count` 跟踪任务及性能门禁脚本覆盖。
+  - `semantics.rs` 已覆盖状态矩阵（受控/非受控、disabled、键盘/指针、wasm/non-wasm 分支）与组件目录职责边界（含 `spec.rs` 不存在断言）。
+  - `semantics.rs` 新增 `snippet_visual_desire_baseline_is_backed_by_docs_registry_and_e2e_snapshots`，锁定 `theme_visual_baseline.rs`、`pages.rs` 注册项与 `e2e/tests/docs_app_theme_visual_baseline.spec.mjs` 截图基线（page/button/input/overlay）。
+  - `semantics.rs` 新增 `snippet_is_non_composite_api_and_avoids_parallel_array_conventions`，锁定 Snippet 为单体组件 API（非 Parent/Item 组合），并禁止 `labels/titles/panels/items` 并行数组契约回流。
+  - `semantics.rs` 新增 `snippet_tree_shaking_contract_is_feature_gated_and_budget_guarded`，锁定 `Cargo.toml/lib.rs/css.rs` 组件级 feature gate 以及 `scripts/check-ui-tree-shaking.sh` + `scripts/tree_shaking_budget.env` 的最小特性与预算门禁。
+  - `semantics.rs` 新增 `snippet_type_system_and_semantic_markers_form_machine_readable_state_contract`，锁定 `ui-state-primitives::snippet` 的 `enum + SnippetStateInput + resolve_state` 类型建模、闭合集 marker 测试，以及 `view.rs` 关键 `data-*` 机器可读状态输出。
+  - `semantics.rs` 新增 `snippet_platform_contract_uses_explicit_cfg_branches_and_keeps_non_wasm_web_api_free`，锁定 `snippet/motion.rs` 与 `ui-headless/src/snippet.rs` 的 wasm/non-wasm 显式 `cfg` 分支，且 non-wasm 路径不依赖 `web_sys`。
+  - `semantics.rs` 新增 `snippet_headless_web_ssr_mutex_guard_is_enforced_and_regression_checked`，锁定 `ui-headless/src/lib.rs` 的 `web/ssr` 互斥 `compile_error!` 与 `scripts/check-ui-platforms.sh` 的失败门禁检查。
+  - `semantics.rs` 新增 `snippet_motion_non_wasm_noop_contract_is_present_and_toolchain_safe`，锁定 `ui-motion/src/lib.rs` 的 non-wasm `web` stub（`prefers_reduced_motion + animate no-op`）与 `snippet/motion.rs` 的 non-wasm 安全降级分支。
+  - `semantics.rs` 新增 `snippet_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`，锁定 `snippet/motion.rs` 的 `reduced-motion` 分支和 wasm/non-wasm `cfg`，并确认 `view.rs` 语义标记不做 target 分裂。
+  - `semantics.rs` 新增 `snippet_performance_governance_contract_is_budgeted_traceable_and_blocking` 与 `snippet_performance_check_script_covers_budget_and_follow_up_gates`，锁定 docs `UiPerfProbe` 预算链路、e2e 阈值断言、trace 归因、`render_count` 跟踪任务及性能门禁脚本覆盖。
   - token-first 样式契约已加回归：`styles.rs` 仅静态 `var(--ui-*)`，并验证 `css.rs` 聚合 + `UiRoot` 注入 + `lib.rs` feature gate 的 snippet 可达路径。
-  - `snippet_semantics.rs` 新增 `view-macro/function-split/static/inner_html/wasm-debug/dx/engineering/entrypoints/agent-contract/streaming/docs/e2e` 契约测试并通过（44/44）。
+  - `semantics.rs` 新增 `view-macro/function-split/static/inner_html/wasm-debug/dx/engineering/entrypoints/agent-contract/streaming/docs/e2e` 契约测试并通过（44/44）。
 - 阻塞说明：
   - snippet 相关 `check/test/clippy/fmt` 已可执行并通过；仓库级阻塞仍存在且与 snippet 无关：`--all-targets clippy` 受 `ui/tests/css.rs` 与 `ui/tests/{thumbnail,switch,selection_indicator_module}_semantics.rs` 影响，docs smoke 受 `sheet/code_block` 现有编译错误影响，另有 `ui-headless/tests/text_field.rs`、`ui-state-primitives/src/swatch.rs` 历史问题。
 

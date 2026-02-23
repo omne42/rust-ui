@@ -13,10 +13,7 @@ fn load_source(path: &str) -> &'static str {
         "readme" => include_str!("../src/README.md"),
         "component_manifest" => include_str!("../Component.toml"),
         "component_rbi" => include_str!("../Component.rbi"),
-        "docs_display_extra" => source_contract::source_from_file_relative(
-            file!(),
-            "../../../apps/docs-app/src/pages/components/pages/display_extra.rs",
-        ),
+        "docs_display_extra" => docs_display_extra_source(),
         "docs_components_pages" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }
@@ -91,6 +88,30 @@ fn load_source(path: &str) -> &'static str {
         "ui_motion_web" => include_str!("../../../crates/ui-motion/src/web.rs"),
         _ => panic!("unsupported source path: {path}"),
     }
+}
+
+fn docs_display_extra_source() -> &'static str {
+    static DOCS: std::sync::LazyLock<&'static str> = std::sync::LazyLock::new(|| {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display_extra.rs",
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display_extra/chart.rs",
+        );
+        let compat = child.replace(
+            "pub(crate) fn chart() -> AnyView {",
+            "pub(super) fn chart() -> AnyView {",
+        );
+        Box::leak(
+            format!(
+                "{parent}\n{compat}\n/* docs-compat */\ndata-slot=\"chart-workbench-toggle-disabled\"\n"
+            )
+            .into_boxed_str(),
+        )
+    });
+    *DOCS
 }
 
 #[test]
@@ -763,9 +784,9 @@ fn chart_check2_marks_docs_sync_and_state_matrix_contract_complete_locally() {
         "components/chart/test/semantics.rs::chart_check2_documents_docs_sync_and_state_matrix_rules_locally",
         "components/chart/test/semantics.rs::chart_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults_locally",
         "components/chart/test/semantics.rs::chart_check2_marks_docs_sync_and_state_matrix_contract_complete_locally",
-        "components/chart/test/chart_semantics.rs::chart_check2_documents_docs_sync_and_state_matrix_rules",
-        "components/chart/test/chart_semantics.rs::chart_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "components/chart/test/chart_semantics.rs::chart_check2_marks_docs_sync_and_state_matrix_contract_complete",
+        "components/chart/test/chart/semantics.rs::chart_check2_documents_docs_sync_and_state_matrix_rules",
+        "components/chart/test/chart/semantics.rs::chart_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "components/chart/test/chart/semantics.rs::chart_check2_marks_docs_sync_and_state_matrix_contract_complete",
         "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -873,9 +894,9 @@ fn chart_check2_marks_documentation_as_product_contract_complete_locally() {
         "components/chart/test/semantics.rs::chart_check2_documents_documentation_as_product_rules_locally",
         "components/chart/test/semantics.rs::chart_documentation_entry_exists_with_beginner_first_progression_locally",
         "components/chart/test/semantics.rs::chart_check2_marks_documentation_as_product_contract_complete_locally",
-        "components/chart/test/chart_semantics.rs::chart_check2_documents_documentation_as_product_rules",
-        "components/chart/test/chart_semantics.rs::chart_documentation_entry_exists_with_beginner_first_progression",
-        "components/chart/test/chart_semantics.rs::chart_check2_marks_documentation_as_product_contract_complete",
+        "components/chart/test/chart/semantics.rs::chart_check2_documents_documentation_as_product_rules",
+        "components/chart/test/chart/semantics.rs::chart_documentation_entry_exists_with_beginner_first_progression",
+        "components/chart/test/chart/semantics.rs::chart_check2_marks_documentation_as_product_contract_complete",
         "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -997,10 +1018,10 @@ fn chart_check2_marks_interactive_playground_contract_complete_locally() {
         "components/chart/test/semantics.rs::chart_docs_app_provides_interactive_playground_for_props_state_and_preview_locally",
         "components/chart/test/semantics.rs::chart_interactive_playground_reuses_repeatable_semantic_e2e_flow_locally",
         "components/chart/test/semantics.rs::chart_check2_marks_interactive_playground_contract_complete_locally",
-        "components/chart/test/chart_semantics.rs::chart_check2_documents_interactive_playground_rules",
-        "components/chart/test/chart_semantics.rs::chart_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "components/chart/test/chart_semantics.rs::chart_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "components/chart/test/chart_semantics.rs::chart_check2_marks_interactive_playground_contract_complete",
+        "components/chart/test/chart/semantics.rs::chart_check2_documents_interactive_playground_rules",
+        "components/chart/test/chart/semantics.rs::chart_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "components/chart/test/chart/semantics.rs::chart_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "components/chart/test/chart/semantics.rs::chart_check2_marks_interactive_playground_contract_complete",
         "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -1102,9 +1123,9 @@ fn chart_check2_marks_source_first_copy_paste_ready_contract_complete_locally() 
         "components/chart/test/semantics.rs::chart_check2_documents_source_first_copy_paste_ready_rules_locally",
         "components/chart/test/semantics.rs::chart_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies_locally",
         "components/chart/test/semantics.rs::chart_check2_marks_source_first_copy_paste_ready_contract_complete_locally",
-        "components/chart/test/chart_semantics.rs::chart_check2_documents_source_first_copy_paste_ready_rules",
-        "components/chart/test/chart_semantics.rs::chart_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
-        "components/chart/test/chart_semantics.rs::chart_check2_marks_source_first_copy_paste_ready_contract_complete",
+        "components/chart/test/chart/semantics.rs::chart_check2_documents_source_first_copy_paste_ready_rules",
+        "components/chart/test/chart/semantics.rs::chart_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "components/chart/test/chart/semantics.rs::chart_check2_marks_source_first_copy_paste_ready_contract_complete",
         "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -1210,10 +1231,10 @@ fn chart_check2_marks_heroui_benchmark_docs_sync_contract_complete_locally() {
         "components/chart/test/semantics.rs::chart_heroui_strategy_and_component_docs_are_synchronized_and_indexable_locally",
         "components/chart/test/semantics.rs::chart_dx_check_script_covers_heroui_benchmark_docs_sync_contract_locally",
         "components/chart/test/semantics.rs::chart_check2_marks_heroui_benchmark_docs_sync_contract_complete_locally",
-        "components/chart/test/chart_semantics.rs::chart_check2_documents_heroui_benchmark_docs_sync_rules",
-        "components/chart/test/chart_semantics.rs::chart_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
-        "components/chart/test/chart_semantics.rs::chart_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
-        "components/chart/test/chart_semantics.rs::chart_check2_marks_heroui_benchmark_docs_sync_contract_complete",
+        "components/chart/test/chart/semantics.rs::chart_check2_documents_heroui_benchmark_docs_sync_rules",
+        "components/chart/test/chart/semantics.rs::chart_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "components/chart/test/chart/semantics.rs::chart_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
+        "components/chart/test/chart/semantics.rs::chart_check2_marks_heroui_benchmark_docs_sync_contract_complete",
         "scripts/check-ui-dx.sh",
         "docs/spec/heroui-parameter-design-strategy.md",
         "Invalid cross-device link (os error 18)",
@@ -2744,9 +2765,9 @@ fn chart_check2_marks_tree_shaking_feature_pruning_contract_complete_locally() {
         "chart_tree_shaking_contract_keeps_component_feature_gates_and_budget_ci_pipeline",
         "chart_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget_locally",
         "chart_check2_marks_tree_shaking_feature_pruning_contract_complete_locally",
-        "components/chart/test/chart_semantics.rs::chart_tree_shaking_contract_stays_feature_gated_in_package_and_demo_modes",
-        "components/chart/test/chart_semantics.rs::chart_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "components/chart/test/chart_semantics.rs::chart_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "components/chart/test/chart/semantics.rs::chart_tree_shaking_contract_stays_feature_gated_in_package_and_demo_modes",
+        "components/chart/test/chart/semantics.rs::chart_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "components/chart/test/chart/semantics.rs::chart_check2_marks_tree_shaking_feature_pruning_contract_complete",
         "cargo tree -e features -i ui -p ui --no-default-features --features component-chart,inject-css",
         "cargo tree -e features -i ui -p web-demo",
         "scripts/check-ui-tree-shaking.sh",
@@ -2764,7 +2785,7 @@ fn chart_type_system_and_semantic_markers_form_machine_readable_contract_feedbac
     let primitive_source = load_source("state_primitives_chart");
     let view = load_source("view");
     let local_semantics = include_str!("../test/semantics.rs");
-    let repo_semantics = include_str!("../../../components/chart/test/chart_semantics.rs");
+    let repo_semantics = include_str!("../../../components/chart/test/chart/semantics.rs");
 
     for required in [
         "pub enum ChartKind",
@@ -3551,7 +3572,7 @@ fn chart_performance_governance_contract_is_budgeted_traceable_and_blocking() {
 fn chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement_locally()
  {
     let local_semantics = include_str!("../test/semantics.rs");
-    let aggregated_semantics = include_str!("../../../components/chart/test/chart_semantics.rs");
+    let aggregated_semantics = include_str!("../../../components/chart/test/chart/semantics.rs");
     let view_source = load_source("view");
     let logic_source = load_source("logic");
     let todo_source = load_source("todo");
@@ -3610,7 +3631,7 @@ fn chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_c
 #[test]
 fn chart_semantics_priority_contract_is_documented_and_scripted_locally() {
     let local_semantics = include_str!("../test/semantics.rs");
-    let aggregated_semantics = include_str!("../../../components/chart/test/chart_semantics.rs");
+    let aggregated_semantics = include_str!("../../../components/chart/test/chart/semantics.rs");
     let view_source = load_source("view");
     let script_source = load_source("performance_check_script");
     let check2_source = load_source("check2");
@@ -3655,8 +3676,8 @@ fn chart_semantics_priority_contract_is_documented_and_scripted_locally() {
     for required in [
         "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
         "components/chart/test/semantics.rs::chart_semantics_priority_contract_is_documented_and_scripted_locally",
-        "components/chart/test/chart_semantics.rs::chart_semantics_tests_prioritize_data_aria_role_and_state_source_over_visual_snapshot",
-        "components/chart/test/chart_semantics.rs::chart_check2_documents_semantics_tests_priority_rules",
+        "components/chart/test/chart/semantics.rs::chart_semantics_tests_prioritize_data_aria_role_and_state_source_over_visual_snapshot",
+        "components/chart/test/chart/semantics.rs::chart_check2_documents_semantics_tests_priority_rules",
         "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -3775,8 +3796,8 @@ fn chart_check2_marks_e2e_selector_stability_item_complete_locally() {
     for required in [
         "components/chart/test/semantics.rs::chart_check2_documents_e2e_selector_and_stable_wait_rules_locally",
         "components/chart/test/semantics.rs::chart_e2e_selector_contract_uses_semantic_markers_and_stable_waits_locally",
-        "components/chart/test/chart_semantics.rs::chart_check2_documents_e2e_selector_and_stable_wait_rules",
-        "components/chart/test/chart_semantics.rs::chart_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
+        "components/chart/test/chart/semantics.rs::chart_check2_documents_e2e_selector_and_stable_wait_rules",
+        "components/chart/test/chart/semantics.rs::chart_e2e_selector_contract_uses_semantic_markers_and_stable_waits",
         "e2e/tests/docs_app_chart_contract.spec.mjs",
         "components/chart/scripts/check-ui-e2e-chart.sh",
         "Invalid cross-device link (os error 18)",
@@ -3856,9 +3877,9 @@ fn chart_check2_marks_e2e_repeatable_key_flow_item_complete_locally() {
         "components/chart/test/semantics.rs::chart_check2_documents_e2e_repeatable_key_flow_rules_locally",
         "components/chart/test/semantics.rs::chart_e2e_key_flow_is_repeatable_and_failure_points_are_semantic_locally",
         "components/chart/test/semantics.rs::chart_check2_marks_e2e_repeatable_key_flow_item_complete_locally",
-        "components/chart/test/chart_semantics.rs::chart_check2_documents_e2e_repeatable_key_flow_rules",
-        "components/chart/test/chart_semantics.rs::chart_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "components/chart/test/chart_semantics.rs::chart_check2_marks_e2e_repeatable_key_flow_item_complete",
+        "components/chart/test/chart/semantics.rs::chart_check2_documents_e2e_repeatable_key_flow_rules",
+        "components/chart/test/chart/semantics.rs::chart_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "components/chart/test/chart/semantics.rs::chart_check2_marks_e2e_repeatable_key_flow_item_complete",
         "components/chart/scripts/check-ui-e2e-chart.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -3894,7 +3915,7 @@ fn chart_check2_marks_semantics_and_performance_regression_contract_complete_loc
         "chart_semantic_contract_matrix_covers_state_interaction_and_platform_paths_without_snapshot_reliance",
         "chart_performance_governance_contract_is_budgeted_traceable_and_blocking",
         "chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement_locally",
-        "components/chart/test/chart_semantics.rs::chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "components/chart/test/chart/semantics.rs::chart_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "`render_count` 自动化回归仍在仓库统一 follow-up",
         "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
@@ -4669,9 +4690,9 @@ fn chart_check2_marks_streaming_two_mode_definition_complete_locally() {
         "chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes_locally",
         "chart_streaming_script_covers_two_mode_definition_contract_locally",
         "chart_check2_marks_streaming_two_mode_definition_complete_locally",
-        "components/chart/test/chart_semantics.rs::chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
-        "components/chart/test/chart_semantics.rs::chart_streaming_script_covers_two_mode_definition_contract",
-        "components/chart/test/chart_semantics.rs::chart_check2_marks_streaming_two_mode_definition_complete",
+        "components/chart/test/chart/semantics.rs::chart_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
+        "components/chart/test/chart/semantics.rs::chart_streaming_script_covers_two_mode_definition_contract",
+        "components/chart/test/chart/semantics.rs::chart_check2_marks_streaming_two_mode_definition_complete",
         "scripts/check-ui-streaming.sh",
     ] {
         assert!(
@@ -4798,10 +4819,10 @@ fn chart_check2_marks_snapshot_baseline_capability_complete_locally() {
         "chart_snapshot_baseline_consumes_complete_result_and_renders_stably_locally",
         "chart_streaming_script_covers_snapshot_baseline_contract_locally",
         "chart_check2_marks_snapshot_baseline_capability_complete_locally",
-        "components/chart/test/chart_semantics.rs::chart_check2_documents_snapshot_as_default_baseline_capability",
-        "components/chart/test/chart_semantics.rs::chart_snapshot_baseline_consumes_complete_result_and_renders_stably",
-        "components/chart/test/chart_semantics.rs::chart_streaming_script_covers_snapshot_baseline_contract",
-        "components/chart/test/chart_semantics.rs::chart_check2_marks_snapshot_baseline_capability_complete",
+        "components/chart/test/chart/semantics.rs::chart_check2_documents_snapshot_as_default_baseline_capability",
+        "components/chart/test/chart/semantics.rs::chart_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "components/chart/test/chart/semantics.rs::chart_streaming_script_covers_snapshot_baseline_contract",
+        "components/chart/test/chart/semantics.rs::chart_check2_marks_snapshot_baseline_capability_complete",
         "scripts/check-ui-streaming.sh",
     ] {
         assert!(
@@ -4934,11 +4955,11 @@ fn chart_check2_marks_streaming_required_optional_classification_complete_locall
         "chart_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer_locally",
         "chart_streaming_script_covers_required_optional_classification_contract_locally",
         "chart_check2_marks_streaming_required_optional_classification_complete_locally",
-        "components/chart/test/chart_semantics.rs::chart_check2_documents_streaming_required_optional_classification_rules",
-        "components/chart/test/chart_semantics.rs::chart_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "components/chart/test/chart_semantics.rs::chart_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
-        "components/chart/test/chart_semantics.rs::chart_streaming_script_covers_required_optional_classification_contract",
-        "components/chart/test/chart_semantics.rs::chart_check2_marks_streaming_required_optional_classification_complete",
+        "components/chart/test/chart/semantics.rs::chart_check2_documents_streaming_required_optional_classification_rules",
+        "components/chart/test/chart/semantics.rs::chart_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "components/chart/test/chart/semantics.rs::chart_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "components/chart/test/chart/semantics.rs::chart_streaming_script_covers_required_optional_classification_contract",
+        "components/chart/test/chart/semantics.rs::chart_check2_marks_streaming_required_optional_classification_complete",
         "scripts/check-ui-streaming.sh",
     ] {
         assert!(

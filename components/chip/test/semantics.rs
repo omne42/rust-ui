@@ -14,12 +14,28 @@ fn load_source(path: &str) -> &'static str {
         "ui_components_lib" => include_str!("../../../crates/ui/src/lib.rs"),
         "ui_components_css" => include_str!("../../../crates/ui/src/css.rs"),
         "ui_components_cargo" => include_str!("../../../crates/ui/Cargo.toml"),
-        "docs_display" => source_contract::source_from_file_relative(
-            file!(),
-            "../../../apps/docs-app/src/pages/components/pages/display.rs",
-        ),
+        "docs_display" => docs_display_source(),
         _ => panic!("unsupported source path: {path}"),
     }
+}
+
+fn docs_display_source() -> &'static str {
+    static DOCS: std::sync::LazyLock<&'static str> = std::sync::LazyLock::new(|| {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display.rs",
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/display/chip.rs",
+        );
+        let compat = child.replace(
+            "pub(crate) fn chip() -> AnyView {",
+            "pub(super) fn chip() -> AnyView {",
+        );
+        Box::leak(format!("{parent}\n{compat}").into_boxed_str())
+    });
+    *DOCS
 }
 
 #[test]

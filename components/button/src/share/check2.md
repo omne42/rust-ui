@@ -8,7 +8,7 @@
 本清单仅评估“一个组件”的改动结果，不替代仓库级治理。
 先过第 1-2 节（骨架）再进入第 3-6 节（实现细节）。
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
-[x] 最高优先级，这是一个button组件的扩展组件，它应该使用button组件的能力而非重新实现。（`ShareButton` 复用 `FlipButton + Button + ButtonGroup` 组合能力，不重写基础按钮交互/样式/动效引擎；对应回归：`components/button/test/share_button_semantics.rs` 的 `share_button_uses_flip_button_and_button_group_composition`）
+[x] 最高优先级，这是一个button组件的扩展组件，它应该使用button组件的能力而非重新实现。（`ShareButton` 复用 `FlipButton + Button + ButtonGroup` 组合能力，不重写基础按钮交互/样式/动效引擎；对应回归：`components/button/test/share_button/semantics.rs` 的 `share_button_uses_flip_button_and_button_group_composition`）
 
 ### 1. 大骨架（架构边界与层职责）
 - [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`ShareButton` 状态原语已下沉至 `crates/ui-state-primitives/src/share_button.rs`，组件层 `crates/ui/src/button/share/logic.rs` 仅保留 `ButtonSize` 映射与 class 装配）
@@ -53,7 +53,7 @@
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
 
 ### 2. 小骨架（API 设计检查 + 状态管理检查）
-- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_public_api_follows_naming_contract_for_callbacks`，`ShareButton` 回调命名保持 `on_icon_press` 且无公开别名漂移）
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_public_api_follows_naming_contract_for_callbacks`，`ShareButton` 回调命名保持 `on_icon_press` 且无公开别名漂移）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
@@ -61,15 +61,15 @@
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_default_values_have_single_logic_source`；`view.rs` 仅调用 `logic::resolve_label`，继续复用 `Button/FlipButton` 能力）
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_default_values_have_single_logic_source`；`view.rs` 仅调用 `logic::resolve_label`，继续复用 `Button/FlipButton` 能力）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_state_normalization_is_centralized_in_logic_layer`，`view.rs` 仅消费归一化输出并复用 `FlipButton + Button + ButtonGroup`）
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_state_normalization_is_centralized_in_logic_layer`，`view.rs` 仅消费归一化输出并复用 `FlipButton + Button + ButtonGroup`）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_discrete_state_inputs_use_enums_and_reuse_button_types`，并复用 `ButtonSize/ButtonVariant`）
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_discrete_state_inputs_use_enums_and_reuse_button_types`，并复用 `ButtonSize/ButtonVariant`）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
@@ -77,41 +77,41 @@
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`ShareButton` 当前仅同步 `on_icon_press` 交互，无远程请求与异步状态；契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_has_no_async_loading_protocol_and_keeps_sync_press_contract`）
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`ShareButton` 当前仅同步 `on_icon_press` 交互，无远程请求与异步状态；契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_has_no_async_loading_protocol_and_keeps_sync_press_contract`）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_docs_expose_hello_world_path_without_state_machine_wiring`；docs 提供零接线 `<ShareButton />` 最小路径，复杂能力继续通过 `Button/FlipButton` 组合按需开启）
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_docs_expose_hello_world_path_without_state_machine_wiring`；docs 提供零接线 `<ShareButton />` 最小路径，复杂能力继续通过 `Button/FlipButton` 组合按需开启）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（`ShareButton` 采用类型化 `items: Vec<ShareButtonItem>` 作为配置式输入，不使用并行数组/隐式配对；契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_composite_api_uses_typed_items_not_parallel_arrays`）
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（`ShareButton` 采用类型化 `items: Vec<ShareButtonItem>` 作为配置式输入，不使用并行数组/隐式配对；契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_composite_api_uses_typed_items_not_parallel_arrays`）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_has_a11y_i18n_and_locale_entrypoints_via_headless_contracts`；`ShareButton` 通过 `aria_label/lang/dir` 接入、`UiI18n(CommonStrings)` 默认文案注入、`ui_headless::labeled_group_attrs` 统一挂载 group 语义）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_has_a11y_i18n_and_locale_entrypoints_via_headless_contracts`；`ShareButton` 通过 `aria_label/lang/dir` 接入、`UiI18n(CommonStrings)` 默认文案注入、`ui_headless::labeled_group_attrs` 统一挂载 group 语义）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_state_markers_are_observable_and_closed_set_contracts`，状态来源与平台/图标标记值均为可枚举封闭集合）
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_state_markers_are_observable_and_closed_set_contracts`，状态来源与平台/图标标记值均为可枚举封闭集合）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_styles_depend_on_explicit_state_markers_not_dom_guessing`，并继续复用 `Button/FlipButton` 暴露的稳定语义标记）
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_styles_depend_on_explicit_state_markers_not_dom_guessing`，并继续复用 `Button/FlipButton` 暴露的稳定语义标记）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_semantics_suite_prioritizes_contract_assertions_over_snapshots`，以语义 marker 断言为主并显式禁止 snapshot 依赖）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_semantics_suite_prioritizes_contract_assertions_over_snapshots`，以语义 marker 断言为主并显式禁止 snapshot 依赖）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_component_files_follow_layered_responsibilities`，并验证 `view.rs` 继续复用 `FlipButton + Button + ButtonGroup`）
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_component_files_follow_layered_responsibilities`，并验证 `view.rs` 继续复用 `FlipButton + Button + ButtonGroup`）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
@@ -121,17 +121,17 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_token_first_styles_are_static_and_aggregated_via_ui_root`；校验 `styles.rs -> css.rs(push_components_css) -> UiRoot` 注入链路与 feature gate）
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_token_first_styles_are_static_and_aggregated_via_ui_root`；校验 `styles.rs -> css.rs(push_components_css) -> UiRoot` 注入链路与 feature gate）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_visual_desire_gate_reuses_theme_visual_baseline_and_heroui_contracts`；复用 `apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs` + `e2e/tests/docs_app_theme_visual_baseline.spec.mjs` 的 Button/Input/Overlay 截图基线）
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_visual_desire_gate_reuses_theme_visual_baseline_and_heroui_contracts`；复用 `apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs` + `e2e/tests/docs_app_theme_visual_baseline.spec.mjs` 的 Button/Input/Overlay 截图基线）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci`；锁定 `component-button_share` 特性门控、`css.rs` 条件聚合、`scripts/check-ui-tree-shaking.sh` 的最小特性编译与体积预算门禁）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci`；锁定 `component-button_share` 特性门控、`css.rs` 条件聚合、`scripts/check-ui-tree-shaking.sh` 的最小特性编译与体积预算门禁）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -140,37 +140,37 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_machine_readable_contract_uses_typed_inputs_and_semantic_markers`，输入继续复用 `ButtonSize/ButtonVariant`，状态通过稳定 `data-*` 暴露）
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_machine_readable_contract_uses_typed_inputs_and_semantic_markers`，输入继续复用 `ButtonSize/ButtonVariant`，状态通过稳定 `data-*` 暴露）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
-- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_ssr_and_cross_platform_compile_paths_are_cfg_guarded`；compile-only 证据：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button_share,inject-css`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui`）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_ssr_and_cross_platform_compile_paths_are_cfg_guarded`；compile-only 证据：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button_share,inject-css`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui`）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_headless_web_ssr_feature_mutex_is_compile_guarded_and_script_verified`；compile-only 证据：`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui-headless --no-default-features --features web,ssr` 预期失败且报 `mutually exclusive`）
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_headless_web_ssr_feature_mutex_is_compile_guarded_and_script_verified`；compile-only 证据：`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui-headless --no-default-features --features web,ssr` 预期失败且报 `mutually exclusive`）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_motion_non_wasm_stub_contract_is_predictable_and_toolchain_safe`；compile-only 证据：`cargo check -p ui-motion`、`cargo check -p ui-motion --target wasm32-unknown-unknown`、`cargo test -p ui-motion --test non_wasm_stub`）
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_motion_non_wasm_stub_contract_is_predictable_and_toolchain_safe`；compile-only 证据：`cargo check -p ui-motion`、`cargo check -p ui-motion --target wasm32-unknown-unknown`、`cargo test -p ui-motion --test non_wasm_stub`）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_reduced_motion_ssr_wasm_branches_are_covered_via_flip_and_motion_contracts`；验证命令：`cargo test -p ui-motion --test spring`、`cargo check -p ui --no-default-features --features component-button_share,inject-css`、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button_share,inject-css`）
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_reduced_motion_ssr_wasm_branches_are_covered_via_flip_and_motion_contracts`；验证命令：`cargo test -p ui-motion --test spring`、`cargo check -p ui --no-default-features --features component-button_share,inject-css`、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-button_share,inject-css`）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_performance_governance_budget_is_defined_and_blocking`；预算落点：`apps/docs-app/src/pages/components/shell.rs` 为 `share-button` 设置 `UiPerfBudget{ mount=32ms, update=11ms, heap=576KB }`；门禁脚本：`scripts/check-ui-performance.sh` 纳入 share-button 性能用例）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_performance_governance_budget_is_defined_and_blocking`；预算落点：`apps/docs-app/src/pages/components/shell.rs` 为 `share-button` 设置 `UiPerfBudget{ mount=32ms, update=11ms, heap=576KB }`；门禁脚本：`scripts/check-ui-performance.sh` 纳入 share-button 性能用例）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_view_macro_complexity_is_split_into_semantic_subrenders`；门禁脚本：`scripts/check-ui-view-macro.sh` 纳入 share-button 宏复杂度检查）
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_view_macro_complexity_is_split_into_semantic_subrenders`；门禁脚本：`scripts/check-ui-view-macro.sh` 纳入 share-button 宏复杂度检查）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
@@ -208,7 +208,7 @@
   - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [x] 组件目录标准文件落点正确。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_directory_uses_standard_component_file_layout`；`share` 目录保持 `mod/logic/styles/view/motion` 标准结构，且 `view.rs` 继续复用 `FlipButton + Button + ButtonGroup`）
+- [x] 组件目录标准文件落点正确。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_directory_uses_standard_component_file_layout`；`share` 目录保持 `mod/logic/styles/view/motion` 标准结构，且 `view.rs` 继续复用 `FlipButton + Button + ButtonGroup`）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -225,7 +225,7 @@
 - [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_snapshot_mode_is_default_and_accepts_complete_configuration`，`ShareButton` 支持从最小 `<ShareButton />` 到完整参数配置的一次性稳定渲染）
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_snapshot_mode_is_default_and_accepts_complete_configuration`，`ShareButton` 支持从最小 `<ShareButton />` 到完整参数配置的一次性稳定渲染）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
 - [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
@@ -235,7 +235,7 @@
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试与文档（验证闭环）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_semantics_cover_data_aria_and_button_role_contracts`；`ShareButton` 通过稳定 `data-*` + `aria-*` 标记并复用 `Button` 角色语义）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_semantics_cover_data_aria_and_button_role_contracts`；`ShareButton` 通过稳定 `data-*` + `aria-*` 标记并复用 `Button` 角色语义）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
@@ -247,11 +247,11 @@
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_docs_sync_param_and_state_matrix_with_current_logic_contract`，并校验 docs 参数矩阵与 `logic.rs` 默认值契约一致）
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_docs_sync_param_and_state_matrix_with_current_logic_contract`，并校验 docs 参数矩阵与 `logic.rs` 默认值契约一致）
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（契约回归：`components/button/test/share_button_semantics.rs` 的 `share_button_docs_are_beginner_friendly_with_progressive_examples`，`ShareButton` 文档按 Hello World -> 默认用法 -> 进阶配置渐进组织）
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（契约回归：`components/button/test/share_button/semantics.rs` 的 `share_button_docs_are_beginner_friendly_with_progressive_examples`，`ShareButton` 文档按 Hello World -> 默认用法 -> 进阶配置渐进组织）
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。

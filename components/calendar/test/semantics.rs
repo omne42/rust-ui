@@ -5,7 +5,37 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
-    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+    let source = fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+
+    if rel_path.ends_with("apps/docs-app/src/pages/components/pages/forms_extra.rs") {
+        let forms_extra_dir = path
+            .parent()
+            .unwrap_or_else(|| panic!("forms_extra.rs should have parent: {path:?}"))
+            .join("forms_extra");
+        let mut combined = source.clone();
+
+        for line in source.lines() {
+            let trimmed = line.trim();
+            let Some(rest) = trimmed.strip_prefix("#[path = \"forms_extra/") else {
+                continue;
+            };
+            let Some(rel_end) = rest.find("\"]") else {
+                continue;
+            };
+            let child_rel = &rest[..rel_end];
+            let child_path = forms_extra_dir.join(child_rel);
+            let child_source = fs::read_to_string(&child_path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {child_path:?}: {e}"));
+            let compat_child = child_source.replace("pub(crate) fn ", "pub(super) fn ");
+            combined.push('\n');
+            combined.push_str(&compat_child);
+        }
+
+        return combined;
+    }
+
+    source
 }
 
 #[test]

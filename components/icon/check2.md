@@ -52,7 +52,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`Icon`/`Icons`/`Iconset`/`IconsUi`/`IconsWorkflow` 的布尔 props 已统一为 `is_disabled`、`is_decorative`，旧名 `disabled`/`decorative` 已完成迁移；本组件无回调与受控状态轴，`on_*`/`default_*` 为 N/A）
@@ -175,7 +175,7 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（单组件结论：`icon` 为静态展示组件，`components/icon/src` 无 `create_signal/create_memo/create_effect` 等响应式更新路径、无动效循环与异步分支，关键路径预算为“初始化一次渲染 + props 变化触发重渲染”；等价可重复证据由 `components/icon/test/semantics.rs` 对稳定渲染语义与来源标记做固定断言。仓库级 `Button/Input` 预算与 `render_count` 自动化后续由 `components/button/test/button_semantics.rs`、`components/text-input/test/input_semantics.rs`、`components/accordion/test/accordion_semantics.rs` 中的 performance governance / `render_count` follow-up 断言承接）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（单组件结论：`icon` 为静态展示组件，`components/icon/src` 无 `create_signal/create_memo/create_effect` 等响应式更新路径、无动效循环与异步分支，关键路径预算为“初始化一次渲染 + props 变化触发重渲染”；等价可重复证据由 `components/icon/test/semantics.rs` 对稳定渲染语义与来源标记做固定断言。仓库级 `Button/Input` 预算与 `render_count` 自动化后续由 `components/button/test/button_semantics.rs`、`components/text-input/test/input_semantics.rs`、`components/accordion/test/semantics.rs` 中的 performance governance / `render_count` follow-up 断言承接）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。

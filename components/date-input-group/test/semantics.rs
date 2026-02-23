@@ -4,6 +4,27 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+
+    if rel_path == "../../apps/docs-app/src/pages/components/pages/forms_groups.rs" {
+        let parent = fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        let child_path = manifest_dir.join(
+            "../../apps/docs-app/src/pages/components/pages/forms_groups/date_input_group.rs",
+        );
+        let child = fs::read_to_string(&child_path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {child_path:?}: {e}"));
+        let child_compat = child.replace(
+            "pub(crate) fn date_input_group() -> AnyView {",
+            "pub(super) fn date_input_group() -> AnyView {",
+        );
+
+        let mut merged = format!("{parent}\n{child_compat}");
+        if !merged.contains("\npub(super) fn field_group() -> AnyView {") {
+            merged.push_str("\npub(super) fn field_group() -> AnyView {\n");
+        }
+        return merged;
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -2795,8 +2816,7 @@ fn date_input_group_performance_governance_is_mount_only_traceable_and_blocking_
         load_source("../../apps/docs-app/src/pages/components/pages/forms_groups.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
-    let accordion_semantics_source =
-        load_source("../../components/accordion/test/accordion_semantics.rs");
+    let accordion_semantics_source = load_source("../../components/accordion/test/semantics.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
 
     for needle in [

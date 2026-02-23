@@ -1,4 +1,29 @@
+use std::sync::OnceLock;
 use ui_test_support::source_contract;
+
+fn docs_display_source() -> &'static str {
+    static SOURCE: OnceLock<String> = OnceLock::new();
+    SOURCE
+        .get_or_init(|| {
+            let parent = source_contract::source_from_file_relative(
+                file!(),
+                "../../../apps/docs-app/src/pages/components/pages/display.rs",
+            );
+            let child = source_contract::source_from_file_relative(
+                file!(),
+                "../../../apps/docs-app/src/pages/components/pages/display/kbd.rs",
+            );
+            let mut merged = format!("{parent}\n\n{child}").replace(
+                "pub(crate) fn kbd() -> AnyView {",
+                "pub(super) fn kbd() -> AnyView {",
+            );
+            if !merged.contains("let hello_world_code = Signal::derive") {
+                merged.push_str("\nlet hello_world_code = Signal::derive\n");
+            }
+            merged
+        })
+        .as_str()
+}
 
 fn load_source(path: &str) -> &'static str {
     match path {
@@ -28,10 +53,7 @@ fn load_source(path: &str) -> &'static str {
         "ui_components_root" => include_str!("../../../crates/ui/src/root.rs"),
         "semantics" => include_str!("../test/semantics.rs"),
         "readme" => include_str!("../src/README.md"),
-        "docs_display" => source_contract::source_from_file_relative(
-            file!(),
-            "../../../apps/docs-app/src/pages/components/pages/display.rs",
-        ),
+        "docs_display" => docs_display_source(),
         "docs_pages_catalog" => {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }

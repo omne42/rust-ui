@@ -970,8 +970,7 @@ fn contextual_help_performance_governance_has_budgeted_equivalent_evidence() {
     let view = load_source("view");
     let docs_shell = include_str!("../../../apps/docs-app/src/pages/components/shell.rs");
     let perf_script = include_str!("../../../scripts/check-ui-performance.sh");
-    let accordion_semantics =
-        include_str!("../../../components/accordion/test/accordion_semantics.rs");
+    let accordion_semantics = include_str!("../../../components/accordion/test/semantics.rs");
 
     for needle in [
         "use crate::perf_probe::{UiPerfBudget, UiPerfProbe};",

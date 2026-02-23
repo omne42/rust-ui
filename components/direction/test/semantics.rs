@@ -26,7 +26,7 @@ fn load_source(path: &str) -> &'static str {
             "../../../crates/ui-theme/src/css.rs",
         ),
         "cross_crate_direction_semantics" => {
-            include_str!("../../../components/direction/test/direction_semantics.rs")
+            include_str!("../../../components/direction/test/direction/semantics.rs")
         }
         "web_demo_cargo" => include_str!("../../../apps/web-demo/Cargo.toml"),
         "docs_app_cargo" => include_str!("../../../apps/docs-app/Cargo.toml"),
@@ -1118,11 +1118,11 @@ fn direction_tests_prioritize_semantic_contracts_over_snapshots() {
     let logic_source = load_source("logic");
     let component_semantics_source = include_str!("../test/semantics.rs");
     let cross_crate_semantics_source =
-        include_str!("../../../components/direction/test/direction_semantics.rs");
+        include_str!("../../../components/direction/test/direction/semantics.rs");
 
     for needle in [
         "- [x] 测试验证“语义契约”而不只验证视觉快照。",
-        "语义契约覆盖：`components/direction/test/semantics.rs` 与 `components/direction/test/direction_semantics.rs` 均断言 `lang/dir/data-direction/data-direction-source` 与来源封闭集合。",
+        "语义契约覆盖：`components/direction/test/semantics.rs` 与 `components/direction/test/direction/semantics.rs` 均断言 `lang/dir/data-direction/data-direction-source` 与来源封闭集合。",
         "分支矩阵 N/A（direction）：该组件无受控/非受控轴、无 disabled/键盘/指针交互路径、无 wasm/ssr 分支差异逻辑；适用分支已由语义标记断言覆盖。",
         "快照策略：当前 direction 组件测试不使用 snapshot 断言替代语义契约，主验证路径为可枚举语义标记与来源契约断言。",
     ] {
@@ -1564,7 +1564,7 @@ fn direction_type_system_and_semantic_markers_form_machine_readable_contract() {
         "direction 离散轴全部类型化：输入为 `Option<DirectionMode>`（`DirectionMode::{Ltr,Rtl}`），来源轴为 `DirectionPropSource::{Direction,DirAlias,Default}`；无字符串协议与 bool 组合状态机。",
         "无效输入组合在类型层受限，缺省路径在 `logic::resolve_direction` 统一归一为 `DirectionMode::default()` 并携带来源标记，归一规则由 `test/logic.rs` 与语义测试共同覆盖。",
         "机器可读语义输出稳定：`view.rs` 挂载 `data-direction`（`ltr|rtl`）与 `data-direction-source`（`direction|dir-alias|default`）封闭集合，便于自动化检索与 Agent 消费。",
-        "可持续反馈闭环：`components/direction/test/semantics.rs` 与 `components/direction/test/direction_semantics.rs` 对类型轴、归一路径与语义标记进行回归锁定，破坏契约可直接定位到具体层（primitive/logic/view）。",
+        "可持续反馈闭环：`components/direction/test/semantics.rs` 与 `components/direction/test/direction/semantics.rs` 对类型轴、归一路径与语义标记进行回归锁定，破坏契约可直接定位到具体层（primitive/logic/view）。",
     ] {
         assert!(
             check_source.contains(needle),
@@ -3828,7 +3828,7 @@ fn direction_semantic_and_performance_regression_contract_is_covered_without_sna
 
     for needle in [
         "- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。",
-        "语义覆盖证据：`components/direction/test/semantics.rs` 与 `components/direction/test/direction_semantics.rs` 已断言 `lang/dir/data-slot/data-direction/data-direction-source` 与来源封闭集合，主路径基于语义标记而非视觉快照。",
+        "语义覆盖证据：`components/direction/test/semantics.rs` 与 `components/direction/test/direction/semantics.rs` 已断言 `lang/dir/data-slot/data-direction/data-direction-source` 与来源封闭集合，主路径基于语义标记而非视觉快照。",
         "快照约束：已锁定“语义优先、快照仅补充”策略（`direction_tests_prioritize_semantic_contracts_over_snapshots`），避免以 snapshot 断言替代语义契约。",
         "`aria-*`/焦点流转适用性：N/A（direction）；该组件为方向语义 provider，不暴露可聚焦交互控件，无组件私有焦点流转状态机；交互焦点契约由上层可交互组件负责。",
         "性能与 `render_count` 适用性：N/A（direction 非高频/重型）；当前仅做一次方向归一与语义挂载，不属于必须单组件 `render_count` 预算对象。",
@@ -4045,7 +4045,7 @@ fn direction_semantic_contract_priority_is_enforced_with_mirrored_semantics_test
 
     for needle in [
         "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
-        "语义测试落点：`components/direction/test/semantics.rs` 与 `components/direction/test/direction_semantics.rs` 均存在并持续镜像，保证组件内与聚合层对同一语义契约双向回归。",
+        "语义测试落点：`components/direction/test/semantics.rs` 与 `components/direction/test/direction/semantics.rs` 均存在并持续镜像，保证组件内与聚合层对同一语义契约双向回归。",
         "契约覆盖证据：测试已锁定 `lang/dir/data-direction/data-direction-source/data-slot` 与来源封闭集合（`direction|dir-alias|default`）；`role/aria-*` 对 direction 为非交互 N/A，已通过文档与语义测试明确边界。",
         "快照约束证据：`direction_tests_prioritize_semantic_contracts_over_snapshots` 显式禁止 `assert_snapshot/assert_debug_snapshot/assert_json_snapshot/to_match_snapshot`，避免视觉快照替代语义断言。",
         "变更门禁：`direction_semantic_contract_priority_is_enforced_with_mirrored_semantics_tests` 要求该条保持勾选并校验语义字段断言与镜像函数存在；新增语义字段若未补测试将直接回归失败。",
@@ -4447,7 +4447,7 @@ fn direction_source_first_docs_are_copy_paste_ready_and_traceable() {
         "复制能力已落地：`apps/docs-app/src/pages/components/pages/layout_extra_direction.rs` 新增 `data-slot=\"direction-source-first\"` 区块，包含 `Snippet(copyable=true)` 的一键复制入口（`label=\"Copy DirectionProvider starter\"`）。",
         "复制代码可直接运行：`DIRECTION_SOURCE_FIRST_SNIPPET` 固定包含 `use leptos::prelude::*;` 与 `use ui::{DirectionMode, DirectionProvider};`，并提供最小可用 `DirectionProvider` 示例。",
         "源码与依赖可追溯：文档新增 `data-slot=\"direction-source-paths\"`（`mod.rs/logic.rs/view.rs/styles.rs/protocol.rs`）和 `data-slot=\"direction-source-prerequisites\"`（`component-direction`、`inject-css`），避免“复制即报错”盲区。",
-        "同步策略已显式化：`data-slot=\"direction-source-sync-note\"` 约束 starter snippet 与 Hello World 同步更新；`components/direction/test/semantics.rs` 与 `components/direction/test/direction_semantics.rs` 镜像回归锁定该契约，防止示例漂移。",
+        "同步策略已显式化：`data-slot=\"direction-source-sync-note\"` 约束 starter snippet 与 Hello World 同步更新；`components/direction/test/semantics.rs` 与 `components/direction/test/direction/semantics.rs` 镜像回归锁定该契约，防止示例漂移。",
     ] {
         assert!(
             check_source.contains(needle),
@@ -4513,7 +4513,7 @@ fn direction_heroui_strategy_doc_and_docs_entry_are_synced_for_parameter_changes
         "对标文档已同步：`docs/spec/heroui-parameter-design-strategy.md` 新增 `Direction 同步记录（2026-02-20）`，明确 `direction/dir` 语义、归一优先级（`direction > dir > default`）与 `data-direction-source` 封闭集合契约。",
         "组件文档入口可访问：`apps/docs-app/src/pages/components/pages.rs` 保持 `layout_extra_direction::DIRECTION_PROVIDER_DOC` 索引，`apps/docs-app/src/pages/components/test/mod.rs` 保持 `\"direction\" => &[\"direction-provider\"]` 可检索映射。",
         "研究文档补充判定：本轮仅为 `DirectionProvider` 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。",
-        "回归约束：`components/direction/test/semantics.rs` 与 `components/direction/test/direction_semantics.rs` 镜像断言该条勾选状态、HeroUI 对标文档段落和 docs 索引入口，防止“仅代码更新无文档更新”回归。",
+        "回归约束：`components/direction/test/semantics.rs` 与 `components/direction/test/direction/semantics.rs` 镜像断言该条勾选状态、HeroUI 对标文档段落和 docs 索引入口，防止“仅代码更新无文档更新”回归。",
     ] {
         assert!(
             check_source.contains(needle),

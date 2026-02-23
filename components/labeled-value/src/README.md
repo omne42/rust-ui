@@ -102,6 +102,6 @@
 ## Docs / Test References
 
 - docs page: `apps/docs-app/src/pages/components/pages/display_extra.rs` (`slug="labeled-value"`)
-- semantics test: `components/labeled-value/tests/labeled_value_semantics.rs`
+- semantics test: `components/labeled-value/tests/semantics.rs`
 - state primitive test: `crates/ui-state-primitives/src/labeled_value.rs`
 - headless test: `crates/ui-headless/src/labeled_value.rs`

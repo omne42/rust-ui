@@ -1,5 +1,22 @@
 use ui_test_support::source_contract;
 
+static DOCS_FORMS_COLOR_SOURCE: std::sync::LazyLock<&'static str> =
+    std::sync::LazyLock::new(|| {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_color/color_loupe.rs",
+        );
+        let child_compat = child.replace(
+            "pub(crate) fn color_loupe() -> AnyView {",
+            "pub(super) fn color_loupe() -> AnyView {",
+        );
+        Box::leak(format!("{parent}\n{child_compat}").into_boxed_str())
+    });
+
 fn load_source(path: &str) -> &'static str {
     match path {
         "lib" => include_str!("../src/lib.rs"),
@@ -13,10 +30,7 @@ fn load_source(path: &str) -> &'static str {
         "check2" => include_str!("../check2.md"),
         "component_manifest" => include_str!("../Component.toml"),
         "component_rbi" => include_str!("../Component.rbi"),
-        "docs_forms_color" => source_contract::source_from_file_relative(
-            file!(),
-            "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-        ),
+        "docs_forms_color" => *DOCS_FORMS_COLOR_SOURCE,
         "docs_pages" => include_str!("../../../apps/docs-app/src/pages/components/pages.rs"),
         "docs_playground" => include_str!("../../../apps/docs-app/src/playground.rs"),
         "docs_shell" => include_str!("../../../apps/docs-app/src/pages/components/shell.rs"),

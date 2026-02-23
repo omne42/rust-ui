@@ -54,7 +54,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
   - N/A（direction/motion.rs）：该组件是静态方向语义容器，无组件级动效 attach 需求；已通过 `test/semantics.rs` 固化“无私有动效引擎实现”与装配边界。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
@@ -179,7 +179,7 @@
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-  - 语义契约覆盖：`components/direction/test/semantics.rs` 与 `components/direction/test/direction_semantics.rs` 均断言 `lang/dir/data-direction/data-direction-source` 与来源封闭集合。
+  - 语义契约覆盖：`components/direction/test/semantics.rs` 与 `components/direction/test/direction/semantics.rs` 均断言 `lang/dir/data-direction/data-direction-source` 与来源封闭集合。
   - 分支矩阵 N/A（direction）：该组件无受控/非受控轴、无 disabled/键盘/指针交互路径、无 wasm/ssr 分支差异逻辑；适用分支已由语义标记断言覆盖。
   - 快照策略：当前 direction 组件测试不使用 snapshot 断言替代语义契约，主验证路径为可枚举语义标记与来源契约断言。
 - [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
@@ -240,7 +240,7 @@
   - direction 离散轴全部类型化：输入为 `Option<DirectionMode>`（`DirectionMode::{Ltr,Rtl}`），来源轴为 `DirectionPropSource::{Direction,DirAlias,Default}`；无字符串协议与 bool 组合状态机。
   - 无效输入组合在类型层受限，缺省路径在 `logic::resolve_direction` 统一归一为 `DirectionMode::default()` 并携带来源标记，归一规则由 `test/logic.rs` 与语义测试共同覆盖。
   - 机器可读语义输出稳定：`view.rs` 挂载 `data-direction`（`ltr|rtl`）与 `data-direction-source`（`direction|dir-alias|default`）封闭集合，便于自动化检索与 Agent 消费。
-  - 可持续反馈闭环：`components/direction/test/semantics.rs` 与 `components/direction/test/direction_semantics.rs` 对类型轴、归一路径与语义标记进行回归锁定，破坏契约可直接定位到具体层（primitive/logic/view）。
+  - 可持续反馈闭环：`components/direction/test/semantics.rs` 与 `components/direction/test/direction/semantics.rs` 对类型轴、归一路径与语义标记进行回归锁定，破坏契约可直接定位到具体层（primitive/logic/view）。
 
 ### 4. DOM/环境边界治理
 - [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
@@ -416,7 +416,7 @@
   - 特性树验证：执行 `cargo tree -e features -i ui -p ui --no-default-features --features component-direction,inject-css`，输出仅含命令行特性 `component-direction` 与 `inject-css`，未出现 `all-components`。
   - 反向依赖验证：执行 `cargo tree -e features -i ui -p web-demo`，链路为 `web-demo-components`，未发现 `all-components` 被隐式拉起。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-  - 语义覆盖证据：`components/direction/test/semantics.rs` 与 `components/direction/test/direction_semantics.rs` 已断言 `lang/dir/data-slot/data-direction/data-direction-source` 与来源封闭集合，主路径基于语义标记而非视觉快照。
+  - 语义覆盖证据：`components/direction/test/semantics.rs` 与 `components/direction/test/direction/semantics.rs` 已断言 `lang/dir/data-slot/data-direction/data-direction-source` 与来源封闭集合，主路径基于语义标记而非视觉快照。
   - 快照约束：已锁定“语义优先、快照仅补充”策略（`direction_tests_prioritize_semantic_contracts_over_snapshots`），避免以 snapshot 断言替代语义契约。
   - `aria-*`/焦点流转适用性：N/A（direction）；该组件为方向语义 provider，不暴露可聚焦交互控件，无组件私有焦点流转状态机；交互焦点契约由上层可交互组件负责。
   - 性能与 `render_count` 适用性：N/A（direction 非高频/重型）；当前仅做一次方向归一与语义挂载，不属于必须单组件 `render_count` 预算对象。
@@ -436,7 +436,7 @@
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-  - 语义测试落点：`components/direction/test/semantics.rs` 与 `components/direction/test/direction_semantics.rs` 均存在并持续镜像，保证组件内与聚合层对同一语义契约双向回归。
+  - 语义测试落点：`components/direction/test/semantics.rs` 与 `components/direction/test/direction/semantics.rs` 均存在并持续镜像，保证组件内与聚合层对同一语义契约双向回归。
   - 契约覆盖证据：测试已锁定 `lang/dir/data-direction/data-direction-source/data-slot` 与来源封闭集合（`direction|dir-alias|default`）；`role/aria-*` 对 direction 为非交互 N/A，已通过文档与语义测试明确边界。
   - 快照约束证据：`direction_tests_prioritize_semantic_contracts_over_snapshots` 显式禁止 `assert_snapshot/assert_debug_snapshot/assert_json_snapshot/to_match_snapshot`，避免视觉快照替代语义断言。
   - 变更门禁：`direction_semantic_contract_priority_is_enforced_with_mirrored_semantics_tests` 要求该条保持勾选并校验语义字段断言与镜像函数存在；新增语义字段若未补测试将直接回归失败。
@@ -490,7 +490,7 @@
   - 复制能力已落地：`apps/docs-app/src/pages/components/pages/layout_extra_direction.rs` 新增 `data-slot="direction-source-first"` 区块，包含 `Snippet(copyable=true)` 的一键复制入口（`label="Copy DirectionProvider starter"`）。
   - 复制代码可直接运行：`DIRECTION_SOURCE_FIRST_SNIPPET` 固定包含 `use leptos::prelude::*;` 与 `use ui::{DirectionMode, DirectionProvider};`，并提供最小可用 `DirectionProvider` 示例。
   - 源码与依赖可追溯：文档新增 `data-slot="direction-source-paths"`（`mod.rs/logic.rs/view.rs/styles.rs/protocol.rs`）和 `data-slot="direction-source-prerequisites"`（`component-direction`、`inject-css`），避免“复制即报错”盲区。
-  - 同步策略已显式化：`data-slot="direction-source-sync-note"` 约束 starter snippet 与 Hello World 同步更新；`components/direction/test/semantics.rs` 与 `components/direction/test/direction_semantics.rs` 镜像回归锁定该契约，防止示例漂移。
+  - 同步策略已显式化：`data-slot="direction-source-sync-note"` 约束 starter snippet 与 Hello World 同步更新；`components/direction/test/semantics.rs` 与 `components/direction/test/direction/semantics.rs` 镜像回归锁定该契约，防止示例漂移。
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
@@ -498,7 +498,7 @@
   - 对标文档已同步：`docs/spec/heroui-parameter-design-strategy.md` 新增 `Direction 同步记录（2026-02-20）`，明确 `direction/dir` 语义、归一优先级（`direction > dir > default`）与 `data-direction-source` 封闭集合契约。
   - 组件文档入口可访问：`apps/docs-app/src/pages/components/pages.rs` 保持 `layout_extra_direction::DIRECTION_PROVIDER_DOC` 索引，`apps/docs-app/src/pages/components/test/mod.rs` 保持 `"direction" => &["direction-provider"]` 可检索映射。
   - 研究文档补充判定：本轮仅为 `DirectionProvider` 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
-  - 回归约束：`components/direction/test/semantics.rs` 与 `components/direction/test/direction_semantics.rs` 镜像断言该条勾选状态、HeroUI 对标文档段落和 docs 索引入口，防止“仅代码更新无文档更新”回归。
+  - 回归约束：`components/direction/test/semantics.rs` 与 `components/direction/test/direction/semantics.rs` 镜像断言该条勾选状态、HeroUI 对标文档段落和 docs 索引入口，防止“仅代码更新无文档更新”回归。
 
 ### 8. 合并前门禁死命令（最终执行）
 在发起 PR 或完成任务前，必须保证本地/CI 以下命令全部通过：

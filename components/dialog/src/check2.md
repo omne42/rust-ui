@@ -12,7 +12,7 @@
 ### 本轮执行证据（Dialog / check2）
 - 修复项 1：`crates/ui/Cargo.toml` 将 `component-dialog` 从空特性修正为 `["component-overlay", "component-button"]`，修复最小特性构建缺依赖问题。
 - 修复项 2：`crates/ui/src/dialog/view.rs` 导入改为 `crate::button::{Button, ButtonSize, ButtonVariant}` + `crate::OnPress`，并以 `Button(is_icon_only=true)` 实现关闭按钮，避免冗余组件依赖导致最小特性构建失败。
-- 回归项：`components/dialog/test/dialog_semantics.rs` 新增 `dialog_feature_gate_declares_required_component_dependencies` 与 `dialog_e2e_contract_uses_semantic_selectors`，锁定 feature 依赖与 E2E 语义选择器契约。
+- 回归项：`components/dialog/test/dialog/semantics.rs` 新增 `dialog_feature_gate_declares_required_component_dependencies` 与 `dialog_e2e_contract_uses_semantic_selectors`，锁定 feature 依赖与 E2E 语义选择器契约。
 - 文档与工作台补齐：`apps/docs-app/src/pages/components/pages/overlays_dialog.rs` 新增 `Interactive Playground`（展示/Config/Code/CSS Test）与 `Scenario Comparison`（多场景对比）。
 - README 补齐：新增 `crates/ui/src/dialog/README.md`，包含 `展示区（Display）`、`Config 区`、`Code 区`、`CSS Test 区`、`多种情况对比显示`。
 - E2E 补齐：新增 `e2e/tests/docs_app_dialog_contract.spec.mjs`，覆盖打开、语义来源标记、Esc 关闭流程。

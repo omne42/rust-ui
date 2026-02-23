@@ -1,5 +1,25 @@
 use ui_test_support::source_contract;
 
+static DOCS_OVERLAYS_SOURCE: std::sync::LazyLock<&'static str> = std::sync::LazyLock::new(|| {
+    let parent = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
+    );
+    let child = source_contract::source_from_file_relative(
+        file!(),
+        "../../../apps/docs-app/src/pages/components/pages/overlays/drawer.rs",
+    );
+    let child_compat = child.replace(
+        "pub(crate) fn drawer() -> AnyView {",
+        "pub(super) fn drawer() -> AnyView {",
+    );
+    Box::leak(format!("{parent}\n{child_compat}").into_boxed_str())
+});
+
+fn docs_overlays_source() -> &'static str {
+    *DOCS_OVERLAYS_SOURCE
+}
+
 fn snapshot_only_forbidden_patterns() -> [String; 4] {
     [
         ["assert", "_snapshot!"].concat(),
@@ -585,7 +605,7 @@ fn drawer_check2_marks_defensive_variable_contract_complete() {
         "scripts/check-ui-contract-hygiene.sh",
         "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
         "components/drawer/test/semantics.rs::drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
-        "components/drawer/test/drawer_semantics.rs::drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
+        "components/drawer/test/drawer/semantics.rs::drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -693,7 +713,7 @@ fn drawer_check2_marks_cascade_layer_contract_complete() {
         "scripts/check-ui-contract-hygiene.sh",
         "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_cascade_layer_and_runtime_style_contract_is_enforced",
         "components/drawer/test/semantics.rs::drawer_cascade_layer_and_runtime_style_contract_is_enforced",
-        "components/drawer/test/drawer_semantics.rs::drawer_cascade_layer_and_runtime_style_contract_is_enforced",
+        "components/drawer/test/drawer/semantics.rs::drawer_cascade_layer_and_runtime_style_contract_is_enforced",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1203,7 +1223,7 @@ fn drawer_semantic_test_priority_prefers_data_aria_role_and_source_contracts_ove
     let sheet_view_source = include_str!("../../sheet/src/view.rs");
     let local_semantics_source = include_str!("semantics.rs");
     let workspace_semantics_source =
-        include_str!("../../../components/drawer/test/drawer_semantics.rs");
+        include_str!("../../../components/drawer/test/drawer/semantics.rs");
     let perf_script_source = include_str!("../../../scripts/check-ui-performance.sh");
 
     for marker in [
@@ -1329,10 +1349,7 @@ fn drawer_check2_documents_e2e_selector_and_stable_wait_rules() {
 #[test]
 fn drawer_e2e_selector_contract_uses_semantic_markers_and_settled_waits() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_drawer_contract.spec.mjs");
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
-    );
+    let docs_source = docs_overlays_source();
 
     for marker in [
         "page.goto(\"/#/components/drawer\")",
@@ -1443,7 +1460,7 @@ fn drawer_check2_marks_e2e_selector_stability_item_complete() {
         "components/drawer/test/semantics.rs::drawer_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "components/drawer/test/semantics.rs::drawer_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
         "components/drawer/test/semantics.rs::drawer_e2e_check_script_covers_selector_and_settled_wait_contract",
-        "components/drawer/test/drawer_semantics.rs::drawer_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "components/drawer/test/drawer/semantics.rs::drawer_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "components/drawer/scripts/check-ui-e2e-drawer.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -2436,7 +2453,7 @@ fn drawer_check2_marks_motion_contract_complete() {
         "scripts/check-ui-contract-hygiene.sh",
         "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
         "components/drawer/test/semantics.rs::drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
-        "components/drawer/test/drawer_semantics.rs::drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
+        "components/drawer/test/drawer/semantics.rs::drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2651,7 +2668,7 @@ fn drawer_check2_marks_component_directory_standard_files_contract_complete() {
         "scripts/check-ui-component-files.sh",
         "cargo test -p ui --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_component_directory_standard_files_follow_contract_and_na_paths",
         "components/drawer/test/semantics.rs::drawer_component_directory_standard_files_follow_contract_and_na_paths",
-        "components/drawer/test/drawer_semantics.rs::drawer_component_directory_standard_files_follow_contract_and_na_paths",
+        "components/drawer/test/drawer/semantics.rs::drawer_component_directory_standard_files_follow_contract_and_na_paths",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3682,7 +3699,7 @@ fn drawer_performance_governance_contract_is_budgeted_traceable_and_blocking() {
 fn drawer_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement()
 {
     let local_semantics = include_str!("semantics.rs");
-    let aggregated_semantics = include_str!("../../../components/drawer/test/drawer_semantics.rs");
+    let aggregated_semantics = include_str!("../../../components/drawer/test/drawer/semantics.rs");
     let drawer_view_source = include_str!("../src/view.rs");
     let sheet_view_source = include_str!("../../sheet/src/view.rs");
     let focus_trap_source = include_str!("../../../crates/ui-headless/src/focus_trap.rs");
@@ -3997,10 +4014,7 @@ fn drawer_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
         }
     }
 
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
-    );
+    let docs_source = docs_overlays_source();
     for forbidden in [
         "inner_html",
         "set_inner_html",
@@ -4049,10 +4063,7 @@ fn drawer_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
         include_str!("../../../crates/ui-headless/src/controllable_state.rs");
     let drawer_view_source = include_str!("../src/view.rs");
     let drawer_logic_source = include_str!("../src/logic.rs");
-    let docs_overlays_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
-    );
+    let docs_overlays_source = docs_overlays_source();
     let check2_source = include_str!("../check2.md");
 
     for needle in [
@@ -4208,10 +4219,7 @@ fn drawer_wasm_debug_check_script_covers_shared_contract() {
 #[test]
 fn drawer_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
-    );
+    let docs_source = docs_overlays_source();
 
     for needle in [
         "let (show_settings_panel, set_show_settings_panel) = signal(false);",
@@ -4251,10 +4259,7 @@ fn drawer_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
 fn drawer_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na()
 {
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
-    );
+    let docs_source = docs_overlays_source();
     let check2_source = include_str!("../check2.md");
 
     for needle in [
@@ -4349,10 +4354,7 @@ fn drawer_check2_documents_docs_sync_and_state_matrix_rules() {
 
 #[test]
 fn drawer_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults() {
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
-    );
+    let docs_source = docs_overlays_source();
     let logic_source = include_str!("../src/logic.rs");
     let view_source = include_str!("../src/view.rs");
     let primitive_source = include_str!("../../../crates/ui-state-primitives/src/drawer.rs");
@@ -4489,10 +4491,7 @@ fn drawer_check2_documents_documentation_as_product_rules() {
 fn drawer_documentation_entry_exists_with_beginner_first_progression() {
     let readme_source = include_str!("../src/README.md");
     let pages_source = include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
-    );
+    let docs_source = docs_overlays_source();
 
     for needle in [
         "# Drawer",
@@ -4609,10 +4608,7 @@ fn drawer_check2_documents_heroui_benchmark_docs_sync_rules() {
 fn drawer_heroui_strategy_and_component_docs_are_synchronized_and_indexable() {
     let strategy_source = include_str!("../../../docs/spec/heroui-parameter-design-strategy.md");
     let pages_source = include_str!("../../../apps/docs-app/src/pages/components/pages.rs");
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
-    );
+    let docs_source = docs_overlays_source();
     let readme_source = include_str!("../src/README.md");
 
     for needle in [
@@ -4716,10 +4712,7 @@ fn drawer_check2_documents_interactive_playground_rules() {
 
 #[test]
 fn drawer_docs_app_provides_interactive_playground_for_props_state_and_preview() {
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
-    );
+    let docs_source = docs_overlays_source();
 
     for needle in [
         "pub(super) fn drawer() -> AnyView",
@@ -4752,10 +4745,7 @@ fn drawer_docs_app_provides_interactive_playground_for_props_state_and_preview()
 #[test]
 fn drawer_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
     let e2e_source = include_str!("../../../e2e/tests/docs_app_drawer_contract.spec.mjs");
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
-    );
+    let docs_source = docs_overlays_source();
 
     for needle in [
         "docs-app drawer key flow is repeatable with semantic breakpoints",
@@ -4841,10 +4831,7 @@ fn drawer_check2_marks_interactive_playground_item_complete() {
 
 #[test]
 fn drawer_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract() {
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
-    );
+    let docs_source = docs_overlays_source();
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
 
     for needle in [
@@ -4937,10 +4924,7 @@ fn drawer_check2_documents_source_first_copy_paste_ready_rules() {
 
 #[test]
 fn drawer_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies() {
-    let docs_source = source_contract::source_from_file_relative(
-        file!(),
-        "../../../apps/docs-app/src/pages/components/pages/overlays.rs",
-    );
+    let docs_source = docs_overlays_source();
     let playground_source = include_str!("../../../apps/docs-app/src/playground.rs");
 
     for needle in [
@@ -5257,9 +5241,9 @@ fn drawer_check2_marks_engineering_contract_complete() {
         "components/drawer/test/semantics.rs::drawer_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
         "components/drawer/test/semantics.rs::drawer_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
         "components/drawer/test/semantics.rs::drawer_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
-        "components/drawer/test/drawer_semantics.rs::drawer_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
-        "components/drawer/test/drawer_semantics.rs::drawer_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "components/drawer/test/drawer_semantics.rs::drawer_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "components/drawer/test/drawer/semantics.rs::drawer_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
+        "components/drawer/test/drawer/semantics.rs::drawer_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "components/drawer/test/drawer/semantics.rs::drawer_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(

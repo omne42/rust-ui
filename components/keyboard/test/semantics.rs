@@ -1,4 +1,25 @@
+use std::sync::OnceLock;
 use ui_test_support::source_contract;
+
+fn docs_display_extra_source() -> &'static str {
+    static SOURCE: OnceLock<String> = OnceLock::new();
+    SOURCE
+        .get_or_init(|| {
+            let parent = source_contract::source_from_file_relative(
+                file!(),
+                "../../../apps/docs-app/src/pages/components/pages/display_extra.rs",
+            );
+            let child = source_contract::source_from_file_relative(
+                file!(),
+                "../../../apps/docs-app/src/pages/components/pages/display_extra/keyboard.rs",
+            );
+            format!("{parent}\n\n{child}").replace(
+                "pub(crate) fn keyboard() -> AnyView {",
+                "pub(super) fn keyboard() -> AnyView {",
+            )
+        })
+        .as_str()
+}
 
 fn load_source(path: &str) -> &'static str {
     match path {
@@ -36,10 +57,7 @@ fn load_source(path: &str) -> &'static str {
         "component_readme" => include_str!("../src/README.md"),
         "component_manifest" => include_str!("../src/Component.toml"),
         "component_rbi" => include_str!("../src/keyboard.rbi"),
-        "docs_display_extra" => source_contract::source_from_file_relative(
-            file!(),
-            "../../../apps/docs-app/src/pages/components/pages/display_extra.rs",
-        ),
+        "docs_display_extra" => docs_display_extra_source(),
         "docs_playground" => include_str!("../../../apps/docs-app/src/playground.rs"),
         "docs_pages_index" => include_str!("../../../apps/docs-app/src/pages/components/pages.rs"),
         "heroui_strategy" => include_str!("../../../docs/spec/heroui-parameter-design-strategy.md"),

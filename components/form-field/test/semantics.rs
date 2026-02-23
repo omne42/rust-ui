@@ -1,4 +1,25 @@
+use std::sync::OnceLock;
 use ui_test_support::source_contract;
+
+fn docs_form_field_page_source() -> &'static str {
+    static SOURCE: OnceLock<String> = OnceLock::new();
+    SOURCE
+        .get_or_init(|| {
+            let parent = source_contract::source_from_file_relative(
+                file!(),
+                "../../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs",
+            );
+            let child = source_contract::source_from_file_relative(
+                file!(),
+                "../../../apps/docs-app/src/pages/components/pages/forms_groups_extra/form_field.rs",
+            );
+            format!("{parent}\n\n{child}").replace(
+                "pub(crate) fn form_field() -> AnyView {",
+                "pub(super) fn form_field() -> AnyView {",
+            )
+        })
+        .as_str()
+}
 
 fn load_source(path: &str) -> &'static str {
     match path {
@@ -10,10 +31,7 @@ fn load_source(path: &str) -> &'static str {
         "manifest" => include_str!("../src/Component.toml"),
         "rbi" => include_str!("../src/form_field.rbi"),
         "check2" => include_str!("../check2.md"),
-        "docs_form_field_page" => source_contract::source_from_file_relative(
-            file!(),
-            "../../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs",
-        ),
+        "docs_form_field_page" => docs_form_field_page_source(),
         _ => panic!("unsupported source path: {path}"),
     }
 }
@@ -1136,7 +1154,7 @@ fn form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_stream
     for required in [
         "- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。",
         "components/form-field/test/semantics.rs::form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "components/form-field/test/form_field_semantics.rs::form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
+        "components/form-field/test/form_field/semantics.rs::form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
         "e2e/tests/docs_app_form_field_contract.spec.mjs::docs-app form-field playground source is copy-paste ready",
         "bash scripts/check-ui-dx.sh",
     ] {
@@ -1225,9 +1243,9 @@ fn form_field_check2_marks_docs_sync_and_state_matrix_item_complete() {
     for required in [
         "components/form-field/test/semantics.rs::form_field_check2_documents_docs_sync_and_state_matrix_rules",
         "components/form-field/test/semantics.rs::form_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "components/form-field/test/form_field_semantics.rs::form_field_check2_documents_docs_sync_and_state_matrix_rules",
-        "components/form-field/test/form_field_semantics.rs::form_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
-        "components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_docs_sync_and_state_matrix_contract",
+        "components/form-field/test/form_field/semantics.rs::form_field_check2_documents_docs_sync_and_state_matrix_rules",
+        "components/form-field/test/form_field/semantics.rs::form_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults",
+        "components/form-field/test/form_field/semantics.rs::form_field_dx_check_script_covers_docs_sync_and_state_matrix_contract",
         "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -1340,9 +1358,9 @@ fn form_field_check2_marks_documentation_as_product_contract_complete() {
         "apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::form_field",
         "components/form-field/test/semantics.rs::form_field_check2_documents_documentation_as_product_rules",
         "components/form-field/test/semantics.rs::form_field_documentation_entry_exists_with_beginner_first_progression",
-        "components/form-field/test/form_field_semantics.rs::form_field_check2_documents_documentation_as_product_rules",
-        "components/form-field/test/form_field_semantics.rs::form_field_documentation_entry_exists_with_beginner_first_progression",
-        "components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_documentation_as_product_contract",
+        "components/form-field/test/form_field/semantics.rs::form_field_check2_documents_documentation_as_product_rules",
+        "components/form-field/test/form_field/semantics.rs::form_field_documentation_entry_exists_with_beginner_first_progression",
+        "components/form-field/test/form_field/semantics.rs::form_field_dx_check_script_covers_documentation_as_product_contract",
         "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -1447,10 +1465,10 @@ fn form_field_check2_marks_interactive_playground_item_complete() {
         "components/form-field/test/semantics.rs::form_field_check2_documents_interactive_playground_rules",
         "components/form-field/test/semantics.rs::form_field_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "components/form-field/test/semantics.rs::form_field_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "components/form-field/test/form_field_semantics.rs::form_field_check2_documents_interactive_playground_rules",
-        "components/form-field/test/form_field_semantics.rs::form_field_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "components/form-field/test/form_field_semantics.rs::form_field_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_interactive_playground_contract",
+        "components/form-field/test/form_field/semantics.rs::form_field_check2_documents_interactive_playground_rules",
+        "components/form-field/test/form_field/semantics.rs::form_field_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "components/form-field/test/form_field/semantics.rs::form_field_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "components/form-field/test/form_field/semantics.rs::form_field_dx_check_script_covers_interactive_playground_contract",
         "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -1546,9 +1564,9 @@ fn form_field_check2_marks_source_first_copy_paste_ready_contract_complete() {
         "e2e/tests/docs_app_form_field_contract.spec.mjs::docs-app form-field playground source is copy-paste ready",
         "components/form-field/test/semantics.rs::form_field_check2_documents_source_first_copy_paste_ready_rules",
         "components/form-field/test/semantics.rs::form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
-        "components/form-field/test/form_field_semantics.rs::form_field_check2_documents_source_first_copy_paste_ready_rules",
-        "components/form-field/test/form_field_semantics.rs::form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
-        "components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_source_first_copy_paste_ready_contract",
+        "components/form-field/test/form_field/semantics.rs::form_field_check2_documents_source_first_copy_paste_ready_rules",
+        "components/form-field/test/form_field/semantics.rs::form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "components/form-field/test/form_field/semantics.rs::form_field_dx_check_script_covers_source_first_copy_paste_ready_contract",
         "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -1654,9 +1672,9 @@ fn form_field_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "components/form-field/test/semantics.rs::form_field_check2_documents_heroui_benchmark_docs_sync_rules",
         "components/form-field/test/semantics.rs::form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "components/form-field/test/semantics.rs::form_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
-        "components/form-field/test/form_field_semantics.rs::form_field_check2_documents_heroui_benchmark_docs_sync_rules",
-        "components/form-field/test/form_field_semantics.rs::form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
-        "components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
+        "components/form-field/test/form_field/semantics.rs::form_field_check2_documents_heroui_benchmark_docs_sync_rules",
+        "components/form-field/test/form_field/semantics.rs::form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "components/form-field/test/form_field/semantics.rs::form_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
         "scripts/check-ui-dx.sh",
         "Invalid cross-device link (os error 18)",
@@ -2430,7 +2448,7 @@ fn form_field_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_redu
         "- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。",
         "本组件判定：N/A（`FormField` 无独立组件级动效状态轴，不定义 `src/motion.rs` 与 `attach_motion`）",
         "components/form-field/test/semantics.rs::form_field_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_reduced_motion_noop_guards",
-        "components/form-field/test/form_field_semantics.rs::form_field_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_reduced_motion_noop_guards",
+        "components/form-field/test/form_field/semantics.rs::form_field_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_reduced_motion_noop_guards",
     ] {
         assert!(
             check2.contains(required),
@@ -2571,7 +2589,7 @@ fn form_field_ui_components_fixed_entry_files_follow_layered_boundaries() {
     for required in [
         "- [x] `ui` 固定入口文件落点正确。",
         "components/form-field/test/semantics.rs::form_field_ui_components_fixed_entry_files_follow_layered_boundaries",
-        "components/form-field/test/form_field_semantics.rs::form_field_ui_components_fixed_entry_files_follow_layered_boundaries",
+        "components/form-field/test/form_field/semantics.rs::form_field_ui_components_fixed_entry_files_follow_layered_boundaries",
         "scripts/check-ui-entrypoints.sh",
     ] {
         assert!(
@@ -2707,7 +2725,7 @@ fn form_field_performance_governance_budget_is_defined_traceable_and_blocking() 
         "若当前测试框架暂不支持精确渲染计数",
         "等价证据",
         "components/form-field/test/semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking",
-        "components/form-field/test/form_field_semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking",
+        "components/form-field/test/form_field/semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking",
     ] {
         assert!(
             check2.contains(required),
@@ -2762,7 +2780,7 @@ fn form_field_view_macro_complexity_is_bounded_via_semantic_subview_split() {
     for required in [
         "- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。",
         "components/form-field/test/semantics.rs::form_field_view_macro_complexity_is_bounded_via_semantic_subview_split",
-        "components/form-field/test/form_field_semantics.rs::form_field_view_macro_complexity_is_controlled_by_semantic_subview_split",
+        "components/form-field/test/form_field/semantics.rs::form_field_view_macro_complexity_is_controlled_by_semantic_subview_split",
     ] {
         assert!(
             check2.contains(required),
@@ -2808,7 +2826,7 @@ fn form_field_view_functional_split_prefers_plain_helpers_without_component_nois
     for required in [
         "- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。",
         "components/form-field/test/semantics.rs::form_field_view_functional_split_prefers_plain_helpers_without_component_noise",
-        "components/form-field/test/form_field_semantics.rs::form_field_view_functional_split_prefers_plain_functions_over_extra_local_components",
+        "components/form-field/test/form_field/semantics.rs::form_field_view_functional_split_prefers_plain_functions_over_extra_local_components",
     ] {
         assert!(
             check2.contains(required),
@@ -2872,7 +2890,7 @@ fn form_field_static_fragments_are_constantized_or_absent_for_simple_layout() {
         "- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。",
         "static fragments are constantized or absent for simple layout",
         "components/form-field/test/semantics.rs::form_field_static_fragments_are_constantized_or_absent_for_simple_layout",
-        "components/form-field/test/form_field_semantics.rs::form_field_static_fragments_are_constantized_or_absent_for_simple_layout",
+        "components/form-field/test/form_field/semantics.rs::form_field_static_fragments_are_constantized_or_absent_for_simple_layout",
     ] {
         assert!(
             check2.contains(required),
@@ -2922,7 +2940,7 @@ fn form_field_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
         "- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。",
         "该项按“零注入面”通过",
         "components/form-field/test/semantics.rs::form_field_inner_html_usage_is_forbidden_in_component_and_docs_examples",
-        "components/form-field/test/form_field_semantics.rs::form_field_inner_html_usage_is_forbidden_in_component_and_docs_examples",
+        "components/form-field/test/form_field/semantics.rs::form_field_inner_html_usage_is_forbidden_in_component_and_docs_examples",
     ] {
         assert!(
             check2.contains(required),
@@ -3082,7 +3100,7 @@ fn form_field_wasm_debug_contract_is_na_and_feature_isolated() {
         "- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。",
         "本组件判定：N/A（组件级不自建 wasm 调试/回放管线）",
         "components/form-field/test/semantics.rs::form_field_wasm_debug_contract_is_na_and_feature_isolated",
-        "components/form-field/test/form_field_semantics.rs::form_field_wasm_debug_contract_is_na_and_feature_isolated",
+        "components/form-field/test/form_field/semantics.rs::form_field_wasm_debug_contract_is_na_and_feature_isolated",
     ] {
         assert!(
             check2.contains(required),
@@ -3156,7 +3174,7 @@ fn form_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_opt
         "组件调试应尽量保持当前交互上下文，降低重复操作成本。",
         "复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。",
         "components/form-field/test/semantics.rs::form_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na",
-        "components/form-field/test/form_field_semantics.rs::form_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na",
+        "components/form-field/test/form_field/semantics.rs::form_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na",
     ] {
         assert!(
             check2.contains(required),
@@ -3270,7 +3288,7 @@ fn form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime
         "关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。",
         "异步边界不得把具体 runtime 类型暴露到组件公共接口。",
         "components/form-field/test/semantics.rs::form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries",
-        "components/form-field/test/form_field_semantics.rs::form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries",
+        "components/form-field/test/form_field/semantics.rs::form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries",
     ] {
         assert!(
             check2.contains(required),
@@ -3647,7 +3665,7 @@ fn form_field_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_te
     for required in [
         "- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。",
         "components/form-field/test/semantics.rs::form_field_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
-        "components/form-field/test/form_field_semantics.rs::form_field_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
+        "components/form-field/test/form_field/semantics.rs::form_field_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
     ] {
         assert!(
             check2.contains(required),
@@ -3725,7 +3743,7 @@ fn form_field_cascade_layer_and_runtime_style_contract_is_enforced() {
     for required in [
         "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
         "components/form-field/test/semantics.rs::form_field_cascade_layer_and_runtime_style_contract_is_enforced",
-        "components/form-field/test/form_field_semantics.rs::form_field_cascade_layer_and_runtime_style_contract_is_enforced",
+        "components/form-field/test/form_field/semantics.rs::form_field_cascade_layer_and_runtime_style_contract_is_enforced",
     ] {
         assert!(
             check2.contains(required),
@@ -4071,7 +4089,7 @@ fn form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_depen
     )
     .expect("form-field local semantics test source should be readable");
     let _workspace_semantics =
-        include_str!("../../../components/form-field/test/form_field_semantics.rs");
+        include_str!("../../../components/form-field/test/form_field/semantics.rs");
     let e2e_contract = include_str!("../../../e2e/tests/docs_app_form_field_contract.spec.mjs");
 
     for required in [
@@ -4194,7 +4212,7 @@ fn form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts
     )
     .expect("form-field local semantics source should be readable");
     let workspace_semantics =
-        include_str!("../../../components/form-field/test/form_field_semantics.rs");
+        include_str!("../../../components/form-field/test/form_field/semantics.rs");
     let e2e_contract = include_str!("../../../e2e/tests/docs_app_form_field_contract.spec.mjs");
     let perf_script = include_str!("../../../scripts/check-ui-performance.sh");
 
@@ -4327,9 +4345,9 @@ fn form_field_check2_marks_e2e_selector_stability_item_complete() {
 
     for required in [
         "components/form-field/test/semantics.rs::form_field_e2e_selector_stability_prefers_semantic_markers_and_settled_waits",
-        "components/form-field/test/form_field_semantics.rs::form_field_check2_documents_e2e_selector_and_stable_wait_rules",
-        "components/form-field/test/form_field_semantics.rs::form_field_e2e_contract_uses_semantic_selectors_and_settled_waits",
-        "components/form-field/test/form_field_semantics.rs::form_field_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source",
+        "components/form-field/test/form_field/semantics.rs::form_field_check2_documents_e2e_selector_and_stable_wait_rules",
+        "components/form-field/test/form_field/semantics.rs::form_field_e2e_contract_uses_semantic_selectors_and_settled_waits",
+        "components/form-field/test/form_field/semantics.rs::form_field_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source",
         "components/form-field/scripts/check-ui-e2e-form-field.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -4414,8 +4432,8 @@ fn form_field_check2_marks_e2e_repeatable_key_flow_item_complete() {
         "docs-app form-field key flow is repeatable with semantic breakpoints",
         "components/form-field/test/semantics.rs::form_field_check2_documents_e2e_repeatable_key_flow_rules",
         "components/form-field/test/semantics.rs::form_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "components/form-field/test/form_field_semantics.rs::form_field_check2_documents_e2e_repeatable_key_flow_rules",
-        "components/form-field/test/form_field_semantics.rs::form_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "components/form-field/test/form_field/semantics.rs::form_field_check2_documents_e2e_repeatable_key_flow_rules",
+        "components/form-field/test/form_field/semantics.rs::form_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "components/form-field/scripts/check-ui-e2e-form-field.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -4459,7 +4477,7 @@ fn form_field_check2_marks_semantic_test_priority_item_complete() {
         "components/form-field/test/semantics.rs::form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_dependency",
         "components/form-field/test/semantics.rs::form_field_state_markers_are_observable_queryable_and_enumerable",
         "components/form-field/test/semantics.rs::form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
-        "components/form-field/test/form_field_semantics.rs::form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "components/form-field/test/form_field/semantics.rs::form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "scripts/check-ui-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -4684,8 +4702,8 @@ fn form_field_check2_marks_semantic_and_performance_regression_contract_complete
         "components/form-field/test/semantics.rs::form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_dependency",
         "components/form-field/test/semantics.rs::form_field_state_markers_are_observable_queryable_and_enumerable",
         "components/form-field/test/semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking",
-        "components/form-field/test/form_field_semantics.rs::form_field_e2e_contract_uses_semantic_selectors_and_settled_waits",
-        "components/form-field/test/form_field_semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking",
+        "components/form-field/test/form_field/semantics.rs::form_field_e2e_contract_uses_semantic_selectors_and_settled_waits",
+        "components/form-field/test/form_field/semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking",
         "render_count",
         "bash scripts/check-ui-performance.sh",
     ] {
@@ -4707,9 +4725,9 @@ fn form_field_check2_marks_rust_hygiene_contract_complete() {
         "components/form-field/test/semantics.rs::form_field_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
         "components/form-field/test/semantics.rs::form_field_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
         "components/form-field/test/semantics.rs::form_field_rust_hygiene_script_enforces_repo_level_hygiene_guards",
-        "components/form-field/test/form_field_semantics.rs::form_field_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "components/form-field/test/form_field_semantics.rs::form_field_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "components/form-field/test/form_field_semantics.rs::form_field_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "components/form-field/test/form_field/semantics.rs::form_field_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "components/form-field/test/form_field/semantics.rs::form_field_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "components/form-field/test/form_field/semantics.rs::form_field_rust_hygiene_script_enforces_repo_level_hygiene_guards",
         "scripts/check-ui-engineering.sh",
     ] {
         assert!(

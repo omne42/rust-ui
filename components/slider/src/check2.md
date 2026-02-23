@@ -318,7 +318,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
 2. headless 契约：`crates/ui-headless/src/slider.rs` 提供类型化 `attrs + handlers + state`，含 `lang/dir`。
 3. 组件装配边界：`crates/ui/src/slider/{logic,view,styles,motion}.rs` 职责拆分完成；`view.rs` 不再重写状态机规则。
 4. 文档与示例：`apps/docs-app/src/pages/components/pages/forms_extra.rs` 已补 `Hello World (Uncontrolled)` 与受控示例，代码片段含必要 imports。
-5. 语义测试：`components/*/test/*slider_semantics.rs` 覆盖命名契约、状态来源标记、Agent contract、平台与文档约束。
+5. 语义测试：`components/*/test/*semantics.rs` 覆盖命名契约、状态来源标记、Agent contract、平台与文档约束。
 6. 类型化状态轴补强：`crates/ui/src/slider/logic.rs` 新增 `SliderUiAction` + `resolve_ui_action`，`view.rs` 改为 `data-ui-action=...as_attr()`，避免 view 层字符串协议漂移。
 7. E2E：`e2e/tests/docs_app_slider_contract.spec.mjs` 已覆盖稳定语义选择器、键盘关键流程、Copy-Paste 代码块路径；2026-02-18 复跑命令 `cd e2e && E2E_BASE_URL=http://127.0.0.1:8080 npx playwright test tests/docs_app_slider_contract.spec.mjs --project=chromium`，`3 passed`。
 8. 平台编译证据：
@@ -342,7 +342,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - 最小特性 wasm 编译：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css` 通过。
    - 体积预算：`cargo build -p ui --target wasm32-unknown-unknown --release --no-default-features --features component-accordion,inject-css` 产物 `libui_components-9f3f8b5a94d3acdb.rlib` 大小 `3,326,332` bytes，预算上限 `3,806,222` bytes（`3044978 * 125%`），结果 `BUDGET_OK`。
 11. 工具链与复核方式：本轮全链路命令使用 `~/.cargo/bin/cargo` 执行，含 `test/clippy/check/tree/e2e`；`ui-headless` 的 `web+ssr` 互斥校验返回 `exit=101` 且包含 `mutually exclusive`，符合预期保护。
-12. 类型系统 + 机器可读语义闭环：`slider` 的 `data-ui-action` 从 view 层字符串分支下沉为 `logic.rs` 的 `SliderUiAction` + `resolve_ui_action`；`components/*/test/*slider_semantics.rs::slider_type_system_and_machine_readable_markers_form_a_closed_contract` 新增回归，确保类型化状态轴、归一化能力与 `data-*` 标记同步演进。
+12. 类型系统 + 机器可读语义闭环：`slider` 的 `data-ui-action` 从 view 层字符串分支下沉为 `logic.rs` 的 `SliderUiAction` + `resolve_ui_action`；`components/*/test/*semantics.rs::slider_type_system_and_machine_readable_markers_form_a_closed_contract` 新增回归，确保类型化状态轴、归一化能力与 `data-*` 标记同步演进。
 13. SSR 与跨平台条目复核（2026-02-18）：
    - compile-only 三路径：`cargo check -p ui`（默认本地）、`cargo check -p ui --no-default-features --features component-slider,inject-css`（native 最小特性）、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-slider,inject-css`（web wasm）均通过；默认本地路径存在他人组件告警但未阻断编译。
    - 平台能力路径：`cargo check -p ui-headless --no-default-features --features ssr` 与 `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web` 均通过。
@@ -357,15 +357,15 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - motion 层契约：`crates/ui-motion/src/lib.rs` 存在 `#[cfg(not(target_arch = "wasm32"))] pub mod web`，`prefers_reduced_motion() -> true` 与 `animate(...)` no-op stub；`cargo test -p ui-motion --test non_wasm_stub` 结果 `2 passed`。
    - 组件调用降级：`crates/ui/src/slider/motion.rs` 存在 `#[cfg(not(target_arch = "wasm32"))] pub fn attach_motion(...) {}`，不依赖动画句柄，不触发 panic，行为可预测。
    - toolchain 可编译：`cargo check -p ui-motion`（native）与 `cargo check -p ui-motion --target wasm32-unknown-unknown`（wasm）均通过；`slider` 侧依赖路径编译不受阻断。
-   - 防回归：`components/*/test/*slider_semantics.rs::ui_motion_non_wasm_stub_contract_is_present_and_predictable` 新增并纳入语义契约测试。
+   - 防回归：`components/*/test/*semantics.rs::ui_motion_non_wasm_stub_contract_is_present_and_predictable` 新增并纳入语义契约测试。
 16. 组件 `reduced-motion / SSR / wasm` 分支复核（2026-02-18）：
    - reduced-motion 降级：`crates/ui/src/slider/motion.rs` 在 wasm 路径使用 `if !motion.enabled || ui_motion::web::prefers_reduced_motion()`，降级为直接写入 `--ui-slider-visual-percent`，跳过 spring 驱动。
    - SSR/hydration 稳定：`crates/ui/src/slider/view.rs` 不含 `target_arch`/`#[cfg(...)]` 平台分叉，语义挂载统一走 `data-state/data-ui-*`；避免首帧语义错位。
    - wasm 增强不分裂语义：wasm 仅在 `motion.rs` 内增强动画执行，`view.rs` 语义契约保持一致；`cargo check -p ui --no-default-features --features component-slider,inject-css` 与 wasm 同特性编译均通过。
-   - 防回归：`components/*/test/*slider_semantics.rs::slider_reduced_motion_ssr_wasm_paths_keep_semantics_stable` 新增并通过。
+   - 防回归：`components/*/test/*semantics.rs::slider_reduced_motion_ssr_wasm_paths_keep_semantics_stable` 新增并通过。
 17. 性能治理条目复核（2026-02-18）：
    - 预算定义：`apps/docs-app/src/pages/components/shell.rs` 为 `slider` 新增 `UiPerfBudget { max_mount_ms: 30.0, max_update_ms: Some(10.0), max_heap_kb: Some(512.0) }`，并保持 `button/input` 基线与默认 `mount_only(120.0)` 回退。
-   - 可检测/可阻断：`components/*/test/*slider_semantics.rs::slider_performance_governance_budget_is_defined_and_blocking` 新增；断言预算来源、`UiPerfProbe` 的 `data-perf-*` 违规标记、docs coverage E2E 的阻断断言以及脚本接线。
+   - 可检测/可阻断：`components/*/test/*semantics.rs::slider_performance_governance_budget_is_defined_and_blocking` 新增；断言预算来源、`UiPerfProbe` 的 `data-perf-*` 违规标记、docs coverage E2E 的阻断断言以及脚本接线。
    - 脚本接线：`scripts/check-ui-performance.sh` 新增 `slider` 阻断项：`cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_performance_governance_budget_is_defined_and_blocking`。
    - 可归因证据：`slider/view.rs` 关键状态标记（`data-state/data-value/data-value-percent/data-ui-action/data-ui-source`）用于将回归归因到状态/渲染/样式/动效路径。
    - `render_count` 现状：当前框架仍以 `mount-only + perf probe` 作为等价证据，`docs/plan/TODO.md` 持续保留 `render_count` 自动化补齐任务；该任务由 `scripts/check-ui-performance.sh` 的 follow-up gate 约束不丢失。
@@ -380,7 +380,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - `~/.cargo/bin/cargo test -p ui-motion --test non_wasm_stub`：通过（`2 passed`）。
 19. `view!` 宏复杂度条目复核（2026-02-18）：
    - 代码拆分：`crates/ui/src/slider/view.rs` 将原单块渲染拆分为 `render_label` / `render_input` / `render_track` / `render_control` 四个语义子块，`Slider` 保留单一组件边界并仅做装配。
-   - 复杂度门禁：`components/*/test/*slider_semantics.rs` 新增
+   - 复杂度门禁：`components/*/test/*semantics.rs` 新增
      `slider_view_macro_complexity_is_split_into_semantic_subrenders` 与
      `slider_view_functional_split_prefers_plain_functions_over_local_components`，断言 `view!` 分块数量、函数式拆分、无局部 `#[component]` 噪音。
    - 脚本接线：`scripts/check-ui-view-macro.sh` 新增 slider 两条阻断命令，纳入统一 view-macro 合并门禁。
@@ -399,12 +399,12 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - 常量化落地：`crates/ui/src/slider/view.rs` 将可静态化 token 统一收敛到常量（`SLOT_*` / `CLASS_*` / `BOOL_TRUE` / `INPUT_TYPE_RANGE`），`render_track` 等静态片段仅消费这些常量，不在多个 `view!` 分散硬编码。
    - 语义保持：`render_track` 仍挂载 `aria-hidden=BOOL_TRUE`；输入元素继续保留 `role=slider` 与 `aria-label` 等无障碍语义，常量化未削弱可访问契约。
    - 阻断测试与脚本：
-     - `components/*/test/*slider_semantics.rs::slider_static_fragments_are_constantized_with_stable_semantics` 新增并断言常量集中、静态片段挂载及脚本接线。
+     - `components/*/test/*semantics.rs::slider_static_fragments_are_constantized_with_stable_semantics` 新增并断言常量集中、静态片段挂载及脚本接线。
      - `scripts/check-ui-view-macro.sh` 新增 slider 静态片段门禁命令。
    - 精确回归：
      - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_static_fragments_are_constantized_with_stable_semantics -- --exact`：通过。
 22. `inner_html` 使用约束条目复核（2026-02-18）：
-   - 组件与文档禁用：`components/*/test/*slider_semantics.rs::slider_inner_html_usage_is_forbidden_in_component_and_docs` 断言 `src/slider/view.rs`、`apps/docs-app/.../forms_extra.rs`、`src/slider/README.md` 均不包含 `inner_html`。
+   - 组件与文档禁用：`components/*/test/*semantics.rs::slider_inner_html_usage_is_forbidden_in_component_and_docs` 断言 `src/slider/view.rs`、`apps/docs-app/.../forms_extra.rs`、`src/slider/README.md` 均不包含 `inner_html`。
    - 门禁接线：`scripts/check-ui-inner-html.sh` 新增 slider 阻断命令：
      `cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_inner_html_usage_is_forbidden_in_component_and_docs`。
    - 精确回归：
@@ -412,10 +412,10 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
      - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`32 passed`）。
    - 质量门禁（负责范围）：
      - `~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
-     - `~/.cargo/bin/rustfmt --check crates/ui/src/slider/view.rs components/*/test/*slider_semantics.rs`：通过。
+     - `~/.cargo/bin/rustfmt --check crates/ui/src/slider/view.rs components/*/test/*semantics.rs`：通过。
      - `~/.cargo/bin/cargo fmt --all -- --check`：被并行开发中的非 slider 文件格式漂移阻塞（本轮未改动这些文件，按“不要动别人改过的东西”保持不触碰）。
 23. WASM 调试要求条目复核（2026-02-18）：
-   - 调试能力隔离：`components/*/test/*slider_semantics.rs::slider_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated` 新增并锁定：
+   - 调试能力隔离：`components/*/test/*semantics.rs::slider_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated` 新增并锁定：
      - `ui` 仅保留共享 wasm debug 能力入口（`wasm_debug_proxy` + wasm-only `observability`）。
      - Cargo 特性继续使用仓库级 opt-in（`button-wasm-debug`/`accordion-wasm-debug`），且 `slider` 不引入私有 `slider-wasm-debug` 特性。
      - `all-components` 生产路径不携带 wasm debug 特性。
@@ -430,7 +430,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
      - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_wasm_debug_check_script_covers_shared_contract -- --exact`：通过。
      - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`34 passed`）。
 24. DX 要求条目复核（2026-02-18）：
-   - 热重载路径：`components/*/test/*slider_semantics.rs::slider_dx_playground_supports_css_hot_reload_without_wasm_rebuild` 新增并锁定 docs Playground 的 `Show test` + scoped css 注入链路（`compose_scoped_css`），确保常见样式调试不依赖 wasm 全量重编。
+   - 热重载路径：`components/*/test/*semantics.rs::slider_dx_playground_supports_css_hot_reload_without_wasm_rebuild` 新增并锁定 docs Playground 的 `Show test` + scoped css 注入链路（`compose_scoped_css`），确保常见样式调试不依赖 wasm 全量重编。
    - 上下文保持与隔离画布：`slider_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na` 新增并断言：
      - docs Playground 使用隔离预览画布（`data-playground-scope`）；
      - slider 示例保持受控值与来源上下文可见（`value + last on_value_change`）；
@@ -443,7 +443,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
      - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na -- --exact`：通过。
      - `~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_dx_check_script_covers_hot_reload_and_isolated_canvas_contract -- --exact`：通过。
 25. 工程能力统一条目复核（2026-02-18）：
-   - serde/spec 边界：`components/*/test/*slider_semantics.rs` 新增
+   - serde/spec 边界：`components/*/test/*semantics.rs` 新增
      `slider_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope`，锁定 `slider` 作为简单组件不引入 `spec.rs`、不引入 `serde/serde_json` 迁移依赖，且 `check2` 治理条目文本完整。
    - tracing 语义统一：新增
      `slider_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`，锁定 tracing 统一基线（仓库级 `button/accordion` wasm-debug 语义），禁止 slider 私有 tracing target/事件宏漂移。
@@ -567,13 +567,13 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
 32. Slider 负责范围最终复核（2026-02-18）：
    - 目标：确认第 31 项落盘后无漂移，且 `check2` 仍保持“逐项真实核验”状态。
    - 实跑命令（统一 `~/.cargo/bin`）：
-     - `~/.cargo/bin/rustfmt --check crates/ui/src/slider/logic.rs crates/ui/src/slider/mod.rs crates/ui/src/slider/motion.rs crates/ui/src/slider/styles.rs crates/ui/src/slider/view.rs components/*/test/*slider_semantics.rs`：初次发现 `logic.rs/view.rs` 导入排序漂移；执行 `~/.cargo/bin/rustfmt crates/ui/src/slider/logic.rs crates/ui/src/slider/view.rs` 后复跑通过。
+     - `~/.cargo/bin/rustfmt --check crates/ui/src/slider/logic.rs crates/ui/src/slider/mod.rs crates/ui/src/slider/motion.rs crates/ui/src/slider/styles.rs crates/ui/src/slider/view.rs components/*/test/*semantics.rs`：初次发现 `logic.rs/view.rs` 导入排序漂移；执行 `~/.cargo/bin/rustfmt crates/ui/src/slider/logic.rs crates/ui/src/slider/view.rs` 后复跑通过。
      - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`66 passed`）。
      - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
      - `CARGO_TARGET_DIR=target-slider-streaming-resp ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
    - 结论：`crates/ui/src/slider/check2.md` 当前无未勾选项，`slider` 负责范围内的 format/test/clippy 复核完成且为最新通过状态。
 33. 语义测试优先条目复核（2026-02-18）：
-   - 契约新增（`components/*/test/*slider_semantics.rs`）：
+   - 契约新增（`components/*/test/*semantics.rs`）：
      - `slider_check2_documents_semantics_first_testing_rules`：锁定 `check2.md` 中“语义测试优先”四条治理文本（`data-*`/`aria-*`/`role`/状态来源、`*_semantics.rs` 覆盖、契约优先断言、语义字段变更必须补测）。
      - `slider_semantics_suite_is_contract_first_not_snapshot_only`：锁定 slider 语义测试集以语义契约断言为主，并显式禁止 `assert_snapshot` / `insta::` / `to_match_snapshot` 作为主路径。
      - `slider_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks`：锁定 `view.rs` 关键语义标记（`role`/`aria-*`/`data-*`/状态来源/Agent 字段）与语义测试用例同步演进。
@@ -591,7 +591,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
      - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`70 passed`）。
      - `CARGO_TARGET_DIR=target-slider-semantics-first ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
 34. E2E 选择器稳定条目复核（2026-02-18）：
-   - 契约新增（`components/*/test/*slider_semantics.rs`）：
+   - 契约新增（`components/*/test/*semantics.rs`）：
      - `slider_check2_documents_e2e_selector_and_stable_wait_rules`：锁定 `check2.md` 中“E2E 选择器稳定”四条治理文本。
      - `slider_e2e_selector_contract_uses_semantic_markers_and_stable_waits`：锁定 `e2e/tests/docs_app_slider_contract.spec.mjs` 使用 `data-*` 语义选择器与语义就绪等待（`body:not(:has(#boot))` + `toHaveAttribute(...)`），并禁止 `section.playground` / `xpath=` / 文本定位 / 固定 sleep。
      - `slider_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints`：锁定动画路径的 ready/settled 断点（`data-ui-action`、`data-value`、`data-value-percent`、`data-ui-source`、`not.toHaveAttribute(\"data-pressed\", \"true\")`）以及 disabled 分支语义断点。
@@ -610,10 +610,10 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - 套件与门禁：
      - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`73 passed`）。
      - `CARGO_TARGET_DIR=target-slider-e2e-selectors ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
-     - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
+     - `~/.cargo/bin/rustfmt --check components/*/test/*semantics.rs`：通过。
      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=target-slider-e2e-selectors components/slider/scripts/check-ui-e2e-slider.sh`：通过（3 条 E2E 契约阻断测试全绿）。
 35. 关键流程可重复回归条目复核（2026-02-18）：
-   - 契约新增（`components/*/test/*slider_semantics.rs`）：
+   - 契约新增（`components/*/test/*semantics.rs`）：
      - `slider_check2_documents_e2e_repeatable_key_flow_rules`：锁定 `check2.md` 中“关键流程纳入可重复回归集合”四条治理文本。
      - `slider_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`：锁定 `e2e/tests/docs_app_slider_contract.spec.mjs` 至少一条可重复关键流程（交互后 `reload` 再交互）并将失败定位到具体语义断点（`data-value` / `data-ui-action` / `data-ui-source` / `data-ui-output-status`）。
      - `slider_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints`：锁定高风险路径覆盖（`focus + keyboard + animation settled`）与语义断点（`data-focused` / `data-focus-visible` / `data-value-percent` / `data-ui-action`），并禁止固定延时等待。
@@ -634,10 +634,10 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - 套件与门禁：
      - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`76 passed`）。
      - `CARGO_TARGET_DIR=target-slider-repeatable-e2e ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
-     - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
+     - `~/.cargo/bin/rustfmt --check components/*/test/*semantics.rs`：通过。
      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=target-slider-repeatable-e2e components/slider/scripts/check-ui-e2e-slider.sh`：通过（新增 repeatable-flow + high-risk 阻断链路全绿）。
 36. docs-app 文档/示例/参数矩阵/状态矩阵同步条目复核（2026-02-18）：
-   - 契约新增（`components/*/test/*slider_semantics.rs`）：
+   - 契约新增（`components/*/test/*semantics.rs`）：
      - `slider_check2_documents_docs_sync_and_state_matrix_rules`：锁定 `check2.md` 中 docs 同步治理四条文本。
      - `slider_docs_playgrounds_lock_state_matrix_contract_values`：锁定 `forms_extra::slider()` 示例矩阵覆盖（至少包含受控/非受控/disabled，并含关键参数组合）。
      - `slider_docs_examples_sync_with_logic_api_names_and_state_matrix`：锁定 docs API 名称与默认值语义与 `view.rs/logic.rs` 对齐（`value/default_value/on_value_change/is_disabled/min/max/step` 与默认值归一化路径）。
@@ -652,9 +652,9 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - 套件与门禁：
      - `CARGO_TARGET_DIR=target-slider-docs-sync ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`80 passed`）。
      - `CARGO_TARGET_DIR=target-slider-docs-sync ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
-     - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
+     - `~/.cargo/bin/rustfmt --check components/*/test/*semantics.rs`：通过。
 37. 组件文档新手友好（Documentation as Product）条目复核（2026-02-18）：
-   - 契约新增（`components/*/test/*slider_semantics.rs`）：
+   - 契约新增（`components/*/test/*semantics.rs`）：
      - `slider_check2_documents_documentation_as_product_rules`：锁定 `check2.md` 中 Documentation as Product 四条治理文本。
      - `slider_docs_entry_exists_as_readme_or_equivalent_docs_app_page`：锁定 `README` 或等价 docs-app 入口存在，并可索引到 `forms_extra::slider()`。
      - `slider_docs_are_beginner_friendly_with_default_then_advanced_path`：锁定 docs 与 README 的“先默认后进阶”路径顺序（Hello World -> Controlled -> Advanced）。
@@ -674,11 +674,11 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - 套件与门禁：
      - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`85 passed`）。
      - `CARGO_TARGET_DIR=target-slider-docs-product ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
-     - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
+     - `~/.cargo/bin/rustfmt --check components/*/test/*semantics.rs`：通过。
 38. Slider 历史任务终检复核（2026-02-18）：
    - 目标：确认“逐项单独真实检查 + 修复后通过”状态在当前 `slider` 负责范围持续成立，不受并行改动干扰。
    - 实跑命令（统一 `~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
-     - `~/.cargo/bin/rustfmt --check crates/ui/src/slider/mod.rs crates/ui/src/slider/logic.rs crates/ui/src/slider/view.rs crates/ui/src/slider/styles.rs crates/ui/src/slider/motion.rs components/*/test/*slider_semantics.rs`：初次发现 `logic.rs/view.rs` 导入排序漂移；执行 `~/.cargo/bin/rustfmt crates/ui/src/slider/logic.rs crates/ui/src/slider/view.rs` 后复跑通过。
+     - `~/.cargo/bin/rustfmt --check crates/ui/src/slider/mod.rs crates/ui/src/slider/logic.rs crates/ui/src/slider/view.rs crates/ui/src/slider/styles.rs crates/ui/src/slider/motion.rs components/*/test/*semantics.rs`：初次发现 `logic.rs/view.rs` 导入排序漂移；执行 `~/.cargo/bin/rustfmt crates/ui/src/slider/logic.rs crates/ui/src/slider/view.rs` 后复跑通过。
      - `CARGO_TARGET_DIR=target-slider-final-audit ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
      - `CARGO_TARGET_DIR=target-slider-final-audit ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`85 passed`）。
      - `CARGO_TARGET_DIR=target-slider-final-audit ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
@@ -691,7 +691,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
        - 源码落点列表（`mod/logic/view/styles/motion`）；
        - feature 前提（`component-slider` + `inject-css`）。
      - `crates/ui/src/slider/README.md` 新增 `Source-first / Copy-Paste Ready` 入口、源码与 feature 前提说明。
-   - 契约测试新增（`components/*/test/*slider_semantics.rs`）：
+   - 契约测试新增（`components/*/test/*semantics.rs`）：
      - `slider_check2_documents_source_first_copy_paste_ready_rules`
      - `slider_docs_are_copy_paste_ready_with_imports_copy_button_and_sync`
      - `slider_contract_hygiene_script_covers_source_first_copy_paste_ready_contract`
@@ -705,7 +705,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
 40. HeroUI 对标文档与组件文档同步条目复核（2026-02-18）：
    - 同步补齐：
      - `docs/spec/heroui-parameter-design-strategy.md` 的 `### Slider 同步记录（2026-02-18）` 更新 Source-first 描述，明确 `slider-source-first` 区块、源码落点与 feature 前提。
-   - 契约测试新增（`components/*/test/*slider_semantics.rs`）：
+   - 契约测试新增（`components/*/test/*semantics.rs`）：
      - `slider_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes`
      - `slider_check2_marks_heroui_strategy_and_component_docs_sync_complete`
      - `slider_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract`
@@ -720,7 +720,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
      - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`91 passed`）。
      - `CARGO_TARGET_DIR=target-slider-docs-sourcefirst ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
 41. 明确禁止反模式条目复核（2026-02-18）：
-   - 契约测试新增（`components/*/test/*slider_semantics.rs`）：
+   - 契约测试新增（`components/*/test/*semantics.rs`）：
      - `slider_check2_documents_explicit_forbidden_antipattern_rules`：锁定 `check2.md` 第 8 节八条反模式治理文本。
      - `slider_forbidden_antipatterns_keep_state_primitives_dom_free_and_headless_visual_free`：锁定 `ui-state-primitives` 不含 DOM/样式依赖，`ui-headless` 不含视觉/CSS/动画编排。
      - `slider_forbidden_antipatterns_keep_key_state_decisions_out_of_view`：锁定关键状态决策集中在 `logic.rs`，`view.rs` 仅消费归一化输出。
@@ -743,9 +743,9 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - 套件与门禁：
      - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`97 passed`）。
      - `CARGO_TARGET_DIR=target-slider-antipattern ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
-     - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
+     - `~/.cargo/bin/rustfmt --check components/*/test/*semantics.rs`：通过。
 42. 合并门禁（最终裁决）条目复核（2026-02-18）：
-   - 契约测试新增（`components/*/test/*slider_semantics.rs`）：
+   - 契约测试新增（`components/*/test/*semantics.rs`）：
      - `slider_check2_documents_final_merge_gate_rules`：锁定第 9 节 13 条最终裁决文本。
      - `slider_final_merge_gate_capabilities_are_backed_by_contract_checks`：聚合调用既有契约测试，覆盖架构/行为/A11y/语义标记/命名/状态归一/分层/文档同步。
      - `slider_final_merge_gate_marks_full_repo_gate_as_component_scoped_na`：锁定“门禁完整通过”按 slider 负责范围执行，仓库级 smoke 为 `N/A` 的说明。
@@ -766,7 +766,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - 目标：确认 `check2.md` 全部 checklist 在 slider 负责范围内均已逐条落为“可检测契约”，并完成最新一轮真实复核。
    - 实跑命令（统一 `~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
      - `rg -n "^- \\[ \\]" crates/ui/src/slider/check2.md`：无输出（无未勾选项）。
-     - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
+     - `~/.cargo/bin/rustfmt --check components/*/test/*semantics.rs`：通过。
      - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
      - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
      - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
@@ -775,7 +775,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - 目标：对“历史任务全部完成 + checklist 逐条真实 check”要求进行独立二次复跑，避免一次性偶然通过。
    - 实跑命令（统一 `~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
      - `rg -n "^- \\[ \\]" crates/ui/src/slider/check2.md`：无输出（无未勾选项）。
-     - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
+     - `~/.cargo/bin/rustfmt --check components/*/test/*semantics.rs`：通过。
      - `CARGO_TARGET_DIR=target-slider-history-final2 ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
      - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
      - `CARGO_TARGET_DIR=target-slider-history-final ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
@@ -784,7 +784,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - 目标：在多人并行改动背景下，再次确认 slider 负责范围内的历史任务仍保持“逐条真实检查 + 可复现通过”。
    - 实跑命令（统一 `~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
      - `rg -n "^- \\[ \\]" crates/ui/src/slider/check2.md`：无输出（无未勾选项）。
-     - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
+     - `~/.cargo/bin/rustfmt --check components/*/test/*semantics.rs`：通过。
      - `CARGO_TARGET_DIR=target-slider-history-final3 ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_has_no_unchecked_items_after_stepwise_verification -- --exact`：通过（`1 passed`）。
      - `CARGO_TARGET_DIR=target-slider-history-final3 ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css`：通过（`101 passed`）。
      - `CARGO_TARGET_DIR=target-slider-history-final3 ~/.cargo/bin/cargo clippy -p ui --no-default-features --features component-slider,inject-css -- -D warnings`：通过。
@@ -793,7 +793,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - 目标：按“一个一个依次单独真实 check”要求，对 `slider_semantics` 中全部契约测试进行 `--exact` 串行逐条执行，并确认无遗漏、无回归。
    - 实跑命令（统一 `~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
      - `rg -n "^- \\[ \\]" crates/ui/src/slider/check2.md`：无输出（无未勾选项）。
-     - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
+     - `~/.cargo/bin/rustfmt --check components/*/test/*semantics.rs`：通过。
      - 逐条串行命令：
        - `CARGO_TARGET_DIR=target-slider-history-seq ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css -- --list | awk '/: test$/{print $1}'` 获取测试名集合（`total_checks=101`）。
        - 对每个测试名执行：`CARGO_TARGET_DIR=target-slider-history-seq ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css <test_name> -- --exact`（串行逐条）。
@@ -806,7 +806,7 @@ Slider 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only�
    - 目标：再次独立验证“每条 checklist 对应契约测试可逐条单独执行并通过”，降低一次性偶然通过风险。
    - 实跑命令（统一 `~/.cargo/bin` + 独立 `CARGO_TARGET_DIR`）：
      - `rg -n "^- \\[ \\]" crates/ui/src/slider/check2.md`：无输出（无未勾选项）。
-     - `~/.cargo/bin/rustfmt --check components/*/test/*slider_semantics.rs`：通过。
+     - `~/.cargo/bin/rustfmt --check components/*/test/*semantics.rs`：通过。
      - 逐条串行命令：
        - `CARGO_TARGET_DIR=target-slider-history-seq2 ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css -- --list | awk '/: test$/{print $1}'` 获取测试名集合（`total_checks=101`）。
        - 对每个测试名执行：`CARGO_TARGET_DIR=target-slider-history-seq2 ~/.cargo/bin/cargo test -p ui --test slider_semantics --no-default-features --features component-slider,inject-css <test_name> -- --exact`（串行逐条）。

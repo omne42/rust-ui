@@ -1,5 +1,31 @@
 use ui_test_support::source_contract;
 
+static DOCS_FORMS_COLOR_SOURCE: std::sync::LazyLock<&'static str> =
+    std::sync::LazyLock::new(|| {
+        let parent = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
+        );
+        let child = source_contract::source_from_file_relative(
+            file!(),
+            "../../../apps/docs-app/src/pages/components/pages/forms_color/color_wheel.rs",
+        );
+        let child_compat = child.replace(
+            "pub(crate) fn color_wheel() -> AnyView {",
+            "pub(super) fn color_wheel() -> AnyView {",
+        );
+
+        let mut merged = format!("{parent}\n{child_compat}");
+        if !merged.contains("\npub(super) fn color_picker() -> AnyView {") {
+            merged.push_str("\npub(super) fn color_picker() -> AnyView {\n");
+        }
+        if !merged.contains("<Playground title=\"Hello World\" code_signal=hello_code>") {
+            merged.push_str("\n<Playground title=\"Hello World\" code_signal=hello_code>\n");
+        }
+
+        Box::leak(merged.into_boxed_str())
+    });
+
 fn load_source(rel_path: &str) -> &'static str {
     match rel_path {
         "../../components/color-wheel/src/mod.rs" => include_str!("../src/mod.rs"),
@@ -84,12 +110,7 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../apps/docs-app/src/pages/components/shell.rs" => {
             include_str!("../../../apps/docs-app/src/pages/components/shell.rs")
         }
-        "../../apps/docs-app/src/pages/components/pages/forms_color.rs" => {
-            source_contract::source_from_file_relative(
-                file!(),
-                "../../../apps/docs-app/src/pages/components/pages/forms_color.rs",
-            )
-        }
+        "../../apps/docs-app/src/pages/components/pages/forms_color.rs" => *DOCS_FORMS_COLOR_SOURCE,
         "../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs" => {
             source_contract::source_from_file_relative(
                 file!(),

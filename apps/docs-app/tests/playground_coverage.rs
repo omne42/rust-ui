@@ -13,9 +13,26 @@ fn docs_page_module_path(module: &str) -> PathBuf {
         .join(format!("{module}.rs"))
 }
 
+fn docs_page_submodule_path(module: &str, submodule: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("src/pages/components/pages")
+        .join(module)
+        .join(format!("{submodule}.rs"))
+}
+
 fn read_actions_source() -> String {
-    let path = docs_page_module_path("actions");
-    source_contract::source_from_path(&path)
+    let root_path = docs_page_module_path("actions");
+    let mut source = source_contract::source_from_path(&root_path);
+
+    let mut files = Vec::new();
+    walk_rs_files(&component_pages_root().join("actions"), &mut files);
+    files.sort();
+    for file in files {
+        source.push('\n');
+        source.push_str(&source_contract::source_from_path(&file));
+    }
+
+    source
 }
 
 fn component_pages_root() -> PathBuf {
@@ -255,23 +272,26 @@ fn extract_catalog_entries(source: &str) -> Vec<CatalogEntry> {
 
 fn slice_fn_block<'a>(source: &'a str, fn_name: &str) -> Option<&'a str> {
     let patterns = [
+        format!("pub(crate) fn {fn_name}("),
         format!("pub(super) fn {fn_name}("),
         format!("pub fn {fn_name}("),
     ];
     let start = patterns.iter().find_map(|pattern| source.find(pattern))?;
 
     let after_start = &source[start + 1..];
+    let next_pub_crate = after_start
+        .find("\npub(crate) fn ")
+        .map(|pos| start + 1 + pos);
     let next_pub_super = after_start
         .find("\npub(super) fn ")
         .map(|pos| start + 1 + pos);
     let next_pub = after_start.find("\npub fn ").map(|pos| start + 1 + pos);
 
-    let end = match (next_pub_super, next_pub) {
-        (Some(a), Some(b)) => a.min(b),
-        (Some(a), None) => a,
-        (None, Some(b)) => b,
-        (None, None) => source.len(),
-    };
+    let end = [next_pub_crate, next_pub_super, next_pub]
+        .into_iter()
+        .flatten()
+        .min()
+        .unwrap_or(source.len());
 
     Some(&source[start..end])
 }
@@ -306,7 +326,35 @@ fn load_fn_block(
         source_contract::source_from_path(&path)
     });
 
-    slice_fn_block(source, func).map(|block| block.to_string())
+    if let Some(block) = slice_fn_block(source, func) {
+        return Some(block.to_string());
+    }
+
+    let submodule = extract_reexport_submodule(source, func)?;
+    let sub_key = format!("{module}/{submodule}");
+    let sub_source = module_sources.entry(sub_key).or_insert_with(|| {
+        let path = docs_page_submodule_path(module, &submodule);
+        source_contract::source_from_path(&path)
+    });
+
+    slice_fn_block(sub_source, func).map(|block| block.to_string())
+}
+
+fn extract_reexport_submodule(source: &str, func: &str) -> Option<String> {
+    for line in source.lines() {
+        let trimmed = line.trim().trim_end_matches(';');
+        let Some(rest) = trimmed.strip_prefix("pub(super) use ") else {
+            continue;
+        };
+        let Some((submodule, target)) = rest.split_once("::") else {
+            continue;
+        };
+        if target.trim() == func {
+            return Some(submodule.trim().to_string());
+        }
+    }
+
+    None
 }
 
 #[test]

@@ -80,12 +80,12 @@ registration_hashset_forbidden|components/tabs/src/view.rs|47|HashSet-order
 registration_hashset_forbidden|components/tabs/src/view.rs|4|HashSet-order
 registration_protocol_missing|components/menu/src|0|Register/Unregister/items_order
 registration_protocol_missing|components/tabs/src|0|Register/Unregister/items_order
-semantic_test_fragile_selector|components/action-bar/test/action_bar_semantics.rs|0|dom-depth-selector
+semantic_test_fragile_selector|components/action-bar/test/semantics.rs|0|dom-depth-selector
 semantic_test_fragile_selector|components/alert/test/alert_semantics.rs|0|dom-depth-selector
 semantic_test_fragile_selector|components/button/test/button_semantics.rs|0|dom-depth-selector
-semantic_test_fragile_selector|components/snippet/test/snippet_semantics.rs|0|dom-depth-selector
-semantic_test_matrix_platform_missing|components/image/test/image_semantics.rs|0|ssr/wasm
-semantic_test_matrix_pointer_missing|components/image/test/image_semantics.rs|0|pointer
+semantic_test_fragile_selector|components/snippet/test/semantics.rs|0|dom-depth-selector
+semantic_test_matrix_platform_missing|components/image/test/image/semantics.rs|0|ssr/wasm
+semantic_test_matrix_pointer_missing|components/image/test/image/semantics.rs|0|pointer
 slot_projection_strategy_missing|components/menu/src|0|Lazy/KeepAlive/Eager
 slot_projection_strategy_missing|components/popover/src|0|Lazy/KeepAlive/Eager
 slot_projection_strategy_missing|components/tabs/src|0|Lazy/KeepAlive/Eager

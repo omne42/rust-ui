@@ -10,7 +10,7 @@
 - 交互/A11y 契约已下沉：`crates/ui-headless/src/chart.rs`，`view.rs` 通过 `use_chart(ChartOptions)` 消费 `attrs + handlers + state`。
 - 组件动效分层已补齐：新增 `components/chart/src/motion.rs`，`view.rs` 仅调用 `sanitize_motion/attach_motion`。
 - 验证命令（逐项）：
-  - `rustfmt --edition 2024 --check crates/ui-state-primitives/src/chart.rs crates/ui-headless/src/chart.rs components/chart/src/logic.rs components/chart/src/motion.rs components/chart/src/view.rs components/chart/test/chart_semantics.rs` ✅
+  - `rustfmt --edition 2024 --check crates/ui-state-primitives/src/chart.rs crates/ui-headless/src/chart.rs components/chart/src/logic.rs components/chart/src/motion.rs components/chart/src/view.rs components/chart/test/chart/semantics.rs` ✅
   - `cargo clippy -p ui-state-primitives -- -D warnings` ✅
   - `cargo clippy -p ui-headless -- -D warnings` ✅
   - `cargo clippy -p ui --no-default-features --features component-chart,inject-css --tests -- -D warnings` ✅
