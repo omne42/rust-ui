@@ -11,6 +11,23 @@ pub use motion::PreviewCardMotion;
 pub use view::PreviewCard;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PreviewCardSiteLabelSource {
+    Default,
+    Derived,
+    Custom,
+}
+
+impl PreviewCardSiteLabelSource {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            PreviewCardSiteLabelSource::Default => "default",
+            PreviewCardSiteLabelSource::Derived => "derived",
+            PreviewCardSiteLabelSource::Custom => "custom",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PreviewCardSlot {
     Root,
     Trigger,
@@ -38,7 +55,7 @@ impl PreviewCardSlot {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PreviewCardPartStateInput {
     pub slot: PreviewCardSlot,
-    pub disabled: bool,
+    pub is_disabled: bool,
     pub has_image: bool,
     pub has_custom_class_name: bool,
     pub has_custom_delays: bool,
@@ -46,7 +63,7 @@ pub struct PreviewCardPartStateInput {
     pub has_custom_title: bool,
     pub has_custom_description: bool,
     pub has_custom_url: bool,
-    pub site_label_source_attr: &'static str,
+    pub site_label_source: PreviewCardSiteLabelSource,
     pub has_custom_motion: bool,
 }
 
@@ -72,7 +89,7 @@ pub struct PreviewCardPartState {
     pub title_source_attr: &'static str,
     pub description_source_attr: &'static str,
     pub url_source_attr: &'static str,
-    pub site_label_source_attr: &'static str,
+    pub site_label_source: PreviewCardSiteLabelSource,
     pub motion_source_attr: &'static str,
 }
 

@@ -6,3 +6,7 @@ mod view;
 pub use logic::RadioGroupOrientation;
 pub use motion::RadioMotion;
 pub use view::{Radio, RadioGroup};
+
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics_tests;

@@ -11,7 +11,8 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+  - 证据：`crates/ui-state-primitives/src/segmented_control.rs` 提供 `SegmentedControlStateInput/resolve_state` 纯 Rust 原语；`components/segmented-control/src/view.rs` 仅消费 `resolve_state`；回归见 `crates/ui-state-primitives/src/test/segmented_control.rs` 与 `components/segmented-control/test/semantics.rs::segmented_control_uses_logic_state_model`。
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +22,8 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+  - 证据：`components/segmented-control/src/view.rs` 通过 `use_radio(RadioOptions)`、`use_focus_ring`、`use_hover` 消费 headless typed contract，并挂载 `lang=aria.attrs.lang` / `dir=aria.attrs.dir`；语义回归见 `components/segmented-control/test/semantics.rs::segmented_control_uses_headless_hooks` 与 `components/segmented-control/test/semantics.rs::segmented_control_headless_boundary_is_enforced`。
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -32,14 +34,16 @@
   - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+  - 证据：`components/segmented-control/src/motion.rs` 仅做语义到动效 contract 的映射与 attach，执行器能力复用 `ui_motion::spring::SpringAnimator`；默认参数来自 `ui_theme::default_button_motion_tokens`；non-wasm 路径提供 `#[cfg(not(target_arch = "wasm32"))] attach_indicator_motion` no-op。`crates/ui-motion/src/lib.rs` 提供 wasm/non-wasm backend（含 `prefers_reduced_motion` 与 non-wasm no-op `animate`）。回归见 `components/segmented-control/test/semantics.rs::segmented_control_motion_uses_spring_animator`、`components/segmented-control/test/semantics.rs::segmented_control_motion_boundary_is_enforced`、`components/segmented-control/test/semantics.rs::segmented_control_motion_non_wasm_noop_contract_is_enforced`。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+  - 证据：`components/segmented-control/src/styles.rs` 仅消费 `var(--ui-*)` 变量（无组件私有 token 体系）；`crates/ui-theme/src/tokens.rs` 定义 token 分类基线，`crates/ui-theme/src/theme.rs` 提供 `ThemeSystem/ThemeColor/ThemeScale` 三轴映射，`crates/ui-theme/src/css.rs` 统一输出 CSS 变量；回归见 `crates/ui-theme/tests/token_scale_baseline.rs`、`crates/ui-theme/src/test/theme.rs`、`components/segmented-control/test/semantics.rs::segmented_control_theme_tokens_are_consumed_in_styles`。
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,7 +51,8 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+  - 证据：`components/segmented-control/src/mod.rs` 维持最小公共导出面（`SegmentedControl` + typed enums/motion contract）；`components/segmented-control/src/view.rs` 负责结构渲染并装配 `use_radio`（headless）+ `resolve_state`（state primitive）+ `motion::attach_indicator_motion`（motion）+ token-first class 挂载；`components/segmented-control/src/logic.rs` 仅做归一/来源标记类型；`components/segmented-control/src/styles.rs` 保持静态 token-first CSS；`components/segmented-control/src/motion.rs` 仅做语义到动效 contract attach。语义回归见 `components/segmented-control/test/semantics.rs::segmented_control_ui_components_layer_boundary_is_enforced` 与 `components/segmented-control/test/semantics.rs::segmented_control_component_directory_has_standard_file_layout_and_scoped_responsibilities`。测试目录已在 `components/segmented-control/test/` 且包含 `semantics.rs`，无旧版路径漂移。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -55,50 +60,68 @@
   - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+  - 证据：`components/segmented-control/src/view.rs` 公共 API 已使用 `#[prop(optional)] is_disabled: bool` 与 `on_selected_index_change`（替代旧命名 `disabled`/`set_selected_index`）；`apps/docs-app/src/pages/components/pages/forms/segmented_control.rs` 示例与配置回显同步更新为新命名；`components/segmented-control/test/semantics.rs` 对应契约断言已同步（如 `#[prop(optional, into)] on_selected_index_change: Option<WriteSignal<Option<usize>>>`、`#[prop(optional)] is_disabled: bool`）。
+  - 迁移路径：调用方将 `disabled=...` 重命名为 `is_disabled=...`，将 `set_selected_index=...` 重命名为 `on_selected_index_change=...`；本轮同步更新 docs-app 示例作为迁移参考。
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+  - 证据：`components/segmented-control/src/view.rs` 选择轴已成对提供 `selected_index + on_selected_index_change + default_selected_index`；配对校验与模式归一化在 `components/segmented-control/src/logic.rs::normalize_selection_axis` 集中执行（`selected_index` 与 `on_selected_index_change` 不成对会 `assert!`），非受控模式由 `view.rs` 通过 `signal(selection_axis.default_selected_index)` 初始化一次并由内部原语管理后续更新；根节点 `data-control-mode=control_mode.as_attr()` 暴露 `controlled|uncontrolled` 来源。回归覆盖：`components/segmented-control/test/logic.rs::control_mode_attr_is_stable`、`components/segmented-control/test/logic.rs::selection_axis_rejects_half_controlled_input` 与 `components/segmented-control/test/semantics.rs` 中对应 API/marker 断言。
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+  - 证据：`components/segmented-control/src/logic.rs` 新增 `SegmentedControlSelectionAxisInput/SegmentedControlSelectionAxis` 与 `normalize_selection_axis`，在该函数内统一执行 `default_selected_index` 合法化（`filter(|index| *index < input.item_count)`）与受控配对校验；`components/segmented-control/src/view.rs` 仅消费 `selection_axis` 输出并初始化 `signal(selection_axis.default_selected_index)`，已移除本地 `default_selected_index.filter(...)` 分支。回归见 `components/segmented-control/test/logic.rs`（`selection_axis_default_value_is_normalized_in_logic`、`selection_axis_rejects_half_controlled_input`）与 `components/segmented-control/test/semantics.rs::segmented_control_default_value_source_is_centralized_in_logic`。
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+  - 证据：`components/segmented-control/src/logic.rs` 已集中提供 `SegmentedControlSelectionAxisInput/normalize_selection_axis`（输入边界归一）与 `SegmentedControlSemanticStateInput/normalize_semantic_state`（输出语义状态与来源标记）；`components/segmented-control/src/view.rs` 仅消费上述输出（`let selection_axis = normalize_selection_axis(...)`、`normalize_semantic_state(...)`、`data-selection-source=move || { state.get().selection_source.as_attr() }`），不再在 view 层重建 `SegmentedControlSelectionSource::from_indices` 派生。事件处理器仅触发状态变更（`on_key_down.run`、`set_selection_origin.set(...)`、`radio_handlers.on_radio_click.run(index)`），样式继续只消费 `data-*` 状态标记。回归见 `components/segmented-control/test/logic.rs::semantic_state_normalization_centralizes_source_markers` 与 `components/segmented-control/test/semantics.rs::segmented_control_state_normalization_is_centralized_in_logic`。
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+  - 证据：`components/segmented-control/src/view.rs` 离散输入轴为 `orientation: SegmentedControlOrientation`、`size: SegmentedControlSize`（无字符串配置路径）；`components/segmented-control/src/logic.rs` 用 `SegmentedControlControlMode`、`SegmentedControlSelectionSource`、`SegmentedControlSelectionOrigin` 封闭 mode/status/source 轴，并通过 `.as_attr()` 输出闭合集合语义值。组件未引入 `orientation/size/mode/status` 的 `String` 输入，也未引入 `is_horizontal/is_vertical/is_controlled` 这类多布尔互斥输入。回归见 `components/segmented-control/test/logic.rs` 与 `components/segmented-control/test/semantics.rs::segmented_control_discrete_state_axes_are_enum_typed_and_not_stringly_typed`。
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+  - 证据：`components/segmented-control/src/view.rs` 仅消费 `ui_state_primitives::segmented_control::{SegmentedControlStateInput, resolve_state}` 进行状态原语计算（`resolve_state(SegmentedControlStateInput { ... })`）；组件内未出现业务 store 直接绑定（无 `store::/global_store/redux/zustand/mobx` 依赖）。`components/segmented-control/src/logic.rs` 仅做装配映射（control/source axis enum 与 semantic state 映射），未重定义 `SegmentedControlState` 或 `resolve_state` 原语实现。回归见 `components/segmented-control/test/semantics.rs::segmented_control_state_primitive_source_is_correct`。
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+  - N/A：组件仅处理本地选择切换（radio roving + state primitive 映射），无远程请求与异步状态。
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+  - 证据：`components/segmented-control/src/view.rs` 基础 API 仅需 `id_base + options`（`selected_index/on_selected_index_change/default_selected_index` 均为可选），未强制暴露内部 `state` 对象；`apps/docs-app/src/pages/components/pages/forms/segmented_control.rs` 的 Hello World 默认路径为 `default_selected_index` 简单调用，示例片段 4 行（<= 5 行）；复杂需求通过 Workbench/Matrix 示例按需开启受控与扩展参数（`selected_index/on_selected_index_change`、`orientation/size/motion/lang/dir/class_name`）。回归见 `components/segmented-control/test/semantics.rs::segmented_control_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring` 与 `components/segmented-control/test/semantics.rs::segmented_control_docs_are_beginner_friendly_with_default_then_advanced_path`。
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+  - 证据：`components/segmented-control/src/view.rs` 新增 `#[slot] pub struct SegmentedControlItem` 与 `SegmentedControl` 的显式槽位输入 `item: Vec<SegmentedControlItem>`，支持 `<SegmentedControl><SegmentedControlItem slot:item ... /></SegmentedControl>`；同时保留配置式入口 `item_specs: Vec<SegmentedControlItemSpec>`（类型化 `ItemSpec`）并在内部映射到统一 item 语义结构。`apps/docs-app/src/pages/components/pages/forms/segmented_control.rs` 的 Hello World 已切换为显式组合示例，`Workbench/State Matrix` 使用 `item_specs`（不再推荐并行槽位/并行数组契约）。
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
+  - N/A：`SegmentedControl` 当前不提供拖拽交互（仅键盘 roving + 指针点击切换），不存在 `Dragging` 连续帧状态与 `Action::DragEnd` 收敛路径。
+  - 证据：`components/segmented-control/src/view.rs` 仅挂载 `on:keydown`、`on:click`、`on:pointerenter`、`on:pointerleave`；`view.rs/logic.rs/motion.rs` 不存在 `on:drag*`、`on:pointermove`、`Dragging`、`DragEnd` 语义分支。回归见 `components/segmented-control/test/semantics.rs::segmented_control_macro_micro_duality_is_na_without_drag_interaction_path`。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
+  - N/A：`SegmentedControl` 不存在依赖几何测量的语义纠偏（无 overlay 定位/碰撞回退/翻转决策）；几何测量仅用于 `motion.rs` 的指示器视觉驱动，不回写 `logic.rs` 业务状态。
+  - 证据：`components/segmented-control/src/motion.rs` 采用 `active_index` 作为 Intent，`measure_layout` 执行 DOM Measure，`sync_layout` 进行视觉 Rectification（CSS 变量更新），并通过 `last_layout` + `unchanged` 阈值短路实现幂等收敛，避免测量-更新循环抖动。回归见 `components/segmented-control/test/semantics.rs::segmented_control_two_pass_rendering_is_na_for_semantic_logic_and_idempotent_in_motion_shell`。
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
+  - N/A：`SegmentedControl` 不是动态注册型容器组件，选项集合由 `item`/`item_specs`/`options` 在渲染前确定，导航顺序由稳定索引驱动（`0..item_count` + headless roving），不需要 `RegistrationContext` 的运行期 `Register/Unregister` 总线。
+  - 证据：`components/segmented-control/src/view.rs` 使用 `HashSet<usize>` 仅做 `disabled_indices_set.contains(&index)` 命中判断，未基于 `HashSet` 迭代生成导航顺序；不存在 `RegistrationContext`、`Register`、`Unregister`、`items_order` 路径。回归见 `components/segmented-control/test/semantics.rs::segmented_control_registration_protocol_is_na_and_does_not_depend_on_hashset_iteration_for_navigation`。
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
+  - N/A：`SegmentedControl` 不是内容投影容器组件，不承载面板级 slot 生命周期管理；组件仅渲染单层 option 列表与指示器，不存在 `Lazy/KeepAlive/Eager` 模式切换需求。
+  - 证据：`components/segmented-control/src/view.rs` 仅包含结构槽位标记（`SLOT_ROOT/SLOT_OPTIONS/SLOT_OPTION/SLOT_INDICATOR`）与选项渲染；`view.rs/logic.rs/motion.rs` 不存在 `KeepAlive`、`Lazy`、`Eager`、`NotifyHidden` 生命周期协议路径。回归见 `components/segmented-control/test/semantics.rs::segmented_control_slot_projection_strategy_is_na_for_non_container_component_scope`。
 - [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
 - [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
 - [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。

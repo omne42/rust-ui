@@ -75,7 +75,7 @@ pub(crate) fn progress_bar() -> AnyView {
         };
 
         format!(
-            "<ProgressBar\n  variant={variant_expr}\n  size={size_expr}\n  value={:.1}\n  max={:.1}\n  indeterminate={}\n  aria_label={}\n  class_name={}\n/>",
+            "<ProgressBar\n  variant={variant_expr}\n  size={size_expr}\n  value={:.1}\n  max={:.1}\n  is_indeterminate={}\n  aria_label={}\n  class_name={}\n/>",
             workbench_value.get(),
             workbench_max.get(),
             bool_word(workbench_indeterminate.get()),
@@ -86,7 +86,7 @@ pub(crate) fn progress_bar() -> AnyView {
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "ProgressBarActualConfig {{\n  variant: {:?},\n  size: {:?},\n  value: {:.1},\n  max: {:.1},\n  indeterminate: {},\n  aria_label: {:?},\n  class_name: {:?},\n}}",
+            "ProgressBarActualConfig {{\n  variant: {:?},\n  size: {:?},\n  value: {:.1},\n  max: {:.1},\n  is_indeterminate: {},\n  aria_label: {:?},\n  class_name: {:?},\n}}",
             workbench_variant.get(),
             workbench_size.get(),
             workbench_value.get(),
@@ -101,7 +101,7 @@ pub(crate) fn progress_bar() -> AnyView {
         r#"<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Sm value=24.0 max=100.0 />
 <ProgressBar variant=ProgressBarVariant::Accent size=ProgressBarSize::Md value=72.0 max=100.0 />
 <ProgressBar variant=ProgressBarVariant::Danger size=ProgressBarSize::Lg value=54.0 max=100.0 />
-<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Md indeterminate=true />"#
+<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Md is_indeterminate=true />"#
             .to_string()
     });
     let custom_code = Signal::derive(move || {
@@ -225,7 +225,7 @@ pub(crate) fn progress_bar() -> AnyView {
                                 prop:checked=move || workbench_indeterminate.get()
                                 on:change=move |event| set_workbench_indeterminate.set(event_target_checked(&event))
                             />
-                            <span>"indeterminate"</span>
+                            <span>"is_indeterminate"</span>
                         </label>
                         <label class="docs-choice-row">
                             <input
@@ -252,7 +252,7 @@ pub(crate) fn progress_bar() -> AnyView {
                         size=workbench_size.get()
                         value=workbench_value.get()
                         max=workbench_max.get()
-                        indeterminate=workbench_indeterminate.get()
+                        is_indeterminate=workbench_indeterminate.get()
                         aria_label=workbench_aria_label.get()
                         class_name=workbench_class_name.get()
                     />
@@ -290,7 +290,7 @@ pub(crate) fn progress_bar() -> AnyView {
                     <ProgressBar
                         variant=ProgressBarVariant::Default
                         size=ProgressBarSize::Md
-                        indeterminate=true
+                        is_indeterminate=true
                     />
                 </div>
             </Playground>

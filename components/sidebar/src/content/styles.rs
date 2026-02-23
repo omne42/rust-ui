@@ -1,5 +1,9 @@
 pub const CSS: &str = r#"
 .ui-sidebar-content {
+  --ui-sidebar-content-disabled-opacity: var(
+    --ui-disabled-opacity,
+    var(--ui-fallback-disabled-opacity)
+  );
   display: grid;
   gap: 0.35rem;
 }
@@ -21,7 +25,7 @@ pub const CSS: &str = r#"
 
 .ui-sidebar-content--disabled,
 .ui-sidebar-content[data-disabled="true"] {
-  opacity: 0.62;
+  opacity: var(--ui-sidebar-content-disabled-opacity);
   pointer-events: none;
 }
 

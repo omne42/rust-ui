@@ -98,6 +98,15 @@
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：`Tree` 当前不提供拖拽排序/拖拽选区等高频连续手势，交互仅为离散 click/keyboard 事件；`motion.rs` 只做本地 spring attach，不存在逐帧回写 `logic.rs` 的路径。）
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`Tree` 不执行 `getBoundingClientRect` 一类 DOM 几何测量，不存在基于测量结果回写状态的 rectification 回路；当前渲染路径为一次性语义挂载 + 样式消费。）
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`Tree` 采用 `TreeNode` 显式语义树输入，节点顺序由输入 `Vec` 保序定义，不存在运行时动态注册/注销子项与 roving 顺序管理需求。）
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`Tree` 不承担投影容器职责，节点内容来自 `TreeNode` 数据并按可见性直接渲染；不存在 `KeepAlive` 隐藏面板、轮询任务或需 `NotifyHidden` 收敛的副作用路径。）
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`Tree` 当前未接入 `Resize/Theme/Intersection` 订阅流，也没有高频环境事件经 `view.rs` 回流 `logic.rs` 的路径；现有交互为离散 click/keyboard 语义事件。）
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`Tree` 当前未提供 `Table/Grid` 式批量选择/批量操作总线，状态表达以节点级展开与选中语义为主，不存在大规模批处理导致的 O(N) 级联 prop drilling 路径。）
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：`Tree` 当前没有独立的复杂派生总线与多订阅者广播通道；状态更新由本地交互事件直接驱动，不存在需跨总线透传 `TraceId` 的链路。）
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`Tree` 不是层叠 `Overlay` 组件，不维护 overlay focus trap/restore 生命周期，也不存在私存 `NodeRef` 进行关闭后焦点恢复的路径。）
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`Tree` 当前未集成 ECharts/Map 一类命令式第三方运行时，不存在 `Foreign Zone` 生命周期托管与第三方实例外泄到公共 API 的路径。）
 - [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（A11y 由 `ui-headless::tree_root_attrs/use_tree_item` 输出并在 `view.rs` 挂载；`aria_label` 走 `props -> UiI18n(CommonStrings::tree_aria_label) -> default` 回退链，且透传 `lang/dir`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
@@ -131,7 +140,9 @@
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style="top: 10px"`）。（`crates/ui/src/css.rs::push_components_css` 统一以 `@layer ui` 包裹组件样式并在 `component-tree` feature 下聚合 `crate::tree::styles::CSS`；`components/tree/src/view.rs` 已改为 `style:--ui-tree-motion-scale` / `style:--ui-tree-motion-opacity` 仅透传自定义变量，不再使用普通 `style=...` 内联样式。）
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（N/A：该项属于仓库级样式防御链统一改造；`Tree` 当前已满足 token-first 与 `UiRoot` 统一注入边界，后续随全库 `--ui-fallback-*` rollout 统一切换到双层防御链，避免组件单独引入与主题层不一致的局部终值策略。）
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（N/A：该项属于仓库级主题与 docs-app 视觉回归门禁，`Tree` 单组件不负责默认主题基线与 `Button/Input/Overlay` 截图基线；`Tree` 侧职责是消费 `ui-theme` token 并维持 token-first 样式契约。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
@@ -168,6 +179,7 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（`Tree` 当前不在组件内部生成随机 ID；关键节点标识由输入 `TreeNode.id` 与 headless 语义挂载路径确定，代码中未使用 `now()`/`uuid`/`rand`。）
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`Tree` 已纳入 docs 预算：`apps/docs-app/src/pages/components/shell.rs` 增加 `"tree" => UiPerfBudget { max_mount_ms: 42.0, max_update_ms: Some(14.0), max_heap_kb: Some(896.0) }`；回归阻断由 `UiPerfProbe` 的 `data-perf-*` 标记 + `e2e/tests/docs_app_components_coverage.spec.mjs` 断言 `not.toHaveAttribute(\"data-perf-violation\", \"true\")`；归因面由 `Tree` 稳定来源标记（`data-state/data-*-source/data-motion-source`）与 `tree_semantics` 的 reactive budget 上限断言共同保证。当前测试框架仍无通用精确 `render_count` 计数，按清单采用等价可重复证据，并持续由 `docs/plan/TODO.md` 的 `render_count` 项跟踪后续自动化补齐。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
@@ -187,19 +199,19 @@
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（N/A：`Tree` 组件当前未使用 `inner_html` 渲染路径，代码中不存在该接口注入点，因此不存在用户输入拼接与白名单校验分支。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（N/A：`Tree` 当前未引入独立 WASM 调试面板/回放器；现阶段仅通过稳定 `data-*` 状态来源标记与语义测试提供可追踪证据，不存在会泄露到生产公共 API 的调试 feature 开关。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（N/A：该项属于仓库级开发工具链与演练环境能力，`Tree` 单组件不直接提供 HMR/状态保留/workbench 基建；组件侧仅需维持稳定语义标记与可测试契约以支持上层调试工具接入。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`Tree` 的 `protocol.rs` 已用 `serde` 定义结构化 `TreeComponentSpec`/`TreeComponentSchemaVersion`；组件公共 API 未暴露任何 tokio/async-std runtime 类型，当前也无组件内异步边界需要绑定单一运行时。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。

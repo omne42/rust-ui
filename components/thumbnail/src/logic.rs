@@ -21,6 +21,20 @@ pub struct ThumbnailViewStateInput {
     pub motion_source: ThumbnailMotionSource,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ThumbnailRawViewStateInput {
+    pub size: ThumbnailSize,
+    pub is_cover: Option<bool>,
+    pub is_layer: Option<bool>,
+    pub is_selected: Option<bool>,
+    pub is_focused: Option<bool>,
+    pub cover: Option<bool>,
+    pub layer: Option<bool>,
+    pub selected: Option<bool>,
+    pub focused: Option<bool>,
+    pub motion: ThumbnailMotion,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ThumbnailViewState {
     pub state: ThumbnailState,
@@ -217,6 +231,10 @@ pub fn compose_inline_style(background: Option<&str>) -> Option<String> {
     background.map(|background| format!("--ui-thumbnail-background: {background};"))
 }
 
+pub fn resolve_inline_css_vars(background: Option<&str>) -> String {
+    compose_inline_style(background).unwrap_or_default()
+}
+
 pub fn resolve_motion_source(motion: ThumbnailMotion) -> ThumbnailMotionSource {
     if motion == ThumbnailMotion::default() {
         ThumbnailMotionSource::Default
@@ -227,6 +245,21 @@ pub fn resolve_motion_source(motion: ThumbnailMotion) -> ThumbnailMotionSource {
 
 pub fn normalize_lang(value: Option<String>) -> Option<String> {
     normalize_optional_text(value)
+}
+
+pub fn normalize_bool_alias(is_value: Option<bool>, legacy_value: Option<bool>) -> Option<bool> {
+    is_value.or(legacy_value)
+}
+
+pub fn normalize_view_state_input(input: ThumbnailRawViewStateInput) -> ThumbnailViewStateInput {
+    ThumbnailViewStateInput {
+        size: input.size,
+        cover: normalize_bool_alias(input.is_cover, input.cover),
+        layer: normalize_bool_alias(input.is_layer, input.layer),
+        selected: normalize_bool_alias(input.is_selected, input.selected),
+        focused: normalize_bool_alias(input.is_focused, input.focused),
+        motion_source: resolve_motion_source(input.motion),
+    }
 }
 
 pub fn normalize_input(
@@ -260,7 +293,7 @@ pub fn resolve_view_state(
 
     ThumbnailViewState {
         class_name: compose_class_name(normalized.class_name, state),
-        inline_css_vars: compose_inline_style(normalized.background.as_deref()).unwrap_or_default(),
+        inline_css_vars: resolve_inline_css_vars(normalized.background.as_deref()),
         motion_source: input.motion_source,
         motion_active: state.selected || state.focused,
         cover_source,

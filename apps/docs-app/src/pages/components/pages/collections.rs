@@ -10,7 +10,7 @@ use ui::{
     AccordionStreamingProjection, AccordionVariant, AiOutputStatus, AiRenderMode, AiSpace,
     Autocomplete, ComboBox, Disclosure, DropdownMenu, DropdownMenuMotion, List, Menu, MenuItemKind,
     MenuItemSpec, MenuTrigger, Pagination, SegmentedControl, SegmentedControlSize, Select, Snippet,
-    Switch, Tabs, TabsKeyboardActivation, Tag, TagGroup,
+    Switch, Tabs, TabsKeyboardActivation, Tag, TagGroup, TagGroupItem,
     accordion::{AccordionPanelLifecycleEvent, AccordionSlotProjection},
     open_set, project_streaming_accordion_markup,
 };

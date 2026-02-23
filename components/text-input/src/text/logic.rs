@@ -114,6 +114,25 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
     (DEFAULT_ARIA_LABEL.into(), false)
 }
 
+pub struct AccessibilityStateInput {
+    pub is_disabled: Option<bool>,
+    pub disabled: bool,
+    pub is_truncated: Option<bool>,
+    pub truncate: bool,
+}
+
+pub struct AccessibilityState {
+    pub is_disabled: bool,
+    pub is_truncated: bool,
+}
+
+pub fn normalize_accessibility_state(input: AccessibilityStateInput) -> AccessibilityState {
+    AccessibilityState {
+        is_disabled: input.is_disabled.unwrap_or(input.disabled),
+        is_truncated: input.is_truncated.unwrap_or(input.truncate),
+    }
+}
+
 pub fn resolve_state(input: TextStateInput) -> TextState {
     let aria_source_attr = if input.has_custom_aria_label {
         "custom"

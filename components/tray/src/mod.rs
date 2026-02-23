@@ -6,3 +6,7 @@ mod view;
 pub use motion::TrayMotion;
 pub use ui_state_primitives::tray::{TrayPartState, TrayPartStateInput, TraySlot};
 pub use view::Tray;
+
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics;

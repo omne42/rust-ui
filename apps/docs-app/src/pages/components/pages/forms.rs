@@ -7,7 +7,8 @@ use ui::{
     Checkbox, CheckboxGroup, CheckboxSize, CheckboxVariant, Form, FormLabelAlign,
     FormLabelPosition, Input, InputGroup, InputOtp, InputSize, InputVariant, NumberField, Radio,
     RadioGroup, RadioGroupOrientation, SearchField, SearchFieldMotion, SegmentedControl,
-    SegmentedControlMotion, SegmentedControlOrientation, SegmentedControlSize, Switch, TextArea,
+    SegmentedControlItem, SegmentedControlItemSpec, SegmentedControlMotion,
+    SegmentedControlOrientation, SegmentedControlSize, Switch, TextArea,
 };
 use ui_headless::A11yDirection;
 

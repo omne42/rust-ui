@@ -92,6 +92,14 @@ cargo test -p ui-layout --test button_copy_semantics button_copy_reduced_motion_
 echo "[platform] time-field reduced-motion/ssr/wasm contract"
 cargo test -p ui-layout --test time_field_semantics --no-default-features --features component-time_field time_field_reduced_motion_ssr_wasm_branches_keep_semantics_consistent
 
+echo "[platform] tag motion contractualization (N/A runtime attach + reduced-motion + non-wasm no-op)"
+cargo test -p ui-layout --test tag_semantics --no-default-features --features component-tag,inject-css tag_motion_contract_uses_ui_motion_non_wasm_stub_and_keeps_component_safe_without_motion
+cargo test -p ui-layout --test tag_semantics --no-default-features --features component-tag,inject-css tag_reduced_motion_ssr_wasm_contract_is_n_a_but_semantics_stay_platform_stable
+
+echo "[platform] tag-group motion contractualization (N/A runtime attach + reduced-motion + non-wasm no-op)"
+cargo test -p ui-layout --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_motion_contract_uses_ui_motion_non_wasm_stub_and_keeps_component_safe_without_motion
+cargo test -p ui-layout --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_reduced_motion_ssr_wasm_contract_is_n_a_but_semantics_stay_platform_stable
+
 echo "[platform] scroll-area reduced-motion/ssr/wasm contract"
 cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area scroll_area_reduced_motion_ssr_wasm_contract_is_consistent
 

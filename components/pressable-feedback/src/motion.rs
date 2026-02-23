@@ -37,37 +37,11 @@ fn sanitize_number(value: f64, fallback: f64) -> f64 {
 
 pub fn sanitize_motion(motion: PressableFeedbackMotion) -> PressableFeedbackMotion {
     let default = PressableFeedbackMotion::default();
-
-    let spring = motion.spring;
-    let stiffness = if spring.stiffness.is_finite() && spring.stiffness > 0.0 {
-        spring.stiffness
-    } else {
-        default.spring.stiffness
-    };
-    let damping = if spring.damping.is_finite() && spring.damping > 0.0 {
-        spring.damping
-    } else {
-        default.spring.damping
-    };
-    let mass = if spring.mass.is_finite() && spring.mass > 0.0 {
-        spring.mass
-    } else {
-        default.spring.mass
-    };
-    let precision = if spring.precision.is_finite() && spring.precision > 0.0 {
-        spring.precision
-    } else {
-        default.spring.precision
-    };
+    let spring = ui_motion::spring::sanitize_config(motion.spring, default.spring);
 
     PressableFeedbackMotion {
         enabled: motion.enabled,
-        spring: ui_motion::spring::SpringConfig {
-            stiffness,
-            damping,
-            mass,
-            precision,
-        },
+        spring,
         pressed_scale: sanitize_number(motion.pressed_scale, default.pressed_scale)
             .clamp(0.82, 1.0),
         highlight_opacity: sanitize_number(motion.highlight_opacity, default.highlight_opacity)

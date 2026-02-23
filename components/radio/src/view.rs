@@ -302,6 +302,10 @@ pub fn Radio(
     let checked_change_source_attr = checked_axis.checked_change_source_attr;
     let checked_control_mode_attr = checked_axis.control_mode_attr;
     let is_checked_controlled = checked_axis.is_controlled;
+    debug_assert_eq!(
+        checked_control_mode_attr,
+        checked_axis.control_mode.data_attr()
+    );
     let disabled_state = logic::normalize_disabled_prop(logic::DisabledPropInput {
         is_disabled,
         disabled,

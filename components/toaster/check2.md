@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（已核对：状态原语集中在 `crates/ui-state-primitives/src/toaster.rs`，`components/toaster/src/logic.rs` 仅委托 `ui_state_primitives::toaster`，组件侧未自造状态机。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（已核对：共享 A11y 契约落点在 `crates/ui-headless/src/a11y.rs::region_attrs`，`components/toaster/src/view.rs` 仅消费并挂载 `role/aria-label/lang/dir`，未在组件层重写语义判断；回归覆盖 `components/toaster/test/semantics.rs::toaster_mounts_headless_region_a11y_contract_in_view` 与 `e2e/tests/docs_app_toaster_contract.spec.mjs` 的语义选择器流程。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -39,7 +39,7 @@
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（已核对：theme 三段落点与规范链路存在 `crates/ui-theme/src/{tokens,theme,css}.rs` + `docs/spec/styling.md`；`components/toaster/src/styles.rs` 仅消费 `var(--ui-overlay-panel-min-width)` 与 `var(--ui-space-lg)` 等主题变量、未写死私有主题常量；回归覆盖 `crates/ui-theme/tests/token_scale_baseline.rs` 与 `components/toaster/test/semantics.rs::toaster_styles_consume_ui_theme_tokens_for_layout_bounds`。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,7 +47,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（已核对：`components/toaster/src/logic.rs` 仅做归一/派生并委托 `ui-state-primitives`，`components/toaster/src/view.rs` 仅做 Leptos 结构与 `ui_headless::region_attrs` 挂载，`components/toaster/src/styles.rs` 为 token-first 静态样式，`components/toaster/src/motion.rs` 仅委托 `sanitize_motion`；公共导出在 `components/toaster/src/mod.rs`，未暴露 `web-sys`/DOM 细节类型；语义回归位于 `components/toaster/test/semantics.rs`。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -55,92 +55,92 @@
   - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（已核对：`components/toaster/src/view.rs` 对外沿用 overlay 家族同语义命名 `portal/max_toasts/aria_label/class_name/motion`，未引入 `is_portal/default_portal/on_portal_change` 等别名；对应回归由 `components/toaster/test/semantics.rs::toaster_api_naming_contract_matches_overlay_family_without_alias_drift` 锁定。兼容策略：本轮未新增公共命名，不涉及迁移路径变更。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`Toaster` 当前无对外可控状态轴：`portal/max_toasts/position` 为静态配置输入，运行时状态由 `ToastStore` 与 `Toast/ToastViewport` 承载；因此该项按 N/A 通过，并明确禁止半受控 API（无 `default_portal/on_portal_change/default_max_toasts/on_max_toasts_change`）。store 解析路径固定为 `provided -> context -> local`，外部传入 store 时其为唯一事实来源。回归由 `components/toaster/test/semantics.rs::toaster_has_no_controllable_state_axis_and_no_half_controlled_api` 覆盖。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（已核对：`components/toaster/src/logic.rs::normalize_props` 统一处理 `portal/max_toasts/aria_label/class_name/motion` 归一与 `has_custom_*` 来源标记；`components/toaster/src/view.rs` 仅消费 `normalized` 输出，不再二次执行 `portal != DEFAULT_*` 或 `normalize_max_toasts(max_toasts)` 兜底。回归由 `components/toaster/test/semantics.rs::toaster_default_values_have_single_logic_source` 覆盖。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（已核对：输入边界已类型化为 `components/toaster/src/logic.rs::ToasterNormalizeInput`，并由 `normalize_props` 统一派生 `ToasterNormalizedProps` 与来源标记；`components/toaster/src/view.rs` 仅消费 `normalized` 并调用 `logic::resolve_state`，未在 `view.rs`/事件回调重建状态机；`components/toaster/src/styles.rs` 只消费 `data-*` 状态标记。回归由 `components/toaster/test/semantics.rs::toaster_state_normalization_is_centralized_in_logic` 覆盖。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（已核对：离散状态轴使用 `enum` 建模，`crates/ui-state-primitives/src/toaster.rs` 定义 `ToasterPosition/ToasterSlot/ToasterStoreSource`，`components/toaster/src/view.rs` 公开 `position: ToasterPosition` 并在 `components/toaster/src/logic.rs::map_to_sonner_position` 做枚举映射；当前无字符串离散输入协议与布尔爆炸组合。回归由 `components/toaster/test/semantics.rs::toaster_discrete_state_axes_are_enum_typed` 覆盖。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（已核对：`components/toaster/src/logic.rs` 通过 `use ui_state_primitives::toaster as toaster_state` 委托 `normalize_* / resolve_state`，未在组件层重写状态原语；`components/toaster/src/view.rs` 仅执行 `store` 适配边界 `provided -> context -> local` 并映射 `ToasterStoreSource` 到语义标记。回归由 `components/toaster/test/semantics.rs::toaster_state_primitives_live_in_ui_state_primitives`、`toaster_state_primitive_source_boundary_is_enforced`、`toaster_view_tracks_store_source_resolution` 覆盖。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`Toaster` 无远程请求与异步交互状态轴，未暴露 `is_loading/error/retry/aria-busy/use_async_action` 协议面；回归由 `components/toaster/test/semantics.rs::toaster_has_no_async_interaction_protocol_surface` 覆盖。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（已核对：`components/toaster/src/view.rs` 对外参数均为可选并带默认（如 `position/portal/max_toasts/motion/store`），默认调用不要求手动接线内部状态对象；`components/toaster/src/README.md` 的 Hello World 仅 `<Toaster />`（1 行）并明确“不需要用户手动接线 `ui-state-primitives` / `ui-headless`”；`apps/docs-app/src/pages/components/pages/overlays_extra/toaster.rs` 以 `hello_world_code = "<Toaster />"` 和首个 `Playground title="Hello World"` 提供最小可用路径，再逐步进入高级控制。回归由 `components/toaster/test/semantics.rs::toaster_api_dx_exposes_hello_world_without_manual_state_wiring` 与 `toaster_documentation_is_beginner_friendly_with_readme_or_equivalent_entry` 覆盖。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A：`Toaster` 为通知宿主组件而非 `Parent/Item` 组合型组件，不存在 item 标题/语义/内容的并行配对问题；组件与 docs 仅暴露显式 host 用法（如 `<Toaster />`、`<Toaster store=... />`），未引入 `labels + children`、`titles + panels`、`items:`、`ItemSpec`、`<ToasterItem .../>` 等并行数组/语法糖。回归由 `components/toaster/test/semantics.rs::toaster_non_composite_api_avoids_parallel_array_conventions` 覆盖。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：`Toaster` 为通知宿主组件，不提供拖拽交互；`components/toaster/src/view.rs` 仅做 props 归一、store 解析与 `<Sonner />` 挂载，未出现 `Dragging/DragEnd`、pointer-move 循环或 RAF 每帧回流逻辑。）
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`Toaster` 当前为通知宿主装配组件，不承担 tooltip/popover/menu 这类几何测量定位职责；`components/toaster/src/view.rs` 仅做 props 归一、语义挂载与 `<Sonner />` 组合，`components/toaster/src/motion.rs` 仅委托 `sanitize_motion`，未出现 DOM 测量（如 `getBoundingClientRect`/`offset*`）与 `Intent -> Measure -> Rectification` 循环路径。）
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`Toaster` 为通知宿主组件，不暴露动态子项注册 API；`components/toaster/src/view.rs` 仅组合 `<Sonner />` 并挂载语义标记，未出现 `RegistrationContext/Register/Unregister/items_order` 机制，也未依赖 `HashSet` 迭代顺序进行导航。）
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`Toaster` 仅作为通知宿主装配层，不提供容器子树投影策略；`components/toaster/src/view.rs` 仅挂载 `<Sonner />`，不存在 `Lazy/KeepAlive/Eager` 模式切换与 `NotifyHidden` 生命周期暂停协议。）
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`Toaster` 为通知宿主装配组件，不承担环境事件采样职责；`components/toaster/src/view.rs` 仅做 props 归一、store 解析与 `<Sonner />` 挂载，未接入 `Resize/Theme/Intersection` 订阅、防抖流水线或 `BreakpointChanged` 一类高层 Action 回流。）
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`Toaster` 为通知宿主组件，不承载 `Table/Grid` 型大集合批量操作；`components/toaster/src/view.rs` 仅组合 `<Sonner />` 并透传归一化结果，未引入 `Context Bus + Selector`、`SelectionState::All` 或 O(N) 级向下传递集合状态的路径。）
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：`Toaster` 为通知宿主装配组件，不承载复杂派生总线广播链路；`components/toaster/src/view.rs` 仅做归一化结果挂载与 `<Sonner />` 组合，未定义需要透传 `TraceId` 的“命令总线 -> 广播 -> 订阅者”流程。）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（已核对：`components/toaster/src/view.rs` 通过 `ui_headless::region_attrs` 挂载 `role/aria-label/lang/dir`，并暴露 `lang/dir` 输入接入；可见文本来源由 `aria_label` props/归一化链路提供，未在 `view.rs` 硬编码文案。共享 A11y 工具来自 `crates/ui-headless/src/a11y.rs`，组件侧未重写同名语义工具。回归由 `components/toaster/test/semantics.rs::toaster_mounts_headless_region_a11y_contract_in_view` 与 `toaster_a11y_i18n_contract_uses_headless_and_no_view_text_hardcode` 覆盖。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（已核对：`components/toaster/src/view.rs` 稳定输出 `data-state/data-queue/data-position/data-*-source` 与 `role/aria-label`；来源轴显式区分 `position/portal/max-toasts/aria/class/motion/store`，并由 `components/toaster/src/styles.rs` 按封闭集合选择器消费（如 `data-store-source=provided|context|local`、`data-queue=single|bounded|extended`）。自动化路径已采用语义选择器：`components/toaster/test/semantics.rs::toaster_state_markers_are_observable_queryable_and_closed_set` 与 `toaster_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable`、`e2e/tests/docs_app_toaster_contract.spec.mjs`。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（已核对：`components/toaster/src/styles.rs` 的状态分支全部基于稳定语义标记（如 `data-state/data-queue/data-store-source/data-*-source`），未使用 `:nth-child`/深层结构猜测；`components/toaster/src/view.rs` 未注入业务 `style=`，运行时仅通过语义标记驱动样式切换。回归由 `components/toaster/test/semantics.rs::toaster_styles_depend_on_explicit_state_markers_not_dom_guessing` 覆盖，明确禁止 `:nth-child/:nth-of-type/:first-child/:last-child/style=`。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（已核对：语义断言矩阵由 `components/toaster/test/semantics.rs` 覆盖 `role/aria/data-state/source`（如 `toaster_view_uses_logic_state_contracts`、`toaster_state_markers_are_observable_queryable_and_closed_set`）；交互路径覆盖指针与键盘（`e2e/tests/docs_app_toaster_contract.spec.mjs` 中 click + `page.keyboard.press(\"Enter\")`，并由 `toaster_e2e_repeatable_key_flow_covers_overlay_focus_keyboard_and_async_paths` 锁定）；平台分支覆盖 SSR/wasm 差异（`toaster_component_paths_cover_reduced_motion_ssr_and_wasm_without_semantic_split`）。受控/非受控与 disabled 适用性为 N/A 并有回归（`toaster_has_no_controllable_state_axis_and_no_half_controlled_api`、`toaster_has_no_async_interaction_protocol_surface`）。同时 `toaster_semantics_contract_checks_prioritize_semantics_over_snapshots` 明确禁止以 snapshot-only 断言替代语义契约。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（已核对：`components/toaster/src/mod.rs` 仅做模块边界与稳定导出；`components/toaster/src/logic.rs` 仅做 props 归一、状态派生与来源标记，不含 DOM/样式分支；`components/toaster/src/styles.rs` 仅为 token-first 静态 CSS；`components/toaster/src/view.rs` 负责 Leptos 结构渲染并挂载 headless A11y 契约（`region_attrs`）；`components/toaster/src/motion.rs` 仅做动效参数清洗并委托通用实现。回归由 `components/toaster/test/semantics.rs::toaster_component_files_respect_layered_responsibilities` 覆盖。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（当前 `toaster` 为通知宿主组件，未引入 `components/toaster/src/spec.rs`，按规则为 N/A；组件说明与治理约束保留在 `components/toaster/check2.md`。同时由 `components/toaster/test/semantics.rs::toaster_does_not_define_spec_module_for_simple_host_component` 与 `components/toaster/test/semantics.rs::toaster_engineering_contract_is_spec_free_tracing_aligned_and_runtime_agnostic` 回归约束“无 `spec.rs`/无 `mod spec` 接线”。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（已核对：样式规则集中在 `components/toaster/src/styles.rs::CSS`，视觉值通过 `var(--ui-*)` 消费（如 `var(--ui-overlay-panel-min-width)`、`var(--ui-space-lg)`）；`crates/ui/src/css.rs` 以 feature 门控聚合 `#[cfg(feature = "component-toaster")] out.push_str(crate::toaster::styles::CSS);`，并由 `crates/ui/src/root.rs::UiRoot` 在 `inject_components_css` 路径统一注入 `crate::css::push_components_css(&mut out)`。组件 `view.rs` 无业务 `style=` 内联样式，未采用 Utility-First/CSS-in-Rust 作为默认实现范式。回归由 `components/toaster/test/semantics.rs::toaster_token_first_static_styles_are_injected_via_uiroot` 与 `toaster_styles_depend_on_explicit_state_markers_not_dom_guessing` 覆盖。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（已核对：docs-app 提供统一视觉基线页面 `apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs`，明确覆盖层级/对比/交互反馈并纳入 `Button/Input/Overlay`；对应 E2E 回归在 `e2e/tests/docs_app_theme_visual_baseline.spec.mjs`，包含可见性断言与截图基线 `toHaveScreenshot(\"docs-app-theme-visual-baseline-*.png\")`。`toaster` 侧补充视觉基线约束 `components/toaster/test/semantics.rs::toaster_docs_visual_baseline_uses_design_system_primitives`，并显式禁止旧式退化标记（如 `btn btn-`/`Bootstrap`）。HeroUI 对齐保持“视觉语言与体验质量”目标，不做 API 表层复制。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（已核对：`crates/ui/Cargo.toml` 定义 `component-toaster = ["dep:ui-toast"]` 且仅在 `all-components` 集合中按需汇总；`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 均对 toaster 采用 `#[cfg(feature = "component-toaster")]` 条件导出/聚合；`components/toaster/test/semantics.rs::toaster_tree_shaking_feature_gates_are_component_scoped` 已锁定单一路径。验证命令结果：`cargo tree -e features -i ui -p ui --no-default-features --features component-toaster,inject-css` 仅出现命令行特性 `component-toaster/inject-css`；`cargo tree -e features -i ui -p web-demo` 实测 `NO_ALL_COMPONENTS`；`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-toaster,inject-css` 通过。CI 侧存在最小特性与预算门禁：`scripts/check-ui-tree-shaking.sh` 对最小特性树、反向依赖、wasm 最小编译与体积阈值（`scripts/tree_shaking_budget.env`）执行失败即阻断。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -149,29 +149,29 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（已核对：离散状态轴在 `crates/ui-state-primitives/src/toaster.rs` 使用 `enum`/类型化结构建模（`ToasterPosition/ToasterSlot/ToasterStoreSource/ToasterPartStateInput/ToasterPartState`），`components/toaster/src/logic.rs::normalize_props` 统一归一化并约束无效输入（如 `normalize_max_toasts -> max_toasts.max(1)`）；`components/toaster/src/view.rs` 对外输出稳定机器可读标记（`data-state/data-queue/data-position/data-*-source + role/aria-label`）。回归由 `components/toaster/test/semantics.rs::toaster_type_system_and_semantic_markers_form_machine_readable_contract`、`toaster_state_markers_are_observable_queryable_and_closed_set`、`toaster_discrete_state_axes_are_enum_typed` 覆盖，且显式禁止未类型化协议（如 `position: Option<String>`、`data-state=\"custom\"`）。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A（Toaster 当前宿主语义）：`components/toaster/src/view.rs` 未实现层叠 overlay 焦点恢复路径，`components/toaster/src` 无 `NodeRef/focus_trap/restore_focus` 私有焦点栈逻辑；焦点栈与恢复策略统一落在 `crates/ui-headless/src/focus_trap.rs`（含 `RestorePolicy::Selector/FallbackTo` 与全局栈）和 `crates/ui-headless/src/overlay_stack.rs`。组件侧保持装配边界，未自造焦点管理器。回归侧由 `components/toaster/test/semantics.rs` 的分层职责约束（含禁止在 `logic.rs` 引入 `NodeRef<`）与 `e2e/tests/docs_app_toaster_contract.spec.mjs` 的键盘焦点路径覆盖共同保证。）
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A（Toaster 当前宿主语义）：`components/toaster/src/view.rs`/`components/toaster/src/logic.rs` 未接入 ECharts/Map 等命令式第三方实例，也无 `YieldControl/CleanupForeign` 场景；公共 API 仅暴露 `position/portal/max_toasts/aria_label/class_name/lang/dir/motion/store`，未泄露第三方实例句柄或 `web-sys` 细节类型。组件状态仍由 `ui-state-primitives` 归一与派生（`normalize_props/resolve_state`）驱动，不存在第三方实例反向污染状态机路径。回归侧由 `components/toaster/test/semantics.rs` 的分层与边界约束（如禁止在 `logic.rs` 引入 `web_sys::/NodeRef<`）持续守卫。）
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（N/A（Toaster 本地 ID 生成）+ 全局契约已满足：`components/toaster/src/{logic,view,motion}.rs` 未使用 `now()/Date::now/SystemTime/UUID/rand` 初始化，也未在组件内生成需跨端对齐的随机 ID；确定性 ID 能力由 `crates/ui/src/root.rs` 通过 `id_seed` 注入并调用 `ui_headless::provide_ui_id_provider(id_seed)` 统一提供。平台侧回归由 `components/toaster/test/semantics.rs::toaster_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_web_sys_usage` 与 `toaster_component_paths_cover_reduced_motion_ssr_and_wasm_without_semantic_split` 保证 SSR/wasm 语义不分裂。）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（已核对：`components/toaster/test/semantics.rs::toaster_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_web_sys_usage`、`toaster_headless_web_ssr_feature_mutex_is_compile_error_guarded`、`toaster_component_paths_cover_reduced_motion_ssr_and_wasm_without_semantic_split` 已锁定 wasm/non-wasm/ssr 关键契约；`components/toast/src/toast/motion.rs` 与 `crates/ui-motion/src/lib.rs` 提供显式 `#[cfg(target_arch = "wasm32")]` / `#[cfg(not(target_arch = "wasm32"))]` 分支与 non-wasm no-op/stub；`components/toaster/src/view.rs`/`components/toaster/src/motion.rs` 非 wasm 路径未引用 `web_sys::/window()/document()/wasm_bindgen::`。compile-only 证据（均通过）：`cargo --config env.TMPDIR.value='"/root/autodl-tmp/tmp"' --config env.TMPDIR.force=true check -p ui-toaster`（默认本地）、`cargo --config env.TMPDIR.value='"/root/autodl-tmp/tmp"' --config env.TMPDIR.force=true check -p ui-toaster --target wasm32-unknown-unknown`（web/wasm32）、`cargo --config env.TMPDIR.value='"/root/autodl-tmp/tmp"' --config env.TMPDIR.force=true check -p ui-headless --no-default-features --features ssr`（ssr/native）。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（已核对：`crates/ui-headless/src/lib.rs` 以 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)` 显式声明互斥；组件消费侧 `cargo --config 'env.TMPDIR.value="/root/autodl-tmp/tmp"' --config 'env.TMPDIR.force=true' check -p ui --no-default-features --features component-toaster` 可编译（`ui-toast -> ui-headless` 依赖链未破坏互斥约束）；两条 feature 路径编译均通过：`cargo --config 'env.TMPDIR.value="/root/autodl-tmp/tmp"' --config 'env.TMPDIR.force=true' check -p ui-headless --no-default-features --features web` 与 `... --features ssr`；冲突路径按契约失败：`cargo --config 'env.TMPDIR.value="/root/autodl-tmp/tmp"' --config 'env.TMPDIR.force=true' check -p ui-headless --no-default-features --features web,ssr` 触发 `crates/ui-headless/src/lib.rs:4` 的 compile_error。回归守卫见 `components/toaster/test/semantics.rs::toaster_headless_web_ssr_feature_mutex_is_compile_error_guarded`。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（已核对：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供稳定 stub（`prefers_reduced_motion() -> true`、`animate(_element: &(), ...) {}`），并有单测 `non_wasm_web_backend_is_predictable_noop` 约束可预测 no-op；组件调用侧 `components/toast/src/toast/motion.rs` 的 non-wasm `attach_motion` 仅执行 `std::hint::black_box(sanitize_motion(motion))` 与 `is_open=false` 时 `on_exit_complete.run(())`，不依赖动画句柄、无 panic stub。tooling/编译证据（均通过）：`cargo --config 'env.TMPDIR.value="/root/autodl-tmp/tmp"' --config 'env.TMPDIR.force=true' check -p ui-motion`、`cargo --config 'env.TMPDIR.value="/root/autodl-tmp/tmp"' --config 'env.TMPDIR.force=true' test -p ui-motion non_wasm_web_backend_is_predictable_noop -- --nocapture`、`cargo --config 'env.TMPDIR.value="/root/autodl-tmp/tmp"' --config 'env.TMPDIR.force=true' check -p ui-toast`、`cargo --config 'env.TMPDIR.value="/root/autodl-tmp/tmp"' --config 'env.TMPDIR.force=true' check -p ui --no-default-features --features component-toaster`；语义守卫见 `components/toaster/test/semantics.rs::toaster_non_wasm_motion_fallback_is_safe_predictable_and_tooling_friendly` 与 `toaster_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_web_sys_usage`。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（已核对：`components/toast/src/toast/motion.rs` 具备显式 `#[cfg(target_arch = "wasm32")]` 与 `#[cfg(not(target_arch = "wasm32"))]` 分支；wasm 分支在 `if ui_motion::web::prefers_reduced_motion()` 下直接降级为最小必要反馈（将 `--ui-toast-opacity/--ui-toast-y/--ui-toast-scale` 归一到 `1/0px/1` 并提前返回），non-wasm 分支走安全降级（`std::hint::black_box(sanitize_motion(motion))` + `!is_open` 时 `on_exit_complete.run(())`），不依赖动画句柄。SSR/Hydration 语义一致性由 `components/toaster/src/view.rs` 的稳定语义挂载（`logic::normalize_props` + `data-state/data-queue/data-position/data-portal/role/aria-label`）与 `components/toaster/test/semantics.rs::toaster_component_paths_cover_reduced_motion_ssr_and_wasm_without_semantic_split`（含禁止在 `view.rs` 以 `cfg` 分裂语义标记）守卫。compile-only 证据（均通过）：`cargo --config 'env.TMPDIR.value="/root/autodl-tmp/tmp"' --config 'env.TMPDIR.force=true' check -p ui-toaster`（默认本地）、`cargo --config 'env.TMPDIR.value="/root/autodl-tmp/tmp"' --config 'env.TMPDIR.force=true' check -p ui-toaster --target wasm32-unknown-unknown`（wasm）、`cargo --config 'env.TMPDIR.value="/root/autodl-tmp/tmp"' --config 'env.TMPDIR.force=true' check -p ui-headless --no-default-features --features ssr`（ssr），以及组件装配链 `cargo --config 'env.TMPDIR.value="/root/autodl-tmp/tmp"' --config 'env.TMPDIR.force=true' check -p ui --no-default-features --features component-toaster`。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
@@ -182,40 +182,40 @@
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（已核对：`components/toaster/src/view.rs` 当前仅 1 个 `view!` 块（`section + <Sonner />`），无 `for/.map/collect/match` 等会放大宏展开的结构；状态归一与派生留在 `logic.rs`（`normalize_props/resolve_state`），`view.rs` 仅挂载语义标记与子组件装配。源码回归守卫已存在：`components/toaster/test/semantics.rs::toaster_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders`（约束单一 `view!`、文件紧凑、禁止循环/分支型宏膨胀）与 `toaster_view_functional_split_prefers_no_extra_local_components_for_simple_layout`（防止为简单布局引入额外局部组件噪音）。编译时间或 wasm 体积异常时，按此契约优先回看 `view.rs` 宏展开体量与是否应提取语义子块。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（已核对：`components/toaster/src/view.rs` 仅保留 1 个对外 `#[component]`（`Toaster`），未引入局部 `render_*`/`section_*` 组件噪音；当前宿主布局为轻量装配（`normalize_props + resolve_state + <Sonner />`），没有需要额外拆成局部 `#[component]` 的复杂生命周期片段。回归守卫已存在：`components/toaster/test/semantics.rs::toaster_view_functional_split_prefers_no_extra_local_components_for_simple_layout`（约束 `#[component]` 数量与禁止局部组件命名噪音，并校验语义标记稳定）。若后续 `view.rs` 出现重复轻逻辑片段，应优先提取为普通 Rust 局部函数而非再加组件边界。）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（已核对：`components/toaster/src/view.rs` 仅保留宿主装配结构（`section + <Sonner />`），未内联重型静态片段（无 `inner_html`/`<svg>`/`<path>`/`<footer>`/长文案构造）；默认静态文案集中在 `ui-state-primitives`（`DEFAULT_ARIA_LABEL`），并经 `logic.rs` 归一后由 `view.rs` 通过 `region_attrs` 挂载 `role/aria-label/lang/dir`，保持可访问语义稳定。路径可追溯守卫已存在：`components/toaster/test/semantics.rs::toaster_static_fragments_are_constantized_or_absent_for_simple_host_layout`（禁止重型静态内联并校验默认文案/语义挂载来源），静态资源变更入口集中在 `ui-state-primitives/src/toaster.rs` 与 `components/toaster/src/{logic,view}.rs`，避免散落。）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（已核对：`components/toaster/src/{view,logic,motion,styles}.rs` 未出现 `inner_html=`/`set_inner_html(`/`dangerously_set_inner_html`/`markdown_to_html(`/`format!(\"<` 等注入路径；`view.rs` 继续通过 `region_attrs` 挂载 `role/aria-label` 语义，不存在 inner_html 兜底。安全与语义回归守卫已存在：`components/toaster/test/semantics.rs::toaster_inner_html_usage_is_absent_and_untrusted_html_paths_are_blocked`，同时覆盖组件源码与 docs-app `toaster` 段落，禁止未清洗 HTML 进入。当前组件没有白名单静态 HTML 注入场景，满足“仅允许受信任静态常量、默认禁止注入”约束。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（已核对：追踪底座由 `crates/ui-headless/src/trace.rs` 提供 `UiTraceEvent { ts_ms, component, kind }` 与 `UiTraceEventKind::{OpenChange, Inspect}`，支持“来源+时间+前后状态”记录；关键交互链路在 `components/toast/src/toast/view.rs` 通过 `use_controllable_open_state_traced(\"toast\", ...)` 与 `request_open_change.run(...)` 接入可回放因果事件；开发模式可视化入口在 `apps/docs-app/src/lib.rs` 的 `debug_overlay_enabled = cfg!(debug_assertions)` + `provide_ui_trace(debug_overlay_enabled)`，并在 `apps/docs-app/src/debug_overlay.rs` 提供 `UiDebugOverlay`（事件列表/时间戳/Inspect 快照）。feature 隔离方面：`crates/ui/Cargo.toml` 未暴露 `toaster-wasm-debug`，`components/toaster/src/{mod,logic,motion,view}.rs` 无 debug prop/调试 API 泄漏，调试能力复用全局通道而非污染组件公共面。compile-only 证据（通过）：`cargo --config 'env.TMPDIR.value=\"/root/autodl-tmp/tmp\"' --config 'env.TMPDIR.force=true' check -p ui --target wasm32-unknown-unknown --no-default-features --features inject-css,button-wasm-debug`（调试 feature 隔离链）与 `cargo --config 'env.TMPDIR.value=\"/root/autodl-tmp/tmp\"' --config 'env.TMPDIR.force=true' check -p ui --target wasm32-unknown-unknown --no-default-features --features component-toaster,inject-css`（生产组件路径不依赖 debug feature）。源码守卫见 `components/toaster/test/semantics.rs::toaster_wasm_debug_capability_reuses_global_trace_and_stays_feature_isolated`。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（已落地：`apps/docs-app/src/pages/components/pages/overlays_extra/toaster.rs` 的 `Workbench (All API + Actual Config)` 复用 `apps/docs-app/src/playground.rs` 的 scoped-css 快速反馈链路（`data-playground-scope` + `Show test` + `Restore original CSS`），并新增可选持久化（`TOASTER_WORKBENCH_STORAGE_KEY`、`load/save/clear_toaster_workbench_state` + `Persist workbench state` 开关）以保留调试上下文；隔离演练画布由 `playground__preview` + `playground__preview-stage` 提供。回归守卫：`components/toaster/test/semantics.rs::toaster_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/toaster/test/semantics.rs::toaster_dx_workbench_supports_optional_state_persistence_and_isolated_canvas`。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（Toaster 当前为宿主装配组件，不承载独立 spec/config 输入，因此 `serde` 路径按 N/A 严格收口：`components/toaster/src/` 无 `spec.rs`、无 `serde/serde_json` 依赖接线；关键交互埋点语义沿用全库共享 tracing 契约（`crates/ui/src/toast/view.rs` 使用 `use_controllable_open_state_traced(...)`，事件模型由 `crates/ui-headless/src/trace.rs` 统一定义），Toaster 层不新增私有 tracing 词汇；异步边界方面 Toaster 公共 API 与实现均不暴露 `tokio/async-std` 或 runtime 类型。回归由 `components/toaster/test/semantics.rs` 的 `toaster_engineering_contract_is_spec_free_tracing_aligned_and_runtime_agnostic`（并复用 `toaster_does_not_define_spec_module_for_simple_host_component`）覆盖。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 样式与动效（Theme & Motion）
-- [ ] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
-- [ ] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-- [ ] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
-- [ ] `ui` 固定入口文件落点正确。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（已落地：`components/toaster/src/styles.rs` 将关键尺寸变量改为双层回退链 `var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width))` 与 `var(--ui-space-lg, var(--ui-fallback-space-lg))`；组件样式未引入 Hex 与裸尺寸终值（并持续禁止 `360px/420px` 回退写死）。Fallback 终值由 `ui-theme` 统一输出（`crates/ui-theme/src/css/render/theme_to_css_variables.inc` 提供 `--ui-fallback-overlay-panel-min-width` / `--ui-fallback-space-lg`）。回归守卫：`components/toaster/test/semantics.rs::toaster_styles_consume_ui_theme_tokens_for_layout_bounds`、`toaster_token_first_static_styles_are_injected_via_uiroot`、`toaster_ui_components_layer_assembles_four_layers_without_public_dom_leakage`。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（已核对：组件样式聚合入口 `crates/ui/src/css.rs` 在 `push_components_css` 中统一写入 `@layer ui` 包裹（`out.push_str(\"\\n@layer ui {\\n\")` + 末尾 `out.push_str(\"}\\n\")`），并在 `#[cfg(feature = \"component-toaster\")]` 下注入 `crate::toaster::styles::CSS`；`components/toaster/src/view.rs` 未出现普通 `style=` 内联样式，运行时状态通过 `data-*` 语义标记驱动。`UiRoot` 继续集中注入路径（`crate::css::push_components_css(&mut out)`）。回归守卫：`components/toaster/test/semantics.rs::toaster_ui_components_fixed_entry_files_follow_layered_boundaries` 与 `components/toaster/test/semantics.rs::toaster_token_first_static_styles_are_injected_via_uiroot`、`components/toaster/test/semantics.rs::toaster_styles_depend_on_explicit_state_markers_not_dom_guessing`。）
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（已核对：`Toaster` 作为宿主装配层不直接绑定节点动画，`components/toaster/src/motion.rs` 仅做合同委托 `sanitize_motion -> crate::toast::motion::sanitize_motion`；真实动效合同在 `components/toast/src/toast/motion.rs` 内置 `ToastMotion { spring: SpringConfig, initial_y_px, initial_scale }`（含 `stiffness/damping` 等 spring 参数），并通过 `attach_motion(...)` 挂载。wasm 分支显式尊重 `ui_motion::web::prefers_reduced_motion()`，在 reduced-motion 下跳过 spring 并写入最小必要反馈；non-wasm 分支走安全降级 `std::hint::black_box(sanitize_motion(motion)) + on_exit_complete`，与 `crates/ui-motion/src/lib.rs` 的 no-op/stub 一致。回归守卫：`components/toaster/test/semantics.rs::toaster_component_paths_cover_reduced_motion_ssr_and_wasm_without_semantic_split`、`toaster_non_wasm_motion_fallback_is_safe_predictable_and_tooling_friendly`。）
+- [x] `ui` 固定入口文件落点正确。（Toaster 依赖的 `ui` 固定入口边界保持正确：`crates/ui/src/lib.rs` 对 `toaster` 采用 `component-toaster` feature gate 并仅暴露稳定 `pub use`；`crates/ui/src/css.rs` 通过 `push_components_css` 按 feature 条件聚合 `toaster::styles::CSS`；`crates/ui/src/root.rs` 统一注入 base css + theme vars + optional components css，并集中提供 i18n 上下文；`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享样式与 motion driver。禁止文件方面，`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 维持不存在，对应原语固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。回归由 `components/toaster/test/semantics.rs` 的 `toaster_ui_components_fixed_entry_files_follow_layered_boundaries` 覆盖。）
   - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -223,7 +223,7 @@
   - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。（Toaster 目录落点已满足规范：`components/toaster/src/` 包含 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`，不存在 `render.rs` 与 `spec.rs`；`mod.rs` 保持最小稳定导出面（`pub use view::Toaster` + 默认常量/状态类型），未公开 `logic/view` 实现模块；`logic.rs` 仅做 props 归一、状态派生与来源标记并委托 `ui-state-primitives`，未承载 DOM/视图职责；`styles.rs` 仅保留 token-first 静态 CSS（`var(--ui-*)` 回退链）；`view.rs` 仅做 Leptos 结构渲染与 `ui_headless::region_attrs` 语义挂载；`motion.rs` 仅做语义到动效合同的委托映射（`sanitize_motion -> crate::toast::motion::sanitize_motion`），不自实现动效引擎。回归守卫见 `components/toaster/test/semantics.rs`：`toaster_component_files_respect_layered_responsibilities`、`toaster_directory_standard_files_and_boundaries_follow_contract`、`toaster_does_not_define_spec_module_for_simple_host_component`。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -232,29 +232,31 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
-- [ ] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
-- [ ] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
-- [ ] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。（已核对 `components/toaster/src/`：核心职责文件 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 完整在位；未发现 `render.rs`，`spec.rs` 维持未引入。`logic.rs` 负责归一/派生与来源标记，`view.rs` 负责结构渲染与 headless 语义挂载，`motion.rs` 仅做动效合同委托，职责未漂移。目录中的 `protocol.rs/lib.rs/README.md/check2.md` 属于仓库协议与组件文档/入口辅助文件，不承载渲染职责，不构成 `render.rs` 漂移。回归守卫见 `components/toaster/test/semantics.rs`：`toaster_component_files_respect_layered_responsibilities`、`toaster_directory_standard_files_and_boundaries_follow_contract`、`toaster_does_not_define_spec_module_for_simple_host_component`。）
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A for Toaster：当前 `toaster` 是通知宿主装配组件，不承载复杂配置 schema 固化与版本迁移面，因此不引入本地 `spec.rs` 与 `*Spec::new()...render()` builder；该边界与“简单组件禁加 `spec.rs`”规则一致。源码与契约守卫：`components/toaster/test/semantics.rs::toaster_does_not_define_spec_module_for_simple_host_component`、`components/toaster/test/semantics.rs::toaster_engineering_contract_is_spec_free_tracing_aligned_and_runtime_agnostic`。）
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
+  - 证据：`components/toaster/src/Component.toml` 已新增并声明 `inputs/outputs/capabilities/dependencies`，覆盖 Toaster 宿主装配的语义契约与能力清单。
+  - 证据：`components/toaster/src/toaster.rbi` 已新增并投影公开接口签名（`Toaster(...) -> impl IntoView`）及对外类型/常量面（`ToasterPosition/ToasterSlot/ToasterStoreSource/DEFAULT_*`），与当前模块导出边界对齐。
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（已落地：`components/toaster/src/logic.rs` 通过 `ToasterAgentIntent/ToasterAgentActionModel/ToasterAgentStreamSupport/ToasterAgentStreamFallback/ToasterAgentOutputStatus` + `ToasterAgentContract` 类型化建模契约字段，`agent_contract()` 输出封闭集合；`components/toaster/src/view.rs` 显式挂载 `data-ui-schema/data-ui-intent/data-ui-action-model/data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status/data-ui-state-axis/data-ui-source-axis`，并与 `data-state/data-position-source/data-store-source` 联动保证状态与来源可追溯；渲染链路不使用 `inner_html`/`set_inner_html`/`dangerously_set_inner_html`，协议输入走类型化 `components/toaster/src/protocol.rs::ToasterComponentSpec`，无任意脚本注入入口。回归守卫：`components/toaster/test/semantics.rs::toaster_agent_contract_schema_is_typed_traceable_and_whitelisted`、`components/toaster/test/semantics.rs::toaster_inner_html_usage_is_absent_and_untrusted_html_paths_are_blocked`。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（Toaster 在职责上定位为通知宿主装配，不承载 LLM token 增量渲染协议；此处仅固定术语边界：`Streaming`=生成中渐进显示，`Snapshot`=完整结果一次性显示。实现侧通过 `data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status` 暴露策略，不引入 `AiRenderMode/AiOutputStatus` 渲染协议字段。回归守卫：`components/toaster/test/semantics.rs::toaster_streaming_definition_is_llm_output_only_with_two_modes`、`components/toaster/test/semantics.rs::toaster_stays_snapshot_host_and_does_not_mount_stream_protocol_fields`。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（Toaster 已满足 snapshot 基线：`components/toaster/src/view.rs` 接收完整输入（`position/portal/max_toasts/aria_label/class_name/lang/dir/motion/store`）并通过 `logic::normalize_props + resolve_state + compose_class_name + map_to_sonner_position` 归一后稳定渲染；即使组件不直接展示正文，也可在接收完整宿主配置时稳定输出语义契约（`data-state/data-queue/data-position/data-store-source + role/aria-label`）。docs 侧 `apps/docs-app/src/pages/components/pages/overlays_extra.rs` 的 Toaster 页面已提供 `Hello World/Portal Queue Host/Inline Top-Center Host/State + Source Markers` 完整配置路径。回归守卫：`components/toaster/test/semantics.rs::toaster_snapshot_baseline_consumes_complete_configuration_and_renders_stably`。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（Toaster 作为通知宿主组件并非正文阅读面，流式能力按 `Streaming Optional` 收口：`components/toaster/src/logic.rs` 通过 `ToasterAgentStreamSupport::Optional` 与 `ToasterAgentStreamFallback::Snapshot` 明确策略，`components/toaster/src/view.rs` 显式挂载 `data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status`，并保持 `role/aria-label/data-*` 连续可读；数据校验、断线恢复、重试不在组件层实现，仍由上层负责。回归守卫：`components/toaster/test/semantics.rs::toaster_streaming_policy_is_optional_with_snapshot_fallback_and_explicit_output_status`、`components/toaster/test/semantics.rs::toaster_stays_snapshot_host_and_does_not_mount_stream_protocol_fields`。）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试、门禁与交付
-- [ ] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
-- [ ] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（已对 Toaster 源码做本地审计：`components/toaster/src/**` 未命中 `unwrap/expect` 与 `let _ = ...`；字符串复制热点未出现脚本规则定义的高频 churn 模式。已执行 `./scripts/check-rust-hygiene.sh`，当前失败来自跨组件既有问题 `components/sidebar/src/motion.rs|SidebarMotion|reduced_duration_ms: 1,`（`check-motion-default-hardcode` 阶段），非 Toaster 引入；该问题已按“跨组件系统性问题”升级为仓库级治理，不阻塞 Toaster 单组件结论。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（已核对：`crates/ui/Cargo.toml` 定义 `component-toaster = [\"dep:ui-toast\"]` 且 `ui-toast` 为 optional 依赖；`crates/ui/src/lib.rs` 通过 `#[cfg(feature = \"component-toaster\")] pub use ui_toast::toaster;` 做导出门控；`crates/ui/src/css.rs` 通过 `#[cfg(feature = \"component-toaster\")] out.push_str(crate::toaster::styles::CSS);` 做样式聚合门控。特性树证据：`cargo tree -e features -p ui --no-default-features --features component-toaster,inject-css` 仅拉起 toaster 相关链路；最小特性编译证据：`cargo --config 'env.TMPDIR.value=\"/root/autodl-tmp/tmp\"' --config 'env.TMPDIR.force=true' check -p ui --no-default-features --features component-toaster,inject-css` 通过。）
 - [ ] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
 - [ ] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
 - [ ] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。

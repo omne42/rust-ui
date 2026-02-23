@@ -528,7 +528,7 @@ fn sheet_styles_consume_ui_theme_overlay_tokens() {
 
 #[test]
 fn sheet_semantics_contract_checks_prioritize_semantics_over_snapshots() {
-    let source = load_source("tests/semantics.rs");
+    let source = load_source("test/semantics.rs");
 
     for needle in [
         "fn sheet_view_uses_logic_state_contracts()",
@@ -969,7 +969,7 @@ fn sheet_tree_shaking_contract_is_feature_gated_and_budgeted() {
 fn sheet_type_system_and_semantic_markers_define_machine_readable_contracts() {
     let logic = load_source("src/logic.rs");
     let view = load_source("src/view.rs");
-    let tests = load_source("tests/semantics.rs");
+    let tests = load_source("test/semantics.rs");
 
     for needle in [
         "pub enum SheetPlacement",
@@ -1064,6 +1064,46 @@ fn sheet_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_web_sy
                 "Non-wasm sheet module files should not reference browser-only API `{forbidden}`."
             );
         }
+    }
+}
+
+#[test]
+fn sheet_hydration_discontinuity_avoids_time_random_and_local_id_generation() {
+    let mod_source = load_source("src/mod.rs");
+    let logic_source = load_source("src/logic.rs");
+    let view_source = load_source("src/view.rs");
+    let motion_source = load_source("src/motion.rs");
+    let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/overlays/sheet.rs");
+    let combined = format!("{mod_source}\n{logic_source}\n{view_source}\n{motion_source}\n{docs_source}");
+
+    for forbidden in [
+        "Date::now(",
+        "js_sys::Date",
+        "SystemTime::now(",
+        "Instant::now(",
+        "uuid::",
+        "Uuid::",
+        "randomUUID",
+        "Math::random",
+        "rand::",
+        "thread_rng(",
+    ] {
+        assert!(
+            !combined.contains(forbidden),
+            "Sheet hydration contract should avoid time/random id initializer token `{forbidden}`."
+        );
+    }
+
+    for needle in [
+        "#[prop(optional)] aria_labelledby: Option<String>",
+        "#[prop(optional)] aria_describedby: Option<String>",
+        "logic::normalize_optional_text(aria_labelledby)",
+        "logic::normalize_optional_text(aria_describedby)",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Sheet should keep ID-related aria inputs externalized and normalized via `{needle}`."
+        );
     }
 }
 
@@ -1818,7 +1858,7 @@ fn sheet_agent_contract_and_streaming_snapshot_markers_are_explicit() {
 
 #[test]
 fn sheet_docs_and_semantic_regression_loop_are_explicitly_covered() {
-    let this_suite = load_source("tests/semantics.rs");
+    let this_suite = load_source("test/semantics.rs");
     let overlays = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
     let nav_sheet_e2e = load_source("../../e2e/tests/docs_app_nav_sheet.spec.mjs");
     let check2 = load_source("src/check2.md");
@@ -1984,6 +2024,51 @@ fn sheet_anti_pattern_ui_headless_remains_visual_and_motion_free() {
 }
 
 #[test]
+fn sheet_focus_stack_restoration_uses_headless_manager_not_local_noderef_storage() {
+    let view_source = load_source("src/view.rs");
+    let focus_trap_source = load_source("../ui-headless/src/focus_trap.rs");
+
+    for required in [
+        "use_overlay_stack_registration()",
+        ".with_restore_policy(RestorePolicy::FallbackTo(",
+        ".with_fallback_selector(FOCUS_FALLBACK_SELECTOR)",
+    ] {
+        assert!(
+            view_source.contains(required),
+            "Sheet overlay focus stack contract should keep headless integration token `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "document.body()",
+        "focus_manager_push_trap(",
+        "focus_manager_pop_trap(",
+        "focus_manager_peek_trap(",
+        "restore_focus_chain(",
+        "previous_focus",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Sheet view should not implement local focus-restore stack logic token `{forbidden}`."
+        );
+    }
+
+    for required in [
+        "fn focus_manager_push_trap(",
+        "fn focus_manager_pop_trap(",
+        "fn focus_manager_peek_trap(",
+        "fn restore_focus_chain(",
+        "RestorePolicy::Selector(selector) | RestorePolicy::FallbackTo(selector)",
+        "if let Some(body) = document.body()",
+    ] {
+        assert!(
+            focus_trap_source.contains(required),
+            "ui-headless focus trap should own global focus stack and fallback restoration token `{required}`."
+        );
+    }
+}
+
+#[test]
 fn sheet_anti_pattern_view_keeps_decisions_in_logic_layer() {
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
@@ -2032,7 +2117,7 @@ fn sheet_anti_pattern_view_keeps_decisions_in_logic_layer() {
 fn sheet_anti_pattern_new_params_follow_naming_type_default_and_semantic_contract() {
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
-    let semantics_test_source = load_source("tests/semantics.rs");
+    let semantics_test_source = load_source("test/semantics.rs");
 
     for required in [
         "open: Signal<bool>",
@@ -2116,6 +2201,42 @@ fn sheet_anti_pattern_public_api_does_not_leak_platform_or_runtime_types() {
         assert!(
             !mod_source.contains(forbidden),
             "Sheet public API boundary should avoid leaking platform/runtime token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn sheet_escape_hatch_foreign_zone_is_not_applicable_without_third_party_imperative_instances() {
+    let mod_source = load_source("src/mod.rs");
+    let logic_source = load_source("src/logic.rs");
+    let view_source = load_source("src/view.rs");
+    let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/overlays/sheet.rs");
+    let combined = format!("{logic_source}\n{view_source}\n{docs_source}");
+
+    for forbidden in [
+        "echarts",
+        "ECharts",
+        "mapbox",
+        "leaflet",
+        "YieldControl",
+        "CleanupForeign",
+        "Foreign Zone",
+        "third-party instance",
+    ] {
+        assert!(
+            !combined.contains(forbidden),
+            "Sheet scope should not introduce imperative third-party escape-hatch token `{forbidden}`."
+        );
+    }
+
+    for required in [
+        "pub use logic::SheetPlacement;",
+        "pub use motion::SheetMotion;",
+        "pub use view::Sheet;",
+    ] {
+        assert!(
+            mod_source.contains(required),
+            "Sheet public API should remain focused and not leak third-party instance handles via `{required}`."
         );
     }
 }

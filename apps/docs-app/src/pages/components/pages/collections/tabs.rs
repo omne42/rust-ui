@@ -1,9 +1,7 @@
 use super::*;
+use ui::TabsItem;
 
 pub(crate) fn tabs() -> AnyView {
-    let manual_labels = vec!["Profile", "Billing", "Team"];
-    let workbench_labels = vec!["Overview", "Details", "Settings"];
-
     let (selected_auto, set_selected_auto) = signal(0_usize);
     let on_auto_change = Callback::new(move |index: usize| set_selected_auto.set(index));
 
@@ -30,10 +28,10 @@ pub(crate) fn tabs() -> AnyView {
     });
 
     let hello_world_code = Signal::derive(move || {
-        r#"<Tabs labels=vec!["Overview", "Details", "Settings"] id_base="tabs".to_string()>
-  <div>"Overview panel"</div>
-  <div>"Details panel"</div>
-  <div>"Settings panel"</div>
+        r#"<Tabs id_base="tabs".to_string()>
+  <TabsItem label="Overview"><div>"Overview panel"</div></TabsItem>
+  <TabsItem label="Details"><div>"Details panel"</div></TabsItem>
+  <TabsItem label="Settings"><div>"Settings panel"</div></TabsItem>
 </Tabs>"#
             .to_string()
     });
@@ -42,15 +40,14 @@ pub(crate) fn tabs() -> AnyView {
         r#"let (selected, set_selected) = signal(0_usize);
 let on_change = Callback::new(move |next: usize| set_selected.set(next));
 <Tabs
-  labels=vec!["Overview", "Details", "Settings"]
   id_base="tabs".to_string()
   selected_index=selected
   on_selection_change=on_change
   keyboard_activation=TabsKeyboardActivation::Automatic
 >
-  <div>"Overview panel"</div>
-  <div>"Details panel"</div>
-  <div>"Settings panel"</div>
+  <TabsItem label="Overview"><div>"Overview panel"</div></TabsItem>
+  <TabsItem label="Details"><div>"Details panel"</div></TabsItem>
+  <TabsItem label="Settings"><div>"Settings panel"</div></TabsItem>
 </Tabs>"#
             .to_string()
     });
@@ -59,16 +56,15 @@ let on_change = Callback::new(move |next: usize| set_selected.set(next));
         r#"let (selected, set_selected) = signal(1_usize);
 let on_change = Callback::new(move |next: usize| set_selected.set(next));
 <Tabs
-  labels=vec!["Profile", "Billing", "Team"]
   id_base="tabs-manual".to_string()
   keyboard_activation=TabsKeyboardActivation::Manual
   selected_index=selected
   on_selection_change=on_change
   disabled_indices=vec![2]
 >
-  <div>"Profile panel"</div>
-  <div>"Billing panel"</div>
-  <div>"Team panel"</div>
+  <TabsItem label="Profile"><div>"Profile panel"</div></TabsItem>
+  <TabsItem label="Billing"><div>"Billing panel"</div></TabsItem>
+  <TabsItem label="Team"><div>"Team panel"</div></TabsItem>
 </Tabs>"#
             .to_string()
     });
@@ -93,16 +89,15 @@ let (selected, set_selected) = signal(saved.unwrap_or({selected_index}_usize));\
 let on_change = Callback::new(move |next: usize| set_selected.set(next));\n\
 // Workbench keeps interaction context and can optionally persist selected index.\n\
 <Tabs\n\
-  labels=vec![\"Overview\", \"Details\", \"Settings\"]\n\
   id_base=\"tabs-workbench\".to_string()\n\
   selected_index=selected\n\
   on_selection_change=on_change\n\
   keyboard_activation={keyboard_activation}\n\
   disabled_indices={disabled_indices}\n\
 >\n\
-  <div>\"Overview panel\"</div>\n\
-  <div>\"Details panel\"</div>\n\
-  <div>\"Settings panel\"</div>\n\
+  <TabsItem label=\"Overview\"><div>\"Overview panel\"</div></TabsItem>\n\
+  <TabsItem label=\"Details\"><div>\"Details panel\"</div></TabsItem>\n\
+  <TabsItem label=\"Settings\"><div>\"Settings panel\"</div></TabsItem>\n\
 </Tabs>\n\
 // persist_selected_index={persist_selected_index}"
         )
@@ -139,22 +134,25 @@ let on_change = Callback::new(move |next: usize| set_selected.set(next));\n\
                 code_signal=hello_world_code
             >
                 <div class="docs-stack">
-                    <Tabs
-                        labels=vec!["Overview", "Details", "Settings"]
-                        id_base="docs-tabs-hello".to_string()
-                    >
-                        <div class="docs-stack">
-                            <div>"Overview"</div>
-                            <div class="ui-muted">"Start here: default selection is managed internally."</div>
-                        </div>
-                        <div class="docs-stack">
-                            <div>"Details"</div>
-                            <div class="ui-muted">"No state machine wiring required for common usage."</div>
-                        </div>
-                        <div class="docs-stack">
-                            <div>"Settings"</div>
-                            <div class="ui-muted">"Upgrade to controlled mode only when needed."</div>
-                        </div>
+                    <Tabs id_base="docs-tabs-hello".to_string()>
+                        <TabsItem label="Overview">
+                            <div class="docs-stack">
+                                <div>"Overview"</div>
+                                <div class="ui-muted">"Start here: default selection is managed internally."</div>
+                            </div>
+                        </TabsItem>
+                        <TabsItem label="Details">
+                            <div class="docs-stack">
+                                <div>"Details"</div>
+                                <div class="ui-muted">"No state machine wiring required for common usage."</div>
+                            </div>
+                        </TabsItem>
+                        <TabsItem label="Settings">
+                            <div class="docs-stack">
+                                <div>"Settings"</div>
+                                <div class="ui-muted">"Upgrade to controlled mode only when needed."</div>
+                            </div>
+                        </TabsItem>
                     </Tabs>
                     <span class="ui-muted">
                         "Beginner path first; advanced controls follow below."
@@ -165,24 +163,29 @@ let on_change = Callback::new(move |next: usize| set_selected.set(next));\n\
             <Playground title="Automatic + Controlled" code_signal=code>
                 <div class="docs-stack">
                     <Tabs
-                        labels=vec!["Overview", "Details", "Settings"]
                         id_base="docs-tabs".to_string()
                         selected_index=selected_auto
                         on_selection_change=on_auto_change
                         keyboard_activation=TabsKeyboardActivation::Automatic
                     >
-                        <div class="docs-stack">
-                            <div>"Overview"</div>
-                            <div class="ui-muted">"Arrow keys move + select in automatic mode."</div>
-                        </div>
-                        <div class="docs-stack">
-                            <div>"Details"</div>
-                            <div class="ui-muted">"Selection change is controlled by signal callback."</div>
-                        </div>
-                        <div class="docs-stack">
-                            <div>"Settings"</div>
-                            <div class="ui-muted">"Indicator motion stays spring-driven."</div>
-                        </div>
+                        <TabsItem label="Overview">
+                            <div class="docs-stack">
+                                <div>"Overview"</div>
+                                <div class="ui-muted">"Arrow keys move + select in automatic mode."</div>
+                            </div>
+                        </TabsItem>
+                        <TabsItem label="Details">
+                            <div class="docs-stack">
+                                <div>"Details"</div>
+                                <div class="ui-muted">"Selection change is controlled by signal callback."</div>
+                            </div>
+                        </TabsItem>
+                        <TabsItem label="Settings">
+                            <div class="docs-stack">
+                                <div>"Settings"</div>
+                                <div class="ui-muted">"Indicator motion stays spring-driven."</div>
+                            </div>
+                        </TabsItem>
                     </Tabs>
                     <span class="ui-muted">
                         "selected: "
@@ -197,25 +200,30 @@ let on_change = Callback::new(move |next: usize| set_selected.set(next));\n\
             <Playground title="Manual + Disabled" code_signal=states_code>
                 <div class="docs-stack">
                     <Tabs
-                        labels=manual_labels
                         id_base="docs-tabs-manual".to_string()
                         selected_index=selected_manual
                         on_selection_change=on_manual_change
                         keyboard_activation=TabsKeyboardActivation::Manual
                         disabled_indices=vec![2]
                     >
-                        <div class="docs-stack">
-                            <div>"Profile"</div>
-                            <div class="ui-muted">"Manual mode: focus moves first, Enter/Space commits."</div>
-                        </div>
-                        <div class="docs-stack">
-                            <div>"Billing"</div>
-                            <div class="ui-muted">"Current selected index reflects committed tab."</div>
-                        </div>
-                        <div class="docs-stack">
-                            <div>"Team"</div>
-                            <div class="ui-muted">"This tab is disabled and skipped by roving focus."</div>
-                        </div>
+                        <TabsItem label="Profile">
+                            <div class="docs-stack">
+                                <div>"Profile"</div>
+                                <div class="ui-muted">"Manual mode: focus moves first, Enter/Space commits."</div>
+                            </div>
+                        </TabsItem>
+                        <TabsItem label="Billing">
+                            <div class="docs-stack">
+                                <div>"Billing"</div>
+                                <div class="ui-muted">"Current selected index reflects committed tab."</div>
+                            </div>
+                        </TabsItem>
+                        <TabsItem label="Team">
+                            <div class="docs-stack">
+                                <div>"Team"</div>
+                                <div class="ui-muted">"This tab is disabled and skipped by roving focus."</div>
+                            </div>
+                        </TabsItem>
                     </Tabs>
                     <span class="ui-muted">
                         "manual selected: "
@@ -281,50 +289,60 @@ let on_change = Callback::new(move |next: usize| set_selected.set(next));\n\
                             if tabs_workbench_manual_mode.get() {
                                 view! {
                                     <Tabs
-                                        labels=workbench_labels.clone()
                                         id_base="docs-tabs-workbench".to_string()
                                         selected_index=selected_index
                                         on_selection_change=on_selection_change
                                         keyboard_activation=TabsKeyboardActivation::Manual
                                         disabled_indices=disabled_indices
                                     >
-                                        <div class="docs-stack">
-                                            <div>"Overview"</div>
-                                            <div class="ui-muted">"Keep context while toggling keyboard mode."</div>
-                                        </div>
-                                        <div class="docs-stack">
-                                            <div>"Details"</div>
-                                            <div class="ui-muted">"Selection stays controlled by workbench signal."</div>
-                                        </div>
-                                        <div class="docs-stack">
-                                            <div>"Settings"</div>
-                                            <div class="ui-muted">"Optional disabled state stays inspectable via markers."</div>
-                                        </div>
+                                        <TabsItem label="Overview">
+                                            <div class="docs-stack">
+                                                <div>"Overview"</div>
+                                                <div class="ui-muted">"Keep context while toggling keyboard mode."</div>
+                                            </div>
+                                        </TabsItem>
+                                        <TabsItem label="Details">
+                                            <div class="docs-stack">
+                                                <div>"Details"</div>
+                                                <div class="ui-muted">"Selection stays controlled by workbench signal."</div>
+                                            </div>
+                                        </TabsItem>
+                                        <TabsItem label="Settings">
+                                            <div class="docs-stack">
+                                                <div>"Settings"</div>
+                                                <div class="ui-muted">"Optional disabled state stays inspectable via markers."</div>
+                                            </div>
+                                        </TabsItem>
                                     </Tabs>
                                 }
                                 .into_any()
                             } else {
                                 view! {
                                     <Tabs
-                                        labels=workbench_labels.clone()
                                         id_base="docs-tabs-workbench".to_string()
                                         selected_index=selected_index
                                         on_selection_change=on_selection_change
                                         keyboard_activation=TabsKeyboardActivation::Automatic
                                         disabled_indices=disabled_indices
                                     >
-                                        <div class="docs-stack">
-                                            <div>"Overview"</div>
-                                            <div class="ui-muted">"Keep context while toggling keyboard mode."</div>
-                                        </div>
-                                        <div class="docs-stack">
-                                            <div>"Details"</div>
-                                            <div class="ui-muted">"Selection stays controlled by workbench signal."</div>
-                                        </div>
-                                        <div class="docs-stack">
-                                            <div>"Settings"</div>
-                                            <div class="ui-muted">"Optional disabled state stays inspectable via markers."</div>
-                                        </div>
+                                        <TabsItem label="Overview">
+                                            <div class="docs-stack">
+                                                <div>"Overview"</div>
+                                                <div class="ui-muted">"Keep context while toggling keyboard mode."</div>
+                                            </div>
+                                        </TabsItem>
+                                        <TabsItem label="Details">
+                                            <div class="docs-stack">
+                                                <div>"Details"</div>
+                                                <div class="ui-muted">"Selection stays controlled by workbench signal."</div>
+                                            </div>
+                                        </TabsItem>
+                                        <TabsItem label="Settings">
+                                            <div class="docs-stack">
+                                                <div>"Settings"</div>
+                                                <div class="ui-muted">"Optional disabled state stays inspectable via markers."</div>
+                                            </div>
+                                        </TabsItem>
                                     </Tabs>
                                 }
                                 .into_any()

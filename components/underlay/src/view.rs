@@ -134,10 +134,13 @@ pub fn Underlay(
             data-disabled-source=move || state.get().part.disabled_source_attr
             data-close-source=move || state.get().part.close_source_attr
             data-class-source=move || state.get().part.class_source_attr
-            data-open-mode=move || state.get().open_mode_attr
-            data-open-source=move || state.get().open_source_attr
-            data-open-change-source=move || state.get().open_change_source_attr
-            data-open-prop-source=move || state.get().open_prop_source_attr
+            data-open-mode=move || open_state.get_value().open_mode_attr
+            data-open-source=move || open_state.get_value().open_source_attr
+            data-open-change-source=move || open_state.get_value().open_change_source_attr
+            data-open-prop-source=move || open_state.get_value().open_prop_source_attr
+            data-has-default-open=move || {
+                open_state.get_value().has_default_open.then_some("true")
+            }
             data-transparent-prop-source=move || state.get().transparent_prop_source_attr
             data-disabled-prop-source=move || state.get().disabled_prop_source_attr
             data-controlled=move || {

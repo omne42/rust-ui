@@ -293,6 +293,9 @@ cargo test -p ui --test drop_zone_semantics --no-default-features --features com
 echo "[perf] contract: drop-zone semantic test priority"
 cargo test -p ui --test drop_zone_semantics --no-default-features --features component-drop_zone,inject-css drop_zone_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks
 
+echo "[perf] contract: progress performance governance"
+cargo test -p ui-progress --test progress_semantics progress_performance_governance_contract_is_mount_only_traceable_and_blocking
+
 echo "[perf] contract: docs perf probe budgets"
 cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages
 

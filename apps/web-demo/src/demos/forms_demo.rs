@@ -72,10 +72,10 @@ pub fn FormsDemo() -> impl IntoView {
                     <Switch pressed_width_px=22.0 checked=switch_checked set_checked=set_switch_checked>
                         "Enabled (checked)"
                     </Switch>
-                    <Switch disabled=true checked=switch_disabled_off set_checked=set_switch_disabled_off>
+                    <Switch is_disabled=true checked=switch_disabled_off set_checked=set_switch_disabled_off>
                         "Disabled (unchecked)"
                     </Switch>
-                    <Switch disabled=true checked=switch_disabled_on set_checked=set_switch_disabled_on>
+                    <Switch is_disabled=true checked=switch_disabled_on set_checked=set_switch_disabled_on>
                         "Disabled (checked)"
                     </Switch>
                     <div class="demo-kv">

@@ -160,8 +160,7 @@ fn swatch_component_files_follow_layered_responsibilities() {
 
     for needle in [
         "pub use ui_state_primitives::swatch::{",
-        "pub fn normalize_default_selected(",
-        "pub fn resolve_selection_control_state(",
+        "resolve_selection_control_state",
         "pub fn compose_class_name(",
     ] {
         assert!(
@@ -312,7 +311,6 @@ fn swatch_uses_logic_state_model_from_ui_state_primitives() {
         "resolve_aria_label",
         "resolve_aria_label_with_fallbacks",
         "resolve_state",
-        "normalize_default_selected",
         "resolve_selection_control_state",
         "pub fn compose_class_name(",
         "pub fn compose_inline_style(",
@@ -501,6 +499,355 @@ fn swatch_async_semantics_are_explicitly_not_applicable_for_now() {
         assert!(
             check2_source.contains(needle),
             "Swatch checklist source should define async N/A contract text `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn swatch_macro_micro_dragging_dual_state_machine_is_not_applicable_for_now() {
+    let view_source = load_source("../../components/swatch/src/view.rs");
+    let logic_source = load_source("../../components/swatch/src/logic.rs");
+    let motion_source = load_source("../../components/swatch/src/motion.rs");
+    let check2_source = load_source("../../components/swatch/check2.md");
+    let check2_source_copy = load_source("../../components/swatch/src/check2.md");
+
+    for needle in [
+        "宏观/微观双状态机（Macro/Micro Duality）",
+        "Action::DragEnd",
+        "N/A：`Swatch` 为叶子展示组件，当前不提供拖拽交互与 `Dragging` 生命周期",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "Swatch checklist should keep macro/micro dual-state-machine marker `{needle}`."
+        );
+        assert!(
+            check2_source_copy.contains(needle),
+            "Swatch checklist source copy should keep macro/micro marker `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "on:dragstart",
+        "on:drag",
+        "on:dragend",
+        "DragEnd",
+        "is_dragging",
+        "dragging",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Swatch view should not expose dragging lifecycle token `{forbidden}` for current scope."
+        );
+        assert!(
+            !logic_source.contains(forbidden),
+            "Swatch logic should not expose dragging lifecycle token `{forbidden}` for current scope."
+        );
+    }
+
+    for forbidden in ["DragEnd", "on_drag", "is_dragging", "dragging"] {
+        assert!(
+            !motion_source.contains(forbidden),
+            "Swatch motion should not define drag loop contract token `{forbidden}` in current scope."
+        );
+    }
+}
+
+#[test]
+fn swatch_two_pass_geometry_rendering_contract_is_not_applicable_for_now() {
+    let view_source = load_source("../../components/swatch/src/view.rs");
+    let logic_source = load_source("../../components/swatch/src/logic.rs");
+    let motion_source = load_source("../../components/swatch/src/motion.rs");
+    let check2_source = load_source("../../components/swatch/check2.md");
+    let check2_source_copy = load_source("../../components/swatch/src/check2.md");
+
+    for needle in [
+        "几何两段式渲染（Two-Pass Rendering）",
+        "Intent -> Measure(view) -> Rectification(logic)",
+        "N/A：`Swatch` 不属于依赖几何测量的 overlay 组件",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "Swatch checklist should keep two-pass geometry marker `{needle}`."
+        );
+        assert!(
+            check2_source_copy.contains(needle),
+            "Swatch checklist source copy should keep two-pass geometry marker `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "getBoundingClientRect",
+        "ResizeObserver",
+        "on:resize",
+        "measure(",
+        "Rectification",
+        "geometry",
+        "layout_rect",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Swatch view should not expose geometry two-pass token `{forbidden}` in current scope."
+        );
+        assert!(
+            !logic_source.contains(forbidden),
+            "Swatch logic should not expose geometry two-pass token `{forbidden}` in current scope."
+        );
+        assert!(
+            !motion_source.contains(forbidden),
+            "Swatch motion should not expose geometry two-pass token `{forbidden}` in current scope."
+        );
+    }
+}
+
+#[test]
+fn swatch_registration_protocol_contract_is_not_applicable_for_leaf_component() {
+    let view_source = load_source("../../components/swatch/src/view.rs");
+    let logic_source = load_source("../../components/swatch/src/logic.rs");
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
+    let check2_source = load_source("../../components/swatch/check2.md");
+    let check2_source_copy = load_source("../../components/swatch/src/check2.md");
+
+    for needle in [
+        "集合注册协议（Registration Protocol）",
+        "RegistrationContext",
+        "Register/Unregister",
+        "items_order",
+        "HashSet",
+        "N/A：`Swatch` 是单体叶子组件，不存在动态子项集合与导航序关系",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "Swatch checklist should keep registration-protocol marker `{needle}`."
+        );
+        assert!(
+            check2_source_copy.contains(needle),
+            "Swatch checklist source copy should keep registration-protocol marker `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "RegistrationContext",
+        "Register",
+        "Unregister",
+        "items_order",
+        "HashSet",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Swatch view should not expose collection-registration token `{forbidden}` in current scope."
+        );
+        assert!(
+            !logic_source.contains(forbidden),
+            "Swatch logic should not expose collection-registration token `{forbidden}` in current scope."
+        );
+        assert!(
+            !docs_source.contains(forbidden),
+            "Swatch docs should not present collection-registration token `{forbidden}` in current scope."
+        );
+    }
+}
+
+#[test]
+fn swatch_slot_projection_contract_is_not_applicable_for_leaf_component() {
+    let view_source = load_source("../../components/swatch/src/view.rs");
+    let logic_source = load_source("../../components/swatch/src/logic.rs");
+    let motion_source = load_source("../../components/swatch/src/motion.rs");
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
+    let check2_source = load_source("../../components/swatch/check2.md");
+    let check2_source_copy = load_source("../../components/swatch/src/check2.md");
+
+    for needle in [
+        "插槽投影策略（Slot Projection）",
+        "Lazy/KeepAlive/Eager",
+        "NotifyHidden",
+        "N/A：`Swatch` 为单体叶子组件，不提供容器级 slot 投影与子树保活策略",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "Swatch checklist should keep slot-projection marker `{needle}`."
+        );
+        assert!(
+            check2_source_copy.contains(needle),
+            "Swatch checklist source copy should keep slot-projection marker `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "KeepAlive",
+        "Lazy",
+        "Eager",
+        "NotifyHidden",
+        "slot projection",
+        "projection_mode",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Swatch view should not expose slot-projection token `{forbidden}` in current scope."
+        );
+        assert!(
+            !logic_source.contains(forbidden),
+            "Swatch logic should not expose slot-projection token `{forbidden}` in current scope."
+        );
+        assert!(
+            !motion_source.contains(forbidden),
+            "Swatch motion should not expose slot-projection token `{forbidden}` in current scope."
+        );
+        assert!(
+            !docs_source.contains(forbidden),
+            "Swatch docs should not present slot-projection token `{forbidden}` in current scope."
+        );
+    }
+}
+
+#[test]
+fn swatch_env_stream_contract_is_not_applicable_for_leaf_component() {
+    let view_source = load_source("../../components/swatch/src/view.rs");
+    let logic_source = load_source("../../components/swatch/src/logic.rs");
+    let motion_source = load_source("../../components/swatch/src/motion.rs");
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
+    let check2_source = load_source("../../components/swatch/check2.md");
+    let check2_source_copy = load_source("../../components/swatch/src/check2.md");
+
+    for needle in [
+        "环境订阅流（Env Streams）",
+        "Resize/Theme/Intersection",
+        "BreakpointChanged",
+        "N/A：`Swatch` 当前无环境订阅流能力",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "Swatch checklist should keep env-stream marker `{needle}`."
+        );
+        assert!(
+            check2_source_copy.contains(needle),
+            "Swatch checklist source copy should keep env-stream marker `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "ResizeObserver",
+        "IntersectionObserver",
+        "BreakpointChanged",
+        "debounce",
+        "throttle",
+        "on:resize",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Swatch view should not expose env-stream token `{forbidden}` in current scope."
+        );
+        assert!(
+            !logic_source.contains(forbidden),
+            "Swatch logic should not expose env-stream token `{forbidden}` in current scope."
+        );
+        assert!(
+            !motion_source.contains(forbidden),
+            "Swatch motion should not expose env-stream token `{forbidden}` in current scope."
+        );
+        assert!(
+            !docs_source.contains(forbidden),
+            "Swatch docs should not present env-stream token `{forbidden}` in current scope."
+        );
+    }
+}
+
+#[test]
+fn swatch_event_light_cone_contract_is_not_applicable_for_leaf_component() {
+    let view_source = load_source("../../components/swatch/src/view.rs");
+    let logic_source = load_source("../../components/swatch/src/logic.rs");
+    let motion_source = load_source("../../components/swatch/src/motion.rs");
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
+    let check2_source = load_source("../../components/swatch/check2.md");
+    let check2_source_copy = load_source("../../components/swatch/src/check2.md");
+
+    for needle in [
+        "事件光锥（Event Light Cone）",
+        "Context Bus + Selector",
+        "SelectionState::All",
+        "N/A：`Swatch` 为单体叶子展示组件，不承载 `Table/Grid` 级批量集合操作",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "Swatch checklist should keep event-light-cone marker `{needle}`."
+        );
+        assert!(
+            check2_source_copy.contains(needle),
+            "Swatch checklist source copy should keep event-light-cone marker `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "Context Bus",
+        "Selector",
+        "SelectionState::All",
+        "prop drilling",
+        "selection_state_all",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Swatch view should not expose event-light-cone token `{forbidden}` in current scope."
+        );
+        assert!(
+            !logic_source.contains(forbidden),
+            "Swatch logic should not expose event-light-cone token `{forbidden}` in current scope."
+        );
+        assert!(
+            !motion_source.contains(forbidden),
+            "Swatch motion should not expose event-light-cone token `{forbidden}` in current scope."
+        );
+        assert!(
+            !docs_source.contains(forbidden),
+            "Swatch docs should not present event-light-cone token `{forbidden}` in current scope."
+        );
+    }
+}
+
+#[test]
+fn swatch_composite_parent_item_api_contract_is_explicitly_not_applicable_for_leaf_component() {
+    let view_source = load_source("../../components/swatch/src/view.rs");
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
+    let check2_source = load_source("../../components/swatch/src/check2.md");
+
+    for needle in [
+        "组合型组件主 API 必须“显示优于约定”",
+        "labels + children",
+        "titles + panels",
+        "ItemSpec",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "Swatch checklist source should keep composite-api governance marker `{needle}`."
+        );
+    }
+
+    assert!(
+        view_source.contains("pub fn Swatch("),
+        "Swatch should keep leaf component API entry."
+    );
+    assert!(
+        docs_source.contains("<Swatch color=\"#ffcc00\".to_string() />"),
+        "Swatch docs should keep direct leaf usage path."
+    );
+
+    for forbidden in [
+        "children: Children",
+        "#[prop(optional)] children",
+        "labels + children",
+        "titles + panels",
+        "ItemSpec",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Leaf Swatch API should not expose composite parent-item contract `{forbidden}`."
+        );
+        assert!(
+            !docs_source.contains(forbidden),
+            "Swatch docs should not recommend composite parent-item syntax `{forbidden}`."
         );
     }
 }
@@ -2444,6 +2791,7 @@ fn swatch_docs_playgrounds_lock_state_matrix_contract_values() {
 fn swatch_agent_contract_is_schema_typed_and_machine_readable() {
     let view_source = load_source("../../components/swatch/src/view.rs");
     let logic_source = load_source("../../components/swatch/src/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/swatch.rs");
 
     for needle in [
         "pub enum SwatchAgentSchemaVersion",
@@ -2458,8 +2806,22 @@ fn swatch_agent_contract_is_schema_typed_and_machine_readable() {
         "pub fn resolve_agent_contract(",
     ] {
         assert!(
+            primitive_source.contains(needle),
+            "Swatch state primitive layer should include schema-typed agent token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub use ui_state_primitives::swatch::{",
+        "SwatchAgentSource",
+        "SwatchSelectionControlInput",
+        "resolve_selection_control_state",
+        "resolve_agent_source",
+        "resolve_agent_contract",
+    ] {
+        assert!(
             logic_source.contains(needle),
-            "Swatch agent contract typing should include `{needle}`."
+            "Swatch logic should only consume/re-export agent contract primitives via `{needle}`."
         );
     }
 
@@ -2869,6 +3231,78 @@ fn swatch_docs_entry_exists_and_is_beginner_friendly_default_then_advanced() {
     assert!(
         hello_pos < matrix_pos && matrix_pos < advanced_pos,
         "Swatch docs should keep default path before advanced controls."
+    );
+}
+
+#[test]
+fn swatch_dx_paradox_keeps_zero_wiring_hello_world_and_advanced_opt_in() {
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
+    let view_source = load_source("../../components/swatch/src/view.rs");
+
+    let hello_title = "title=\"Hello World (Default Swatch)\"";
+    let hello_code = "<Swatch color=\"#ffcc00\".to_string() label=\"Brand\".to_string() />";
+    let workbench_title = "title=\"Workbench (All API + Actual Config)\"";
+
+    assert!(
+        docs_source.contains(hello_title),
+        "Swatch docs should expose a first-glance Hello World playground."
+    );
+    assert!(
+        docs_source.contains(hello_code),
+        "Swatch docs should keep a direct runnable Hello World snippet."
+    );
+    assert!(
+        hello_code.lines().count() <= 5,
+        "Swatch Hello World snippet should stay within five lines for DX baseline."
+    );
+
+    let hello_pos = docs_source
+        .find(hello_title)
+        .expect("Swatch docs should include Hello World section.");
+    let workbench_pos = docs_source
+        .find(workbench_title)
+        .expect("Swatch docs should include advanced workbench section.");
+    assert!(
+        hello_pos < workbench_pos,
+        "Swatch docs should present default path before advanced controls."
+    );
+
+    let hello_scope = &docs_source[hello_pos..workbench_pos];
+    for forbidden in [
+        "ui_state_primitives",
+        "ui_headless",
+        "use_swatch(",
+        "resolve_selection_control_state(",
+    ] {
+        assert!(
+            !hello_scope.contains(forbidden),
+            "Hello World path should not leak internal wiring detail `{forbidden}`."
+        );
+    }
+
+    for needle in [
+        "#[prop(optional, into)] selected: Option<Signal<bool>>",
+        "#[prop(optional)] default_selected: Option<bool>",
+        "#[prop(optional)] on_selected_change: Option<Callback<bool>>",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Swatch API should keep advanced control as optional prop `{needle}`."
+        );
+    }
+
+    let signature_start = view_source
+        .find("pub fn Swatch(")
+        .expect("Swatch view should define public component signature.");
+    let signature_tail = &view_source[signature_start..];
+    let signature_end = signature_tail
+        .find(") -> impl IntoView")
+        .expect("Swatch signature should end before implementation body.");
+    let signature = &signature_tail[..signature_end];
+    assert!(
+        !signature.contains("state:"),
+        "Swatch API should not require exposing internal state object on basic path."
     );
 }
 

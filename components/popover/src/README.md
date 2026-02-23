@@ -20,13 +20,20 @@
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `open` | `Signal<bool>` | required |
+| `is_open` | `Option<Signal<bool>>` | `None` |
+| `open`（兼容别名） | `Option<Signal<bool>>` | `None` |
+| `default_open` | `Option<bool>` | `None`（归一为 `false`） |
+| `on_open_change` | `Option<Callback<bool>>` | `None` |
+| `on_close`（兼容别名） | `Option<OnPress>` | `None` |
 | `anchor_ref` | `NodeRef<html::Button>` | required |
-| `on_close` | `OnPress` | required |
 | `children` | `ChildrenFn` | required |
 | `placement` | `PopoverPlacement` | `PopoverPlacement::default()` |
 | `motion` | `PopoverMotion` | `PopoverMotion::default()` |
 | `is_modal` | `bool` | `true` |
+| `aria_labelledby` | `Option<String>` | `None` |
+| `aria_describedby` | `Option<String>` | `None` |
+| `lang` | `Option<String>` | `None` |
+| `dir` | `Option<A11yDirection>` | `None` |
 | `class_name` | `Option<String>` | `None` |
 | `on_exit_complete` | `Option<Callback<()>>` | `None` |
 
@@ -34,22 +41,34 @@
 
 ```rust
 let anchor_ref = NodeRef::<html::Button>::new();
-let (open, set_open) = signal(false);
-
-<button node_ref=anchor_ref on:click=move |_| set_open.set(true)>"Open"</button>
-<Popover
-  open=Signal::derive(move || open.get())
-  anchor_ref=anchor_ref
-  on_close=OnPress::new(move |_| set_open.set(false))
->
+<button node_ref=anchor_ref>"Anchor"</button>
+<Popover anchor_ref=anchor_ref default_open=true>
   {move || view! { <div>"Popover content"</div> }}
 </Popover>
 ```
 
+- 默认路径：`anchor_ref + children` 即可跑通（可选 `default_open`）。
+- 高级路径：按需叠加 `is_open/default_open/on_open_change`、`motion`、`is_modal`。
+
+## Slot Projection（Lazy / KeepAlive / Eager）
+
+- `Lazy`：调用方通过 `<Show when=present>` 控制挂载，通常与 `on_exit_complete` 配合，在退出动画完成后再卸载。
+- `KeepAlive`：保持 `Popover` 挂载，只切换 `open`；关闭时会触发 `on_exit_complete`，用于暂停/收敛高耗能副作用。
+- `Eager`：始终挂载 `<Popover ...>`，不做 presence 条件卸载；内容持续存在，由 `data-state` 与 motion 驱动可见性。
+
+## 命名兼容与迁移
+
+- 规范命名：`is_open / default_open / on_open_change`。
+- 兼容别名：`open / on_close` 仍可用，统一在 `logic::normalize_open_state` 归一。
+- 优先级：`is_open > open`；`on_open_change > on_close`。
+- 迁移建议：先替换 `open -> is_open` 与 `on_close -> on_open_change`，再移除别名调用。
+
 ## Semantics and Accessibility
 
 - 根节点标记：`data-state`、`data-modal`、`data-placement`。
-- 来源标记：`data-motion-source`、`data-placement-source`、`data-modal-source`、`data-class-source`、`data-exit-source`。
+- 来源标记：`data-motion-source`、`data-placement-source`、`data-modal-source`、`data-class-source`、`data-exit-source`、`data-open-mode`、`data-open-state-source`、`data-open-source`、`data-default-open-source`、`data-open-change-source`、`data-dismiss-source`。
+- 封闭集合：`data-open-state-source ∈ {external, default, implicit-default}`；`data-dismiss-source ∈ {none, outside-press, escape-key}`。
+- Panel A11y：`role="dialog"`、`aria-modal`、`aria-labelledby`、`aria-describedby`，并支持 `lang/dir` 透传。
 - Escape 关闭需同时满足：topmost、非输入法 composing、`defaultPrevented=false`。
 - modal 模式挂载 `use_modal` 与焦点陷阱；panel 支持 `tabindex=-1` 键盘接管。
 

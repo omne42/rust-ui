@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use leptos::prelude::*;
 use ui_headless::{A11yDirection, SnippetCopyOptions, use_snippet_copy};
 
@@ -169,28 +171,32 @@ pub fn resolve_text_contract(
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: SnippetViewState) -> String {
-    let mut classes = vec![
-        "ui-snippet".to_string(),
-        state.state_class.into(),
-        state.copy_state_class.into(),
-        state.copied_label_source_class.into(),
+    let mut classes: Vec<Cow<'static, str>> = vec![
+        Cow::Borrowed("ui-snippet"),
+        Cow::Borrowed(state.state_class),
+        Cow::Borrowed(state.copy_state_class),
+        Cow::Borrowed(state.copied_label_source_class),
     ];
 
     if state.has_label {
-        classes.push("ui-snippet--with-label".to_string());
+        classes.push(Cow::Borrowed("ui-snippet--with-label"));
     }
     if state.is_empty {
-        classes.push("ui-snippet--empty".to_string());
+        classes.push(Cow::Borrowed("ui-snippet--empty"));
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-snippet--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-snippet--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    classes
+        .iter()
+        .map(Cow::as_ref)
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 pub fn use_snippet_logic_with_options(options: SnippetLogicOptions) -> SnippetLogic {

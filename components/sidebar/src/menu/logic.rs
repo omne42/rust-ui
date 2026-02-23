@@ -1,50 +1,11 @@
 use crate::sidebar_menu::{DEFAULT_ARIA_LABEL, DEFAULT_ID_BASE};
+use std::collections::BTreeSet;
+use ui_state_primitives::sidebar_menu as primitives;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SidebarMenuSubItem {
-    pub id: String,
-    pub label: String,
-    pub href: Option<String>,
-    pub disabled: bool,
-}
+pub use primitives::{SidebarMenuItem, SidebarMenuSubItem};
 
-impl SidebarMenuSubItem {
-    pub fn new(id: impl Into<String>, label: impl Into<String>) -> Self {
-        Self {
-            id: id.into(),
-            label: label.into(),
-            href: None,
-            disabled: false,
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SidebarMenuItem {
-    pub id: String,
-    pub label: String,
-    pub href: Option<String>,
-    pub badge: Option<String>,
-    pub action_label: Option<String>,
-    pub disabled: bool,
-    pub sub_items: Vec<SidebarMenuSubItem>,
-    pub default_sub_open: bool,
-}
-
-impl SidebarMenuItem {
-    pub fn new(id: impl Into<String>, label: impl Into<String>) -> Self {
-        Self {
-            id: id.into(),
-            label: label.into(),
-            href: None,
-            badge: None,
-            action_label: None,
-            disabled: false,
-            sub_items: Vec::new(),
-            default_sub_open: false,
-        }
-    }
-}
+const DEFAULT_ITEM_ACTION_LABEL: &str = "item action";
+const DEFAULT_SUBMENU_TOGGLE_LABEL: &str = "Toggle submenu";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SidebarMenuState {
@@ -78,108 +39,92 @@ pub struct SidebarMenuStateInput {
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+    primitives::normalize_optional_text(value)
 }
 
 pub fn normalize_aria_label(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ARIA_LABEL.into())
+    primitives::normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ARIA_LABEL.into())
 }
 
 pub fn normalize_id_base(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ID_BASE.into())
+    primitives::normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ID_BASE.into())
+}
+
+pub fn resolve_disabled(is_disabled: Option<bool>, disabled: bool) -> bool {
+    is_disabled.unwrap_or(disabled)
+}
+
+pub fn resolve_show_badges(is_badges_visible: Option<bool>, show_badges: bool) -> bool {
+    is_badges_visible.unwrap_or(show_badges)
+}
+
+pub fn resolve_show_actions(is_actions_visible: Option<bool>, show_actions: bool) -> bool {
+    is_actions_visible.unwrap_or(show_actions)
+}
+
+pub fn resolve_allow_submenu_collapse(
+    is_submenu_collapse_allowed: Option<bool>,
+    allow_submenu_collapse: bool,
+) -> bool {
+    is_submenu_collapse_allowed.unwrap_or(allow_submenu_collapse)
+}
+
+pub fn resolve_keyboard_shortcut_enabled(
+    is_keyboard_shortcut_enabled: Option<bool>,
+    enable_keyboard_shortcut: bool,
+) -> bool {
+    is_keyboard_shortcut_enabled.unwrap_or(enable_keyboard_shortcut)
+}
+
+pub fn normalize_keyboard_shortcut_key(
+    keyboard_shortcut_key: Option<String>,
+    enable_keyboard_shortcut: bool,
+) -> Option<String> {
+    normalize_optional_text(keyboard_shortcut_key)
+        .map(|key| key.to_ascii_lowercase())
+        .filter(|_| enable_keyboard_shortcut)
+}
+
+pub fn normalize_item_action_label(action_label: Option<String>) -> String {
+    normalize_optional_text(action_label).unwrap_or_else(|| DEFAULT_ITEM_ACTION_LABEL.to_string())
+}
+
+pub fn normalize_submenu_toggle_label(value: Option<String>) -> String {
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_SUBMENU_TOGGLE_LABEL.to_string())
+}
+
+pub fn selection_state_attr(active_id: Option<String>) -> &'static str {
+    if active_id.is_some() {
+        "selected"
+    } else {
+        "none"
+    }
 }
 
 pub fn normalize_items(items: Vec<SidebarMenuItem>) -> Vec<SidebarMenuItem> {
-    items
-        .into_iter()
-        .enumerate()
-        .map(|(index, item)| {
-            let fallback_id = format!("item-{index}");
-            let fallback_label = format!("Item {}", index + 1);
-
-            let id = normalize_optional_text(Some(item.id)).unwrap_or(fallback_id);
-            let label = normalize_optional_text(Some(item.label)).unwrap_or(fallback_label);
-            let href = normalize_optional_text(item.href);
-            let badge = normalize_optional_text(item.badge);
-            let action_label = normalize_optional_text(item.action_label);
-
-            let sub_items = item
-                .sub_items
-                .into_iter()
-                .enumerate()
-                .map(|(sub_index, sub_item)| {
-                    let fallback_id = format!("{id}-sub-{sub_index}");
-                    let fallback_label = format!("Sub {}", sub_index + 1);
-
-                    SidebarMenuSubItem {
-                        id: normalize_optional_text(Some(sub_item.id)).unwrap_or(fallback_id),
-                        label: normalize_optional_text(Some(sub_item.label))
-                            .unwrap_or(fallback_label),
-                        href: normalize_optional_text(sub_item.href),
-                        disabled: sub_item.disabled,
-                    }
-                })
-                .collect();
-
-            SidebarMenuItem {
-                id,
-                label,
-                href,
-                badge,
-                action_label,
-                disabled: item.disabled,
-                sub_items,
-                default_sub_open: item.default_sub_open,
-            }
-        })
-        .collect()
+    primitives::normalize_items(items)
 }
 
 pub fn default_open_sub_ids(items: &[SidebarMenuItem]) -> Vec<String> {
-    items
-        .iter()
-        .filter(|item| item.default_sub_open && !item.sub_items.is_empty())
-        .map(|item| item.id.clone())
-        .collect()
+    primitives::default_open_sub_ids(items)
+}
+
+pub fn default_open_sub_id_set(items: &[SidebarMenuItem]) -> BTreeSet<String> {
+    let derived: BTreeSet<String> = default_open_sub_ids(items).into_iter().collect();
+    debug_assert_eq!(derived, primitives::default_open_sub_id_set(items));
+    derived
 }
 
 pub fn default_active_id(items: &[SidebarMenuItem], requested: Option<String>) -> Option<String> {
-    if let Some(requested) = normalize_optional_text(requested)
-        && contains_id(items, &requested)
-    {
-        return Some(requested);
-    }
-
-    first_enabled_id(items)
+    primitives::default_active_id(items, requested)
 }
 
 pub fn contains_id(items: &[SidebarMenuItem], id: &str) -> bool {
-    items.iter().any(|item| {
-        item.id == id
-            || item
-                .sub_items
-                .iter()
-                .any(|sub_item| sub_item.id == id && !sub_item.disabled)
-    })
+    primitives::contains_id(items, id)
 }
 
 pub fn first_enabled_id(items: &[SidebarMenuItem]) -> Option<String> {
-    for item in items {
-        if !item.disabled {
-            return Some(item.id.clone());
-        }
-
-        for sub_item in &item.sub_items {
-            if !sub_item.disabled {
-                return Some(sub_item.id.clone());
-            }
-        }
-    }
-
-    None
+    primitives::first_enabled_id(items)
 }
 
 pub fn next_enabled_id(
@@ -187,51 +132,23 @@ pub fn next_enabled_id(
     current: Option<String>,
     step: i32,
 ) -> Option<String> {
-    let linear_ids = linear_enabled_ids(items);
-    if linear_ids.is_empty() {
-        return None;
-    }
-
-    let current_index = current
-        .as_ref()
-        .and_then(|current| linear_ids.iter().position(|id| id == current))
-        .unwrap_or(0);
-
-    let len = linear_ids.len() as i32;
-    let next_index = (current_index as i32 + step).rem_euclid(len) as usize;
-    Some(linear_ids[next_index].clone())
+    primitives::next_enabled_id(items, current, step)
 }
 
 pub fn linear_enabled_ids(items: &[SidebarMenuItem]) -> Vec<String> {
-    let mut ids = Vec::new();
-
-    for item in items {
-        if !item.disabled {
-            ids.push(item.id.clone());
-        }
-
-        for sub_item in &item.sub_items {
-            if !sub_item.disabled {
-                ids.push(sub_item.id.clone());
-            }
-        }
-    }
-
-    ids
+    primitives::linear_enabled_ids(items)
 }
 
-pub fn next_id_for_key(
-    key: &str,
+pub fn active_index_for_current(items: &[SidebarMenuItem], current: Option<&str>) -> usize {
+    primitives::active_index_for_current(items, current)
+}
+
+pub fn toggle_open_sub_ids(
+    open_sub_ids: &BTreeSet<String>,
+    id: &str,
     items: &[SidebarMenuItem],
-    current: Option<String>,
-) -> Option<String> {
-    match key {
-        "ArrowDown" => next_enabled_id(items, current, 1),
-        "ArrowUp" => next_enabled_id(items, current, -1),
-        "Home" => first_enabled_id(items),
-        "End" => linear_enabled_ids(items).last().cloned(),
-        _ => None,
-    }
+) -> BTreeSet<String> {
+    primitives::toggle_open_sub_id(open_sub_ids, id, items)
 }
 
 pub fn resolve_state(input: SidebarMenuStateInput) -> SidebarMenuState {

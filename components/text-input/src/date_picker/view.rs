@@ -19,6 +19,7 @@ pub fn DatePicker(
     year: i32,
     month: u8,
     #[prop(optional)] tone: DatePickerTone,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
@@ -27,6 +28,7 @@ pub fn DatePicker(
     #[prop(optional)] default_selected_day: Option<u8>,
     #[prop(optional)] on_selected_day_change: Option<Callback<Option<u8>>>,
     #[prop(optional)] first_weekday: CalendarFirstWeekday,
+    #[prop(optional)] is_show_outside_days: Option<bool>,
     #[prop(optional)] show_outside_days: bool,
     #[prop(optional)] popover_placement: PopoverPlacement,
     #[prop(optional)] motion: DatePickerMotion,
@@ -36,6 +38,9 @@ pub fn DatePicker(
     #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let is_disabled = is_disabled.unwrap_or(disabled);
+    let is_show_outside_days = is_show_outside_days.unwrap_or(show_outside_days);
+
     let i18n = i18n::use_ui_i18n();
     let strings = i18n.strings::<DatePickerStrings>();
     let calendar_aria_label: String = strings.calendar_aria_label.as_ref().into();
@@ -84,7 +89,7 @@ pub fn DatePicker(
             month: normalized_month,
             selected_day: selected_day.get(),
             tone,
-            disabled,
+            disabled: is_disabled,
             open: open.get(),
             has_custom_placeholder,
             has_custom_aria_label,
@@ -113,14 +118,14 @@ pub fn DatePicker(
     let presence = use_presence(open);
 
     let on_trigger_press: OnPress = Callback::new(move |_| {
-        if disabled {
+        if is_disabled {
             return;
         }
         request_open_change.run(!open.get_untracked());
     });
 
     let on_day_press: Callback<u8> = Callback::new(move |day| {
-        if disabled {
+        if is_disabled {
             return;
         }
         request_selected_day_change.run(Some(day));
@@ -161,7 +166,7 @@ pub fn DatePicker(
                     id=trigger_id.get_value()
                     node_ref=anchor_ref
                     on_press=on_trigger_press
-                    is_disabled=disabled
+                    is_disabled=is_disabled
                     aria_haspopup="dialog"
                     aria_expanded=open
                     aria_controls_signal=aria_controls
@@ -196,7 +201,7 @@ pub fn DatePicker(
                                     month=normalized_month
                                     tone=calendar_tone
                                     first_weekday=first_weekday
-                                        is_show_outside_days=show_outside_days
+                                        is_show_outside_days=is_show_outside_days
                                         selected_day=selected_day
                                         on_selected_day_change=Some(Callback::new(move |next| {
                                             if let Some(day) = next {

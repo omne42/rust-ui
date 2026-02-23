@@ -8,12 +8,7 @@
 
 ```rust
 let (selected, set_selected) = signal(Some(0_usize));
-<RadioGroup
-  id_base="size".to_string()
-  options=vec!["S".to_string(), "M".to_string(), "L".to_string()]
-  selected_index=selected
-  set_selected_index=set_selected
-/>
+<RadioGroup id_base="size".to_string() options=vec!["S".to_string(), "M".to_string(), "L".to_string()] selected_index=selected set_selected_index=set_selected />
 ```
 
 - 默认路径不需要手动接线 `ui-state-primitives` / `ui-headless`。

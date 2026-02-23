@@ -7,10 +7,12 @@ use leptos::prelude::*;
 #[component]
 pub fn SidebarHeader(
     children: Children,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let is_disabled = logic::resolve_disabled(is_disabled, disabled);
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
@@ -18,7 +20,7 @@ pub fn SidebarHeader(
 
     let state = Memo::new(move |_| {
         logic::resolve_state(SidebarHeaderStateInput {
-            disabled,
+            disabled: is_disabled,
             has_custom_aria_label,
             has_custom_class_name,
         })

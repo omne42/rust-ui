@@ -70,3 +70,29 @@ fn compose_class_name_includes_markers() {
         assert!(class_name.contains(token), "class should include `{token}`");
     }
 }
+
+#[test]
+fn accessibility_state_prefers_is_prefixed_inputs() {
+    let state = normalize_accessibility_state(AccessibilityStateInput {
+        is_disabled: Some(true),
+        disabled: false,
+        is_truncated: Some(true),
+        truncate: false,
+    });
+
+    assert!(state.is_disabled);
+    assert!(state.is_truncated);
+}
+
+#[test]
+fn accessibility_state_falls_back_to_alias_inputs() {
+    let state = normalize_accessibility_state(AccessibilityStateInput {
+        is_disabled: None,
+        disabled: true,
+        is_truncated: None,
+        truncate: true,
+    });
+
+    assert!(state.is_disabled);
+    assert!(state.is_truncated);
+}

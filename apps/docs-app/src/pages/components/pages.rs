@@ -554,6 +554,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         collections_extra::disclosure_group
     ),
     collections_core_catalog::TABS_DOC,
+    collections_core_catalog::TABS_ITEM_DOC,
     component_doc!("List", "list", "Collections", collections::list),
     component_doc!(
         "ListItem",

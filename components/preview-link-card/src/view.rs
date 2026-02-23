@@ -1,10 +1,12 @@
-use crate::preview_link_card::{
-    PreviewLinkCardMotion, PreviewLinkCardPartStateInput, PreviewLinkCardSlot, logic, motion,
+use crate::preview_link_card::{PreviewLinkCardMotion, logic, motion};
+use leptos::{children::ViewFn, html, portal::Portal, prelude::*};
+use ui_headless::a11y::{
+    A11yDirection, TooltipPanelA11yOptions, locale_attrs, tooltip_panel_attrs,
 };
-use leptos::{children::ViewFn, ev, html, portal::Portal, prelude::*};
 use ui_headless::{
-    HoverCardTriggerOptions, PopoverPlacement, PopoverPositionOptions, use_hover_card_trigger,
-    use_popover_position,
+    HoverCardDismissOptions, HoverCardFocusA11yOptions, HoverCardTriggerOptions, PopoverPlacement,
+    PopoverPositionOptions, use_hover_card_dismiss, use_hover_card_focus_a11y,
+    use_hover_card_trigger, use_popover_position,
 };
 
 fn next_id() -> u64 {
@@ -27,17 +29,29 @@ pub fn PreviewLinkCard(
     #[prop(optional, into)] url: Option<String>,
     #[prop(optional, into)] site_label: Option<String>,
     #[prop(optional, into)] image_src: Option<String>,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_disabled: bool,
     #[prop(optional)] placement: PopoverPlacement,
-    #[prop(optional, default = logic::DEFAULT_OPEN_DELAY_MS)] open_delay_ms: u64,
-    #[prop(optional, default = logic::DEFAULT_CLOSE_DELAY_MS)] close_delay_ms: u64,
+    #[prop(optional)] is_open: Option<Signal<bool>>,
+    #[prop(optional)] open: Option<Signal<bool>>,
+    #[prop(optional)] default_open: Option<bool>,
+    #[prop(optional)] on_open_change: Option<Callback<bool>>,
+    #[prop(optional)] open_delay_ms: Option<u64>,
+    #[prop(optional)] close_delay_ms: Option<u64>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] motion: PreviewLinkCardMotion,
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, into)] id: Option<String>,
 ) -> impl IntoView {
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_motion = motion != PreviewLinkCardMotion::default();
-    let has_custom_delays = logic::has_custom_delays(open_delay_ms, close_delay_ms);
+    let normalized_delays = logic::normalize_delays(logic::DelayInput {
+        open_delay_ms,
+        close_delay_ms,
+    });
+    let open_delay_ms = normalized_delays.open_delay_ms;
+    let close_delay_ms = normalized_delays.close_delay_ms;
+    let has_custom_delays = normalized_delays.has_custom_delays;
 
     let (id, has_custom_id) = logic::resolve_id(id, format!("ui-preview-link-card-{}", next_id()));
     let id = StoredValue::new(id);
@@ -56,19 +70,56 @@ pub fn PreviewLinkCard(
     let image_src = logic::resolve_image_src(image_src);
     let has_image = image_src.is_some();
     let image_src = StoredValue::new(image_src);
+    let normalized_open_state = logic::normalize_open_state(logic::OpenStateInput {
+        is_open,
+        open,
+        default_open,
+        on_open_change,
+    });
+    let open = normalized_open_state.open;
+    let default_open = normalized_open_state.default_open;
+    let on_open_change = normalized_open_state.on_open_change;
+    let open_state_source_markers =
+        logic::resolve_open_state_source_markers(logic::OpenStateSourceMarkersInput {
+            is_controlled: normalized_open_state.is_controlled,
+            has_open_prop: open.is_some(),
+            has_default_open: default_open.is_some(),
+            has_on_open_change: on_open_change.is_some(),
+        });
 
     let trigger_aria = use_hover_card_trigger(HoverCardTriggerOptions {
-        is_disabled: disabled,
+        is_disabled,
         open_delay_ms,
         close_delay_ms,
-        ..Default::default()
+        open,
+        default_open,
+        on_open_change,
     });
     let open_signal = trigger_aria.state.is_open;
+    let open_markers = Memo::new(move |_| {
+        logic::resolve_open_state_markers(logic::OpenStateMarkersInput {
+            is_open: open_signal.get(),
+        })
+    });
     let presence = ui_headless::use_presence(open_signal);
+    let dismiss_a11y = use_hover_card_dismiss(HoverCardDismissOptions {
+        is_open: open_signal,
+        dismiss: trigger_aria.state.dismiss,
+    });
+    let focus_a11y = use_hover_card_focus_a11y(HoverCardFocusA11yOptions {
+        hover_card_id: id,
+        is_open: open_signal,
+        on_focus_in: trigger_aria.handlers.on_trigger_focus_in,
+        on_focus_out: trigger_aria.handlers.on_trigger_focus_out,
+    });
+    let trigger_on_key_down = dismiss_a11y.handlers.on_key_down;
+    let panel_on_key_down = trigger_on_key_down;
+    let trigger_on_focus_in = focus_a11y.handlers.on_focus_in;
+    let trigger_on_focus_out = focus_a11y.handlers.on_focus_out;
 
-    let root_state = logic::resolve_part_state(PreviewLinkCardPartStateInput {
-        slot: PreviewLinkCardSlot::Root,
-        disabled,
+    let root_state = logic::resolve_part_state(logic::PreviewLinkCardPartStateInput {
+        slot: logic::PreviewLinkCardSlot::Root,
+        disabled: is_disabled,
         has_image,
         has_custom_class_name: class_name.is_some(),
         has_custom_delays,
@@ -81,9 +132,9 @@ pub fn PreviewLinkCard(
     });
     let root_class = logic::compose_class_name(class_name, root_state);
 
-    let trigger_state = logic::resolve_part_state(PreviewLinkCardPartStateInput {
-        slot: PreviewLinkCardSlot::Trigger,
-        disabled,
+    let trigger_state = logic::resolve_part_state(logic::PreviewLinkCardPartStateInput {
+        slot: logic::PreviewLinkCardSlot::Trigger,
+        disabled: is_disabled,
         has_image,
         has_custom_class_name: false,
         has_custom_delays,
@@ -96,9 +147,9 @@ pub fn PreviewLinkCard(
     });
     let trigger_class = logic::compose_class_name(None, trigger_state);
 
-    let panel_state = logic::resolve_part_state(PreviewLinkCardPartStateInput {
-        slot: PreviewLinkCardSlot::Panel,
-        disabled,
+    let panel_state = logic::resolve_part_state(logic::PreviewLinkCardPartStateInput {
+        slot: logic::PreviewLinkCardSlot::Panel,
+        disabled: is_disabled,
         has_image,
         has_custom_class_name: false,
         has_custom_delays,
@@ -132,88 +183,6 @@ pub fn PreviewLinkCard(
 
     let trigger = StoredValue::new(trigger);
 
-    let on_key_down = move |ev: ev::KeyboardEvent| {
-        #[cfg(target_arch = "wasm32")]
-        let is_composing = ev.is_composing();
-        #[cfg(not(target_arch = "wasm32"))]
-        let is_composing = false;
-
-        if !logic::should_handle_escape(&ev.key(), open_signal.get_untracked(), is_composing) {
-            return;
-        }
-
-        ev.stop_propagation();
-        ev.prevent_default();
-        trigger_aria.state.dismiss.run(());
-    };
-
-    #[cfg(target_arch = "wasm32")]
-    let focus_target = StoredValue::new_local(None::<leptos::web_sys::Element>);
-
-    #[cfg(target_arch = "wasm32")]
-    on_cleanup(move || {
-        if let Some(target) = focus_target.get_value() {
-            drop(target.remove_attribute("aria-describedby"));
-        }
-    });
-
-    #[cfg(target_arch = "wasm32")]
-    Effect::new(move |_| {
-        let is_open = open_signal.get();
-        let Some(target) = focus_target.get_value() else {
-            return;
-        };
-
-        let id = id.with_value(|id| id.clone());
-        if is_open {
-            drop(target.set_attribute("aria-describedby", &id));
-        } else {
-            drop(target.remove_attribute("aria-describedby"));
-        }
-    });
-
-    let on_focus_in = move |_ev: ev::FocusEvent| {
-        trigger_aria.handlers.on_trigger_focus_in.run(());
-
-        #[cfg(target_arch = "wasm32")]
-        {
-            use leptos::wasm_bindgen::JsCast;
-
-            if let Some(target) = focus_target.get_value() {
-                drop(target.remove_attribute("aria-describedby"));
-            }
-
-            let Some(target) = _ev.target() else {
-                focus_target.set_value(None);
-                return;
-            };
-
-            let Ok(target) = target.dyn_into::<leptos::web_sys::Element>() else {
-                focus_target.set_value(None);
-                return;
-            };
-
-            if open_signal.get_untracked() {
-                let id = id.with_value(|id| id.clone());
-                drop(target.set_attribute("aria-describedby", &id));
-            }
-
-            focus_target.set_value(Some(target));
-        }
-    };
-
-    let on_focus_out = move |_ev: ev::FocusEvent| {
-        trigger_aria.handlers.on_trigger_focus_out.run(());
-
-        #[cfg(target_arch = "wasm32")]
-        {
-            if let Some(target) = focus_target.get_value() {
-                drop(target.remove_attribute("aria-describedby"));
-            }
-            focus_target.set_value(None);
-        }
-    };
-
     let panel_vars = move || {
         logic::compose_panel_vars(
             position.top_px.get(),
@@ -221,26 +190,54 @@ pub fn PreviewLinkCard(
             position.anchor_width_px.get(),
         )
     };
+    let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
+    let root_lang = locale.lang.clone();
+    let root_dir = locale.dir;
+    let panel_lang = locale.lang.clone();
+    let panel_a11y = Memo::new(move |_| {
+        tooltip_panel_attrs(TooltipPanelA11yOptions {
+            tooltip_id: id.with_value(|id| id.clone()),
+            is_open: open_signal.get(),
+            lang: panel_lang.clone(),
+            dir,
+        })
+    });
 
     view! {
         <span
             class=root_class
+            lang=root_lang.clone()
+            dir=root_dir
             data-slot=root_state.slot_attr
-            data-state=move || logic::state_attr_for_open(open_signal.get())
-            data-open=move || open_signal.get().then_some("true")
-            data-closed=move || (!open_signal.get()).then_some("true")
+            data-state=move || open_markers.get().state_attr.as_attr()
+            data-open=move || open_markers.get().open_attr
+            data-closed=move || open_markers.get().closed_attr
             data-disabled=root_state.is_disabled.then_some("true")
             data-enabled=(!root_state.is_disabled).then_some("true")
-            data-content=root_state.content_attr
+            data-content=root_state.content_attr.as_attr()
             data-has-image=root_state.has_image.then_some("true")
-            data-class-source=root_state.class_source_attr
-            data-delay-source=root_state.delay_source_attr
-            data-id-source=root_state.id_source_attr
-            data-title-source=root_state.title_source_attr
-            data-description-source=root_state.description_source_attr
-            data-url-source=root_state.url_source_attr
-            data-site-label-source=root_state.site_label_source_attr
-            data-motion-source=root_state.motion_source_attr
+            data-class-source=root_state.class_source_attr.as_attr()
+            data-delay-source=root_state.delay_source_attr.as_attr()
+            data-id-source=root_state.id_source_attr.as_attr()
+            data-title-source=root_state.title_source_attr.as_attr()
+            data-description-source=root_state.description_source_attr.as_attr()
+            data-url-source=root_state.url_source_attr.as_attr()
+            data-site-label-source=root_state.site_label_source_attr.as_attr()
+            data-motion-source=root_state.motion_source_attr.as_attr()
+            data-open-mode=open_state_source_markers.open_mode_attr.as_attr()
+            data-open-source=open_state_source_markers.open_source_attr.as_attr()
+            data-default-open-source=open_state_source_markers.default_open_source_attr.as_attr()
+            data-open-change-source=open_state_source_markers.open_change_source_attr.as_attr()
+            data-controlled=matches!(
+                open_state_source_markers.open_mode_attr,
+                logic::PreviewLinkCardOpenModeAttr::Controlled
+            )
+            .then_some("true")
+            data-uncontrolled=matches!(
+                open_state_source_markers.open_mode_attr,
+                logic::PreviewLinkCardOpenModeAttr::Uncontrolled
+            )
+            .then_some("true")
             data-custom-class=root_state.has_custom_class_name.then_some("true")
             data-custom-delay=root_state.has_custom_delays.then_some("true")
             data-custom-id=root_state.has_custom_id.then_some("true")
@@ -252,23 +249,29 @@ pub fn PreviewLinkCard(
             <span
                 class=trigger_class
                 data-slot=trigger_state.slot_attr
-                data-state=trigger_state.state_attr
+                data-state=trigger_state.state_attr.as_attr()
                 data-disabled=trigger_state.is_disabled.then_some("true")
                 data-enabled=(!trigger_state.is_disabled).then_some("true")
-                data-class-source=trigger_state.class_source_attr
-                data-delay-source=trigger_state.delay_source_attr
-                data-id-source=trigger_state.id_source_attr
-                data-title-source=trigger_state.title_source_attr
-                data-description-source=trigger_state.description_source_attr
-                data-url-source=trigger_state.url_source_attr
-                data-site-label-source=trigger_state.site_label_source_attr
-                data-motion-source=trigger_state.motion_source_attr
+                data-class-source=trigger_state.class_source_attr.as_attr()
+                data-delay-source=trigger_state.delay_source_attr.as_attr()
+                data-id-source=trigger_state.id_source_attr.as_attr()
+                data-title-source=trigger_state.title_source_attr.as_attr()
+                data-description-source=trigger_state.description_source_attr.as_attr()
+                data-url-source=trigger_state.url_source_attr.as_attr()
+                data-site-label-source=trigger_state.site_label_source_attr.as_attr()
+                data-motion-source=trigger_state.motion_source_attr.as_attr()
+                data-open-mode=open_state_source_markers.open_mode_attr.as_attr()
+                data-open-source=open_state_source_markers.open_source_attr.as_attr()
+                data-default-open-source=open_state_source_markers.default_open_source_attr.as_attr()
+                data-open-change-source=open_state_source_markers.open_change_source_attr.as_attr()
+                data-focus-a11y-managed=focus_a11y.attrs.manages_aria_describedby.then_some("true")
+                aria-keyshortcuts=dismiss_a11y.attrs.aria_keyshortcuts
                 node_ref=anchor_ref
                 on:pointerenter=move |_| trigger_aria.handlers.on_trigger_pointer_enter.run(())
                 on:pointerleave=move |_| trigger_aria.handlers.on_trigger_pointer_leave.run(())
-                on:focusin=on_focus_in
-                on:focusout=on_focus_out
-                on:keydown=on_key_down
+                on:focusin=move |ev| trigger_on_focus_in.run(ev)
+                on:focusout=move |ev| trigger_on_focus_out.run(ev)
+                on:keydown=move |ev| trigger_on_key_down.run(ev)
             >
                 {move || trigger.with_value(|trigger| trigger.run())}
             </span>
@@ -278,32 +281,39 @@ pub fn PreviewLinkCard(
                     <div
                         class=move || panel_class.with_value(|class_name| class_name.clone())
                         node_ref=panel_ref
-                        id=move || id.with_value(|id| id.clone())
-                        role="tooltip"
+                        id=move || panel_a11y.get().attrs.id.clone()
+                        role=move || panel_a11y.get().attrs.role
+                        lang=move || panel_a11y.get().attrs.lang.clone()
+                        dir=move || panel_a11y.get().attrs.dir
                         data-ui-overlay-portal=""
                         data-placement=move || position.placement.get().as_str()
                         data-slot=panel_state.slot_attr
-                        data-state=panel_state.state_attr
-                        data-open=move || open_signal.get().then_some("true")
-                        data-closed=move || (!open_signal.get()).then_some("true")
+                        data-state=panel_state.state_attr.as_attr()
+                        data-open=move || open_markers.get().open_attr
+                        data-closed=move || open_markers.get().closed_attr
                         data-disabled=panel_state.is_disabled.then_some("true")
                         data-enabled=(!panel_state.is_disabled).then_some("true")
-                        data-content=panel_state.content_attr
+                        data-content=panel_state.content_attr.as_attr()
                         data-has-image=panel_state.has_image.then_some("true")
-                        data-class-source=panel_state.class_source_attr
-                        data-delay-source=panel_state.delay_source_attr
-                        data-id-source=panel_state.id_source_attr
-                        data-title-source=panel_state.title_source_attr
-                        data-description-source=panel_state.description_source_attr
-                        data-url-source=panel_state.url_source_attr
-                        data-site-label-source=panel_state.site_label_source_attr
-                        data-motion-source=panel_state.motion_source_attr
+                        data-class-source=panel_state.class_source_attr.as_attr()
+                        data-delay-source=panel_state.delay_source_attr.as_attr()
+                        data-id-source=panel_state.id_source_attr.as_attr()
+                        data-title-source=panel_state.title_source_attr.as_attr()
+                        data-description-source=panel_state.description_source_attr.as_attr()
+                        data-url-source=panel_state.url_source_attr.as_attr()
+                        data-site-label-source=panel_state.site_label_source_attr.as_attr()
+                        data-motion-source=panel_state.motion_source_attr.as_attr()
+                        data-open-mode=open_state_source_markers.open_mode_attr.as_attr()
+                        data-open-source=open_state_source_markers.open_source_attr.as_attr()
+                        data-default-open-source=open_state_source_markers.default_open_source_attr.as_attr()
+                        data-open-change-source=open_state_source_markers.open_change_source_attr.as_attr()
+                        aria-keyshortcuts=dismiss_a11y.attrs.aria_keyshortcuts
                         style=panel_vars
                         on:pointerenter=move |_| trigger_aria.handlers.on_panel_pointer_enter.run(())
                         on:pointerleave=move |_| trigger_aria.handlers.on_panel_pointer_leave.run(())
                         on:focusin=move |_| trigger_aria.handlers.on_panel_focus_in.run(())
                         on:focusout=move |_| trigger_aria.handlers.on_panel_focus_out.run(())
-                        on:keydown=on_key_down
+                        on:keydown=move |ev| panel_on_key_down.run(ev)
                     >
                         <Show
                             when=move || image_src.with_value(|value| value.is_some())

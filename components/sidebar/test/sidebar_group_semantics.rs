@@ -120,7 +120,7 @@ fn sidebar_group_emits_baseline_root_state_data_attributes() {
         "data-state=move || state.get().state_attr",
         "data-open=move || state.get().open.then_some(\"true\")",
         "data-collapsible=move || state.get().collapse_attr",
-        "data-disabled=move || state.get().disabled.then_some(\"true\")",
+        r#"data-disabled=move || state.get().disabled.then_some("true")"#,
         "data-show-label=move || state.get().show_label.then_some(\"true\")",
         "data-show-action=move || state.get().show_action.then_some(\"true\")",
         "data-controlled=move || state.get().is_controlled.then_some(\"true\")",

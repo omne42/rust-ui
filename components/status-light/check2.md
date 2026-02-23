@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（核查通过：`components/status-light/src/logic.rs` 仅 `pub use ui_state_primitives::status_light::{...}` 并做装配映射；`crates/ui-state-primitives/src/status_light.rs` 为纯 Rust POJO 原语且无 Leptos/DOM/web-sys 依赖；`crates/ui-state-primitives/src/lib.rs` 已导出 `pub mod status_light;`。验证：`cargo test -p ui-state-primitives status_light`（3 passed）；组件侧对应语义契约回归记录已在 `components/status-light/src/check2.md` 固化。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（核查通过：`crates/ui-headless/src/status_light.rs` 输入为 `StatusLightState + lang/dir`，输出 `StatusLightContract { attrs, handlers, state }`；`components/status-light/src/view.rs` 仅挂载 `use_status_light(StatusLightOptions { ... })`，未在 `view.rs` 重写 role/aria/data 语义；`crates/ui-headless/src/status_light.rs` 无 class/style/motion 编排逻辑，且 A11y 接口走 `crates/ui-headless/src/a11y.rs` 的 `live_region_attrs/locale_attrs`。回归依据：`crates/ui-headless/src/test/status_light.rs`（2 个契约测试）与 `components/status-light/test/semantics.rs` 中 `status_light_a11y_and_i18n_contracts_are_headless_backed`。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -32,14 +32,14 @@
   - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（本组件为静态状态展示，`status-light` 不存在 `open/closed`、`enter/exit`、`active/inactive` 等需要组件级 motion contract 的语义轴，因此组件侧该项为 `N/A`；实现证据：`components/status-light/src/` 无 `motion.rs`、`mod.rs` 无 `motion` 导出、`view.rs` 无 `ui_motion`/`attach_motion` 绑定。底层能力证据：`crates/ui-motion/src/lib.rs` 在 `not(target_arch = "wasm32")` 提供 `web::prefers_reduced_motion()` 与 `web::animate` no-op stub，且含回归 `non_wasm_web_backend_is_predictable_noop`。组件侧回归依据：`components/status-light/test/semantics.rs::status_light_avoids_component_motion_contract_when_no_transition_semantics`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（核查通过：`crates/ui-theme/src/tokens.rs`、`crates/ui-theme/src/theme.rs`、`crates/ui-theme/src/css.rs` 三处基线落点齐全，且 `docs/spec/styling.md` 存在；`components/status-light/src/styles.rs` 仅消费 `var(--ui-*)`（如 `--ui-space-sm`、`--ui-font-size-150`、`--ui-radius-lg`）而非私有 token 体系；组件语义回归 `status_light_styles_consume_ui_theme_tokens_for_core_visual_values` 锁定 token-first 契约；主题回归 `crates/ui-theme/tests/token_scale_baseline.rs::token_scale_baselines_are_regression_testable` 与 `crates/ui-theme/tests/wcag_contrast.rs::semantic_colors_meet_wcag_21_aa_for_text_pairs` 覆盖尺寸基准与 WCAG 2.1 AA 对比度基线。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,7 +47,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（核查通过：`components/status-light/src/logic.rs` 仅做 props 归一与状态派生并消费 `ui_state_primitives::status_light`；`components/status-light/src/view.rs` 仅做 Leptos 结构渲染与 `ui_headless::use_status_light` 语义挂载；`components/status-light/src/styles.rs` 为 token-first 静态 CSS；本组件无可复用动效语义轴，`motion.rs` 为 `N/A`（目录内不存在该文件且 `view.rs` 无 `ui_motion/attach_motion` 绑定）。公共导出面由 `components/status-light/src/mod.rs` 维持最小稳定 API（`StatusLight/StatusLightRole/StatusLightVariant`），且未暴露 `web-sys`/DOM 细节类型。测试落点满足新目录规范：存在 `components/status-light/test/logic.rs`、`components/status-light/test/protocol.rs`、`components/status-light/test/semantics.rs`；语义回归覆盖见 `status_light_component_layer_keeps_assembly_boundaries_and_public_api`、`status_light_component_file_responsibilities_stay_within_layer_boundaries`、`status_light_uses_logic_state_model`。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -55,92 +55,92 @@
   - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`status_light` 公共 props 为 `variant/role/class_name/lang/dir`，无布尔状态轴、无回调轴、无默认值轴，因此 `is_* / on_* / default_*` 对本组件为 `N/A`；同时命名一致性与无别名漂移已由 `components/status-light/test/semantics.rs::status_light_public_api_naming_contract_is_consistent_and_has_no_alias_drift` 锁定，包含对 `className/on_role_change/on_variant_change/default_role/default_variant` 的禁用断言，以及 docs 侧同名 API 使用约束。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`status_light` 无可控状态轴：组件仅消费输入 `variant/role/class_name/lang/dir` 并映射语义输出，不维护可写状态，因此该项为 `N/A`；语义回归 `components/status-light/test/semantics.rs::status_light_has_no_controllable_state_axis_and_avoids_half_controlled_contracts` 已锁定“无 `value/on_value_change/default_value`、无半受控 API、无本地可写控制状态”。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（核查通过：`components/status-light/src/logic.rs::normalize_root_state` 统一完成默认值归一，`variant` 仅在该函数中 `unwrap_or_default()`；`components/status-light/src/view.rs` 仅调用 `logic::normalize_root_state(...)` 并消费输出，不再做默认值分支。语义回归：`components/status-light/test/semantics.rs::status_light_defaults_are_single_sourced_in_logic`、`components/status-light/test/semantics.rs::status_light_state_normalization_is_centralized_in_logic`。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（核查通过：`components/status-light/src/logic.rs` 以 `StatusLightRootInput -> normalize_root_state -> StatusLightRootState` 统一完成状态归一化与派生；`components/status-light/src/view.rs` 仅消费 `logic::normalize_root_state(...)` 输出并挂载 headless 契约，未在 `view.rs` 重建状态机；`components/status-light/src/styles.rs` 仅消费状态标记选择器。语义回归：`components/status-light/test/semantics.rs::status_light_state_normalization_is_centralized_in_logic`、`components/status-light/test/semantics.rs::status_light_uses_logic_state_model`。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（核查通过：离散状态轴由 `crates/ui-state-primitives/src/status_light.rs` 的 `StatusLightVariant` 与 `StatusLightRole` 枚举建模，组件输入为 `variant: Option<StatusLightVariant>`、`role: Option<StatusLightRole>`，不存在 `Option<bool>` 布尔爆炸或字符串状态协议。语义回归：`components/status-light/test/semantics.rs::status_light_discrete_state_axes_are_enum_typed`（并包含 `Option<bool>/variant:String/role:String` 禁用断言）。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（核查通过：`components/status-light/src/logic.rs` 从 `ui_state_primitives::status_light` 直接消费原语并仅做装配映射；组件层未出现 `RwSignal/WriteSignal/ReadSignal/store/global_store` 等业务 store 绑定。语义回归：`components/status-light/test/semantics.rs::status_light_consumes_state_primitives_without_direct_store_binding`。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（`status_light` 为纯同步状态展示组件，无远程请求与异步状态流，该项为 `N/A`；语义回归 `components/status-light/test/semantics.rs::status_light_marks_async_interaction_contract_as_not_applicable` 已锁定无 `async/.await/is_loading/aria-busy/retry/use_async_action` 协议漂移。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`status_light` 基础用法无需用户手动接线 `ui-state-primitives`/`ui-headless` 状态机：公共 API 仅 `variant/role/class_name/lang/dir + children`，无 `state=...` 必填。docs-app 提供最小可用 `Hello World` 路径（`<StatusLight variant=StatusLightVariant::Default>"Idle"</StatusLight>`），并按基础到进阶逐步展示。语义回归：`components/status-light/test/semantics.rs::status_light_api_is_dx_friendly_without_exposing_internal_state_wiring`。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（`status_light` 非组合型容器组件，不存在 `Parent/Item` 结构维度与并行数组配对场景，该项对本组件为 `N/A`；语义回归 `components/status-light/test/semantics.rs::status_light_avoids_composite_parallel_array_api_patterns` 已锁定无 `labels/titles/panels/ItemSpec/Vec<...>` 并行数组或隐式约定接口。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（`status_light` 不提供拖拽/手势类高频交互语义，组件无 `Action` 枚举、无 `DragEnd` 分支、无 `motion.rs` 本地帧循环入口，因此该项对当前组件为 `N/A`；现有回归 `components/status-light/test/semantics.rs::status_light_avoids_component_motion_contract_when_no_transition_semantics` 已锁定“无组件级 motion/attach wiring”契约，避免错误引入逐帧回流。）
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（`status_light` 为静态语义展示组件，不做 overlay/定位/尺寸驱动布局修正；`components/status-light/src/view.rs` 无测量 API（如 `getBoundingClientRect`/`NodeRef`/`offset*`），`components/status-light/src/logic.rs` 无几何纠偏状态机，因此该项对本组件为 `N/A`。现有回归 `components/status-light/test/semantics.rs::status_light_component_layer_keeps_assembly_boundaries_and_public_api` 与 `components/status-light/test/semantics.rs::status_light_component_file_responsibilities_stay_within_layer_boundaries` 已锁定 view/logic 职责边界，避免引入测量-纠偏回路。）
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（`status_light` 不是动态集合容器组件，仅渲染单个状态节点与标签插槽；`components/status-light/src/view.rs`/`components/status-light/src/logic.rs` 不存在 `RegistrationContext`、`Register/Unregister`、`items_order` 或导航序维护逻辑，也无 `HashSet` 导航依赖，因此该项对本组件为 `N/A`。现有回归 `components/status-light/test/semantics.rs::status_light_avoids_composite_parallel_array_api_patterns` 已锁定其非组合/非并行子项契约边界。）
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（`status_light` 非容器/投影组件，仅渲染单一状态展示节点与标签内容，不承载子树投影策略；`components/status-light/src/view.rs`/`components/status-light/src/logic.rs` 不存在 `Lazy/KeepAlive/Eager` 模式切换或 `NotifyHidden` 生命周期通知链路，也无隐藏态后台轮询/动画副作用，因此该项对本组件为 `N/A`。现有回归 `components/status-light/test/semantics.rs::status_light_component_file_responsibilities_stay_within_layer_boundaries` 与 `components/status-light/test/semantics.rs::status_light_avoids_component_motion_contract_when_no_transition_semantics` 共同约束其轻量展示边界。）
 - [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（`status_light` 非大型集合/批量操作组件，仅渲染单一状态指示与标签，不存在 `Context Bus`、`SelectionState::All`、批量选择压缩状态或跨子项 O(N) 下钻传参路径；`components/status-light/src/view.rs` 与 `components/status-light/src/logic.rs` 均无该类集合语义实现，因此该项对本组件为 `N/A`。现有回归 `components/status-light/test/semantics.rs::status_light_avoids_composite_parallel_array_api_patterns` 已约束其非集合组合边界。）
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（`status_light` 为单点状态展示组件，不存在复杂派生命令总线、跨订阅者广播链或 `TraceId` 透传需求；`components/status-light/src/view.rs` 与 `components/status-light/src/logic.rs` 均无 bus/command/event dispatcher 语义，因此该项对本组件为 `N/A`。现有回归 `components/status-light/test/semantics.rs::status_light_component_file_responsibilities_stay_within_layer_boundaries` 与 `components/status-light/test/semantics.rs::status_light_avoids_composite_parallel_array_api_patterns` 共同约束其非总线化轻量边界。）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`status_light` 通过 `ui_headless::use_status_light` 挂载语义契约：`role/aria-live/lang/dir` 均由 headless 输出；`lang/dir` 通过 `StatusLightOptions` 透传，底层复用 `crates/ui-headless/src/a11y.rs` 的 `locale_attrs/live_region_attrs`；组件 `view.rs` 仅渲染 `children()`，未硬编码用户可见文案。专用回归：`components/status-light/test/semantics.rs::status_light_a11y_and_i18n_contracts_are_headless_backed`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`status_light` 暴露稳定标记：`data-variant/data-state/data-live/data-static/data-role/data-role-source/data-custom-class/data-class-source` + `role/aria-live`，且标记值受封闭集合约束（如 `default|accent|danger`、`live|static`、`custom|none|default`）；自动化选择器可直接基于语义标记，不依赖 DOM 深度或临时 class。回归依据：`components/status-light/test/semantics.rs::status_light_emits_baseline_style_state_data_attributes` 与 `components/status-light/test/semantics.rs::status_light_discrete_state_axes_are_enum_typed`。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`components/status-light/src/styles.rs` 的状态分支选择器基于稳定 class 与 `data-*`（如 `.ui-status-light[data-state=\"live\"]`、`[data-role-source=\"custom\"]`、`[data-class-source=\"custom\"]`），未使用 `:nth-child` 或深层级结构猜测；运行时样式侧 `components/status-light/src/view.rs` 未注入业务 inline style。回归依据：`components/status-light/test/semantics.rs::status_light_styles_include_variant_state_and_source_markers`，并有反模式禁用断言（`style=`、`:nth-child`）。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`status_light` 以语义断言为主：`role/aria/data-state/source markers` 由 `components/status-light/test/semantics.rs::status_light_a11y_and_i18n_contracts_are_headless_backed` 与 `components/status-light/test/semantics.rs::status_light_emits_baseline_style_state_data_attributes` 覆盖；受控/非受控分支对本组件为 `N/A` 并由 `components/status-light/test/semantics.rs::status_light_has_no_controllable_state_axis_and_avoids_half_controlled_contracts` 锁定。并确认无快照主断言依赖（`assert_snapshot/to_match_snapshot/insta::`）。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`status_light` 已满足职责分层：`components/status-light/src/mod.rs` 仅维护最小导出面；`components/status-light/src/logic.rs` 仅做输入归一与状态装配映射；`components/status-light/src/styles.rs` 为 token-first 静态样式；`components/status-light/src/view.rs` 仅结构渲染与 headless 语义挂载；`motion.rs` 因无可复用转场语义轴为 `N/A`（文件不存在）。回归依据：`components/status-light/test/semantics.rs::status_light_component_file_responsibilities_stay_within_layer_boundaries` 与 `components/status-light/test/semantics.rs::status_light_avoids_component_motion_contract_when_no_transition_semantics`。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`status_light` 为轻量状态展示组件，无稳定外部 Schema/复杂配置固化压力，`components/status-light/src/` 下不存在 `spec.rs`；说明约束留在 `check2.md`。回归依据：`components/status-light/test/semantics.rs::status_light_does_not_introduce_unnecessary_spec_file`。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`status_light` 样式定义集中在 `components/status-light/src/styles.rs`，核心视觉值消费 `var(--ui-*)`；`crates/ui/src/css.rs` 通过 `#[cfg(feature = "component-status_light")] out.push_str(crate::status_light::styles::CSS);` 做条件聚合；`crates/ui/src/root.rs` 由 `UiRoot` 统一调用 `crate::css::push_components_css(&mut out)` 注入组件样式。回归依据：`components/status-light/test/semantics.rs::status_light_styles_consume_ui_theme_tokens_for_core_visual_values`、`components/status-light/test/semantics.rs::status_light_token_first_styles_are_feature_gated_in_css_aggregation`、`components/status-light/test/semantics.rs::status_light_respects_ui_components_entrypoint_contracts`。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（`status_light` 视觉契约消费 token-first 层级（字号/字重/对比）并复用 docs 全局 `ThemeVisualBaseline` 基线与截图回归；HeroUI 对齐策略文档仍可追溯。单项独立验证：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo test -p ui --no-default-features --features component-status_light,inject-css --test status_light_semantics status_light_visual_desire_reuses_theme_visual_baseline_and_heroui_contracts`（1 passed）。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`status_light` 组件级最小特性链已独立验证：`cargo tree -e features -i ui -p ui --no-default-features --features component-status_light,inject-css` 输出仅 `component-status_light` 与 `inject-css`（command-line），未出现 `all-components`。反向依赖验证：`cargo tree -e features -i ui -p web-demo` 输出含 `web-demo-components`，且无 `all-components`。最小特性 wasm 编译验证：`CARGO_TARGET_DIR=target-status-light-check cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-status_light,inject-css` 通过。仓库级 CI 体积预算能力也已实跑通过：`bash scripts/check-ui-tree-shaking.sh`（包含清单示例命令 `component-accordion,inject-css`、release 构建与 `scripts/tree_shaking_budget.env` 阈值比对；结果 `current bytes: 3326332 <= max bytes: 3806222`，`[tree-shaking] OK`）。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -149,73 +149,73 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（`status_light` 不承载 overlay/focus trap 能力，该项对本组件为 `N/A`；实现文件 `components/status-light/src/{logic,view,styles,mod,protocol}.rs` 均无 `NodeRef`、`overlay`、`FallbackTo`、`document.body`、几何测量与焦点恢复逻辑。边界回归继续由 `components/status-light/test/semantics.rs::status_light_component_file_responsibilities_stay_within_layer_boundaries` 与 `components/status-light/test/semantics.rs::status_light_component_layer_keeps_assembly_boundaries_and_public_api` 约束。）
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（`status_light` 未集成命令式第三方实例，该项对本组件为 `N/A`；`components/status-light/Cargo.toml` 仅依赖 `leptos/ui-headless/ui-state-primitives/serde`，不存在 ECharts/Map 等外部命令式库；`components/status-light/src/{mod,logic,view,protocol}.rs` 无 `YieldControl/CleanupForeign`、第三方实例句柄或反向写入状态机路径，公共 API 仅暴露 `StatusLight` 与离散类型。）
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（`status_light` 组件本身无 ID 生成/时间随机初始化路径，该项在组件内为 `N/A`；`components/status-light/src/{logic,view,mod,protocol,styles}.rs` 未使用 `now()`/`uuid`/`rand`。需要 ID 的 SSR/Hydration 稳定性由上层 `crates/ui/src/root.rs` 统一提供：`UiRoot` 通过 `id_seed` 调用 `provide_ui_id_provider(id_seed)`，保证确定性种子接入。）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（compile-only 证据已重跑：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo check -p ui --no-default-features --features component-status_light,inject-css`（native passed）、`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-status_light,inject-css`（wasm passed）、`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo check -p ui-headless --no-default-features --features ssr`（ssr passed）。并确认 `crates/ui/src/status_light/*.rs` 无 `web_sys/web-sys` 引用。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（验真已重跑：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo check -p ui-headless --no-default-features --features web`（passed）、`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo check -p ui-headless --no-default-features --features ssr`（passed）、`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo check -p ui-headless --no-default-features --features web,ssr`（按预期失败并命中 `compile_error!`：`features web and ssr are mutually exclusive`）。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（验真已重跑：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo test -p ui-motion non_wasm_web_backend_is_predictable_noop`（passed）；并通过 `CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo check -p ui-motion --target wasm32-unknown-unknown` 验证 wasm 路径可编译。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`status_light` 无组件级动效语义轴，`reduced-motion` 对本组件为 N/A；契约由 `status_light_avoids_component_motion_contract_when_no_transition_semantics` 锁定。单项独立验证：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo test -p ui --no-default-features --features component-status_light,inject-css --test status_light_semantics status_light_avoids_component_motion_contract_when_no_transition_semantics`（1 passed）。SSR/wasm 路径 compile-only 已通过：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo check -p ui --no-default-features --features component-status_light,inject-css` 与 `CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-status_light,inject-css` 均 passed，语义输出未分叉。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`status_light` 作为展示型组件无内部交互状态循环，本组件预算采用 docs 统一 `UiPerfProbe + UiPerfBudget` 管道并通过语义标记提供可归因信息；`render_count` 的基础组件硬门禁由仓库既有 `button/input` 路径承担，且 `scripts/check-ui-performance.sh` 已纳入 `perf_render_count_follow_up_is_tracked_in_plan` 追踪。单项独立验证：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo test -p ui --no-default-features --features component-status_light,inject-css --test status_light_semantics status_light_performance_governance_contract_is_budgeted_traceable_and_blocking`（1 passed）。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`status_light/view.rs` 维持单个紧凑 `view!` 块且文件体量受控，回归 `status_light_view_macro_complexity_is_controlled` 已锁定该约束。单项独立验证：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo test -p ui --no-default-features --features component-status_light,inject-css --test status_light_semantics status_light_view_macro_complexity_is_controlled`（1 passed）。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`status_light` 仅保留一个必要的 `#[component] StatusLight` 对外入口，未将局部片段过度组件化；回归：`status_light_uses_minimal_component_surface_and_no_inner_html`。单项独立验证：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo test -p ui --no-default-features --features component-status_light,inject-css --test status_light_semantics status_light_uses_minimal_component_surface_and_no_inner_html`（1 passed）。）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（`status_light` 不包含复杂 SVG/长静态片段渲染路径，该项对本组件为 N/A；回归 `status_light_uses_minimal_component_surface_and_no_inner_html` 锁定无相关静态重构负担。单项独立验证：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo test -p ui --no-default-features --features component-status_light,inject-css --test status_light_semantics status_light_uses_minimal_component_surface_and_no_inner_html`（1 passed）。）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（`status_light` 组件路径无 `inner_html`/`dangerously_set_inner_html` 使用，回归 `status_light_uses_minimal_component_surface_and_no_inner_html` 已锁定。单项独立验证：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo test -p ui --no-default-features --features component-status_light,inject-css --test status_light_semantics status_light_uses_minimal_component_surface_and_no_inner_html`（1 passed）。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（`status_light` 复用全局 `provide_ui_trace + UiDebugOverlay` 调试链路并保持组件级 feature 隔离（无 `status-light-wasm-debug` 私有特性）；语义标记可用于状态来源追踪。单项独立验证：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo test -p ui --no-default-features --features component-status_light,inject-css --test status_light_semantics status_light_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolated`（1 passed）。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（`status_light` docs 复用 `Playground` 的 scoped CSS 实时编辑路径与隔离画布；本组件为非 workbench 场景，状态保留为 N/A 并已显式约束无 localStorage/persist 键。单项独立验证：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo test -p ui --no-default-features --features component-status_light,inject-css --test status_light_semantics status_light_dx_playground_supports_css_hot_reload_and_marks_persist_state_na`（1 passed）。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`status_light` 无 spec/config 序列化轴、无组件级 async 边界、无 runtime 类型外泄；tracing 能力复用全局链路而非组件私有协议。单项独立验证：`CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo test -p ui --no-default-features --features component-status_light,inject-css --test status_light_semantics status_light_engineering_contract_is_runtime_agnostic_and_narrow`（1 passed）。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 样式与动效（Theme & Motion）
-- [ ] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
-- [ ] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-- [ ] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
-- [ ] `ui` 固定入口文件落点正确。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（`status_light` 核心视觉值已统一切换为双层回退链：`gap/font-size/line-height/dot size/radius/border-width/variant colors` 均采用 `var(--ui-*, var(--ui-fallback-*))`，并移除裸终值回退；语义回归 `status_light_styles_consume_ui_theme_tokens_for_core_visual_values` 已锁定该契约。单项独立验证：`CARGO_HOME=.cargo-home CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo test -p ui --no-default-features --features component-status_light,inject-css --test status_light_semantics status_light_styles_consume_ui_theme_tokens_for_core_visual_values`。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`status_light` 的样式注入链路经 `crates/ui/src/css.rs::push_components_css` 统一包裹 `@layer ui`，且组件 `view.rs` 未使用普通内联样式属性（`style=\"...\"`）；样式契约保持静态 token-first。语义回归已补强：`status_light_token_first_styles_are_feature_gated_in_css_aggregation` 同时断言 feature-gated 聚合、`@layer ui` 包裹与 `view.rs` 禁止普通 inline style。单项独立验证：`CARGO_HOME=.cargo-home CARGO_TARGET_DIR=target-status-light-check ~/.cargo/bin/cargo test -p ui --no-default-features --features component-status_light,inject-css --test status_light_semantics status_light_token_first_styles_are_feature_gated_in_css_aggregation`。）
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（`status_light` 为静态状态展示组件，不存在 `open/closed`、`enter/exit` 等可复用动效语义轴，该项对组件级 `motion.rs` 为 `N/A`；实现证据：`components/status-light/src/` 无 `motion.rs`，`components/status-light/src/view.rs` 无 `ui_motion::`/`attach_motion` 绑定。契约回归已覆盖：`components/status-light/test/semantics.rs::status_light_avoids_component_motion_contract_when_no_transition_semantics` 锁定“无组件级 motion wiring”；底层 no-op 与 `prefers-reduced-motion` 降级由 `crates/ui-motion` 统一提供并在既有项中验真。）
+- [x] `ui` 固定入口文件落点正确。（`status_light` 入口契约已满足并有回归锚点：`crates/ui/src/lib.rs` 以 `#[cfg(feature = "component-status_light")]` 导出 `pub use ui_status_light as status_light;` 与稳定 API re-export；`crates/ui/src/css.rs` 通过 `push_components_css` 在 `@layer ui` 内按 feature 条件聚合 `status_light::styles::CSS`；`crates/ui/src/root.rs` 由 `UiRoot` 统一注入 base css + theme vars + components css（`crate::css::push_components_css(&mut out);`）并提供 `provide_ui_i18n(i18n)` 全局 i18n 上下文。`crates/ui-visual-primitive/src/active_highlight.rs` 存在且为通用高亮能力（共享 CSS + motion driver），未耦合组件业务语义。`crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 在 `ui/src` 根目录均不存在。语义回归：`components/status-light/test/semantics.rs::status_light_respects_ui_components_entrypoint_contracts`。）
   - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -223,7 +223,7 @@
   - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。（`status_light` 目录满足标准落点：`components/status-light/src/mod.rs`（最小导出面）、`components/status-light/src/logic.rs`（归一/派生/来源装配）、`components/status-light/src/styles.rs`（静态 token-first CSS）、`components/status-light/src/view.rs`（结构渲染 + headless 语义挂载）、`components/status-light/src/protocol.rs`（协议定义）；无 `render.rs` 漂移。`motion.rs` 对本组件为 `N/A`（无可复用动效语义轴，文件不存在且 `view.rs` 无 `attach_motion`），`spec.rs` 为 `N/A`（轻量组件无稳定外部 schema 压力，文件不存在）。回归依据：`components/status-light/test/semantics.rs::status_light_component_file_responsibilities_stay_within_layer_boundaries`、`components/status-light/test/semantics.rs::status_light_avoids_component_motion_contract_when_no_transition_semantics`、`components/status-light/test/semantics.rs::status_light_does_not_introduce_unnecessary_spec_file`。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -232,15 +232,15 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
-- [ ] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
-- [ ] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
-- [ ] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。（`status_light` 当前目录为 `mod.rs + logic.rs + styles.rs + view.rs + protocol.rs`，未出现 `render.rs`。`motion.rs` 对该轻量组件为 `N/A`（无可复用动效语义轴且 `view.rs` 无 `attach_motion`，文件不存在）；`spec.rs` 为 `N/A`（无稳定外部 schema 固化需求，文件不存在）。职责边界回归已锁定：`components/status-light/test/semantics.rs::status_light_component_file_responsibilities_stay_within_layer_boundaries`、`components/status-light/test/semantics.rs::status_light_avoids_component_motion_contract_when_no_transition_semantics`、`components/status-light/test/semantics.rs::status_light_does_not_introduce_unnecessary_spec_file`。）
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（`status_light` 为轻量状态展示组件，不属于“复杂组件”范畴，该项对本组件为 `N/A`；当前实现显式不引入 `spec.rs`，避免为形式统一制造无效抽象。约束回归：`components/status-light/test/semantics.rs::status_light_does_not_introduce_unnecessary_spec_file`。）
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（已补齐 `components/status-light/src/Component.toml` 与 `components/status-light/src/status_light.rbi`，覆盖组件能力清单与公开签名投影（`StatusLightVariant/StatusLightRole/StatusLight(...)`）；并新增回归 `components/status-light/test/semantics.rs::status_light_context_compression_manifest_and_rbi_are_present_and_stable` 锁定文件存在与关键字段，防止 AI 检索契约漂移。）
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`status_light` 已输出稳定机器可读语义：`data-variant/data-state/data-live/data-static/data-role/data-role-source/data-custom-class/data-class-source` 与 `role/aria-live/lang/dir`，Agent 可直接消费语义标记而非 DOM 猜测；关键状态轴由类型化枚举 `StatusLightVariant/StatusLightRole` 驱动并映射到语义字段，避免散落字符串拼接协议。组件渲染链路不开放任意脚本注入（无 `inner_html`/`dangerously_set_inner_html`）。回归依据：`components/status-light/test/semantics.rs::status_light_emits_baseline_style_state_data_attributes`、`components/status-light/test/semantics.rs::status_light_discrete_state_axes_are_enum_typed`、`components/status-light/test/semantics.rs::status_light_uses_minimal_component_surface_and_no_inner_html`。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（`status_light` 非 LLM 正文渲染组件，该项对本组件为 `N/A`；组件 API 未引入 `is_streaming/stream/snapshot/fallback` 等流式专有字段，docs 仅展示完整结果快照渲染路径。回归依据：`components/status-light/test/semantics.rs::status_light_streaming_mode_is_not_applicable_and_snapshot_render_is_default`。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
 - [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。

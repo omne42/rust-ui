@@ -159,3 +159,49 @@ fn compose_class_name_includes_state_markers() {
         );
     }
 }
+
+#[test]
+fn compose_describedby_uses_state_flags_and_stable_id_order() {
+    let ids = SwitchGroupIds {
+        root_id: "notifications".to_string(),
+        label_id: "notifications-label".to_string(),
+        description_id: "notifications-description".to_string(),
+        error_id: "notifications-error".to_string(),
+    };
+    let state_with_all = resolve_state(SwitchGroupStateInput {
+        orientation: SwitchGroupOrientation::Vertical,
+        tone: SwitchGroupTone::Default,
+        required: false,
+        disabled: false,
+        invalid: true,
+        has_label: true,
+        has_description: true,
+        has_error_message: true,
+        has_custom_label: false,
+        has_custom_aria_label: false,
+        has_custom_error_message: true,
+        has_custom_class_name: false,
+    });
+
+    assert_eq!(
+        compose_describedby(state_with_all, &ids),
+        Some("notifications-description notifications-error".to_string())
+    );
+
+    let state_without_messages = resolve_state(SwitchGroupStateInput {
+        orientation: SwitchGroupOrientation::Vertical,
+        tone: SwitchGroupTone::Default,
+        required: false,
+        disabled: false,
+        invalid: false,
+        has_label: true,
+        has_description: false,
+        has_error_message: false,
+        has_custom_label: false,
+        has_custom_aria_label: false,
+        has_custom_error_message: false,
+        has_custom_class_name: false,
+    });
+
+    assert_eq!(compose_describedby(state_without_messages, &ids), None);
+}

@@ -1,9 +1,61 @@
 pub const DEFAULT_ID_BASE: &str = "ui-tray";
 pub const DEFAULT_TITLE: &str = "Tray";
+pub const DEFAULT_OPEN: bool = false;
 pub const DEFAULT_SHOW_CLOSE_BUTTON: bool = true;
 pub const DEFAULT_FIXED_HEIGHT: bool = false;
 pub const DEFAULT_DISMISSABLE: bool = true;
 pub const DEFAULT_KEYBOARD_DISMISS_DISABLED: bool = false;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TrayOpenMode {
+    Controlled,
+    Uncontrolled,
+}
+
+impl TrayOpenMode {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Controlled => "controlled",
+            Self::Uncontrolled => "uncontrolled",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TrayOpenConfigInput {
+    pub has_open: bool,
+    pub default_open: Option<bool>,
+    pub has_on_open_change: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TrayOpenConfig {
+    pub mode: TrayOpenMode,
+    pub default_open: bool,
+    pub has_default_open: bool,
+    pub has_open_change_handler: bool,
+    pub open_source_attr: &'static str,
+}
+
+pub fn resolve_open_config(input: TrayOpenConfigInput) -> TrayOpenConfig {
+    let mode = if input.has_open {
+        TrayOpenMode::Controlled
+    } else {
+        TrayOpenMode::Uncontrolled
+    };
+
+    TrayOpenConfig {
+        mode,
+        default_open: input.default_open.unwrap_or(DEFAULT_OPEN),
+        has_default_open: input.default_open.is_some(),
+        has_open_change_handler: input.has_on_open_change,
+        open_source_attr: mode.as_attr(),
+    }
+}
+
+pub fn can_request_open_change(mode: TrayOpenMode, has_open_change_handler: bool) -> bool {
+    mode == TrayOpenMode::Uncontrolled || has_open_change_handler
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TraySlot {

@@ -1832,6 +1832,242 @@ fn select_check2_marks_type_system_and_semantic_marker_contract_complete() {
 }
 
 #[test]
+fn select_focus_stack_contract_delegates_to_popover_and_global_focus_manager() {
+    let select_view_source = load_source("src/select/view.rs");
+    let popover_view_source = load_source("src/popover/view.rs");
+    let focus_trap_source = load_source("../ui-headless/src/focus_trap.rs");
+
+    for needle in [
+        "<Popover",
+        "let anchor_ref: NodeRef<html::Button> = NodeRef::new();",
+    ] {
+        assert!(
+            select_view_source.contains(needle),
+            "select should keep overlay rendering delegated through popover marker `{needle}`.",
+        );
+    }
+
+    for forbidden in [
+        "use_focus_trap(",
+        "FocusTrapOptions::",
+        "RestorePolicy::",
+        "focus_manager_",
+        "document.body()",
+    ] {
+        assert!(
+            !select_view_source.contains(forbidden),
+            "select should not privately own focus-restore stack logic via `{forbidden}`.",
+        );
+    }
+
+    for needle in [
+        "let registration = use_overlay_stack_registration();",
+        "let focus_trap = use_focus_trap(",
+        "FocusTrapOptions::enabled(panel_ref)",
+        ".with_scope_id(\"popover\")",
+        ".with_restore_policy(RestorePolicy::FallbackTo(",
+        ".with_fallback_selector(FOCUS_FALLBACK_SELECTOR)",
+    ] {
+        assert!(
+            popover_view_source.contains(needle),
+            "popover should keep global focus-stack contract marker `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "fn focus_manager_push_trap(",
+        "fn focus_manager_pop_trap(",
+        "fn focus_manager_peek_trap(",
+        "RestorePolicy::Selector(selector) | RestorePolicy::FallbackTo(selector)",
+        "if let Some(body) = document.body()",
+    ] {
+        assert!(
+            focus_trap_source.contains(needle),
+            "ui-headless focus trap should keep global manager / fallback contract `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn select_check2_marks_focus_stack_gc_item_complete() {
+    let source = load_source("check2.md");
+
+    assert!(
+        source.contains("- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。"),
+        "select check2 should mark focus-stack-and-gc item complete.",
+    );
+
+    assert!(
+        source.contains("select_focus_stack_contract_delegates_to_popover_and_global_focus_manager"),
+        "select check2 should reference executable focus-stack regression evidence.",
+    );
+}
+
+#[test]
+fn select_escape_hatches_foreign_zone_are_not_applicable_and_public_api_stays_clean() {
+    let select_mod_source = load_source("src/select/mod.rs");
+    let select_logic_source = load_source("src/select/logic.rs");
+    let select_view_source = load_source("src/select/view.rs");
+    let select_motion_source = load_source("src/select/motion.rs");
+    let select_protocol_source = load_source("src/select/protocol.rs");
+
+    for forbidden in [
+        "ECharts",
+        "echarts",
+        "Mapbox",
+        "mapbox",
+        "Leaflet",
+        "google.maps",
+        "amap",
+        "YieldControl",
+        "CleanupForeign",
+        "Foreign Zone",
+    ] {
+        assert!(
+            !select_logic_source.contains(forbidden)
+                && !select_view_source.contains(forbidden)
+                && !select_motion_source.contains(forbidden)
+                && !select_protocol_source.contains(forbidden),
+            "select should keep foreign-zone escape hatch contract as N/A without `{forbidden}`.",
+        );
+    }
+
+    for forbidden in ["wasm_bindgen", "js_sys::", "extern \"C\""] {
+        assert!(
+            !select_logic_source.contains(forbidden)
+                && !select_view_source.contains(forbidden)
+                && !select_motion_source.contains(forbidden)
+                && !select_protocol_source.contains(forbidden),
+            "select should not expose imperative third-party bridge marker `{forbidden}`.",
+        );
+    }
+
+    let public_use_lines: Vec<&str> = select_mod_source
+        .lines()
+        .map(str::trim)
+        .filter(|line| line.starts_with("pub use "))
+        .collect();
+    assert_eq!(
+        public_use_lines,
+        vec!["pub use motion::SelectMotion;", "pub use view::Select;"],
+        "select public API surface should not leak foreign imperative instances.",
+    );
+}
+
+#[test]
+fn select_check2_marks_escape_hatches_item_complete() {
+    let source = load_source("check2.md");
+
+    assert!(
+        source.contains("- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。"),
+        "select check2 should mark escape-hatches item complete.",
+    );
+    assert!(
+        source.contains("N/A：`Select` 当前未集成 ECharts/Map"),
+        "select check2 should explicitly mark escape-hatches item as N/A with reason.",
+    );
+    assert!(
+        source.contains("select_escape_hatches_foreign_zone_are_not_applicable_and_public_api_stays_clean"),
+        "select check2 should reference executable escape-hatches regression evidence.",
+    );
+}
+
+#[test]
+fn select_hydration_discontinuity_contract_uses_deterministic_ids_and_no_random_init() {
+    let select_view_source = load_source("src/select/view.rs");
+    let select_logic_source = load_source("src/select/logic.rs");
+    let select_mod_source = load_source("src/select/mod.rs");
+    let select_motion_source = load_source("src/select/motion.rs");
+    let select_styles_source = load_source("src/select/styles.rs");
+    let select_protocol_source = load_source("src/select/protocol.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/select.rs");
+    let headless_lib_source = load_source("../ui-headless/src/lib.rs");
+    let id_provider_source = load_source("../ui-headless/src/id_provider.rs");
+
+    for needle in [
+        "id_base: String,",
+        "let id_base = logic::normalize_id_base(id_base);",
+        "let ids = logic::resolve_ids(&id_base.get_value());",
+        "let trigger_id = StoredValue::new(ids.trigger_id);",
+        "let listbox_id = StoredValue::new(ids.listbox_id);",
+    ] {
+        assert!(
+            select_view_source.contains(needle),
+            "select should keep deterministic id derivation path via `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "pub const DEFAULT_ID_BASE: &str = \"select\";",
+        "pub fn normalize_id_base(id_base: String) -> String {",
+        "pub fn resolve_ids(id_base: &str) -> SelectIds {",
+        "trigger_id: format!(\"{id_base}-trigger\")",
+        "listbox_id: format!(\"{id_base}-listbox\")",
+    ] {
+        assert!(
+            primitive_source.contains(needle),
+            "state primitive should keep deterministic id helpers via `{needle}`.",
+        );
+    }
+
+    for forbidden in [
+        "Uuid",
+        "uuid::",
+        "rand::",
+        "getrandom",
+        "SystemTime::now",
+        "UNIX_EPOCH",
+        "Math::random",
+        "Date::now",
+    ] {
+        assert!(
+            !select_view_source.contains(forbidden)
+                && !select_logic_source.contains(forbidden)
+                && !select_mod_source.contains(forbidden)
+                && !select_motion_source.contains(forbidden)
+                && !select_styles_source.contains(forbidden)
+                && !select_protocol_source.contains(forbidden),
+            "select initialization path must not depend on time/random UUID source `{forbidden}`.",
+        );
+    }
+
+    assert!(
+        select_view_source.contains("let now = std::time::Instant::now();")
+            && select_view_source.contains("set_last_typed_at.set(Some(now));"),
+        "select may use monotonic Instant only for runtime typeahead interaction timing.",
+    );
+
+    for needle in [
+        "pub use id_provider::{UiIdProvider, provide_ui_id_provider, use_ui_id_provider};",
+        "pub struct UiIdProvider {",
+        "pub fn provide_ui_id_provider(seed: u64) -> UiIdProvider {",
+    ] {
+        assert!(
+            headless_lib_source.contains(needle) || id_provider_source.contains(needle),
+            "shared deterministic-id injection path should stay available via `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn select_check2_marks_hydration_discontinuity_item_complete() {
+    let source = load_source("check2.md");
+
+    assert!(
+        source.contains("- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。"),
+        "select check2 should mark hydration-discontinuity item complete.",
+    );
+    assert!(
+        source.contains("N/A：`Select` 当前不在组件内部生成随机 ID"),
+        "select check2 should include explicit N/A rationale for local IdProvider wiring.",
+    );
+    assert!(
+        source.contains("select_hydration_discontinuity_contract_uses_deterministic_ids_and_no_random_init"),
+        "select check2 should reference executable hydration-discontinuity evidence.",
+    );
+}
+
+#[test]
 fn select_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_web_sys_free() {
     let ui_components_cargo = load_source("Cargo.toml");
     let ui_headless_cargo = load_source("../ui-headless/Cargo.toml");
@@ -1890,7 +2126,7 @@ fn select_ssr_cross_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_web_s
 
 #[test]
 fn select_check2_marks_ssr_cross_platform_item_complete() {
-    let source = load_source("src/select/check2.md");
+    let source = load_source("check2.md");
 
     assert!(
         source
@@ -1964,7 +2200,7 @@ fn select_ui_headless_platform_script_enforces_mutex_failure_and_dual_compile_pa
 
 #[test]
 fn select_check2_marks_ui_headless_web_ssr_mutex_item_complete() {
-    let source = load_source("src/select/check2.md");
+    let source = load_source("check2.md");
 
     assert!(
         source.contains("- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。"),
@@ -1988,7 +2224,7 @@ fn select_check2_marks_ui_headless_web_ssr_mutex_item_complete() {
 
 #[test]
 fn select_check2_marks_ui_motion_non_wasm_stub_item_complete() {
-    let source = load_source("src/select/check2.md");
+    let source = load_source("check2.md");
 
     assert!(
         source.contains("- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。"),
@@ -2081,7 +2317,7 @@ fn select_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
 
 #[test]
 fn select_check2_marks_reduced_motion_ssr_wasm_item_complete() {
-    let source = load_source("src/select/check2.md");
+    let source = load_source("check2.md");
 
     assert!(
         source.contains("- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。"),
@@ -2104,7 +2340,7 @@ fn select_check2_marks_reduced_motion_ssr_wasm_item_complete() {
 
 #[test]
 fn select_performance_governance_contract_is_mount_only_traceable_and_blocking() {
-    let check2_source = load_source("src/select/check2.md");
+    let check2_source = load_source("check2.md");
     let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let pages_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
     let docs_select_page_source =
@@ -2217,7 +2453,7 @@ fn select_performance_governance_contract_is_mount_only_traceable_and_blocking()
 
 #[test]
 fn select_check2_marks_performance_governance_item_complete() {
-    let source = load_source("src/select/check2.md");
+    let source = load_source("check2.md");
 
     assert!(
         source.contains(

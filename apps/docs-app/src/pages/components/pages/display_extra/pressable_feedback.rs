@@ -15,7 +15,7 @@ pub(crate) fn pressable_feedback() -> AnyView {
 
     let (effect_index, set_effect_index) = signal(Some(0_usize));
     let (tone_index, set_tone_index) = signal(Some(2_usize));
-    let (bounded, set_bounded) = signal(true);
+    let (is_bounded, set_is_bounded) = signal(true);
     let (is_disabled, set_is_disabled) = signal(false);
     let (custom_motion, set_custom_motion) = signal(false);
     let (custom_aria, set_custom_aria) = signal(true);
@@ -75,7 +75,7 @@ pub(crate) fn pressable_feedback() -> AnyView {
     });
 
     let showcase_code = Signal::derive(move || {
-        r#"<PressableFeedback effect=PressableFeedbackEffect::Highlight tone=PressableFeedbackTone::Accent on_press=on_press>
+        r#"<PressableFeedback>
   <div class="docs-ripple-surface">"Hello feedback"</div>
 </PressableFeedback>"#
             .to_string()
@@ -105,8 +105,8 @@ pub(crate) fn pressable_feedback() -> AnyView {
         };
 
         format!(
-            "<PressableFeedback\n  effect={effect_variant}\n  tone={tone_variant}\n  bounded={}\n  is_disabled={}\n  motion={motion_expr}\n  aria_label={}\n  class_name={}\n  on_press={on_press_expr}\n>\n  <div class=\"docs-ripple-surface\">\"Interactive surface\"</div>\n</PressableFeedback>",
-            bool_word(bounded.get()),
+            "<PressableFeedback\n  effect={effect_variant}\n  tone={tone_variant}\n  is_bounded={}\n  is_disabled={}\n  motion={motion_expr}\n  aria_label={}\n  class_name={}\n  on_press={on_press_expr}\n>\n  <div class=\"docs-ripple-surface\">\"Interactive surface\"</div>\n</PressableFeedback>",
+            bool_word(is_bounded.get()),
             bool_word(is_disabled.get()),
             rust_string_literal(&workbench_aria_label.get()),
             rust_string_literal(&workbench_class_name.get()),
@@ -115,10 +115,10 @@ pub(crate) fn pressable_feedback() -> AnyView {
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "PressableFeedbackActualConfig {{\n  effect: {:?},\n  tone: {:?},\n  bounded: {},\n  is_disabled: {},\n  motion: {:?},\n  aria_label: {:?},\n  class_name: {:?},\n  on_press: {},\n}}",
+            "PressableFeedbackActualConfig {{\n  effect: {:?},\n  tone: {:?},\n  is_bounded: {},\n  is_disabled: {},\n  motion: {:?},\n  aria_label: {:?},\n  class_name: {:?},\n  on_press: {},\n}}",
             workbench_effect.get(),
             workbench_tone.get(),
-            bounded.get(),
+            is_bounded.get(),
             is_disabled.get(),
             workbench_motion.get(),
             workbench_aria_label.get(),
@@ -135,18 +135,37 @@ pub(crate) fn pressable_feedback() -> AnyView {
         r#"<PressableFeedback effect=PressableFeedbackEffect::Scale tone=PressableFeedbackTone::Default>
   <div class="docs-ripple-surface docs-ripple-surface--static">"Scale"</div>
 </PressableFeedback>
-<PressableFeedback effect=PressableFeedbackEffect::Highlight tone=PressableFeedbackTone::Accent bounded=true>
+<PressableFeedback effect=PressableFeedbackEffect::Highlight tone=PressableFeedbackTone::Accent is_bounded=true>
   <div class="docs-ripple-surface">"Highlight"</div>
 </PressableFeedback>
 <PressableFeedback
   effect=PressableFeedbackEffect::HighlightRipple
   tone=PressableFeedbackTone::Neutral
-  bounded=false
+  is_bounded=false
   is_disabled=true
+  motion=PressableFeedbackMotion { pressed_scale: 0.94, highlight_opacity: 0.2, ripple: RippleMotion { duration_ms: 720, ..RippleMotion::default() }, ..PressableFeedbackMotion::default() }
   class_name="docs-pressable-feedback-custom".to_string()
 >
   <div class="docs-ripple-surface docs-ripple-surface--accent">"Disabled custom"</div>
 </PressableFeedback>"#
+            .to_string()
+    });
+    let visual_baseline_code = Signal::derive(move || {
+        r#"<div data-visual-baseline="pressable-feedback-default-theme">
+  <PressableFeedback tone=PressableFeedbackTone::Default aria_label="Primary action".to_string()>
+    <div class="docs-ripple-surface">"Primary Surface"</div>
+  </PressableFeedback>
+  <PressableFeedback
+    effect=PressableFeedbackEffect::Highlight
+    tone=PressableFeedbackTone::Accent
+    aria_label="Accent action".to_string()
+  >
+    <div class="docs-ripple-surface docs-ripple-surface--accent">"Accent Surface"</div>
+  </PressableFeedback>
+  <PressableFeedback is_disabled=true aria_label="Disabled action".to_string()>
+    <div class="docs-ripple-surface docs-ripple-surface--static">"Disabled Surface"</div>
+  </PressableFeedback>
+</div>"#
             .to_string()
     });
 
@@ -160,15 +179,11 @@ pub(crate) fn pressable_feedback() -> AnyView {
             <Playground
                 title="Hello World (Default API)"
                 code_signal=showcase_code
-                code_imports="use leptos::prelude::*;\nuse ui::{PressableFeedback, PressableFeedbackEffect, PressableFeedbackTone};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{PressableFeedback};".to_string()
                 test_source_path="components/pressable-feedback/src/view.rs".to_string()
             >
                 <div class="docs-stack docs-stack--tight">
-                    <PressableFeedback
-                        effect=PressableFeedbackEffect::Highlight
-                        tone=PressableFeedbackTone::Accent
-                        on_press=on_workbench_press
-                    >
+                    <PressableFeedback>
                         <div class="docs-ripple-surface">
                             "Hello feedback"
                         </div>
@@ -221,10 +236,10 @@ pub(crate) fn pressable_feedback() -> AnyView {
                         <label class="docs-choice-row">
                             <input
                                 type="checkbox"
-                                prop:checked=move || bounded.get()
-                                on:change=move |event| set_bounded.set(event_target_checked(&event))
+                                prop:checked=move || is_bounded.get()
+                                on:change=move |event| set_is_bounded.set(event_target_checked(&event))
                             />
-                            <span>"bounded"</span>
+                            <span>"is_bounded"</span>
                         </label>
                         <label class="docs-choice-row">
                             <input
@@ -273,7 +288,7 @@ pub(crate) fn pressable_feedback() -> AnyView {
                     <PressableFeedback
                         effect=workbench_effect.get()
                         tone=workbench_tone.get()
-                        bounded=bounded.get()
+                        is_bounded=is_bounded.get()
                         is_disabled=is_disabled.get()
                         motion=workbench_motion.get()
                         aria_label=workbench_aria_label.get()
@@ -294,7 +309,7 @@ pub(crate) fn pressable_feedback() -> AnyView {
             <Playground
                 title="State Matrix (Effect / Tone / Disabled Comparison)"
                 code_signal=matrix_code
-                code_imports="use leptos::prelude::*;\nuse ui::{PressableFeedback, PressableFeedbackEffect, PressableFeedbackTone};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::{PressableFeedback, PressableFeedbackEffect, PressableFeedbackMotion, PressableFeedbackTone, RippleMotion};".to_string()
                 test_source_path="components/pressable-feedback/src/view.rs".to_string()
             >
                 <div class="docs-stack docs-stack--tight">
@@ -306,7 +321,7 @@ pub(crate) fn pressable_feedback() -> AnyView {
                     <PressableFeedback
                         effect=PressableFeedbackEffect::Highlight
                         tone=PressableFeedbackTone::Accent
-                        bounded=true
+                        is_bounded=true
                     >
                         <div class="docs-ripple-surface">
                             "Highlight"
@@ -315,14 +330,65 @@ pub(crate) fn pressable_feedback() -> AnyView {
                     <PressableFeedback
                         effect=PressableFeedbackEffect::HighlightRipple
                         tone=PressableFeedbackTone::Neutral
-                        bounded=false
+                        is_bounded=false
                         is_disabled=true
+                        motion=PressableFeedbackMotion {
+                            pressed_scale: 0.94,
+                            highlight_opacity: 0.2,
+                            ripple: RippleMotion {
+                                duration_ms: 720,
+                                ..RippleMotion::default()
+                            },
+                            ..PressableFeedbackMotion::default()
+                        }
                         class_name="docs-pressable-feedback-custom".to_string()
                     >
                         <div class="docs-ripple-surface docs-ripple-surface--accent">
                             "Disabled custom"
                         </div>
                     </PressableFeedback>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Default Theme Visual Baseline (Visual Desire)"
+                description="First-impression baseline for hierarchy, contrast layers, and hover/active/focus cues. Use this section as the screenshot regression anchor."
+                code_signal=visual_baseline_code
+            >
+                <div
+                    class="docs-stack docs-stack--tight"
+                    data-visual-baseline="pressable-feedback-default-theme"
+                >
+                    <span class="ui-muted">
+                        "HeroUI-quality visual direction baseline for PressableFeedback under default theme."
+                    </span>
+                    <span class="ui-muted" data-slot="pressable-feedback-visual-baseline-screenshot">
+                        "Screenshot baseline anchor: compare hover/active/focus feedback and disabled contrast."
+                    </span>
+                    <div class="docs-stack docs-stack--tight">
+                        <PressableFeedback
+                            tone=PressableFeedbackTone::Default
+                            aria_label="Primary action".to_string()
+                        >
+                            <div class="docs-ripple-surface">
+                                "Primary Surface"
+                            </div>
+                        </PressableFeedback>
+                        <PressableFeedback
+                            effect=PressableFeedbackEffect::Highlight
+                            tone=PressableFeedbackTone::Accent
+                            aria_label="Accent action".to_string()
+                        >
+                            <div class="docs-ripple-surface docs-ripple-surface--accent">
+                                "Accent Surface"
+                            </div>
+                        </PressableFeedback>
+                        <PressableFeedback is_disabled=true aria_label="Disabled action".to_string()>
+                            <div class="docs-ripple-surface docs-ripple-surface--static">
+                                "Disabled Surface"
+                            </div>
+                        </PressableFeedback>
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>

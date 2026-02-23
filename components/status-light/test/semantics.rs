@@ -638,15 +638,17 @@ fn status_light_styles_consume_ui_theme_tokens_for_core_visual_values() {
     let source = load_source("src/status_light/styles.rs");
 
     for expected in [
-        "gap: var(--ui-space-sm);",
-        "font-size: var(--ui-font-size-150);",
-        "width: var(--ui-space-sm);",
-        "height: var(--ui-space-sm);",
-        "border-radius: var(--ui-radius-lg);",
-        "--ui-status-light-dot: var(--ui-fg-muted);",
-        "--ui-status-light-label: var(--ui-fg-muted);",
-        "--ui-status-light-dot: var(--ui-accent);",
-        "--ui-status-light-dot: var(--ui-danger);",
+        "gap: var(--ui-space-sm, var(--ui-fallback-space-sm));",
+        "font-size: var(--ui-font-size-150, var(--ui-fallback-font-size-150));",
+        "line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150));",
+        "width: var(--ui-space-sm, var(--ui-fallback-space-sm));",
+        "height: var(--ui-space-sm, var(--ui-fallback-space-sm));",
+        "border-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));",
+        "box-shadow: 0 0 0 var(--ui-border-width, var(--ui-fallback-border-width))",
+        "--ui-status-light-dot: var(--ui-fg-muted, var(--ui-fallback-fg-muted));",
+        "--ui-status-light-label: var(--ui-fg-muted, var(--ui-fallback-fg-muted));",
+        "--ui-status-light-dot: var(--ui-accent, var(--ui-fallback-accent));",
+        "--ui-status-light-dot: var(--ui-danger, var(--ui-fallback-danger));",
     ] {
         assert!(
             source.contains(expected),
@@ -659,6 +661,7 @@ fn status_light_styles_consume_ui_theme_tokens_for_core_visual_values() {
         "width: 10px;",
         "height: 10px;",
         "border-radius: 9999px;",
+        "line-height: var(--ui-line-height-150, 20px);",
     ] {
         assert!(
             !source.contains(forbidden),
@@ -724,20 +727,73 @@ fn status_light_does_not_introduce_unnecessary_spec_file() {
 }
 
 #[test]
+fn status_light_context_compression_manifest_and_rbi_are_present_and_stable() {
+    let manifest_source = load_source("src/status_light/Component.toml");
+    let rbi_source = load_source("src/status_light/status_light.rbi");
+
+    for required in [
+        "schema_version = \"1\"",
+        "name = \"StatusLight\"",
+        "crate = \"ui-status-light\"",
+        "name = \"context_compression_manifest\"",
+        "name = \"rbi_signature_projection\"",
+        "name = \"variant\"",
+        "name = \"role\"",
+        "name = \"class_name\"",
+        "name = \"lang\"",
+        "name = \"dir\"",
+    ] {
+        assert!(
+            manifest_source.contains(required),
+            "StatusLight manifest should contain `{required}` for AI context compression."
+        );
+    }
+
+    for required in [
+        "pub enum StatusLightVariant {",
+        "pub enum StatusLightRole {",
+        "pub fn StatusLight(",
+        "variant: Option<StatusLightVariant>",
+        "role: Option<StatusLightRole>",
+        "class_name: Option<String>",
+        "lang: Option<String>",
+        "dir: Option<ui_headless::A11yDirection>",
+        "children: leptos::children::Children",
+    ] {
+        assert!(
+            rbi_source.contains(required),
+            "StatusLight RBI projection should contain `{required}`."
+        );
+    }
+}
+
+#[test]
 fn status_light_token_first_styles_are_feature_gated_in_css_aggregation() {
     let css_source = load_source("src/css.rs");
     let styles_source = load_source("src/status_light/styles.rs");
+    let view_source = load_source("src/status_light/view.rs");
 
     assert!(
         css_source.contains("#[cfg(feature = \"component-status_light\")]")
             && css_source.contains("out.push_str(crate::status_light::styles::CSS);"),
         "StatusLight CSS should be aggregated through feature-gated push_components_css entry."
     );
+    assert!(
+        css_source.contains("out.push_str(\"\\n@layer ui {\\n\");"),
+        "Component CSS aggregation should default to @layer ui."
+    );
 
     for forbidden in ["style=", ":nth-child", ".docs-"] {
         assert!(
             !styles_source.contains(forbidden),
             "StatusLight component styles should stay token-first/static and avoid fragile/runtime styling; found `{forbidden}`."
+        );
+    }
+
+    for forbidden in ["style=\"", "style='", "style ="] {
+        assert!(
+            !view_source.contains(forbidden),
+            "StatusLight view should not use regular inline style attributes; found `{forbidden}`."
         );
     }
 }

@@ -2,6 +2,14 @@ pub const CSS: &str = r#"
 .ui-pagination {
   display: inline-flex;
   align-items: center;
+  --ui-pagination-motion-duration: var(
+    --ui-text-field-motion-duration,
+    var(--ui-fallback-text-field-motion-duration, 180ms)
+  );
+  --ui-pagination-motion-easing: var(
+    --ui-text-field-motion-easing,
+    var(--ui-fallback-text-field-motion-easing, cubic-bezier(0.2, 0, 0, 1))
+  );
 }
 
 .ui-pagination__list {
@@ -31,5 +39,10 @@ pub const CSS: &str = r#"
 
 .ui-pagination__item[aria-current="page"] .ui-button {
   filter: brightness(0.93);
+}
+
+.ui-pagination .ui-button {
+  transition-duration: var(--ui-pagination-motion-duration);
+  transition-timing-function: var(--ui-pagination-motion-easing);
 }
 "#;

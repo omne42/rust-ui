@@ -58,24 +58,48 @@ fn progress_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
+fn progress_public_api_exposes_value_triplet_contract() {
+    let source = load_source("src/view.rs");
+
+    for needle in [
+        "#[prop(optional, into)] value: Option<Signal<Option<f64>>>",
+        "#[prop(optional)] default_value: Option<f64>",
+        "#[prop(optional)] on_value_change: Option<Callback<Option<f64>>>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Progress public value axis should expose `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn progress_uses_logic_state_model() {
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
 
     for needle in [
-        "pub struct ProgressStateInput",
-        "pub struct ProgressState",
-        "pub enum ProgressPhase",
-        "pub fn normalize_optional_text(",
-        "pub fn resolve_aria_label(",
-        "pub fn resolve_value_label(",
-        "pub fn resolve_phase(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
-        "label_source_attr",
-        "value_label_source_attr",
-        "motion_source_attr",
-        "class_source_attr",
+        "pub use ui_state_primitives::progress::{",
+        "ProgressStateInput",
+        "ProgressState",
+        "ProgressPhase",
+        "ProgressMode",
+        "ProgressValueAxis",
+        "ProgressRenderInput",
+        "ProgressRenderState",
+        "normalize_mode(",
+        "normalize_value_axis(",
+        "DEFAULT_MIN",
+        "DEFAULT_MAX",
+        "normalize_range(",
+        "normalize_progress_value(",
+        "normalize_optional_text",
+        "resolve_aria_label",
+        "resolve_value_label",
+        "resolve_phase",
+        "resolve_render_state(",
+        "resolve_state",
+        "compose_class_name",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -87,9 +111,21 @@ fn progress_uses_logic_state_model() {
         "logic::normalize_optional_text(class_name)",
         "logic::resolve_aria_label(aria_label)",
         "logic::resolve_value_label(value_label)",
+        "let mode = logic::normalize_mode(is_indeterminate);",
+        "logic::normalize_value_axis(value, default_value, on_value_change)",
+        "logic::normalize_range(min, max)",
+        "let render_state = Signal::derive(move || {",
+        "logic::resolve_render_state(logic::ProgressRenderInput {",
+        "mode,",
+        "let progress_value = Signal::derive(move || render_state.get().progress_value);",
+        "use_controllable_state(",
+        "value_axis.value",
+        "Some(value_axis.default_value)",
+        "value_axis.on_value_change",
         "logic::resolve_state(logic::ProgressStateInput {",
         "logic::compose_class_name(class_name, state)",
-        "logic::resolve_phase(is_indeterminate.get())",
+        "is_indeterminate: render_state.is_indeterminate,",
+        "progressbar_attrs(ProgressbarA11yOptions {",
     ] {
         assert!(
             view_source.contains(needle),
@@ -99,15 +135,41 @@ fn progress_uses_logic_state_model() {
 }
 
 #[test]
+fn progress_logic_consumes_state_primitives_for_value_axis_and_mode() {
+    let logic_source = load_source("src/logic.rs");
+
+    for needle in [
+        "pub use ui_state_primitives::progress::{",
+        "ProgressMode",
+        "ProgressValueAxisInput",
+        "ProgressValueAxisState",
+        "normalize_mode",
+        "resolve_value_axis",
+        "resolve_value_axis(ProgressValueAxisInput {",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Progress logic should consume state primitives via `{needle}`."
+        );
+    }
+
+    assert!(
+        !logic_source.contains("pub enum ProgressMode"),
+        "Progress mode enum should live in ui-state-primitives, not component logic.",
+    );
+}
+
+#[test]
 fn progress_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/view.rs");
 
     for attr in [
         "data-slot=\"progress\"",
-        "data-state=move || phase.get().as_str()",
-        "data-phase-class=move || phase.get().class_name()",
-        "data-indeterminate=move ||",
-        "data-determinate=move ||",
+        "data-state=move || a11y_contract.get().attrs.data_state",
+        "data-phase-class=move || render_state.get().phase.class_name()",
+        "data-status-mode=move || render_state.get().mode.as_str()",
+        "data-indeterminate=move || a11y_contract.get().attrs.data_indeterminate",
+        "data-determinate=move || a11y_contract.get().attrs.data_determinate",
         "data-label-source=state.label_source_attr",
         "data-value-label-source=state.value_label_source_attr",
         "data-motion-source=state.motion_source_attr",
@@ -116,8 +178,22 @@ fn progress_emits_baseline_style_state_data_attributes() {
         "data-custom-motion=state.has_custom_motion.then_some(\"true\")",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
         "data-class-source=state.class_source_attr",
-        "role=\"progressbar\"",
-        "aria-valuetext=move || value_label_text.get()",
+        "data-value-mode=value_mode_attr",
+        "data-value-source=value_source_attr",
+        "data-default-value-source=default_value_source_attr",
+        "data-value-change-source=value_change_source_attr",
+        "data-value-controlled=is_value_controlled.then_some(\"true\")",
+        "data-value-uncontrolled=(!is_value_controlled).then_some(\"true\")",
+        "data-custom-default-value=has_custom_default_value.then_some(\"true\")",
+        "data-custom-value-change=has_custom_on_value_change.then_some(\"true\")",
+        "role=move || a11y_contract.get().attrs.role",
+        "aria-label=move || a11y_contract.get().attrs.aria_label",
+        "aria-valuemin=move || a11y_contract.get().attrs.aria_valuemin",
+        "aria-valuemax=move || a11y_contract.get().attrs.aria_valuemax",
+        "aria-valuenow=move || a11y_contract.get().attrs.aria_valuenow",
+        "aria-valuetext=move || a11y_contract.get().attrs.aria_valuetext",
+        "lang=move || a11y_contract.get().attrs.lang",
+        "dir=move || a11y_contract.get().attrs.dir",
     ] {
         assert!(
             source.contains(attr),
@@ -213,6 +289,281 @@ fn progress_docs_playgrounds_lock_state_matrix_contract_values() {
         assert!(
             source.contains(needle),
             "progress docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn progress_performance_governance_contract_is_mount_only_traceable_and_blocking() {
+    let docs_shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
+    let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
+    let docs_coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
+    let docs_display_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+    let perf_script_source = load_source("../../scripts/check-ui-performance.sh");
+    let todo_source = load_source("../../docs/plan/TODO.md");
+
+    for needle in [
+        "fn component_page_perf_budget(slug: &'static str) -> UiPerfBudget",
+        "UiPerfBudget::mount_only(120.0)",
+        "<UiPerfProbe name=perf_name budget=perf_budget>",
+    ] {
+        assert!(
+            docs_shell_source.contains(needle),
+            "docs perf shell should keep `{needle}` for progress mount-only budget wiring.",
+        );
+    }
+
+    for needle in ["slug=\"progress\"", "pub(super) fn progress() -> AnyView"] {
+        assert!(
+            docs_display_source.contains(needle),
+            "progress docs page should keep `{needle}` for perf-probe routing.",
+        );
+    }
+
+    for needle in [
+        "data-perf-mount-ms",
+        "data-perf-budget-ms",
+        "data-perf-budget-update-ms",
+        "data-perf-budget-heap-kb",
+        "data-perf-violation",
+        "data-perf-observability",
+        "(mount_ms > budget.max_mount_ms).then_some(\"true\")",
+    ] {
+        assert!(
+            perf_probe_source.contains(needle),
+            "UiPerfProbe should expose performance contract marker `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "data-perf-mount-ms",
+        "data-perf-budget-ms",
+        "data-perf-observability",
+        "not.toHaveAttribute(\"data-perf-violation\", \"true\")",
+    ] {
+        assert!(
+            docs_coverage_source.contains(needle),
+            "docs e2e coverage should block perf regressions via `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "cargo test -p ui-progress --test progress_semantics progress_performance_governance_contract_is_mount_only_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+    ] {
+        assert!(
+            perf_script_source.contains(needle),
+            "performance gate script should include `{needle}`.",
+        );
+    }
+
+    assert!(
+        todo_source.contains("render_count"),
+        "perf governance should keep explicit render_count follow-up in docs/plan/TODO.md.",
+    );
+
+    let progress_view_source = load_source("src/view.rs");
+    let progress_bar_view_source = load_source("src/bar/view.rs");
+    let progress_circle_view_source = load_source("src/circle/view.rs");
+    for (name, source) in [
+        ("Progress", progress_view_source),
+        ("ProgressBar", progress_bar_view_source),
+        ("ProgressCircle", progress_circle_view_source),
+    ] {
+        for needle in [
+            "data-state",
+            "data-status-mode",
+            "data-value-source",
+            "data-motion-source",
+        ] {
+            assert!(
+                source.contains(needle),
+                "{name} view should keep `{needle}` for performance attribution.",
+            );
+        }
+    }
+}
+
+#[test]
+fn progress_check2_marks_performance_governance_item_complete() {
+    let source = load_source("check2.md");
+
+    for needle in [
+        "- [x] 性能治理：关键路径有预算",
+        "UiPerfProbe",
+        "data-perf-mount-ms",
+        "data-perf-violation",
+        "render_count",
+        "cargo test -p ui-progress --test progress_semantics progress_performance_governance_contract_is_mount_only_traceable_and_blocking",
+        "cargo test -p ui --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+    ] {
+        assert!(
+            source.contains(needle),
+            "progress check2 performance section should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn progress_view_macro_complexity_is_partitioned_for_progress_family() {
+    let progress_view_source = load_source("src/view.rs");
+    let progress_bar_view_source = load_source("src/bar/view.rs");
+    let progress_circle_view_source = load_source("src/circle/view.rs");
+
+    let progress_macro_count = progress_view_source.matches("view! {").count();
+    let progress_bar_macro_count = progress_bar_view_source.matches("view! {").count();
+    let progress_circle_macro_count = progress_circle_view_source.matches("view! {").count();
+
+    assert_eq!(
+        progress_macro_count, 1,
+        "Progress should keep a single bounded `view!` block for host structure."
+    );
+    assert_eq!(
+        progress_bar_macro_count, 1,
+        "ProgressBar should keep a single bounded `view!` block for host structure."
+    );
+    assert!(
+        (3..=5).contains(&progress_circle_macro_count),
+        "ProgressCircle should split complex SVG layout into semantic sub-render blocks (expected 3..=5 view macros), found {progress_circle_macro_count}.",
+    );
+
+    for (name, source, max_lines) in [
+        ("Progress", &progress_view_source, 180usize),
+        ("ProgressBar", &progress_bar_view_source, 140usize),
+        ("ProgressCircle", &progress_circle_view_source, 240usize),
+    ] {
+        assert!(
+            source.lines().count() <= max_lines,
+            "{name} view.rs should stay bounded (<= {max_lines} lines) to avoid giant macro expansion hotspots."
+        );
+    }
+
+    for needle in [
+        "fn render_progress_circle_svg(",
+        "fn render_progress_circle_track(",
+        "fn render_progress_circle_indicator(",
+        "render_progress_circle_svg(",
+    ] {
+        assert!(
+            progress_circle_view_source.contains(needle),
+            "ProgressCircle should expose semantic sub-render function `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn progress_check2_marks_view_macro_complexity_item_complete() {
+    let source = load_source("check2.md");
+
+    for needle in [
+        "- [x] `view!` 宏复杂度受控",
+        "render_progress_circle_svg",
+        "render_progress_circle_track",
+        "render_progress_circle_indicator",
+        "cargo test -p ui-progress --test progress_semantics progress_view_macro_complexity_is_partitioned_for_progress_family",
+    ] {
+        assert!(
+            source.contains(needle),
+            "progress check2 macro-complexity section should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn progress_view_prefers_function_helpers_over_local_components() {
+    let progress_view_source = load_source("src/view.rs");
+    let progress_bar_view_source = load_source("src/bar/view.rs");
+    let progress_circle_view_source = load_source("src/circle/view.rs");
+
+    for (name, source) in [
+        ("Progress", &progress_view_source),
+        ("ProgressBar", &progress_bar_view_source),
+        ("ProgressCircle", &progress_circle_view_source),
+    ] {
+        let component_count = source.matches("#[component]").count();
+        assert_eq!(
+            component_count, 1,
+            "{name} view should expose exactly one top-level `#[component]`; local UI fragments should stay as plain helper functions."
+        );
+    }
+
+    for needle in [
+        "fn render_progress_circle_svg(",
+        "fn render_progress_circle_track(",
+        "fn render_progress_circle_indicator(",
+        "render_progress_circle_svg(",
+    ] {
+        assert!(
+            progress_circle_view_source.contains(needle),
+            "ProgressCircle should keep functional fragment helper `{needle}` instead of introducing extra local components."
+        );
+    }
+}
+
+#[test]
+fn progress_check2_marks_functional_split_item_complete() {
+    let source = load_source("check2.md");
+
+    for needle in [
+        "- [x] 函数式拆分优先",
+        "render_progress_circle_svg",
+        "render_progress_circle_track",
+        "render_progress_circle_indicator",
+        "cargo test -p ui-progress --test progress_semantics progress_view_prefers_function_helpers_over_local_components",
+    ] {
+        assert!(
+            source.contains(needle),
+            "progress check2 functional-split section should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn progress_view_static_fragments_are_templated_and_constantized() {
+    let progress_circle_view_source = load_source("src/circle/view.rs");
+
+    for needle in [
+        "const PROGRESS_CIRCLE_SVG_SLOT: &str = \"progress-circle-svg\";",
+        "const PROGRESS_CIRCLE_TRACK_SLOT: &str = \"progress-circle-track\";",
+        "const PROGRESS_CIRCLE_INDICATOR_SLOT: &str = \"progress-circle-indicator\";",
+        "struct ProgressCircleSvgTemplate",
+        "fn build_progress_circle_svg_template(",
+        "let svg_template = build_progress_circle_svg_template(",
+        "render_progress_circle_svg(",
+        "render_progress_circle_track(",
+        "render_progress_circle_indicator(",
+        "data-slot=PROGRESS_CIRCLE_SVG_SLOT",
+        "data-slot=PROGRESS_CIRCLE_TRACK_SLOT",
+        "data-slot=PROGRESS_CIRCLE_INDICATOR_SLOT",
+        "role=move || a11y_contract.get().attrs.role",
+        "aria-label=move || a11y_contract.get().attrs.aria_label",
+    ] {
+        assert!(
+            progress_circle_view_source.contains(needle),
+            "ProgressCircle should keep static SVG fragments templated/constantized with `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn progress_check2_marks_static_fragment_constantization_item_complete() {
+    let source = load_source("check2.md");
+
+    for needle in [
+        "- [x] 静态片段常量化",
+        "ProgressCircleSvgTemplate",
+        "build_progress_circle_svg_template",
+        "PROGRESS_CIRCLE_SVG_SLOT",
+        "PROGRESS_CIRCLE_TRACK_SLOT",
+        "PROGRESS_CIRCLE_INDICATOR_SLOT",
+        "cargo test -p ui-progress --test progress_semantics progress_view_static_fragments_are_templated_and_constantized",
+    ] {
+        assert!(
+            source.contains(needle),
+            "progress check2 static-fragment section should include `{needle}`.",
         );
     }
 }

@@ -26,3 +26,7 @@ pub use crate::text_field;
 pub use crate::textarea;
 #[cfg(feature = "component-time_field")]
 pub use crate::time_field;
+
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics_tests;

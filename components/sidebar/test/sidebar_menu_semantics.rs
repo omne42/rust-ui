@@ -72,13 +72,12 @@ fn sidebar_menu_uses_logic_state_model() {
     let view_source = load_source("../../components/sidebar/src/menu/view.rs");
 
     for needle in [
-        "pub struct SidebarMenuItem",
-        "pub struct SidebarMenuSubItem",
+        "use ui_state_primitives::sidebar_menu as primitives;",
+        "pub use primitives::{SidebarMenuItem, SidebarMenuSubItem};",
         "pub struct SidebarMenuState",
         "pub fn normalize_items(",
         "pub fn default_open_sub_ids(",
         "pub fn default_active_id(",
-        "pub fn next_id_for_key(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
     ] {
@@ -89,13 +88,14 @@ fn sidebar_menu_uses_logic_state_model() {
     }
 
     for needle in [
-        "overlay_open::use_controllable_state(",
+        "headless::use_controllable_state(",
         "logic::normalize_items(items)",
-        "logic::default_open_sub_ids(items.as_ref())",
+        "logic::default_open_sub_id_set(items.as_ref())",
         "logic::default_active_id(items.as_ref(), default_active_id)",
         "logic::resolve_state(",
         "logic::compose_class_name(class_name.get_value(), state.get())",
-        "logic::next_id_for_key(",
+        "headless::use_sidebar_menu_keyboard(",
+        "SidebarMenuKeyDownInput {",
         "attach_active_highlight_motion(",
     ] {
         assert!(
@@ -114,7 +114,7 @@ fn sidebar_menu_supports_controlled_and_uncontrolled_active_state() {
         "default_active_id: Option<String>",
         "on_active_id_change: Option<Callback<Option<String>>>",
         "let is_controlled = active_id.is_some()",
-        "overlay_open::use_controllable_state(",
+        "headless::use_controllable_state(",
     ] {
         assert!(
             source.contains(needle),
@@ -132,6 +132,7 @@ fn sidebar_menu_emits_baseline_root_state_data_attributes() {
         "data-state=move || state.get().state_attr",
         "data-count=item_count.to_string()",
         "data-empty=move || state.get().is_empty.then_some(\"true\")",
+        r#"data-disabled=move || state.get().disabled.then_some("true")"#,
         "data-show-badges=move || state.get().show_badges.then_some(\"true\")",
         "data-show-actions=move || state.get().show_actions.then_some(\"true\")",
         "data-collapsible-sub=move || state.get().allow_submenu_collapse.then_some(\"true\")",

@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_headless::{InputOtpOptions, use_input_otp};
+use ui_headless::{InputOtpOptions, input_otp_slot_selection_range, use_input_otp};
 
 fn init_executor() {
     let _ = any_spawner::Executor::init_futures_executor();
@@ -113,4 +113,13 @@ fn input_otp_ignores_handlers_when_disabled() {
     assert_eq!(value.get_untracked(), "12");
     assert!(!otp.is_focused.get_untracked());
     assert_eq!(otp.caret_index.get_untracked(), 0);
+}
+
+#[test]
+fn input_otp_slot_selection_range_clamps_within_value_length() {
+    assert_eq!(input_otp_slot_selection_range(0, 0), (0, 0));
+    assert_eq!(input_otp_slot_selection_range(0, 4), (0, 1));
+    assert_eq!(input_otp_slot_selection_range(2, 4), (2, 3));
+    assert_eq!(input_otp_slot_selection_range(4, 4), (4, 4));
+    assert_eq!(input_otp_slot_selection_range(9, 4), (4, 4));
 }

@@ -27,3 +27,10 @@ pub(super) const TABS_DOC: ComponentDoc = ComponentDoc {
     group: "Collections",
     page: super::collections::tabs,
 };
+
+pub(super) const TABS_ITEM_DOC: ComponentDoc = ComponentDoc {
+    name: "TabsItem",
+    slug: "tabs-item",
+    group: "Collections",
+    page: super::collections::tabs,
+};

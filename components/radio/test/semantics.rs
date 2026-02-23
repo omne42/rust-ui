@@ -117,8 +117,8 @@ fn radio_does_not_expose_logic_or_view_modules() {
         );
     }
 
-    let crate_source = load_source("src/lib.rs");
-    let cargo_source = load_source("Cargo.toml");
+    let crate_source = load_source("../../crates/ui/src/lib.rs");
+    let cargo_source = load_source("../../crates/ui/Cargo.toml");
     assert!(
         crate_source.contains("pub use ui_radio as radio;")
             && crate_source.contains(
@@ -139,7 +139,7 @@ fn radio_does_not_expose_logic_or_view_modules() {
 #[test]
 fn radio_group_uses_headless_roving_and_interaction_hooks() {
     let source = load_source("src/radio/view.rs");
-    let headless_radio_source = load_source("../ui-headless/src/radio.rs");
+    let headless_radio_source = load_source("../../crates/ui-headless/src/radio.rs");
 
     for needle in ["use_radio", "use_focus_ring", "use_hover", "use_press"] {
         assert!(
@@ -166,7 +166,7 @@ fn radio_group_uses_headless_roving_and_interaction_hooks() {
 fn radio_group_consumes_state_primitives_model() {
     let view_source = load_source("src/radio/view.rs");
     let logic_source = load_source("src/radio/logic.rs");
-    let primitive_source = load_source("../ui-state-primitives/src/radio.rs");
+    let primitive_source = load_source("../../crates/ui-state-primitives/src/radio.rs");
 
     for needle in [
         "pub use ui_state_primitives::radio::{",
@@ -213,7 +213,7 @@ fn radio_group_consumes_state_primitives_model() {
 #[test]
 fn radio_group_supports_accessible_name_resolution() {
     let view_source = load_source("src/radio/view.rs");
-    let primitive_source = load_source("../ui-state-primitives/src/radio.rs");
+    let primitive_source = load_source("../../crates/ui-state-primitives/src/radio.rs");
 
     for needle in [
         "aria_label: Option<String>",
@@ -459,33 +459,58 @@ fn radio_view_does_not_use_inner_html() {
 
 #[test]
 fn radio_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+    let forms_source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+    let radio_source = load_source("../../apps/docs-app/src/pages/components/pages/forms/radio.rs");
+    let radio_group_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms/radio_group.rs");
 
     for needle in [
-        "pub(super) fn radio_group() -> AnyView",
+        "mod radio;",
+        "mod radio_group;",
+        "pub(super) use radio::radio;",
+        "pub(super) use radio_group::radio_group;",
+    ] {
+        assert!(
+            forms_source.contains(needle),
+            "forms entry module should include `{needle}` for radio docs routing.",
+        );
+    }
+
+    for needle in [
+        "pub(crate) fn radio_group() -> AnyView",
         "title=\"RadioGroup\"",
         "slug=\"radio-group\"",
         "description=\"Roving tabindex radiogroup with baseline-level spring motion and baseline-style root state attrs.\"",
         "<Playground title=\"Hello World（默认路径）\" code_signal=code>",
-        "<Playground title=\"Interactive Matrix（方向/禁用/状态）\" code_signal=matrix_code>",
-        "pub(super) fn radio() -> AnyView",
+        "<Playground title=\"State Matrix (Horizontal / Vertical / Empty)\" code_signal=matrix_code>",
+        "<RadioGroup",
+    ] {
+        assert!(
+            radio_group_source.contains(needle),
+            "radio-group docs should include `{needle}` for primary playground coverage.",
+        );
+    }
+
+    for needle in [
+        "pub(crate) fn radio() -> AnyView",
         "title=\"Radio\"",
         "slug=\"radio\"",
         "<Playground title=\"Hello World（默认路径）\" code_signal=code>",
         "<Playground title=\"状态矩阵（受控 + disabled）\" code_signal=matrix_code>",
-        "<RadioGroup",
         "<Radio",
     ] {
         assert!(
-            source.contains(needle),
-            "forms docs should include `{needle}` for radio primary playground coverage.",
+            radio_source.contains(needle),
+            "radio docs should include `{needle}` for primary playground coverage.",
         );
     }
 }
 
 #[test]
 fn radio_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+    let radio_source = load_source("../../apps/docs-app/src/pages/components/pages/forms/radio.rs");
+    let radio_group_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms/radio_group.rs");
 
     for needle in [
         "title=\"Hello World（默认路径）\"",
@@ -493,24 +518,29 @@ fn radio_docs_playgrounds_lock_state_matrix_contract_values() {
         "label=\"Size\".to_string()",
         "selected_index=selected",
         "set_selected_index=set_selected",
-        "title=\"Interactive Matrix（方向/禁用/状态）\"",
-        "set_billing_is_horizontal.update(|value| *value = !*value)",
-        "set_billing_group_disabled.update(|value| *value = !*value)",
-        "set_billing_disable_middle.update(|value| *value = !*value)",
-        "class=\"ui-button\"",
-        "id_base=\"docs-radio-group-billing\".to_string()",
-        "orientation=orientation",
-        "is_disabled=is_disabled",
-        "disabled_indices=disabled_indices",
-        "aria_labelledby=external_label_id.clone()",
-        "selected_index=billing_selected",
-        "set_selected_index=set_billing_selected",
+        "title=\"State Matrix (Horizontal / Vertical / Empty)\"",
+        "id_base=\"docs-radio-group-matrix-horizontal\".to_string()",
+        "orientation=RadioGroupOrientation::Horizontal",
+        "id_base=\"docs-radio-group-matrix-vertical\".to_string()",
+        "orientation=RadioGroupOrientation::Vertical",
+        "aria_labelledby=\"docs-radio-group-billing-label\".to_string()",
+        "selected_index=matrix_vertical_selected",
+        "set_selected_index=set_matrix_vertical_selected",
         "id_base=\"docs-radio-group-empty\".to_string()",
         "options=empty_options",
         "is_disabled=true",
         "aria_label=\"No options available\".to_string()",
         "selected_index=empty_selected",
         "set_selected_index=set_empty_selected",
+    ] {
+        assert!(
+            radio_group_source.contains(needle),
+            "radio-group docs playgrounds should contain `{needle}` for matrix contracts.",
+        );
+    }
+
+    for needle in [
+        "title=\"Hello World（默认路径）\"",
         "title=\"状态矩阵（受控 + disabled）\"",
         "id=\"docs-radio\".to_string()",
         "id=\"docs-radio-controlled\".to_string()",
@@ -523,8 +553,8 @@ fn radio_docs_playgrounds_lock_state_matrix_contract_values() {
         "on_checked_change=on_checked_change",
     ] {
         assert!(
-            source.contains(needle),
-            "forms docs playgrounds should contain `{needle}` for radio contracts.",
+            radio_source.contains(needle),
+            "radio docs playgrounds should contain `{needle}` for state matrix contracts.",
         );
     }
 }
@@ -533,7 +563,7 @@ fn radio_docs_playgrounds_lock_state_matrix_contract_values() {
 fn radio_checked_axis_is_normalized_in_logic_and_consumed_by_view() {
     let logic_source = load_source("src/radio/logic.rs");
     let view_source = load_source("src/radio/view.rs");
-    let primitive_source = load_source("../ui-state-primitives/src/radio.rs");
+    let primitive_source = load_source("../../crates/ui-state-primitives/src/radio.rs");
 
     for needle in [
         "pub struct CheckedAxisInput",
@@ -552,6 +582,7 @@ fn radio_checked_axis_is_normalized_in_logic_and_consumed_by_view() {
 
     for needle in [
         "pub const DEFAULT_CHECKED: bool = false;",
+        "pub enum RadioCheckedControlMode",
         "pub struct RadioCheckedAxisInput",
         "pub struct RadioCheckedAxisState",
         "pub fn resolve_checked_axis(",
@@ -634,8 +665,8 @@ fn radio_check2_marks_docs_playground_and_copy_ready_contract_complete() {
 #[test]
 fn radio_check2_marks_architecture_anti_pattern_guards_complete() {
     let check2 = load_source("src/radio/check2.md");
-    let primitive = load_source("../ui-state-primitives/src/radio.rs");
-    let headless = load_source("../ui-headless/src/radio.rs");
+    let primitive = load_source("../../crates/ui-state-primitives/src/radio.rs");
+    let headless = load_source("../../crates/ui-headless/src/radio.rs");
 
     for needle in [
         "- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。",
@@ -784,8 +815,8 @@ fn radio_check2_marks_a11y_observability_and_file_layout_complete() {
 fn radio_check2_marks_platform_and_tree_shaking_contract_complete() {
     let check2 = load_source("src/radio/check2.md");
     let motion_source = load_source("src/radio/motion.rs");
-    let headless_lib = load_source("../ui-headless/src/lib.rs");
-    let motion_lib = load_source("../ui-motion/src/lib.rs");
+    let headless_lib = load_source("../../crates/ui-headless/src/lib.rs");
+    let motion_lib = load_source("../../crates/ui-motion/src/lib.rs");
 
     for needle in [
         "- [x] Tree Shaking 是一等能力",
@@ -898,7 +929,7 @@ fn radio_check2_marks_semantics_and_e2e_regression_contract_complete() {
 
     for needle in [
         "- [x] 语义测试优先",
-        "radio_semantics.rs",
+        "semantics.rs",
         "- [x] E2E 选择器稳定",
         "- [x] 关键流程纳入可重复回归集合",
         "docs_app_radio.spec.mjs",

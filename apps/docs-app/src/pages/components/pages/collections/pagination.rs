@@ -7,8 +7,10 @@ pub(crate) fn pagination() -> AnyView {
 
     let (showcase_page, set_showcase_page) = signal(1_usize);
     let (showcase_last_change, set_showcase_last_change) = signal(None::<usize>);
-    let on_showcase_change =
-        Callback::new(move |next: usize| set_showcase_last_change.set(Some(next)));
+    let on_showcase_page_change = Callback::new(move |next: usize| {
+        set_showcase_page.set(next);
+        set_showcase_last_change.set(Some(next));
+    });
 
     let (workbench_total_pages_index, set_workbench_total_pages_index) = signal(Some(0_usize));
     let (workbench_siblings_index, set_workbench_siblings_index) = signal(Some(1_usize));
@@ -23,6 +25,12 @@ pub(crate) fn pagination() -> AnyView {
     let (matrix_first_page, set_matrix_first_page) = signal(1_usize);
     let (matrix_middle_page, set_matrix_middle_page) = signal(6_usize);
     let (matrix_disabled_page, set_matrix_disabled_page) = signal(1_usize);
+    let on_matrix_first_page_change =
+        Callback::new(move |next: usize| set_matrix_first_page.set(next));
+    let on_matrix_middle_page_change =
+        Callback::new(move |next: usize| set_matrix_middle_page.set(next));
+    let on_matrix_disabled_page_change =
+        Callback::new(move |next: usize| set_matrix_disabled_page.set(next));
 
     let workbench_total_pages = Signal::derive(move || {
         if workbench_total_pages_index.get().unwrap_or(0) == 1 {
@@ -67,36 +75,35 @@ pub(crate) fn pagination() -> AnyView {
         }
     });
 
-    let on_workbench_change = Callback::new(move |next: usize| {
-        if !workbench_enable_on_change.get_untracked() {
-            return;
+    let on_workbench_page_change = Callback::new(move |next: usize| {
+        set_workbench_page.set(next);
+        if workbench_enable_on_change.get_untracked() {
+            set_workbench_last_change.set(Some(next));
         }
-        set_workbench_last_change.set(Some(next));
     });
 
     let showcase_code = Signal::derive(move || {
         r#"let (page, set_page) = signal(1_usize);
-let on_change = Callback::new(move |next: usize| { /* visible feedback */ });
+let on_page_change = Callback::new(move |next: usize| set_page.set(next));
 <Pagination
   total_pages=12
   page=page
-  set_page=set_page
+  on_page_change=on_page_change
   siblings=1
   boundaries=1
-  on_change=on_change
   aria_label="Pagination nav".to_string()
 />"#
         .to_string()
     });
 
     let workbench_code = Signal::derive(move || {
-        let on_change_expr = if workbench_enable_on_change.get() {
-            "Some(on_workbench_change)"
+        let on_page_change_expr = if workbench_enable_on_change.get() {
+            "Some(on_workbench_page_change)"
         } else {
             "None"
         };
         format!(
-            "<Pagination\n  total_pages={}\n  page=workbench_page\n  set_page=set_workbench_page\n  siblings={}\n  boundaries={}\n  disabled={}\n  on_change={on_change_expr}\n  aria_label={}\n  class_name={}\n/>",
+            "<Pagination\n  total_pages={}\n  page=workbench_page\n  default_page=3\n  siblings={}\n  boundaries={}\n  is_disabled={}\n  on_page_change={on_page_change_expr}\n  aria_label={}\n  class_name={}\n/>",
             workbench_total_pages.get(),
             workbench_siblings.get(),
             workbench_boundaries.get(),
@@ -108,7 +115,7 @@ let on_change = Callback::new(move |next: usize| { /* visible feedback */ });
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "PaginationActualConfig {{\n  total_pages: {},\n  page: workbench_page,\n  set_page: set_workbench_page,\n  siblings: {},\n  boundaries: {},\n  disabled: {},\n  on_change: {},\n  aria_label: {:?},\n  class_name: {:?},\n}}",
+            "PaginationActualConfig {{\n  total_pages: {},\n  page: Some(workbench_page),\n  default_page: 3,\n  siblings: {},\n  boundaries: {},\n  is_disabled: {},\n  on_page_change: {},\n  aria_label: {:?},\n  class_name: {:?},\n}}",
             workbench_total_pages.get(),
             workbench_siblings.get(),
             workbench_boundaries.get(),
@@ -124,11 +131,11 @@ let on_change = Callback::new(move |next: usize| { /* visible feedback */ });
     });
 
     let matrix_code = Signal::derive(move || {
-        r#"<Pagination total_pages=12 page=matrix_first_page set_page=set_matrix_first_page siblings=1 boundaries=1 />
+        r#"<Pagination total_pages=12 page=matrix_first_page on_page_change=on_matrix_first_page_change siblings=1 boundaries=1 />
 <Pagination
   total_pages=12
   page=matrix_middle_page
-  set_page=set_matrix_middle_page
+  on_page_change=on_matrix_middle_page_change
   siblings=2
   boundaries=2
   aria_label="Middle page".to_string()
@@ -137,9 +144,8 @@ let on_change = Callback::new(move |next: usize| { /* visible feedback */ });
 <Pagination
   total_pages=1
   page=matrix_disabled_page
-  set_page=set_matrix_disabled_page
-  disabled=true
-  on_change=on_workbench_change
+  on_page_change=on_matrix_disabled_page_change
+  is_disabled=true
 />"#
             .to_string()
     });
@@ -161,10 +167,9 @@ let on_change = Callback::new(move |next: usize| { /* visible feedback */ });
                     <Pagination
                         total_pages=12
                         page=showcase_page
-                        set_page=set_showcase_page
+                        on_page_change=on_showcase_page_change
                         siblings=1
                         boundaries=1
-                        on_change=on_showcase_change
                         aria_label="Pagination nav".to_string()
                     />
                     <span class="ui-muted">
@@ -248,7 +253,7 @@ let on_change = Callback::new(move |next: usize| { /* visible feedback */ });
                                 prop:checked=move || workbench_enable_on_change.get()
                                 on:change=move |event| set_workbench_enable_on_change.set(event_target_checked(&event))
                             />
-                            <span>"enable on_change callback"</span>
+                            <span>"enable on_page_change callback"</span>
                         </label>
                         <label class="docs-choice-row">
                             <input
@@ -273,11 +278,11 @@ let on_change = Callback::new(move |next: usize| { /* visible feedback */ });
                     <Pagination
                         total_pages=workbench_total_pages.get()
                         page=workbench_page
-                        set_page=set_workbench_page
+                        default_page=3_usize
                         siblings=workbench_siblings.get()
                         boundaries=workbench_boundaries.get()
-                        disabled=workbench_disabled.get()
-                        on_change=on_workbench_change
+                        is_disabled=workbench_disabled.get()
+                        on_page_change=on_workbench_page_change
                         aria_label=workbench_aria_label.get()
                         class_name=workbench_class_name.get()
                     />
@@ -300,7 +305,7 @@ let on_change = Callback::new(move |next: usize| { /* visible feedback */ });
                         <Pagination
                             total_pages=12
                             page=matrix_first_page
-                            set_page=set_matrix_first_page
+                            on_page_change=on_matrix_first_page_change
                             siblings=1
                             boundaries=1
                         />
@@ -311,7 +316,7 @@ let on_change = Callback::new(move |next: usize| { /* visible feedback */ });
                         <Pagination
                             total_pages=12
                             page=matrix_middle_page
-                            set_page=set_matrix_middle_page
+                            on_page_change=on_matrix_middle_page_change
                             siblings=2
                             boundaries=2
                             aria_label="Middle page".to_string()
@@ -324,9 +329,8 @@ let on_change = Callback::new(move |next: usize| { /* visible feedback */ });
                         <Pagination
                             total_pages=1
                             page=matrix_disabled_page
-                            set_page=set_matrix_disabled_page
-                            disabled=true
-                            on_change=on_workbench_change
+                            on_page_change=on_matrix_disabled_page_change
+                            is_disabled=true
                         />
                         <span class="ui-muted">"disabled window: " {move || matrix_disabled_page.get()}</span>
                     </div>

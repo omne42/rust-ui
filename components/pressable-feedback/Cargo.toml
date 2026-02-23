@@ -16,5 +16,6 @@ ui-headless = { path = "../../crates/ui-headless" }
 ui-motion = { path = "../../crates/ui-motion" }
 ui-observability = { path = "../../crates/ui-observability" }
 ui-ripple = { path = "../ripple" }
+ui-state-primitives = { path = "../../crates/ui-state-primitives" }
 ui-visual-primitive = { path = "../../crates/ui-visual-primitive" }
 serde = { version = "1.0", features = ["derive"] }

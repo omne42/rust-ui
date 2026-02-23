@@ -5,15 +5,27 @@ name = "Tray"
 crate = "ui-tray"
 
 [[inputs]]
-name = "open"
-ty = "leptos::prelude::Signal<bool>"
-default = "required"
+name = "is_open"
+ty = "Option<leptos::prelude::Signal<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_open"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_open_change"
+ty = "Option<leptos::prelude::Callback<bool>>"
+default = "None"
 controlled = true
 
 [[inputs]]
 name = "on_close"
-ty = "ui_headless::OnPress"
-default = "required"
+ty = "Option<ui_headless::OnPress>"
+default = "None"
 controlled = false
 
 [[inputs]]
@@ -48,38 +60,38 @@ controlled = false
 
 [[inputs]]
 name = "motion"
-ty = "TrayMotion"
-default = "TrayMotion::default()"
+ty = "Option<TrayMotion>"
+default = "None"
 controlled = false
 
 [[inputs]]
-name = "show_close_button"
-ty = "bool"
-default = "true"
+name = "is_show_close_button"
+ty = "Option<bool>"
+default = "None"
 controlled = false
 
 [[inputs]]
 name = "close_label"
-ty = "&'static str"
-default = "\"Close tray\""
+ty = "Option<&'static str>"
+default = "None"
 controlled = false
 
 [[inputs]]
 name = "is_fixed_height"
-ty = "bool"
-default = "false"
+ty = "Option<bool>"
+default = "None"
 controlled = false
 
 [[inputs]]
 name = "is_dismissable"
-ty = "bool"
-default = "true"
+ty = "Option<bool>"
+default = "None"
 controlled = false
 
 [[inputs]]
 name = "is_keyboard_dismiss_disabled"
-ty = "bool"
-default = "false"
+ty = "Option<bool>"
+default = "None"
 controlled = false
 
 [[inputs]]
@@ -108,7 +120,7 @@ controlled = false
 
 [[outputs]]
 name = "semantic-markers"
-ty = "data-slot + data-state + data-open + data-closed + data-description + data-footer + data-close-button + data-*-source + aria-* + lang + dir"
+ty = "data-slot + data-state + data-open + data-closed + data-open-source + data-description + data-footer + data-close-button + data-*-source + aria-* + lang + dir"
 scope = "tray-root/header/title/description/body/footer/close"
 
 [[outputs]]

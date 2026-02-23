@@ -10,7 +10,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 大骨架（架构边界与层职责）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`Toast` 状态机与上限归一化来自 `crates/ui-state-primitives/src/toast.rs`，`Sonner` 状态归一/派生来自 `crates/ui-state-primitives/src/sonner.rs`，`CloseButton` 的 `variant/size`、文本归一与状态派生已下沉到 `crates/ui-state-primitives/src/close_button.rs`；组件侧仅消费 primitive（`components/toast/src/toast/logic.rs`、`components/toast/src/sonner/logic.rs`、`components/toast/src/close_button/logic.rs`）。对应 primitive 单测覆盖：`crates/ui-state-primitives/src/test/toast.rs`、`crates/ui-state-primitives/src/test/sonner.rs`、`crates/ui-state-primitives/src/test/close_button.rs`。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -20,7 +20,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`Toast` 的键盘关闭与 live-region/locale 语义已下沉到 `crates/ui-headless/src/toast.rs`：`use_toast_a11y + should_dismiss_toast_on_escape` 输出 `ToastA11yContract { attrs, handlers, state }`；组件层仅在 `components/toast/src/toast/view.rs` 挂载 `role/aria-live/aria-keyshortcuts/lang/dir/on:keydown`，不在 view 内重写键盘判定。回归：`crates/ui-headless/src/test/toast.rs`、`components/toast/test/toast/semantics.rs::toast_has_baseline_style_accessibility_semantics`。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -31,14 +31,14 @@
   - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`Toast` 的动效契约集中在 `components/toast/src/toast/motion.rs`：仅暴露 `ToastMotion + sanitize_motion + attach_motion`，语义状态映射为 `open/close` 目标值；执行层复用 `ui_motion::presets/spring::sanitize_config/SpringAnimator`，未在组件层自实现 spring/keyframe/driver 引擎。默认参数来自 `ui_theme::default_overlay_layout_tokens` 与 `ui_motion::presets::spring_slide()`，non-wasm 分支提供 `attach_motion` stub（关闭时只触发 `on_exit_complete`）以保证 SSR/tooling 可编译与可预测。回归：`components/toast/test/toast/motion.rs`、`components/toast/test/toast/semantics.rs::toast_motion_sanitizes_custom_contract_values`、`components/toast/test/sonner/semantics.rs::sonner_motion_non_wasm_stub_exists`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`Toast` 视觉语义未在组件层重建主题：token 分类与基线定义位于 `crates/ui-theme/src/tokens.rs`，三轴上下文与映射位于 `crates/ui-theme/src/theme.rs`，CSS 变量输出位于 `crates/ui-theme/src/css.rs`；组件样式仅消费 `var(--ui-*)`（`components/toast/src/toast/styles.rs`、`components/toast/src/sonner/styles.rs`、`components/toast/src/close_button/styles.rs`）。量化尺寸与 overlay 基线回归由 `crates/ui-theme/tests/token_scale_baseline.rs` 覆盖，WCAG 2.1 AA（Light/Dark/OLED）由 `crates/ui-theme/tests/wcag_contrast.rs` 覆盖；Toast 侧语义回归在 `components/toast/test/toast/semantics.rs::toast_theme_contract_uses_ui_theme_single_source_of_truth` 与 `components/toast/test/toast/semantics.rs::toast_theme_contract_keeps_scale_baseline_and_wcag_regressions` 锁定。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -46,7 +46,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`Toast` 分层装配已固定：`components/toast/src/toast/logic.rs` 仅做 props 归一与状态派生并消费 `ui-state-primitives`；`components/toast/src/toast/view.rs` 只做结构渲染与 `ui-headless` 语义挂载；`components/toast/src/toast/styles.rs` 保持 token-first 静态样式；`components/toast/src/toast/motion.rs` 负责动效 attach 且复用 `ui-motion` + `ui-theme` token。对外 API 边界收敛在 `components/toast/src/toast/mod.rs`：`motion` 为 `pub(crate)`，仅公开 `ToastMotion`/`Toast`/`ToastViewport`，不泄露 `web-sys`/DOM 类型。语义回归位于 `components/toast/test/toast/semantics.rs`（`toast_component_directory_standard_files_follow_responsibility_boundaries`、`toast_ui_assembly_layer_composes_primitives_and_hides_dom_public_api`）；`semantics.rs` 已在新目录 `components/toast/test/toast/semantics.rs`。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -58,57 +58,57 @@
   - 通知边界：切片值实现 `PartialEq` 时，若值未变化则不通知下游，相关 DOM 绑定不更新。
   - 成本边界：每次 `set/update` 仍会执行状态转移与切片重算；大状态或高频路径必须拆分 `Signal`/状态域，避免把 clone 成本当作恒定可忽略。
   - 反模式禁止：`view.rs` 只做挂载与消费切片，禁止重新实现状态机分支或复制 `logic.rs` 判定规则。
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（本次已统一：`Toast` 仅保留 `is_open/default_open/on_open_change`（移除 `open` 别名），`ToastViewport`/`Sonner` 使用 `is_portal`，`CloseButton` 使用 `is_disabled`；实现见 `components/toast/src/toast/view.rs`、`components/toast/src/sonner/view.rs`、`components/toast/src/close_button/view.rs`、`components/toast/src/toast/logic.rs`。迁移路径：`open -> is_open`、`portal -> is_portal`、`disabled -> is_disabled`，不保留同义别名。回归：`components/toast/test/toast/semantics.rs::toast_public_api_uses_is_on_default_prefixes_without_alias_drift`、`components/toast/test/sonner/semantics.rs::sonner_api_naming_contract_matches_overlay_family_without_alias_drift`。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`Toast` 当前唯一可控轴为 `is_open/default_open/on_open_change`：API 定义见 `components/toast/src/toast/view.rs`，模式归一化见 `components/toast/src/toast/logic.rs::resolve_open_state_config`，并通过 `use_controllable_open_state_traced` 统一受控/非受控路径。`Sonner/ToastViewport/CloseButton` 无可控状态轴，按 N/A 保持配置型或单次输入组件，不暴露半受控接口。回归：`components/toast/test/toast/semantics.rs::toast_controllable_axis_is_complete_and_avoids_half_controlled_contract`、`components/toast/test/toast/logic.rs::open_state_config_uncontrolled_axis_keeps_pairing_semantics`、`components/toast/test/sonner/semantics.rs::sonner_has_no_controllable_state_axis_and_no_half_controlled_api`。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`Toast` 默认值归一已集中到 `components/toast/src/toast/logic.rs`：`resolve_open_state_config`（`default_open` 优先级）、`resolve_callbacks_config`（`on_close/on_exit_complete` 默认行为）、`resolve_close_aria_label`、`resolve_viewport_config`（`is_portal/max_toasts` 来源标记）、`resolve_instance_open/resolve_instance_description`（record 缺失与描述默认值）。`components/toast/src/toast/view.rs` 仅消费上述归一输出，不再包含 `unwrap_or/unwrap_or_else` 二次兜底。回归：`components/toast/test/toast/semantics.rs::toast_default_values_are_normalized_once_in_logic`、`components/toast/test/toast/logic.rs::callback_and_label_defaults_are_centralized_in_logic`、`components/toast/test/toast/logic.rs::viewport_defaults_and_record_fallbacks_are_centralized_in_logic`。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`components/toast/src/toast/logic.rs` 已统一提供状态派生入口：`ToastNormalizeInput/ToastNormalizedProps/normalize_props`、`ToastOpenStateMarkers/resolve_open_state_markers`、`ToastStateDerivationInput/resolve_toast_part_state`、`ToastViewportNormalizeInput/ToastViewportNormalizedProps/normalize_viewport_props`、`resolve_viewport_store`、`ToastViewportStateDerivationInput/resolve_toast_viewport_state`、`resolve_live_region_priority`。`components/toast/src/toast/view.rs` 仅消费上述归一化输出并挂载语义，事件处理器只触发状态变更（`request_open_change`/`store.dismiss`），不再内联状态机判定；`components/toast/src/toast/styles.rs` 继续只消费 `data-*` 状态标记。回归：`components/toast/test/toast/logic.rs::toast_state_derivation_is_centralized_in_logic`、`components/toast/test/toast/logic.rs::viewport_state_derivation_is_centralized_in_logic`、`components/toast/test/toast/logic.rs::live_region_priority_is_derived_in_logic`、`components/toast/test/toast/semantics.rs::toast_state_normalization_is_centralized_in_logic`。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`Toast` 离散轴由 primitives 提供并以 enum 暴露：`ToastVariant/ToastSlot/ToastViewportSlot/ToastStoreSource`（`crates/ui-state-primitives/src/toast.rs`），`CloseButton` 离散轴为 `CloseButtonVariant/CloseButtonSize`（`crates/ui-state-primitives/src/close_button.rs`）；组件 API 仅接受类型化离散输入（`components/toast/src/toast/view.rs` 的 `variant: ToastVariant`，`components/toast/src/close_button/view.rs` 的 `variant: CloseButtonVariant`/`size: CloseButtonSize`），未暴露 `variant/size/mode/status` 的字符串或 `Option<String>` 互斥组合入口。`has_custom_*` 仅作来源元数据，不承载互斥状态机语义。回归：`components/toast/test/toast/logic.rs::discrete_state_axes_are_enum_closed_sets`、`components/toast/test/toast/semantics.rs::toast_discrete_state_axes_are_enum_typed`。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`components/toast/src/toast/logic.rs` 通过 `use ui_state_primitives::toast as toast_state;` 统一委托 `normalize_* / resolve_state / resolve_viewport_state` 与 `ToastState::from_records + push/dismiss/clear/remove`，`logic.rs` 未绑定应用业务 store 类型；`components/toast/src/toast/view.rs` 的 store 输入为 `store: Option<ToastStore>`，并经 `logic::resolve_viewport_store` 映射到 `ToastStoreSource::{Provided,Context,Local}` 后消费，view 层不直接调用 `ui_state_primitives::toast` 或 context/provider wiring；`components/toast/src/close_button/logic.rs` 同样委托 `ui_state_primitives::close_button`。回归：`components/toast/test/toast/semantics.rs::toast_store_state_primitives_are_sourced_from_ui_state_primitives`、`components/toast/test/toast/semantics.rs::toast_state_primitive_source_boundary_is_enforced`。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（`Toast` 无远程请求与异步加载状态，按 N/A 通过；未引入 `is_loading/retry/aria-busy/use_async_action` 协议面。当前仅存在本地 auto-dismiss 定时器（`duration_ms + set_timeout_with_handle`）用于生命周期收敛，不构成加载/错误/重试语义协议。回归：`components/toast/test/toast/semantics.rs::toast_has_no_async_interaction_protocol_surface`、`components/toast/test/toast/semantics.rs::toast_async_na_reason_is_explicit_in_checklist`。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`Toast` 的默认路径已固定在 `apps/docs-app/src/pages/components/pages/overlays/toast.rs` 的 `<Playground title="Hello World (Default Toast)" ...>`：`hello_code` 仅 4 行 `<Toast .../>` 示例（<=5 行），默认路径无需手动接线 `ui-state-primitives` / `ui-headless`，且未把内部状态对象暴露为必填参数。高级控制集中在后续 `Workbench (All API + Actual Config)` 与 `State Matrix (Default / Danger / Custom)` 场景，形成“先简单后复杂”的文档顺序。回归：`components/toast/test/toast/semantics.rs::toast_api_dx_hello_world_is_short_and_requires_no_state_wiring`、`components/toast/test/toast/semantics.rs::toast_api_dx_docs_keep_beginner_path_before_advanced_examples`、`components/toast/test/toast/semantics.rs::toast_dx_checklist_records_beginner_first_contract`。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（`Toast`/`CloseButton` 非组合容器组件，不提供 `Parent/Item` 结构轴；公开 API 分别保持显式 `<Toast .../>` 与 `<CloseButton .../>`，按 N/A 通过。回归：`components/toast/test/toast/semantics.rs::toast_non_composite_api_avoids_parallel_array_conventions`、`components/toast/test/toast/semantics.rs::toast_non_composite_api_stays_explicit_without_itemspec_sugar`、`components/toast/test/toast/semantics.rs::close_button_non_composite_api_avoids_parallel_array_conventions`。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`Toast` 已通过 `ui-headless + i18n bundle` 挂载可访问语义与 locale：`components/toast/src/toast/view.rs` 使用 `use_toast_a11y(ToastA11yOptions { ... })` 输出并挂载 `role/aria-live/aria-atomic/aria-keyshortcuts/lang/dir/on:keydown`，并通过 `use_ui_i18n + CommonStrings + resolve_close_aria_label` 获取可覆盖文案；`ToastViewport` 通过 `locale_attrs` 透传 `lang/dir`；`CloseButton` 通过 `i18n::use_ui_i18n()` 与 `common.close_aria_label` 提供 `aria-label` 回退。共享 A11y 工具位于 `crates/ui-headless/src/a11y.rs`（`locale_attrs`/`A11yDirection`），组件层仅做挂载，不在本地重写同名语义工具。回归：`components/toast/test/toast/semantics.rs::toast_a11y_i18n_l10n_contract_is_implemented_via_headless_and_i18n_bundle`、`components/toast/test/toast/semantics.rs::toast_a11y_i18n_l10n_checklist_entry_is_explicit`、`components/toast/test/toast/semantics.rs::toast_has_baseline_style_accessibility_semantics`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`Toast`/`ToastViewport` 已输出稳定可枚举状态与来源标记：`data-state/data-variant/data-description/data-open/data-close-mode/data-control-mode/data-open-source/data-default-open-source/data-open-change-source/data-id-source/data-description-source/data-class-source/data-motion-source/data-close-source/data-exit-source`，以及 `data-state/data-queue/data-portal/data-max-toasts/data-portal-source/data-max-toasts-source/data-store-source`；同时挂载 `role/aria-live/aria-atomic/aria-keyshortcuts` 与 `CloseButton` 的 `aria-disabled/aria-label`。标记值来源为 `ui-state-primitives + logic` 的封闭集合（如 `open|closing`、`present|absent`、`handler|noop`、`controlled|uncontrolled`、`provided|implicit|none`、`provided|context|local`），避免自由文本漂移；语义测试与样式选择器均优先使用 `data-*`/`aria-*` 标记，不依赖 DOM 顺序或临时 class。回归：`components/toast/test/toast/semantics.rs::toast_state_markers_are_observable_queryable_and_verifiable`、`components/toast/test/toast/semantics.rs::toast_state_marker_values_are_closed_enumerations_not_free_text`、`components/toast/test/toast/semantics.rs::toast_state_observability_checklist_entry_is_explicit`。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`Toast` 的状态分支选择器仅依赖 `.ui-toast[data-*]`/`.ui-toast-viewport[data-*]`/稳定 class（如 `data-state/data-description/data-queue/data-close-mode/data-variant/data-store-source`），未使用 `:nth-child` 等结构猜测；运行时视图层未使用 `style=` 注入业务样式逻辑，动态视觉参数通过 CSS custom properties（如 `--ui-toast-open/--ui-toast-description-lines/--ui-toast-custom-motion`）承载；视觉状态切换由 `data-state/data-description/data-queue/data-close-mode/data-variant` 等语义标记直接解释，不依赖“节点恰好存在”。回归：`components/toast/test/toast/semantics.rs::toast_styles_include_state_and_source_marker_contracts`、`components/toast/test/toast/semantics.rs::toast_runtime_styles_use_css_custom_properties_without_inline_business_logic`、`components/toast/test/toast/semantics.rs::toast_style_explicit_state_checklist_entry_is_explicit`。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。

@@ -1,34 +1,57 @@
-use crate::switch::{SwitchMotion, motion};
+use crate::switch::{SwitchMotion, logic, motion};
 use leptos::{html, prelude::*};
-use ui_headless::{OnPress, SwitchOptions, use_switch};
+use ui_headless::{A11yDirection, OnPress, SwitchOptions, use_controllable_state, use_switch};
 
 #[component]
 pub fn Switch(
-    checked: ReadSignal<bool>,
-    set_checked: WriteSignal<bool>,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional, into)] checked: Option<Signal<bool>>,
+    #[prop(optional)] set_checked: Option<WriteSignal<bool>>,
+    #[prop(optional)] default_checked: Option<bool>,
+    #[prop(optional)] is_disabled: bool,
     #[prop(optional)] on_checked_change: Option<Callback<bool>>,
     #[prop(optional, default = motion::default_pressed_width_px())] pressed_width_px: f64,
     #[prop(optional)] motion: SwitchMotion,
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] node_ref: NodeRef<html::Button>,
     children: Children,
 ) -> impl IntoView {
+    let checked_axis = logic::normalize_checked_axis(logic::CheckedAxisInput {
+        checked,
+        set_checked,
+        default_checked,
+        on_checked_change,
+    });
+    let is_checked_controlled = checked_axis.is_controlled;
+    let checked_control_mode_attr = checked_axis.control_mode.data_attr();
+    let checked_source_attr = checked_axis.checked_source_attr;
+    let default_checked_source_attr = checked_axis.default_checked_source_attr;
+    let checked_change_source_attr = checked_axis.checked_change_source_attr;
+
+    let checked_state = use_controllable_state(
+        checked_axis.controlled_checked,
+        Some(checked_axis.default_checked),
+        checked_axis.on_checked_change,
+    );
+    let (checked, set_checked_signal) = signal(checked_state.value.get_untracked());
+    Effect::new(move |_| {
+        set_checked_signal.set(checked_state.value.get());
+    });
+    let request_checked_change = checked_state.request_change;
+
     let toggle: OnPress = Callback::new(move |_| {
-        let next = !checked.get_untracked();
-        set_checked.set(next);
-        if let Some(on_checked_change) = on_checked_change {
-            on_checked_change.run(next);
-        }
+        let next = logic::next_checked(checked.get_untracked());
+        request_checked_change.run(next);
     });
 
     let aria = use_switch(SwitchOptions {
-        is_disabled: disabled,
+        is_disabled,
         is_checked: checked,
         on_press: Some(toggle),
-        lang: None,
-        dir: None,
+        lang,
+        dir,
     });
 
     let thumb_ref: NodeRef<html::Span> = NodeRef::new();
@@ -40,18 +63,9 @@ pub fn Switch(
         motion,
     );
 
-    let base_class = "ui-switch".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
-
-    let motion_source = if motion == SwitchMotion::default() {
-        "default"
-    } else {
-        "custom"
-    };
-    let custom_motion = (motion != SwitchMotion::default()).then_some("true");
+    let class = logic::compose_class_name(class_name);
+    let (motion_source, custom_motion) =
+        logic::resolve_motion_markers(motion != SwitchMotion::default());
 
     view! {
         <button
@@ -59,11 +73,17 @@ pub fn Switch(
             node_ref=node_ref
             class=class
             class:ui-switch--focus-visible=move || aria.state.resolved.get().is_focus_visible
-            disabled=disabled
+            disabled=is_disabled
             data-slot="switch"
             data-state=move || aria.state.resolved.get().data_state()
             data-checked=move || aria.state.resolved.get().is_checked.then_some("true")
             data-unchecked=move || aria.state.resolved.get().is_unchecked.then_some("true")
+            data-checked-control-mode=checked_control_mode_attr
+            data-checked-controlled=is_checked_controlled.then_some("true")
+            data-checked-uncontrolled=(!is_checked_controlled).then_some("true")
+            data-checked-source=checked_source_attr
+            data-default-checked-source=default_checked_source_attr
+            data-checked-change-source=checked_change_source_attr
             data-disabled=move || aria.state.resolved.get().is_disabled.then_some("true")
             data-enabled=move || aria.state.resolved.get().is_enabled.then_some("true")
             data-pressed=move || aria.state.resolved.get().is_pressed.then_some("true")

@@ -17,35 +17,14 @@ fn normalize_shortcut_key_defaults_and_trims() {
 }
 
 #[test]
-fn should_toggle_for_shortcut_requires_modifier_and_match() {
-    assert!(should_toggle_for_shortcut(
-        "b",
-        true,
-        false,
-        Some("b"),
-        false
-    ));
-    assert!(!should_toggle_for_shortcut(
-        "b",
-        false,
-        false,
-        Some("b"),
-        false,
-    ));
-    assert!(!should_toggle_for_shortcut(
-        "x",
-        true,
-        false,
-        Some("b"),
-        false,
-    ));
-    assert!(!should_toggle_for_shortcut(
-        "b",
-        true,
-        false,
-        Some("b"),
-        true
-    ));
+fn resolve_default_priority_prefers_new_api_flags() {
+    assert!(resolve_disabled(Some(true), false));
+    assert!(!resolve_disabled(None, false));
+    assert!(resolve_trigger_visibility(Some(true), false));
+    assert!(!resolve_trigger_visibility(None, false));
+    assert!(resolve_shortcut_enabled(Some(true), false));
+    assert!(!resolve_shortcut_enabled(None, false));
+    assert_eq!(normalize_trigger_label(None), "Toggle sidebar");
 }
 
 #[test]

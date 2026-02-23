@@ -49,6 +49,26 @@ pub fn normalize_completed_indices(
     primitives::normalize_completed_indices(item_count, completed_indices)
 }
 
+pub fn is_completed_step(
+    index: usize,
+    selected_index: Option<usize>,
+    completed_indices: &std::collections::BTreeSet<usize>,
+) -> bool {
+    primitives::is_completed_step(index, selected_index, completed_indices)
+}
+
+pub fn count_completed_steps(
+    items: &[StepListItem],
+    selected_index: Option<usize>,
+    completed_indices: &std::collections::BTreeSet<usize>,
+) -> usize {
+    primitives::count_completed_steps(items, selected_index, completed_indices)
+}
+
+pub fn count_disabled_steps(items: &[StepListItem]) -> usize {
+    primitives::count_disabled_steps(items)
+}
+
 pub fn first_enabled_index(items: &[StepListItem]) -> Option<usize> {
     primitives::first_enabled_index(items)
 }

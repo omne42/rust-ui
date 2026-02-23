@@ -159,6 +159,11 @@ fn slider_view_mounts_headless_contract_without_state_machine_reimplementation()
         "logic::resolve_state(SliderStateInput {",
         "motion::attach_motion(root_ref, visual_percent, motion)",
         "slider_aria.handlers.on_input.run(event_target_value(&ev));",
+        "on:pointerdown=move |_| slider_aria.handlers.on_pointer_down.run(())",
+        "on:pointerup=move |_| slider_aria.handlers.on_pointer_up.run(())",
+        "on:pointercancel=move |_| slider_aria.handlers.on_pointer_cancel.run(())",
+        "on:pointerenter=move |_| slider_aria.handlers.on_pointer_enter.run(())",
+        "on:pointerleave=move |_| slider_aria.handlers.on_pointer_leave.run(())",
         "logic::resolve_ui_action(",
         "data-ui-action=move || ui_action.get().as_attr()",
     ] {
@@ -401,6 +406,8 @@ fn slider_styles_are_token_first_and_marker_driven() {
         "var(--ui-slider-thumb-border-width, 2px)",
         "var(--ui-slider-focus-ring-width, 2px)",
         ".ui-slider[data-state=\"disabled\"]",
+        ".ui-slider[data-pressed=\"true\"] .ui-slider__thumb",
+        ".ui-slider[data-focus-visible=\"true\"] .ui-slider__track",
         ".ui-slider[data-motion-source=\"custom\"]",
         ".ui-slider[data-label-source=\"custom\"]",
         ".ui-slider[data-custom-class=\"true\"]",
@@ -414,6 +421,14 @@ fn slider_styles_are_token_first_and_marker_driven() {
     assert!(
         !source.contains(":nth-child"),
         "Slider styles should not depend on brittle DOM index selectors."
+    );
+    assert!(
+        !source.contains(":active + .ui-slider__track"),
+        "Slider styles should avoid structure-coupled active selector and rely on marker-driven state."
+    );
+    assert!(
+        !source.contains(":focus-visible + .ui-slider__track"),
+        "Slider styles should avoid structure-coupled focus selector and rely on marker-driven state."
     );
 }
 
@@ -1533,6 +1548,167 @@ fn slider_non_wasm_component_files_stay_browser_object_free() {
                 "non-wasm slider component file `{rel}` should avoid `{forbidden}`."
             );
         }
+    }
+}
+
+#[test]
+fn slider_check2_records_cross_platform_compile_only_evidence() {
+    let checklist_source = load_source("check2.md");
+
+    for needle in [
+        "- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。",
+        "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-slider,inject-css",
+        "cargo check -p ui-headless --no-default-features --features ssr",
+        "cargo check -p ui --no-default-features --features component-slider,inject-css",
+        "`components/slider/src/motion.rs` 采用 `#[cfg(target_arch = \"wasm32\")]` 与 `#[cfg(not(target_arch = \"wasm32\"))]` 显式分支",
+        "`components/slider/src/{mod,logic,styles,view}.rs` 未出现 `web_sys/js_sys/wasm_bindgen`",
+    ] {
+        assert!(
+            checklist_source.contains(needle),
+            "slider checklist should record cross-platform compile-only evidence `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn slider_focus_stack_overlay_contract_is_na_and_noderef_is_motion_only() {
+    let checklist_source = load_source("check2.md");
+    let view_source = load_source("src/slider/view.rs");
+    let motion_source = load_source("src/slider/motion.rs");
+
+    for needle in [
+        "- [x] 焦点全局栈（Focus Stack & GC）",
+        "Slider 不属于层叠 `Overlay` 组件，本条按 `N/A` 记录",
+    ] {
+        assert!(
+            checklist_source.contains(needle),
+            "slider checklist should document focus-stack overlay scope marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "let root_ref: NodeRef<html::Div> = NodeRef::new();",
+        "motion::attach_motion(root_ref, visual_percent, motion);",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "slider view should keep NodeRef usage motion-scoped via `{needle}`."
+        );
+    }
+
+    assert!(
+        !view_source.contains("Overlay")
+            && !view_source.contains("FallbackTo")
+            && !view_source.contains("document.body"),
+        "slider view should not implement overlay focus-restore logic."
+    );
+    assert!(
+        !motion_source.contains("FallbackTo") && !motion_source.contains("document.body"),
+        "slider motion should not implement overlay focus-restore logic."
+    );
+}
+
+#[test]
+fn slider_escape_hatch_foreign_zone_contract_is_na_and_api_surface_is_clean() {
+    let checklist_source = load_source("check2.md");
+    let mod_source = load_source("src/slider/mod.rs");
+    let logic_source = load_source("src/slider/logic.rs");
+    let view_source = load_source("src/slider/view.rs");
+
+    for needle in [
+        "- [x] 受控外交特区（Escape Hatches）",
+        "Slider 当前未集成 `ECharts/Map` 等命令式第三方实例，本条按 `N/A` 记录",
+    ] {
+        assert!(
+            checklist_source.contains(needle),
+            "slider checklist should document escape-hatch/foreign-zone scope marker `{needle}`."
+        );
+    }
+
+    for needle in ["pub use motion::SliderMotion;", "pub use view::Slider;"] {
+        assert!(
+            mod_source.contains(needle),
+            "slider public API should remain component-scoped and include `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "ECharts",
+        "echarts",
+        "Mapbox",
+        "maplibre",
+        "leaflet",
+        "YieldControl",
+        "CleanupForeign",
+        "Foreign Zone",
+        "ForeignZone",
+    ] {
+        assert!(
+            !logic_source.contains(forbidden)
+                && !view_source.contains(forbidden)
+                && !mod_source.contains(forbidden),
+            "slider should not pull imperative third-party foreign-zone concern `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn slider_hydration_discontinuity_contract_is_na_without_entropy_init() {
+    let checklist_source = load_source("check2.md");
+    let root_source = load_source("src/root.rs");
+    let id_provider_source = load_source("../ui-headless/src/id_provider.rs");
+
+    for needle in [
+        "- [x] SSR 时空断裂治理（Hydration Discontinuity）",
+        "Slider 本身不生成随机/时间型初始化 ID，本条按组件范围 `N/A` 通过",
+        "`id_seed` + `provide_ui_id_provider(id_seed)`",
+    ] {
+        assert!(
+            checklist_source.contains(needle),
+            "slider checklist should keep hydration-discontinuity marker `{needle}`."
+        );
+    }
+
+    let slider_sources = [
+        load_source("src/slider/mod.rs"),
+        load_source("src/slider/logic.rs"),
+        load_source("src/slider/view.rs"),
+        load_source("src/slider/motion.rs"),
+    ];
+    for source in slider_sources {
+        for forbidden in [
+            "now(",
+            "SystemTime",
+            "UNIX_EPOCH",
+            "Uuid",
+            "uuid",
+            "rand::",
+            "thread_rng",
+            "random(",
+        ] {
+            assert!(
+                !source.contains(forbidden),
+                "slider hydration init should avoid entropy source `{forbidden}`."
+            );
+        }
+    }
+
+    for needle in ["id_seed: u64", "provide_ui_id_provider(id_seed);"] {
+        assert!(
+            root_source.contains(needle),
+            "UiRoot should keep deterministic id-seed injection marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub struct UiIdProvider {",
+        "pub fn provide_ui_id_provider(seed: u64) -> UiIdProvider {",
+        "pub fn use_ui_id_provider() -> Option<UiIdProvider> {",
+    ] {
+        assert!(
+            id_provider_source.contains(needle),
+            "ui-headless id provider contract should include `{needle}`."
+        );
     }
 }
 

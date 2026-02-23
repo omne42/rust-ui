@@ -2,8 +2,8 @@ use leptos::prelude::{Callback, Signal};
 use ui_headless::RovingOrientation;
 
 pub use ui_state_primitives::radio::{
-    DEFAULT_CHECKED, RadioGroupOrientation, normalize_optional_text, resolve_accessible_name,
-    resolve_state,
+    DEFAULT_CHECKED, RadioCheckedControlMode, RadioGroupOrientation, normalize_optional_text,
+    resolve_accessible_name, resolve_state,
 };
 use ui_state_primitives::radio::{
     RadioCheckedAxisInput as PrimitiveRadioCheckedAxisInput, resolve_checked_axis,
@@ -41,6 +41,7 @@ pub struct CheckedAxisInput {
 }
 
 pub struct CheckedAxisState {
+    pub control_mode: RadioCheckedControlMode,
     pub controlled_checked: Option<Signal<bool>>,
     pub default_checked: bool,
     pub on_checked_change: Option<Callback<bool>>,
@@ -66,6 +67,7 @@ pub fn normalize_checked_axis(input: CheckedAxisInput) -> CheckedAxisState {
     });
 
     CheckedAxisState {
+        control_mode: primitive.control_mode,
         controlled_checked: input.is_checked.or(input.checked),
         default_checked: input.default_checked.unwrap_or(DEFAULT_CHECKED),
         on_checked_change: input.on_checked_change.or(input.on_change),

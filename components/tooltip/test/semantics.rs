@@ -217,20 +217,30 @@ fn tooltip_view_uses_logic_state_contracts() {
 }
 
 #[test]
-fn tooltip_api_naming_supports_prefixed_props_with_legacy_aliases() {
+fn tooltip_api_naming_uses_prefixed_props_without_alias_drift() {
     let source = load_source("../../components/tooltip/src/view.rs");
 
     for needle in [
         "#[prop(optional)] is_disabled: Option<bool>,",
-        "#[prop(optional)] disabled: bool,",
         "#[prop(optional)] is_open: Option<Signal<bool>>,",
-        "#[prop(optional)] open: Option<Signal<bool>>,",
         "#[prop(optional)] default_open: Option<bool>,",
         "#[prop(optional)] on_open_change: Option<Callback<bool>>,",
+        "#[prop(optional, into)] lang: Option<String>,",
+        "#[prop(optional, into)] dir: Option<String>,",
     ] {
         assert!(
             source.contains(needle),
-            "Tooltip API should expose `{needle}` to keep prefixed naming and legacy migration compatibility."
+            "Tooltip API should expose standardized prefixed prop `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "#[prop(optional)] disabled: bool,",
+        "#[prop(optional)] open: Option<Signal<bool>>,",
+    ] {
+        assert!(
+            !source.contains(forbidden),
+            "Tooltip API should not expose legacy alias `{forbidden}`."
         );
     }
 }
@@ -281,6 +291,39 @@ fn tooltip_manages_aria_describedby_on_the_focused_element() {
             && headless_source.contains("remove_attribute(\"aria-describedby\""),
         "Tooltip headless contract should manage `aria-describedby` on the focused element."
     );
+}
+
+#[test]
+fn tooltip_mounts_a11y_attrs_from_headless_contract() {
+    let view_source = load_source("../../components/tooltip/src/view.rs");
+    let headless_a11y_source = load_source("../ui-headless/src/a11y.rs");
+
+    for needle in [
+        "tooltip_panel_attrs(TooltipPanelA11yOptions",
+        "id=move || panel_a11y.get().attrs.id.clone()",
+        "role=move || panel_a11y.get().attrs.role",
+        "lang=move || panel_a11y.get().attrs.lang.clone()",
+        "dir=move || panel_a11y.get().attrs.dir",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Tooltip view should mount headless a11y contract `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub struct TooltipPanelA11yAttrs",
+        "pub struct TooltipPanelA11yHandlers",
+        "pub struct TooltipPanelA11yState",
+        "pub struct TooltipPanelA11yContract",
+        "pub struct TooltipPanelA11yOptions",
+        "pub fn tooltip_panel_attrs(options: TooltipPanelA11yOptions)",
+    ] {
+        assert!(
+            headless_a11y_source.contains(needle),
+            "ui-headless a11y module should expose tooltip contract `{needle}`."
+        );
+    }
 }
 
 #[test]
@@ -344,6 +387,54 @@ fn tooltip_docs_page_contains_state_source_playground() {
         assert!(
             source.contains(needle),
             "tooltip docs page should contain `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn tooltip_docs_page_exposes_stable_e2e_slots() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_tooltip.rs");
+    let e2e_source = load_source("../../e2e/tests/docs_app_tooltip_contract.spec.mjs");
+
+    for needle in [
+        "attr:data-slot=\"tooltip-e2e-open\"",
+        "attr:data-slot=\"tooltip-e2e-close\"",
+        "attr:data-slot=\"tooltip-e2e-trigger\"",
+        "data-slot=\"tooltip-workbench-controls\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "tooltip docs page should expose stable e2e selector `{needle}`."
+        );
+    }
+
+    for needle in [
+        "[data-slot=\"tooltip-e2e-open\"]",
+        "[data-slot=\"tooltip-e2e-close\"]",
+        "[data-slot=\"tooltip-panel\"][id=\"docs-tooltip-workbench\"]",
+        "toHaveAttribute(\"data-open-mode\", \"controlled\")",
+    ] {
+        assert!(
+            e2e_source.contains(needle),
+            "tooltip e2e contract should assert `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn tooltip_motion_delegates_triplet_driver_to_ui_motion() {
+    let source = load_source("../../components/tooltip/src/motion.rs");
+
+    for needle in [
+        "ui_motion::spring::SpringAnimatorTriplet",
+        "ui_motion::spring::SpringAnimatorTriplet::new(",
+        "springs.clear_on_rest();",
+        "springs.set_on_rest_second(move || on_exit_complete.run());",
+        "springs.set_targets([0.0, motion.initial_scale, offset_y]);",
+    ] {
+        assert!(
+            source.contains(needle),
+            "tooltip motion should delegate spring triplet driver to ui-motion via `{needle}`."
         );
     }
 }

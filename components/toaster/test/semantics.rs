@@ -143,7 +143,7 @@ fn toaster_api_naming_contract_matches_overlay_family_without_alias_drift() {
     }
 
     for needle in [
-        "#[prop(optional, default = logic::DEFAULT_VIEWPORT_PORTAL)] portal: bool",
+        "#[prop(optional, default = logic::DEFAULT_VIEWPORT_PORTAL)] is_portal: bool",
         "#[prop(optional, default = logic::DEFAULT_VIEWPORT_MAX_TOASTS)] max_toasts: usize",
         "#[prop(optional, into)] class_name: Option<String>",
     ] {
@@ -664,7 +664,7 @@ fn toaster_composes_sonner_as_host_layer() {
         "position=sonner_position",
         "class_name=sonner_class_name",
         "max_toasts=sonner_state.max_toasts",
-        "portal=sonner_state.portal",
+        "is_portal=sonner_state.portal",
         "motion=motion",
     ] {
         assert!(
@@ -874,8 +874,8 @@ fn toaster_ui_components_layer_assembles_four_layers_without_public_dom_leakage(
     }
 
     for needle in [
-        "--ui-toaster-single-max-width: var(--ui-overlay-panel-min-width);",
-        "--ui-toaster-max-inline-width: calc(var(--ui-overlay-panel-min-width) + var(--ui-space-lg) * 9);",
+        "--ui-toaster-single-max-width: var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width));",
+        "--ui-toaster-max-inline-width: calc(var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width)) + var(--ui-space-lg, var(--ui-fallback-space-lg)) * 9);",
     ] {
         assert!(
             styles.contains(needle),
@@ -1186,7 +1186,7 @@ fn toaster_component_files_respect_layered_responsibilities() {
 
     for needle in [
         "pub const CSS: &str = r#\"",
-        "--ui-toaster-single-max-width: var(--ui-overlay-panel-min-width);",
+        "--ui-toaster-single-max-width: var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width));",
     ] {
         assert!(
             styles.contains(needle),
@@ -1312,8 +1312,8 @@ fn toaster_directory_standard_files_and_boundaries_follow_contract() {
 
     for needle in [
         "pub const CSS: &str = r#\"",
-        "var(--ui-overlay-panel-min-width)",
-        "var(--ui-space-lg)",
+        "var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width))",
+        "var(--ui-space-lg, var(--ui-fallback-space-lg))",
     ] {
         assert!(
             styles_source.contains(needle),
@@ -1653,8 +1653,8 @@ fn toaster_token_first_static_styles_are_injected_via_uiroot() {
 
     for needle in [
         "pub const CSS: &str = r#\"",
-        "var(--ui-overlay-panel-min-width)",
-        "var(--ui-space-lg)",
+        "var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width))",
+        "var(--ui-space-lg, var(--ui-fallback-space-lg))",
         "max-width: min(100%, var(--ui-toaster-single-max-width));",
     ] {
         assert!(
@@ -2635,7 +2635,7 @@ fn toaster_wasm_debug_capability_reuses_global_trace_and_stays_feature_isolated(
 fn toaster_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
     let docs_source =
-        load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+        load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra/toaster.rs");
 
     for needle in [
         "<style>{move || compose_scoped_css(&scope_selector.get_value(), &test_css.get())}</style>",
@@ -2656,6 +2656,7 @@ fn toaster_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
     for needle in [
         "pub(super) fn toaster() -> AnyView",
         "<Playground title=\"Hello World\" code_signal=hello_world_code>",
+        "title=\"Workbench (All API + Actual Config)\"",
         "<Playground title=\"Portal Queue Host\" code_signal=basic_code>",
         "<Playground title=\"Inline Top-Center Host\" code_signal=state_code>",
         "title=\"State + Source Markers\"",
@@ -2668,11 +2669,10 @@ fn toaster_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
 }
 
 #[test]
-#[ignore = "TODO: contract migration follow-up"]
-fn toaster_dx_workbench_uses_interactive_playground_and_marks_persist_state_na() {
+fn toaster_dx_workbench_supports_optional_state_persistence_and_isolated_canvas() {
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
     let docs_source =
-        load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+        load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra/toaster.rs");
 
     for needle in [
         "let section_class = \"docs-card playground\";",
@@ -2686,16 +2686,20 @@ fn toaster_dx_workbench_uses_interactive_playground_and_marks_persist_state_na()
         );
     }
 
-    let toaster_docs_start = docs_source
-        .find("pub(super) fn toaster() -> AnyView")
-        .expect("toaster docs section should exist");
-    let toaster_docs_end = docs_source
-        .find("pub(super) fn underlay() -> AnyView")
-        .expect("underlay docs section should exist after toaster");
-    let toaster_docs = &docs_source[toaster_docs_start..toaster_docs_end];
-
     for needle in [
         "<Playground title=\"Hello World\" code_signal=hello_world_code>",
+        "title=\"Workbench (All API + Actual Config)\"",
+        "test_config_signal=workbench_actual_config",
+        "data-slot=\"toaster-workbench-controls\"",
+        "let (workbench_persist_state, set_workbench_persist_state) =",
+        "if workbench_persist_state.get() {",
+        "save_toaster_workbench_state(state);",
+        "clear_toaster_workbench_state();",
+        "TOASTER_WORKBENCH_STORAGE_KEY",
+        "load_toaster_workbench_state()",
+        "save_toaster_workbench_state(state: ToasterWorkbenchState)",
+        "clear_toaster_workbench_state()",
+        "\"Persist workbench state\"",
         "<Playground title=\"Portal Queue Host\" code_signal=basic_code>",
         "<Playground title=\"Inline Top-Center Host\" code_signal=state_code>",
         "title=\"State + Source Markers\"",
@@ -2703,22 +2707,8 @@ fn toaster_dx_workbench_uses_interactive_playground_and_marks_persist_state_na()
         "<Button on_press=push_source>\"Push source toast\"</Button>",
     ] {
         assert!(
-            toaster_docs.contains(needle),
+            docs_source.contains(needle),
             "Toaster docs should provide isolated interactive playground entry `{needle}`."
-        );
-    }
-
-    for forbidden in [
-        "TOASTER_WORKBENCH_STORAGE_KEY",
-        "load_toaster_workbench_state(",
-        "save_toaster_workbench_state(",
-        "clear_toaster_workbench_state(",
-        "Persist workbench state",
-        "test_config_signal=",
-    ] {
-        assert!(
-            !toaster_docs.contains(forbidden),
-            "Toaster host docs should keep optional persisted workbench state as N/A for current scope; `{forbidden}` should remain absent."
         );
     }
 }
@@ -2746,8 +2736,8 @@ fn toaster_styles_consume_ui_theme_tokens_for_layout_bounds() {
     let source = load_source("src/toaster/styles.rs");
 
     for needle in [
-        "--ui-toaster-single-max-width: var(--ui-overlay-panel-min-width);",
-        "--ui-toaster-max-inline-width: calc(var(--ui-overlay-panel-min-width) + var(--ui-space-lg) * 9);",
+        "--ui-toaster-single-max-width: var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width));",
+        "--ui-toaster-max-inline-width: calc(var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width)) + var(--ui-space-lg, var(--ui-fallback-space-lg)) * 9);",
         "max-width: min(100%, var(--ui-toaster-single-max-width));",
         "max-width: min(100%, var(--ui-toaster-max-inline-width));",
     ] {

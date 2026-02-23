@@ -156,6 +156,7 @@ fn segmented_control_uses_logic_state_model() {
     for needle in [
         "let state = Memo::new(move |_|",
         "resolve_state(SegmentedControlStateInput {",
+        "normalize_semantic_state(SegmentedControlSemanticStateInput {",
         "aria.state.selected_index.get()",
     ] {
         assert!(
@@ -189,7 +190,7 @@ fn segmented_control_emits_baseline_style_state_data_attributes() {
     for attr in [
         "const SLOT_ROOT: &str = \"segmented-control\";",
         "data-slot=SLOT_ROOT",
-        "data-control-mode=SegmentedControlControlMode::Controlled.as_attr()",
+        "data-control-mode=control_mode.as_attr()",
         "data-selection-source=move || {",
         "data-selection-origin=move || selection_origin.get().as_attr()",
         "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
@@ -430,7 +431,7 @@ fn segmented_control_ui_components_layer_boundary_is_enforced() {
     for needle in [
         "pub use logic::{SegmentedControlOrientation, SegmentedControlSize};",
         "pub use motion::SegmentedControlMotion;",
-        "pub use view::SegmentedControl;",
+        "pub use view::{SegmentedControl, SegmentedControlItem, SegmentedControlItemSpec};",
     ] {
         assert!(
             mod_source.contains(needle),
@@ -471,6 +472,7 @@ fn segmented_control_ui_components_layer_boundary_is_enforced() {
     for needle in [
         "use_radio(RadioOptions {",
         "resolve_state(SegmentedControlStateInput {",
+        "normalize_semantic_state(SegmentedControlSemanticStateInput {",
         "motion::attach_indicator_motion(",
     ] {
         assert!(
@@ -556,7 +558,7 @@ fn segmented_control_component_directory_has_standard_file_layout_and_scoped_res
         "pub mod styles;",
         "pub use logic::{SegmentedControlOrientation, SegmentedControlSize};",
         "pub use motion::SegmentedControlMotion;",
-        "pub use view::SegmentedControl;",
+        "pub use view::{SegmentedControl, SegmentedControlItem, SegmentedControlItemSpec};",
     ] {
         assert!(
             mod_source.contains(required),
@@ -619,6 +621,7 @@ fn segmented_control_component_directory_has_standard_file_layout_and_scoped_res
         "pub fn SegmentedControl(",
         "use_radio(RadioOptions {",
         "resolve_state(SegmentedControlStateInput {",
+        "normalize_semantic_state(SegmentedControlSemanticStateInput {",
         "motion::attach_indicator_motion(",
     ] {
         assert!(
@@ -802,7 +805,7 @@ fn segmented_control_docs_page_covers_primary_playgrounds() {
         "<SegmentedControl",
         "orientation=SegmentedControlOrientation::Vertical",
         "size=SegmentedControlSize::Sm",
-        "disabled=true",
+        "is_disabled=true",
     ] {
         assert!(
             source.contains(needle),
@@ -819,7 +822,7 @@ fn segmented_control_docs_playgrounds_lock_state_matrix_contract_values() {
         "id_base=\"seg\".to_string()",
         "options=options",
         "selected_index=selected",
-        "set_selected_index=set_selected",
+        "on_selected_index_change=set_selected",
         "disabled_indices=vec![2]",
         "id_base=\"docs-segments\".to_string()",
         "\"selected: \"",
@@ -871,11 +874,11 @@ fn segmented_control_docs_examples_sync_with_logic_api_names_and_state_matrix() 
         "title=\"Selection + Root State\"",
         "title=\"Vertical + Disabled + Empty\"",
         "selected_index=selected",
-        "set_selected_index=set_selected",
+        "on_selected_index_change=set_selected",
         "disabled_indices=vec![2]",
         "orientation=SegmentedControlOrientation::Vertical",
         "size=SegmentedControlSize::Sm",
-        "disabled=true",
+        "is_disabled=true",
     ] {
         assert!(
             docs_source.contains(needle),
@@ -884,9 +887,12 @@ fn segmented_control_docs_examples_sync_with_logic_api_names_and_state_matrix() 
     }
 
     for needle in [
-        "selected_index: ReadSignal<Option<usize>>",
-        "set_selected_index: WriteSignal<Option<usize>>",
-        "#[prop(optional)] disabled: bool",
+        "#[prop(optional, into)] selected_index: Option<ReadSignal<Option<usize>>>",
+        "#[prop(optional, into)] on_selected_index_change: Option<WriteSignal<Option<usize>>>",
+        "#[prop(optional, into)] default_selected_index: Option<usize>",
+        "pub struct SegmentedControlSelectionAxisInput",
+        "pub fn normalize_selection_axis(",
+        "#[prop(optional)] is_disabled: bool",
         "#[prop(optional)] disabled_indices: Vec<usize>",
         "#[prop(optional)] orientation: SegmentedControlOrientation",
         "#[prop(optional)] size: SegmentedControlSize",
@@ -900,6 +906,158 @@ fn segmented_control_docs_examples_sync_with_logic_api_names_and_state_matrix() 
                 || logic_source.contains(needle)
                 || primitive_source.contains(needle),
             "SegmentedControl public/default contract should keep `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn segmented_control_check2_documents_single_default_source_rule() {
+    let checklist_source = load_source("src/segmented_control/check2.md");
+
+    for required in [
+        "- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。",
+        "默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。",
+        "`view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。",
+    ] {
+        assert!(
+            checklist_source.contains(required),
+            "SegmentedControl checklist should keep single-default-source rule `{required}`."
+        );
+    }
+}
+
+#[test]
+fn segmented_control_default_value_source_is_centralized_in_logic() {
+    let view_source = load_source("src/segmented_control/view.rs");
+    let logic_source = load_source("src/segmented_control/logic.rs");
+
+    for needle in [
+        "pub struct SegmentedControlSelectionAxisInput",
+        "pub struct SegmentedControlSelectionAxis",
+        "pub fn normalize_selection_axis(",
+        "filter(|index| *index < input.item_count)",
+        "let selection_axis = normalize_selection_axis(SegmentedControlSelectionAxisInput {",
+        "signal(selection_axis.default_selected_index)",
+    ] {
+        assert!(
+            logic_source.contains(needle) || view_source.contains(needle),
+            "SegmentedControl should keep single default-value source contract via `{needle}`."
+        );
+    }
+
+    assert!(
+        !view_source.contains("default_selected_index.filter(|index| *index < item_count)"),
+        "SegmentedControl view should not normalize default value locally after logic-source consolidation."
+    );
+}
+
+#[test]
+fn segmented_control_check2_documents_state_normalization_centralization_rule() {
+    let checklist_source = load_source("src/segmented_control/check2.md");
+
+    for required in [
+        "- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。",
+        "输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。",
+        "事件处理器只触发状态变更，不重建状态机规则。",
+        "样式层只消费状态标记，不承担状态判定职责。",
+    ] {
+        assert!(
+            checklist_source.contains(required),
+            "SegmentedControl checklist should keep centralized-state-normalization rule `{required}`."
+        );
+    }
+}
+
+#[test]
+fn segmented_control_state_normalization_is_centralized_in_logic() {
+    let view_source = load_source("src/segmented_control/view.rs");
+    let logic_source = load_source("src/segmented_control/logic.rs");
+
+    for needle in [
+        "pub struct SegmentedControlSelectionAxisInput",
+        "pub fn normalize_selection_axis(",
+        "pub struct SegmentedControlSemanticStateInput",
+        "pub struct SegmentedControlSemanticState",
+        "pub fn normalize_semantic_state(",
+        "SegmentedControlSelectionSource::from_indices(",
+        "let selection_axis = normalize_selection_axis(SegmentedControlSelectionAxisInput {",
+        "normalize_semantic_state(SegmentedControlSemanticStateInput {",
+        "data-selection-source=move || { state.get().selection_source.as_attr() }",
+    ] {
+        assert!(
+            logic_source.contains(needle) || view_source.contains(needle),
+            "SegmentedControl should centralize state normalization via `{needle}`."
+        );
+    }
+
+    assert!(
+        !view_source.contains("SegmentedControlSelectionSource::from_indices("),
+        "SegmentedControl view should not rebuild selection-source state derivation directly."
+    );
+
+    for needle in [
+        "on_key_down.run(ev.key())",
+        "set_selection_origin.set(SegmentedControlSelectionOrigin::Keyboard);",
+        "radio_handlers.on_radio_click.run(index);",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "SegmentedControl event handlers should stay as state-change triggers via `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn segmented_control_check2_documents_discrete_state_typing_rule() {
+    let checklist_source = load_source("src/segmented_control/check2.md");
+
+    for required in [
+        "- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。",
+        "互斥状态优先用 `enum` 建模，利用编译器封住无效组合。",
+        "字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。",
+        "布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。",
+    ] {
+        assert!(
+            checklist_source.contains(required),
+            "SegmentedControl checklist should keep discrete-state typing rule `{required}`."
+        );
+    }
+}
+
+#[test]
+fn segmented_control_discrete_state_axes_are_enum_typed_and_not_stringly_typed() {
+    let view_source = load_source("src/segmented_control/view.rs");
+    let logic_source = load_source("src/segmented_control/logic.rs");
+
+    for needle in [
+        "#[prop(optional)] orientation: SegmentedControlOrientation",
+        "#[prop(optional)] size: SegmentedControlSize",
+        "pub enum SegmentedControlOrientation",
+        "pub enum SegmentedControlSize",
+        "pub enum SegmentedControlControlMode",
+        "pub enum SegmentedControlSelectionSource",
+        "pub enum SegmentedControlSelectionOrigin",
+    ] {
+        assert!(
+            view_source.contains(needle) || logic_source.contains(needle),
+            "SegmentedControl should keep discrete axis typing contract via `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "#[prop(optional, into)] orientation: Option<String>",
+        "#[prop(optional, into)] size: Option<String>",
+        "#[prop(optional)] orientation: String",
+        "#[prop(optional)] size: String",
+        "#[prop(optional)] is_horizontal: bool",
+        "#[prop(optional)] is_vertical: bool",
+        "#[prop(optional)] is_controlled: bool",
+        "control_mode: String",
+        "selection_source: String",
+    ] {
+        assert!(
+            !view_source.contains(forbidden) && !logic_source.contains(forbidden),
+            "SegmentedControl should avoid stringly-typed or bool-explosion discrete axis `{forbidden}`."
         );
     }
 }
@@ -1102,7 +1260,7 @@ fn segmented_control_docs_app_provides_interactive_playground_for_props_state_an
         "id_base=\"docs-segments-interactive\".to_string()",
         "orientation=if interactive_vertical.get() {",
         "size=if interactive_small.get() {",
-        "disabled=interactive_disabled.get()",
+        "is_disabled=interactive_disabled.get()",
         "disabled_indices=if interactive_disable_last.get() {",
         "data-slot=\"segmented-control-marker-controls\"",
         "data-slot=\"segmented-control-toggle-orientation\"",
@@ -1227,7 +1385,7 @@ fn segmented_control_docs_are_copy_paste_ready_with_imports_copy_button_and_sync
     }
 
     for needle in [
-        "#[prop(optional)] disabled: bool",
+        "#[prop(optional)] is_disabled: bool",
         "#[prop(optional)] disabled_indices: Vec<usize>",
         "#[prop(optional)] orientation: SegmentedControlOrientation",
         "#[prop(optional)] size: SegmentedControlSize",
@@ -1299,7 +1457,7 @@ fn segmented_control_heroui_strategy_and_component_docs_are_synced_for_parameter
     }
 
     for needle in [
-        "#[prop(optional)] disabled: bool",
+        "#[prop(optional)] is_disabled: bool",
         "#[prop(optional)] disabled_indices: Vec<usize>",
         "#[prop(optional)] orientation: SegmentedControlOrientation",
         "#[prop(optional)] size: SegmentedControlSize",
@@ -1583,9 +1741,9 @@ fn segmented_control_state_markers_are_observable_and_have_closed_source_sets() 
     let check2_source = load_source("src/segmented_control/check2.md");
 
     for needle in [
-        "data-control-mode=SegmentedControlControlMode::Controlled.as_attr()",
+        "data-control-mode=control_mode.as_attr()",
         "data-selection-source=move || {",
-        "SegmentedControlSelectionSource::from_indices(",
+        "normalize_semantic_state(SegmentedControlSemanticStateInput {",
         "data-selection-origin=move || selection_origin.get().as_attr()",
     ] {
         assert!(
@@ -1599,6 +1757,7 @@ fn segmented_control_state_markers_are_observable_and_have_closed_source_sets() 
         "pub enum SegmentedControlSelectionSource",
         "pub enum SegmentedControlSelectionOrigin",
         "\"controlled\"",
+        "\"uncontrolled\"",
         "\"external-none\"",
         "\"external-selected\"",
         "\"external-out-of-range\"",
@@ -1708,7 +1867,7 @@ fn segmented_control_semantic_markers_changed_in_view_must_be_covered_by_semanti
         "role=aria.attrs.role",
         "aria-label=aria_label",
         "aria-orientation=orientation.aria_orientation()",
-        "data-control-mode=SegmentedControlControlMode::Controlled.as_attr()",
+        "data-control-mode=control_mode.as_attr()",
         "data-selection-source=move || {",
         "data-selection-origin=move || selection_origin.get().as_attr()",
         "data-selected-index=move || state.get().selected_index.map(|index| index.to_string())",
@@ -2081,7 +2240,7 @@ fn segmented_control_type_system_and_semantic_markers_form_machine_readable_cont
     }
 
     for needle in [
-        "data-control-mode=SegmentedControlControlMode::Controlled.as_attr()",
+        "data-control-mode=control_mode.as_attr()",
         "data-selection-source=move || {",
         ".as_attr()",
         "data-selection-origin=move || selection_origin.get().as_attr()",
@@ -2316,7 +2475,7 @@ fn segmented_control_reduced_motion_ssr_and_wasm_branches_keep_semantic_contract
     for needle in [
         "role=aria.attrs.role",
         "aria-orientation=orientation.aria_orientation()",
-        "data-control-mode=SegmentedControlControlMode::Controlled.as_attr()",
+        "data-control-mode=control_mode.as_attr()",
         "data-selection-source=move || {",
         "data-selection-origin=move || selection_origin.get().as_attr()",
         "data-slot=SLOT_ROOT",
@@ -2759,7 +2918,7 @@ fn segmented_control_dx_interactive_scope_keeps_isolated_canvas_and_context_visi
         "title=\"Vertical + Disabled + Empty\"",
         "orientation=SegmentedControlOrientation::Vertical",
         "size=SegmentedControlSize::Sm",
-        "disabled=true",
+        "is_disabled=true",
         "disabled_indices=vec![2]",
     ] {
         assert!(
@@ -2990,14 +3149,15 @@ fn segmented_control_snapshot_baseline_consumes_complete_result_and_renders_stab
     for marker in [
         "#[component]",
         "pub fn SegmentedControl(",
-        "selected_index: ReadSignal<Option<usize>>",
-        "set_selected_index: WriteSignal<Option<usize>>",
+        "#[prop(optional, into)] selected_index: Option<ReadSignal<Option<usize>>>",
+        "#[prop(optional, into)] on_selected_index_change: Option<WriteSignal<Option<usize>>>",
+        "#[prop(optional, into)] default_selected_index: Option<usize>",
         "resolve_state(SegmentedControlStateInput {",
         "role=aria.attrs.role",
         "aria-label=aria_label",
         "aria-orientation=orientation.aria_orientation()",
         "data-slot=SLOT_ROOT",
-        "data-control-mode=SegmentedControlControlMode::Controlled.as_attr()",
+        "data-control-mode=control_mode.as_attr()",
         "data-selection-source=move || {",
         "data-selection-origin=move || selection_origin.get().as_attr()",
         "data-selected-index=move || state.get().selected_index.map(|index| index.to_string())",
@@ -3012,6 +3172,8 @@ fn segmented_control_snapshot_baseline_consumes_complete_result_and_renders_stab
         "pub struct SegmentedControlStateInput",
         "pub struct SegmentedControlState",
         "pub fn resolve_state(input: SegmentedControlStateInput<'_>) -> SegmentedControlState",
+        "pub struct SegmentedControlSelectionAxisInput",
+        "pub fn normalize_selection_axis(",
         "pub enum SegmentedControlSelectionSource",
         "pub enum SegmentedControlSelectionOrigin",
     ] {
@@ -3069,7 +3231,7 @@ fn segmented_control_streaming_optional_scope_keeps_role_aria_and_data_markers_c
         "aria-orientation=orientation.aria_orientation()",
         "lang=aria.attrs.lang",
         "dir=aria.attrs.dir",
-        "data-control-mode=SegmentedControlControlMode::Controlled.as_attr()",
+        "data-control-mode=control_mode.as_attr()",
         "data-selection-source=move || {",
         "data-selection-origin=move || selection_origin.get().as_attr()",
         "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
@@ -3117,6 +3279,238 @@ fn segmented_control_streaming_validation_retry_resilience_boundaries_stay_outsi
         assert!(
             !combined.contains(forbidden),
             "SegmentedControl should keep validation/retry/resilience policy in upper layer; component must not include `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn segmented_control_prefers_explicit_item_composition_and_typed_item_specs() {
+    let view_source = load_source("src/segmented_control/view.rs");
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms/segmented_control.rs");
+    let checklist_source = load_source("src/segmented_control/check2.md");
+
+    for required in [
+        "#[slot]",
+        "pub struct SegmentedControlItem",
+        "pub struct SegmentedControlItemSpec",
+        "#[prop(optional)] item: Vec<SegmentedControlItem>",
+        "#[prop(optional)] item_specs: Vec<SegmentedControlItemSpec>",
+        "slot_item_specs.is_empty() || item_specs.is_empty()",
+    ] {
+        assert!(
+            view_source.contains(required),
+            "SegmentedControl explicit-composition contract should keep `{required}` in component API."
+        );
+    }
+
+    for required in [
+        "<SegmentedControlItem slot:item label=\"Overview\".to_string() />",
+        "<SegmentedControlItem slot:item label=\"Details\".to_string() />",
+        "item_specs=workbench_item_specs.clone()",
+        "item_specs=matrix_item_specs.clone()",
+    ] {
+        assert!(
+            docs_source.contains(required),
+            "SegmentedControl docs should keep explicit/t-typed usage marker `{required}`."
+        );
+    }
+
+    assert!(
+        checklist_source.contains("- [x] 组合型组件主 API 必须“显示优于约定”"),
+        "SegmentedControl checklist should mark explicit composition API rule as completed."
+    );
+}
+
+#[test]
+fn segmented_control_macro_micro_duality_is_na_without_drag_interaction_path() {
+    let view_source = load_source("src/segmented_control/view.rs");
+    let logic_source = load_source("src/segmented_control/logic.rs");
+    let motion_source = load_source("src/segmented_control/motion.rs");
+    let checklist_source = load_source("src/segmented_control/check2.md");
+    let combined = format!("{view_source}\n{logic_source}\n{motion_source}");
+
+    for required in [
+        "- [x] 宏观/微观双状态机（Macro/Micro Duality）：",
+        "N/A：`SegmentedControl` 当前不提供拖拽交互（仅键盘 roving + 指针点击切换），不存在 `Dragging` 连续帧状态与 `Action::DragEnd` 收敛路径。",
+    ] {
+        assert!(
+            checklist_source.contains(required),
+            "SegmentedControl checklist should keep macro/micro duality N/A marker `{required}`."
+        );
+    }
+
+    for required in [
+        "on:keydown=on_key_down",
+        "on:click=move |_| {",
+        "on:pointerenter=move |_|",
+        "on:pointerleave=move |_|",
+    ] {
+        assert!(
+            view_source.contains(required),
+            "SegmentedControl interaction surface should keep discrete key/click pointer contract `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "on:drag",
+        "on:dragstart",
+        "on:dragend",
+        "on:pointermove",
+        "Dragging",
+        "DragEnd",
+    ] {
+        assert!(
+            !combined.contains(forbidden),
+            "SegmentedControl should remain non-dragging in current scope; found unexpected marker `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn segmented_control_two_pass_rendering_is_na_for_semantic_logic_and_idempotent_in_motion_shell() {
+    let checklist_source = load_source("../../components/segmented-control/check2.md");
+    let logic_source = load_source("src/segmented_control/logic.rs");
+    let motion_source = load_source("src/segmented_control/motion.rs");
+
+    for required in [
+        "- [x] 几何两段式渲染（Two-Pass Rendering）：",
+        "N/A：`SegmentedControl` 不存在依赖几何测量的语义纠偏（无 overlay 定位/碰撞回退/翻转决策）；几何测量仅用于 `motion.rs` 的指示器视觉驱动，不回写 `logic.rs` 业务状态。",
+        "回归见 `components/segmented-control/test/semantics.rs::segmented_control_two_pass_rendering_is_na_for_semantic_logic_and_idempotent_in_motion_shell`。",
+    ] {
+        assert!(
+            checklist_source.contains(required),
+            "SegmentedControl checklist should keep two-pass rendering N/A marker `{required}`."
+        );
+    }
+
+    for required in [
+        "measure_layout",
+        "sync_measured_layout",
+        "sync_layout",
+        "last_layout",
+        "let unchanged =",
+        "if unchanged {",
+        "self.o.set_target(1.0);",
+    ] {
+        assert!(
+            motion_source.contains(required),
+            "SegmentedControl motion shell should keep two-pass/idempotent marker `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "Rectification(logic)",
+        "overlay",
+        "collision",
+        "flip",
+        "placement",
+        "get_bounding_client_rect",
+        "ResizeObserver",
+    ] {
+        assert!(
+            !logic_source.contains(forbidden),
+            "SegmentedControl logic layer should remain geometry-agnostic; found `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn segmented_control_registration_protocol_is_na_and_does_not_depend_on_hashset_iteration_for_navigation(
+) {
+    let checklist_source = load_source("../../components/segmented-control/check2.md");
+    let view_source = load_source("src/segmented_control/view.rs");
+    let logic_source = load_source("src/segmented_control/logic.rs");
+    let motion_source = load_source("src/segmented_control/motion.rs");
+    let combined = format!("{view_source}\n{logic_source}\n{motion_source}");
+
+    for required in [
+        "- [x] 集合注册协议（Registration Protocol）：",
+        "N/A：`SegmentedControl` 不是动态注册型容器组件，选项集合由 `item`/`item_specs`/`options` 在渲染前确定，导航顺序由稳定索引驱动（`0..item_count` + headless roving），不需要 `RegistrationContext` 的运行期 `Register/Unregister` 总线。",
+        "回归见 `components/segmented-control/test/semantics.rs::segmented_control_registration_protocol_is_na_and_does_not_depend_on_hashset_iteration_for_navigation`。",
+    ] {
+        assert!(
+            checklist_source.contains(required),
+            "SegmentedControl checklist should keep registration-protocol N/A marker `{required}`."
+        );
+    }
+
+    for required in [
+        "let disabled_index_set: HashSet<usize> = disabled_indices.into_iter().collect();",
+        "disabled_indices_set.contains(&index)",
+        "let option_buttons = (0..item_count)",
+        "radio_handlers.on_radio_focus.run(index);",
+        "radio_handlers.on_radio_click.run(index);",
+    ] {
+        assert!(
+            view_source.contains(required),
+            "SegmentedControl should keep stable index-based navigation contract marker `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "RegistrationContext",
+        "Register",
+        "Unregister",
+        "items_order",
+        "for index in disabled_indices_set",
+        "disabled_indices_set.iter()",
+        "for value in disabled_index_set",
+        "disabled_index_set.iter()",
+    ] {
+        assert!(
+            !combined.contains(forbidden),
+            "SegmentedControl should not introduce dynamic-registration/hashset-order navigation path `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn segmented_control_slot_projection_strategy_is_na_for_non_container_component_scope() {
+    let checklist_source = load_source("../../components/segmented-control/check2.md");
+    let view_source = load_source("src/segmented_control/view.rs");
+    let logic_source = load_source("src/segmented_control/logic.rs");
+    let motion_source = load_source("src/segmented_control/motion.rs");
+    let combined = format!("{view_source}\n{logic_source}\n{motion_source}");
+
+    for required in [
+        "- [x] 插槽投影策略（Slot Projection）：",
+        "N/A：`SegmentedControl` 不是内容投影容器组件，不承载面板级 slot 生命周期管理；组件仅渲染单层 option 列表与指示器，不存在 `Lazy/KeepAlive/Eager` 模式切换需求。",
+        "回归见 `components/segmented-control/test/semantics.rs::segmented_control_slot_projection_strategy_is_na_for_non_container_component_scope`。",
+    ] {
+        assert!(
+            checklist_source.contains(required),
+            "SegmentedControl checklist should keep slot-projection N/A marker `{required}`."
+        );
+    }
+
+    for required in [
+        "const SLOT_ROOT: &str = \"segmented-control\";",
+        "const SLOT_OPTIONS: &str = \"segmented-control-options\";",
+        "const SLOT_OPTION: &str = \"segmented-control-option\";",
+        "const SLOT_INDICATOR: &str = \"segmented-control-indicator\";",
+        "data-slot=SLOT_ROOT",
+        "data-slot=SLOT_OPTIONS",
+        "data-slot=SLOT_OPTION",
+        "data-slot=SLOT_INDICATOR",
+    ] {
+        assert!(
+            view_source.contains(required),
+            "SegmentedControl should keep explicit structural slot markers via `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "KeepAlive",
+        "Lazy",
+        "Eager",
+        "NotifyHidden",
+        "projection_mode",
+        "slot_projection",
+    ] {
+        assert!(
+            !combined.contains(forbidden),
+            "SegmentedControl should not introduce container slot-projection lifecycle protocol marker `{forbidden}`."
         );
     }
 }

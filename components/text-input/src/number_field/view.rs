@@ -1,24 +1,29 @@
 use crate::button::{Button, ButtonSize, ButtonVariant};
-use crate::text_input::number_field::NumberFieldStrings;
+use crate::text_input::number_field::{NumberFieldStrings, logic};
 use leptos::{ev, html, prelude::*};
 use ui_headless::i18n;
 use ui_headless::{
-    FocusRingOptions, NumberFieldOptions, TextFieldOptions, use_focus_ring, use_number_field,
-    use_text_field,
+    FocusRingOptions, NumberFieldOptions, TextFieldOptions, use_controllable_state, use_focus_ring,
+    use_number_field, use_text_field,
 };
 
 #[component]
 pub fn NumberField(
     id: String,
     label: String,
-    value: ReadSignal<i64>,
-    set_value: WriteSignal<i64>,
+    #[prop(optional, into)] value: Option<Signal<i64>>,
+    #[prop(optional)] default_value: Option<i64>,
+    #[prop(optional)] on_value_change: Option<Callback<i64>>,
+    #[prop(optional)] set_value: Option<WriteSignal<i64>>,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] min: Option<i64>,
     #[prop(optional)] max: Option<i64>,
     #[prop(optional, default = 1)] step: i64,
     #[prop(optional)] on_change: Option<Callback<i64>>,
+    #[prop(optional, into)] is_required: Option<Signal<bool>>,
     #[prop(optional, into)] required: Signal<bool>,
+    #[prop(optional, into)] is_invalid: Option<Signal<bool>>,
     #[prop(optional, into)] invalid: Signal<bool>,
     #[prop(optional, into)] aria_describedby: Signal<Option<String>>,
     #[prop(optional, into)] description: Option<String>,
@@ -27,25 +32,44 @@ pub fn NumberField(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] node_ref: NodeRef<html::Input>,
 ) -> impl IntoView {
+    let on_value_change = on_value_change
+        .or(on_change)
+        .or_else(|| set_value.map(|setter| Callback::new(move |next: i64| setter.set(next))));
+    let controlled_default_value = logic::normalize_default_value(default_value);
+    let value_state =
+        use_controllable_state(value, Some(controlled_default_value), on_value_change);
+    let value = value_state.value;
+    let request_value_change = value_state.request_change;
+
+    let accessibility = logic::normalize_accessibility_state(logic::AccessibilityStateInput {
+        is_disabled,
+        disabled,
+        is_required,
+        required,
+        is_invalid,
+        invalid,
+    });
+    let is_disabled = accessibility.is_disabled;
+    let is_required = accessibility.is_required;
+    let is_invalid = accessibility.is_invalid;
+
     let i18n = i18n::use_ui_i18n();
     let strings = i18n.strings::<NumberFieldStrings>();
     let decrement_aria_label: String = strings.decrement_aria_label.as_ref().into();
     let increment_aria_label: String = strings.increment_aria_label.as_ref().into();
-    let focus_ring = use_focus_ring(FocusRingOptions {
-        is_disabled: disabled,
-    });
+    let focus_ring = use_focus_ring(FocusRingOptions { is_disabled });
 
     let aria = use_text_field(TextFieldOptions {
         id: id.clone(),
         has_description: description.is_some(),
         has_error: error.is_some(),
         aria_describedby,
-        is_invalid: invalid,
-        is_required: required,
+        is_invalid,
+        is_required,
     });
 
     let base_class = "ui-number-field".to_string();
-    let base_class = if disabled {
+    let base_class = if is_disabled {
         format!("{base_class} ui-number-field--disabled")
     } else {
         base_class
@@ -55,19 +79,10 @@ pub fn NumberField(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
-    let on_change = StoredValue::new(on_change);
-
-    let on_value_change = Callback::new(move |next: i64| {
-        set_value.set(next);
-        if let Some(on_change) = on_change.get_value() {
-            on_change.run(next);
-        }
-    });
-
     let number_field = use_number_field(NumberFieldOptions {
-        is_disabled: disabled,
-        value: value.into(),
-        on_value_change,
+        is_disabled,
+        value,
+        on_value_change: request_value_change,
         min,
         max,
         step,
@@ -97,13 +112,13 @@ pub fn NumberField(
         <div
             class=class
             class:ui-number-field--focus-visible=move || focus_ring.is_focus_visible.get()
-            class:ui-number-field--invalid=move || invalid.get()
+            class:ui-number-field--invalid=move || is_invalid.get()
             data-slot="number-field"
             data-focused=move || focus_ring.is_focused.get().then_some("true")
             data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
-            data-invalid=move || invalid.get().then_some("true")
-            data-disabled=disabled.then_some("true")
-            data-required=move || required.get().then_some("true")
+            data-invalid=move || is_invalid.get().then_some("true")
+            data-disabled=is_disabled.then_some("true")
+            data-required=move || is_required.get().then_some("true")
         >
             <label
                 class="ui-number-field__label"
@@ -124,8 +139,8 @@ pub fn NumberField(
                     pattern="-?[0-9]*"
                     placeholder=placeholder
                     prop:value=move || number_field.input_value.get()
-                    disabled=disabled
-                    required=move || required.get()
+                    disabled=is_disabled
+                    required=move || is_required.get()
                     role=number_field.input.role
                     aria-valuenow=move || number_field.input.aria_valuenow.get()
                     aria-valuemin=number_field.input.aria_valuemin.clone()
@@ -142,7 +157,7 @@ pub fn NumberField(
 
                 <div class="ui-number-field__stepper" data-slot="number-field-stepper">
                     <Button
-                        is_disabled=disabled
+                        is_disabled=is_disabled
                         variant=ButtonVariant::Ghost
                         size=ButtonSize::IconSm
                         aria_label=decrement_aria_label.clone()
@@ -151,7 +166,7 @@ pub fn NumberField(
                         "−"
                     </Button>
                     <Button
-                        is_disabled=disabled
+                        is_disabled=is_disabled
                         variant=ButtonVariant::Ghost
                         size=ButtonSize::IconSm
                         aria_label=increment_aria_label.clone()
@@ -180,7 +195,7 @@ pub fn NumberField(
                 let error_id = StoredValue::new(error_id);
                 let error = StoredValue::new(error);
                 view! {
-                    <Show when=move || invalid.get()>
+                    <Show when=move || is_invalid.get()>
                         <div
                             class="ui-number-field__error"
                             id=move || error_id.get_value()

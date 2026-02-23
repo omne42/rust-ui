@@ -13,6 +13,7 @@ use ui_headless::{
 pub fn CloseButton(
     #[prop(optional)] variant: CloseButtonVariant,
     #[prop(optional)] size: CloseButtonSize,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
@@ -21,6 +22,7 @@ pub fn CloseButton(
     #[prop(optional)] on_press: Option<OnPress>,
     #[prop(optional)] children: Option<Children>,
 ) -> impl IntoView {
+    let disabled = is_disabled.unwrap_or(disabled);
     let i18n = i18n::use_ui_i18n();
     let common = i18n.strings::<CommonStrings>();
     let (aria_label, has_custom_aria_label) =

@@ -2,7 +2,7 @@ pub const CSS: &str = r#"
 .ui-switch {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--ui-switch-gap, var(--ui-fallback-switch-gap));
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 
@@ -13,7 +13,7 @@ pub const CSS: &str = r#"
   font: inherit;
 
   --ui-switch-thumb-x: 0px;
-  --ui-switch-thumb-width: 16px;
+  --ui-switch-thumb-width: var(--ui-switch-thumb-size, var(--ui-fallback-switch-thumb-size));
   --ui-switch-track-bg: var(--ui-bg-muted);
 }
 
@@ -23,7 +23,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-switch[data-state="checked"] {
-  --ui-switch-thumb-x: 12px;
+  --ui-switch-thumb-x: var(--ui-switch-thumb-checked-x, var(--ui-fallback-switch-thumb-checked-x));
   --ui-switch-track-bg: var(--ui-accent);
 }
 
@@ -32,21 +32,21 @@ pub const CSS: &str = r#"
 }
 
 .ui-switch:disabled {
-  opacity: 0.5;
+  opacity: var(--ui-switch-disabled-opacity, var(--ui-fallback-switch-disabled-opacity));
   cursor: not-allowed;
 }
 
 .ui-switch--focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-switch-focus-outline-width, var(--ui-fallback-switch-focus-outline-width)) solid var(--ui-focus-ring);
+  outline-offset: var(--ui-switch-focus-outline-offset, var(--ui-fallback-switch-focus-outline-offset));
   border-radius: var(--ui-radius-md);
 }
 
 .ui-switch__track {
   position: relative;
-  width: 32px;
-  height: 20px;
-  border-radius: 999px;
+  width: var(--ui-switch-track-width, var(--ui-fallback-switch-track-width));
+  height: var(--ui-switch-track-height, var(--ui-fallback-switch-track-height));
+  border-radius: var(--ui-radius-full, var(--ui-fallback-radius-full));
   background: var(--ui-switch-track-bg);
   box-shadow: var(--ui-shadow-sm);
   box-sizing: border-box;
@@ -55,15 +55,15 @@ pub const CSS: &str = r#"
 
 .ui-switch__thumb {
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: var(--ui-switch-track-padding, var(--ui-fallback-switch-track-padding));
+  left: var(--ui-switch-track-padding, var(--ui-fallback-switch-track-padding));
 
   width: var(--ui-switch-thumb-width);
-  height: 16px;
-  border-radius: 999px;
+  height: var(--ui-switch-thumb-size, var(--ui-fallback-switch-thumb-size));
+  border-radius: var(--ui-radius-full, var(--ui-fallback-radius-full));
 
   background: var(--ui-bg);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 
   transform: translateX(var(--ui-switch-thumb-x));
   will-change: transform, width;
@@ -71,11 +71,11 @@ pub const CSS: &str = r#"
 }
 
 .ui-switch__label {
-  font-size: var(--ui-font-size-150, 14px);
-  line-height: var(--ui-line-height-150, 20px);
+  font-size: var(--ui-font-size-150, var(--ui-fallback-font-size-150));
+  line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150));
 }
 
 .ui-switch[data-hovered="true"]:not(:disabled) .ui-switch__track {
-  filter: brightness(0.98);
+  filter: brightness(var(--ui-switch-hover-brightness, var(--ui-fallback-switch-hover-brightness)));
 }
 "#;

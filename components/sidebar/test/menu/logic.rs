@@ -27,7 +27,7 @@ fn normalize_items_applies_fallbacks_and_trims() {
 }
 
 #[test]
-fn next_id_for_key_tracks_enabled_items() {
+fn enabled_id_helpers_track_home_end_and_step_navigation() {
     let items = normalize_items(vec![
         SidebarMenuItem::new("a", "A"),
         SidebarMenuItem {
@@ -42,12 +42,40 @@ fn next_id_for_key_tracks_enabled_items() {
         },
     ]);
 
-    assert_eq!(next_id_for_key("Home", &items, None).as_deref(), Some("a"));
-    assert_eq!(next_id_for_key("End", &items, None).as_deref(), Some("b-1"));
+    assert_eq!(first_enabled_id(&items).as_deref(), Some("a"));
     assert_eq!(
-        next_id_for_key("ArrowDown", &items, Some("a".to_string())).as_deref(),
+        linear_enabled_ids(&items).last().map(String::as_str),
+        Some("b-1")
+    );
+    assert_eq!(
+        next_enabled_id(&items, Some("a".to_string()), 1).as_deref(),
         Some("b-1"),
     );
+}
+
+#[test]
+fn resolve_default_priority_and_shortcut_normalization_are_stable() {
+    assert!(resolve_disabled(Some(true), false));
+    assert!(!resolve_disabled(None, false));
+    assert!(resolve_show_badges(Some(true), false));
+    assert!(!resolve_show_badges(None, false));
+    assert!(resolve_show_actions(Some(true), false));
+    assert!(!resolve_show_actions(None, false));
+    assert!(resolve_allow_submenu_collapse(Some(true), false));
+    assert!(!resolve_allow_submenu_collapse(None, false));
+    assert!(resolve_keyboard_shortcut_enabled(Some(true), false));
+    assert!(!resolve_keyboard_shortcut_enabled(None, false));
+    assert_eq!(
+        normalize_keyboard_shortcut_key(Some("  K  ".to_string()), true),
+        Some("k".to_string())
+    );
+    assert_eq!(
+        normalize_keyboard_shortcut_key(Some("K".to_string()), false),
+        None
+    );
+    assert_eq!(normalize_item_action_label(None), "item action".to_string());
+    assert_eq!(selection_state_attr(None), "none");
+    assert_eq!(selection_state_attr(Some("demo".to_string())), "selected");
 }
 
 #[test]

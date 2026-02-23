@@ -20,3 +20,49 @@ fn parses_trimmed_numbers() {
     assert_eq!(parse_i64(""), None);
     assert_eq!(parse_i64("nope"), None);
 }
+
+#[test]
+fn default_value_is_normalized_in_logic() {
+    assert_eq!(normalize_default_value(None), 0);
+    assert_eq!(normalize_default_value(Some(7)), 7);
+}
+
+#[test]
+fn accessibility_state_prefers_is_prefixed_inputs() {
+    let required_alias: Signal<bool> = leptos::prelude::signal(false).0.into();
+    let required_prefixed: Signal<bool> = leptos::prelude::signal(true).0.into();
+    let invalid_alias: Signal<bool> = leptos::prelude::signal(false).0.into();
+    let invalid_prefixed: Signal<bool> = leptos::prelude::signal(true).0.into();
+
+    let state = normalize_accessibility_state(AccessibilityStateInput {
+        is_disabled: Some(true),
+        disabled: false,
+        is_required: Some(required_prefixed),
+        required: required_alias,
+        is_invalid: Some(invalid_prefixed),
+        invalid: invalid_alias,
+    });
+
+    assert!(state.is_disabled);
+    assert!(state.is_required.get_untracked());
+    assert!(state.is_invalid.get_untracked());
+}
+
+#[test]
+fn accessibility_state_falls_back_to_alias_inputs() {
+    let required: Signal<bool> = leptos::prelude::signal(true).0.into();
+    let invalid: Signal<bool> = leptos::prelude::signal(false).0.into();
+
+    let state = normalize_accessibility_state(AccessibilityStateInput {
+        is_disabled: None,
+        disabled: true,
+        is_required: None,
+        required,
+        is_invalid: None,
+        invalid,
+    });
+
+    assert!(state.is_disabled);
+    assert!(state.is_required.get_untracked());
+    assert!(!state.is_invalid.get_untracked());
+}

@@ -1,4 +1,5 @@
 use super::*;
+use leptos::prelude::Callback;
 
 #[test]
 fn variant_and_size_mappings_are_stable() {
@@ -151,4 +152,50 @@ fn compose_class_name_includes_state_markers() {
             "composed class name should include `{token}`"
         );
     }
+}
+
+#[test]
+fn normalize_value_axis_reports_controlled_contract() {
+    let axis = normalize_value_axis(
+        Some(72.0),
+        Some(8.0),
+        Some(Callback::new(|_value: Option<f64>| {})),
+    );
+
+    assert!(axis.is_controlled);
+    assert!(axis.has_custom_default_value);
+    assert!(axis.has_custom_on_value_change);
+    assert_eq!(axis.mode_attr, "controlled");
+    assert_eq!(axis.value_source_attr, "external");
+    assert_eq!(axis.default_value_source_attr, "provided");
+    assert_eq!(axis.value_change_source_attr, "provided");
+    assert_eq!(axis.value, Some(72.0));
+}
+
+#[test]
+fn normalize_value_axis_reports_uncontrolled_contract() {
+    let axis = normalize_value_axis(None, Some(18.0), None);
+
+    assert!(!axis.is_controlled);
+    assert!(axis.has_custom_default_value);
+    assert!(!axis.has_custom_on_value_change);
+    assert_eq!(axis.mode_attr, "uncontrolled");
+    assert_eq!(axis.value_source_attr, "default_value");
+    assert_eq!(axis.default_value_source_attr, "provided");
+    assert_eq!(axis.value_change_source_attr, "none");
+    assert_eq!(axis.value, Some(18.0));
+}
+
+#[test]
+fn normalize_max_uses_logic_default_source() {
+    assert_eq!(normalize_max(None), DEFAULT_MAX);
+    assert_eq!(normalize_max(Some(240.0)), 240.0);
+}
+
+#[test]
+fn normalize_mode_maps_bool_to_typed_enum() {
+    assert_eq!(normalize_mode(false), ProgressBarMode::Auto);
+    assert_eq!(normalize_mode(true), ProgressBarMode::Indeterminate);
+    assert!(!normalize_mode(false).is_indeterminate());
+    assert!(normalize_mode(true).is_indeterminate());
 }

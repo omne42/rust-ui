@@ -33,6 +33,20 @@ pub enum TagSize {
     Lg,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TagInteractivityMode {
+    Static,
+    Removable,
+    Disabled,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TagInteractivityModeInput {
+    pub mode: Option<TagInteractivityMode>,
+    pub is_disabled: Option<bool>,
+    pub is_removable: Option<bool>,
+}
+
 impl TagSize {
     pub fn class_name(self) -> &'static str {
         match self {
@@ -89,6 +103,20 @@ pub fn normalize_remove_aria_label(value: Option<String>) -> (String, bool) {
     }
 
     (DEFAULT_REMOVE_ARIA_LABEL.into(), false)
+}
+
+pub fn normalize_interactivity_mode(input: TagInteractivityModeInput) -> TagInteractivityMode {
+    if let Some(mode) = input.mode {
+        return mode;
+    }
+
+    if input.is_disabled.unwrap_or(false) {
+        TagInteractivityMode::Disabled
+    } else if input.is_removable.unwrap_or(false) {
+        TagInteractivityMode::Removable
+    } else {
+        TagInteractivityMode::Static
+    }
 }
 
 pub fn resolve_state(input: TagStateInput) -> TagState {

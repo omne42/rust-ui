@@ -58,7 +58,7 @@
   - 通知边界：切片值实现 `PartialEq` 时，若值未变化则不通知下游，相关 DOM 绑定不更新。
   - 成本边界：每次 `set/update` 仍会执行状态转移与切片重算；大状态或高频路径必须拆分 `Signal`/状态域，避免把 clone 成本当作恒定可忽略。
   - 反模式禁止：`view.rs` 只做挂载与消费切片，禁止重新实现状态机分支或复制 `logic.rs` 判定规则。
-- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`components/toast/src/sonner/view.rs` 保持 `portal/max_toasts/aria_label/class_name/motion` 命名，并与 `toast/toaster` 同语义同名；本次未引入新公共命名。兼容策略：维持现有稳定命名，不新增同义别名；若后续全库推进 `is_*` 统一，采用“先加别名并标注弃用周期，再移除旧名”的迁移路径。回归：`components/toast/test/sonner/semantics.rs::sonner_api_naming_contract_matches_overlay_family_without_alias_drift`。）
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`components/toast/src/sonner/view.rs` 已统一为 `is_portal/max_toasts/aria_label/class_name/motion`，并移除 `portal` 同义别名，避免 API 双轨；`ToastViewport` 同步使用 `is_portal`。迁移路径：`portal -> is_portal`。回归：`components/toast/test/sonner/semantics.rs::sonner_api_naming_contract_matches_overlay_family_without_alias_drift`。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。

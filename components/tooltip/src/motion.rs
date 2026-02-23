@@ -62,13 +62,7 @@ pub fn attach_motion(
 
     let motion = StoredValue::new(sanitize_motion(motion));
     let last_state = StoredValue::new(None::<bool>);
-    let springs = StoredValue::new_local(
-        None::<(
-            ui_motion::spring::SpringAnimator,
-            ui_motion::spring::SpringAnimator,
-            ui_motion::spring::SpringAnimator,
-        )>,
-    );
+    let springs = StoredValue::new_local(None::<ui_motion::spring::SpringAnimatorTriplet>);
 
     Effect::new(move |_| {
         let config = motion.get_value().spring;
@@ -106,51 +100,50 @@ pub fn attach_motion(
             &format!("{y_initial}px")
         );
         let style_for_opacity = style.clone();
-        let opacity = ui_motion::spring::SpringAnimator::new(opacity_initial, config, move |v| {
-            let v = v.clamp(0.0, 1.0);
-            ui_observability::set_css_property_observed_auto!(
-                &(style_for_opacity),
-                "--ui-tooltip-opacity",
-                &format!("{v}")
-            );
-        });
-
         let style_for_scale = style.clone();
-        let scale = ui_motion::spring::SpringAnimator::new(scale_initial, config, move |v| {
-            let v = v.clamp(0.0, 10.0);
-            ui_observability::set_css_property_observed_auto!(
-                &(style_for_scale),
-                "--ui-tooltip-scale",
-                &format!("{v}")
-            );
-        });
-
         let style_for_y = style.clone();
-        let y = ui_motion::spring::SpringAnimator::new(y_initial, config, move |v| {
-            let v = v.clamp(-1000.0, 1000.0);
-            ui_observability::set_css_property_observed_auto!(
-                &(style_for_y),
-                "--ui-tooltip-y",
-                &format!("{v}px")
-            );
-        });
+        let triplet = ui_motion::spring::SpringAnimatorTriplet::new(
+            [opacity_initial, scale_initial, y_initial],
+            config,
+            move |v| {
+                let v = v.clamp(0.0, 1.0);
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_opacity),
+                    "--ui-tooltip-opacity",
+                    &format!("{v}")
+                );
+            },
+            move |v| {
+                let v = v.clamp(0.0, 10.0);
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_scale),
+                    "--ui-tooltip-scale",
+                    &format!("{v}")
+                );
+            },
+            move |v| {
+                let v = v.clamp(-1000.0, 1000.0);
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_y),
+                    "--ui-tooltip-y",
+                    &format!("{v}px")
+                );
+            },
+        );
 
         let springs_for_cleanup = springs;
         on_cleanup(move || {
-            if let Some((opacity, scale, y)) = springs_for_cleanup.get_value() {
-                opacity.stop();
-                scale.stop();
-                y.stop();
+            if let Some(springs) = springs_for_cleanup.get_value() {
+                springs.stop();
             }
         });
 
         if open_now {
-            opacity.set_target(1.0);
-            scale.set_target(1.0);
-            y.set_target(0.0);
+            triplet.clear_on_rest();
+            triplet.set_targets([1.0, 1.0, 0.0]);
         }
 
-        springs.set_value(Some((opacity, scale, y)));
+        springs.set_value(Some(triplet));
     });
 
     Effect::new(move |_| {
@@ -164,7 +157,7 @@ pub fn attach_motion(
         }
         last_state.set_value(Some(open));
 
-        let Some((opacity, scale, y)) = springs.get_value() else {
+        let Some(springs) = springs.get_value() else {
             return;
         };
 
@@ -172,22 +165,15 @@ pub fn attach_motion(
         let offset_y = placement_offset_y(placement.get_untracked(), motion.offset_y_px);
 
         if open {
-            opacity.clear_on_rest();
-            scale.clear_on_rest();
-            y.clear_on_rest();
-
-            opacity.set_target(1.0);
-            scale.set_target(1.0);
-            y.set_target(0.0);
+            springs.clear_on_rest();
+            springs.set_targets([1.0, 1.0, 0.0]);
             return;
         }
 
         let on_exit_complete = on_exit_complete.clone();
-        scale.set_on_rest(move || on_exit_complete.run(()));
-
-        opacity.set_target(0.0);
-        scale.set_target(motion.initial_scale);
-        y.set_target(offset_y);
+        springs.clear_on_rest();
+        springs.set_on_rest_second(move || on_exit_complete.run(()));
+        springs.set_targets([0.0, motion.initial_scale, offset_y]);
     });
 }
 

@@ -7,12 +7,18 @@ use leptos::prelude::*;
 #[component]
 pub fn SidebarContent(
     children: Children,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_padded: Option<bool>,
     #[prop(optional, default = true)] padded: bool,
+    #[prop(optional)] is_scrollable: Option<bool>,
     #[prop(optional, default = true)] scrollable: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let is_disabled = logic::resolve_disabled(is_disabled, disabled);
+    let is_padded = logic::resolve_padded(is_padded, padded);
+    let is_scrollable = logic::resolve_scrollable(is_scrollable, scrollable);
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
@@ -20,9 +26,9 @@ pub fn SidebarContent(
 
     let state = Memo::new(move |_| {
         logic::resolve_state(SidebarContentStateInput {
-            disabled,
-            padded,
-            scrollable,
+            disabled: is_disabled,
+            padded: is_padded,
+            scrollable: is_scrollable,
             has_custom_aria_label,
             has_custom_class_name,
         })

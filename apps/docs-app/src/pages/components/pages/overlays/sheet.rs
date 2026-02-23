@@ -53,17 +53,10 @@ pub(crate) fn sheet() -> AnyView {
     let direction_options = vec!["LTR".to_string(), "RTL".to_string()];
     let motion_options = vec!["Default".to_string(), "Custom".to_string()];
 
-    let (showcase_open_raw, set_showcase_open_raw) = signal(false);
-    let showcase_open: Signal<bool> = Signal::derive(move || showcase_open_raw.get());
-    let (showcase_present, set_showcase_present) = signal(showcase_open.get_untracked());
-    Effect::new(move |_| {
-        if showcase_open.get() {
-            set_showcase_present.set(true);
-        }
-    });
-    let showcase_on_close: OnPress = Callback::new(move |_| set_showcase_open_raw.set(false));
-    let showcase_open_sheet: OnPress = Callback::new(move |_| set_showcase_open_raw.set(true));
-    let showcase_on_exit_complete = Callback::new(move |_| set_showcase_present.set(false));
+    let (hello_open_raw, set_hello_open_raw) = signal(false);
+    let hello_open: Signal<bool> = Signal::derive(move || hello_open_raw.get());
+    let hello_open_sheet: OnPress = Callback::new(move |_| set_hello_open_raw.set(true));
+    let hello_on_close: OnPress = Callback::new(move |_| set_hello_open_raw.set(false));
 
     let (workbench_open_raw, set_workbench_open_raw) = signal(false);
     let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
@@ -128,20 +121,9 @@ pub(crate) fn sheet() -> AnyView {
     });
 
     let hello_code = Signal::derive(move || {
-        r#"let (open_raw, set_open_raw) = signal(false);
-let open = Signal::derive(move || open_raw.get());
-let on_close: OnPress = Callback::new(move |_| set_open_raw.set(false));
-
-<Show when=move || present.get()>
-  <Sheet
-    open=open
-    placement=SheetPlacement::Bottom
-    on_close=on_close
-    on_exit_complete=Callback::new(move |_| {})
-  >
-    <div>"Sheet content"</div>
-  </Sheet>
-</Show>"#
+        r#"<Sheet open=open on_close=on_close>
+  <div>"Sheet content"</div>
+</Sheet>"#
             .to_string()
     });
 
@@ -260,38 +242,21 @@ let on_close: OnPress = Callback::new(move |_| set_open_raw.set(false));
             group="Overlays"
             description="Sheet overlay (mobile-friendly) with placement, spring enter/exit, and dismiss control flags."
         >
-            <Playground title="Hello World (Default Sheet)" code_signal=hello_code>
+            <Playground title="Hello World (Default Path)" code_signal=hello_code>
                 <div class="docs-row">
-                    <Button on_press=showcase_open_sheet>"Open sheet"</Button>
-                    <span class="ui-muted">"open: " {move || showcase_open_raw.get().to_string()}</span>
+                    <Button on_press=hello_open_sheet>"Open sheet"</Button>
+                    <span class="ui-muted">"open: " {move || hello_open_raw.get().to_string()}</span>
                 </div>
-                <Show when=move || showcase_present.get()>
-                    <Sheet
-                        open=showcase_open
-                        on_close=showcase_on_close
-                        placement=SheetPlacement::Bottom
-                        aria_labelledby="sheet-showcase-title".to_string()
-                        aria_describedby="sheet-showcase-desc".to_string()
-                        lang="en-US".to_string()
-                        dir=ui_headless::A11yDirection::Ltr
-                        is_dismissable=true
-                        is_keyboard_dismiss_disabled=false
-                        motion=SheetMotion::default()
-                        on_exit_complete=showcase_on_exit_complete
-                    >
-                        <div class="docs-stack">
-                            <h3 id="sheet-showcase-title">"Deployment details"</h3>
-                            <p id="sheet-showcase-desc" class="ui-muted">
-                                "Review change summary before confirming rollout."
-                            </p>
-                            <div class="docs-row docs-row--end">
-                                <Button variant=ButtonVariant::Secondary on_press=showcase_on_close>
-                                    "Close"
-                                </Button>
-                            </div>
+                <Sheet open=hello_open on_close=hello_on_close>
+                    <div class="docs-stack">
+                        <p class="ui-muted">"Default API path: open + on_close + children."</p>
+                        <div class="docs-row docs-row--end">
+                            <Button variant=ButtonVariant::Secondary on_press=hello_on_close>
+                                "Close"
+                            </Button>
                         </div>
-                    </Sheet>
-                </Show>
+                    </div>
+                </Sheet>
             </Playground>
 
             <Playground

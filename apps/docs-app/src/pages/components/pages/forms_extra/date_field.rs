@@ -13,11 +13,6 @@ pub(crate) fn date_field() -> AnyView {
         "Long Motion".to_string(),
     ];
 
-    let (showcase_value, set_showcase_value) = signal(Some("2026-03-14".to_string()));
-    let showcase_on_value_change = Callback::new(move |next: Option<String>| {
-        set_showcase_value.set(next);
-    });
-
     let (workbench_id_base_index, set_workbench_id_base_index) = signal(Some(0_usize));
     let (workbench_tone_index, set_workbench_tone_index) = signal(Some(0_usize));
     let (workbench_motion_index, set_workbench_motion_index) = signal(Some(0_usize));
@@ -72,24 +67,12 @@ pub(crate) fn date_field() -> AnyView {
         }
     });
 
-    let showcase_code = Signal::derive(move || {
-        r#"let (value, set_value) = signal(Some("2026-03-14".to_string()));
-let on_value_change = Callback::new(move |next: Option<String>| {
-  set_value.set(next);
-});
-
-<DateField
-  id_base="invoice-date".to_string()
-  label="Invoice date".to_string()
-  value=value
-  on_value_change=on_value_change
-/>"#
-        .to_string()
-    });
+    let showcase_code =
+        Signal::derive(move || r#"<DateField id_base="invoice-date".to_string() />"#.to_string());
 
     let workbench_code = Signal::derive(move || {
         format!(
-            "<DateField\n  id_base={}.to_string()\n  label={}\n  placeholder={}\n  tone={:?}\n  disabled={}\n  value={}\n  default_value={}\n  on_value_change={}\n  aria_label={}\n  motion=DateFieldMotion {{ enabled: {}, duration_ms: {} }}\n  class_name={}\n/>",
+            "<DateField\n  id_base={}.to_string()\n  label={}\n  placeholder={}\n  tone={:?}\n  is_disabled={}\n  value={}\n  default_value={}\n  on_value_change={}\n  aria_label={}\n  motion=DateFieldMotion {{ enabled: {}, duration_ms: {} }}\n  class_name={}\n/>",
             rust_string_literal(&workbench_id_base.get()),
             if workbench_with_label.get() {
                 format!("Some({}.to_string())", rust_string_literal("Invoice date"))
@@ -138,7 +121,7 @@ let on_value_change = Callback::new(move |next: Option<String>| {
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "DateFieldWorkbenchActualConfig {{\n  id_base: {:?},\n  label: {:?},\n  placeholder: {:?},\n  tone: {:?},\n  disabled: {},\n  value: {:?},\n  default_value: {:?},\n  on_value_change: {},\n  aria_label: {:?},\n  motion: DateFieldMotion {{ enabled: {}, duration_ms: {} }},\n  class_name: {:?},\n}}",
+            "DateFieldWorkbenchActualConfig {{\n  id_base: {:?},\n  label: {:?},\n  placeholder: {:?},\n  tone: {:?},\n  is_disabled: {},\n  value: {:?},\n  default_value: {:?},\n  on_value_change: {},\n  aria_label: {:?},\n  motion: DateFieldMotion {{ enabled: {}, duration_ms: {} }},\n  class_name: {:?},\n}}",
             workbench_id_base.get(),
             if workbench_with_label.get() {
                 Some("Invoice date")
@@ -190,7 +173,7 @@ let on_value_change = Callback::new(move |next: Option<String>| {
 <DateField
   id_base="matrix-disabled".to_string()
   label="Disabled".to_string()
-  disabled=true
+  is_disabled=true
   default_value=Some("2026-06-01".to_string())
   motion=DateFieldMotion::disabled()
   class_name="docs-date-field-custom".to_string()
@@ -207,16 +190,7 @@ let on_value_change = Callback::new(move |next: Option<String>| {
         >
             <Playground title="Hello World (Default DateField)" code_signal=showcase_code>
                 <div class="docs-stack">
-                    <DateField
-                        id_base="docs-date-field-showcase".to_string()
-                        label="Invoice date".to_string()
-                        value=showcase_value
-                        on_value_change=showcase_on_value_change
-                    />
-                    <span class="ui-muted">
-                        "value: "
-                        {move || showcase_value.get().unwrap_or_else(|| "none".to_string())}
-                    </span>
+                    <DateField id_base="docs-date-field-showcase".to_string() />
                 </div>
             </Playground>
 
@@ -291,7 +265,7 @@ let on_value_change = Callback::new(move |next: Option<String>| {
                             String::new()
                         }
                         tone=workbench_tone.get()
-                        disabled=workbench_disabled.get()
+                        is_disabled=workbench_disabled.get()
                         value=workbench_controlled_value
                         default_value=if workbench_with_default.get() {
                             "2026-03-22".to_string()
@@ -340,7 +314,7 @@ let on_value_change = Callback::new(move |next: Option<String>| {
                     <DateField
                         id_base="docs-date-field-matrix-disabled".to_string()
                         label="Disabled".to_string()
-                        disabled=true
+                        is_disabled=true
                         default_value="2026-06-01".to_string()
                         motion=ui::text_input::date_field::DateFieldMotion::disabled()
                         class_name="docs-date-field-custom".to_string()

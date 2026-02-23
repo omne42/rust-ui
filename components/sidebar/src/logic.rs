@@ -1,4 +1,5 @@
-use super::{DEFAULT_ARIA_LABEL, DEFAULT_SHORTCUT_KEY};
+const DEFAULT_ARIA_LABEL: &str = "Sidebar";
+const DEFAULT_SHORTCUT_KEY: &str = "b";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum SidebarSide {
@@ -70,8 +71,24 @@ pub fn normalize_aria_label(value: Option<String>) -> String {
     normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ARIA_LABEL.into())
 }
 
+pub fn normalize_trigger_label(value: Option<String>) -> String {
+    normalize_optional_text(value).unwrap_or_else(|| "Toggle sidebar".to_string())
+}
+
 pub fn normalize_default_open(value: Option<bool>) -> bool {
     value.unwrap_or(true)
+}
+
+pub fn resolve_disabled(is_disabled: Option<bool>, disabled: bool) -> bool {
+    is_disabled.unwrap_or(disabled)
+}
+
+pub fn resolve_trigger_visibility(is_trigger_visible: Option<bool>, show_trigger: bool) -> bool {
+    is_trigger_visible.unwrap_or(show_trigger)
+}
+
+pub fn resolve_shortcut_enabled(is_shortcut_enabled: Option<bool>, enable_shortcut: bool) -> bool {
+    is_shortcut_enabled.unwrap_or(enable_shortcut)
 }
 
 pub fn normalize_shortcut_key(value: Option<String>, enable_shortcut: bool) -> Option<String> {
@@ -91,32 +108,6 @@ pub fn normalize_shortcut_key(value: Option<String>, enable_shortcut: bool) -> O
     }
 
     Some(first.to_string())
-}
-
-pub fn shortcut_hint(shortcut_key: Option<String>) -> Option<String> {
-    shortcut_key.map(|shortcut_key| format!("Ctrl+{shortcut_key}"))
-}
-
-pub fn should_toggle_for_shortcut(
-    key: &str,
-    ctrl_key: bool,
-    meta_key: bool,
-    shortcut_key: Option<&str>,
-    disabled: bool,
-) -> bool {
-    if disabled {
-        return false;
-    }
-
-    let Some(shortcut_key) = shortcut_key else {
-        return false;
-    };
-
-    if !(ctrl_key || meta_key) {
-        return false;
-    }
-
-    key.eq_ignore_ascii_case(shortcut_key)
 }
 
 pub fn resolve_state(input: SidebarStateInput) -> SidebarState {

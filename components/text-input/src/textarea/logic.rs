@@ -1,7 +1,11 @@
 pub use ui_state_primitives::button::normalize_optional_text;
 pub use ui_state_primitives::textarea::{
-    TextareaSourceAttr, TextareaState, TextareaStateInput, resolve_label_with_fallback,
-    resolve_state,
+    TextareaAccessibilityStateInput as PrimitiveAccessibilityStateInput, TextareaSourceAttr,
+    TextareaState, TextareaStateInput, TextareaValueAxisInput as PrimitiveValueAxisInput,
+    normalize_default_value as primitive_normalize_default_value,
+    resolve_accessibility_state as primitive_resolve_accessibility_state,
+    resolve_label_with_fallback, resolve_state,
+    resolve_value_axis_state as primitive_resolve_value_axis_state,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -50,39 +54,32 @@ pub struct ValueAxisState {
 }
 
 pub fn normalize_default_value(default_value: Option<String>) -> String {
-    default_value.unwrap_or_default()
+    primitive_normalize_default_value(default_value)
 }
 
 pub fn normalize_value_axis(input: ValueAxisInput) -> ValueAxisState {
-    let is_controlled = input.has_controlled_value;
-    let has_default_value = input.default_value.is_some();
-    let has_on_value_change = input.has_on_value_change;
+    let markers = primitive_resolve_value_axis_state(PrimitiveValueAxisInput {
+        is_controlled: input.has_controlled_value,
+        has_default_value: input.default_value.is_some(),
+        has_on_value_change: input.has_on_value_change,
+    });
     let default_value = normalize_default_value(input.default_value);
-
-    let control_mode_attr = if is_controlled {
-        ValueControlModeAttr::Controlled
-    } else {
-        ValueControlModeAttr::Uncontrolled
-    };
-    let default_value_source_attr = if has_default_value {
-        TextareaSourceAttr::Custom
-    } else {
-        TextareaSourceAttr::Default
-    };
-    let value_change_source_attr = if has_on_value_change {
-        ValueChangeSourceAttr::OnValueChange
-    } else {
-        ValueChangeSourceAttr::None
-    };
-    let has_value_change_handler = has_on_value_change;
 
     ValueAxisState {
         default_value,
-        is_controlled,
-        control_mode_attr,
-        default_value_source_attr,
-        value_change_source_attr,
-        has_value_change_handler,
+        is_controlled: markers.is_controlled,
+        control_mode_attr: if markers.is_controlled {
+            ValueControlModeAttr::Controlled
+        } else {
+            ValueControlModeAttr::Uncontrolled
+        },
+        default_value_source_attr: markers.default_value_source_attr,
+        value_change_source_attr: if markers.has_value_change_handler {
+            ValueChangeSourceAttr::OnValueChange
+        } else {
+            ValueChangeSourceAttr::None
+        },
+        has_value_change_handler: markers.has_value_change_handler,
     }
 }
 
@@ -97,9 +94,13 @@ pub struct AccessibilityState {
 }
 
 pub fn normalize_accessibility_state(input: AccessibilityStateInput) -> AccessibilityState {
+    let state = primitive_resolve_accessibility_state(PrimitiveAccessibilityStateInput {
+        is_disabled: input.is_disabled,
+        is_read_only: input.is_read_only,
+    });
     AccessibilityState {
-        is_disabled: input.is_disabled.unwrap_or(false),
-        is_read_only: input.is_read_only.unwrap_or(false),
+        is_disabled: state.is_disabled,
+        is_read_only: state.is_read_only,
     }
 }
 

@@ -31,12 +31,20 @@ cargo test -p ui-layout --test tabs_semantics tabs_check2_documents_semantics_fi
 cargo test -p ui-layout --test tabs_semantics tabs_semantics_suite_is_contract_first_not_snapshot_only
 cargo test -p ui-layout --test tabs_semantics tabs_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
 
+echo "[contract-hygiene] contract: tag styles keep defensive fallback chain with ui-theme SSOT terminals"
+cargo test -p ui-layout --test tag_semantics --no-default-features --features component-tag,inject-css tag_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals
+
 echo "[contract-hygiene] contract: tag agent-contract schema-like markers + whitelist-safe render path"
 cargo test -p ui-layout --test tag_semantics --no-default-features --features component-tag,inject-css tag_agent_contract_is_schema_typed_and_machine_readable
 cargo test -p ui-layout --test tag_semantics --no-default-features --features component-tag,inject-css tag_agent_contract_render_path_is_whitelist_safe_and_script_injection_free
 cargo test -p ui-layout --test tag_semantics --no-default-features --features component-tag,inject-css tag_check2_documents_semantics_first_testing_rules
 cargo test -p ui-layout --test tag_semantics --no-default-features --features component-tag,inject-css tag_semantics_suite_is_contract_first_not_snapshot_only
 cargo test -p ui-layout --test tag_semantics --no-default-features --features component-tag,inject-css tag_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
+echo "[contract-hygiene] contract: tag css is aggregated in @layer ui and runtime style is css-variable-only"
+cargo test -p ui-layout --test tag_semantics --no-default-features --features component-tag,inject-css tag_cascade_layer_and_runtime_style_contract_is_enforced
+
+echo "[contract-hygiene] contract: tag-group styles keep defensive fallback chain with ui-theme SSOT terminals"
+cargo test -p ui-layout --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals
 
 echo "[contract-hygiene] contract: tag-group agent-contract schema-like markers + whitelist-safe render path"
 cargo test -p ui-layout --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_agent_contract_is_schema_typed_and_machine_readable
@@ -44,6 +52,8 @@ cargo test -p ui-layout --test tag_group_semantics --no-default-features --featu
 cargo test -p ui-layout --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_check2_documents_semantics_first_testing_rules
 cargo test -p ui-layout --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_semantics_suite_is_contract_first_not_snapshot_only
 cargo test -p ui-layout --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
+echo "[contract-hygiene] contract: tag-group css is aggregated in @layer ui and runtime style is css-variable-only"
+cargo test -p ui-layout --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_cascade_layer_and_runtime_style_contract_is_enforced
 
 echo "[contract-hygiene] contract: swatch agent-contract schema-like markers + whitelist-safe render path"
 cargo test -p ui-layout --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_agent_contract_is_schema_typed_and_machine_readable

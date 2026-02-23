@@ -1,20 +1,24 @@
 pub const CSS: &str = r#"
 .ui-skeleton {
   display: block;
-  border-radius: var(--ui-radius-md);
-  background: color-mix(in oklch, var(--ui-border) 55%, var(--ui-bg));
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
+  background: color-mix(
+    in oklch,
+    var(--ui-border, var(--ui-fallback-border)) 55%,
+    var(--ui-bg, var(--ui-fallback-bg))
+  );
   position: relative;
   overflow: hidden;
 }
 
 .ui-skeleton--variant-rect,
 .ui-skeleton[data-variant="rect"] {
-  border-radius: var(--ui-radius-md);
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
 }
 
 .ui-skeleton--variant-circle,
 .ui-skeleton[data-variant="circle"] {
-  border-radius: 9999px;
+  border-radius: var(--ui-radius-full, var(--ui-fallback-radius-full));
 }
 
 .ui-skeleton[data-variant-source="prop"],
@@ -30,11 +34,17 @@ pub const CSS: &str = r#"
   background: linear-gradient(
     100deg,
     transparent 0%,
-    color-mix(in oklch, var(--ui-bg) 35%, transparent) 50%,
+    color-mix(
+      in oklch,
+      var(--ui-bg, var(--ui-fallback-bg)) 35%,
+      transparent
+    ) 50%,
     transparent 100%
   );
   transform: translateX(-100%);
-  animation: ui-skeleton-shimmer 1.25s ease-in-out infinite;
+  animation: ui-skeleton-shimmer
+    var(--ui-image-skeleton-duration, var(--ui-fallback-image-skeleton-duration))
+    ease-in-out infinite;
 }
 
 .ui-skeleton--still,

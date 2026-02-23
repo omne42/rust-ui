@@ -68,6 +68,14 @@ echo "[dx] contract: tabs playground css hot-reload + workbench persistence"
 cargo test -p ui --test tabs_semantics --no-default-features --features component-tabs,inject-css tabs_dx_playground_supports_css_hot_reload_without_wasm_rebuild
 cargo test -p ui --test tabs_semantics --no-default-features --features component-tabs,inject-css tabs_dx_workbench_supports_optional_state_persistence_and_isolated_canvas
 
+echo "[dx] contract: tag playground css hot-reload + isolated canvas"
+cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_dx_playground_supports_css_hot_reload_without_wasm_rebuild
+cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_dx_workbench_keeps_context_and_isolated_canvas_with_optional_persist_na
+
+echo "[dx] contract: tag-group playground css hot-reload + isolated canvas"
+cargo test -p ui --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_dx_playground_supports_css_hot_reload_without_wasm_rebuild
+cargo test -p ui --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_dx_workbench_keeps_context_and_isolated_canvas_with_optional_persist_na
+
 echo "[dx] contract: swatch playground css hot-reload + isolated canvas"
 cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_dx_playground_supports_css_hot_reload_without_wasm_rebuild
 cargo test -p ui --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_optional_persist_na

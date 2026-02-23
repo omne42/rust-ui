@@ -1,4 +1,5 @@
 use super::*;
+use std::collections::HashSet;
 
 #[test]
 fn normalize_is_disabled_prefers_is_prefixed_value() {
@@ -61,4 +62,84 @@ fn compose_class_name_keeps_base_and_custom_suffix() {
 fn resolve_motion_source_maps_custom_flag() {
     assert_eq!(resolve_motion_source(false), "default");
     assert_eq!(resolve_motion_source(true), "custom");
+}
+
+#[test]
+fn is_tab_disabled_respects_global_and_index_flags() {
+    let disabled_indices = HashSet::from([2_usize]);
+
+    assert!(is_tab_disabled(false, &disabled_indices, 2));
+    assert!(!is_tab_disabled(false, &disabled_indices, 1));
+    assert!(is_tab_disabled(true, &disabled_indices, 1));
+}
+
+#[test]
+fn has_disabled_tabs_reports_global_or_index_level_disables() {
+    let empty = HashSet::new();
+    let indexed = HashSet::from([0_usize]);
+
+    assert!(!has_disabled_tabs(false, &empty));
+    assert!(has_disabled_tabs(false, &indexed));
+    assert!(has_disabled_tabs(true, &empty));
+}
+
+#[test]
+fn normalize_selected_with_disabled_skips_blocked_indices() {
+    let disabled_indices = HashSet::from([1_usize]);
+
+    let selected = normalize_selected_with_disabled(1, 3, |idx| disabled_indices.contains(&idx));
+    assert_eq!(selected, 0);
+}
+
+#[test]
+fn resolve_selection_request_is_none_for_empty_noop_or_disabled() {
+    let disabled_indices = HashSet::from([1_usize]);
+
+    assert_eq!(
+        resolve_selection_request(0, 0, 0, |_| false),
+        None,
+        "empty items should not produce selection changes"
+    );
+    assert_eq!(
+        resolve_selection_request(0, 0, 3, |_| false),
+        None,
+        "same index should not emit redundant changes"
+    );
+    assert_eq!(
+        resolve_selection_request(1, 0, 3, |idx| disabled_indices.contains(&idx)),
+        None,
+        "disabled targets should be rejected"
+    );
+}
+
+#[test]
+fn resolve_selection_request_returns_next_for_valid_target() {
+    let next = resolve_selection_request(2, 0, 3, |_| false);
+    assert_eq!(next, Some(2));
+}
+
+#[test]
+fn registration_actions_maintain_items_order_with_unregister_compaction() {
+    let state = reduce_registration_actions(&[
+        TabsRegistrationAction::Register { registration_id: 4 },
+        TabsRegistrationAction::Register { registration_id: 2 },
+        TabsRegistrationAction::Register { registration_id: 4 },
+        TabsRegistrationAction::Unregister { registration_id: 4 },
+        TabsRegistrationAction::Register { registration_id: 7 },
+    ]);
+    assert_eq!(state.items_order, vec![2, 7]);
+}
+
+#[test]
+fn resolve_registered_items_order_follows_registration_actions() {
+    let items_order = resolve_registered_items_order(
+        &[
+            TabsRegistrationAction::Register { registration_id: 9 },
+            TabsRegistrationAction::Register { registration_id: 3 },
+            TabsRegistrationAction::Unregister { registration_id: 9 },
+            TabsRegistrationAction::Register { registration_id: 5 },
+        ],
+        &[3, 5, 9],
+    );
+    assert_eq!(items_order, vec![3, 5, 9]);
 }

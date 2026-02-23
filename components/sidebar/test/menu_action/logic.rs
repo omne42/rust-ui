@@ -18,6 +18,14 @@ fn normalize_defaults_and_trimmed_values_are_stable() {
 }
 
 #[test]
+fn resolve_default_priority_prefers_prefixed_flags() {
+    assert!(resolve_hover_only(Some(true), false));
+    assert!(!resolve_hover_only(None, false));
+    assert!(resolve_disabled(Some(true), false));
+    assert!(!resolve_disabled(None, false));
+}
+
+#[test]
 fn resolve_state_tracks_visibility_and_source_markers() {
     let hover = resolve_state(SidebarMenuActionStateInput {
         hover_only: true,

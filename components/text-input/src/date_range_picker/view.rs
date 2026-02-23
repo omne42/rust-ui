@@ -14,6 +14,7 @@ pub fn DateRangePicker(
     end_year: i32,
     end_month: u8,
     #[prop(optional)] tone: DateRangePickerTone,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional, into)] start_day: Option<Signal<Option<u8>>>,
     #[prop(optional)] default_start_day: Option<u8>,
@@ -22,6 +23,7 @@ pub fn DateRangePicker(
     #[prop(optional)] default_end_day: Option<u8>,
     #[prop(optional)] on_end_day_change: Option<Callback<Option<u8>>>,
     #[prop(optional)] first_weekday: CalendarFirstWeekday,
+    #[prop(optional)] is_show_outside_days: Option<bool>,
     #[prop(optional)] show_outside_days: bool,
     #[prop(optional, into)] start_label: Option<String>,
     #[prop(optional, into)] end_label: Option<String>,
@@ -33,6 +35,9 @@ pub fn DateRangePicker(
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let is_disabled = is_disabled.unwrap_or(disabled);
+    let is_show_outside_days = is_show_outside_days.unwrap_or(show_outside_days);
+
     let start_month = logic::normalize_month(start_month);
     let end_month = logic::normalize_month(end_month);
 
@@ -86,7 +91,7 @@ pub fn DateRangePicker(
     let state = Memo::new(move |_| {
         logic::resolve_state(DateRangePickerStateInput {
             tone,
-            disabled,
+            disabled: is_disabled,
             has_start_value: selected_start_day.get().is_some(),
             has_end_value: selected_end_day.get().is_some(),
             is_invalid_range: is_invalid_range.get(),
@@ -149,11 +154,11 @@ pub fn DateRangePicker(
                         year=start_year
                         month=start_month
                         tone=picker_tone
-                        disabled=disabled
+                        is_disabled=is_disabled
                         selected_day=start_day
                         on_selected_day_change=on_start_change
                         first_weekday=first_weekday
-                        show_outside_days=show_outside_days
+                        is_show_outside_days=is_show_outside_days
                         placeholder=text_state.get_value().start_placeholder
                         aria_label=text_state.get_value().start_aria_label
                         class_name="ui-date-range-picker__picker".to_string()
@@ -169,11 +174,11 @@ pub fn DateRangePicker(
                         year=end_year
                         month=end_month
                         tone=picker_tone
-                        disabled=disabled
+                        is_disabled=is_disabled
                         selected_day=end_day
                         on_selected_day_change=on_end_change
                         first_weekday=first_weekday
-                        show_outside_days=show_outside_days
+                        is_show_outside_days=is_show_outside_days
                         placeholder=text_state.get_value().end_placeholder
                         aria_label=text_state.get_value().end_aria_label
                         class_name="ui-date-range-picker__picker".to_string()

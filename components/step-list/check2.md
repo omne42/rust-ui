@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（StepList 状态原语统一位于 `crates/ui-state-primitives/src/step_list.rs`，组件侧 `components/step-list/src/logic.rs` 仅调用 `primitives::*` 装配映射；可复用状态派生 `is_completed_step`/`count_completed_steps`/`count_disabled_steps` 已下沉，`components/step-list/src/view.rs` 只解包 `Signal` 输入并显式写回选择状态；原语回归见 `crates/ui-state-primitives/src/test/step_list.rs`。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（StepList 已在 `crates/ui-headless/src/step_list.rs` 提供类型化语义契约：`StepListRootA11yAttrs`、`StepListItemContract { attrs, state }`，并通过 `resolve_step_list_next_index` 统一键盘 handlers 语义；`lang/dir` 由 `crates/ui-headless/src/a11y.rs::locale_attrs` 归一。组件侧 `components/step-list/src/view.rs` 仅挂载 `step_list_root_a11y_attrs` 与 `step_list_item_contract` 并透传输入事件，不重写键盘模型；回归覆盖见 `components/step-list/test/semantics.rs::step_list_headless_contract_exists_and_view_consumes_it` 与 `e2e/tests/docs_app_step_list_contract.spec.mjs`。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -32,14 +32,14 @@
   - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（StepList 当前作用域为 motion N/A：组件目录不存在 `components/step-list/src/motion.rs`，且 `components/step-list/src/{mod,logic,view}.rs` 未自实现 spring/keyframe/RAF driver；通用执行能力与 non-wasm no-op/stub 由 `crates/ui-motion/src/lib.rs` 提供（`#[cfg(not(target_arch = \"wasm32\"))] pub mod web`）。契约回归见 `components/step-list/test/semantics.rs::step_list_motion_boundary_stays_component_na_and_no_runtime_engine_reimplementation` 与 `step_list_platform_contract_depends_on_headless_mutual_exclusion_and_motion_noop_stub`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（Token 基线与分类位于 `crates/ui-theme/src/tokens.rs`，三轴上下文与映射位于 `crates/ui-theme/src/theme.rs`，CSS 变量输出位于 `crates/ui-theme/src/css.rs`；量化尺寸基线回归见 `crates/ui-theme/tests/token_scale_baseline.rs`，对比度基线回归见 `crates/ui-theme/tests/wcag_contrast.rs`。StepList 样式仅消费 `var(--ui-*)` 与 theme fallback 变量（`components/step-list/src/styles.rs`），未引入平行私有 token 命名体系与主题重建逻辑。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,7 +47,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（StepList 组件职责拆分稳定：`components/step-list/src/logic.rs` 仅做 props 归一/状态派生映射并消费 `ui-state-primitives`，`components/step-list/src/view.rs` 仅做 Leptos 结构渲染与 `ui-headless` 语义挂载，`components/step-list/src/styles.rs` 仅保留 token-first 静态样式；公共导出面在 `components/step-list/src/mod.rs` 仅暴露 `StepList` 与 primitives 类型，不暴露 `web-sys`/DOM 平台类型。`ui-motion` 在该组件范围为 N/A（无组件内动效引擎重写，依赖上层/全局能力）。语义测试位于 `components/step-list/test/semantics.rs`，满足 semantics.rs 新目录落点要求。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -55,59 +55,59 @@
   - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（StepList 公共 API 命名已对齐：布尔 props 使用 `is_emphasized`/`is_disabled`，默认值轴使用 `default_selected_index`，回调使用 `on_selected_index_change`，并与 value 轴 `selected_index` 成对出现；定义位于 `components/step-list/src/view.rs`。组件测试契约覆盖这些命名标记，见 `components/step-list/test/semantics.rs` 中对 props 字段的断言。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（StepList 的可控状态轴已成对：`selected_index`（value）+ `on_selected_index_change`（on_value_change）+ `default_selected_index`（default_value），定义见 `components/step-list/src/view.rs`；运行时通过 `headless::use_controllable_state(selection_axis.selected_index, Some(selection_axis.default_selected_index), selection_axis.on_selected_index_change)` 统一受控/非受控语义，避免半受控。回归覆盖见 `components/step-list/test/semantics.rs::step_list_controlled_uncontrolled_axis_is_paired_and_half_controlled_behavior_is_blocked`。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（StepList 默认值归一集中在 `components/step-list/src/logic.rs`：`normalize_id_base` 与 `normalize_selection_axis`（含 `default_selected_index` 的 `sanitize_index` 归一）。`components/step-list/src/view.rs` 仅消费归一化输出（`let id_base = logic::normalize_id_base(id_base);`、`let selection_axis = logic::normalize_selection_axis(...)`），未出现二次 `unwrap_or`/默认分支。回归覆盖见 `components/step-list/test/semantics.rs::step_list_default_values_are_normalized_in_logic_and_view_does_not_scatter_fallbacks`。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（StepList 的输入归一与状态派生集中于 `components/step-list/src/logic.rs`：`normalize_selection_axis`、`resolve_state`、`resolve_item_state`、`is_completed_step` 等；`components/step-list/src/view.rs` 仅消费这些输出并挂载语义，不在视图层重建规则。事件处理器仅通过 `selected_state_request_change.run(...)` 触发状态变更，键盘路径由 `ui-headless::resolve_step_list_next_index` 统一归一。语义回归见 `components/step-list/test/semantics.rs::step_list_state_normalization_and_type_constraints_are_centralized`。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（StepList 离散输入与状态轴已类型化：`StepListOrientation`、`StepListSize`、`StepListState`、`StepListItemState` 定义于 `crates/ui-state-primitives/src/step_list.rs`；`components/step-list/src/view.rs` 直接消费类型化轴（`orientation: StepListOrientation`、`size: StepListSize`、`data-status=item_state.status_attr`），不存在字符串自由组合协议或多个 `Option<bool>` 拼互斥状态机。语义回归见 `components/step-list/test/semantics.rs::step_list_state_normalization_and_type_constraints_are_centralized`。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`components/step-list/src/logic.rs` 通过 `use ui_state_primitives::step_list as primitives;` 统一消费状态原语；`components/step-list/src/mod.rs` 仅 `pub use ui_state_primitives::step_list::*` 暴露类型，原语定义集中在 `crates/ui-state-primitives/src/step_list.rs`。语义回归 `components/step-list/test/semantics.rs::step_list_state_primitives_are_sunk_to_ui_state_primitives_and_exported` 与 `step_list_antipattern_guards_remain_blocked` 覆盖“只消费原语、不耦合业务 store、不在组件重写状态机”。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：StepList 组件范围内无远程请求与异步状态机，`components/step-list/src/view.rs` 与 `components/step-list/src/logic.rs` 未引入 `is_loading/aria-busy/retry/use_async_action` 协议；语义回归 `components/step-list/test/semantics.rs::step_list_async_contract_is_explicitly_na_for_component_scope` 明确断言这些异步 token 必须缺席，防止组件内自定义加载/错误协议漂移。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（StepList 基础调用不要求手动接线 `ui-state-primitives/ui-headless`：`apps/docs-app/src/pages/components/pages/collections_extra/step_list.rs` 提供 `Playground title=\"Hello World (Default)\"`，最小示例仅 `<StepList id_base=... steps=signal(...).0 />` 路径即可运行；复杂需求再通过 `selected_index/default_selected_index/on_selected_index_change` 等可选 props 在 workbench 场景开启。组件对外未暴露内部状态对象作为必填参数，语义回归覆盖见 `components/step-list/test/semantics.rs::step_list_dx_paradox_docs_keep_default_path_simple_and_no_internal_state_required`。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（StepList 采用该规则允许的“配置式输入”分支：`components/step-list/src/view.rs` 以 `steps: ReadSignal<Vec<StepListItem>>` 接收类型化 `ItemSpec`，`crates/ui-state-primitives/src/step_list.rs` 的 `StepListItem { id, label, description, disabled }` 将标题/语义/内容绑定在同一结构维度。组件与 docs 未引入 `labels + children`/`titles + panels` 并行数组写法；反模式守卫见 `components/step-list/test/semantics.rs::step_list_antipattern_guards_remain_blocked`。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：StepList 当前交互模型无拖拽语义与 `Dragging` 状态轴，`components/step-list/src/view.rs` / `components/step-list/src/logic.rs` 未实现 `drag/DragEnd/pointermove` 事件或按帧回流路径；该项在组件范围按“不适用且说明理由”处理，避免为假问题引入额外状态机复杂度。）
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：StepList 当前不承担 overlay/浮层定位职责，`components/step-list/src/view.rs` / `components/step-list/src/logic.rs` / `crates/ui-headless/src/step_list.rs` 未出现 `getBoundingClientRect`、`ResizeObserver`、`IntersectionObserver`、`placement`、`rectification` 等 DOM 测量与校正循环路径；因此不存在需要两段式收敛保护的测量回路。）
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：StepList 以 `components/step-list/src/view.rs` 的 `steps: ReadSignal<Vec<StepListItem>>` 作为单一有序输入源，导航顺序直接由 `Vec` 索引定义，不存在子项自治挂载/卸载的 `RegistrationContext` 场景。当前实现仅在 `crates/ui-state-primitives/src/step_list.rs` 使用 `BTreeSet` 做 completed/id 去重归一，未使用 `HashSet` 迭代顺序驱动导航。）
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：StepList 是静态顺序渲染列表，不提供 `Lazy/KeepAlive/Eager` 插槽投影策略，也不存在 `NotifyHidden` 生命周期通道。`components/step-list/src/view.rs` 未实现隐藏态副作用管理，且组件侧无轮询/RAF 动效循环（相关禁用约束见 `components/step-list/test/semantics.rs` 对 `request_animation_frame/animation` 的缺席断言）。）
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：StepList 当前无 `Resize/Theme/Intersection` 运行时订阅链路，`components/step-list/src/view.rs` / `components/step-list/src/logic.rs` / `crates/ui-headless/src/step_list.rs` 未实现 `ResizeObserver`、`IntersectionObserver`、`matchMedia`、`BreakpointChanged`、`debounce/throttle` 等事件采样与回流语义；因此不存在“原始环境事件洪泛”风险面。）
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：StepList 非 `Table/Grid` 大集合批处理组件，`components/step-list/src/view.rs` 仅消费 `steps: ReadSignal<Vec<StepListItem>>` 的顺序列表输入；`crates/ui-state-primitives/src/step_list.rs` / `components/step-list/src/logic.rs` 未定义 `SelectionState::All`、批量选择压缩态或 `Context Bus` 广播协议。当前状态传播是组件内局部选择轴，不存在跨层 O(N) prop drilling 的批处理路径。）
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：StepList 当前不存在“派生命令 -> 总线广播 -> 多订阅者”架构路径；交互仅在组件内通过 `selected_state_request_change` 与 `on_selected_index_change` 回调收敛。`components/step-list/src/view.rs` 虽使用 `ui_headless::use_ui_trace()`/`UiTraceEventKind::Note` 做诊断事件记录，但未定义 `TraceId` 透传协议，且不存在事件总线语义断裂风险面。）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（StepList 在 `components/step-list/src/view.rs` 挂载 `role/aria-*` 与键盘可达路径，语义契约来自 `crates/ui-headless/src/step_list.rs`（`step_list_root_a11y_attrs`、`step_list_item_contract`）；`lang/dir` 通过 `#[prop(optional, into)] lang: Option<String>` 与 `#[prop(optional)] dir: Option<A11yDirection>` 透传并由 `crates/ui-headless/src/a11y.rs::locale_attrs` 统一处理。组件未在 `view.rs` 硬编码业务文案，仅消费 `StepListItem` 输入与 `aria_label`。回归覆盖见 `components/step-list/test/semantics.rs::step_list_a11y_i18n_l10n_contract_is_headless_driven`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（StepList 在 `components/step-list/src/view.rs` 已挂载稳定语义标记：根节点 `data-orientation/data-size/data-state/data-selected-index/data-completed-count/data-disabled-count/data-has-selection/data-aria-source`，子项 `data-id/data-status/data-current/data-completed/data-disabled/data-selectable`，以及 `role/aria-label/aria-current/aria-disabled`。状态来源以封闭集合属性输出（如 `data-state`、`data-aria-source`），自动化选择器可直接使用语义标记（见 `components/step-list/test/semantics.rs` 与 e2e 断言 `toHaveAttribute(\"data-selected-index\", ...)`/`toHaveAttribute(\"data-status\", ...)`）。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
@@ -116,31 +116,31 @@
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（StepList 已有契约优先测试：`components/step-list/test/semantics.rs` 覆盖 `role/aria/data-*` 与来源标记断言（如 `step_list_a11y_i18n_l10n_contract_is_headless_driven`、`step_list_semantics_suite_is_contract_first_not_snapshot_only`、`step_list_controlled_uncontrolled_axis_is_paired_and_half_controlled_behavior_is_blocked`、`step_list_reduced_motion_ssr_wasm_contract_stays_semantically_stable`）；e2e `e2e/tests/docs_app_step_list_contract.spec.mjs` 覆盖键盘路径、disabled 与属性变化（`toHaveAttribute(\"data-selected-index\", ...)`、`toHaveAttribute(\"data-status\", ...)`、`toHaveAttribute(\"aria-disabled\", ...)`）。语义套件显式禁止把视觉快照当主信号。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（StepList 文件分层已稳定：`components/step-list/src/mod.rs` 仅维护导出边界（`pub use` + `pub mod styles`）；`components/step-list/src/logic.rs` 只做归一/派生并转发 primitives；`components/step-list/src/styles.rs` 仅为 token-first 静态 CSS；`components/step-list/src/view.rs` 负责结构渲染与 headless 语义挂载。`motion.rs` 在该组件范围为 N/A（无可复用组件级动效契约），并由 `components/step-list/test/semantics.rs` 断言 `motion.rs` 不应存在，避免在组件内重写动效引擎。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（StepList 组件目录 `components/step-list/src` 未引入 `spec.rs`，仅保留 `mod.rs/logic.rs/styles.rs/view.rs/protocol.rs`；该组件按简单组件范围将规范说明保留在 `check2.md` 与组件文档。语义守卫 `components/step-list/test/semantics.rs` 已断言 `src/step_list/spec.rs` 不存在（`step-list should keep spec/schema boundary as N/A for simple component scope.`），避免为形式统一新增 `spec.rs`。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（StepList 样式规则集中在 `components/step-list/src/styles.rs`，状态分支以稳定 `data-*`/class 驱动且视觉值来自 `var(--ui-*)`；组件 `view.rs` 未塞入业务 inline style 逻辑。样式聚合注入链路由 `crates/ui/src/css.rs` 的 `#[cfg(feature = \"component-step_list\")] out.push_str(crate::step_list::styles::CSS);` 提供。Utility-First 仅出现在 `apps/*` 文档页面布局层，不反向成为组件库契约；组件实现未采用 CSS-in-Rust 运行时样式系统。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（StepList 已将该项纳入组件门禁：`components/step-list/src/check2.md` 同条为已通过，并在合并门禁中声明“默认主题美学质量达标（与可访问性同级门禁）”。文档与对标同步回归由 `components/step-list/test/semantics.rs::step_list_heroui_doc_sync_contract_holds_when_no_parameter_change` 覆盖（校验 `docs/spec/heroui-parameter-design-strategy.md` 与 docs 入口 `apps/docs-app/src/pages/components/pages.rs` 的可访问性/同步策略），避免“可访问但粗糙”的质量退化合入。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（StepList 在 package 模式具备组件级 feature：`crates/ui/Cargo.toml` 定义 `component-step_list = [\"dep:ui-step-list\"]`；模块与样式聚合均受 feature 约束：`crates/ui/src/lib.rs` 使用 `#[cfg(feature = \"component-step_list\")]`，`crates/ui/src/css.rs` 使用 `#[cfg(feature = \"component-step_list\")] out.push_str(crate::step_list::styles::CSS);`。语义清单基线 `components/step-list/src/check2.md` 同条已通过，满足“未启用组件不得进入编译/样式链接路径”的裁剪约束。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -149,71 +149,71 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（StepList 离散轴和状态模型由类型系统封闭：`crates/ui-state-primitives/src/step_list.rs` 定义 `StepListOrientation`、`StepListSize`、`StepListState`、`StepListItemState`；无效输入在 `components/step-list/src/logic.rs` 统一归一（如 `sanitize_index`、`normalize_selection_axis`）；`components/step-list/src/view.rs` 通过 `data-state`、`data-status`、`data-selected-index`、`data-aria-source` 输出稳定机器可读标记。契约回归由 `components/step-list/test/semantics.rs::step_list_type_system_and_machine_markers_form_closed_contract` 与 `components/step-list/test/semantics.rs::step_list_state_normalization_and_type_constraints_are_centralized` 约束，可直接定位类型/语义破坏点。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（`N/A`：StepList 不是 overlay/弹层组件，不存在层叠 overlay 焦点恢复场景；`components/step-list/src/view.rs` 仅渲染 `ol/li/button` 结构并挂载 step-list 键盘导航契约，未持有 `NodeRef` 作为恢复目标；`crates/ui-headless/src/step_list.rs` 只处理列表导航与 `tabindex/aria-*` 契约。Overlay 专属语义能力集中在 `crates/ui-headless/src/a11y.rs::overlay_dialog_attrs`，当前组件未接入该路径。）
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（`N/A`：StepList 当前未集成任何命令式第三方实例，不存在 ECharts/Map 或 JS bridge 的持有/清理路径；`components/step-list/src/view.rs` 的公共参数仅为受控/非受控索引与语义配置（`selected_index` / `default_selected_index` / `on_selected_index_change` 等），未暴露第三方句柄类型；交互契约只消费 `ui-headless::step_list` 语义能力，不反向污染状态机。）
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（StepList 初始化不依赖时间或随机源：`components/step-list/src/logic.rs::normalize_id_base` 的默认根 ID 固定为 `"ui-step-list"`；`crates/ui-state-primitives/src/step_list.rs::normalize_items` 的回退 item id 固定为 `step-{index+1}` 并经确定性清洗；全链路未使用 `now()/UUID/rand`。因此本组件在 SSR/Hydration 间天然稳定，`IdProvider` 注入路径对该组件为 `N/A`。）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（StepList 组件本身不含平台分支与浏览器专有 API：`components/step-list/src/view.rs`、`components/step-list/src/logic.rs` 未使用 `web_sys/window/document`；平台互斥与降级契约由 `components/step-list/test/semantics.rs::step_list_platform_contract_depends_on_headless_mutual_exclusion_and_motion_noop_stub`、`step_list_reduced_motion_ssr_wasm_contract_stays_semantically_stable`、`step_list_component_layer_is_assembly_only_and_public_api_hides_platform_details` 约束。组件级基线 `components/step-list/src/check2.md` 同条已通过，并要求 web（wasm32）/ssr（native）/默认本地三条 compile-only 证据。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（互斥守卫已在 `crates/ui-headless/src/lib.rs` 生效：`#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)`；StepList 侧回归 `components/step-list/test/semantics.rs::step_list_platform_contract_depends_on_headless_mutual_exclusion_and_motion_noop_stub` 显式断言该标记存在，防止“同时启用 web+ssr 仍可过编译”的回归；组件级清单 `components/step-list/src/check2.md` 同条已通过。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供稳定 stub：`prefers_reduced_motion() -> true` 与 `animate(_element: &(), ...) {}`，并有 `non_wasm_web_backend_is_predictable_noop` 测试；StepList 侧 `components/step-list/test/semantics.rs::step_list_platform_contract_depends_on_headless_mutual_exclusion_and_motion_noop_stub` 固化该契约，且 `step_list_motion_boundary_stays_component_na_and_no_runtime_engine_reimplementation` 断言组件层不重写 motion 引擎、不中断 toolchain 编译路径。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（StepList 组件层不实现独立 motion adapter（`components/step-list/src/motion.rs` 不存在），因此 reduced-motion 在组件侧为确定性降级路径；平台语义一致性由 `components/step-list/test/semantics.rs::step_list_reduced_motion_ssr_wasm_contract_stays_semantically_stable` 约束（禁止在 `view.rs/logic.rs` 出现 `#[cfg(target_arch = \"wasm32\")]`、`ui_motion::`、`web_sys::` 等分裂路径，并要求 `data-state`/`data-status`/`aria-current`/`aria-disabled` 语义标记稳定）；同时 `step_list_platform_contract_depends_on_headless_mutual_exclusion_and_motion_noop_stub` 断言 `ui-motion` non-wasm no-op stub 存在，保证 SSR/tooling 可预测。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（StepList 性能契约由 `components/step-list/test/semantics.rs::step_list_performance_governance_contract_is_budgeted_repeatable_and_attributable` 固化：对关键可归因标记（`data-state`/`data-selected-index`/`data-completed-count`/`data-disabled-count`/`data-*-source`）做硬断言；对渲染路径设置可重复阈值（`Memo::new` 数量 `<= 3`、`Signal::derive` 数量 `== 0`、`Effect::new` 数量 `== 0`），并阻断 `performance.now/request_animation_frame/set_interval` 引入的漂移。`render_count` 在当前框架下以等价证据路径落地，并在 `docs/plan/TODO.md` 显式追踪后续自动化任务（`render_count` 回归条目）。组件级清单 `components/step-list/src/check2.md` 同条已通过。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（StepList 已按语义拆分渲染函数：`components/step-list/src/view.rs` 提供 `render_item_description`、`render_step_list_item`、`render_step_list_items`，根组件仅负责装配；语义回归 `components/step-list/test/semantics.rs::step_list_view_macro_complexity_is_split_into_semantic_helpers` 断言 helper 存在且 `view! {` 块数量受阈值约束（`<= 3`），用于阻断宏展开体量回归。组件级基线 `components/step-list/src/check2.md` 同条已通过。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（StepList 的轻逻辑片段已函数化：`components/step-list/src/view.rs` 使用 `render_item_description`、`render_step_list_item`、`render_step_list_items`，并仅保留单一入口组件 `StepList`；回归 `components/step-list/test/semantics.rs::step_list_prefers_function_split_without_local_component_noise` 断言 helper 函数存在且 `#[component]` 计数严格为 `1`，防止局部片段被升格为组件噪音。组件级基线 `components/step-list/src/check2.md` 同条已通过。）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（StepList 在 `components/step-list/src/view.rs` 统一定义静态片段常量：`SLOT_*` 与 `CLASS_*`（如 `SLOT_ROOT`、`SLOT_DESCRIPTION`、`CLASS_BUTTON`、`CLASS_DESCRIPTION`），并在渲染中通过常量挂载 `data-slot/class`，避免重复动态构造；`components/step-list/test/semantics.rs::step_list_static_fragments_are_constantized_and_attached_via_stable_markers` 进一步断言这些常量必须存在且禁止散落内联字面量（如 `data-slot=\"step-list...\"`、`class=\"ui-step-list__button\"`）。组件级基线 `components/step-list/src/check2.md` 同条已通过。）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（StepList 当前实现未使用 `inner_html/set_inner_html`；`components/step-list/test/semantics.rs::step_list_inner_html_contract_blocks_untrusted_injection` 对 `mod.rs/logic.rs/view.rs/styles.rs` 执行注入路径黑名单断言（`inner_html=`、`set_inner_html(`、`dangerously_set_inner_html`），`step_list_agent_contract_markers_are_machine_readable_and_whitelist_safe` 亦阻断 `inner_html`/`set_inner_html` 注入标记。组件级基线 `components/step-list/src/check2.md` 同条已通过。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（StepList 在 `components/step-list/src/view.rs` 通过 `use_ui_trace + emit_selection_trace` 记录关键交互因果（`pointer/keyboard` 来源 + `prev/next` 前后值，`UiTraceEventKind::Note`），可用于最小重放；docs 调试入口在 `apps/docs-app/src/lib.rs` 以 `let debug_overlay_enabled = cfg!(debug_assertions); provide_ui_trace(debug_overlay_enabled);` 进行开发态开关隔离，并由 `apps/docs-app/src/debug_overlay.rs` 可视化渲染 trace 事件；回归 `components/step-list/test/semantics.rs::step_list_wasm_debug_contract_reuses_global_trace_and_keeps_feature_isolated` 断言上述链路与“调试开关不进入组件公共 API”约束。组件级基线 `components/step-list/src/check2.md` 同条已通过。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（StepList 依赖 docs `Playground` 提供快速样式反馈与隔离画布：`apps/docs-app/src/playground.rs` 通过 `<style>{move || compose_scoped_css(...)}</style>` + `on:input` 实时更新 scoped CSS（无需整包重编 wasm），并以 `data-playground-scope`/`playground__preview-stage`/`playground-controls` 形成隔离演练入口；`components/step-list/test/semantics.rs::step_list_docs_page_covers_primary_playgrounds`、`step_list_docs_playgrounds_lock_state_matrix_contract_values`、`step_list_documentation_as_product_and_interactive_playground_contract_hold` 约束 docs 演练场景持续存在。可选状态保留在当前组件范围为 `N/A`（未引入 `STEP_LIST_WORKBENCH_STORAGE_KEY/load_* /save_*` 持久化路径）。组件级基线 `components/step-list/src/check2.md` 同条已通过。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（StepList 的 spec/config 序列化路径集中在 `components/step-list/src/protocol.rs`：`StepListComponentSchemaVersion` + `StepListComponentSpec` 使用 `serde::{Serialize, Deserialize}` 并携带 `schema_version`；`components/step-list/test/protocol.rs` 断言协议类型满足序列化契约。关键交互埋点统一复用 `ui_headless::UiTrace`：`components/step-list/src/view.rs` 通过 `use_ui_trace` + `emit_selection_trace` 输出标准化 intent/source/prev/next 语义事件。组件当前无异步交互轴，公共 API（`components/step-list/src/mod.rs`、`components/step-list/src/view.rs`）未暴露 `tokio/async-std` 等 runtime 细节，满足 runtime 解耦。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 样式与动效（Theme & Motion）
-- [ ] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
-- [ ] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（`components/step-list/src/styles.rs` 已改为 token-first 双层回退链：如 `var(--ui-space-sm, var(--ui-fallback-space-sm))`、`var(--ui-fg, var(--ui-fallback-fg))`、`var(--ui-component-height-100, var(--ui-fallback-component-height-100))`，并将原裸尺寸 `rem/px` 替换为 theme token/calc 组合（如 `--ui-step-list-marker-size`、`--ui-step-list-connector-thickness`、`--ui-step-list-empty-min-block-size`）。契约回归由 `components/step-list/test/semantics.rs::step_list_styles_are_token_first_and_theme_consuming` 断言双层 fallback 与“无硬编码尺寸/Hex”约束。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`crates/ui/src/css.rs` 的 `push_components_css` 以 `out.push_str(\"\\n@layer ui {\\n\")` 包裹组件样式并在 `#[cfg(feature = \"component-step_list\")]` 下聚合 `crate::step_list::styles::CSS`，满足默认进入 `@layer ui`。StepList 组件渲染层 `components/step-list/src/view.rs` 未使用普通 `style=\"...\"`/`style=...` 内联样式。回归由 `components/step-list/test/semantics.rs::step_list_css_is_layered_under_ui_and_view_avoids_inline_style_leaks` 固化。）
 - [ ] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
 - [ ] `ui` 固定入口文件落点正确。
   - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。

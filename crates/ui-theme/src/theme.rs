@@ -17,9 +17,10 @@ use crate::tokens::{
     LabelMotionTokens, LayoutSemanticTokens, LayoutTokens, OverlayLayoutTokens, RadiusTokens,
     SLIDER_LAYOUT_TOKENS_LARGE, SLIDER_LAYOUT_TOKENS_MEDIUM, SLIDER_MOTION_TOKENS_LARGE,
     SLIDER_MOTION_TOKENS_MEDIUM, SWATCH_MOTION_TOKENS_LARGE, SWATCH_MOTION_TOKENS_MEDIUM,
-    SWITCH_MOTION_TOKENS_LARGE, SWITCH_MOTION_TOKENS_MEDIUM, SemanticColorTokens,
-    SemanticRoleTokens, SemanticScaleTokens, ShadowTokens, SliderLayoutTokens, SliderMotionTokens,
-    SpaceTokens, SwatchMotionTokens, SwitchMotionTokens, TEXT_FIELD_MOTION_TOKENS_LARGE,
+    SWITCH_LAYOUT_TOKENS_LARGE, SWITCH_LAYOUT_TOKENS_MEDIUM, SWITCH_MOTION_TOKENS_LARGE,
+    SWITCH_MOTION_TOKENS_MEDIUM, SemanticColorTokens, SemanticRoleTokens, SemanticScaleTokens,
+    ShadowTokens, SliderLayoutTokens, SliderMotionTokens, SpaceTokens, SwatchMotionTokens,
+    SwitchLayoutTokens, SwitchMotionTokens, TEXT_FIELD_MOTION_TOKENS_LARGE,
     TEXT_FIELD_MOTION_TOKENS_MEDIUM, TEXTAREA_MOTION_TOKENS_LARGE, TEXTAREA_MOTION_TOKENS_MEDIUM,
     TIME_FIELD_MOTION_TOKENS_LARGE, TIME_FIELD_MOTION_TOKENS_MEDIUM, TextFieldMotionTokens,
     TextareaMotionTokens, ThemeTokens, TimeFieldMotionTokens, TokenScale, TypographyTokens,
@@ -405,6 +406,17 @@ pub fn slider_layout_tokens(ctx: ThemeContext) -> SliderLayoutTokens {
 
 pub fn default_slider_layout_tokens() -> SliderLayoutTokens {
     slider_layout_tokens(ThemeContext::default())
+}
+
+pub fn switch_layout_tokens(ctx: ThemeContext) -> SwitchLayoutTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => SWITCH_LAYOUT_TOKENS_MEDIUM,
+        TokenScale::Large => SWITCH_LAYOUT_TOKENS_LARGE,
+    }
+}
+
+pub fn default_switch_layout_tokens() -> SwitchLayoutTokens {
+    switch_layout_tokens(ThemeContext::default())
 }
 
 pub fn color_swatch_layout_tokens(ctx: ThemeContext) -> ColorSwatchLayoutTokens {
@@ -826,6 +838,7 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
             COLOR_WHEEL_LAYOUT_TOKENS_LARGE,
         ),
     };
+    let switch_layout = switch_layout_tokens(ctx);
 
     let color_aliases = ColorAliasTokens {
         text_default: semantic_colors.fg,
@@ -880,6 +893,7 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
         component_layout,
         overlay_layout,
         slider_layout,
+        switch_layout,
         color_swatch_layout,
         color_wheel_layout,
         color_wheel_hue: COLOR_WHEEL_HUE_TOKENS,

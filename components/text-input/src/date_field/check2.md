@@ -20,7 +20,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`DateField` 交互/A11y 契约已下沉到 `crates/ui-headless/src/date_field.rs`；`view.rs` 改为仅挂载 `attrs/handlers/state`，并通过 `DateFieldOptions` 接入 `lang/dir` 与可本地化分段文案。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -31,14 +31,14 @@
   - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`components/text-input/src/date_field/motion.rs` 仅做 `has_value` 到 `ui_motion::web::animate` 的映射；默认时长/曲线改为来自 `ui_theme::default_text_field_motion_tokens()`，移除硬编码 easing；non-wasm 分支保留可预测 no-op stub。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`components/text-input/src/date_field/styles.rs` 仅消费共享 `var(--ui-*)` 变量并去除禁用态硬编码透明度，改用 `--ui-disabled-opacity`；`components/text-input/test/date_field/styles.rs` 新增主题契约回归，校验组件不定义私有 token 命名空间，且消费 token 在 `crates/ui-theme/src/tokens.rs` / `crates/ui-theme/src/css.rs` 可追溯。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -46,91 +46,91 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`components/text-input/src/date_field/logic.rs` 仅做 props 归一与状态派生，`components/text-input/src/date_field/view.rs` 仅做结构渲染与 headless 语义挂载，`components/text-input/src/date_field/styles.rs` 为 token-first 静态样式，`components/text-input/src/date_field/motion.rs` 负责动效 attach；新增 `components/text-input/test/date_field/semantics.rs` 并在 `components/text-input/src/date_field/mod.rs` 挂载回归，旧版 `components/text-input/test/date_field_semantics.rs` 迁移为新目录薄封装。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
 
 ### 2. 小骨架（API 设计检查 + 状态管理检查）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`DateField` 布尔公共参数已以 `is_disabled` 为规范入口；`default_value`/`on_value_change` 保持前缀契约；为兼容存量调用临时保留 `disabled` 别名并在 `components/text-input/src/date_field/view.rs` 通过 `logic::resolve_is_disabled(is_disabled, disabled)` 统一归一，优先 `is_disabled`，docs 示例已迁移为 `is_disabled`。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`DateField` 在 `components/text-input/src/date_field/view.rs` 明确暴露 `value + on_value_change + default_value` 并统一接入 `headless::use_controllable_state(...)`；事件路径仅通过 `request_change.run(...)` 输出；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_controlled_uncontrolled_contract_is_explicit_and_stable` 回归锁定该契约。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`default_value` 归一入口已集中到 `components/text-input/src/date_field/logic.rs::resolve_default_value`；`components/text-input/src/date_field/view.rs` 仅消费 `logic::resolve_default_value(default_value)` 后交给 `use_controllable_state(...)`，不再直接调用 `normalize_date_value(default_value)`；`components/text-input/test/date_field/logic.rs` 与 `components/text-input/test/date_field/semantics.rs` 已补回归。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`components/text-input/src/date_field/view.rs` 仅通过 `logic::resolve_state(DateFieldStateInput { ... })` 产出语义状态；输入事件仅调用 `logic::update_*_from_input(...)` 后转发 `request_change.run(...)`；`components/text-input/src/date_field/styles.rs` 仅消费 `data-*`/稳定 class 标记；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_state_normalization_is_centralized_in_logic_layer` 回归。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`components/text-input/src/date_field/view.rs` 的离散语义输入 `tone` 为 `DateFieldTone` 枚举；`components/text-input/src/date_field/logic.rs` 新增 `DateFieldDataState` 枚举并通过 `DateFieldDataState::from_flags(...)` 统一归一互斥状态，`data-state` 仅输出封闭集合 `disabled|value|empty`；`components/text-input/test/date_field/logic.rs` 与 `components/text-input/test/date_field/semantics.rs` 新增回归，锁定“类型化离散状态 + 禁止字符串/布尔爆炸入口”契约。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`components/text-input/src/date_field/logic.rs` 仅通过 `pub use ui_state_primitives::date_field::{...}` 消费日期状态原语，并未重写受控/归一状态机；`components/text-input/src/date_field/view.rs` 仅通过 `headless::use_controllable_state(...)` 与 `use_date_field(...)` 做桥接装配，不直接依赖业务 store 类型；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_state_primitives_source_is_correct` 回归锁定该边界。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`DateField` 当前无远程请求与异步状态轴，不存在 `is_loading`/`aria-busy`/retry 协议面；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_async_contract_is_not_applicable_and_not_exposed` 回归，锁定组件未暴露异步交互协议。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`DateField` 公共 API 仅暴露业务语义 props，不要求用户传入内部状态对象；docs 的 `Hello World` 已收敛为 1 行最小可用调用 `"<DateField id_base=\"invoice-date\".to_string() />"`（<=5 行），复杂场景保留在 `Workbench (All API + Actual Config)`；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_dx_default_path_is_simple_and_advanced_path_is_optional` 回归锁定该路径。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A：`DateField` 为单体输入组件，不是 `Parent/Item` 组合容器；公共 API 未暴露 `items/labels/titles/panels` 并行数组或 `ItemSpec` 入口，docs 也未推荐并行槽位约定；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_parent_item_composition_contract_is_not_applicable` 回归锁定该约束。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`components/text-input/src/date_field/view.rs` 通过 `i18n::use_ui_i18n()` + `strings::<DateFieldStrings>()` 接入可覆盖文案，并将 `label/placeholder/aria` 等文本统一走 `normalize_*` 与 i18n fallback；`use_date_field(DateFieldOptions { ... lang, dir, ... })` 与 `role/aria/lang/dir` 语义挂载确保 A11y 与方向上下文透传；`components/text-input/src/date_field/i18n.rs` 将默认文案集中在 `DateFieldStrings::default()`，`view.rs` 未硬编码默认用户可见文案；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_a11y_i18n_l10n_contract_is_wired_and_not_hardcoded` 回归锁定该契约。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`components/text-input/src/date_field/view.rs` 根节点与关键输入位点暴露稳定语义标记：`role/aria-*`、`data-state/data-disabled/data-has-value`、`data-slot`，并新增 `data-control-mode/data-value-source/data-default-value-source/data-value-change-source/data-interaction-source` 明确受控模式、值来源与交互来源；`components/text-input/src/date_field/logic.rs` 通过 `DateFieldDataState/DateFieldControlMode/DateFieldValueSource/DateFieldValueChangeSource/DateFieldInteractionSource` 枚举保证标记值封闭可枚举；`components/text-input/test/date_field/logic.rs` 与 `components/text-input/test/date_field/semantics.rs` 新增回归（`control_and_source_markers_are_closed_and_stable`、`date_field_observability_contract_uses_stable_data_aria_markers`）锁定契约，自动化可基于 `data-*` 选择器检索，不依赖 DOM 顺序。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`components/text-input/src/date_field/styles.rs` 的状态分支基于稳定语义标记 `data-tone/data-disabled/data-has-value/data-custom-class` 与稳定 class；未使用 `:nth-child`、`:nth-of-type`、`:has` 等脆弱结构推断；`components/text-input/src/date_field/view.rs` 未引入业务 inline style。`components/text-input/test/date_field/styles.rs` 新增 `date_field_styles_depend_on_explicit_state_markers_not_fragile_dom_shape` 与 `date_field_view_avoids_runtime_business_inline_style_logic` 回归锁定该契约。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`components/text-input/test/date_field/semantics.rs` 已存在并持续扩展语义契约断言：`date_field_view_mounts_headless_semantics_contract`、`date_field_observability_contract_uses_stable_data_aria_markers` 覆盖 `role/aria/data-state/source markers`；新增 `date_field_semantics_matrix_covers_control_disabled_keyboard_pointer_and_platform_paths` 覆盖受控/非受控、disabled、键盘输入路径（`on:input`）、指针/键盘按压路径（通过 `ClearButton` 的 `on_press` 桥接并验证 `components/button/src/clear_button/view.rs` 的 `on:pointer*`/`on:key*`）与 SSR/wasm 分支（`components/text-input/src/date_field/motion.rs` 的 `#[cfg(target_arch = \"wasm32\")]`/`#[cfg(not(target_arch = \"wasm32\"))]`）；新增 `date_field_tests_prioritize_semantic_contract_assertions_over_snapshot_only` 锁定本组件测试未依赖 snapshot-only 断言。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`components/text-input/test/date_field/semantics.rs` 的 `date_field_ui_exports_stable_public_surface` 与增强后的 `date_field_ui_files_follow_logic_view_styles_motion_boundaries` 明确约束五文件边界：`logic.rs` 不含 `view!`/DOM/CSS、`styles.rs` 仅 token-first 静态样式、`view.rs` 仅装配并调用 `logic::resolve_state(...)` + `use_date_field(...)`、`motion.rs` 仅动效映射与 `attach_motion`；新增 `date_field_feature_gate_is_anchored_at_ui_entrypoint` 锁定 feature gate 在 `crates/ui/src/lib.rs` 的 `component-date_field` 入口，不把 gate 与实现细节混入组件实现文件。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`DateField` 为简单输入组件，`components/text-input/src/date_field/` 目录无 `spec.rs`；`components/text-input/src/date_field/mod.rs` 未声明 `mod spec`/`pub use spec`，说明文档约束保留在 `components/text-input/src/date_field/check2.md`；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_simple_component_must_not_introduce_spec_rs` 回归，锁定“简单组件不引入 spec.rs”的边界。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`components/text-input/src/date_field/styles.rs` 持有组件静态样式，视觉值以 `var(--ui-*)` 消费主题 token；`components/text-input/test/date_field/styles.rs` 新增 `date_field_styles_are_aggregated_via_ui_css_and_ui_root_injection` 锁定 `crates/ui/src/css.rs` 的 `component-date_field` 聚合与 `crates/ui/src/root.rs` 的 `UiRoot` 注入链路；新增 `date_field_component_avoids_utility_first_and_css_in_rust_defaults` 锁定组件未采用 Utility-First/CSS-in-Rust 作为默认范式；已有 `date_field_view_avoids_runtime_business_inline_style_logic` 锁定运行时不塞业务 inline style。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（`components/text-input/src/date_field/styles.rs` 通过 token-first 样式定义信息层级与交互反馈：标签字重/字号/行高、控件边框与背景层次、`tone` 与 `disabled` 状态、`clear` 的 `hover/focus-visible` 反馈；`components/text-input/test/date_field/styles.rs` 新增 `date_field_default_theme_visual_desire_contract_is_present` 回归锁定这些视觉契约并拦截“旧式 Bootstrap 风格”退化标记；`apps/docs-app/src/pages/components/pages/forms_extra/date_field.rs` 已提供默认主题基线展示（`Hello World` + `State Matrix (Default / Strong / Disabled)`），`components/text-input/test/date_field/semantics.rs` 新增 `date_field_docs_include_default_theme_visual_baseline_matrix` 锁定 docs 基线入口。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`crates/ui/Cargo.toml` 存在组件级特性 `component-date_field = ["component-clear_button"]`；`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 对 `date_field` 导出与 CSS 聚合均受 `feature = "component-date_field"` 条件门控；`scripts/check-ui-tree-shaking.sh` 已包含最小特性树检查、`web-demo` 反向依赖检查、防止 `all-components` 泄漏、`wasm32` 最小特性编译与 release 预算构建；`scripts/tree_shaking_budget.env` 提供 `TREE_SHAKING_BASELINE_RLIB_BYTES` 与 `TREE_SHAKING_MAX_RATIO_PERCENT` 阈值。`components/text-input/test/date_field/semantics.rs` 新增 `date_field_tree_shaking_contract_is_feature_gated_and_budgeted_in_ci` 锁定该契约。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -139,7 +139,7 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`components/text-input/src/date_field/logic.rs` 以 `DateFieldTone/DateFieldDataState/DateFieldControlMode/DateFieldValueSource/DateFieldValueChangeSource/DateFieldInteractionSource` 对离散输入与状态轴做类型建模，避免字符串协议与布尔爆炸；无效状态在 `logic.rs::DateFieldDataState::from_flags(...)` 等归一入口统一收敛，并由 `components/text-input/test/date_field/logic.rs` 的 `data_state_enum_is_closed_and_stable`、`control_and_source_markers_are_closed_and_stable` 回归锁定；关键状态通过 `components/text-input/src/date_field/view.rs` 的稳定 `data-*`/`aria-*` 标记对外暴露（`data-state`、`data-*-source`、`data-control-mode`、`data-value-source` 等），并由 `components/text-input/test/date_field/semantics.rs` 的 `date_field_discrete_state_axes_are_type_constrained`、`date_field_state_normalization_is_centralized_in_logic_layer`、`date_field_observability_contract_uses_stable_data_aria_markers` 直接定位契约破坏点，形成编译器+测试闭环。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
@@ -169,6 +169,14 @@
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：`DateField` 不包含拖拽类高频交互，当前无 `Dragging/DragEnd/pointermove` 状态轴与动作链；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_macro_micro_duality_is_not_applicable_without_drag_interaction` 回归锁定该边界。）
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`DateField` 不依赖浮层几何测量与重定位，不存在 `Intent -> Measure -> Rectification` 循环；组件未引入 `getBoundingClientRect/offset*/ResizeObserver` 等测量路径；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_two_pass_geometry_rendering_is_not_applicable` 回归锁定该边界。）
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`DateField` 为单体输入组件，不存在动态子项注册与集合导航语义；组件未引入 `RegistrationContext/Register/Unregister/items_order/HashSet` 路径；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_registration_protocol_is_not_applicable_for_non_collection_component` 回归锁定该边界。）
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`DateField` 为单体输入组件，不承载容器投影策略，也不存在 `KeepAlive` 隐藏生命周期；组件未引入 `Lazy/KeepAlive/Eager/NotifyHidden` 协议路径；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_slot_projection_strategy_is_not_applicable_for_non_container_component` 回归锁定该边界。）
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`DateField` 不依赖 `Resize/Theme/Intersection` 环境订阅流，当前不存在 `BreakpointChanged` 等环境语义 Action；组件未引入 `ResizeObserver/IntersectionObserver/matchMedia` 或防抖采样链路；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_env_streams_contract_is_not_applicable_without_env_subscriptions` 回归锁定该边界。）
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`DateField` 不是 `Table/Grid` 大型集合组件，不存在批量操作 fan-out、`Context Bus + Selector` 或 `SelectionState::All` 语义；组件未引入 O(N) 级向下广播路径；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_event_light_cone_is_not_applicable_for_non_large_collection_component` 回归锁定该边界。）
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：`DateField` 不是复杂派生总线组件，不存在跨订阅者广播链与 `TraceId` 透传需求；组件未引入 `TraceId/CausalityBus/Broadcast/Subscriber` 协议路径；`components/text-input/test/date_field/semantics.rs` 新增 `date_field_causality_bus_is_not_applicable_for_non_bus_component` 回归锁定该边界。）
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`DateField` 为单体输入组件，不提供层叠 `Overlay` 管理与关闭后焦点恢复协议；现有 `NodeRef` 仅用于本地节点挂载与 motion attach，不承担 overlay 焦点恢复目标存储；组件未引入 `FocusManager/FocusStack/FallbackTo/document.body` 恢复链路。`components/text-input/test/date_field/semantics.rs` 新增 `date_field_focus_stack_gc_is_not_applicable_without_overlay_layering` 回归锁定该边界。）
 - [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。

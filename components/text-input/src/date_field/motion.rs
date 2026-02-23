@@ -1,14 +1,17 @@
+use ui_theme::default_text_field_motion_tokens;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct DateFieldMotion {
     pub enabled: bool,
-    pub duration_ms: u32,
+    pub duration_ms: u16,
 }
 
 impl Default for DateFieldMotion {
     fn default() -> Self {
+        let tokens = default_text_field_motion_tokens();
         Self {
             enabled: true,
-            duration_ms: 180,
+            duration_ms: tokens.duration_ms,
         }
     }
 }
@@ -22,7 +25,7 @@ impl DateFieldMotion {
     }
 }
 
-pub fn sanitize_duration_ms(duration_ms: u32) -> u32 {
+pub fn sanitize_duration_ms(duration_ms: u16) -> u16 {
     duration_ms.clamp(120, 1_000)
 }
 
@@ -47,6 +50,7 @@ pub fn attach_motion(
     };
 
     let motion = sanitize_motion(motion);
+    let easing = default_text_field_motion_tokens().easing;
     let last_has_value = StoredValue::new(None::<bool>);
 
     Effect::new(move |_| {
@@ -98,8 +102,8 @@ pub fn attach_motion(
             &element,
             &frames,
             MotionOptions {
-                duration_ms: motion.duration_ms,
-                easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+                duration_ms: u32::from(motion.duration_ms),
+                easing,
                 fill: FillMode::Both,
                 ..Default::default()
             },
@@ -111,8 +115,9 @@ pub fn attach_motion(
 pub fn attach_motion(
     _node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     _has_value: leptos::prelude::Signal<bool>,
-    _motion: DateFieldMotion,
+    motion: DateFieldMotion,
 ) {
+    std::hint::black_box(sanitize_motion(motion));
 }
 
 #[cfg(test)]

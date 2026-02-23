@@ -74,7 +74,7 @@ pub(crate) fn toast_viewport() -> AnyView {
 
     let workbench_code = Signal::derive(move || {
         format!(
-            "<ToastViewport\n  motion={}\n  portal={}\n  max_toasts={}\n  class_name={}\n  lang={}\n  dir={}\n  store={}\n/>",
+            "<ToastViewport\n  motion={}\n  is_portal={}\n  max_toasts={}\n  class_name={}\n  lang={}\n  dir={}\n  store={}\n/>",
             if workbench_custom_motion.get() {
                 "ToastMotion { initial_y_px: 16.0, initial_scale: 0.95, ..ToastMotion::default() }"
             } else {
@@ -107,7 +107,7 @@ pub(crate) fn toast_viewport() -> AnyView {
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "ToastViewportActualConfig {{\n  motion: {},\n  portal: {},\n  max_toasts: {},\n  class_name: {},\n  lang: {},\n  dir: {},\n  store: {},\n  push_count: {},\n  clear_count: {},\n}}",
+            "ToastViewportActualConfig {{\n  motion: {},\n  is_portal: {},\n  max_toasts: {},\n  class_name: {},\n  lang: {},\n  dir: {},\n  store: {},\n  push_count: {},\n  clear_count: {},\n}}",
             if workbench_custom_motion.get() {
                 "ToastMotion::custom"
             } else {
@@ -141,8 +141,8 @@ pub(crate) fn toast_viewport() -> AnyView {
     });
 
     let matrix_code = Signal::derive(move || {
-        r#"<ToastViewport portal=true max_toasts=2 store=portal_store />
-<ToastViewport portal=false max_toasts=2 class_name=Some("docs-toast-viewport-inline".to_string()) store=inline_store />
+        r#"<ToastViewport is_portal=true max_toasts=2 store=portal_store />
+<ToastViewport is_portal=false max_toasts=2 class_name=Some("docs-toast-viewport-inline".to_string()) store=inline_store />
 <ToastViewport motion=ToastMotion { initial_y_px: 20.0, initial_scale: 0.94, ..ToastMotion::default() } max_toasts=4 store=motion_store />"#
             .to_string()
     });
@@ -193,7 +193,7 @@ pub(crate) fn toast_viewport() -> AnyView {
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="toast-viewport-workbench-controls">
                         <Switch checked=workbench_portal set_checked=set_workbench_portal>
-                            "portal"
+                            "is_portal"
                         </Switch>
                         <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>
                             "custom motion"
@@ -245,7 +245,7 @@ pub(crate) fn toast_viewport() -> AnyView {
                     </span>
                     <ToastViewport
                         motion=workbench_motion.get()
-                        portal=workbench_portal.get()
+                        is_portal=workbench_portal.get()
                         max_toasts=usize::from(workbench_max_toasts.get())
                         class_name=if workbench_custom_class.get() {
                             "docs-toast-viewport-workbench".to_string()
@@ -286,12 +286,12 @@ pub(crate) fn toast_viewport() -> AnyView {
                     </div>
                     <div class="docs-row">
                         <ToastViewport
-                            portal=true
+                            is_portal=true
                             max_toasts=2
                             store=matrix_portal_store.get_value()
                         />
                         <ToastViewport
-                            portal=false
+                            is_portal=false
                             max_toasts=2
                             class_name="docs-toast-viewport-inline".to_string()
                             store=matrix_inline_store.get_value()
@@ -302,7 +302,7 @@ pub(crate) fn toast_viewport() -> AnyView {
                                 initial_scale: 0.94,
                                 ..ToastMotion::default()
                             }
-                            portal=true
+                            is_portal=true
                             max_toasts=4
                             store=matrix_motion_store.get_value()
                         />

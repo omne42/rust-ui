@@ -1,4 +1,5 @@
 use super::*;
+use leptos::prelude::*;
 
 #[test]
 fn normalize_group_input_centralizes_default_sources() {
@@ -40,6 +41,54 @@ fn normalize_group_input_trims_user_values() {
     assert_eq!(normalized.aria_label_source.as_attr(), "custom");
     assert_eq!(normalized.class_name_source.as_attr(), "custom");
     assert_eq!(normalized.lang_source.as_attr(), "provided");
+}
+
+#[test]
+fn normalize_group_bool_input_uses_is_prefix_inputs() {
+    let is_invalid = Signal::derive(|| true);
+    let is_required = Signal::derive(|| false);
+
+    let normalized = normalize_group_bool_input(Some(true), Some(is_invalid), Some(is_required));
+    assert!(normalized.is_disabled);
+    assert!(normalized.is_invalid.get());
+    assert!(!normalized.is_required.get());
+
+    let defaulted = normalize_group_bool_input(None, None, None);
+    assert!(!defaulted.is_disabled);
+    assert!(!defaulted.is_invalid.get());
+    assert!(!defaulted.is_required.get());
+}
+
+#[test]
+fn resolve_group_state_and_item_state_helpers_centralize_state_projection() {
+    let tags = [
+        Tag::new("tag-rust", "Rust"),
+        Tag::disabled("tag-a11y", "A11y"),
+    ];
+    let root_state = resolve_group_state(
+        &tags,
+        TagGroupRootStateInput {
+            is_disabled: false,
+            has_remove_callback: true,
+            is_invalid: false,
+            is_required: true,
+        },
+    );
+    assert!(root_state.has_items);
+    assert_eq!(root_state.item_count, 2);
+    assert!(root_state.has_disabled_tags);
+    assert!(root_state.has_removable_tags);
+    assert!(root_state.is_required);
+
+    let item_state = resolve_group_item_state(TagGroupRenderableItemStateInput {
+        is_group_disabled: true,
+        has_remove_callback: true,
+        is_tag_disabled: false,
+    });
+    assert!(item_state.is_disabled);
+    assert!(!item_state.is_removable);
+    assert_eq!(item_state.disabled_source_attr, "group");
+    assert_eq!(item_state.removable_source_attr, "disabled");
 }
 
 #[test]

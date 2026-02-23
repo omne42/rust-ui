@@ -2,8 +2,8 @@ use super::*;
 
 pub(crate) fn table() -> AnyView {
     // Legacy table source-contract markers retained for semantics tests:
-    // <Playground title="Default + Striped" code_signal=code>
-    // <Playground title="Compact + Fixed + Empty" code_signal=states_code>
+    // <Playground title="Default + IsStriped" code_signal=code>
+    // <Playground title="Compact + Fixed + IsStickyHeader" code_signal=states_code>
     // let empty_rows: Vec<TableRow> = Vec::new();
 
     let columns = vec![
@@ -151,9 +151,9 @@ let rows = vec![
             format!("  variant={variant}"),
             format!("  density={density}"),
             format!("  layout={layout}"),
-            format!("  striped={}", bool_word(workbench_striped.get())),
+            format!("  is_striped={}", bool_word(workbench_striped.get())),
             format!(
-                "  sticky_header={}",
+                "  is_sticky_header={}",
                 bool_word(workbench_sticky_header.get())
             ),
             format!("  caption={}", rust_string_literal(caption)),
@@ -188,7 +188,7 @@ let rows = vec![
         };
 
         format!(
-            "TableActualConfig {{\n  columns: \"sample_columns(len=3)\",\n  rows: \"sample_rows(len={})\",\n  variant: {:?},\n  density: {:?},\n  layout: {:?},\n  striped: {},\n  sticky_header: {},\n  caption: {caption:?},\n  empty_label: {empty_label:?},\n  aria_label: {aria_label:?},\n  class_name: {class_name:?},\n}}",
+            "TableActualConfig {{\n  columns: \"sample_columns(len=3)\",\n  rows: \"sample_rows(len={})\",\n  variant: {:?},\n  density: {:?},\n  layout: {:?},\n  is_striped: {},\n  is_sticky_header: {},\n  caption: {caption:?},\n  empty_label: {empty_label:?},\n  aria_label: {aria_label:?},\n  class_name: {class_name:?},\n}}",
             if workbench_empty_rows.get() { 0 } else { 3 },
             workbench_variant.get(),
             workbench_density.get(),
@@ -210,8 +210,8 @@ let rows = vec![
 ];
 
 <Table columns=columns rows=rows caption="Default table".to_string() />
-<Table columns=columns rows=rows variant=TableVariant::Quiet density=TableDensity::Compact striped=true />
-<Table columns=columns rows=Vec::<TableRow>::new() variant=TableVariant::Outline layout=TableLayout::Fixed sticky_header=true empty_label="No active incidents".to_string() class_name="docs-table-custom".to_string() />"#
+<Table columns=columns rows=rows variant=TableVariant::Quiet density=TableDensity::Compact is_striped=true />
+<Table columns=columns rows=Vec::<TableRow>::new() variant=TableVariant::Outline layout=TableLayout::Fixed is_sticky_header=true empty_label="No active incidents".to_string() class_name="docs-table-custom".to_string() />"#
             .to_string()
     });
 
@@ -262,10 +262,10 @@ let rows = vec![
                             aria_label="Table layout".to_string()
                         />
                         <Switch checked=workbench_striped set_checked=set_workbench_striped>
-                            "striped"
+                            "is_striped"
                         </Switch>
                         <Switch checked=workbench_sticky_header set_checked=set_workbench_sticky_header>
-                            "sticky_header"
+                            "is_sticky_header"
                         </Switch>
                         <Switch checked=workbench_empty_rows set_checked=set_workbench_empty_rows>
                             "rows=empty"
@@ -295,8 +295,8 @@ let rows = vec![
                     variant=workbench_variant.get()
                     density=workbench_density.get()
                     layout=workbench_layout.get()
-                    striped=workbench_striped.get()
-                    sticky_header=workbench_sticky_header.get()
+                    is_striped=workbench_striped.get()
+                    is_sticky_header=workbench_sticky_header.get()
                     caption=if workbench_custom_caption.get() {
                         "Service health".to_string()
                     } else {
@@ -333,14 +333,14 @@ let rows = vec![
                         rows=matrix_rows_quiet
                         variant=TableVariant::Quiet
                         density=TableDensity::Compact
-                        striped=true
+                        is_striped=true
                     />
                     <Table
                         columns=matrix_columns_empty
                         rows=Vec::new()
                         variant=TableVariant::Outline
                         layout=TableLayout::Fixed
-                        sticky_header=true
+                        is_sticky_header=true
                         empty_label="No active incidents".to_string()
                         class_name="docs-table-custom".to_string()
                     />

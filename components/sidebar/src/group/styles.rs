@@ -1,5 +1,38 @@
 pub const CSS: &str = r#"
 .ui-sidebar-group {
+  --ui-sidebar-group-motion-duration: var(
+    --ui-text-field-motion-duration,
+    var(--ui-fallback-text-field-motion-duration)
+  );
+  --ui-sidebar-group-motion-easing: var(
+    --ui-text-field-motion-easing,
+    var(--ui-fallback-text-field-motion-easing)
+  );
+  --ui-sidebar-group-line-height: var(
+    --ui-line-height-100,
+    var(--ui-fallback-line-height-100)
+  );
+  --ui-sidebar-group-radius-xs: var(
+    --ui-radius-xs,
+    var(--ui-radius-sm, var(--ui-fallback-radius-sm))
+  );
+  --ui-sidebar-group-border-subtle: var(
+    --ui-border-subtle,
+    color-mix(in oklab, var(--ui-border, var(--ui-fallback-border)) 20%, transparent)
+  );
+  --ui-sidebar-group-accent-solid: var(
+    --ui-accent-solid,
+    var(--ui-accent, var(--ui-fallback-accent))
+  );
+  --ui-sidebar-group-hover-bg: color-mix(
+    in oklab,
+    var(--ui-border, var(--ui-fallback-border)) 44%,
+    transparent
+  );
+  --ui-sidebar-group-disabled-opacity: var(
+    --ui-disabled-opacity,
+    var(--ui-fallback-disabled-opacity)
+  );
   display: grid;
   gap: 0.35rem;
 }
@@ -18,8 +51,8 @@ pub const CSS: &str = r#"
   background: transparent;
   color: inherit;
   font: inherit;
-  line-height: var(--ui-line-height-100, 16px);
-  border-radius: var(--ui-radius-xs, 0.375rem);
+  line-height: var(--ui-sidebar-group-line-height);
+  border-radius: var(--ui-sidebar-group-radius-xs);
 }
 
 .ui-sidebar-group__label {
@@ -43,7 +76,8 @@ pub const CSS: &str = r#"
 
 .ui-sidebar-group__toggle {
   transform-origin: center;
-  transition: transform 160ms ease;
+  transition:
+    transform var(--ui-sidebar-group-motion-duration) var(--ui-sidebar-group-motion-easing);
 }
 
 .ui-sidebar-group__toggle[data-open="true"] {
@@ -54,9 +88,10 @@ pub const CSS: &str = r#"
   display: grid;
   gap: 0.3rem;
   padding-inline-start: 0.2rem;
-  border-inline-start: 1px solid
-    var(--ui-border-subtle, color-mix(in oklab, currentColor 20%, transparent));
-  transition: opacity 160ms ease, transform 160ms ease;
+  border-inline-start: 1px solid var(--ui-sidebar-group-border-subtle);
+  transition:
+    opacity var(--ui-sidebar-group-motion-duration) var(--ui-sidebar-group-motion-easing),
+    transform var(--ui-sidebar-group-motion-duration) var(--ui-sidebar-group-motion-easing);
 }
 
 .ui-sidebar-group[data-state="closed"] .ui-sidebar-group__content {
@@ -67,13 +102,13 @@ pub const CSS: &str = r#"
 .ui-sidebar-group__label:hover,
 .ui-sidebar-group__action:hover,
 .ui-sidebar-group__toggle:hover {
-  background: color-mix(in oklab, currentColor 10%, transparent);
+  background: var(--ui-sidebar-group-hover-bg);
 }
 
 .ui-sidebar-group__label:focus-visible,
 .ui-sidebar-group__action:focus-visible,
 .ui-sidebar-group__toggle:focus-visible {
-  outline: 2px solid var(--ui-accent-solid, color-mix(in oklab, currentColor 62%, transparent));
+  outline: 2px solid var(--ui-sidebar-group-accent-solid);
   outline-offset: 1px;
 }
 
@@ -89,7 +124,7 @@ pub const CSS: &str = r#"
 
 .ui-sidebar-group--disabled,
 .ui-sidebar-group[data-disabled="true"] {
-  opacity: 0.62;
+  opacity: var(--ui-sidebar-group-disabled-opacity);
 }
 
 .ui-sidebar-group--custom-class,

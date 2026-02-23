@@ -354,10 +354,10 @@ fn tree_motion_layer_is_split_and_view_only_attaches() {
     for needle in [
         "#[prop(optional)] motion: TreeMotion",
         "let motion = motion::sanitize_motion(motion);",
-        "let inline_style = StoredValue::new(Some({",
+        "let initial_motion_css_vars = StoredValue::new({",
         "motion::resolve_motion_css_vars(is_expanded, motion)",
-        "style=inline_style.get_value().unwrap_or_default()",
-        "format!(\"--ui-tree-motion-scale:{scale};--ui-tree-motion-opacity:{opacity};\")",
+        "style:--ui-tree-motion-scale=move || {",
+        "style:--ui-tree-motion-opacity=move || {",
         "motion::attach_motion(root_ref, expanded_for_motion, motion);",
         "data-motion-source=if has_custom_motion { \"custom\" } else { \"default\" }",
         "data-custom-motion=has_custom_motion.then_some(\"true\")",
@@ -385,6 +385,16 @@ fn tree_motion_layer_is_split_and_view_only_attaches() {
         assert!(
             !motion_source.contains(forbidden),
             "Tree motion layer should not include view/headless semantics `{forbidden}`."
+        );
+    }
+
+    for forbidden in [
+        "style=inline_style.get_value().unwrap_or_default()",
+        "style=\"top: 10px\"",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Tree view runtime style path should avoid plain inline style `{forbidden}`."
         );
     }
 

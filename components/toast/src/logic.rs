@@ -113,23 +113,43 @@ impl ToastVariant {
 }
 
 fn source_attr(is_custom: bool) -> &'static str {
-    if is_custom { "custom" } else { "default" }
+    if is_custom {
+        "custom"
+    } else {
+        "default"
+    }
 }
 
 pub fn toast_state_attr(is_open: bool) -> &'static str {
-    if is_open { "open" } else { "closing" }
+    if is_open {
+        "open"
+    } else {
+        "closing"
+    }
 }
 
 pub fn description_attr(has_description: bool) -> &'static str {
-    if has_description { "present" } else { "absent" }
+    if has_description {
+        "present"
+    } else {
+        "absent"
+    }
 }
 
 pub fn close_mode_attr(has_on_close: bool) -> &'static str {
-    if has_on_close { "handler" } else { "noop" }
+    if has_on_close {
+        "handler"
+    } else {
+        "noop"
+    }
 }
 
 pub fn viewport_state_attr(portal: bool) -> &'static str {
-    if portal { "portal" } else { "inline" }
+    if portal {
+        "portal"
+    } else {
+        "inline"
+    }
 }
 
 pub fn viewport_queue_attr(max_toasts: usize) -> &'static str {
@@ -312,14 +332,11 @@ pub struct ToastOpenStateConfig {
 
 pub fn resolve_open_state_config(
     is_open: Option<Signal<bool>>,
-    open: Option<Signal<bool>>,
     default_open: Option<bool>,
     on_open_change: Option<Callback<bool>>,
 ) -> ToastOpenStateConfig {
     let (controlled_open, open_source_attr) = if let Some(is_open) = is_open {
         (Some(is_open), "is_open")
-    } else if let Some(open) = open {
-        (Some(open), "open")
     } else {
         (None, "implicit")
     };

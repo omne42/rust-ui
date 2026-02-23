@@ -1,3 +1,5 @@
+use ui_theme::default_time_field_motion_tokens;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct InputMotion {
     pub spring: ui_motion::spring::SpringConfig,
@@ -8,16 +10,17 @@ pub struct InputMotion {
 
 impl Default for InputMotion {
     fn default() -> Self {
+        let tokens = default_time_field_motion_tokens();
         Self {
             spring: ui_motion::spring::SpringConfig {
-                stiffness: 280.0,
-                damping: 18.0,
-                mass: 1.0,
-                ..Default::default()
+                stiffness: tokens.spring.stiffness,
+                damping: tokens.spring.damping,
+                mass: tokens.spring.mass,
+                precision: tokens.spring.precision,
             },
-            hidden_scale: 0.85,
-            hover_scale: 1.05,
-            tap_scale: 0.95,
+            hidden_scale: tokens.hidden_scale,
+            hover_scale: tokens.hover_scale,
+            tap_scale: tokens.tap_scale,
         }
     }
 }

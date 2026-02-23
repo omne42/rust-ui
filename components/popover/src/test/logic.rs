@@ -1,5 +1,5 @@
 use super::*;
-use leptos::prelude::Callable;
+use leptos::prelude::*;
 use std::sync::{
     Arc,
     atomic::{AtomicBool, Ordering},
@@ -35,6 +35,110 @@ fn normalize_on_exit_complete_uses_noop_default_and_preserves_custom_handler() {
     .run(());
 
     assert!(called.load(Ordering::SeqCst));
+}
+
+#[test]
+fn normalize_open_state_prefers_is_open_and_tracks_sources() {
+    let (is_open_raw, _set_is_open_raw) = signal(true);
+    let (open_raw, _set_open_raw) = signal(false);
+
+    let normalized = normalize_open_state(PopoverOpenStateInput {
+        is_open: Some(is_open_raw.into()),
+        open: Some(open_raw.into()),
+        default_open: Some(true),
+        on_open_change: None,
+        on_close: None,
+    });
+
+    assert_eq!(normalized.mode, PopoverOpenMode::Controlled);
+    assert_eq!(normalized.mode.as_attr(), "controlled");
+    assert_eq!(normalized.open_state_source_attr, "external");
+    assert_eq!(normalized.open_prop_source_attr, "is_open");
+    assert_eq!(normalized.default_open_source_attr, "default_open");
+    assert_eq!(normalized.open_change_source_attr, "none");
+    assert!(normalized.has_custom_open);
+    assert!(normalized.has_custom_default_open);
+    assert!(!normalized.has_custom_on_open_change);
+    assert!(!normalized.has_custom_on_close);
+    assert!(normalized.open.expect("open signal").get_untracked());
+}
+
+#[test]
+fn normalize_open_state_maps_legacy_on_close_to_on_open_change() {
+    let closed = Arc::new(AtomicBool::new(false));
+    let closed_for_handler = Arc::clone(&closed);
+    let normalized = normalize_open_state(PopoverOpenStateInput {
+        is_open: None,
+        open: None,
+        default_open: None,
+        on_open_change: None,
+        on_close: Some(Callback::new(move |_| {
+            closed_for_handler.store(true, Ordering::SeqCst);
+        })),
+    });
+
+    assert_eq!(normalized.mode, PopoverOpenMode::Uncontrolled);
+    assert_eq!(normalized.open_state_source_attr, "implicit-default");
+    assert_eq!(normalized.open_prop_source_attr, "none");
+    assert_eq!(
+        normalized.default_open,
+        ui_state_primitives::popover::DEFAULT_OPEN
+    );
+    assert_eq!(normalized.open_change_source_attr, "on_close");
+    assert!(normalized.has_custom_on_close);
+    assert!(!normalized.has_custom_on_open_change);
+
+    let on_open_change = normalized.on_open_change.expect("mapped close callback");
+    on_open_change.run(true);
+    assert!(!closed.load(Ordering::SeqCst));
+    on_open_change.run(false);
+    assert!(closed.load(Ordering::SeqCst));
+}
+
+#[test]
+fn normalize_open_state_exposes_default_source_when_uncontrolled_default_is_provided() {
+    let normalized = normalize_open_state(PopoverOpenStateInput {
+        is_open: None,
+        open: None,
+        default_open: Some(true),
+        on_open_change: None,
+        on_close: None,
+    });
+
+    assert_eq!(normalized.mode, PopoverOpenMode::Uncontrolled);
+    assert_eq!(normalized.open_state_source_attr, "default");
+    assert_eq!(normalized.default_open_source_attr, "default_open");
+}
+
+#[test]
+fn normalize_open_state_prefers_on_open_change_over_on_close_alias() {
+    let canonical_called = Arc::new(AtomicBool::new(false));
+    let canonical_called_for_handler = Arc::clone(&canonical_called);
+    let close_called = Arc::new(AtomicBool::new(false));
+    let close_called_for_handler = Arc::clone(&close_called);
+
+    let normalized = normalize_open_state(PopoverOpenStateInput {
+        is_open: None,
+        open: None,
+        default_open: None,
+        on_open_change: Some(Callback::new(move |_| {
+            canonical_called_for_handler.store(true, Ordering::SeqCst);
+        })),
+        on_close: Some(Callback::new(move |_| {
+            close_called_for_handler.store(true, Ordering::SeqCst);
+        })),
+    });
+
+    assert_eq!(normalized.open_change_source_attr, "on_open_change");
+    assert!(normalized.has_custom_on_open_change);
+    assert!(normalized.has_custom_on_close);
+
+    normalized
+        .on_open_change
+        .expect("canonical open-change callback")
+        .run(false);
+    assert!(canonical_called.load(Ordering::SeqCst));
+    assert!(!close_called.load(Ordering::SeqCst));
 }
 
 #[test]

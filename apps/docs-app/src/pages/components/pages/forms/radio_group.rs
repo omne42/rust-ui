@@ -37,17 +37,7 @@ pub(crate) fn radio_group() -> AnyView {
     let code = Signal::derive(move || {
         r#"let (selected, set_selected) = signal(Some(1_usize));
 
-<RadioGroup
-  id_base="size".to_string()
-  options=vec![
-    "Small".to_string(),
-    "Medium".to_string(),
-    "Large".to_string(),
-  ]
-  label="Size".to_string()
-  selected_index=selected
-  set_selected_index=set_selected
-/>"#
+<RadioGroup id_base="size".to_string() options=vec!["Small".to_string(), "Medium".to_string(), "Large".to_string()] label="Size".to_string() selected_index=selected set_selected_index=set_selected />"#
         .to_string()
     });
 

@@ -1,0 +1,148 @@
+pub const DEFAULT_ARIA_LABEL: &str = "Close";
+
+const SUPPORTED_VARIANTS: [CloseButtonVariant; 2] = [
+    CloseButtonVariant::Default,
+    CloseButtonVariant::OverBackground,
+];
+
+const SUPPORTED_SIZES: [CloseButtonSize; 4] = [
+    CloseButtonSize::Sm,
+    CloseButtonSize::Md,
+    CloseButtonSize::Lg,
+    CloseButtonSize::Xl,
+];
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum CloseButtonVariant {
+    #[default]
+    Default,
+    OverBackground,
+}
+
+impl CloseButtonVariant {
+    pub fn class_name(self) -> &'static str {
+        match self {
+            CloseButtonVariant::Default => "ui-close-button--variant-default",
+            CloseButtonVariant::OverBackground => "ui-close-button--variant-over-background",
+        }
+    }
+
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            CloseButtonVariant::Default => "default",
+            CloseButtonVariant::OverBackground => "over-background",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum CloseButtonSize {
+    Sm,
+    #[default]
+    Md,
+    Lg,
+    Xl,
+}
+
+impl CloseButtonSize {
+    pub fn class_name(self) -> &'static str {
+        match self {
+            CloseButtonSize::Sm => "ui-close-button--size-sm",
+            CloseButtonSize::Md => "ui-close-button--size-md",
+            CloseButtonSize::Lg => "ui-close-button--size-lg",
+            CloseButtonSize::Xl => "ui-close-button--size-xl",
+        }
+    }
+
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            CloseButtonSize::Sm => "sm",
+            CloseButtonSize::Md => "md",
+            CloseButtonSize::Lg => "lg",
+            CloseButtonSize::Xl => "xl",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CloseButtonStateInput {
+    pub variant: CloseButtonVariant,
+    pub size: CloseButtonSize,
+    pub disabled: bool,
+    pub has_custom_aria_label: bool,
+    pub has_custom_class_name: bool,
+    pub has_custom_press_handler: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CloseButtonState {
+    pub variant: CloseButtonVariant,
+    pub size: CloseButtonSize,
+    pub variant_class: &'static str,
+    pub size_class: &'static str,
+    pub variant_attr: &'static str,
+    pub size_attr: &'static str,
+    pub is_disabled: bool,
+    pub has_custom_aria_label: bool,
+    pub has_custom_class_name: bool,
+    pub has_custom_press_handler: bool,
+    pub data_state_attr: &'static str,
+    pub aria_source_attr: &'static str,
+    pub class_source_attr: &'static str,
+}
+
+pub fn supported_variants() -> &'static [CloseButtonVariant] {
+    &SUPPORTED_VARIANTS
+}
+
+pub fn supported_sizes() -> &'static [CloseButtonSize] {
+    &SUPPORTED_SIZES
+}
+
+pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
+    value.and_then(|value| {
+        let trimmed = value.trim();
+        (!trimmed.is_empty()).then(|| trimmed.into())
+    })
+}
+
+pub fn normalize_aria_label(value: Option<String>, default: &str) -> (String, bool) {
+    if let Some(label) = normalize_optional_text(value) {
+        return (label, true);
+    }
+
+    (default.into(), false)
+}
+
+pub fn resolve_state(input: CloseButtonStateInput) -> CloseButtonState {
+    debug_assert!(supported_variants().contains(&input.variant));
+    debug_assert!(supported_sizes().contains(&input.size));
+
+    CloseButtonState {
+        variant: input.variant,
+        size: input.size,
+        variant_class: input.variant.class_name(),
+        size_class: input.size.class_name(),
+        variant_attr: input.variant.as_attr(),
+        size_attr: input.size.as_attr(),
+        is_disabled: input.disabled,
+        has_custom_aria_label: input.has_custom_aria_label,
+        has_custom_class_name: input.has_custom_class_name,
+        has_custom_press_handler: input.has_custom_press_handler,
+        data_state_attr: if input.disabled { "disabled" } else { "ready" },
+        aria_source_attr: if input.has_custom_aria_label {
+            "custom"
+        } else {
+            "default"
+        },
+        class_source_attr: if input.has_custom_class_name {
+            "custom"
+        } else {
+            "default"
+        },
+    }
+}
+
+#[cfg(test)]
+#[path = "test/close_button.rs"]
+mod tests;

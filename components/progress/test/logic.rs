@@ -1,4 +1,5 @@
 use super::*;
+use leptos::prelude::{Callback, signal};
 
 #[test]
 fn range_sanitizes_invalid_bounds() {
@@ -124,4 +125,130 @@ fn compose_class_name_includes_state_markers() {
             "composed class name should include `{token}`"
         );
     }
+}
+
+#[test]
+fn normalize_value_axis_reports_controlled_contract() {
+    let (controlled, _set_controlled) = signal(Some(42.0));
+    let axis = normalize_value_axis(
+        Some(controlled.into()),
+        Some(12.0),
+        Some(Callback::new(|_value: Option<f64>| {})),
+    );
+
+    assert!(axis.is_controlled);
+    assert!(axis.has_custom_default_value);
+    assert!(axis.has_custom_on_value_change);
+    assert_eq!(axis.mode_attr, "controlled");
+    assert_eq!(axis.value_source_attr, "external");
+    assert_eq!(axis.default_value_source_attr, "provided");
+    assert_eq!(axis.value_change_source_attr, "provided");
+}
+
+#[test]
+fn normalize_value_axis_reports_uncontrolled_contract() {
+    let axis = normalize_value_axis(None, None, None);
+
+    assert!(!axis.is_controlled);
+    assert!(!axis.has_custom_default_value);
+    assert!(!axis.has_custom_on_value_change);
+    assert_eq!(axis.mode_attr, "uncontrolled");
+    assert_eq!(axis.value_source_attr, "default_value");
+    assert_eq!(axis.default_value_source_attr, "default");
+    assert_eq!(axis.value_change_source_attr, "none");
+}
+
+#[test]
+fn normalize_range_uses_single_default_source() {
+    let range = normalize_range(None, None);
+    assert_eq!(range, ProgressRange::sanitized(DEFAULT_MIN, DEFAULT_MAX));
+
+    let custom = normalize_range(Some(-10.0), Some(200.0));
+    assert_eq!(custom, ProgressRange::sanitized(-10.0, 200.0));
+}
+
+#[test]
+fn normalize_progress_value_uses_logic_fallback() {
+    assert_eq!(normalize_progress_value(Some(0.25)), 0.25);
+    assert_eq!(normalize_progress_value(None), 0.0);
+}
+
+#[test]
+fn normalize_mode_maps_bool_to_typed_enum() {
+    assert_eq!(normalize_mode(false), ProgressMode::Auto);
+    assert_eq!(normalize_mode(true), ProgressMode::Indeterminate);
+}
+
+#[test]
+fn resolve_render_state_centralizes_phase_value_and_label_derivation() {
+    let state = resolve_render_state(ProgressRenderInput {
+        clamped_value: Some(25.0),
+        normalized_progress: Some(0.25),
+        mode: ProgressMode::Auto,
+        value_label_override: Some("25 complete".to_string()),
+    });
+
+    assert_eq!(state.mode, ProgressMode::Auto);
+    assert!(!state.is_indeterminate);
+    assert_eq!(state.phase, ProgressPhase::Determinate);
+    assert_eq!(state.progress_value, 0.25);
+    assert_eq!(state.aria_value_now, Some(25.0));
+    assert_eq!(state.value_label_text.as_deref(), Some("25 complete"));
+}
+
+#[test]
+fn resolve_render_state_derives_indeterminate_from_prop_or_missing_value() {
+    let from_prop = resolve_render_state(ProgressRenderInput {
+        clamped_value: Some(42.0),
+        normalized_progress: Some(0.42),
+        mode: ProgressMode::Indeterminate,
+        value_label_override: Some("ignored".to_string()),
+    });
+    assert!(from_prop.is_indeterminate);
+    assert_eq!(from_prop.phase, ProgressPhase::Indeterminate);
+    assert_eq!(from_prop.value_label_text, None);
+
+    let from_missing_value = resolve_render_state(ProgressRenderInput {
+        clamped_value: None,
+        normalized_progress: None,
+        mode: ProgressMode::Auto,
+        value_label_override: None,
+    });
+    assert!(from_missing_value.is_indeterminate);
+    assert_eq!(from_missing_value.phase, ProgressPhase::Indeterminate);
+    assert_eq!(from_missing_value.progress_value, 0.0);
+    assert_eq!(from_missing_value.aria_value_now, None);
+    assert_eq!(from_missing_value.value_label_text, None);
+}
+
+#[test]
+fn resolve_render_state_centralizes_phase_and_label_derivation() {
+    let state = resolve_render_state(ProgressRenderInput {
+        clamped_value: Some(25.0),
+        normalized_progress: Some(0.25),
+        mode: ProgressMode::Auto,
+        value_label_override: None,
+    });
+
+    assert_eq!(state.phase, ProgressPhase::Determinate);
+    assert!(!state.is_indeterminate);
+    assert_eq!(state.progress_value, 0.25);
+    assert_eq!(state.aria_value_now, Some(25.0));
+    assert_eq!(state.value_label_text, Some("25%".to_string()));
+}
+
+#[test]
+fn resolve_render_state_prefers_indeterminate_and_custom_label_rules() {
+    let state = resolve_render_state(ProgressRenderInput {
+        clamped_value: Some(40.0),
+        normalized_progress: Some(0.4),
+        mode: ProgressMode::Indeterminate,
+        value_label_override: Some("custom".to_string()),
+    });
+
+    assert_eq!(state.phase, ProgressPhase::Indeterminate);
+    assert!(state.is_indeterminate);
+    assert_eq!(state.progress_value, 0.4);
+    assert_eq!(state.aria_value_now, Some(40.0));
+    assert_eq!(state.value_label_text, None);
 }

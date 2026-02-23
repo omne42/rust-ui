@@ -15,6 +15,10 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
     (DEFAULT_ARIA_LABEL.into(), false)
 }
 
+pub fn resolve_disabled(is_disabled: Option<bool>, disabled: bool) -> bool {
+    is_disabled.unwrap_or(disabled)
+}
+
 pub fn resolve_state(input: SidebarHeaderStateInput) -> SidebarHeaderState {
     SidebarHeaderState {
         disabled: input.disabled,

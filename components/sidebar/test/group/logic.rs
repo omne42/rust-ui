@@ -9,6 +9,31 @@ fn normalize_helpers_apply_defaults() {
 }
 
 #[test]
+fn resolve_default_priority_prefers_prefixed_flags() {
+    assert!(resolve_collapsible(Some(true), false));
+    assert!(!resolve_collapsible(None, false));
+    assert!(resolve_disabled(Some(true), false));
+    assert!(!resolve_disabled(None, false));
+    assert!(resolve_label_visibility(Some(true), false));
+    assert!(!resolve_label_visibility(None, false));
+    assert!(resolve_action_visibility(Some(true), false));
+    assert!(!resolve_action_visibility(None, false));
+}
+
+#[test]
+fn open_derivation_and_toggle_guards_are_logic_owned() {
+    assert!(resolve_effective_open(false, false));
+    assert!(!resolve_effective_open(false, true));
+
+    assert!(can_toggle_open(false, true));
+    assert!(!can_toggle_open(true, true));
+    assert!(!can_toggle_open(false, false));
+
+    assert!(!next_toggled_open(true));
+    assert!(next_toggled_open(false));
+}
+
+#[test]
 fn resolve_state_tracks_flags_and_attrs() {
     let state = resolve_state(SidebarGroupStateInput {
         open: false,

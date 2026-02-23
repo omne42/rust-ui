@@ -1,4 +1,5 @@
 use leptos::prelude::*;
+use ui_state_primitives::time_field as time_field_state;
 
 pub use ui_logic_calendar::time_field::{
     DEFAULT_ARIA_LABEL, DEFAULT_CLEAR_ARIA_LABEL, DEFAULT_CLEAR_LABEL, DEFAULT_HOUR_ARIA_LABEL,
@@ -16,7 +17,10 @@ pub struct DisabledStateInput {
 }
 
 pub fn normalize_disabled_state(input: DisabledStateInput) -> bool {
-    input.is_disabled.unwrap_or(input.disabled)
+    time_field_state::normalize_disabled_state(time_field_state::TimeFieldDisabledStateInput {
+        is_disabled: input.is_disabled,
+        disabled: input.disabled,
+    })
 }
 
 pub struct ValueStateInput {
@@ -40,15 +44,20 @@ pub fn normalize_value_state(input: ValueStateInput) -> ValueState {
     let has_value_change_handler = input.on_value_change.is_some();
     let minute_step = normalize_minute_step(input.minute_step);
     let default_value = normalize_time_value(input.default_value, minute_step);
-    let is_controlled = input.value.is_some();
+    let markers =
+        time_field_state::resolve_value_axis_state(time_field_state::TimeFieldValueAxisInput {
+            is_controlled: input.value.is_some(),
+            has_default_value,
+            has_value_change_handler,
+        });
 
     ValueState {
         value: input.value,
         default_value,
         on_value_change: input.on_value_change,
-        is_controlled,
+        is_controlled: markers.is_controlled,
         has_default_value,
-        has_value_change_handler,
+        has_value_change_handler: markers.has_value_change_handler,
     }
 }
 

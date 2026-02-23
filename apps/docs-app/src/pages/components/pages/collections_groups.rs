@@ -71,11 +71,7 @@ pub(super) fn tag() -> AnyView {
         set_last_removed.set(format!("removed #{}", remove_count.get_untracked() + 1));
     });
 
-    let showcase_code = Signal::derive(move || {
-        r#"<Tag variant=TagVariant::Default size=TagSize::Md>"Default tag"</Tag>
-<Tag variant=TagVariant::Surface size=TagSize::Md>"Surface tag"</Tag>"#
-            .to_string()
-    });
+    let showcase_code = Signal::derive(move || r#"<Tag>"Hello tag"</Tag>"#.to_string());
 
     let workbench_code = Signal::derive(move || {
         let variant_expr = match workbench_variant.get() {
@@ -99,7 +95,7 @@ pub(super) fn tag() -> AnyView {
         };
 
         format!(
-            "<Tag\n  variant={variant_expr}\n  size={size_expr}\n  disabled={}\n  removable={}\n  on_remove={on_remove_expr}\n  remove_aria_label={}\n  class_name={}\n  lang={}\n  dir={dir_expr}\n>\n  \"Workbench tag\"\n</Tag>",
+            "<Tag\n  variant={variant_expr}\n  size={size_expr}\n  is_disabled={}\n  is_removable={}\n  on_remove={on_remove_expr}\n  remove_aria_label={}\n  class_name={}\n  lang={}\n  dir={dir_expr}\n>\n  \"Workbench tag\"\n</Tag>",
             bool_word(disabled.get()),
             bool_word(removable.get()),
             rust_string_literal(&workbench_remove_aria_label.get()),
@@ -132,7 +128,7 @@ pub(super) fn tag() -> AnyView {
 <Tag
   variant=TagVariant::Surface
   size=TagSize::Md
-  removable=true
+  is_removable=true
   on_remove=on_workbench_remove
   remove_aria_label="Remove surface tag".to_string()
 >
@@ -141,8 +137,8 @@ pub(super) fn tag() -> AnyView {
 <Tag
   variant=TagVariant::Surface
   size=TagSize::Lg
-  disabled=true
-  removable=true
+  is_disabled=true
+  is_removable=true
   class_name="docs-tag-custom".to_string()
   lang="ar".to_string()
   dir=A11yDirection::Rtl
@@ -162,16 +158,11 @@ pub(super) fn tag() -> AnyView {
             <Playground
                 title="Hello World (Default API)"
                 code_signal=showcase_code
-                code_imports="use leptos::prelude::*;\nuse ui::tag::{Tag, TagSize, TagVariant};".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui::tag::Tag;".to_string()
                 test_source_path="components/tag/src/view.rs".to_string()
             >
                 <div class="docs-row">
-                    <Tag variant=TagVariant::Default size=TagSize::Md>
-                        "Default tag"
-                    </Tag>
-                    <Tag variant=TagVariant::Surface size=TagSize::Md>
-                        "Surface tag"
-                    </Tag>
+                    <Tag>"Hello tag"</Tag>
                 </div>
             </Playground>
 
@@ -272,8 +263,8 @@ pub(super) fn tag() -> AnyView {
                     <Tag
                         variant=workbench_variant.get()
                         size=workbench_size.get()
-                        disabled=disabled.get()
-                        removable=removable.get()
+                        is_disabled=disabled.get()
+                        is_removable=removable.get()
                         on_remove=on_workbench_remove
                         remove_aria_label=workbench_remove_aria_label.get()
                         class_name=workbench_class_name.get()
@@ -302,7 +293,7 @@ pub(super) fn tag() -> AnyView {
                     <Tag
                         variant=TagVariant::Surface
                         size=TagSize::Md
-                        removable=true
+                        is_removable=true
                         on_remove=on_workbench_remove
                         remove_aria_label="Remove surface tag".to_string()
                     >
@@ -311,8 +302,8 @@ pub(super) fn tag() -> AnyView {
                     <Tag
                         variant=TagVariant::Surface
                         size=TagSize::Lg
-                        disabled=true
-                        removable=true
+                        is_disabled=true
+                        is_removable=true
                         class_name="docs-tag-custom".to_string()
                         lang="ar".to_string()
                         dir=A11yDirection::Rtl

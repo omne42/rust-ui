@@ -156,7 +156,7 @@ fn tabs_component_files_follow_layered_responsibilities() {
         "mod view;",
         "pub use logic::TabsKeyboardActivation;",
         "pub use motion::TabsMotion;",
-        "pub use view::Tabs;",
+        "pub use view::{Tabs, TabsItem};",
     ] {
         assert!(
             mod_source.contains(needle),
@@ -282,8 +282,8 @@ fn tabs_view_macro_complexity_is_split_into_semantic_subrenders() {
 
     assert_eq!(
         view_source.matches("#[component]").count(),
-        1,
-        "Tabs should keep a single public component boundary."
+        2,
+        "Tabs should keep two component boundaries (Tabs root + TabsItem composition slot)."
     );
 
     for forbidden in [
@@ -322,8 +322,8 @@ fn tabs_view_functional_split_prefers_plain_functions_over_local_components() {
 
     assert_eq!(
         view_source.matches("#[component]").count(),
-        1,
-        "Tabs should keep only one `#[component]` (Tabs root), and keep local fragments as plain Rust functions."
+        2,
+        "Tabs should keep only two `#[component]` boundaries (Tabs + TabsItem), and keep local fragments as plain Rust functions."
     );
 
     for forbidden in [
@@ -461,7 +461,8 @@ fn tabs_inner_html_usage_is_explicitly_na_and_guarded() {
         );
     }
 
-    let script_needle = "cargo test -p ui --test tabs_semantics tabs_inner_html_usage_is_explicitly_na_and_guarded";
+    let script_needle =
+        "cargo test -p ui --test tabs_semantics tabs_inner_html_usage_is_explicitly_na_and_guarded";
     assert!(
         script_source.contains(script_needle),
         "inner-html check script should include `{script_needle}`.",
@@ -1149,21 +1150,18 @@ fn tabs_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
 
     for needle in [
-        "let manual_labels = vec![\"Profile\", \"Billing\", \"Team\"]",
-        "let workbench_labels = vec![\"Overview\", \"Details\", \"Settings\"]",
         "let hello_world_code = Signal::derive(move || {",
-        "<Tabs labels=vec![\"Overview\", \"Details\", \"Settings\"] id_base=\"tabs\".to_string()>",
+        "<Tabs id_base=\"tabs\".to_string()>",
+        "<TabsItem label=\"Overview\">",
         "let code = Signal::derive(move || {",
         "let (selected_auto, set_selected_auto) = signal(0_usize);",
         "let (selected_manual, set_selected_manual) = signal(1_usize);",
         "let persisted_tabs_workbench_selected = load_tabs_workbench_selected();",
         "let (tabs_workbench_selected, set_tabs_workbench_selected) =",
         "id_base=\"docs-tabs\".to_string()",
-        "labels=vec![\"Overview\", \"Details\", \"Settings\"]",
         "\"Arrow keys move + select in automatic mode.\"",
         "\"selected: \"",
         "id_base=\"docs-tabs-manual\".to_string()",
-        "labels=manual_labels",
         "\"Manual mode: focus moves first, Enter/Space commits.\"",
         "\"Current selected index reflects committed tab.\"",
         "\"This tab is disabled and skipped by roving focus.\"",
@@ -1226,7 +1224,8 @@ fn tabs_docs_api_names_and_defaults_match_logic_contract() {
 
     for needle in [
         "title=\"Hello World (Uncontrolled)\"",
-        "<Tabs labels=vec![\"Overview\", \"Details\", \"Settings\"] id_base=\"tabs\".to_string()>",
+        "<Tabs id_base=\"tabs\".to_string()>",
+        "<TabsItem label=\"Overview\">",
         "title=\"Automatic + Controlled\"",
         "selected_index=selected_auto",
         "on_selection_change=on_auto_change",
@@ -1383,7 +1382,7 @@ fn tabs_heroui_alignment_doc_and_docs_entry_stay_in_sync() {
 
     for needle in [
         "### Tabs 同步记录（2026-02-17）",
-        "`Tabs` 公开参数保持 `labels/id_base`",
+        "`Tabs` 公开参数保持 `id_base` 与显式 `<TabsItem label=...>` 组合",
         "`default_selected_index/selected_index/on_selection_change`",
         "`Hello World (Uncontrolled)`、`Automatic + Controlled`、`Manual + Disabled`、`Workbench (Isolated Canvas + Optional Persist)`",
         "`#/components/tabs` 可索引访问",
@@ -1724,7 +1723,7 @@ fn tabs_mod_rs_keeps_minimal_stable_exports() {
         "mod view;",
         "pub use logic::TabsKeyboardActivation;",
         "pub use motion::TabsMotion;",
-        "pub use view::Tabs;",
+        "pub use view::{Tabs, TabsItem};",
     ] {
         assert!(
             mod_source.contains(needle),
@@ -2434,11 +2433,15 @@ fn tabs_snapshot_base_capability_renders_complete_panel_set() {
     let view_source = load_source("src/tabs/view.rs");
 
     for required in [
-        "let panels = children().nodes;",
+        "let item_collection::CollectedTabsItems {",
+        "item_configs,",
+        "items_order,",
+        "} = collect_tabs_items(children);",
         "debug_assert_eq!(",
-        "labels.len(),",
-        "panels.iter().len(),",
-        "let item_count = labels.len().min(panels.iter().len());",
+        "items_order.len(),",
+        "let item_count = item_configs.len();",
+        "let labels = item_configs",
+        "let panels = item_configs",
         "let tabs_view = labels",
         ".take(item_count)",
         "let panels_view = panels",
@@ -2447,6 +2450,39 @@ fn tabs_snapshot_base_capability_renders_complete_panel_set() {
         assert!(
             view_source.contains(required),
             "Tabs snapshot base capability should keep full children->panel render path marker `{required}`."
+        );
+    }
+}
+
+#[test]
+fn tabs_collection_registration_protocol_is_context_driven_and_ordered_in_logic() {
+    let view_source = load_source("src/tabs/view.rs");
+    let logic_source = load_source("src/tabs/logic.rs");
+
+    for needle in [
+        "struct RegistrationContext",
+        "TabsRegistrationAction::Register",
+        "TabsRegistrationAction::Unregister",
+        "collect_tabs_items(children)",
+        "logic::resolve_registered_items_order",
+        "pub(super) items_order: Vec<usize>",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Tabs view should wire registration protocol through `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub enum TabsRegistrationAction",
+        "pub struct TabsRegistrationState",
+        "pub fn reduce_registration_actions(",
+        "pub fn resolve_registered_items_order(",
+        "pub items_order: Vec<usize>",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Tabs logic should own registration ordering contract via `{needle}`."
         );
     }
 }

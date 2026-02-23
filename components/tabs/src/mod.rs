@@ -5,4 +5,4 @@ mod view;
 
 pub use logic::TabsKeyboardActivation;
 pub use motion::TabsMotion;
-pub use view::Tabs;
+pub use view::{Tabs, TabsItem};

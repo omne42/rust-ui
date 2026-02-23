@@ -64,3 +64,29 @@ fn resolve_state_tracks_sources_and_rows_markers() {
     assert_eq!(state.rows_source_attr, "custom");
     assert_eq!(state.class_source_attr, "default");
 }
+
+#[test]
+fn resolve_value_axis_tracks_control_and_source_markers() {
+    let state = resolve_value_axis_state(TextAreaValueAxisInput {
+        is_controlled: true,
+        has_default_value: true,
+        has_on_value_change: false,
+    });
+
+    assert!(state.is_controlled);
+    assert_eq!(state.control_mode_attr, "controlled");
+    assert_eq!(state.default_value_source_attr, "custom");
+    assert_eq!(state.value_change_source_attr, "none");
+    assert!(!state.has_value_change_handler);
+}
+
+#[test]
+fn resolve_accessibility_state_uses_boolean_defaults() {
+    let state = resolve_accessibility_state(TextAreaAccessibilityStateInput {
+        is_disabled: None,
+        is_read_only: Some(true),
+    });
+
+    assert!(!state.is_disabled);
+    assert!(state.is_read_only);
+}

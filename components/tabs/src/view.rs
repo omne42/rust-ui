@@ -1,7 +1,13 @@
-use super::logic::{self, normalize_index_skipping_disabled, resolve_tabs_state};
+use super::logic::{
+    self, has_disabled_tabs, is_tab_disabled, normalize_selected_with_disabled,
+    resolve_selection_request, resolve_tabs_state,
+};
 use crate::{TabsKeyboardActivation, TabsMotion, motion};
-use leptos::{children::ChildrenFragment as Children, ev, html, prelude::*};
-use std::{collections::HashSet, sync::Arc};
+use leptos::{children::Children, ev, html, prelude::*};
+use std::{
+    collections::{BTreeMap, BTreeSet, HashSet},
+    sync::Arc,
+};
 use ui_headless::{
     A11yDirection, FocusRingOptions, HoverOptions, PressOptions, RovingOrientation,
     RovingTabIndexOptions, TabsInteractionKind, resolve_tabs_selection_intent,
@@ -39,6 +45,151 @@ const ARIA_TRUE: &str = "true";
 const KEYBOARD_ACTIVATION_AUTOMATIC: &str = "automatic";
 const KEYBOARD_ACTIVATION_MANUAL: &str = "manual";
 
+mod item_collection {
+    use super::*;
+
+    pub(super) struct TabsItemConfig {
+        pub(super) registration_id: usize,
+        pub(super) label: String,
+        pub(super) panel: AnyView,
+    }
+
+    pub(super) struct ResolvedTabsItemConfig {
+        pub(super) label: String,
+        pub(super) panel: AnyView,
+    }
+
+    pub(super) struct CollectedTabsItems {
+        pub(super) item_configs: Vec<ResolvedTabsItemConfig>,
+        pub(super) items_order: Vec<usize>,
+    }
+
+    #[derive(Clone, Copy)]
+    struct RegistrationContext {
+        items: StoredValue<Vec<TabsItemConfig>, LocalStorage>,
+        is_collecting: StoredValue<bool, LocalStorage>,
+        next_registration_id: StoredValue<usize, LocalStorage>,
+        registered_ids: StoredValue<BTreeSet<usize>, LocalStorage>,
+        registration_actions: StoredValue<Vec<logic::TabsRegistrationAction>, LocalStorage>,
+    }
+
+    impl RegistrationContext {
+        fn register(self) -> usize {
+            let registration_id = self.next_registration_id.get_value();
+            self.next_registration_id
+                .set_value(registration_id.saturating_add(1));
+            self.registered_ids.update_value(|registered| {
+                registered.insert(registration_id);
+            });
+            self.registration_actions.update_value(|actions| {
+                actions.push(logic::TabsRegistrationAction::Register { registration_id });
+            });
+            registration_id
+        }
+
+        fn unregister(self, registration_id: usize) {
+            self.registration_actions.update_value(|actions| {
+                actions.push(logic::TabsRegistrationAction::Unregister { registration_id });
+            });
+        }
+    }
+
+    pub(super) fn collect(children: Children) -> CollectedTabsItems {
+        let items = StoredValue::new_local(Vec::new());
+        let is_collecting = StoredValue::new_local(true);
+        let next_registration_id = StoredValue::new_local(0_usize);
+        let registered_ids = StoredValue::new_local(BTreeSet::<usize>::new());
+        let registration_actions = StoredValue::new_local(Vec::new());
+        let registration = RegistrationContext {
+            items,
+            is_collecting,
+            next_registration_id,
+            registered_ids,
+            registration_actions,
+        };
+        provide_context(registration);
+        drop(children());
+        is_collecting.set_value(false);
+        let active_registration_ids = items.with_value(|configs| {
+            configs
+                .iter()
+                .map(|item| item.registration_id)
+                .collect::<BTreeSet<_>>()
+        });
+        let stale_registration_ids = registration.registered_ids.with_value(|registered| {
+            registered
+                .iter()
+                .copied()
+                .filter(|registration_id| !active_registration_ids.contains(registration_id))
+                .collect::<Vec<_>>()
+        });
+        for registration_id in stale_registration_ids {
+            registration.unregister(registration_id);
+        }
+        resolve(
+            items.into_inner().unwrap_or_default(),
+            registration_actions.into_inner().unwrap_or_default(),
+        )
+    }
+
+    fn resolve(
+        item_configs: Vec<TabsItemConfig>,
+        registration_actions: Vec<logic::TabsRegistrationAction>,
+    ) -> CollectedTabsItems {
+        let active_registration_ids = item_configs
+            .iter()
+            .map(|item| item.registration_id)
+            .collect::<Vec<_>>();
+        let items_order =
+            logic::resolve_registered_items_order(&registration_actions, &active_registration_ids);
+        let order_by_registration_id = items_order
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(index, registration_id)| (registration_id, index))
+            .collect::<BTreeMap<_, _>>();
+        let mut ordered = item_configs;
+        ordered.sort_by_key(|item| {
+            order_by_registration_id
+                .get(&item.registration_id)
+                .copied()
+                .unwrap_or(usize::MAX)
+        });
+        CollectedTabsItems {
+            item_configs: ordered
+                .into_iter()
+                .map(|item| ResolvedTabsItemConfig {
+                    label: item.label,
+                    panel: item.panel,
+                })
+                .collect(),
+            items_order,
+        }
+    }
+
+    pub(super) fn try_collect(label: String, panel: AnyView) -> Result<(), AnyView> {
+        if let Some(registration) = use_context::<RegistrationContext>()
+            && registration.is_collecting.get_value()
+        {
+            let registration_id = registration.register();
+            registration.items.update_value(|items| {
+                items.push(TabsItemConfig {
+                    registration_id,
+                    label,
+                    panel,
+                });
+            });
+            Ok(())
+        } else {
+            Err(panel)
+        }
+    }
+}
+
+fn collect_tabs_items(children: Children) -> item_collection::CollectedTabsItems {
+    item_collection::collect(children)
+}
+
 #[derive(Clone)]
 struct TabButtonRenderContext {
     id_base: String,
@@ -56,7 +207,7 @@ struct TabButtonRenderContext {
 
 fn render_tab_button(
     index: usize,
-    label: &'static str,
+    label: String,
     node_ref: NodeRef<html::Button>,
     context: TabButtonRenderContext,
 ) -> AnyView {
@@ -77,7 +228,7 @@ fn render_tab_button(
     let panel_id = format!("{id_base}-panel-{index}");
 
     let tab_is_selected = Signal::derive(move || selected.get() == index);
-    let tab_is_disabled = disabled || disabled_indices.contains(&index);
+    let tab_is_disabled = is_tab_disabled(disabled, disabled_indices.as_ref(), index);
 
     let tab_a11y = tabs_tab_a11y_attrs(
         tab_is_selected,
@@ -109,7 +260,7 @@ fn render_tab_button(
                     current,
                     index,
                     item_count,
-                    |idx: usize| disabled || disabled_indices.contains(&idx),
+                    |idx: usize| is_tab_disabled(disabled, disabled_indices.as_ref(), idx),
                     keyboard_activation,
                     TabsInteractionKind::Press,
                 ) {
@@ -131,7 +282,7 @@ fn render_tab_button(
                 current,
                 index,
                 item_count,
-                |idx: usize| disabled || disabled_indices.contains(&idx),
+                |idx: usize| is_tab_disabled(disabled, disabled_indices.as_ref(), idx),
                 keyboard_activation,
                 TabsInteractionKind::Focus,
             ) {
@@ -239,12 +390,13 @@ fn render_tab_panel(
 
 #[component]
 pub fn Tabs(
-    labels: Vec<&'static str>,
     id_base: String,
     #[prop(optional)] keyboard_activation: TabsKeyboardActivation,
     #[prop(optional)] default_selected_index: usize,
     #[prop(optional)] selected_index: Option<ReadSignal<usize>>,
     #[prop(optional)] on_selection_change: Option<Callback<usize>>,
+    // Canonical boolean API uses `is_disabled`; keep `disabled` as a legacy alias for
+    // compatibility. Resolution priority is handled in logic.rs: `is_disabled > disabled`.
     #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
@@ -255,24 +407,32 @@ pub fn Tabs(
     #[prop(optional)] dir: Option<A11yDirection>,
     children: Children,
 ) -> impl IntoView {
-    let panels = children().nodes;
-
+    let item_collection::CollectedTabsItems {
+        item_configs,
+        items_order,
+    } = collect_tabs_items(children);
+    let item_count = item_configs.len();
     debug_assert_eq!(
-        labels.len(),
-        panels.iter().len(),
-        "Tabs: expected `labels.len() == children.len()`; got labels={}, children={}",
-        labels.len(),
-        panels.iter().len()
+        items_order.len(),
+        item_count,
+        "tabs items_order should stay in sync with collected item count"
     );
+    let labels = item_configs
+        .iter()
+        .map(|item| item.label.clone())
+        .collect::<Vec<_>>();
+    let panels = item_configs
+        .into_iter()
+        .map(|item| item.panel)
+        .collect::<Vec<_>>();
 
     let disabled_axis = logic::normalize_disabled_axis(is_disabled, disabled);
     let disabled = disabled_axis.is_disabled;
     let disabled_source = disabled_axis.source.as_attr();
-    let item_count = labels.len().min(panels.iter().len());
     let (item_count_signal, _set_item_count) = signal(item_count);
 
     let disabled_indices: Arc<HashSet<usize>> = Arc::new(disabled_indices.into_iter().collect());
-    let has_disabled_tabs = disabled || !disabled_indices.is_empty();
+    let has_disabled_tabs = has_disabled_tabs(disabled, disabled_indices.as_ref());
 
     let selection_axis = logic::normalize_selection_axis(logic::TabsSelectionAxisInput {
         selected_index,
@@ -287,7 +447,7 @@ pub fn Tabs(
     let requested_controlled_selected_index =
         controlled_selected_index.map(|signal| signal.get_untracked());
 
-    let initial_selected = normalize_index_skipping_disabled(
+    let initial_selected = normalize_selected_with_disabled(
         logic::resolve_requested_selected_index(
             requested_controlled_selected_index,
             default_selected_index,
@@ -295,7 +455,7 @@ pub fn Tabs(
         item_count,
         {
             let disabled_indices = disabled_indices.clone();
-            move |index: usize| disabled || disabled_indices.contains(&index)
+            move |index: usize| is_tab_disabled(disabled, disabled_indices.as_ref(), index)
         },
     );
 
@@ -322,8 +482,8 @@ pub fn Tabs(
     let selected = Signal::derive({
         let disabled_indices = disabled_indices.clone();
         move || {
-            normalize_index_skipping_disabled(selected_raw.get(), item_count, |index: usize| {
-                disabled || disabled_indices.contains(&index)
+            normalize_selected_with_disabled(selected_raw.get(), item_count, |index: usize| {
+                is_tab_disabled(disabled, disabled_indices.as_ref(), index)
             })
         }
     });
@@ -334,19 +494,14 @@ pub fn Tabs(
     let set_selected = Callback::new({
         let disabled_indices = disabled_indices.clone();
         move |index: usize| {
-            if item_count == 0 {
-                return;
+            if let Some(next) = resolve_selection_request(
+                index,
+                selected.get_untracked(),
+                item_count,
+                |idx: usize| is_tab_disabled(disabled, disabled_indices.as_ref(), idx),
+            ) {
+                request_selected_change.run(next);
             }
-            let next = normalize_index_skipping_disabled(index, item_count, |idx: usize| {
-                disabled || disabled_indices.contains(&idx)
-            });
-            if disabled || disabled_indices.contains(&next) {
-                return;
-            }
-            if selected.get_untracked() == next {
-                return;
-            }
-            request_selected_change.run(next);
         }
     });
 
@@ -454,5 +609,14 @@ pub fn Tabs(
             </div>
             {panels_view}
         </div>
+    }
+}
+
+#[component]
+pub fn TabsItem(#[prop(into)] label: String, children: Children) -> impl IntoView {
+    let panel = children().into_any();
+    match item_collection::try_collect(label, panel) {
+        Ok(()) => ().into_any(),
+        Err(panel) => panel,
     }
 }

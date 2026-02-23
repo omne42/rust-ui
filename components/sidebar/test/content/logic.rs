@@ -18,6 +18,16 @@ fn normalize_aria_label_tracks_default_and_custom_sources() {
 }
 
 #[test]
+fn resolve_default_priority_prefers_prefixed_flags() {
+    assert!(resolve_disabled(Some(true), false));
+    assert!(!resolve_disabled(None, false));
+    assert!(resolve_padded(Some(true), false));
+    assert!(!resolve_padded(None, false));
+    assert!(resolve_scrollable(Some(true), false));
+    assert!(!resolve_scrollable(None, false));
+}
+
+#[test]
 fn resolve_state_reports_padding_scroll_and_source_markers() {
     let state = resolve_state(SidebarContentStateInput {
         disabled: true,

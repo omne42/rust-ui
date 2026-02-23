@@ -14,34 +14,13 @@ pub(crate) fn tray() -> AnyView {
     // is_fixed_height=true
     // is_dismissable=false
     // is_keyboard_dismiss_disabled=true
-    // show_close_button=false
+    // is_show_close_button=false
     // class_name="docs-tray-custom".to_string()
     // data-size-source
     // Inspect data-size-source / data-dismiss-source / data-motion-source in DevTools.
     // on_exit_complete=on_custom_exit_complete
-    let (showcase_open_raw, set_showcase_open_raw) = signal(false);
-    let showcase_open: Signal<bool> = Signal::derive(move || showcase_open_raw.get());
-    let (showcase_close_count, set_showcase_close_count) = signal(0_u32);
-    let (showcase_exit_count, set_showcase_exit_count) = signal(0_u32);
-
-    let open_showcase: OnPress = Callback::new(move |_| set_showcase_open_raw.set(true));
-    let on_showcase_close: OnPress = Callback::new(move |_| {
-        set_showcase_open_raw.set(false);
-        set_showcase_close_count.update(|count| *count += 1);
-    });
-    let on_showcase_exit_complete =
-        Callback::new(move |_| set_showcase_exit_count.update(|count| *count += 1));
-
     let hello_code = Signal::derive(move || {
-        r#"let (open_raw, set_open_raw) = signal(false);
-let open: Signal<bool> = Signal::derive(move || open_raw.get());
-
-<Tray
-  open=open
-  on_close=Callback::new(move |_| set_open_raw.set(false))
-  id_base="docs-tray-hello".to_string()
-  title="Filters".to_string()
->
+        r#"<Tray default_open=true id_base="docs-tray-hello".to_string() title="Filters".to_string()>
   <div>"Tray body content"</div>
 </Tray>"#
             .to_string()
@@ -53,7 +32,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
     let (workbench_exit_count, set_workbench_exit_count) = signal(0_u32);
     let (workbench_show_description, set_workbench_show_description) = signal(true);
     let (workbench_show_footer, set_workbench_show_footer) = signal(true);
-    let (workbench_show_close_button, set_workbench_show_close_button) = signal(true);
+    let (workbench_is_show_close_button, set_workbench_is_show_close_button) = signal(true);
     let (workbench_fixed_height, set_workbench_fixed_height) = signal(false);
     let (workbench_dismissable, set_workbench_dismissable) = signal(true);
     let (workbench_keyboard_dismiss_disabled, set_workbench_keyboard_dismiss_disabled) =
@@ -65,6 +44,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
     let (workbench_rtl_dir, set_workbench_rtl_dir) = signal(false);
 
     let open_workbench: OnPress = Callback::new(move |_| set_workbench_open_raw.set(true));
+    let on_workbench_open_change = Callback::new(move |next| set_workbench_open_raw.set(next));
     let on_workbench_close: OnPress = Callback::new(move |_| {
         set_workbench_open_raw.set(false);
         set_workbench_close_count.update(|count| *count += 1);
@@ -116,7 +96,8 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
             "let (open_raw, set_open_raw) = signal(false);".to_string(),
             "let open: Signal<bool> = Signal::derive(move || open_raw.get());".to_string(),
             "<Tray".to_string(),
-            "  open=open".to_string(),
+            "  is_open=open".to_string(),
+            "  on_open_change=Callback::new(move |next| set_open_raw.set(next))".to_string(),
             "  on_close=Callback::new(move |_| set_open_raw.set(false))".to_string(),
             "  id_base=\"docs-tray-workbench\".to_string()".to_string(),
             "  title=\"Workbench tray\".to_string()".to_string(),
@@ -134,8 +115,8 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
                 }
             ),
             format!(
-                "  show_close_button={}",
-                bool_word(workbench_show_close_button.get())
+                "  is_show_close_button={}",
+                bool_word(workbench_is_show_close_button.get())
             ),
             format!("  close_label={}", rust_string_literal(close_label)),
             format!(
@@ -202,10 +183,10 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
         };
 
         format!(
-            "TrayActualConfig {{\n  open: {},\n  on_close: \"count={}\",\n  id_base: \"docs-tray-workbench\",\n  title: \"Workbench tray\",\n  description: {description:?},\n  footer: {footer},\n  motion: {motion},\n  show_close_button: {},\n  close_label: {:?},\n  is_fixed_height: {},\n  is_dismissable: {},\n  is_keyboard_dismiss_disabled: {},\n  lang: {lang:?},\n  dir: {dir},\n  on_exit_complete: \"count={}\",\n  class_name: {class_name:?},\n}}",
+            "TrayActualConfig {{\n  is_open: {},\n  on_close: \"count={}\",\n  id_base: \"docs-tray-workbench\",\n  title: \"Workbench tray\",\n  description: {description:?},\n  footer: {footer},\n  motion: {motion},\n  is_show_close_button: {},\n  close_label: {:?},\n  is_fixed_height: {},\n  is_dismissable: {},\n  is_keyboard_dismiss_disabled: {},\n  lang: {lang:?},\n  dir: {dir},\n  on_exit_complete: \"count={}\",\n  class_name: {class_name:?},\n}}",
             bool_word(workbench_open_raw.get()),
             workbench_close_count.get(),
-            bool_word(workbench_show_close_button.get()),
+            bool_word(workbench_is_show_close_button.get()),
             close_label,
             bool_word(workbench_fixed_height.get()),
             bool_word(workbench_dismissable.get()),
@@ -234,9 +215,9 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
         Callback::new(move |_| set_matrix_compact_open_raw.set(false));
 
     let matrix_code = Signal::derive(move || {
-        r#"<Tray open=default_open on_close=dismiss_default id_base="tray-default".to_string() title="Default".to_string() />
-<Tray open=fixed_open on_close=dismiss_fixed id_base="tray-fixed".to_string() title="Fixed".to_string() is_fixed_height=true is_dismissable=false />
-<Tray open=compact_open on_close=dismiss_compact id_base="tray-compact".to_string() title="Compact".to_string() show_close_button=false close_label="Dismiss" />"#.to_string()
+        r#"<Tray is_open=default_open on_close=dismiss_default id_base="tray-default".to_string() title="Default".to_string() />
+<Tray is_open=fixed_open on_close=dismiss_fixed id_base="tray-fixed".to_string() title="Fixed".to_string() is_fixed_height=true is_dismissable=false />
+<Tray is_open=compact_open on_close=dismiss_compact id_base="tray-compact".to_string() title="Compact".to_string() is_show_close_button=false close_label="Dismiss" />"#.to_string()
     });
 
     view! {
@@ -246,39 +227,16 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
             group="Overlays"
             description="Tray playground with full API workbench and state-matrix comparison."
         >
-            <Playground title="Hello World (Default Tray)" code_signal=hello_code>
-                <div class="docs-stack docs-stack--tight">
-                    <div class="docs-row">
-                        <Button on_press=open_showcase>"Open tray"</Button>
-                        <span class="ui-muted">"open: " {move || showcase_open_raw.get()}</span>
-                    </div>
-                    <span class="ui-muted">
-                        "on_close: " {move || showcase_close_count.get()}
-                        " · on_exit_complete: " {move || showcase_exit_count.get()}
-                    </span>
-                </div>
+            <Playground title="Hello World (Minimal API)" code_signal=hello_code>
+                <span class="ui-muted">
+                    "Uncontrolled default path: `default_open + id_base + title`."
+                </span>
                 <Tray
-                    open=showcase_open
-                    on_close=on_showcase_close
+                    default_open=true
                     id_base="docs-tray-hello".to_string()
                     title="Filters".to_string()
-                    description="Tray body with semantic heading and close control.".to_string()
-                    footer=move || view! {
-                        <div class="docs-row docs-row--end">
-                            <Button variant=ButtonVariant::Secondary on_press=on_showcase_close>
-                                "Reset"
-                            </Button>
-                            <Button on_press=on_showcase_close>"Apply"</Button>
-                        </div>
-                    }
-                    on_exit_complete=on_showcase_exit_complete
                 >
-                    <div class="docs-stack docs-stack--tight">
-                        <span>"Real tray content for mobile-first actions."</span>
-                        <span class="ui-muted">
-                            "Dismiss via close action, Esc, or backdrop by default."
-                        </span>
-                    </div>
+                    <div>"Tray body content"</div>
                 </Tray>
             </Playground>
 
@@ -298,10 +256,10 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
                             "footer"
                         </Switch>
                         <Switch
-                            checked=workbench_show_close_button
-                            set_checked=set_workbench_show_close_button
+                            checked=workbench_is_show_close_button
+                            set_checked=set_workbench_is_show_close_button
                         >
-                            "show_close_button"
+                            "is_show_close_button"
                         </Switch>
                         <Switch checked=workbench_fixed_height set_checked=set_workbench_fixed_height>
                             "is_fixed_height"
@@ -350,7 +308,8 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
                     </span>
                 </div>
                 <Tray
-                    open=workbench_open
+                    is_open=workbench_open
+                    on_open_change=on_workbench_open_change
                     on_close=on_workbench_close
                     id_base="docs-tray-workbench".to_string()
                     title="Workbench tray".to_string()
@@ -373,7 +332,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
                         .into_any()
                     }
                     motion=workbench_motion.get()
-                    show_close_button=workbench_show_close_button.get()
+                    is_show_close_button=workbench_is_show_close_button.get()
                     close_label=if workbench_compact_close_label.get() {
                         "Dismiss"
                     } else {
@@ -422,7 +381,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
                 </div>
 
                 <Tray
-                    open=matrix_default_open
+                    is_open=matrix_default_open
                     on_close=close_matrix_default
                     id_base="docs-tray-matrix-default".to_string()
                     title="Default tray".to_string()
@@ -437,25 +396,25 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
                 </Tray>
 
                 <Tray
-                    open=matrix_fixed_open
+                    is_open=matrix_fixed_open
                     on_close=close_matrix_fixed
                     id_base="docs-tray-matrix-fixed".to_string()
                     title="Fixed tray".to_string()
                     is_fixed_height=true
                     is_dismissable=false
                     is_keyboard_dismiss_disabled=true
-                    show_close_button=true
+                    is_show_close_button=true
                     class_name="docs-tray-fixed".to_string()
                 >
                     <div>"Fixed-height tray with stricter dismiss behavior."</div>
                 </Tray>
 
                 <Tray
-                    open=matrix_compact_open
+                    is_open=matrix_compact_open
                     on_close=close_matrix_compact
                     id_base="docs-tray-matrix-compact".to_string()
                     title="Compact tray".to_string()
-                    show_close_button=false
+                    is_show_close_button=false
                     close_label="Dismiss"
                     motion=TrayMotion {
                         sheet: ui::SheetMotion {

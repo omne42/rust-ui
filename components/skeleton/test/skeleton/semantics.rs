@@ -314,6 +314,291 @@ fn skeleton_does_not_introduce_component_motion_layer_or_custom_driver() {
 }
 
 #[test]
+fn skeleton_macro_micro_duality_dragging_loop_is_explicitly_na_for_non_interactive_component() {
+    let check2_source = load_source("src/skeleton/check2.md");
+    let skeleton_view_source = load_source("src/skeleton/view.rs");
+    let skeleton_group_view_source = load_source("src/skeleton/group/view.rs");
+    let skeleton_logic_source = load_source("src/skeleton/logic.rs");
+    let skeleton_group_logic_source = load_source("src/skeleton/group/logic.rs");
+
+    assert!(
+        check2_source.contains("- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。")
+            && check2_source.contains("组件无拖拽/指针追踪/逐帧物理循环"),
+        "check2 should mark macro/micro dual-state drag contract as N/A with explicit non-interactive reason."
+    );
+
+    for forbidden in [
+        "Dragging",
+        "Action::DragEnd",
+        "on:pointermove",
+        "on:mousemove",
+        "on:touchmove",
+        "on:dragstart",
+        "on:dragend",
+        "requestAnimationFrame",
+        "request_animation_frame",
+    ] {
+        assert!(
+            !skeleton_view_source.contains(forbidden)
+                && !skeleton_group_view_source.contains(forbidden)
+                && !skeleton_logic_source.contains(forbidden)
+                && !skeleton_group_logic_source.contains(forbidden),
+            "Skeleton non-interactive scope should not define macro/micro drag loop token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn skeleton_two_pass_rendering_measure_rectification_is_explicitly_na_for_non_measurement_component(
+) {
+    let check2_source = load_source("src/skeleton/check2.md");
+    let skeleton_view_source = load_source("src/skeleton/view.rs");
+    let skeleton_group_view_source = load_source("src/skeleton/group/view.rs");
+    let skeleton_logic_source = load_source("src/skeleton/logic.rs");
+    let skeleton_group_logic_source = load_source("src/skeleton/group/logic.rs");
+
+    assert!(
+        check2_source.contains("- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。")
+            && check2_source.contains("不承担 `Tooltip/Popover/Menu` 几何定位职责"),
+        "check2 should mark two-pass rendering contract as N/A with explicit non-measurement reason."
+    );
+
+    for forbidden in [
+        "getBoundingClientRect",
+        "get_bounding_client_rect",
+        "ResizeObserver",
+        "MutationObserver",
+        "offsetWidth",
+        "offsetHeight",
+        "clientWidth",
+        "clientHeight",
+        "Action::Rectification",
+    ] {
+        assert!(
+            !skeleton_view_source.contains(forbidden)
+                && !skeleton_group_view_source.contains(forbidden)
+                && !skeleton_logic_source.contains(forbidden)
+                && !skeleton_group_logic_source.contains(forbidden),
+            "Skeleton non-measurement scope should not define two-pass geometry token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn skeleton_registration_protocol_is_explicitly_na_for_non_navigable_collection_component() {
+    let check2_source = load_source("src/skeleton/check2.md");
+    let skeleton_view_source = load_source("src/skeleton/view.rs");
+    let skeleton_group_view_source = load_source("src/skeleton/group/view.rs");
+    let skeleton_logic_source = load_source("src/skeleton/logic.rs");
+    let skeleton_group_logic_source = load_source("src/skeleton/group/logic.rs");
+
+    assert!(
+        check2_source.contains("- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。")
+            && check2_source.contains("不属于动态子项导航组件"),
+        "check2 should mark registration protocol contract as N/A with explicit non-navigable collection reason."
+    );
+
+    for forbidden in [
+        "RegistrationContext",
+        "Register",
+        "Unregister",
+        "items_order",
+        "HashSet",
+        "std::collections::HashSet",
+    ] {
+        assert!(
+            !skeleton_view_source.contains(forbidden)
+                && !skeleton_group_view_source.contains(forbidden)
+                && !skeleton_logic_source.contains(forbidden)
+                && !skeleton_group_logic_source.contains(forbidden),
+            "Skeleton non-navigable collection scope should not define registration protocol token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn skeleton_slot_projection_strategy_is_explicitly_na_for_non_projection_container() {
+    let check2_source = load_source("src/skeleton/check2.md");
+    let skeleton_view_source = load_source("src/skeleton/view.rs");
+    let skeleton_group_view_source = load_source("src/skeleton/group/view.rs");
+    let skeleton_logic_source = load_source("src/skeleton/logic.rs");
+    let skeleton_group_logic_source = load_source("src/skeleton/group/logic.rs");
+
+    assert!(
+        check2_source.contains("- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。")
+            && check2_source.contains("不承担多插槽投影策略与 keep-alive 生命周期管理职责"),
+        "check2 should mark slot projection strategy as N/A with explicit non-projection reason."
+    );
+
+    for forbidden in [
+        "Lazy",
+        "KeepAlive",
+        "Eager",
+        "NotifyHidden",
+        "slot_projection",
+        "ProjectionMode",
+        "set_interval",
+        "set_timeout",
+        "requestAnimationFrame(",
+    ] {
+        assert!(
+            !skeleton_view_source.contains(forbidden)
+                && !skeleton_group_view_source.contains(forbidden)
+                && !skeleton_logic_source.contains(forbidden)
+                && !skeleton_group_logic_source.contains(forbidden),
+            "Skeleton non-projection scope should not define slot projection lifecycle token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn skeleton_env_streams_are_explicitly_na_for_non_subscribing_display_component() {
+    let check2_source = load_source("src/skeleton/check2.md");
+    let skeleton_view_source = load_source("src/skeleton/view.rs");
+    let skeleton_group_view_source = load_source("src/skeleton/group/view.rs");
+    let skeleton_logic_source = load_source("src/skeleton/logic.rs");
+    let skeleton_group_logic_source = load_source("src/skeleton/group/logic.rs");
+
+    assert!(
+        check2_source.contains("- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。")
+            && check2_source.contains("不承担响应式环境订阅职责"),
+        "check2 should mark env-streams contract as N/A with explicit non-subscribing reason."
+    );
+
+    for forbidden in [
+        "ResizeObserver",
+        "IntersectionObserver",
+        "matchMedia",
+        "BreakpointChanged",
+        "ThemeChanged",
+        "on:resize",
+        "on:scroll",
+        "debounce",
+        "throttle",
+    ] {
+        assert!(
+            !skeleton_view_source.contains(forbidden)
+                && !skeleton_group_view_source.contains(forbidden)
+                && !skeleton_logic_source.contains(forbidden)
+                && !skeleton_group_logic_source.contains(forbidden),
+            "Skeleton non-subscribing scope should not define env-stream token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn skeleton_event_light_cone_is_explicitly_na_for_non_bulk_collection_component() {
+    let check2_source = load_source("src/skeleton/check2.md");
+    let skeleton_view_source = load_source("src/skeleton/view.rs");
+    let skeleton_group_view_source = load_source("src/skeleton/group/view.rs");
+    let skeleton_logic_source = load_source("src/skeleton/logic.rs");
+    let skeleton_group_logic_source = load_source("src/skeleton/group/logic.rs");
+
+    assert!(
+        check2_source.contains("- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。")
+            && check2_source.contains("非大型可交互集合组件"),
+        "check2 should mark event-light-cone contract as N/A with explicit non-bulk-collection reason."
+    );
+
+    for forbidden in [
+        "ContextBus",
+        "SelectionState::All",
+        "SelectionState",
+        "SelectionContext",
+        "provide_selection",
+        "bulk_select",
+        "prop_drilling",
+        "TableAction",
+        "GridAction",
+    ] {
+        assert!(
+            !skeleton_view_source.contains(forbidden)
+                && !skeleton_group_view_source.contains(forbidden)
+                && !skeleton_logic_source.contains(forbidden)
+                && !skeleton_group_logic_source.contains(forbidden),
+            "Skeleton non-bulk-collection scope should not define event-light-cone token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn skeleton_focus_stack_and_gc_is_explicitly_na_for_non_overlay_component() {
+    let check2_source = load_source("src/skeleton/check2.md");
+    let skeleton_view_source = load_source("src/skeleton/view.rs");
+    let skeleton_group_view_source = load_source("src/skeleton/group/view.rs");
+    let skeleton_logic_source = load_source("src/skeleton/logic.rs");
+    let skeleton_group_logic_source = load_source("src/skeleton/group/logic.rs");
+
+    assert!(
+        check2_source.contains("- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。")
+            && check2_source.contains("不承担层叠 `Overlay` 焦点管理职责"),
+        "check2 should mark focus-stack contract as N/A with explicit non-overlay reason."
+    );
+
+    for forbidden in [
+        "Overlay",
+        "NodeRef<web_sys",
+        "FallbackTo",
+        "Selector",
+        "FocusManager",
+        "focus_stack",
+        "restore_focus",
+        "document.body",
+        "document().body",
+    ] {
+        assert!(
+            !skeleton_view_source.contains(forbidden)
+                && !skeleton_group_view_source.contains(forbidden)
+                && !skeleton_logic_source.contains(forbidden)
+                && !skeleton_group_logic_source.contains(forbidden),
+            "Skeleton non-overlay scope should not define focus-stack token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn skeleton_escape_hatches_foreign_zone_is_explicitly_na_for_non_imperative_integration_component(
+) {
+    let check2_source = load_source("src/skeleton/check2.md");
+    let skeleton_view_source = load_source("src/skeleton/view.rs");
+    let skeleton_group_view_source = load_source("src/skeleton/group/view.rs");
+    let skeleton_logic_source = load_source("src/skeleton/logic.rs");
+    let skeleton_group_logic_source = load_source("src/skeleton/group/logic.rs");
+    let skeleton_mod_source = load_source("src/skeleton/mod.rs");
+    let skeleton_group_mod_source = load_source("src/skeleton/group/mod.rs");
+
+    assert!(
+        check2_source.contains("- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。")
+            && check2_source.contains("不承担 ECharts/Map 等命令式第三方运行时集成职责"),
+        "check2 should mark escape-hatches contract as N/A with explicit non-imperative-integration reason."
+    );
+
+    for forbidden in [
+        "ECharts",
+        "echarts",
+        "Mapbox",
+        "leaflet",
+        "google.maps",
+        "Foreign Zone",
+        "ForeignZone",
+        "YieldControl",
+        "CleanupForeign",
+        "foreign_instance",
+        "imperative_instance",
+    ] {
+        assert!(
+            !skeleton_view_source.contains(forbidden)
+                && !skeleton_group_view_source.contains(forbidden)
+                && !skeleton_logic_source.contains(forbidden)
+                && !skeleton_group_logic_source.contains(forbidden)
+                && !skeleton_mod_source.contains(forbidden)
+                && !skeleton_group_mod_source.contains(forbidden),
+            "Skeleton non-imperative scope should not define escape-hatch token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
 fn skeleton_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/skeleton/view.rs");
 
@@ -401,8 +686,8 @@ fn skeleton_component_files_follow_responsibility_boundaries() {
 
     for needle in [
         "pub const CSS: &str = r#\"",
-        "var(--ui-radius-md)",
-        "var(--ui-border)",
+        "var(--ui-radius-md, var(--ui-fallback-radius-md))",
+        "var(--ui-border, var(--ui-fallback-border))",
     ] {
         assert!(
             styles_source.contains(needle),
@@ -656,9 +941,9 @@ fn skeleton_theme_contract_is_token_first_and_ui_theme_owned() {
     let source = load_source("src/skeleton/styles.rs");
 
     for needle in [
-        "var(--ui-radius-md)",
-        "var(--ui-border)",
-        "var(--ui-bg)",
+        "var(--ui-radius-md, var(--ui-fallback-radius-md))",
+        "var(--ui-border, var(--ui-fallback-border))",
+        "var(--ui-bg, var(--ui-fallback-bg))",
         "color-mix(",
     ] {
         assert!(
@@ -708,9 +993,9 @@ fn skeleton_token_first_styles_are_static_and_aggregated_via_ui_root_css_pipelin
 
     for required in [
         "pub const CSS: &str = r#\"",
-        "var(--ui-radius-md)",
-        "var(--ui-border)",
-        "var(--ui-bg)",
+        "var(--ui-radius-md, var(--ui-fallback-radius-md))",
+        "var(--ui-border, var(--ui-fallback-border))",
+        "var(--ui-bg, var(--ui-fallback-bg))",
         "color-mix(",
     ] {
         assert!(
@@ -769,6 +1054,83 @@ fn skeleton_token_first_styles_are_static_and_aggregated_via_ui_root_css_pipelin
             "Skeleton checklist should keep token-first style governance guidance `{required}`.",
         );
     }
+}
+
+#[test]
+fn skeleton_defensive_variables_use_two_level_fallback_chain_and_no_hardcoded_terminal_sizes() {
+    let check2_source = load_source("src/skeleton/check2.md");
+    let skeleton_styles = load_source("src/skeleton/styles.rs");
+    let skeleton_group_styles = load_source("src/skeleton/group/styles.rs");
+
+    for required in [
+        "var(--ui-radius-md, var(--ui-fallback-radius-md))",
+        "var(--ui-border, var(--ui-fallback-border))",
+        "var(--ui-bg, var(--ui-fallback-bg))",
+        "var(--ui-radius-full, var(--ui-fallback-radius-full))",
+        "var(--ui-image-skeleton-duration, var(--ui-fallback-image-skeleton-duration))",
+        "var(--ui-space-sm, var(--ui-fallback-space-sm))",
+        "var(--ui-space-xs, var(--ui-fallback-space-xs))",
+        "var(--ui-accent, var(--ui-fallback-accent))",
+        "var(--ui-border-width, var(--ui-fallback-border-width))",
+        "var(--ui-space-2xs, var(--ui-fallback-space-2xs))",
+    ] {
+        assert!(
+            skeleton_styles.contains(required) || skeleton_group_styles.contains(required),
+            "Skeleton defensive-variable contract should include `{required}`.",
+        );
+    }
+
+    for forbidden in ["9999px", "8rem", "2px", "1px", "1.25s", "1.15s", "#fff", "#000"] {
+        assert!(
+            !skeleton_styles.contains(forbidden) && !skeleton_group_styles.contains(forbidden),
+            "Skeleton defensive-variable contract should not keep hardcoded terminal literal `{forbidden}`.",
+        );
+    }
+
+    assert!(
+        check2_source.contains("- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。"),
+        "check2 should mark defensive-variables contract complete."
+    );
+}
+
+#[test]
+fn skeleton_css_is_aggregated_under_layer_ui_and_runtime_styles_forbid_plain_inline_style() {
+    let check2_source = load_source("src/skeleton/check2.md");
+    let css_source = load_source("src/css.rs");
+    let skeleton_view_source = load_source("src/skeleton/view.rs");
+    let skeleton_group_view_source = load_source("src/skeleton/group/view.rs");
+
+    for required in [
+        "out.push_str(\"\\n@layer ui {\\n\");",
+        "out.push_str(crate::skeleton::styles::CSS);",
+        "out.push_str(crate::skeleton::group::styles::CSS);",
+    ] {
+        assert!(
+            css_source.contains(required),
+            "Skeleton CSS should be aggregated under `@layer ui`; missing `{required}`."
+        );
+    }
+
+    for source in [skeleton_view_source.as_str(), skeleton_group_view_source.as_str()] {
+        for forbidden in ["style=", "style ="] {
+            assert!(
+                !source.contains(forbidden),
+                "Skeleton runtime markup should forbid plain inline style `{forbidden}`."
+            );
+        }
+
+        for line in source.lines().filter(|line| line.contains("style:")) {
+            assert!(
+                line.contains("style:--"),
+                "Runtime style adjustments should use CSS custom property only (`style:--*`), found `{line}`."
+            );
+        }
+    }
+
+    assert!(
+        check2_source.contains("- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。"),
+        "check2 should mark cascade-layer coverage contract complete."
+    );
 }
 
 #[test]
@@ -1110,6 +1472,50 @@ fn skeleton_reduced_motion_ssr_wasm_branches_are_covered_and_semantics_stable() 
         assert!(
             skeleton_group_view.contains(needle),
             "SkeletonGroup SSR/wasm semantic contract should expose `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn skeleton_hydration_discontinuity_contract_is_explicitly_na_for_static_idless_component() {
+    let check2_source = load_source("src/skeleton/check2.md");
+    let skeleton_view_source = load_source("src/skeleton/view.rs");
+    let skeleton_group_view_source = load_source("src/skeleton/group/view.rs");
+    let skeleton_logic_source = load_source("src/skeleton/logic.rs");
+    let skeleton_group_logic_source = load_source("src/skeleton/group/logic.rs");
+    let skeleton_protocol_source = load_source("src/skeleton/protocol.rs");
+    let skeleton_group_protocol_source = load_source("src/skeleton/group/protocol.rs");
+
+    assert!(
+        check2_source.contains("- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。")
+            && check2_source.contains("不生成运行时随机 ID"),
+        "check2 should mark hydration-discontinuity contract as N/A with explicit static-idless reason."
+    );
+
+    let combined = [
+        skeleton_view_source,
+        skeleton_group_view_source,
+        skeleton_logic_source,
+        skeleton_group_logic_source,
+        skeleton_protocol_source,
+        skeleton_group_protocol_source,
+    ]
+    .join("\n");
+
+    for forbidden in [
+        "now()",
+        "Date::now",
+        "SystemTime::now",
+        "Utc::now",
+        "Uuid::new_v4",
+        "uuid::Uuid::new_v4",
+        "rand::",
+        "thread_rng(",
+        "random::<",
+    ] {
+        assert!(
+            !combined.contains(forbidden),
+            "Skeleton static-idless scope should not use non-deterministic hydration token `{forbidden}`."
         );
     }
 }
@@ -2904,6 +3310,71 @@ fn skeleton_composition_api_uses_explicit_children_and_rejects_parallel_arrays()
 }
 
 #[test]
+fn skeleton_context_compression_manifest_and_rbi_projection_are_present_and_current() {
+    let check2_source = load_source("src/skeleton/check2.md");
+    let manifest_source = load_source("src/Component.toml");
+    let rbi_source = load_source("src/skeleton.rbi");
+    let skeleton_view_source = load_source("src/skeleton/view.rs");
+    let skeleton_group_view_source = load_source("src/skeleton/group/view.rs");
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+
+    assert!(
+        manifest_dir.join("src/Component.toml").exists()
+            && manifest_dir.join("src/skeleton.rbi").exists(),
+        "Skeleton context-compression protocol requires `src/Component.toml` and `src/skeleton.rbi`.",
+    );
+
+    for required in [
+        "schema_version = \"1\"",
+        "[component]",
+        "crate = \"ui-skeleton\"",
+        "name = \"context_compression_manifest\"",
+        "name = \"rbi_signature_projection\"",
+    ] {
+        assert!(
+            manifest_source.contains(required),
+            "Skeleton Component.toml should include `{required}`.",
+        );
+    }
+
+    for required in [
+        "pub fn Skeleton(",
+        "pub fn SkeletonGroup(",
+        "is_shimmer: Option<bool>",
+        "is_loading: Option<bool>",
+        "is_skeleton_only: Option<bool>",
+    ] {
+        assert!(
+            rbi_source.contains(required),
+            "Skeleton RBI projection should include `{required}`.",
+        );
+    }
+
+    for forbidden in ["shimmer: bool", "loading: bool", "skeleton_only: bool"] {
+        assert!(
+            !rbi_source.contains(forbidden),
+            "Skeleton RBI should avoid stale API signature token `{forbidden}`.",
+        );
+    }
+
+    for required in [
+        "#[prop(optional)] is_shimmer: Option<bool>",
+        "#[prop(optional)] is_loading: Option<bool>",
+        "#[prop(optional)] is_skeleton_only: Option<bool>",
+    ] {
+        assert!(
+            skeleton_view_source.contains(required) || skeleton_group_view_source.contains(required),
+            "RBI signature projection should stay aligned with current view props `{required}`.",
+        );
+    }
+
+    assert!(
+        check2_source.contains("- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。"),
+        "check2 should mark context-compression protocol as complete."
+    );
+}
+
+#[test]
 fn skeleton_a11y_i18n_l10n_contract_has_accessible_entrypoints_without_text_hardcoding_in_view() {
     let check2_source = load_source("src/skeleton/check2.md");
     let group_logic = load_source("src/skeleton/group/logic.rs");
@@ -3313,6 +3784,70 @@ fn skeleton_antipattern_guardrails_are_explicit_and_enforced() {
             && group_logic_source.contains("pub fn normalize_state_input("),
         "reusable primitive/normalization logic should stay in primitives or logic assembly layer."
     );
+}
+
+#[test]
+fn skeleton_rust_hygiene_contract_is_enforced_for_component_scope() {
+    let check2_source = load_source("src/skeleton/check2.md");
+    let group_logic_source = load_source("src/skeleton/group/logic.rs");
+    let hygiene_script = load_source("../../scripts/check-rust-hygiene.sh");
+
+    assert!(
+        check2_source.contains("- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。"),
+        "check2 should mark rust hygiene governance item complete."
+    );
+
+    assert!(
+        hygiene_script.contains("check-rust-hygiene"),
+        "workspace should keep scripts/check-rust-hygiene.sh as the hygiene gate entrypoint."
+    );
+
+    let non_test_sources = [
+        "src/skeleton/mod.rs",
+        "src/skeleton/logic.rs",
+        "src/skeleton/styles.rs",
+        "src/skeleton/view.rs",
+        "src/skeleton/group/mod.rs",
+        "src/skeleton/group/logic.rs",
+        "src/skeleton/group/styles.rs",
+        "src/skeleton/group/view.rs",
+    ];
+
+    for rel_path in non_test_sources {
+        let source = load_source(rel_path);
+
+        for forbidden in ["unwrap(", "expect(", "let _ ="] {
+            assert!(
+                !source.contains(forbidden),
+                "rust hygiene forbids `{forbidden}` in non-test source `{rel_path}`."
+            );
+        }
+    }
+
+    for needle in [
+        "use std::borrow::Cow;",
+        "let mut classes: Vec<Cow<'static, str>> = vec![",
+        "Cow::Borrowed(\"ui-skeleton-group\")",
+        "classes.push(Cow::Owned(base_class_name));",
+    ] {
+        assert!(
+            group_logic_source.contains(needle),
+            "skeleton string-copy hotspot should converge to Cow contract marker `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "\"ui-skeleton-group\".to_string()",
+        "\"ui-skeleton-group--loading\".to_string()",
+        "\"ui-skeleton-group--loaded\".to_string()",
+        "\"ui-skeleton-group--skeleton-only\".to_string()",
+        "\"ui-skeleton-group--custom-class\".to_string()",
+    ] {
+        assert!(
+            !group_logic_source.contains(forbidden),
+            "Cow-based class composition should remove eager string allocation token `{forbidden}`."
+        );
+    }
 }
 
 #[test]

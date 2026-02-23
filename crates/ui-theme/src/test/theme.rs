@@ -61,6 +61,15 @@ fn to_css_variables_contains_expected_keys() {
     assert!(css.contains("--ui-slider-max-width:"));
     assert!(css.contains("--ui-slider-thumb-border-width:"));
     assert!(css.contains("--ui-slider-focus-ring-width:"));
+    assert!(css.contains("--ui-switch-gap:"));
+    assert!(css.contains("--ui-switch-track-width:"));
+    assert!(css.contains("--ui-switch-track-height:"));
+    assert!(css.contains("--ui-switch-thumb-size:"));
+    assert!(css.contains("--ui-switch-thumb-checked-x:"));
+    assert!(css.contains("--ui-switch-focus-outline-width:"));
+    assert!(css.contains("--ui-switch-focus-outline-offset:"));
+    assert!(css.contains("--ui-switch-disabled-opacity:"));
+    assert!(css.contains("--ui-switch-hover-brightness:"));
     assert!(css.contains("--ui-color-wheel-size:"));
     assert!(css.contains("--ui-color-wheel-track-thickness:"));
     assert!(css.contains("--ui-color-wheel-thumb-size:"));

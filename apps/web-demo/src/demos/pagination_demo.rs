@@ -5,6 +5,7 @@ use ui::{Pagination, Tag, TagGroup, TagSize, TagVariant};
 pub fn PaginationDemo() -> impl IntoView {
     let (page, set_page) = signal(1_usize);
     let total_pages = 20_usize;
+    let on_page_change = Callback::new(move |next: usize| set_page.set(next));
 
     let (tags, set_tags) = signal(vec![
         Tag::new("rust", "Rust"),
@@ -28,7 +29,7 @@ pub fn PaginationDemo() -> impl IntoView {
                     <Pagination
                         total_pages=total_pages
                         page=page
-                        set_page=set_page
+                        on_page_change=on_page_change
                         siblings=1
                         boundaries=1
                     />

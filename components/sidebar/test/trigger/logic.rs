@@ -20,6 +20,12 @@ fn normalize_helpers_track_defaults_and_custom_sources() {
 }
 
 #[test]
+fn resolve_default_priority_prefers_prefixed_flags() {
+    assert!(resolve_disabled(Some(true), false));
+    assert!(!resolve_disabled(None, false));
+}
+
+#[test]
 fn resolve_state_reports_open_control_and_source_markers() {
     let state = resolve_state(SidebarTriggerStateInput {
         open: false,

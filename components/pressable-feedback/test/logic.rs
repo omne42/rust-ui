@@ -1,4 +1,5 @@
 use super::*;
+use leptos::prelude::{Callback, signal};
 
 #[test]
 fn tone_and_effect_contracts_are_stable() {
@@ -119,4 +120,119 @@ fn compose_class_name_includes_state_markers() {
             "composed class should include `{token}`"
         );
     }
+}
+
+#[test]
+fn normalize_flags_uses_logic_owned_defaults() {
+    let flags = normalize_flags(None, None);
+
+    assert_eq!(flags.is_bounded, DEFAULT_IS_BOUNDED);
+    assert_eq!(flags.is_disabled, DEFAULT_IS_DISABLED);
+}
+
+#[test]
+fn normalize_flags_prefers_explicit_inputs() {
+    let flags = normalize_flags(Some(false), Some(true));
+
+    assert!(!flags.is_bounded);
+    assert!(flags.is_disabled);
+}
+
+#[test]
+fn normalize_state_contract_centralizes_state_input_derivation() {
+    let contract = normalize_state_contract(PressableFeedbackStateContractInput {
+        effect: PressableFeedbackEffect::HighlightRipple,
+        is_bounded: None,
+        is_disabled: Some(true),
+        aria_label: Some("  Press tile  ".to_string()),
+        class_name: Some("  docs-pressable-feedback  ".to_string()),
+        has_custom_motion: true,
+        has_custom_press_handler: true,
+    });
+
+    assert!(contract.flags.is_bounded);
+    assert!(contract.flags.is_disabled);
+    assert_eq!(contract.aria_label, "Press tile");
+    assert_eq!(
+        contract.class_name,
+        Some("docs-pressable-feedback".to_string())
+    );
+    assert!(contract.has_custom_aria_label);
+    assert!(contract.has_custom_class_name);
+    assert!(contract.has_highlight);
+    assert!(contract.has_ripple);
+    assert!(contract.has_custom_motion);
+    assert!(contract.has_custom_press_handler);
+}
+
+#[test]
+fn normalize_state_contract_uses_fallback_markers() {
+    let contract = normalize_state_contract(PressableFeedbackStateContractInput {
+        effect: PressableFeedbackEffect::Scale,
+        is_bounded: Some(false),
+        is_disabled: None,
+        aria_label: None,
+        class_name: Some("   ".to_string()),
+        has_custom_motion: false,
+        has_custom_press_handler: false,
+    });
+
+    assert!(!contract.flags.is_bounded);
+    assert!(!contract.flags.is_disabled);
+    assert_eq!(contract.aria_label, DEFAULT_ARIA_LABEL);
+    assert_eq!(contract.class_name, None);
+    assert!(!contract.has_custom_aria_label);
+    assert!(!contract.has_custom_class_name);
+    assert!(!contract.has_highlight);
+    assert!(!contract.has_ripple);
+    assert!(!contract.has_custom_motion);
+    assert!(!contract.has_custom_press_handler);
+}
+
+#[test]
+fn normalize_pressed_axis_reports_controlled_sources() {
+    let (controlled_pressed, _set_controlled_pressed) = signal(false);
+    let on_pressed_change = Callback::new(|_: bool| {});
+
+    let axis = normalize_pressed_axis(
+        Some(controlled_pressed.into()),
+        Some(true),
+        Some(on_pressed_change),
+    );
+
+    assert_eq!(axis.pressed_mode, PressableFeedbackPressedMode::Controlled);
+    assert_eq!(
+        axis.default_pressed_source,
+        PressableFeedbackDefaultPressedSource::Provided
+    );
+    assert_eq!(
+        axis.pressed_change_source,
+        PressableFeedbackPressedChangeSource::Provided
+    );
+    assert!(axis.default_value);
+    assert_eq!(axis.pressed_mode.as_attr(), "controlled");
+    assert_eq!(axis.default_pressed_source.as_attr(), "provided");
+    assert_eq!(axis.pressed_change_source.as_attr(), "provided");
+}
+
+#[test]
+fn normalize_pressed_axis_uncontrolled_uses_default_fallback() {
+    let axis = normalize_pressed_axis(None, None, None);
+
+    assert_eq!(
+        axis.pressed_mode,
+        PressableFeedbackPressedMode::Uncontrolled
+    );
+    assert_eq!(
+        axis.default_pressed_source,
+        PressableFeedbackDefaultPressedSource::Default
+    );
+    assert_eq!(
+        axis.pressed_change_source,
+        PressableFeedbackPressedChangeSource::None
+    );
+    assert!(!axis.default_value);
+    assert_eq!(axis.pressed_mode.as_attr(), "uncontrolled");
+    assert_eq!(axis.default_pressed_source.as_attr(), "default");
+    assert_eq!(axis.pressed_change_source.as_attr(), "none");
 }

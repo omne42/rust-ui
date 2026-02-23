@@ -23,6 +23,11 @@ fn render_thumbnail_content(children: Children) -> impl IntoView {
 pub fn Thumbnail(
     #[prop(optional)] size: ThumbnailSize,
     #[prop(optional, into)] background: Option<String>,
+    #[prop(optional, into)] is_cover: Option<bool>,
+    #[prop(optional, into)] is_layer: Option<bool>,
+    #[prop(optional, into)] is_selected: Option<bool>,
+    #[prop(optional, into)] is_focused: Option<bool>,
+    // Legacy aliases kept for compatibility; canonical booleans use `is_*`.
     #[prop(optional, into)] cover: Option<bool>,
     #[prop(optional, into)] layer: Option<bool>,
     #[prop(optional, into)] selected: Option<bool>,
@@ -35,20 +40,24 @@ pub fn Thumbnail(
 ) -> impl IntoView {
     let locale = locale_attrs(logic::normalize_lang(lang), dir);
     let view_state = logic::resolve_view_state(
-        logic::ThumbnailViewStateInput {
+        logic::normalize_view_state_input(logic::ThumbnailRawViewStateInput {
             size,
+            is_cover,
+            is_layer,
+            is_selected,
+            is_focused,
             cover,
             layer,
             selected,
             focused,
-            motion_source: logic::resolve_motion_source(motion),
-        },
+            motion,
+        }),
         logic::normalize_input(background, class_name),
     );
     let agent_contract = logic::resolve_agent_contract(&view_state);
     let state = view_state.state;
     let class = view_state.class_name;
-    let inline_style = StoredValue::new(Some(view_state.inline_css_vars));
+    let inline_style = view_state.inline_css_vars;
     let motion_source = view_state.motion_source;
     let motion_active = view_state.motion_active;
     let cover_source = view_state.cover_source;
@@ -67,7 +76,7 @@ pub fn Thumbnail(
         <div
             class=class
             node_ref=node_ref
-            style=inline_style.get_value().unwrap_or_default()
+            style=inline_style
             lang=locale.lang.clone()
             dir=locale.dir
             data-slot=SLOT_THUMBNAIL

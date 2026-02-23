@@ -8,12 +8,7 @@ pub(crate) fn radio() -> AnyView {
     let code = Signal::derive(move || {
         r#"let (checked, set_checked) = signal(false);
 
-<Radio
-  id="r1".to_string()
-  label="Standalone".to_string()
-  is_checked=Signal::derive(move || checked.get())
-  on_checked_change=Callback::new(move |next: bool| set_checked.set(next))
-/>"#
+<Radio id="r1".to_string() label="Standalone".to_string() is_checked=Signal::derive(move || checked.get()) on_checked_change=Callback::new(move |next: bool| set_checked.set(next)) />"#
         .to_string()
     });
     let matrix_code = Signal::derive(move || {

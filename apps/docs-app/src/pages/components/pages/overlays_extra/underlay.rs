@@ -1,30 +1,10 @@
 use super::*;
 
 pub(crate) fn underlay() -> AnyView {
-    let (showcase_open_raw, set_showcase_open_raw) = signal(false);
-    let showcase_open: Signal<bool> = Signal::derive(move || showcase_open_raw.get());
-    let (showcase_open_change_count, set_showcase_open_change_count) = signal(0_u32);
-    let (showcase_close_count, set_showcase_close_count) = signal(0_u32);
-
-    let open_showcase: OnPress = Callback::new(move |_| set_showcase_open_raw.set(true));
-    let on_showcase_open_change = Callback::new(move |next: bool| {
-        set_showcase_open_raw.set(next);
-        set_showcase_open_change_count.update(|count| *count += 1);
-    });
-    let on_showcase_close: OnPress = Callback::new(move |_| {
-        set_showcase_open_raw.set(false);
-        set_showcase_close_count.update(|count| *count += 1);
-    });
-
     let hello_code = Signal::derive(move || {
-        r#"let (open_raw, set_open_raw) = signal(false);
-let open: Signal<bool> = Signal::derive(move || open_raw.get());
-
-<Underlay
+        r#"<Underlay
   id_base="docs-underlay-hello".to_string()
-  is_open=open
-  on_open_change=Callback::new(move |next| set_open_raw.set(next))
-  on_close=Callback::new(move |_| set_open_raw.set(false))
+  default_open=true
 />"#
         .to_string()
     });
@@ -181,24 +161,10 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
             description="Underlay playground with full API workbench and state-matrix comparison."
         >
             <Playground title="Hello World (Default Underlay)" code_signal=hello_code>
-                <div class="docs-stack docs-stack--tight">
-                    <div class="docs-row">
-                        <Button on_press=open_showcase>"Open underlay"</Button>
-                        <Button variant=ButtonVariant::Secondary on_press=on_showcase_close>
-                            "Close"
-                        </Button>
-                    </div>
-                    <span class="ui-muted">
-                        "open: " {move || showcase_open_raw.get()}
-                        " · on_open_change: " {move || showcase_open_change_count.get()}
-                        " · on_close: " {move || showcase_close_count.get()}
-                    </span>
-                </div>
+                <span class="ui-muted">"Uncontrolled default path: click scrim to close."</span>
                 <Underlay
                     id_base="docs-underlay-hello".to_string()
-                    is_open=showcase_open
-                    on_open_change=on_showcase_open_change
-                    on_close=on_showcase_close
+                    default_open=true
                 />
             </Playground>
 

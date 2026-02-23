@@ -4,8 +4,11 @@ use ui_headless::{A11yDirection, locale_attrs};
 
 #[component]
 pub fn InputGroup(
+    #[prop(optional)] is_attached: Option<bool>,
     #[prop(default = true)] attached: bool,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_invalid: Option<bool>,
     #[prop(optional)] invalid: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] start_content: Option<ViewFn>,
@@ -15,6 +18,10 @@ pub fn InputGroup(
     #[prop(optional)] dir: Option<A11yDirection>,
     children: Children,
 ) -> impl IntoView {
+    let is_attached = is_attached.unwrap_or(attached);
+    let is_disabled = is_disabled.unwrap_or(disabled);
+    let is_invalid = is_invalid.unwrap_or(invalid);
+
     let class_name = logic::normalize_optional_text(class_name);
     let class_name = StoredValue::new(class_name);
 
@@ -25,9 +32,9 @@ pub fn InputGroup(
 
     let state = Memo::new(move |_| {
         logic::resolve_state(InputGroupStateInput {
-            disabled,
-            invalid,
-            attached,
+            disabled: is_disabled,
+            invalid: is_invalid,
+            attached: is_attached,
             has_start_content: start_content.is_some(),
             has_end_content: end_content.is_some(),
             has_custom_label,

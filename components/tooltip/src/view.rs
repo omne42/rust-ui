@@ -1,5 +1,6 @@
 use crate::{TooltipMotion, TooltipPartStateInput, TooltipSlot, logic, motion};
 use leptos::{children::ViewFn, ev, html, portal::Portal, prelude::*};
+use ui_headless::a11y::{TooltipPanelA11yOptions, tooltip_panel_attrs};
 use ui_headless::{
     TooltipFocusA11yOptions, TooltipPlacement, TooltipPositionOptions, TooltipTriggerMode,
     TooltipTriggerOptions, use_tooltip_focus_a11y, use_tooltip_position, use_tooltip_trigger,
@@ -22,10 +23,8 @@ pub fn Tooltip(
     #[prop(into)] content: ViewFn,
     children: Children,
     #[prop(optional)] is_disabled: Option<bool>,
-    #[prop(optional)] disabled: bool,
     #[prop(optional)] placement: TooltipPlacement,
     #[prop(optional)] is_open: Option<Signal<bool>>,
-    #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
     #[prop(optional, default = logic::DEFAULT_DELAY_MS)] delay_ms: u64,
@@ -35,15 +34,13 @@ pub fn Tooltip(
     #[prop(optional)] motion: TooltipMotion,
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, into)] id: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional, into)] dir: Option<String>,
 ) -> impl IntoView {
     let accessibility_state =
-        logic::normalize_accessibility_state(logic::AccessibilityStateInput {
-            is_disabled,
-            disabled,
-        });
+        logic::normalize_accessibility_state(logic::AccessibilityStateInput { is_disabled });
     let normalized_open_state = logic::normalize_open_state(logic::OpenStateInput {
         is_open,
-        open,
         default_open,
         on_open_change,
     });
@@ -69,6 +66,8 @@ pub fn Tooltip(
     );
 
     let class_name = logic::normalize_optional_text(class_name);
+    let lang = StoredValue::new(logic::normalize_optional_text(lang));
+    let dir = logic::normalize_a11y_direction(dir);
     let has_custom_class_name = class_name.is_some();
     let has_custom_motion = motion != TooltipMotion::default();
     let has_custom_delays = logic::has_custom_delays(delay_ms, close_delay_ms);
@@ -163,6 +162,14 @@ pub fn Tooltip(
 
     let panel_vars =
         move || logic::compose_panel_vars(position.top_px.get(), position.left_px.get());
+    let panel_a11y = Memo::new(move |_| {
+        tooltip_panel_attrs(TooltipPanelA11yOptions {
+            tooltip_id: tooltip_id.with_value(|id| id.clone()),
+            is_open: open.get(),
+            lang: lang.with_value(|value| value.clone()),
+            dir,
+        })
+    });
 
     view! {
         <span
@@ -209,8 +216,10 @@ pub fn Tooltip(
                         class=move || panel_class.with_value(|class_name| class_name.clone())
                         data-ui-overlay-portal=""
                         node_ref=panel_ref
-                        id=move || tooltip_id.with_value(|id| id.clone())
-                        role="tooltip"
+                        id=move || panel_a11y.get().attrs.id.clone()
+                        role=move || panel_a11y.get().attrs.role
+                        lang=move || panel_a11y.get().attrs.lang.clone()
+                        dir=move || panel_a11y.get().attrs.dir
                         style=panel_vars
                         data-placement=move || position.placement.get().as_str()
                         data-slot=move || panel_state.get().slot_attr

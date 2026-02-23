@@ -2,20 +2,20 @@ pub const CSS: &str = r#"
 .ui-tag-group {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-sm);
+  gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
 }
 
 .ui-tag-group__label {
-  font-size: var(--ui-button-size-s-font-size, 13px);
-  line-height: var(--ui-button-size-s-line-height, 18px);
+  font-size: var(--ui-button-size-s-font-size, var(--ui-fallback-button-size-s-font-size));
+  line-height: var(--ui-button-size-s-line-height, var(--ui-fallback-button-size-s-line-height));
   font-weight: 600;
-  color: var(--ui-fg);
+  color: var(--ui-fg, var(--ui-fallback-fg));
 }
 
 .ui-tag-group__list {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--ui-space-xs);
+  gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
   padding: 0;
   margin: 0;
 }
@@ -54,21 +54,22 @@ pub const CSS: &str = r#"
 }
 
 .ui-tag-group__description {
-  font-size: var(--ui-font-size-100, 12px);
-  line-height: var(--ui-line-height-100, 16px);
-  color: var(--ui-fg-muted);
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
 }
 
 .ui-tag-group__error {
-  font-size: var(--ui-font-size-100, 12px);
-  line-height: var(--ui-line-height-100, 16px);
-  color: var(--ui-danger-fg);
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
+  color: var(--ui-danger-fg, var(--ui-fallback-danger-fg));
 }
 
 .ui-tag-group[data-invalid="true"] .ui-tag-group__list {
-  outline: 1px solid var(--ui-danger);
-  outline-offset: 4px;
-  border-radius: var(--ui-radius-sm);
+  outline: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    var(--ui-danger, var(--ui-fallback-danger));
+  outline-offset: calc(var(--ui-space-2xs, var(--ui-fallback-space-2xs)) * 2);
+  border-radius: var(--ui-radius-sm, var(--ui-fallback-radius-sm));
 }
 
 .ui-tag-group[data-class-source="custom"] {

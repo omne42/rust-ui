@@ -409,6 +409,20 @@ pub struct CheckboxLayoutTokens {
     pub indicator_size_lg_px: u16,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SwitchLayoutTokens {
+    pub gap_px: u16,
+    pub track_width_px: u16,
+    pub track_height_px: u16,
+    pub track_padding_px: u16,
+    pub thumb_size_px: u16,
+    pub checked_thumb_x_px: u16,
+    pub focus_outline_width_px: u16,
+    pub focus_outline_offset_px: u16,
+    pub disabled_opacity_percent: u8,
+    pub hover_brightness: f64,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CommandLayoutTokens {
     pub panel_max_width_px: u16,
@@ -632,6 +646,32 @@ pub const SLIDER_LAYOUT_TOKENS_LARGE: SliderLayoutTokens = SliderLayoutTokens {
     max_width_px: 400,
     thumb_border_width_px: 2,
     focus_ring_width_px: 2,
+};
+
+pub const SWITCH_LAYOUT_TOKENS_MEDIUM: SwitchLayoutTokens = SwitchLayoutTokens {
+    gap_px: 10,
+    track_width_px: 32,
+    track_height_px: 20,
+    track_padding_px: 2,
+    thumb_size_px: 16,
+    checked_thumb_x_px: 12,
+    focus_outline_width_px: 3,
+    focus_outline_offset_px: 2,
+    disabled_opacity_percent: 50,
+    hover_brightness: 0.98,
+};
+
+pub const SWITCH_LAYOUT_TOKENS_LARGE: SwitchLayoutTokens = SwitchLayoutTokens {
+    gap_px: 10,
+    track_width_px: 32,
+    track_height_px: 20,
+    track_padding_px: 2,
+    thumb_size_px: 16,
+    checked_thumb_x_px: 12,
+    focus_outline_width_px: 3,
+    focus_outline_offset_px: 2,
+    disabled_opacity_percent: 50,
+    hover_brightness: 0.98,
 };
 
 pub const COLOR_SWATCH_LAYOUT_TOKENS_MEDIUM: ColorSwatchLayoutTokens = ColorSwatchLayoutTokens {
@@ -916,6 +956,7 @@ pub struct ThemeTokens {
     pub component_layout: ComponentLayoutTokens,
     pub overlay_layout: OverlayLayoutTokens,
     pub slider_layout: SliderLayoutTokens,
+    pub switch_layout: SwitchLayoutTokens,
     pub color_swatch_layout: ColorSwatchLayoutTokens,
     pub color_wheel_layout: ColorWheelLayoutTokens,
     pub color_wheel_hue: ColorWheelHueTokens,

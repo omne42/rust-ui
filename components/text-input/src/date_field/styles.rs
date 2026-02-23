@@ -22,7 +22,7 @@ pub const CSS: &str = r#"
 
 .ui-date-field--disabled,
 .ui-date-field[data-disabled="true"] {
-  opacity: 0.7;
+  opacity: var(--ui-disabled-opacity);
 }
 
 .ui-date-field--has-value,
@@ -99,6 +99,10 @@ pub const CSS: &str = r#"
 
 .ui-date-field__clear:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: var(--ui-disabled-opacity);
 }
 "#;
+
+#[cfg(test)]
+#[path = "../../test/date_field/styles.rs"]
+mod tests;

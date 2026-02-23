@@ -40,13 +40,16 @@ pub struct PopoverPartState {
 pub struct PopoverMotion {
     pub spring: ui_motion::spring::SpringConfig,
     pub initial_scale: f64,
-    pub initial_y_px: f64,
+    pub offset_y_px: f64,
 }
 
 pub fn Popover(
-    open: leptos::prelude::Signal<bool>,
+    is_open: Option<leptos::prelude::Signal<bool>>,
+    open: Option<leptos::prelude::Signal<bool>>,
+    default_open: Option<bool>,
+    on_open_change: Option<leptos::prelude::Callback<bool>>,
+    on_close: Option<ui_headless::OnPress>,
     anchor_ref: leptos::prelude::NodeRef<leptos::html::Button>,
-    on_close: ui_headless::OnPress,
     children: leptos::children::ChildrenFn,
     placement: ui_headless::PopoverPlacement,
     motion: PopoverMotion,

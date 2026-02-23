@@ -36,6 +36,45 @@ fn normalize_helpers_trim_and_fallback() {
 }
 
 #[test]
+fn interactivity_mode_normalization_is_stable_and_prioritizes_explicit_mode() {
+    assert_eq!(
+        normalize_interactivity_mode(TagInteractivityModeInput {
+            mode: Some(TagInteractivityMode::Removable),
+            is_disabled: Some(true),
+            is_removable: Some(false),
+        }),
+        TagInteractivityMode::Removable
+    );
+
+    assert_eq!(
+        normalize_interactivity_mode(TagInteractivityModeInput {
+            mode: None,
+            is_disabled: Some(true),
+            is_removable: Some(true),
+        }),
+        TagInteractivityMode::Disabled
+    );
+
+    assert_eq!(
+        normalize_interactivity_mode(TagInteractivityModeInput {
+            mode: None,
+            is_disabled: Some(false),
+            is_removable: Some(true),
+        }),
+        TagInteractivityMode::Removable
+    );
+
+    assert_eq!(
+        normalize_interactivity_mode(TagInteractivityModeInput {
+            mode: None,
+            is_disabled: None,
+            is_removable: None,
+        }),
+        TagInteractivityMode::Static
+    );
+}
+
+#[test]
 fn resolve_state_tracks_removable_and_source_markers() {
     let removable_state = resolve_state(TagStateInput {
         variant: TagVariant::Surface,

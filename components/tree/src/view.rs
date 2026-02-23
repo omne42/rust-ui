@@ -290,11 +290,10 @@ pub fn Tree(
 
     let root_ref: NodeRef<html::Div> = NodeRef::new();
     let expanded_for_motion = Signal::derive(move || state.get().expanded_count > 0);
-    let inline_style = StoredValue::new(Some({
+    let initial_motion_css_vars = StoredValue::new({
         let is_expanded = state.get_untracked().expanded_count > 0;
-        let (scale, opacity) = motion::resolve_motion_css_vars(is_expanded, motion);
-        format!("--ui-tree-motion-scale:{scale};--ui-tree-motion-opacity:{opacity};")
-    }));
+        motion::resolve_motion_css_vars(is_expanded, motion)
+    });
     let render_context = TreeRenderContext {
         is_tree_disabled: is_disabled,
         expanded_ids,
@@ -309,7 +308,12 @@ pub fn Tree(
             id=id_base
             node_ref=root_ref
             class=move || logic::compose_class_name(class_name.get_value(), state.get())
-            style=inline_style.get_value().unwrap_or_default()
+            style:--ui-tree-motion-scale=move || {
+                initial_motion_css_vars.get_value().0.to_string()
+            }
+            style:--ui-tree-motion-opacity=move || {
+                initial_motion_css_vars.get_value().1.to_string()
+            }
             data-slot="tree"
             data-tone=move || state.get().tone_attr
             data-density=move || state.get().density_attr

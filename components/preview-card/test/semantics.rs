@@ -148,9 +148,16 @@ fn preview_card_logic_exposes_state_and_source_helpers() {
     let source = load_source("src/preview_card/logic.rs");
 
     for needle in [
+        "pub struct PreviewCardRuntimeOptionsInput",
+        "pub struct PreviewCardRuntimeOptions",
+        "pub struct PreviewCardStateModelInput",
+        "pub struct PreviewCardStateModel",
+        "pub enum PreviewCardSiteLabelSource",
         "pub fn state_attr_for_open(is_open: bool)",
         "pub fn content_attr(has_image: bool)",
         "pub fn normalize_optional_text(value: Option<String>)",
+        "pub fn resolve_runtime_options(",
+        "pub fn resolve_state_model(input: PreviewCardStateModelInput)",
         "pub fn resolve_id(custom_id: Option<String>, fallback_id: String)",
         "pub fn resolve_title(value: Option<String>)",
         "pub fn resolve_description(value: Option<String>)",
@@ -161,7 +168,6 @@ fn preview_card_logic_exposes_state_and_source_helpers() {
         "pub fn resolve_part_state(input: PreviewCardPartStateInput)",
         "pub fn compose_class_name(base_class_name: Option<String>, state: PreviewCardPartState)",
         "pub fn compose_panel_vars(top_px: f64, left_px: f64, anchor_width_px: f64)",
-        "pub fn should_handle_escape(key: &str, is_open: bool, is_composing: bool)",
     ] {
         assert!(
             source.contains(needle),
@@ -175,21 +181,31 @@ fn preview_card_view_uses_hover_trigger_position_and_motion_contracts() {
     let source = load_source("src/preview_card/view.rs");
 
     for needle in [
+        "#[prop(optional, into)] lang: Option<String>,",
+        "#[prop(optional)] dir: Option<A11yDirection>,",
         "use_hover_card_trigger(HoverCardTriggerOptions",
+        "use_hover_card_dismiss(HoverCardDismissOptions",
+        "use_hover_card_focus_a11y(HoverCardFocusA11yOptions",
         "use_popover_position(PopoverPositionOptions",
+        "locale_attrs(logic::normalize_optional_text(lang), dir)",
+        "tooltip_panel_attrs(TooltipPanelA11yOptions {",
         "motion::attach_motion(",
-        "trigger_aria.state.dismiss.run(())",
-        "logic::resolve_part_state(PreviewCardPartStateInput {",
-        "logic::compose_class_name(class_name, root_state)",
+        "logic::resolve_state_model(logic::PreviewCardStateModelInput {",
         "logic::compose_panel_vars(",
-        "logic::should_handle_escape(&ev.key(), open_signal.get_untracked(), is_composing)",
+        "aria-keyshortcuts=dismiss_a11y.attrs.aria_keyshortcuts",
+        "data-focus-a11y-managed=focus_a11y.attrs.manages_aria_describedby.then_some(\"true\")",
         "data-slot=root_state.slot_attr",
         "data-content=root_state.content_attr",
         "data-delay-source=root_state.delay_source_attr",
-        "data-site-label-source=root_state.site_label_source_attr",
+        "data-site-label-source=root_state.site_label_source.as_attr()",
         "data-motion-source=root_state.motion_source_attr",
+        "lang=root_lang.clone()",
+        "dir=root_dir",
         "data-slot=trigger_state.slot_attr",
         "data-slot=panel_state.slot_attr",
+        "role=move || panel_a11y.get().attrs.role",
+        "lang=move || panel_a11y.get().attrs.lang.clone()",
+        "dir=move || panel_a11y.get().attrs.dir",
         "data-slot=\"preview-card-image\"",
         "data-slot=\"preview-card-title\"",
         "data-slot=\"preview-card-description\"",
@@ -199,6 +215,43 @@ fn preview_card_view_uses_hover_trigger_position_and_motion_contracts() {
         assert!(
             source.contains(needle),
             "PreviewCard view should include `{needle}` for stable overlay/source contracts."
+        );
+    }
+}
+
+#[test]
+fn preview_card_component_state_source_stays_headless_and_store_agnostic() {
+    let view_source = load_source("src/preview_card/view.rs");
+    let logic_source = load_source("src/preview_card/logic.rs");
+
+    for needle in [
+        "use_hover_card_trigger(HoverCardTriggerOptions",
+        "ui_headless::use_presence(open_signal)",
+        "logic::resolve_state_model(logic::PreviewCardStateModelInput {",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "PreviewCard component should consume headless/state contracts via `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "use_controllable_open_state_traced(",
+        "use_controllable_state(",
+        "::store::",
+        "Store<",
+        "redux",
+        "zustand",
+        "mobx",
+        "pinia",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "PreviewCard view must stay store-agnostic; found forbidden pattern `{forbidden}`."
+        );
+        assert!(
+            !logic_source.contains(forbidden),
+            "PreviewCard logic must stay store-agnostic; found forbidden pattern `{forbidden}`."
         );
     }
 }

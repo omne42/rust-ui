@@ -15,6 +15,14 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
     (DEFAULT_ARIA_LABEL.into(), false)
 }
 
+pub fn resolve_disabled(is_disabled: Option<bool>, disabled: bool) -> bool {
+    is_disabled.unwrap_or(disabled)
+}
+
+pub fn resolve_bordered(is_bordered: Option<bool>, bordered: bool) -> bool {
+    is_bordered.unwrap_or(bordered)
+}
+
 pub fn resolve_state(input: SidebarFooterStateInput) -> SidebarFooterState {
     SidebarFooterState {
         disabled: input.disabled,

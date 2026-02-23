@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use super::{SkeletonGroupState, SkeletonGroupStateInput};
 
 pub const DEFAULT_ARIA_LABEL: &str = "Skeleton group";
@@ -198,27 +200,27 @@ pub fn resolve_state(input: SkeletonGroupStateInput) -> SkeletonGroupState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: SkeletonGroupState) -> String {
-    let mut classes = vec![
-        "ui-skeleton-group".to_string(),
-        state.variant_class.into(),
-        state.layout_class.into(),
-        state.density_class.into(),
+    let mut classes: Vec<Cow<'static, str>> = vec![
+        Cow::Borrowed("ui-skeleton-group"),
+        Cow::Borrowed(state.variant_class),
+        Cow::Borrowed(state.layout_class),
+        Cow::Borrowed(state.density_class),
     ];
 
     if state.is_loading {
-        classes.push("ui-skeleton-group--loading".to_string());
+        classes.push(Cow::Borrowed("ui-skeleton-group--loading"));
     } else {
-        classes.push("ui-skeleton-group--loaded".to_string());
+        classes.push(Cow::Borrowed("ui-skeleton-group--loaded"));
     }
 
     if state.is_skeleton_only {
-        classes.push("ui-skeleton-group--skeleton-only".to_string());
+        classes.push(Cow::Borrowed("ui-skeleton-group--skeleton-only"));
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-skeleton-group--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-skeleton-group--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 

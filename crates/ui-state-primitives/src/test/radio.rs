@@ -157,6 +157,7 @@ fn resolve_checked_axis_prefers_is_checked_and_on_checked_change() {
         has_on_change: true,
     });
 
+    assert_eq!(state.control_mode, RadioCheckedControlMode::Controlled);
     assert!(state.is_controlled);
     assert_eq!(state.control_mode_attr, "controlled");
     assert_eq!(state.checked_source_attr, "is_checked");
@@ -174,6 +175,7 @@ fn resolve_checked_axis_defaults_to_uncontrolled_markers() {
         has_on_change: true,
     });
 
+    assert_eq!(state.control_mode, RadioCheckedControlMode::Uncontrolled);
     assert!(!state.is_controlled);
     assert_eq!(state.control_mode_attr, "uncontrolled");
     assert_eq!(state.checked_source_attr, "default");

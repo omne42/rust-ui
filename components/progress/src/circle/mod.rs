@@ -1,5 +1,5 @@
 mod logic;
-pub mod motion;
+mod motion;
 pub mod styles;
 mod view;
 

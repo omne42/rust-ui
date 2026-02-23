@@ -59,6 +59,25 @@ fn resolve_selected_and_completed_indices_are_bounded() {
 }
 
 #[test]
+fn completed_and_disabled_counters_are_derived_in_primitives() {
+    let items = normalize_items(vec![
+        StepListItem::new("a", "A"),
+        StepListItem::new("b", "B").disabled(true),
+        StepListItem::new("c", "C"),
+        StepListItem::new("d", "D"),
+    ]);
+    let completed = normalize_completed_indices(items.len(), vec![3, 9]);
+
+    assert!(is_completed_step(0, Some(2), &completed));
+    assert!(is_completed_step(1, Some(2), &completed));
+    assert!(!is_completed_step(2, Some(2), &completed));
+    assert!(is_completed_step(3, Some(2), &completed));
+
+    assert_eq!(count_completed_steps(&items, Some(2), &completed), 2);
+    assert_eq!(count_disabled_steps(&items), 1);
+}
+
+#[test]
 fn navigation_helpers_skip_disabled_items() {
     let items = normalize_items(vec![
         StepListItem::new("a", "A"),

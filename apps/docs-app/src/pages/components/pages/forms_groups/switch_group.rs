@@ -40,7 +40,7 @@ pub(crate) fn switch_group() -> AnyView {
   id_base="notifications".to_string()
   label="Notification channels".to_string()
   description="Choose which channels we can use to contact you.".to_string()
-  required=true
+  is_required=true
 >
   <Switch checked=marketing set_checked=set_marketing>"Marketing email"</Switch>
 </SwitchGroup>"#
@@ -49,7 +49,7 @@ pub(crate) fn switch_group() -> AnyView {
 
     let workbench_code = Signal::derive(move || {
         format!(
-            "<SwitchGroup\n  id_base=\"docs-switch-group-workbench\".to_string()\n  label=\"Notification channels\".to_string()\n  description=\"Choose which channels we can use to contact you.\".to_string()\n  error_message={}.to_string()\n  orientation={:?}\n  tone={:?}\n  required={}\n  disabled={}\n  invalid={}\n  aria_label=\"Notification switches\".to_string()\n  class_name={}\n>\n  <Switch checked=marketing set_checked=set_marketing>\"Marketing email\"</Switch>\n  <Switch checked=product_updates set_checked=set_product_updates>\"Product updates\"</Switch>\n  <Switch checked=security_alerts set_checked=set_security_alerts>\"Security alerts\"</Switch>\n</SwitchGroup>",
+            "<SwitchGroup\n  id_base=\"docs-switch-group-workbench\".to_string()\n  label=\"Notification channels\".to_string()\n  description=\"Choose which channels we can use to contact you.\".to_string()\n  error_message={}.to_string()\n  orientation={:?}\n  tone={:?}\n  is_required={}\n  is_disabled={}\n  is_invalid={}\n  aria_label=\"Notification switches\".to_string()\n  class_name={}\n>\n  <Switch checked=marketing set_checked=set_marketing>\"Marketing email\"</Switch>\n  <Switch checked=product_updates set_checked=set_product_updates>\"Product updates\"</Switch>\n  <Switch checked=security_alerts set_checked=set_security_alerts>\"Security alerts\"</Switch>\n</SwitchGroup>",
             rust_string_literal(if workbench_invalid.get() {
                 "At least one critical channel must stay enabled."
             } else {
@@ -70,7 +70,7 @@ pub(crate) fn switch_group() -> AnyView {
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "SwitchGroupWorkbenchActualConfig {{\n  id_base: \"docs-switch-group-workbench\",\n  label: Some(\"Notification channels\"),\n  description: Some(\"Choose which channels we can use to contact you.\"),\n  error_message: {:?},\n  orientation: {:?},\n  tone: {:?},\n  required: {},\n  disabled: {},\n  invalid: {},\n  aria_label: Some(\"Notification switches\"),\n  class_name: {:?},\n}}",
+            "SwitchGroupWorkbenchActualConfig {{\n  id_base: \"docs-switch-group-workbench\",\n  label: Some(\"Notification channels\"),\n  description: Some(\"Choose which channels we can use to contact you.\"),\n  error_message: {:?},\n  orientation: {:?},\n  tone: {:?},\n  is_required: {},\n  is_disabled: {},\n  is_invalid: {},\n  aria_label: Some(\"Notification switches\"),\n  class_name: {:?},\n}}",
             if workbench_invalid.get() {
                 Some("At least one critical channel must stay enabled.")
             } else {
@@ -90,9 +90,9 @@ pub(crate) fn switch_group() -> AnyView {
     });
 
     let matrix_code = Signal::derive(move || {
-        r#"<SwitchGroup id_base="sg-default".to_string() label="Default".to_string() required=true />
+        r#"<SwitchGroup id_base="sg-default".to_string() label="Default".to_string() is_required=true />
 <SwitchGroup id_base="sg-horizontal".to_string() label="Horizontal".to_string() orientation=SwitchGroupOrientation::Horizontal tone=SwitchGroupTone::Muted />
-<SwitchGroup id_base="sg-disabled".to_string() label="Disabled".to_string() invalid=true disabled=true error_message="At least one critical channel must stay enabled.".to_string() class_name="docs-switch-group-custom".to_string() />"#.to_string()
+<SwitchGroup id_base="sg-disabled".to_string() label="Disabled".to_string() is_invalid=true is_disabled=true error_message="At least one critical channel must stay enabled.".to_string() class_name="docs-switch-group-custom".to_string() />"#.to_string()
     });
 
     view! {
@@ -108,7 +108,7 @@ pub(crate) fn switch_group() -> AnyView {
                         id_base="docs-switch-group-hello".to_string()
                         label="Notification channels".to_string()
                         description="Choose which channels we can use to contact you.".to_string()
-                        required=true
+                        is_required=true
                         aria_label="Notification switches".to_string()
                     >
                         <Switch checked=showcase_marketing set_checked=set_showcase_marketing>
@@ -181,9 +181,9 @@ pub(crate) fn switch_group() -> AnyView {
                         }
                         orientation=workbench_orientation.get()
                         tone=workbench_tone.get()
-                        required=workbench_required.get()
-                        disabled=workbench_disabled.get()
-                        invalid=workbench_invalid.get()
+                        is_required=workbench_required.get()
+                        is_disabled=workbench_disabled.get()
+                        is_invalid=workbench_invalid.get()
                         aria_label="Notification switches".to_string()
                         class_name=if workbench_custom_class.get() {
                             "docs-switch-group-custom".to_string()
@@ -191,13 +191,13 @@ pub(crate) fn switch_group() -> AnyView {
                             String::new()
                         }
                     >
-                        <Switch checked=workbench_marketing set_checked=set_workbench_marketing disabled=workbench_disabled.get()>
+                        <Switch checked=workbench_marketing set_checked=set_workbench_marketing is_disabled=workbench_disabled.get()>
                             "Critical alerts"
                         </Switch>
-                        <Switch checked=workbench_product_updates set_checked=set_workbench_product_updates disabled=workbench_disabled.get()>
+                        <Switch checked=workbench_product_updates set_checked=set_workbench_product_updates is_disabled=workbench_disabled.get()>
                             "Maintenance mode"
                         </Switch>
-                        <Switch checked=workbench_security_alerts set_checked=set_workbench_security_alerts disabled=workbench_disabled.get()>
+                        <Switch checked=workbench_security_alerts set_checked=set_workbench_security_alerts is_disabled=workbench_disabled.get()>
                             "Security alerts"
                         </Switch>
                     </SwitchGroup>
@@ -217,7 +217,7 @@ pub(crate) fn switch_group() -> AnyView {
                     <SwitchGroup
                         id_base="docs-switch-group-matrix-default".to_string()
                         label="Default".to_string()
-                        required=true
+                        is_required=true
                     >
                         <Switch checked=showcase_marketing set_checked=set_showcase_marketing>
                             "Marketing email"
@@ -239,12 +239,12 @@ pub(crate) fn switch_group() -> AnyView {
                     <SwitchGroup
                         id_base="docs-switch-group-matrix-disabled".to_string()
                         label="Disabled".to_string()
-                        invalid=true
-                        disabled=true
+                        is_invalid=true
+                        is_disabled=true
                         error_message="At least one critical channel must stay enabled.".to_string()
                         class_name="docs-switch-group-custom".to_string()
                     >
-                        <Switch checked=matrix_critical_alerts set_checked=set_matrix_critical_alerts disabled=true>
+                        <Switch checked=matrix_critical_alerts set_checked=set_matrix_critical_alerts is_disabled=true>
                             "Critical alerts"
                         </Switch>
                     </SwitchGroup>

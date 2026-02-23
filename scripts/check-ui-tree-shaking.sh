@@ -35,6 +35,8 @@ COACHMARK_MIN_FEATURES="component-coachmark,inject-css"
 CHART_MIN_FEATURES="component-chart,inject-css"
 CAROUSEL_MIN_FEATURES="component-carousel,inject-css"
 COLLAPSIBLE_MIN_FEATURES="component-collapsible,inject-css"
+PREVIEW_LINK_CARD_MIN_FEATURES="component-preview_link_card,inject-css"
+SIDEBAR_MIN_FEATURES="component-sidebar,inject-css"
 BUDGET_FILE="$ROOT_DIR/scripts/tree_shaking_budget.env"
 
 echo "[tree-shaking] button feature registration + gated aggregation contract"
@@ -483,6 +485,32 @@ fi
 echo "[tree-shaking] modal minimal wasm check"
 cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features "$MODAL_MIN_FEATURES"
 
+echo "[tree-shaking] sidebar feature registration + gated aggregation contract"
+cargo test -p ui --test sidebar_semantics --no-default-features --features component-sidebar,inject-css sidebar_tree_shaking_keeps_component_feature_and_css_boundaries
+cargo test -p ui --test sidebar_semantics --no-default-features --features component-sidebar,inject-css sidebar_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget
+
+echo "[tree-shaking] sidebar minimal feature tree"
+SIDEBAR_TREE_OUTPUT="$(cargo tree -e features -i ui -p ui --no-default-features --features "$SIDEBAR_MIN_FEATURES")"
+echo "$SIDEBAR_TREE_OUTPUT"
+
+if ! grep -q 'feature "component-sidebar" (command-line)' <<<"$SIDEBAR_TREE_OUTPUT"; then
+  echo "[tree-shaking] missing command-line feature: component-sidebar" >&2
+  exit 1
+fi
+
+if ! grep -q 'feature "inject-css" (command-line)' <<<"$SIDEBAR_TREE_OUTPUT"; then
+  echo "[tree-shaking] missing command-line feature: inject-css for sidebar minimal tree" >&2
+  exit 1
+fi
+
+if grep -q 'all-components' <<<"$SIDEBAR_TREE_OUTPUT"; then
+  echo "[tree-shaking] sidebar minimal feature tree should not pull all-components" >&2
+  exit 1
+fi
+
+echo "[tree-shaking] sidebar minimal wasm check"
+cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features "$SIDEBAR_MIN_FEATURES"
+
 echo "[tree-shaking] overlays feature registration + gated aggregation contract"
 cargo test -p ui-overlays overlays_tree_shaking_contract_is_feature_gated_and_budget_guarded
 cargo test -p ui-overlays overlays_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget
@@ -845,6 +873,58 @@ fi
 
 echo "[tree-shaking] collapsible minimal wasm check"
 cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features "$COLLAPSIBLE_MIN_FEATURES"
+
+echo "[tree-shaking] preview-link-card feature registration + gated aggregation contract"
+cargo test -p ui --lib --no-default-features --features component-preview_link_card,inject-css preview_link_card_tree_shaking_contract_is_feature_gated_and_css_prunable
+
+echo "[tree-shaking] preview-link-card minimal feature tree"
+PREVIEW_LINK_CARD_TREE_OUTPUT="$(cargo tree -e features -i ui -p ui --no-default-features --features "$PREVIEW_LINK_CARD_MIN_FEATURES")"
+echo "$PREVIEW_LINK_CARD_TREE_OUTPUT"
+
+if ! grep -q 'feature "component-preview_link_card" (command-line)' <<<"$PREVIEW_LINK_CARD_TREE_OUTPUT"; then
+  echo "[tree-shaking] missing command-line feature: component-preview_link_card" >&2
+  exit 1
+fi
+
+if ! grep -q 'feature "inject-css" (command-line)' <<<"$PREVIEW_LINK_CARD_TREE_OUTPUT"; then
+  echo "[tree-shaking] missing command-line feature: inject-css for preview-link-card minimal tree" >&2
+  exit 1
+fi
+
+if grep -q 'all-components' <<<"$PREVIEW_LINK_CARD_TREE_OUTPUT"; then
+  echo "[tree-shaking] preview-link-card minimal feature tree should not pull all-components" >&2
+  exit 1
+fi
+
+echo "[tree-shaking] preview-link-card minimal wasm check"
+cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features "$PREVIEW_LINK_CARD_MIN_FEATURES"
+
+echo "[tree-shaking] sidebar feature registration + gated aggregation contract"
+cargo test -p ui --lib --no-default-features --features component-sidebar,inject-css sidebar_tree_shaking_keeps_component_feature_and_css_boundaries
+cargo test -p ui --lib --no-default-features --features component-sidebar,inject-css sidebar_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget
+cargo test -p ui --lib --no-default-features --features component-sidebar,inject-css sidebar_check2_marks_tree_shaking_feature_pruning_contract_complete
+
+echo "[tree-shaking] sidebar minimal feature tree"
+SIDEBAR_TREE_OUTPUT="$(cargo tree -e features -i ui -p ui --no-default-features --features "$SIDEBAR_MIN_FEATURES")"
+echo "$SIDEBAR_TREE_OUTPUT"
+
+if ! grep -q 'feature "component-sidebar" (command-line)' <<<"$SIDEBAR_TREE_OUTPUT"; then
+  echo "[tree-shaking] missing command-line feature: component-sidebar" >&2
+  exit 1
+fi
+
+if ! grep -q 'feature "inject-css" (command-line)' <<<"$SIDEBAR_TREE_OUTPUT"; then
+  echo "[tree-shaking] missing command-line feature: inject-css for sidebar minimal tree" >&2
+  exit 1
+fi
+
+if grep -q 'all-components' <<<"$SIDEBAR_TREE_OUTPUT"; then
+  echo "[tree-shaking] sidebar minimal feature tree should not pull all-components" >&2
+  exit 1
+fi
+
+echo "[tree-shaking] sidebar minimal wasm check"
+cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features "$SIDEBAR_MIN_FEATURES"
 
 echo "[tree-shaking] minimal feature tree"
 MIN_TREE_OUTPUT="$(cargo tree -e features -i ui -p ui --no-default-features --features "$MIN_FEATURES")"

@@ -177,3 +177,35 @@ fn resolve_state_uses_closed_enumerated_marker_values() {
         }
     }
 }
+
+#[test]
+fn resolve_value_axis_tracks_control_and_source_markers() {
+    let state = resolve_value_axis_state(TextareaValueAxisInput {
+        is_controlled: true,
+        has_default_value: true,
+        has_on_value_change: false,
+    });
+
+    assert!(state.is_controlled);
+    assert_eq!(
+        state.control_mode_attr,
+        TextareaValueControlModeAttr::Controlled
+    );
+    assert_eq!(state.default_value_source_attr, TextareaSourceAttr::Custom);
+    assert_eq!(
+        state.value_change_source_attr,
+        TextareaValueChangeSourceAttr::None
+    );
+    assert!(!state.has_value_change_handler);
+}
+
+#[test]
+fn resolve_accessibility_state_uses_boolean_defaults() {
+    let state = resolve_accessibility_state(TextareaAccessibilityStateInput {
+        is_disabled: None,
+        is_read_only: Some(true),
+    });
+
+    assert!(!state.is_disabled);
+    assert!(state.is_read_only);
+}

@@ -13,7 +13,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-preview-card[data-disabled="true"] {
-  opacity: 0.72;
+  opacity: var(--ui-disabled-opacity, var(--ui-fallback-disabled-opacity, 0.72));
 }
 
 .ui-preview-card[data-content="media"] {
@@ -74,27 +74,46 @@ pub const CSS: &str = r#"
 }
 
 .ui-preview-card__trigger:focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 3px;
+  outline: var(--ui-button-focus-outline-width, var(--ui-fallback-button-focus-outline-width, 3px))
+    solid var(--ui-focus-ring, var(--ui-fallback-focus-ring));
+  outline-offset: var(--ui-button-focus-outline-offset, var(--ui-fallback-button-focus-outline-offset, 3px));
   border-radius: var(--ui-radius-md);
 }
 
 .ui-preview-card__panel {
   position: fixed;
-  top: var(--ui-preview-card-top, 0px);
-  left: var(--ui-preview-card-left, 0px);
-  width: min(380px, 92vw);
-  min-width: max(280px, var(--ui-preview-card-anchor-width, 0px));
+  top: var(--ui-preview-card-top, var(--ui-fallback-min-inline-size-none));
+  left: var(--ui-preview-card-left, var(--ui-fallback-min-inline-size-none));
+  width: min(
+    var(--ui-tooltip-max-width, var(--ui-fallback-tooltip-max-width, 380px)),
+    calc(
+      100vw - (var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset, 16px)) * 2)
+    )
+  );
+  min-width: max(
+    var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width, 280px)),
+    var(--ui-preview-card-anchor-width, var(--ui-fallback-min-inline-size-none))
+  );
   border-radius: var(--ui-radius-lg);
-  border: 1px solid var(--ui-border);
-  background: var(--ui-bg);
-  color: var(--ui-fg);
-  box-shadow: var(--ui-shadow-md);
-  z-index: 1000;
+  border: var(--ui-border-width, var(--ui-fallback-border-width, 1px))
+    solid var(--ui-border, var(--ui-fallback-border));
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  box-shadow: var(--ui-shadow-md, var(--ui-fallback-shadow-md));
+  z-index: var(--ui-overlay-z-index, var(--ui-fallback-overlay-z-index, 1000));
 
-  opacity: var(--ui-preview-card-opacity, 0);
-  transform: translateY(var(--ui-preview-card-y, 8px))
-    scale(var(--ui-preview-card-scale, 0.98));
+  --ui-preview-card-opacity: 0;
+  --ui-preview-card-scale: var(
+    --ui-overlay-enter-scale,
+    var(--ui-fallback-overlay-enter-scale)
+  );
+  --ui-preview-card-y: var(
+    --ui-overlay-enter-offset-y,
+    var(--ui-fallback-overlay-enter-offset-y)
+  );
+
+  opacity: var(--ui-preview-card-opacity);
+  transform: translateY(var(--ui-preview-card-y)) scale(var(--ui-preview-card-scale));
   will-change: transform, opacity;
   overflow: hidden;
 }
@@ -125,37 +144,37 @@ pub const CSS: &str = r#"
   block-size: auto;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  background: var(--ui-bg-muted);
+  background: var(--ui-bg-muted, var(--ui-fallback-bg-muted));
 }
 
 .ui-preview-card__body {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-xs);
-  padding: var(--ui-space-md);
+  gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
+  padding: var(--ui-space-md, var(--ui-fallback-space-md));
 }
 
 .ui-preview-card__title {
-  font-size: var(--ui-heading-h6-font-size, 14px);
-  line-height: var(--ui-heading-h6-line-height, 20px);
+  font-size: var(--ui-heading-h6-font-size, var(--ui-fallback-heading-h6-font-size, 14px));
+  line-height: var(--ui-heading-h6-line-height, var(--ui-fallback-heading-h6-line-height, 20px));
   font-weight: 650;
 }
 
 .ui-preview-card__description {
-  color: var(--ui-fg-muted);
-  font-size: var(--ui-font-size-150, 14px);
-  line-height: var(--ui-line-height-150, 20px);
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
+  font-size: var(--ui-font-size-150, var(--ui-fallback-font-size-150, 14px));
+  line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150, 20px));
 }
 
 .ui-preview-card__meta {
-  margin-top: var(--ui-space-2xs);
+  margin-top: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--ui-space-sm);
-  color: var(--ui-fg-muted);
-  font-size: var(--ui-font-size-100, 12px);
-  line-height: var(--ui-line-height-100, 16px);
+  gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100, 12px));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100, 16px));
 }
 
 .ui-preview-card__meta-link {

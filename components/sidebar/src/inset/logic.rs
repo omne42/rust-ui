@@ -16,6 +16,18 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
     (DEFAULT_ARIA_LABEL.into(), false)
 }
 
+pub fn resolve_padded(is_padded: Option<bool>, padded: bool) -> bool {
+    is_padded.unwrap_or(padded)
+}
+
+pub fn resolve_recessed(is_recessed: Option<bool>, recessed: bool) -> bool {
+    is_recessed.unwrap_or(recessed)
+}
+
+pub fn resolve_disabled(is_disabled: Option<bool>, disabled: bool) -> bool {
+    is_disabled.unwrap_or(disabled)
+}
+
 pub fn resolve_state(input: SidebarInsetStateInput) -> SidebarInsetState {
     SidebarInsetState {
         side: input.side,

@@ -1,4 +1,5 @@
 use super::*;
+use leptos::prelude::*;
 
 #[test]
 fn orientation_class_names_are_stable() {
@@ -60,6 +61,10 @@ fn control_mode_attr_is_stable() {
         SegmentedControlControlMode::Controlled.as_attr(),
         "controlled"
     );
+    assert_eq!(
+        SegmentedControlControlMode::Uncontrolled.as_attr(),
+        "uncontrolled"
+    );
 }
 
 #[test]
@@ -95,6 +100,41 @@ fn selection_source_resolves_from_raw_and_normalized_selection() {
 }
 
 #[test]
+fn semantic_state_normalization_centralizes_source_markers() {
+    let normalized_state = ui_state_primitives::segmented_control::SegmentedControlState {
+        item_count: 3,
+        is_empty: false,
+        has_items: true,
+        is_disabled: false,
+        has_disabled_options: false,
+        disabled_option_count: 0,
+        selected_index: Some(1),
+        has_selection: true,
+        selection_empty: false,
+        is_horizontal: true,
+        is_vertical: false,
+        has_label: true,
+    };
+
+    let semantic = normalize_semantic_state(SegmentedControlSemanticStateInput {
+        control_mode: SegmentedControlControlMode::Controlled,
+        raw_selected_index: Some(5),
+        normalized_state,
+    });
+
+    assert_eq!(
+        semantic.control_mode,
+        SegmentedControlControlMode::Controlled
+    );
+    assert_eq!(
+        semantic.selection_source,
+        SegmentedControlSelectionSource::Selected
+    );
+    assert_eq!(semantic.selected_index, Some(1));
+    assert!(semantic.has_selection);
+}
+
+#[test]
 fn selection_origin_attr_is_stable() {
     assert_eq!(
         SegmentedControlSelectionOrigin::Programmatic.as_attr(),
@@ -125,4 +165,46 @@ fn agent_contract_is_schema_typed_and_stable() {
         contract.source_axis_attr,
         "control-mode|selection-source|selection-origin|disabled-indices"
     );
+}
+
+#[test]
+fn selection_axis_default_value_is_normalized_in_logic() {
+    let axis = normalize_selection_axis(SegmentedControlSelectionAxisInput {
+        selected_index: None,
+        on_selected_index_change: None,
+        default_selected_index: Some(8),
+        item_count: 3,
+    });
+
+    assert_eq!(axis.default_selected_index, None);
+    assert_eq!(axis.control_mode, SegmentedControlControlMode::Uncontrolled);
+}
+
+#[test]
+fn selection_axis_resolves_control_mode_from_pair_contract() {
+    let (selected_index, on_selected_index_change) = signal(Some(1usize));
+    let axis = normalize_selection_axis(SegmentedControlSelectionAxisInput {
+        selected_index: Some(selected_index),
+        on_selected_index_change: Some(on_selected_index_change),
+        default_selected_index: Some(0),
+        item_count: 3,
+    });
+
+    assert_eq!(axis.control_mode, SegmentedControlControlMode::Controlled);
+    assert_eq!(axis.default_selected_index, Some(0));
+    assert!(axis.selected_index.is_some());
+    assert!(axis.on_selected_index_change.is_some());
+}
+
+#[test]
+#[should_panic(expected = "must be provided together")]
+fn selection_axis_rejects_half_controlled_input() {
+    let (selected_index, _on_selected_index_change) = signal(Some(1usize));
+
+    let _ = normalize_selection_axis(SegmentedControlSelectionAxisInput {
+        selected_index: Some(selected_index),
+        on_selected_index_change: None,
+        default_selected_index: Some(0),
+        item_count: 3,
+    });
 }

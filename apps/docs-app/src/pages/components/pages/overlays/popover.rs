@@ -3,6 +3,7 @@ use super::*;
 pub(crate) fn popover() -> AnyView {
     use leptos::html;
 
+    let minimal_anchor_ref: NodeRef<html::Button> = NodeRef::new();
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
     let (open_raw, set_open_raw) = signal(false);
     let open: Signal<bool> = Signal::derive(move || open_raw.get());
@@ -39,7 +40,16 @@ pub(crate) fn popover() -> AnyView {
         ..PopoverMotion::default()
     };
 
-    let code = Signal::derive(move || {
+    let minimal_code = Signal::derive(move || {
+        r#"let anchor_ref: NodeRef<html::Button> = NodeRef::new();
+<Button node_ref=anchor_ref>"Anchor"</Button>
+<Popover anchor_ref=anchor_ref default_open=true>
+  {move || view! { <div>"Popover content"</div> }}
+</Popover>"#
+            .to_string()
+    });
+
+    let controlled_code = Signal::derive(move || {
         r#"let anchor_ref: NodeRef<html::Button> = NodeRef::new();
 let (open_raw, set_open_raw) = signal(false);
 let open: Signal<bool> = Signal::derive(move || open_raw.get());
@@ -206,7 +216,19 @@ let custom_motion = PopoverMotion {
             group="Overlays"
             description="Positioned portal panel anchored to a trigger with baseline-style state markers and baseline-level spring motion contract. Requires presence to unmount after exit."
         >
-            <Playground title="Hello World (Default Popover)" code_signal=code>
+            <Playground title="Hello World (Minimal API)" code_signal=minimal_code>
+                <div class="docs-row">
+                    <Button node_ref=minimal_anchor_ref>"Anchor"</Button>
+                </div>
+
+                <Popover anchor_ref=minimal_anchor_ref default_open=true>
+                    <div class="docs-stack docs-stack--tight">
+                        <div>"Popover content"</div>
+                    </div>
+                </Popover>
+            </Playground>
+
+            <Playground title="Controlled + Presence (Advanced)" code_signal=controlled_code>
                 <div class="docs-row">
                     <Button node_ref=anchor_ref on_press=toggle aria_haspopup="dialog" aria_expanded=open>
                         {move || if open_raw.get() { "Close popover" } else { "Open popover" }}

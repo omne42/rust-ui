@@ -29,6 +29,40 @@ fn normalize_lang_filters_blank_values() {
 }
 
 #[test]
+fn normalize_bool_alias_prefers_is_prefix_and_falls_back_to_legacy() {
+    assert_eq!(normalize_bool_alias(Some(true), Some(false)), Some(true));
+    assert_eq!(normalize_bool_alias(Some(false), Some(true)), Some(false));
+    assert_eq!(normalize_bool_alias(None, Some(true)), Some(true));
+    assert_eq!(normalize_bool_alias(None, None), None);
+}
+
+#[test]
+fn normalize_view_state_input_centralizes_input_boundary_mapping() {
+    let normalized = normalize_view_state_input(ThumbnailRawViewStateInput {
+        size: ThumbnailSize::Size600,
+        is_cover: Some(true),
+        is_layer: None,
+        is_selected: Some(false),
+        is_focused: None,
+        cover: Some(false),
+        layer: Some(true),
+        selected: Some(true),
+        focused: Some(true),
+        motion: ThumbnailMotion {
+            active_scale: 1.08,
+            ..ThumbnailMotion::default()
+        },
+    });
+
+    assert_eq!(normalized.size, ThumbnailSize::Size600);
+    assert_eq!(normalized.cover, Some(true));
+    assert_eq!(normalized.layer, Some(true));
+    assert_eq!(normalized.selected, Some(false));
+    assert_eq!(normalized.focused, Some(true));
+    assert_eq!(normalized.motion_source, ThumbnailMotionSource::Custom);
+}
+
+#[test]
 fn compose_class_name_tracks_state_markers() {
     let state = resolve_state(ThumbnailStateInput {
         size: ThumbnailSize::Size600,
@@ -67,6 +101,15 @@ fn compose_inline_style_maps_background_to_css_variable() {
         compose_inline_style(Some("#111827")),
         Some("--ui-thumbnail-background: #111827;".to_string())
     );
+}
+
+#[test]
+fn resolve_inline_css_vars_centralizes_default_fallback() {
+    assert_eq!(
+        resolve_inline_css_vars(Some("#111827")),
+        "--ui-thumbnail-background: #111827;"
+    );
+    assert_eq!(resolve_inline_css_vars(None), "");
 }
 
 #[test]

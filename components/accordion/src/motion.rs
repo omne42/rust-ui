@@ -290,13 +290,8 @@ impl PanelMotionDriver {
     ) -> ui_motion::spring::SpringAnimator {
         let set_height = Rc::clone(&self.set_height);
         let current_height_px = Rc::clone(&self.current_height_px);
-        let is_closing = Rc::clone(&self.is_closing);
         ui_motion::spring::SpringAnimator::new(initial, config, move |value| {
-            let mut value = value.clamp(0.0, 100000.0);
-            let prev = current_height_px.get();
-            if is_closing.get() {
-                value = value.min(prev);
-            }
+            let value = value.clamp(0.0, 100000.0);
             current_height_px.set(value);
             (set_height.borrow_mut())(value);
         })
@@ -309,13 +304,8 @@ impl PanelMotionDriver {
     ) -> ui_motion::spring::SpringAnimator {
         let set_opacity = Rc::clone(&self.set_opacity);
         let current_opacity = Rc::clone(&self.current_opacity);
-        let is_closing = Rc::clone(&self.is_closing);
         ui_motion::spring::SpringAnimator::new(initial, config, move |value| {
-            let mut value = value.clamp(0.0, 1.0);
-            let prev = current_opacity.get();
-            if is_closing.get() {
-                value = value.min(prev);
-            }
+            let value = value.clamp(0.0, 1.0);
             current_opacity.set(value);
             (set_opacity.borrow_mut())(value);
         })
@@ -328,13 +318,8 @@ impl PanelMotionDriver {
     ) -> ui_motion::spring::SpringAnimator {
         let set_y = Rc::clone(&self.set_y);
         let current_y_px = Rc::clone(&self.current_y_px);
-        let is_closing = Rc::clone(&self.is_closing);
         ui_motion::spring::SpringAnimator::new(initial, config, move |value| {
-            let mut value = value.clamp(-1000.0, 1000.0);
-            let prev = current_y_px.get();
-            if is_closing.get() {
-                value = value.max(prev);
-            }
+            let value = value.clamp(-1000.0, 1000.0);
             current_y_px.set(value);
             (set_y.borrow_mut())(value);
         })
@@ -437,15 +422,30 @@ impl PanelMotionDriver {
         };
 
         opacity.clear_on_rest();
+        let pending_hide = Rc::new(Cell::new(2_u8));
+        let set_hidden_for_opacity = Rc::clone(&self.set_hidden);
+        let pending_hide_for_opacity = Rc::clone(&pending_hide);
+        opacity.set_on_rest(move || {
+            let remaining = pending_hide_for_opacity.get().saturating_sub(1);
+            pending_hide_for_opacity.set(remaining);
+            if remaining == 0 {
+                (set_hidden_for_opacity.borrow_mut())(true);
+            }
+        });
         opacity.set_target(0.0);
 
         y.clear_on_rest();
         y.set_target(self.motion.panel_offset_y_px);
 
         height.clear_on_rest();
-        let set_hidden = Rc::clone(&self.set_hidden);
+        let set_hidden_for_height = Rc::clone(&self.set_hidden);
+        let pending_hide_for_height = Rc::clone(&pending_hide);
         height.set_on_rest(move || {
-            (set_hidden.borrow_mut())(true);
+            let remaining = pending_hide_for_height.get().saturating_sub(1);
+            pending_hide_for_height.set(remaining);
+            if remaining == 0 {
+                (set_hidden_for_height.borrow_mut())(true);
+            }
         });
         height.set_target(0.0);
         self.last_measured_height_px = Some(0.0);

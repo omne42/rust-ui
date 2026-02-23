@@ -52,27 +52,54 @@ fn progress_circle_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
+fn progress_circle_public_api_exposes_value_triplet_contract() {
+    let source = load_source("src/circle/view.rs");
+
+    for needle in [
+        "#[prop(optional, into)] value: Option<Signal<Option<f64>>>",
+        "#[prop(optional)] default_value: Option<f64>",
+        "#[prop(optional)] on_value_change: Option<Callback<Option<f64>>>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ProgressCircle public value axis should expose `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn progress_circle_uses_logic_state_model() {
     let view_source = load_source("src/circle/view.rs");
     let logic_source = load_source("src/circle/logic.rs");
 
     for needle in [
-        "pub struct ProgressCircleStateInput",
-        "pub struct ProgressCircleState",
-        "pub struct ProgressCircleMetricsInput",
-        "pub struct ProgressCircleResolvedMetrics",
-        "pub enum ProgressCirclePhase",
-        "pub fn normalize_optional_text(",
-        "pub fn resolve_aria_label(",
-        "pub fn resolve_value_label(",
-        "pub fn sanitize_dimension(",
-        "pub fn resolve_metrics(",
-        "pub fn resolve_phase(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
-        "value_label_source_attr",
-        "motion_source_attr",
-        "class_source_attr",
+        "pub use ui_state_primitives::progress_circle::{",
+        "ProgressCircleStateInput",
+        "ProgressCircleState",
+        "ProgressCircleMetricsInput",
+        "ProgressCirclePhase",
+        "ProgressCircleMode",
+        "ProgressCircleValueAxis",
+        "ProgressCircleKernelInput",
+        "ProgressCircleKernelState",
+        "ProgressCircleStrokeInput",
+        "ProgressCircleStrokeState",
+        "normalize_mode(",
+        "normalize_value_axis(",
+        "DEFAULT_MIN",
+        "DEFAULT_MAX",
+        "normalize_range(",
+        "normalize_progress_value(",
+        "normalize_optional_text",
+        "resolve_aria_label",
+        "resolve_value_label",
+        "sanitize_dimension",
+        "resolve_metrics",
+        "resolve_phase",
+        "resolve_kernel_state(",
+        "resolve_stroke_state(",
+        "resolve_state",
+        "compose_class_name",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -84,10 +111,24 @@ fn progress_circle_uses_logic_state_model() {
         "logic::normalize_optional_text(class_name)",
         "logic::resolve_aria_label(aria_label)",
         "logic::resolve_value_label(value_label)",
+        "let mode = logic::normalize_mode(is_indeterminate);",
+        "logic::normalize_value_axis(value, default_value, on_value_change)",
+        "logic::normalize_range(min, max)",
+        "let kernel_state = Signal::derive(move || {",
+        "logic::resolve_kernel_state(logic::ProgressCircleKernelInput {",
+        "mode,",
+        "let progress_value = Signal::derive(move || kernel_state.get().progress_value);",
+        "let stroke_state = Signal::derive(move || {",
+        "logic::resolve_stroke_state(logic::ProgressCircleStrokeInput {",
+        "use_controllable_state(",
+        "value_axis.value",
+        "Some(value_axis.default_value)",
+        "value_axis.on_value_change",
         "logic::resolve_metrics(logic::ProgressCircleMetricsInput {",
         "logic::resolve_state(logic::ProgressCircleStateInput {",
         "logic::compose_class_name(class_name, state)",
-        "logic::resolve_phase(is_indeterminate.get())",
+        "is_indeterminate: kernel_state.is_indeterminate,",
+        "progressbar_attrs(ProgressbarA11yOptions {",
     ] {
         assert!(
             view_source.contains(needle),
@@ -97,15 +138,41 @@ fn progress_circle_uses_logic_state_model() {
 }
 
 #[test]
+fn progress_circle_logic_consumes_state_primitives_for_value_axis_and_mode() {
+    let logic_source = load_source("src/circle/logic.rs");
+
+    for needle in [
+        "pub use ui_state_primitives::progress_circle::{",
+        "ProgressCircleMode",
+        "ProgressCircleValueAxisInput",
+        "ProgressCircleValueAxisState",
+        "normalize_mode",
+        "resolve_value_axis",
+        "resolve_value_axis(ProgressCircleValueAxisInput {",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "ProgressCircle logic should consume state primitives via `{needle}`."
+        );
+    }
+
+    assert!(
+        !logic_source.contains("pub enum ProgressCircleMode"),
+        "ProgressCircle mode enum should live in ui-state-primitives, not component logic.",
+    );
+}
+
+#[test]
 fn progress_circle_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/circle/view.rs");
 
     for attr in [
         "data-slot=\"progress-circle\"",
-        "data-state=move || logic::resolve_phase(is_indeterminate.get()).as_str()",
-        "data-phase-class=move || logic::resolve_phase(is_indeterminate.get()).class_name()",
-        "data-indeterminate=move || is_indeterminate.get().then_some(\"true\")",
-        "data-determinate=move || (!is_indeterminate.get()).then_some(\"true\")",
+        "data-state=move || a11y_contract.get().attrs.data_state",
+        "data-phase-class=move || kernel_state.get().phase.class_name()",
+        "data-status-mode=move || kernel_state.get().mode.as_str()",
+        "data-indeterminate=move || a11y_contract.get().attrs.data_indeterminate",
+        "data-determinate=move || a11y_contract.get().attrs.data_determinate",
         "data-size-source=state.size_source_attr",
         "data-stroke-source=state.stroke_source_attr",
         "data-label-source=state.label_source_attr",
@@ -118,8 +185,22 @@ fn progress_circle_emits_baseline_style_state_data_attributes() {
         "data-custom-motion=state.has_custom_motion.then_some(\"true\")",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
         "data-class-source=state.class_source_attr",
-        "role=\"progressbar\"",
-        "aria-valuetext=move || value_label_text.get()",
+        "data-value-mode=value_mode_attr",
+        "data-value-source=value_source_attr",
+        "data-default-value-source=default_value_source_attr",
+        "data-value-change-source=value_change_source_attr",
+        "data-value-controlled=is_value_controlled.then_some(\"true\")",
+        "data-value-uncontrolled=(!is_value_controlled).then_some(\"true\")",
+        "data-custom-default-value=has_custom_default_value.then_some(\"true\")",
+        "data-custom-value-change=has_custom_on_value_change.then_some(\"true\")",
+        "role=move || a11y_contract.get().attrs.role",
+        "aria-label=move || a11y_contract.get().attrs.aria_label",
+        "aria-valuemin=move || a11y_contract.get().attrs.aria_valuemin",
+        "aria-valuemax=move || a11y_contract.get().attrs.aria_valuemax",
+        "aria-valuenow=move || a11y_contract.get().attrs.aria_valuenow",
+        "aria-valuetext=move || a11y_contract.get().attrs.aria_valuetext",
+        "lang=move || a11y_contract.get().attrs.lang",
+        "dir=move || a11y_contract.get().attrs.dir",
     ] {
         assert!(
             source.contains(attr),

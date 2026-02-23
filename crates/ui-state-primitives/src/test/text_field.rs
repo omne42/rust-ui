@@ -83,3 +83,29 @@ fn value_and_requirement_attrs_map_to_closed_sets() {
     assert_eq!(resolve_requirement_attr(false), "optional");
     assert_eq!(resolve_requirement_attr(true), "required");
 }
+
+#[test]
+fn resolve_value_axis_tracks_control_and_source_markers() {
+    let state = resolve_value_axis_state(TextFieldValueAxisInput {
+        is_controlled: true,
+        has_default_value: true,
+        has_on_value_change: false,
+    });
+
+    assert!(state.is_controlled);
+    assert_eq!(state.control_mode_attr, "controlled");
+    assert_eq!(state.default_value_source_attr, "custom");
+    assert_eq!(state.value_change_source_attr, "none");
+    assert!(!state.has_value_change_handler);
+}
+
+#[test]
+fn resolve_accessibility_state_uses_boolean_defaults() {
+    let state = resolve_accessibility_state(TextFieldAccessibilityStateInput {
+        is_disabled: None,
+        is_read_only: Some(true),
+    });
+
+    assert!(!state.is_disabled);
+    assert!(state.is_read_only);
+}

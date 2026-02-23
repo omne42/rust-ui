@@ -229,6 +229,39 @@ fn ripple_styles_include_state_and_source_contracts() {
 }
 
 #[test]
+fn ripple_styles_use_defensive_variable_fallback_chain() {
+    let source = load_source("../../components/ripple/src/styles.rs");
+
+    for token in [
+        "var(--ui-ripple-origin-x, var(--ui-color-thumb-x-center, var(--ui-fallback-color-thumb-x-center)))",
+        "var(--ui-ripple-origin-y, var(--ui-color-thumb-y-center, var(--ui-fallback-color-thumb-y-center)))",
+        "var(--ui-text-field-motion-duration, var(--ui-fallback-text-field-motion-duration))",
+        "var(--ui-radius-full, var(--ui-fallback-radius-full))",
+        "var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset))",
+        "var(--ui-image-blur-scale, var(--ui-fallback-image-blur-scale))",
+    ] {
+        assert!(
+            source.contains(token),
+            "Ripple styles should keep defensive variable chain token `{token}`."
+        );
+    }
+
+    for forbidden in [
+        "var(--ui-ripple-origin-x, 50%)",
+        "var(--ui-ripple-origin-y, 50%)",
+        "var(--ui-text-field-motion-duration, 180ms)",
+        "border-radius: 9999px;",
+        "inset: -12%;",
+        "filter: saturate(1.08);",
+    ] {
+        assert!(
+            !source.contains(forbidden),
+            "Ripple styles should not keep hard-coded terminal `{forbidden}`."
+        );
+    }
+}
+
+#[test]
 fn ripple_motion_sanitizes_and_supports_origin_triggering() {
     let source = load_source("../ui-visual-primitive/src/ripple.rs");
 

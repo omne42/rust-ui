@@ -80,3 +80,55 @@ fn normalize_helpers_trim_and_fallback() {
         "Pagination"
     );
 }
+
+#[test]
+fn page_control_mode_and_default_page_are_normalized() {
+    assert_eq!(DEFAULT_PAGE, 1);
+    assert_eq!(normalize_default_page(0), 1);
+    assert_eq!(normalize_default_page(7), 7);
+    assert_eq!(resolve_default_page(None), 1);
+    assert_eq!(resolve_default_page(Some(0)), 1);
+    assert_eq!(resolve_default_page(Some(5)), 5);
+    assert_eq!(
+        resolve_page_control_mode(Some(9)),
+        PaginationPageControlMode::Controlled
+    );
+    assert_eq!(
+        resolve_page_control_mode(None),
+        PaginationPageControlMode::Uncontrolled
+    );
+    assert_eq!(resolve_effective_page(Some(11), 3), 11);
+    assert_eq!(resolve_effective_page(None, 3), 3);
+}
+
+#[test]
+fn navigation_targets_are_derived_in_logic() {
+    let controlled = resolve_pagination_view_state(12, Some(4), 1, false);
+    assert_eq!(
+        controlled.control_mode,
+        PaginationPageControlMode::Controlled
+    );
+    assert_eq!(controlled.state.current_page, 4);
+    assert_eq!(resolve_prev_page_target(controlled), Some(3));
+    assert_eq!(resolve_next_page_target(controlled), Some(5));
+    assert_eq!(resolve_direct_page_target(controlled, 4), None);
+    assert_eq!(resolve_direct_page_target(controlled, 99), Some(12));
+
+    let first_page = resolve_pagination_view_state(12, Some(1), 1, false);
+    assert_eq!(resolve_prev_page_target(first_page), None);
+
+    let last_page = resolve_pagination_view_state(12, Some(12), 1, false);
+    assert_eq!(resolve_next_page_target(last_page), None);
+
+    let disabled = resolve_pagination_view_state(12, Some(4), 1, true);
+    assert_eq!(resolve_prev_page_target(disabled), None);
+    assert_eq!(resolve_next_page_target(disabled), None);
+    assert_eq!(resolve_direct_page_target(disabled, 6), None);
+
+    let uncontrolled = resolve_pagination_view_state(12, None, 5, false);
+    assert_eq!(
+        uncontrolled.control_mode,
+        PaginationPageControlMode::Uncontrolled
+    );
+    assert!(should_sync_uncontrolled_page(uncontrolled.control_mode));
+}

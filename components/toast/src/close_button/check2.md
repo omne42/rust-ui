@@ -68,25 +68,25 @@
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（离散轴已类型化：`CloseButtonVariant/CloseButtonSize` 由 `crates/ui-state-primitives/src/close_button.rs` 定义并在 `components/toast/src/close_button/mod.rs` 导出；`components/toast/src/close_button/view.rs` 公开 props 使用 `variant: CloseButtonVariant`、`size: CloseButtonSize`，未暴露 `variant/size/mode/status` 字符串互斥组合入口。回归：`components/toast/test/close_button/logic.rs::variant_and_size_contracts_are_stable`、`components/toast/test/toast/semantics.rs::toast_discrete_state_axes_are_enum_typed`。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`CloseButton` 无业务 store 读写，按 N/A 的 store 绑定风险收口；状态归一化与离散轴解析由 `components/toast/src/close_button/logic.rs` 委托 `ui_state_primitives::close_button`，`view.rs` 仅消费 `CloseButtonStateInput/CloseButtonState` 挂载语义与事件。回归：`components/toast/test/close_button/logic.rs::resolve_state_tracks_variant_size_and_sources`、`components/toast/test/toast/semantics.rs::toast_state_primitive_source_boundary_is_enforced`。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（`CloseButton` 无远程请求与异步状态，按 N/A 通过；未引入 `is_loading/retry/aria-busy/use_async_action` 协议面。该组件仅处理同步 press/focus/hover 语义与 disabled 映射，不定义加载/错误/重试协议。回归：`components/toast/test/toast/semantics.rs::close_button_has_no_async_interaction_protocol_surface`、`components/toast/test/toast/semantics.rs::close_button_async_na_reason_is_explicit_in_checklist`。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`CloseButton` 的默认路径已固定在 `apps/docs-app/src/pages/components/pages/actions_extra/close_button.rs`：`showcase_code` 为 1 行 `<CloseButton />`（<=5 行），默认用法无需手动接线 `ui-state-primitives` / `ui-headless`。高级能力按需通过可选 props 暴露（`variant/size/is_disabled/aria_label/class_name/button_type/node_ref/on_press/children`），不要求基础用户传入内部状态对象；文档顺序保持 `Hello World -> Workbench -> State Matrix`。回归：`components/toast/test/toast/semantics.rs::close_button_api_dx_hello_world_is_short_and_requires_no_state_wiring`、`components/toast/test/toast/semantics.rs::close_button_api_dx_docs_keep_beginner_path_before_advanced_examples`。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（`CloseButton` 非组合容器组件，不提供 `Parent/Item` 结构轴；公开 API 保持显式 `<CloseButton .../>`，按 N/A 通过。回归：`components/toast/test/toast/semantics.rs::close_button_non_composite_api_avoids_parallel_array_conventions`。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。

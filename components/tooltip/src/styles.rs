@@ -14,7 +14,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-tooltip[data-disabled="true"] {
-  opacity: 0.72;
+  opacity: var(--ui-disabled-opacity, var(--ui-fallback-disabled-opacity));
 }
 
 .ui-tooltip[data-trigger="focus"] {
@@ -58,30 +58,41 @@ pub const CSS: &str = r#"
 
 .ui-tooltip__panel {
   position: fixed;
-  top: var(--ui-tooltip-top, 0px);
-  left: var(--ui-tooltip-left, 0px);
+  top: var(--ui-tooltip-top, var(--ui-fallback-min-inline-size-none));
+  left: var(--ui-tooltip-left, var(--ui-fallback-min-inline-size-none));
 
   --ui-tooltip-opacity: 0;
-  --ui-tooltip-scale: var(--ui-overlay-enter-scale, 0.98);
-  --ui-tooltip-y: var(--ui-overlay-enter-offset-y, 6px);
+  --ui-tooltip-scale: var(
+    --ui-overlay-enter-scale,
+    var(--ui-fallback-overlay-enter-scale)
+  );
+  --ui-tooltip-y: var(
+    --ui-overlay-enter-offset-y,
+    var(--ui-fallback-overlay-enter-offset-y)
+  );
 
   opacity: var(--ui-tooltip-opacity);
   transform: translateY(var(--ui-tooltip-y)) scale(var(--ui-tooltip-scale));
   will-change: transform, opacity;
 
   pointer-events: none;
-  z-index: var(--ui-overlay-z-index, 1000);
+  z-index: var(--ui-overlay-z-index, var(--ui-fallback-overlay-z-index));
 
-  padding: var(--ui-space-sm, 8px) var(--ui-space-md, 12px);
-  border-radius: var(--ui-radius-md);
-  border: 1px solid var(--ui-border);
-  background: var(--ui-bg);
-  color: var(--ui-fg);
-  box-shadow: var(--ui-shadow-md);
+  padding: var(--ui-space-sm, var(--ui-fallback-space-sm))
+    var(--ui-space-md, var(--ui-fallback-space-md));
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    var(--ui-border, var(--ui-fallback-border));
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  box-shadow: var(--ui-shadow-md, var(--ui-fallback-shadow-md));
 
-  font-size: var(--ui-font-size-100, 12px);
-  line-height: var(--ui-line-height-100, 16px);
-  max-width: var(--ui-tooltip-max-width, 280px);
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
+  max-width: var(
+    --ui-tooltip-max-width,
+    var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width))
+  );
 }
 
 .ui-tooltip__panel[data-state="panel"] {

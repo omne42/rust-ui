@@ -1,0 +1,101 @@
+schema_version = "1"
+
+[component]
+name = "Toaster"
+crate = "ui-toaster"
+
+[[inputs]]
+name = "position"
+ty = "ToasterPosition"
+default = "ToasterPosition::default()"
+controlled = false
+
+[[inputs]]
+name = "portal"
+ty = "bool"
+default = "DEFAULT_PORTAL"
+controlled = false
+
+[[inputs]]
+name = "max_toasts"
+ty = "usize"
+default = "DEFAULT_MAX_TOASTS"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "ToastMotion"
+default = "ToastMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "store"
+ty = "Option<ToastStore>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-slot + data-state + data-queue + data-position + data-portal + data-max-toasts + data-*-source + role + aria-* + lang + dir"
+scope = "toaster-root"
+
+[[outputs]]
+name = "agent-contract-schema"
+ty = "data-ui-schema + data-ui-intent + data-ui-action-model + data-ui-stream-support + data-ui-stream-fallback + data-ui-output-status + data-ui-state-axis + data-ui-source-axis"
+scope = "toaster-root"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "notification_host_assembly"
+enabled = true
+
+[[capabilities]]
+name = "snapshot_fallback_stream_policy"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-primitive"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-toast"
+kind = "notification-runtime"

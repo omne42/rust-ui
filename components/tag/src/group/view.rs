@@ -1,8 +1,9 @@
 use super::{
     Tag,
     logic::{
-        TagGroupItemStateInput, merge_describedby_ids, normalize_group_input, resolve_item_state,
-        resolve_state,
+        TagGroupRenderableItemStateInput, TagGroupRootStateInput, merge_describedby_ids,
+        normalize_group_bool_input, normalize_group_input, resolve_group_item_state,
+        resolve_group_state,
     },
 };
 use crate::{Tag as TagPrimitive, TagSize, TagVariant};
@@ -19,6 +20,104 @@ const TAG_GROUP_DESCRIPTION_CLASS: &str = "ui-tag-group__description";
 const TAG_GROUP_DESCRIPTION_SLOT: &str = "tag-group-description";
 const TAG_GROUP_ERROR_CLASS: &str = "ui-tag-group__error";
 const TAG_GROUP_ERROR_SLOT: &str = "tag-group-error";
+
+#[slot]
+#[derive(Clone)]
+pub struct TagGroupItem {
+    #[prop(into)]
+    pub id: String,
+    #[prop(into)]
+    pub label: String,
+    #[prop(optional)]
+    pub is_disabled: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TagGroupItemSpec {
+    pub id: String,
+    pub label: String,
+    pub is_disabled: bool,
+}
+
+impl TagGroupItemSpec {
+    pub fn new(id: impl Into<String>, label: impl Into<String>) -> Self {
+        Self {
+            id: id.into(),
+            label: label.into(),
+            is_disabled: false,
+        }
+    }
+
+    pub fn disabled(mut self, is_disabled: bool) -> Self {
+        self.is_disabled = is_disabled;
+        self
+    }
+}
+
+impl From<TagGroupItem> for TagGroupItemSpec {
+    fn from(value: TagGroupItem) -> Self {
+        Self {
+            id: value.id,
+            label: value.label,
+            is_disabled: value.is_disabled,
+        }
+    }
+}
+
+impl From<TagGroupItemSpec> for Tag {
+    fn from(value: TagGroupItemSpec) -> Self {
+        Self {
+            id: value.id,
+            label: value.label,
+            disabled: value.is_disabled,
+        }
+    }
+}
+
+impl From<Tag> for TagGroupItemSpec {
+    fn from(value: Tag) -> Self {
+        Self {
+            id: value.id,
+            label: value.label,
+            is_disabled: value.disabled,
+        }
+    }
+}
+
+fn resolve_tags_signal(
+    item: Vec<TagGroupItem>,
+    item_specs: Option<Signal<Vec<TagGroupItemSpec>>>,
+    tags: Option<Signal<Vec<Tag>>>,
+) -> Signal<Vec<Tag>> {
+    let slot_item_specs: Vec<TagGroupItemSpec> =
+        item.into_iter().map(TagGroupItemSpec::from).collect();
+
+    assert!(
+        slot_item_specs.is_empty() || item_specs.is_none(),
+        "TagGroup: use explicit `<TagGroupItem slot:item ... />` children or `item_specs`, but not both at once."
+    );
+    assert!(
+        tags.is_none() || (slot_item_specs.is_empty() && item_specs.is_none()),
+        "TagGroup: `tags` is a legacy compatibility path and cannot be combined with `item` or `item_specs`."
+    );
+
+    if let Some(tags) = tags {
+        return tags;
+    }
+
+    if let Some(item_specs) = item_specs {
+        return Signal::derive(move || item_specs.get().into_iter().map(Tag::from).collect());
+    }
+
+    let slot_item_specs = StoredValue::new(slot_item_specs);
+    Signal::derive(move || {
+        slot_item_specs
+            .get_value()
+            .into_iter()
+            .map(Tag::from)
+            .collect()
+    })
+}
 
 fn render_group_label(label: Option<String>, label_id: String) -> AnyView {
     match label {
@@ -90,10 +189,10 @@ fn render_tag_node(
     match dismiss {
         Some(on_remove) => view! {
             <TagPrimitive
-                disabled=is_disabled
+                is_disabled=is_disabled
                 variant=variant
                 size=size
-                removable=true
+                is_removable=true
                 on_remove=on_remove
             >
                 {label}
@@ -101,7 +200,7 @@ fn render_tag_node(
         }
         .into_any(),
         None => view! {
-            <TagPrimitive disabled=is_disabled variant=variant size=size>
+            <TagPrimitive is_disabled=is_disabled variant=variant size=size>
                 {label}
             </TagPrimitive>
         }
@@ -112,10 +211,10 @@ fn render_tag_node(
 fn render_tag_group_item(index: usize, tag: Tag, ctx: TagGroupItemRenderCtx) -> impl IntoView {
     let tag_id_for_attr = tag.id.clone();
     let tag_for_remove = tag.clone();
-    let item_state = resolve_item_state(TagGroupItemStateInput {
-        group_disabled: ctx.disabled,
-        supports_removal: ctx.has_remove_callback,
-        tag_disabled: tag.disabled,
+    let item_state = resolve_group_item_state(TagGroupRenderableItemStateInput {
+        is_group_disabled: ctx.disabled,
+        has_remove_callback: ctx.has_remove_callback,
+        is_tag_disabled: tag.disabled,
     });
     let dismiss = if item_state.is_removable {
         ctx.on_remove.get_value().map(|on_remove| {
@@ -162,8 +261,10 @@ fn render_tag_group_items(tags: Vec<Tag>, ctx: TagGroupItemRenderCtx) -> impl In
 
 #[component]
 pub fn TagGroup(
-    tags: ReadSignal<Vec<Tag>>,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional)] item: Vec<TagGroupItem>,
+    #[prop(optional, into)] item_specs: Option<Signal<Vec<TagGroupItemSpec>>>,
+    #[prop(optional, into)] tags: Option<Signal<Vec<Tag>>>,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] on_remove: Option<Callback<Tag>>,
     #[prop(optional)] variant: TagVariant,
     #[prop(optional)] size: TagSize,
@@ -171,14 +272,21 @@ pub fn TagGroup(
     #[prop(optional, into)] label: Option<String>,
     #[prop(optional, into)] description: Option<String>,
     #[prop(optional, into)] error: Option<String>,
-    #[prop(optional, into)] invalid: Signal<bool>,
-    #[prop(optional, into)] required: Signal<bool>,
+    #[prop(optional, into)] is_invalid: Option<Signal<bool>>,
+    #[prop(optional, into)] is_required: Option<Signal<bool>>,
     #[prop(optional, into)] aria_describedby: Signal<Option<String>>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, into)] lang: Option<String>,
     #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
+    let tags = resolve_tags_signal(item, item_specs, tags);
+
+    let normalized_bool_input = normalize_group_bool_input(is_disabled, is_invalid, is_required);
+    let is_disabled = normalized_bool_input.is_disabled;
+    let is_invalid = normalized_bool_input.is_invalid;
+    let is_required = normalized_bool_input.is_required;
+
     let normalized = normalize_group_input(
         id_base,
         label,
@@ -212,7 +320,7 @@ pub fn TagGroup(
 
     let group_aria_describedby = Memo::new(move |_| {
         let description_id = description_id_for_aria.get_value();
-        let error_id = if invalid.get() {
+        let error_id = if is_invalid.get() {
             error_id_for_aria.get_value()
         } else {
             None
@@ -230,12 +338,14 @@ pub fn TagGroup(
     let has_remove_callback = on_remove.is_some();
     let state = Memo::new(move |_| {
         let tags = tags.get();
-        resolve_state(
+        resolve_group_state(
             &tags,
-            disabled,
-            has_remove_callback,
-            invalid.get(),
-            required.get(),
+            TagGroupRootStateInput {
+                is_disabled,
+                has_remove_callback,
+                is_invalid: is_invalid.get(),
+                is_required: is_required.get(),
+            },
         )
     });
     let agent_source = RwSignal::new(super::logic::TagGroupAgentSource::Init);
@@ -252,7 +362,7 @@ pub fn TagGroup(
     let label_view = render_group_label(label.get_value(), label_id.clone());
     let description_view =
         render_group_description(description.get_value(), description_id.clone());
-    let error_view = render_group_error(error.get_value(), error_id.clone(), invalid);
+    let error_view = render_group_error(error.get_value(), error_id.clone(), is_invalid);
 
     view! {
         <div
@@ -310,7 +420,7 @@ pub fn TagGroup(
             <ul class=TAG_GROUP_LIST_CLASS data-slot=TAG_GROUP_LIST_SLOT>
                 {move || {
                     let ctx = TagGroupItemRenderCtx {
-                        disabled,
+                        disabled: is_disabled,
                         has_remove_callback,
                         agent_source,
                         on_remove,

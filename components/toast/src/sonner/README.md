@@ -25,7 +25,7 @@ store.push_simple("Saved");
 ```rust
 <Sonner
   store=store.clone()
-  portal=false
+  is_portal=false
   position=SonnerPosition::TopCenter
   max_toasts=2
 />
@@ -42,7 +42,7 @@ let custom_motion = ToastMotion {
 
 <Sonner
   store=store.clone()
-  portal=false
+  is_portal=false
   position=SonnerPosition::TopLeft
   max_toasts=4
   aria_label="Status updates".to_string()
@@ -72,5 +72,5 @@ let custom_motion = ToastMotion {
 
 ## 命名兼容策略
 
-- 当前对外命名保持 `portal/max_toasts/aria_label/class_name/motion`，与 `toast/toaster` 同语义同名，不引入同义别名漂移。
-- 若后续全库统一推进 `is_*` 命名，采用“先引入兼容别名并标注弃用周期，再移除旧名”的迁移路径，避免破坏现有调用方。
+- 当前对外命名使用 `is_portal/max_toasts/aria_label/class_name/motion`，布尔轴统一 `is_*`，不保留 `portal` 同义别名。
+- 迁移路径：旧调用统一替换为 `portal -> is_portal`；本次不保留运行时兼容别名，避免 API 双轨漂移。

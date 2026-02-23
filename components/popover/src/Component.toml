@@ -5,20 +5,38 @@ name = "Popover"
 crate = "ui-popover"
 
 [[inputs]]
-name = "open"
-ty = "leptos::prelude::Signal<bool>"
-default = "required"
+name = "is_open"
+ty = "Option<leptos::prelude::Signal<bool>>"
+default = "None"
 controlled = true
+
+[[inputs]]
+name = "open"
+ty = "Option<leptos::prelude::Signal<bool>>"
+default = "None (legacy alias of is_open)"
+controlled = true
+
+[[inputs]]
+name = "default_open"
+ty = "Option<bool>"
+default = "None (normalized to false)"
+controlled = false
+
+[[inputs]]
+name = "on_open_change"
+ty = "Option<leptos::prelude::Callback<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "on_close"
+ty = "Option<ui_headless::OnPress>"
+default = "None (legacy alias of on_open_change=false)"
+controlled = false
 
 [[inputs]]
 name = "anchor_ref"
 ty = "leptos::prelude::NodeRef<leptos::html::Button>"
-default = "required"
-controlled = false
-
-[[inputs]]
-name = "on_close"
-ty = "ui_headless::OnPress"
 default = "required"
 controlled = false
 
@@ -60,13 +78,18 @@ controlled = false
 
 [[outputs]]
 name = "semantic-markers"
-ty = "data-slot + data-state + data-open + data-closed + data-modal + data-placement + data-*-source"
+ty = "data-slot + data-state + data-open + data-closed + data-modal + data-placement + data-open-mode + data-open-source + data-default-open-source + data-open-change-source + data-*-source"
 scope = "popover-root/panel"
 
 [[outputs]]
 name = "on_close"
 ty = "ui_headless::OnPress"
-scope = "popover-dismiss"
+scope = "legacy-dismiss-alias"
+
+[[outputs]]
+name = "on_open_change"
+ty = "leptos::prelude::Callback<bool>"
+scope = "open-axis-change-request"
 
 [[capabilities]]
 name = "context_compression_manifest"

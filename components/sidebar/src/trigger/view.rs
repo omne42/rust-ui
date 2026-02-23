@@ -11,12 +11,14 @@ pub fn SidebarTrigger(
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] motion: SidebarTriggerMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let is_disabled = logic::resolve_disabled(is_disabled, disabled);
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
     let (label, has_custom_label) = logic::normalize_label(label);
 
@@ -40,7 +42,7 @@ pub fn SidebarTrigger(
     let state = Signal::derive(move || {
         logic::resolve_state(SidebarTriggerStateInput {
             open: open.get(),
-            disabled,
+            disabled: is_disabled,
             is_controlled,
             has_custom_aria_label,
             has_custom_label,
@@ -52,7 +54,7 @@ pub fn SidebarTrigger(
         Signal::derive(move || logic::compose_class_name(class_name.get_value(), state.get()));
 
     let on_toggle = Callback::new(move |_| {
-        if disabled {
+        if is_disabled {
             return;
         }
 
@@ -78,8 +80,8 @@ pub fn SidebarTrigger(
             data-class-source=move || state.get().class_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             type="button"
-            disabled=disabled
-            aria-disabled=disabled.then_some("true")
+            disabled=is_disabled
+            aria-disabled=is_disabled.then_some("true")
             aria-expanded=move || if state.get().open { "true" } else { "false" }
             aria-label=aria_label
             on:click=move |_| on_toggle.run(())

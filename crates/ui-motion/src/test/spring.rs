@@ -65,3 +65,37 @@ fn spring_animator_triplet_updates_all_channels() {
     assert_eq!(second.get(), 11.0);
     assert_eq!(third.get(), 12.0);
 }
+
+#[test]
+fn spring_animator_triplet_supports_on_rest_and_clear_on_rest() {
+    use std::cell::Cell;
+    use std::rc::Rc;
+
+    let second = Rc::new(Cell::new(0.0));
+    let rest_calls = Rc::new(Cell::new(0_u32));
+
+    let second_out = Rc::clone(&second);
+
+    let triplet = SpringAnimatorTriplet::new(
+        [0.0, 0.0, 0.0],
+        SpringConfig::default(),
+        |_| {},
+        move |value| second_out.set(value),
+        |_| {},
+    );
+
+    let rest_calls_for_hook = Rc::clone(&rest_calls);
+    triplet.set_on_rest_second(move || {
+        rest_calls_for_hook.set(rest_calls_for_hook.get() + 1);
+    });
+    triplet.set_targets([1.0, 2.0, 3.0]);
+
+    assert_eq!(second.get(), 2.0);
+    assert_eq!(rest_calls.get(), 1);
+
+    triplet.clear_on_rest();
+    triplet.set_targets([4.0, 5.0, 6.0]);
+
+    assert_eq!(second.get(), 5.0);
+    assert_eq!(rest_calls.get(), 1);
+}

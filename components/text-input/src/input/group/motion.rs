@@ -1,3 +1,5 @@
+use ui_theme::default_text_field_motion_tokens;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct InputGroupMotion {
     pub border_ms: u16,
@@ -7,9 +9,10 @@ pub struct InputGroupMotion {
 
 impl Default for InputGroupMotion {
     fn default() -> Self {
+        let tokens = default_text_field_motion_tokens();
         Self {
-            border_ms: 120,
-            fill_ms: 140,
+            border_ms: tokens.duration_ms,
+            fill_ms: tokens.duration_ms,
             reduced_ms: 0,
         }
     }

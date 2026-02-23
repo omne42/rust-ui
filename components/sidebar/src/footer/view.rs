@@ -7,11 +7,15 @@ use leptos::prelude::*;
 #[component]
 pub fn SidebarFooter(
     children: Children,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_bordered: Option<bool>,
     #[prop(optional)] bordered: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let is_disabled = logic::resolve_disabled(is_disabled, disabled);
+    let is_bordered = logic::resolve_bordered(is_bordered, bordered);
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
@@ -19,8 +23,8 @@ pub fn SidebarFooter(
 
     let state = Memo::new(move |_| {
         logic::resolve_state(SidebarFooterStateInput {
-            disabled,
-            bordered,
+            disabled: is_disabled,
+            bordered: is_bordered,
             has_custom_aria_label,
             has_custom_class_name,
         })

@@ -1,6 +1,5 @@
 use crate::{TextState, TextStateInput};
 
-pub const DEFAULT_ARIA_LABEL: &str = "Text";
 pub const DEFAULT_TEXT: &str = "—";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -95,6 +94,23 @@ pub enum TextElement {
     Div,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TextDirection {
+    Ltr,
+    Rtl,
+    Auto,
+}
+
+impl TextDirection {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            TextDirection::Ltr => "ltr",
+            TextDirection::Rtl => "rtl",
+            TextDirection::Auto => "auto",
+        }
+    }
+}
+
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
@@ -106,12 +122,26 @@ pub fn normalize_content(value: Option<String>) -> String {
     normalize_optional_text(value).unwrap_or_else(|| DEFAULT_TEXT.into())
 }
 
-pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
+pub fn resolve_content(value: Option<String>, has_children: bool) -> (String, &'static str) {
+    let normalized_text = normalize_content(value.clone());
+    let has_explicit_text = normalize_optional_text(value).is_some();
+    let content_source_attr = if has_children {
+        "children"
+    } else if has_explicit_text {
+        "text"
+    } else {
+        "default"
+    };
+
+    (normalized_text, content_source_attr)
+}
+
+pub fn normalize_aria_label(value: Option<String>) -> (Option<String>, bool) {
     if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
+        return (Some(label), true);
     }
 
-    (DEFAULT_ARIA_LABEL.into(), false)
+    (None, false)
 }
 
 pub fn resolve_slot_kind_attr(slot: Option<&str>) -> &'static str {
@@ -128,7 +158,7 @@ pub fn resolve_state(input: TextStateInput) -> TextState {
     let aria_source_attr = if input.has_custom_aria_label {
         "custom"
     } else {
-        "default"
+        "none"
     };
     let class_source_attr = if input.has_custom_class_name {
         "custom"

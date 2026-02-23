@@ -6,10 +6,12 @@ pub const CSS: &str = r#"
   background: currentColor;
   opacity: 0;
   transform: scale(0);
-  transform-origin: var(--ui-ripple-origin-x, 50%) var(--ui-ripple-origin-y, 50%);
+  transform-origin:
+    var(--ui-ripple-origin-x, var(--ui-color-thumb-x-center, var(--ui-fallback-color-thumb-x-center)))
+    var(--ui-ripple-origin-y, var(--ui-color-thumb-y-center, var(--ui-fallback-color-thumb-y-center)));
   pointer-events: none;
   will-change: transform, opacity;
-  --ui-ripple-duration-ms: var(--ui-text-field-motion-duration, 180ms);
+  --ui-ripple-duration-ms: var(--ui-text-field-motion-duration, var(--ui-fallback-text-field-motion-duration));
 }
 
 .ui-ripple--state-animated,
@@ -32,13 +34,13 @@ pub const CSS: &str = r#"
 .ui-ripple--boundary-unbounded,
 .ui-ripple[data-boundary="unbounded"],
 .ui-ripple[data-unbounded="true"] {
-  border-radius: 9999px;
-  inset: -12%;
+  border-radius: var(--ui-radius-full, var(--ui-fallback-radius-full));
+  inset: calc(var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset)) * -1);
 }
 
 .ui-ripple--motion-custom,
 .ui-ripple[data-motion-source="custom"] {
-  filter: saturate(1.08);
+  filter: saturate(var(--ui-image-blur-scale, var(--ui-fallback-image-blur-scale)));
 }
 
 .ui-ripple--custom-class,

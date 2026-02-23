@@ -5,7 +5,7 @@ use crate::sidebar_menu::logic::{
 use leptos::{ev, html, prelude::*};
 use std::collections::BTreeSet;
 use std::sync::Arc;
-use ui_headless as overlay_open;
+use ui_headless::{self as headless, A11yDirection, SidebarMenuKeyAction, SidebarMenuKeyDownInput};
 use ui_visual_primitive::active_highlight::attach_active_highlight_motion;
 
 #[derive(Clone)]
@@ -16,6 +16,7 @@ struct SidebarMenuRenderCtx {
     show_actions: bool,
     allow_submenu_collapse: bool,
     disabled: bool,
+    submenu_toggle_label: StoredValue<String>,
     id_base: StoredValue<String>,
     select_id: Callback<String>,
     trigger_action: Callback<String>,
@@ -29,7 +30,7 @@ impl SidebarMenuRenderCtx {
         let item_label = item.label.clone();
         let item_href = item.href.clone();
         let item_badge = item.badge.clone();
-        let item_action_label = item.action_label.clone();
+        let item_action_label = logic::normalize_item_action_label(item.action_label.clone());
         let item_disabled = self.disabled || item.disabled;
         let has_sub = !item.sub_items.is_empty();
 
@@ -44,6 +45,7 @@ impl SidebarMenuRenderCtx {
         let allow_submenu_collapse = self.allow_submenu_collapse;
         let show_badges = self.show_badges;
         let show_actions = self.show_actions;
+        let submenu_toggle_label = self.submenu_toggle_label;
         let id_base = self.id_base;
 
         let on_focus = {
@@ -162,7 +164,7 @@ impl SidebarMenuRenderCtx {
                                 type="button"
                                 disabled=item_disabled
                                 aria-disabled=item_disabled.then_some("true")
-                                aria-label=item_action_label.unwrap_or_else(|| "item action".to_string())
+                                aria-label=item_action_label
                                 on:click=on_item_action_click
                             >
                                 "⋯"
@@ -195,7 +197,7 @@ impl SidebarMenuRenderCtx {
                                         }
                                     }
                                 }
-                                aria-label="toggle submenu"
+                                aria-label=move || submenu_toggle_label.get_value()
                                 on:click=on_toggle_sub
                             >
                                 "▸"
@@ -246,50 +248,72 @@ pub fn SidebarMenu(
     #[prop(optional)] on_active_id_change: Option<Callback<Option<String>>>,
     #[prop(optional)] on_action: Option<Callback<String>>,
     #[prop(optional)] on_item_action: Option<Callback<String>>,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_badges_visible: Option<bool>,
     #[prop(optional, default = true)] show_badges: bool,
+    #[prop(optional)] is_actions_visible: Option<bool>,
     #[prop(optional, default = true)] show_actions: bool,
+    #[prop(optional)] is_submenu_collapse_allowed: Option<bool>,
     #[prop(optional, default = true)] allow_submenu_collapse: bool,
+    #[prop(optional)] is_keyboard_shortcut_enabled: Option<bool>,
     #[prop(optional, default = true)] enable_keyboard_shortcut: bool,
     #[prop(optional, into)] keyboard_shortcut_key: Option<String>,
+    #[prop(optional, into)] submenu_toggle_label: Option<String>,
     #[prop(optional)] motion: SidebarMenuMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
+    let disabled = logic::resolve_disabled(is_disabled, disabled);
+    let show_badges = logic::resolve_show_badges(is_badges_visible, show_badges);
+    let show_actions = logic::resolve_show_actions(is_actions_visible, show_actions);
+    let allow_submenu_collapse =
+        logic::resolve_allow_submenu_collapse(is_submenu_collapse_allowed, allow_submenu_collapse);
+    let enable_keyboard_shortcut = logic::resolve_keyboard_shortcut_enabled(
+        is_keyboard_shortcut_enabled,
+        enable_keyboard_shortcut,
+    );
     let id_base = logic::normalize_id_base(id_base);
     let class_name = logic::normalize_optional_text(class_name);
     let aria_label = logic::normalize_aria_label(aria_label);
-    let shortcut_key = logic::normalize_optional_text(keyboard_shortcut_key)
-        .map(|key| key.to_ascii_lowercase())
-        .filter(|_| enable_keyboard_shortcut);
+    let shortcut_key =
+        logic::normalize_keyboard_shortcut_key(keyboard_shortcut_key, enable_keyboard_shortcut);
+    let submenu_toggle_label = logic::normalize_submenu_toggle_label(submenu_toggle_label);
 
     let items: Arc<[SidebarMenuItem]> = logic::normalize_items(items).into();
     let item_count = items.len();
 
     let default_active_id = logic::default_active_id(items.as_ref(), default_active_id);
     let is_controlled = active_id.is_some();
-    let active_state = overlay_open::use_controllable_state(
-        active_id,
-        Some(default_active_id),
-        on_active_id_change,
-    );
+    let active_state =
+        headless::use_controllable_state(active_id, Some(default_active_id), on_active_id_change);
     let active_id = active_state.value;
     let request_active_id_change = active_state.request_change;
 
     let (active_index_read, set_active_index_read) = signal(0_usize);
 
-    let open_sub_default: BTreeSet<String> = logic::default_open_sub_ids(items.as_ref())
-        .into_iter()
-        .collect();
+    let open_sub_default: BTreeSet<String> = logic::default_open_sub_id_set(items.as_ref());
     let (open_sub_ids, set_open_sub_ids) = signal(open_sub_default);
+    let navigation = headless::navigation_attrs(aria_label.clone(), lang, dir);
+    let menu_keyboard = headless::use_sidebar_menu_keyboard(headless::SidebarMenuKeyboardOptions {
+        is_disabled: disabled,
+        shortcut_key: shortcut_key.clone(),
+    });
+    let nav_aria_label = navigation.aria_label;
+    let nav_lang = navigation.lang;
+    let nav_dir = navigation.dir;
+    let menu_keyboard_has_shortcut = menu_keyboard.state.has_shortcut_key;
+    let menu_keyboard_shortcut_source = menu_keyboard.state.shortcut_source_attr;
+    let menu_keyboard_aria_keyshortcuts = menu_keyboard.attrs.aria_keyshortcuts;
+    let menu_keyboard_on_key_down = menu_keyboard.handlers.on_key_down;
 
     let id_base = StoredValue::new(id_base);
     let class_name = StoredValue::new(class_name);
-    let aria_label = StoredValue::new(aria_label);
     let items = StoredValue::new(items);
     let on_action = StoredValue::new(on_action);
     let on_item_action = StoredValue::new(on_item_action);
-    let shortcut_key = StoredValue::new(shortcut_key);
 
     let state: Signal<SidebarMenuState> = Signal::derive(move || {
         logic::resolve_state(SidebarMenuStateInput {
@@ -300,7 +324,7 @@ pub fn SidebarMenu(
             allow_submenu_collapse,
             is_controlled,
             has_custom_class_name: class_name.get_value().is_some(),
-            has_shortcut: shortcut_key.get_value().is_some(),
+            has_shortcut: menu_keyboard_has_shortcut,
         })
     });
 
@@ -321,11 +345,8 @@ pub fn SidebarMenu(
 
     Effect::new(move |_| {
         let active = active_id.get();
-        let linear_ids = logic::linear_enabled_ids(items.get_value().as_ref());
-        let next_index = active
-            .as_ref()
-            .and_then(|active| linear_ids.iter().position(|id| id == active))
-            .unwrap_or(0);
+        let next_index =
+            logic::active_index_for_current(items.get_value().as_ref(), active.as_deref());
         set_active_index_read.set(next_index);
     });
 
@@ -364,41 +385,45 @@ pub fn SidebarMenu(
         }
 
         set_open_sub_ids.update(|open_sub_ids| {
-            if open_sub_ids.contains(&id) {
-                open_sub_ids.remove(&id);
-            } else {
-                open_sub_ids.insert(id);
-            }
+            *open_sub_ids =
+                logic::toggle_open_sub_ids(open_sub_ids, &id, items.get_value().as_ref());
         });
     });
+    let select_id_for_key_down = select_id;
+    let trigger_action_for_key_down = trigger_action;
 
     let on_key_down = move |event: ev::KeyboardEvent| {
-        if disabled {
-            return;
-        }
+        let action = menu_keyboard_on_key_down.run(SidebarMenuKeyDownInput {
+            key: event.key(),
+            ctrl_key: event.ctrl_key(),
+            meta_key: event.meta_key(),
+        });
 
-        if let Some(shortcut_key) = shortcut_key.get_value()
-            && (event.ctrl_key() || event.meta_key())
-            && event.key().eq_ignore_ascii_case(&shortcut_key)
-        {
-            let first = logic::first_enabled_id(items.get_value().as_ref());
-            request_active_id_change.run(first);
-            event.prevent_default();
-            return;
-        }
+        let next_active = match action {
+            SidebarMenuKeyAction::None => None,
+            SidebarMenuKeyAction::FocusFirst | SidebarMenuKeyAction::Home => {
+                logic::first_enabled_id(items.get_value().as_ref())
+            }
+            SidebarMenuKeyAction::MoveNext => {
+                logic::next_enabled_id(items.get_value().as_ref(), active_id.get(), 1)
+            }
+            SidebarMenuKeyAction::MovePrevious => {
+                logic::next_enabled_id(items.get_value().as_ref(), active_id.get(), -1)
+            }
+            SidebarMenuKeyAction::End => logic::linear_enabled_ids(items.get_value().as_ref())
+                .last()
+                .cloned(),
+            SidebarMenuKeyAction::Activate => {
+                if let Some(active) = active_id.get() {
+                    trigger_action_for_key_down.run(active);
+                }
+                event.prevent_default();
+                return;
+            }
+        };
 
-        if let Some(next) =
-            logic::next_id_for_key(&event.key(), items.get_value().as_ref(), active_id.get())
-        {
-            request_active_id_change.run(Some(next));
-            event.prevent_default();
-            return;
-        }
-
-        if (event.key() == "Enter" || event.key() == " ")
-            && let Some(active) = active_id.get()
-        {
-            trigger_action.run(active);
+        if let Some(next_active) = next_active {
+            select_id_for_key_down.run(next_active);
             event.prevent_default();
         }
     };
@@ -410,6 +435,7 @@ pub fn SidebarMenu(
         show_actions,
         allow_submenu_collapse,
         disabled,
+        submenu_toggle_label: StoredValue::new(submenu_toggle_label),
         id_base,
         select_id,
         trigger_action,
@@ -432,21 +458,23 @@ pub fn SidebarMenu(
             data-controlled=move || state.get().is_controlled.then_some("true")
             data-uncontrolled=move || state.get().is_uncontrolled.then_some("true")
             data-control-mode=move || state.get().control_attr
-            data-active-id=move || active_id.get().unwrap_or_default()
+            data-selection=move || logic::selection_state_attr(active_id.get())
+            data-has-selection=move || active_id.get().as_ref().map(|_| "true")
             data-class-source=move || state.get().class_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
+            data-shortcut-source=menu_keyboard_shortcut_source
             role="navigation"
-            aria-label=aria_label.get_value()
+            aria-label=nav_aria_label
+            aria-keyshortcuts=menu_keyboard_aria_keyshortcuts
+            lang=nav_lang
+            dir=nav_dir
             on:keydown=on_key_down
         >
             <div class="ui-sidebar-menu__list" data-slot="sidebar-menu-list" node_ref=legend_ref>
                 <div class="ui-sidebar-menu__highlight" data-slot="sidebar-menu-highlight" node_ref=highlight_ref></div>
 
                 {move || {
-                    items
-                        .get_value()
-                        .iter()
-                        .enumerate()
+                    items.get_value().iter().enumerate()
                         .map(|(index, item)| render_ctx.render_menu_item(index, item))
                         .collect_view()
                 }}

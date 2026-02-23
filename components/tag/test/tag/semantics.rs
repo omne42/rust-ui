@@ -193,6 +193,9 @@ fn tag_uses_logic_state_model() {
         "TagVariant",
         "TagSize",
         "TagStateInput",
+        "TagInteractivityModeInput",
+        "normalize_interactivity_mode",
+        "pub fn normalize_tag_interactivity_mode(",
         "normalize_optional_text",
         "normalize_remove_aria_label",
         "resolve_state",
@@ -210,6 +213,7 @@ fn tag_uses_logic_state_model() {
         "logic::normalize_tag_input(",
         "let state = normalized.state;",
         "logic::compose_class_name(normalized.class_name, state)",
+        "#[prop(optional)] mode: Option<TagInteractivityMode>,",
         "ui_headless::{A11yDirection, OnPress, locale_attrs}",
         "lang=locale.lang",
         "dir=locale.dir",
@@ -315,6 +319,153 @@ fn tag_styles_include_variant_size_and_state_markers() {
 }
 
 #[test]
+fn tag_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals() {
+    let styles_source = load_source("src/tag/styles.rs");
+    let theme_css_source = load_source("../../crates/ui-theme/src/css.rs");
+
+    for needle in [
+        "var(--ui-button-size-s-font-size, var(--ui-fallback-button-size-s-font-size))",
+        "var(--ui-button-size-s-line-height, var(--ui-fallback-button-size-s-line-height))",
+        "var(--ui-border-width, var(--ui-fallback-border-width)) solid transparent",
+        "var(--ui-radius-full, var(--ui-fallback-radius-full))",
+        "var(--ui-space-sm, var(--ui-fallback-space-sm))",
+        "var(--ui-space-xs, var(--ui-fallback-space-xs))",
+        "var(--ui-space-md, var(--ui-fallback-space-md))",
+        "var(--ui-space-2xs, var(--ui-fallback-space-2xs))",
+        "var(--ui-bg-muted, var(--ui-fallback-bg-muted))",
+        "var(--ui-bg, var(--ui-fallback-bg))",
+        "var(--ui-border, var(--ui-fallback-border))",
+        "var(--ui-fg, var(--ui-fallback-fg))",
+        "var(--ui-focus-ring, var(--ui-fallback-focus-ring))",
+        "var(--ui-button-focus-outline-width, var(--ui-fallback-button-focus-outline-width))",
+        "var(--ui-button-focus-outline-offset, var(--ui-fallback-button-focus-outline-offset))",
+        "var(--ui-component-height-100, var(--ui-fallback-component-height-100))",
+        "var(--ui-font-size-100, var(--ui-fallback-font-size-100))",
+        "var(--ui-line-height-100, var(--ui-fallback-line-height-100))",
+        "var(--ui-font-size-150, var(--ui-fallback-font-size-150))",
+        "var(--ui-line-height-150, var(--ui-fallback-line-height-150))",
+        "var(--ui-fallback-button-size-m-height)",
+    ] {
+        assert!(
+            styles_source.contains(needle),
+            "Tag styles should keep defensive fallback-chain marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "--ui-fallback-button-size-s-font-size:",
+        "--ui-fallback-button-size-s-line-height:",
+        "--ui-fallback-button-size-m-height:",
+        "--ui-fallback-border-width:",
+        "--ui-fallback-radius-full:",
+        "--ui-fallback-space-sm:",
+        "--ui-fallback-space-xs:",
+        "--ui-fallback-space-md:",
+        "--ui-fallback-space-2xs:",
+        "--ui-fallback-bg-muted:",
+        "--ui-fallback-bg:",
+        "--ui-fallback-border:",
+        "--ui-fallback-fg:",
+        "--ui-fallback-focus-ring:",
+        "--ui-fallback-button-focus-outline-width:",
+        "--ui-fallback-button-focus-outline-offset:",
+        "--ui-fallback-component-height-100:",
+        "--ui-fallback-font-size-100:",
+        "--ui-fallback-line-height-100:",
+        "--ui-fallback-font-size-150:",
+        "--ui-fallback-line-height-150:",
+    ] {
+        assert!(
+            theme_css_source.contains(needle),
+            "ui-theme fallback SSOT should include `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "var(--ui-button-size-s-font-size, 13px)",
+        "var(--ui-button-size-s-line-height, 18px)",
+        "var(--ui-radius-full, 9999px)",
+        "var(--ui-border-width, 1px) solid transparent",
+        "var(--ui-button-size-xs-height, 24px)",
+        "var(--ui-button-size-xs-padding-x, 8px)",
+        "var(--ui-button-size-xs-font-size, 12px)",
+        "var(--ui-button-size-xs-line-height, 16px)",
+        "var(--ui-button-size-s-height, 28px)",
+        "var(--ui-button-size-s-padding-x, 10px)",
+        "var(--ui-button-size-m-height, 32px)",
+        "var(--ui-button-size-m-padding-x, 12px)",
+        "var(--ui-button-size-m-font-size, 14px)",
+        "var(--ui-button-size-m-line-height, 20px)",
+        "var(--ui-space-sm, 12px)",
+        "var(--ui-space-xs, 8px)",
+        "var(--ui-button-size-xs-icon, 18px)",
+        "var(--ui-button-focus-outline-width, 3px)",
+        "var(--ui-button-focus-outline-offset, 2px)",
+    ] {
+        assert!(
+            !styles_source.contains(forbidden),
+            "Tag styles should not keep bare fallback literal `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn tag_cascade_layer_and_runtime_style_contract_is_enforced() {
+    let checklist_source = load_source("src/tag/check2.md");
+    let view_source = load_source("src/tag/view.rs");
+    let ui_css_source = load_source("src/css.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
+
+    for needle in [
+        "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
+        "crates/ui/src/css.rs",
+        "components/tag/src/view.rs` 与 `components/tag/src/group/view.rs` 均未使用普通 inline style",
+        "tag_cascade_layer_and_runtime_style_contract_is_enforced",
+        "tag_group_cascade_layer_and_runtime_style_contract_is_enforced",
+    ] {
+        assert!(
+            checklist_source.contains(needle),
+            "tag/check2.md should keep cascade-layer contract token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "out.push_str(\"\\n@layer ui {\\n\");",
+        "#[cfg(feature = \"component-tag\")]",
+        "out.push_str(crate::tag::styles::CSS);",
+        "out.push_str(\"\\n}\\n\");",
+    ] {
+        assert!(
+            ui_css_source.contains(needle),
+            "ui css aggregation should keep cascade-layer fragment `{needle}`."
+        );
+    }
+
+    assert!(
+        ui_root_source.contains("crate::css::push_components_css(&mut out);"),
+        "UiRoot should keep injecting component css aggregated by @layer ui."
+    );
+
+    for forbidden in ["style=", "style:top", "style:left", "style:transform"] {
+        assert!(
+            !view_source.contains(forbidden),
+            "tag/view.rs should avoid plain inline style token `{forbidden}`."
+        );
+    }
+
+    for needle in [
+        "tag css is aggregated in @layer ui and runtime style is css-variable-only",
+        "tag_cascade_layer_and_runtime_style_contract_is_enforced",
+    ] {
+        assert!(
+            script_source.contains(needle),
+            "contract-hygiene script should enforce `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn tag_machine_readable_marker_values_are_closed_sets() {
     let primitive_source = load_source("../../crates/ui-state-primitives/src/tag.rs");
 
@@ -395,6 +546,8 @@ fn tag_platform_check_script_covers_native_ssr_and_wasm_compile_paths() {
         "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-tag,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_motion_contract_uses_ui_motion_non_wasm_stub_and_keeps_component_safe_without_motion",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_reduced_motion_ssr_wasm_contract_is_n_a_but_semantics_stay_platform_stable",
         "components/tag/src/view.rs",
         "components/tag/src/logic.rs",
     ] {
@@ -581,7 +734,7 @@ fn tag_docs_playgrounds_lock_state_matrix_contract_values() {
         "title=\"Removable + Disabled + Custom Class\"",
         "remove_aria_label=\"Remove alpha release\".to_string()",
         "class_name=\"docs-tag-custom\".to_string()",
-        "disabled=true removable=true",
+        "is_disabled=true is_removable=true",
         "remove count:",
     ] {
         assert!(
@@ -959,7 +1112,7 @@ fn tag_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_sco
     }
 
     for required in [
-        "- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。",
+        "- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。",
         "若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。",
         "关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。",
         "异步边界不得把具体 runtime 类型暴露到组件公共接口。",
@@ -1221,6 +1374,28 @@ fn tag_component_file_responsibilities_remain_scoped() {
 }
 
 #[test]
+fn tag_remove_button_input_normalization_is_mounted_from_ui_headless_contract() {
+    let view_source = load_source("src/tag/view.rs");
+
+    for required in [
+        "use ui_headless::{ButtonOptions, use_button};",
+        "let remove_button_aria = use_button(ButtonOptions {",
+        "on:pointerdown=move |_| remove_button_aria.handlers.press.on_pointer_down.run(())",
+        "on:pointerup=move |_| remove_button_aria.handlers.press.on_pointer_up.run(())",
+        "on:pointercancel=move |_| remove_button_aria.handlers.press.on_pointer_cancel.run(())",
+        "on:click=move |_| remove_button_aria.handlers.press.on_click.run(())",
+        "remove_button_aria.handlers.press.on_key_down.run(key)",
+        "remove_button_aria.handlers.press.on_key_up.run(key)",
+        "remove_button_aria.handlers.press.on_blur.run(())",
+    ] {
+        assert!(
+            view_source.contains(required),
+            "Tag remove button should mount ui-headless press contract marker `{required}`."
+        );
+    }
+}
+
+#[test]
 fn tag_component_files_check_script_covers_directory_contract() {
     let script_source = load_source("../../scripts/check-ui-component-files.sh");
 
@@ -1327,7 +1502,7 @@ fn tag_snapshot_baseline_and_streaming_fallback_contract_are_explicit() {
     }
 
     for needle in [
-        "- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。",
+        "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。",
         "- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。",
         "`Streaming`：LLM 还在生成，界面边生成边显示。",
         "`Snapshot`：LLM 全部生成完成后，一次性显示。",
@@ -1426,6 +1601,8 @@ fn tag_contract_hygiene_script_covers_agent_contract_schema_guards() {
     let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_cascade_layer_and_runtime_style_contract_is_enforced",
         "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_agent_contract_is_schema_typed_and_machine_readable",
         "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
         "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_check2_documents_semantics_first_testing_rules",
@@ -1435,6 +1612,61 @@ fn tag_contract_hygiene_script_covers_agent_contract_schema_guards() {
         assert!(
             script_source.contains(needle),
             "contract-hygiene script should enforce `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn tag_check2_marks_defensive_variables_contract_complete() {
+    let checklist_source = load_source("src/tag/check2.md");
+
+    for needle in [
+        "- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。",
+        "components/tag/src/styles.rs` 与 `components/tag/src/group/styles.rs`",
+        "tag_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
+        "tag_group_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
+    ] {
+        assert!(
+            checklist_source.contains(needle),
+            "tag/check2.md should keep defensive-variable completion evidence `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn tag_check2_marks_cascade_layer_contract_complete() {
+    let checklist_source = load_source("src/tag/check2.md");
+
+    for needle in [
+        "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
+        "crates/ui/src/css.rs",
+        "components/tag/src/view.rs` 与 `components/tag/src/group/view.rs` 均未使用普通 inline style",
+        "tag_cascade_layer_and_runtime_style_contract_is_enforced",
+        "tag_group_cascade_layer_and_runtime_style_contract_is_enforced",
+    ] {
+        assert!(
+            checklist_source.contains(needle),
+            "tag/check2.md should keep cascade-layer completion evidence `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn tag_check2_marks_motion_contract_complete() {
+    let checklist_source = load_source("src/tag/check2.md");
+
+    for needle in [
+        "- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。",
+        "N/A（`Tag/TagGroup` 当前无组件级 motion contract）",
+        "tag_motion_contract_uses_ui_motion_non_wasm_stub_and_keeps_component_safe_without_motion",
+        "tag_reduced_motion_ssr_wasm_contract_is_n_a_but_semantics_stay_platform_stable",
+        "tag_group_motion_contract_uses_ui_motion_non_wasm_stub_and_keeps_component_safe_without_motion",
+        "tag_group_reduced_motion_ssr_wasm_contract_is_n_a_but_semantics_stay_platform_stable",
+        "scripts/check-ui-platforms.sh` / `scripts/check-ui-layout-platforms.sh`",
+    ] {
+        assert!(
+            checklist_source.contains(needle),
+            "tag/check2.md should keep motion-contract completion evidence `{needle}`."
         );
     }
 }
@@ -1622,9 +1854,9 @@ fn tag_docs_examples_sync_with_logic_api_names_and_default_matrix() {
         "<Tag variant=TagVariant::Surface>\"Surface\"</Tag>",
         "variant=TagVariant::Default size=TagSize::Sm",
         "variant=TagVariant::Surface size=TagSize::Lg",
-        "removable=true",
+        "is_removable=true",
         "on_remove=on_remove_alpha",
-        "disabled=true removable=true",
+        "is_disabled=true is_removable=true",
     ] {
         assert!(
             docs_source.contains(needle),
@@ -1635,8 +1867,9 @@ fn tag_docs_examples_sync_with_logic_api_names_and_default_matrix() {
     for needle in [
         "#[prop(optional)] variant: TagVariant,",
         "#[prop(optional)] size: TagSize,",
-        "#[prop(optional)] disabled: bool,",
-        "#[prop(optional)] removable: bool,",
+        "#[prop(optional)] mode: Option<TagInteractivityMode>,",
+        "#[prop(optional)] is_disabled: Option<bool>,",
+        "#[prop(optional)] is_removable: Option<bool>,",
         "#[prop(optional)] on_remove: Option<OnPress>,",
         "#[prop(optional, into)] remove_aria_label: Option<String>,",
     ] {
@@ -1740,6 +1973,78 @@ fn tag_docs_app_provides_interactive_playground_with_live_props_and_state_previe
 }
 
 #[test]
+fn tag_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
+    let source = load_source("../../apps/docs-app/src/playground.rs");
+
+    for needle in [
+        "<style>{move || compose_scoped_css(&scope_selector.get_value(), &test_css.get())}</style>",
+        "on:input=move |ev| set_test_css.set(event_target_value(&ev))",
+        "placeholder=\"/* Original CSS is loaded. Edit directly, or use :scope for local targeting. */\"",
+        "\"Restore original CSS\"",
+        "data-slot=\"playground-test\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Playground should keep CSS hot-reload contract marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn tag_dx_workbench_keeps_context_and_isolated_canvas_with_optional_persist_na() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_groups.rs");
+    let section_start = source
+        .find("pub(super) fn tag() -> AnyView")
+        .expect("Tag docs section should exist.");
+    let section_end = source[section_start..]
+        .find("pub(super) fn collapsible() -> AnyView")
+        .map(|offset| section_start + offset)
+        .expect("Tag docs section should end before `collapsible` section.");
+    let tag_section = &source[section_start..section_end];
+
+    for needle in [
+        "title=\"Workbench (Config + Live Actual Config)\"",
+        "test_config_signal=workbench_actual_config",
+        "data-slot=\"tag-workbench-controls\"",
+        "let (remove_count, set_remove_count) = signal(0_u32);",
+        "let (last_removed, set_last_removed) = signal(\"none\".to_string());",
+        "\"remove_count: \" {move || remove_count.get()}",
+        "\" · last_removed: \" {move || last_removed.get()}",
+    ] {
+        assert!(
+            tag_section.contains(needle),
+            "Tag workbench should keep DX context marker `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "TAG_WORKBENCH_STORAGE_KEY",
+        "local_storage",
+        "Persist workbench state",
+    ] {
+        assert!(
+            !tag_section.contains(forbidden),
+            "Tag workbench should keep optional persist-state as explicit N/A; found `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn tag_dx_check_script_covers_hot_reload_and_workbench_contract() {
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
+
+    for needle in [
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_dx_workbench_keeps_context_and_isolated_canvas_with_optional_persist_na",
+    ] {
+        assert!(
+            script_source.contains(needle),
+            "DX check script should enforce `{needle}`."
+        );
+    }
+}
+
 fn tag_docs_source_first_copy_paste_ready_with_imports_source_paths_and_sync() {
     let check2_source = load_source("src/tag/check2.md");
     let docs_source =
@@ -1852,8 +2157,9 @@ fn tag_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes
     for needle in [
         "#[prop(optional)] variant: TagVariant,",
         "#[prop(optional)] size: TagSize,",
-        "#[prop(optional)] disabled: bool,",
-        "#[prop(optional)] removable: bool,",
+        "#[prop(optional)] mode: Option<TagInteractivityMode>,",
+        "#[prop(optional)] is_disabled: Option<bool>,",
+        "#[prop(optional)] is_removable: Option<bool>,",
         "#[prop(optional)] on_remove: Option<OnPress>,",
     ] {
         assert!(

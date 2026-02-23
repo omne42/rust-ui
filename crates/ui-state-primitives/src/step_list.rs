@@ -239,6 +239,32 @@ pub fn normalize_completed_indices(
         .collect()
 }
 
+pub fn is_completed_step(
+    index: usize,
+    selected_index: Option<usize>,
+    completed_indices: &BTreeSet<usize>,
+) -> bool {
+    completed_indices.contains(&index) || selected_index.is_some_and(|selected| index < selected)
+}
+
+pub fn count_completed_steps(
+    items: &[StepListItem],
+    selected_index: Option<usize>,
+    completed_indices: &BTreeSet<usize>,
+) -> usize {
+    items
+        .iter()
+        .enumerate()
+        .filter(|(index, item)| {
+            !item.disabled && is_completed_step(*index, selected_index, completed_indices)
+        })
+        .count()
+}
+
+pub fn count_disabled_steps(items: &[StepListItem]) -> usize {
+    items.iter().filter(|item| item.disabled).count()
+}
+
 pub fn first_enabled_index(items: &[StepListItem]) -> Option<usize> {
     items.iter().position(|item| !item.disabled)
 }

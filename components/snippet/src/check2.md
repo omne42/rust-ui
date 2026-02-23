@@ -47,6 +47,8 @@
   - `~/.cargo/bin/cargo clippy -p ui --lib --no-default-features --features component-snippet -- -D warnings`（通过，复验）
   - `~/.cargo/bin/cargo clippy -p ui --test snippet_semantics --no-default-features --features component-snippet -- -D warnings`（通过，复验）
   - `~/.cargo/bin/cargo test -p ui --test snippet_semantics --no-default-features --features component-snippet -- --nocapture`（通过，44/44，复验）
+  - `rg -n "\\bunwrap\\(|\\bexpect\\(|\\blet _ =\\b" components/snippet/src -g '!**/test/**'`（通过：无命中，snippet 非测试代码未发现 `unwrap/expect` 与无处理 `let _ = ...`）
+  - `bash ./scripts/check-rust-hygiene.sh`（阻塞：命中仓库既有项 `components/sidebar/src/motion.rs` 的 `motion-hardcode`，非 snippet 改动引入）
 - A11y/i18n 验收补充：
   - `view.rs` 文案链路已统一为 `props > UiI18n(CommonStrings) > component fallback`，覆盖 `copy/copy-aria/copied/retry` 四类文本。
   - `view.rs` 透传 `lang/dir`，交互语义由 `ui-headless::use_snippet_copy` 与 `locale_attrs` 提供，组件层仅挂载。
@@ -155,6 +157,24 @@
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
   - N/A（Snippet）：当前组件是单体 display primitive，不存在 Parent/Item 组合结构，默认 API 直接 `<Snippet ... />`，无并行数组入口。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
+  - N/A（Snippet）：组件不包含拖拽或持续手势交互路径，`components/snippet/src` 与 `components/snippet/test` 无 `drag/pointermove/DragEnd` 状态机语义，故不引入 Macro/Micro 双状态机。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
+  - N/A（Snippet）：组件不承担浮层定位与几何测量职责，`components/snippet/src` 与 `components/snippet/test` 无 `tooltip/popover/menu/getBoundingClientRect` 等两段式渲染路径，无需引入 `Intent -> Measure -> Rectification` 收敛流程。
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
+  - N/A（Snippet）：组件不提供动态子项集合与 roving 导航语义，`components/snippet/src` 与 `components/snippet/test` 无 `RegistrationContext/Register/Unregister/items_order` 机制，不存在基于 `HashSet` 顺序导航的风险面。
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
+  - N/A（Snippet）：组件不是容器/投影型组件，不承载子树投影与保活策略；`components/snippet/src` 与 `components/snippet/test` 无 `Lazy/KeepAlive/Eager/NotifyHidden` 语义路径，也不存在隐藏态轮询或动画副作用暂停需求。
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
+  - N/A（Snippet）：组件无 `Resize/Intersection` 环境订阅与断点派生状态机，`components/snippet/src` 与 `components/snippet/test` 不存在 `BreakpointChanged` 或原始环境事件洪泛链路，因此无需引入 Env Streams 防抖回流协议。
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
+  - N/A（Snippet）：组件不属于大型集合容器，不提供批量选择或 `Table/Grid` 导航语义；`components/snippet/src` 与 `components/snippet/test` 无 `Context Bus/SelectionState::All` 状态压缩路径，也不存在 O(N) prop drilling 风险面。
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
+  - N/A（Snippet）：组件不包含跨订阅者总线广播链路，`components/snippet/src` 与 `components/snippet/test` 无 `TraceId` 透传或总线派生分发机制，因此不引入 Causality Bus 契约。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
+  - N/A（Snippet）：组件不属于 `Overlay`/层叠浮层范畴，`components/snippet/src` 与 `components/snippet/test` 无 `NodeRef` 焦点恢复栈、`FallbackTo/Selector` 全局焦点管理或焦点回收流程，因此不存在焦点坠落 `document.body` 的该类风险面。
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
+  - N/A（Snippet）：组件不集成 ECharts/Map 等命令式第三方实例，`components/snippet/src` 与 `components/snippet/test` 无 `Foreign Zone/YieldControl/CleanupForeign` 管线与外部实例生命周期管理，因此不存在第三方实例暴露 API 或污染组件状态机的路径。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
 - [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
@@ -185,11 +205,22 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
+  - N/A（Snippet）：`Snippet` 为简单展示组件，当前无复杂结构编排/外部 schema 固化需求；按仓库约束不新增 `spec.rs`，避免为“形式统一”引入无效抽象。
+  - 若后续演进为复杂配置驱动组件，再引入 `SnippetSpec::new()...render()`，并同步补齐契约测试与版本迁移说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
   - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
+  - `components/snippet/src/styles.rs` 关键主题/尺寸变量已改为双层回退链（如 `--ui-space-sm`、`--ui-radius-md`、`--ui-border`、`--ui-fg`、`--ui-focus-ring`）。
+  - 终值回退统一指向 `--ui-fallback-*`，不再在组件内写入颜色 Hex 与主题终值常量。
+  - `components/snippet/test/semantics.rs` 已同步断言双层回退链，避免契约回退为单层变量引用。
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style="top: 10px"`）。
+  - `crates/ui/src/css.rs` 在 `push_components_css` 中统一写入 `@layer ui` 并按 feature 聚合组件 CSS，`component-snippet` 走同一聚合链路。
+  - `components/snippet/src/view.rs` 未使用普通内联样式（无 `style=` / `style:\"...\"`），避免把布局值直接硬编码到节点属性。
+  - `Snippet` 运行时样式调整约束保持为“仅语义标记 + CSS 变量”，不在组件层引入 `top/left/...` 这类普通内联样式覆盖。
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
@@ -223,10 +254,16 @@
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
+  - `components/snippet/src/motion.rs` 以 `SnippetMotion { spring, copied_scale, enabled }` 建模动效合同，`spring` 明确包含 `stiffness/damping/mass/precision`，并由 `sanitize_motion` 做边界归一化。
+  - wasm 分支通过 `attach_motion(...)` 挂载到节点，调用 `ui_motion::web::prefers_reduced_motion()` 时走降级路径，确保低动效偏好可预测。
+  - non-wasm 分支提供 `attach_motion` 安全 no-op（仅保留 `sanitize_motion` 归一化，不触发浏览器 API 依赖），满足 SSR/tooling 编译与运行安全。
 - [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
+  - N/A（Snippet）：组件未在 `logic.rs/view.rs` 生成运行时随机 ID，`components/snippet/src` 与 `components/snippet/test` 无 `now()/uuid/rand` 初始化路径；语义标记由 props 与确定性状态派生，SSR/Hydration 无随机种子漂移面，因此无需引入 `IdProvider` 注入链路。
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`Snippet` 已接入 docs 全局 `UiPerfProbe` 预算观测链路并通过 e2e 阈值断言；本组件回归已固定状态/渲染/样式/动效归因标记。当前测试框架对精确 `render_count` 仍无统一自动化基建，按清单采用等价可重复证据，并持续跟踪 `docs/plan/TODO.md` 的 `render_count` 补齐任务。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
@@ -262,6 +299,17 @@
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
+  - `components/snippet/src` 非测试代码扫描结果为 0 命中：未发现 `unwrap()/expect()` 与无处理 `let _ = ...`。
+  - 字符串复制热点已在 `components/snippet/src/logic.rs::compose_class_name` 收敛为 `Cow<'static, str>`，静态类名不再每次组装都分配 `String`。
+  - `./scripts/check-rust-hygiene.sh` 已执行；当前失败源为仓库既有 `components/sidebar/src/motion.rs`，不属于 snippet 变更面。
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
+  - N/A（Snippet）：本轮变更未引入跨大版本 API 破坏升级；`Snippet` 对外 API 与语义契约仅做兼容性增强/审计补充，无 `v1 -> v2` 断裂迁移面。
+  - 因无破坏性版本切换，本轮不新增 Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移函数；若后续出现破坏升级，需在同 PR 同步补齐 registry + 纯函数迁移层。
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
+  - 已新增 `components/snippet/src/Component.toml`：声明 `Snippet` 输入/输出、能力清单与依赖边界，作为组件能力 Manifest 单一事实源。
+  - 已新增 `components/snippet/src/snippet.rbi`：投影公开接口签名（核心常量、`SnippetMotion`、`SnippetLogic*` 与 `Snippet(...)`），供 AI/索引工具稳定检索。
+  - 后续每次新增或变更公开输入/输出时，`Component.toml` 与 `.rbi` 同步更新，防止文档与接口漂移。
 
 ### 5. 文件落点检查（必须提及）
 - [x] `ui` 固定入口文件落点正确。

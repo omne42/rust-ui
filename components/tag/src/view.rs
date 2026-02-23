@@ -1,6 +1,7 @@
-use crate::{TagSize, TagVariant, logic};
+use crate::{TagInteractivityMode, TagSize, TagVariant, logic};
 use leptos::prelude::*;
 use ui_headless::{A11yDirection, OnPress, locale_attrs};
+use ui_headless::{ButtonOptions, use_button};
 
 const TAG_CONTENT_CLASS: &str = "ui-tag__content";
 const TAG_CONTENT_SLOT: &str = "tag-content";
@@ -22,23 +23,49 @@ fn render_remove_button(
     remove_aria_label: StoredValue<String>,
     on_remove: StoredValue<Option<OnPress>>,
 ) -> impl IntoView {
+    let on_press = on_remove.get_value().map(|on_remove| {
+        Callback::new(move |_| {
+            agent_source.set(logic::TagAgentSource::RemovePointer);
+            on_remove.run(());
+        })
+    });
+    let remove_button_aria = use_button(ButtonOptions {
+        is_disabled: state.is_disabled,
+        on_press,
+        ..Default::default()
+    });
+
     view! {
         <Show when=move || state.is_removable>
             <button
                 type="button"
                 class=TAG_REMOVE_CLASS
+                role=remove_button_aria.attrs.role
+                tabindex=remove_button_aria.attrs.tabindex
+                aria-disabled=remove_button_aria.attrs.aria_disabled
                 aria-label=move || remove_aria_label.get_value()
                 data-slot=TAG_REMOVE_SLOT
                 data-disabled=state.is_disabled.then_some("true")
                 data-label-source=state.remove_label_source_attr
                 disabled=state.is_disabled
-                on:click=move |_| {
-                    if state.is_enabled
-                        && let Some(on_remove) = on_remove.get_value()
-                    {
-                        agent_source.set(logic::TagAgentSource::RemovePointer);
-                        on_remove.run(());
+                on:pointerdown=move |_| remove_button_aria.handlers.press.on_pointer_down.run(())
+                on:pointerup=move |_| remove_button_aria.handlers.press.on_pointer_up.run(())
+                on:pointercancel=move |_| remove_button_aria.handlers.press.on_pointer_cancel.run(())
+                on:click=move |_| remove_button_aria.handlers.press.on_click.run(())
+                on:keydown=move |ev| {
+                    let key = ev.key();
+                    if remove_button_aria.handlers.press.on_key_down.run(key) {
+                        ev.prevent_default();
                     }
+                }
+                on:keyup=move |ev| {
+                    let key = ev.key();
+                    if remove_button_aria.handlers.press.on_key_up.run(key) {
+                        ev.prevent_default();
+                    }
+                }
+                on:blur=move |_| {
+                    remove_button_aria.handlers.press.on_blur.run(());
                 }
             >
                 {TAG_REMOVE_GLYPH}
@@ -51,8 +78,9 @@ fn render_remove_button(
 pub fn Tag(
     #[prop(optional)] variant: TagVariant,
     #[prop(optional)] size: TagSize,
-    #[prop(optional)] disabled: bool,
-    #[prop(optional)] removable: bool,
+    #[prop(optional)] mode: Option<TagInteractivityMode>,
+    #[prop(optional)] is_disabled: Option<bool>,
+    #[prop(optional)] is_removable: Option<bool>,
     #[prop(optional)] on_remove: Option<OnPress>,
     #[prop(optional, into)] remove_aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
@@ -60,15 +88,16 @@ pub fn Tag(
     #[prop(optional)] dir: Option<A11yDirection>,
     children: Children,
 ) -> impl IntoView {
-    let normalized = logic::normalize_tag_input(
+    let normalized = logic::normalize_tag_input(logic::TagNormalizeInput {
         variant,
         size,
-        disabled,
-        removable,
-        on_remove.is_some(),
+        mode,
+        is_disabled,
+        is_removable,
+        has_remove_handler: on_remove.is_some(),
         remove_aria_label,
         class_name,
-    );
+    });
     let state = normalized.state;
     let agent_source = RwSignal::new(logic::TagAgentSource::Init);
     let agent_contract =

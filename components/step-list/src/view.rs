@@ -187,8 +187,7 @@ fn render_step_list_items(
         .into_iter()
         .enumerate()
         .map(|(index, item)| {
-            let is_completed = completed_indices.contains(&index)
-                || selected_index.is_some_and(|selected| index < selected);
+            let is_completed = logic::is_completed_step(index, selected_index, &completed_indices);
 
             let item_state = logic::resolve_item_state(StepListItemStateInput {
                 index,
@@ -277,18 +276,9 @@ pub fn StepList(
         let selected_index = logic::resolve_selected_index(&items, selected_state.value.get());
         let completed_indices =
             logic::normalize_completed_indices(items.len(), completed_indices.get_value());
-
-        let completed_count = items
-            .iter()
-            .enumerate()
-            .filter(|(index, item)| {
-                !item.disabled
-                    && (completed_indices.contains(index)
-                        || selected_index.is_some_and(|selected| *index < selected))
-            })
-            .count();
-
-        let disabled_count = items.iter().filter(|item| item.disabled).count();
+        let completed_count =
+            logic::count_completed_steps(&items, selected_index, &completed_indices);
+        let disabled_count = logic::count_disabled_steps(&items);
 
         logic::resolve_state(StepListStateInput {
             orientation,

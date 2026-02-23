@@ -10,7 +10,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 大骨架（架构边界与层职责）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`PressableFeedback` 状态原语已下沉到 `crates/ui-state-primitives/src/pressable_feedback.rs`，组件层 `components/pressable-feedback/src/logic.rs` 仅通过 `pub use ui_state_primitives::pressable_feedback::{...}` 桥接消费，`components/pressable-feedback/src/view.rs` 负责 `Signal` 解包后调用 `logic::resolve_state`。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -20,7 +20,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（已新增 `crates/ui-headless/src/pressable_feedback.rs`：`use_pressable_feedback_a11y(PressableFeedbackA11yOptions)` 输出 `PressableFeedbackA11yContract { attrs, handlers, state }`，统一承载 `role/tabindex/aria-disabled/lang/dir` 与 press handlers；组件 `components/pressable-feedback/src/view.rs` 仅做挂载与组合，不再在 `view.rs` 手写 button 语义决策。回归：`crates/ui-headless/src/test/pressable_feedback.rs` + `components/pressable-feedback/test/semantics.rs`。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -31,14 +31,14 @@
   - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`components/pressable-feedback/src/motion.rs` 仅做语义映射与 attach：spring 执行器复用 `ui_motion::spring::SpringAnimator`，配置归一复用 `ui_motion::spring::sanitize_config`，`reduced-motion` 走 `ui_motion::web::prefers_reduced_motion()`，`#[cfg(not(target_arch = "wasm32"))] attach_motion` 提供 no-op/stub；组件侧未实现自定义 spring/keyframe/driver。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`components/pressable-feedback/src/styles.rs` 已改为 token-first 消费：`--ui-fg/--ui-fg-muted/--ui-accent`、`--ui-disabled-opacity`、`--ui-button-focus-outline-width/offset`、`--ui-text-field-motion-duration`、`--ui-command-option-focus-mix`、`--ui-command-group-border-mix` 均经 `var(--ui-*, var(--ui-fallback-*))` 进入组件样式，不再保留 `opacity: 0.62` 与 `--ui-ripple-duration-ms: 420` 等硬编码；语义回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_styles_are_token_first_theme_driven`。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -46,7 +46,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（装配职责已对齐：`logic.rs` 仅桥接 `ui-state-primitives`，`view.rs` 仅挂载 `ui-headless` 语义契约并消费 `logic/motion` 输出，`styles.rs` 为 token-first 静态样式，`motion.rs` 仅做动效 attach；对外 API 在 `components/pressable-feedback/src/mod.rs` 仅导出 `PressableFeedback/PressableFeedbackMotion/tone+effect`，`motion` 模块改为私有避免外泄 `NodeRef/html::Div` 等 DOM 细节类型；语义回归测试文件已在 `components/pressable-feedback/test/semantics.rs` 并通过 `mod.rs` 挂载到测试编译链。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -58,85 +58,85 @@
   - 通知边界：切片值实现 `PartialEq` 时，若值未变化则不通知下游，相关 DOM 绑定不更新。
   - 成本边界：每次 `set/update` 仍会执行状态转移与切片重算；大状态或高频路径必须拆分 `Signal`/状态域，避免把 clone 成本当作恒定可忽略。
   - 反模式禁止：`view.rs` 只做挂载与消费切片，禁止重新实现状态机分支或复制 `logic.rs` 判定规则。
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`PressableFeedback` 公共布尔 props 已统一为 `is_bounded`/`is_disabled`，回调为 `on_press`；`bounded` 命名已从公共 API 与 docs 示例移除。迁移策略：该组件当前版本 `0.0.0`，采用一次性重命名迁移，`apps/docs-app/src/pages/components/pages/display_extra/pressable_feedback.rs` 与 `components/pressable-feedback/test/semantics.rs` 已同步更新并锁定新命名契约，避免长期别名漂移。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`PressableFeedback` 已补齐按压轴三元组：`is_pressed: Option<Signal<bool>> + on_pressed_change: Option<Callback<bool>> + default_pressed: Option<bool>`，并在 `components/pressable-feedback/src/view.rs` 通过 `ui_headless::use_controllable_state` 实现受控/非受控一致语义；默认值由 `components/pressable-feedback/src/logic.rs::normalize_pressed_axis` 统一归一。可观测标记：`data-pressed-mode`、`data-default-pressed-source`、`data-pressed-change-source`、`data-pressed-controlled/uncontrolled`。回归：`components/pressable-feedback/test/logic.rs` 与 `components/pressable-feedback/test/semantics.rs`。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（默认值归一现由 `crates/ui-state-primitives/src/pressable_feedback.rs::normalize_flags` 单点提供：`DEFAULT_IS_BOUNDED=true`、`DEFAULT_IS_DISABLED=false`；组件 `logic.rs` 仅桥接导出，`view.rs` 仅消费 `logic::normalize_state_contract(...)` 输出，不再内联 `default = true` 或二次兜底。回归：`crates/ui-state-primitives/src/test/pressable_feedback.rs::normalize_flags_uses_primitive_defaults` 与 `components/pressable-feedback/test/semantics.rs::pressable_feedback_default_values_are_normalized_only_in_logic`。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`flags + aria + class + effect(highlight/ripple)` 的归一已下沉到 `crates/ui-state-primitives/src/pressable_feedback.rs::normalize_state_contract`；组件 `logic.rs` 仅桥接 primitive 并处理 `Signal/Callback -> PressedAxisInput` 映射，`view.rs` 仅消费 `logic::normalize_state_contract(...)` 与 `logic::normalize_pressed_axis(...)`。事件处理器仅触发 headless handler + `request_pressed_change`。回归：`crates/ui-state-primitives/src/test/pressable_feedback.rs::normalize_state_contract_aggregates_sources_and_effect_flags`、`components/pressable-feedback/test/semantics.rs::pressable_feedback_state_normalization_is_centralized_in_logic`。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（外部离散输入 `tone/effect` 使用 `PressableFeedbackTone/PressableFeedbackEffect`；按压模式与来源离散轴已在 `crates/ui-state-primitives/src/pressable_feedback.rs` 类型化为 `PressableFeedbackPressedMode`、`PressableFeedbackDefaultPressedSource`、`PressableFeedbackPressedChangeSource`，通过 `resolve_pressed_axis_state` 产出。组件 `view.rs` 仅消费 `pressed_axis.*.as_attr()`。回归：`crates/ui-state-primitives/src/test/pressable_feedback.rs::resolve_pressed_axis_state_maps_control_and_source_markers`、`components/pressable-feedback/test/semantics.rs::pressable_feedback_discrete_state_axes_use_type_constrained_enums`。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`PressableFeedback` 可复用状态原语已下沉到 `crates/ui-state-primitives/src/pressable_feedback.rs`：`normalize_flags`、`normalize_state_contract`、`resolve_pressed_axis_state` 及对应 `Flags/Contract/PressedMode/Source` 类型均由 primitive 提供；`components/pressable-feedback/src/logic.rs` 仅 `pub use` primitive 并做 `Signal/Callback -> PressedAxisInput` 桥接映射，不再定义可复用状态机。primitive 回归：`crates/ui-state-primitives/src/test/pressable_feedback.rs` 新增默认值/contract/pressed-axis 测试；组件语义回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_logic_only_bridges_state_primitives_for_state_kernels`。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`PressableFeedback` 为纯本地按压反馈组件，无远程请求、无异步任务队列、无加载/错误重试状态机；当前 API 不暴露 `is_loading`/`on_retry`，语义层不输出 `aria-busy`，实现层未引入 `use_async_action`。防回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_has_no_async_loading_retry_contracts`。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`PressableFeedback` 基础调用仅需 `<PressableFeedback>{children}</PressableFeedback>`，`components/pressable-feedback/src/view.rs` 不暴露 `state` 等内部状态对象作为必填参数；docs `Hello World (Default API)` 改为默认路径并仅导入 `PressableFeedback`，示例代码为 3 行可直接运行；高级控制保留在 `Workbench` 中按需启用（如 `on_press`、受控按压轴）。回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_dx_default_api_path_is_minimal_and_internal_complexity_hidden`、`components/pressable-feedback/test/semantics.rs::pressable_feedback_docs_playgrounds_lock_state_matrix_contract_values`。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A：`PressableFeedback` 为单容器按压反馈组件，不是多项集合型组合组件；对外主 API 仅 `PressableFeedback(children)`，不存在 `labels + children`、`titles + panels` 并行数组契约，也未引入 `ItemSpec` 语法糖。回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_avoids_parallel_slot_composite_api_contracts`。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`PressableFeedback` 通过 `ui_headless::use_pressable_feedback_a11y` 挂载 `role/tabindex/aria-disabled` 与键盘路径，`view.rs` 透传 `lang/dir` 到 headless 并生效在根节点；共享 locale 工具复用 `crates/ui-headless/src/a11y.rs::locale_attrs`；`view.rs` 无硬编码用户可见文案。防回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_a11y_and_i18n_contracts_are_headless_driven_and_view_has_no_hardcoded_copy`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`PressableFeedback` 根节点持续暴露稳定可检索语义标记：`data-state/data-disabled/data-pressed`（关键状态轴）、`data-pressed-mode/data-default-pressed-source/data-pressed-change-source`（受控与来源轴）、`data-aria-source/data-class-source/data-motion-source`（契约来源轴），并挂载 `role/aria-disabled`；对应属性值由 `ui-state-primitives` 中 `enum::as_attr()` 与状态归一逻辑输出为封闭集合，避免自由文本漂移。自动化断言优先基于这些语义标记。防回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_emits_baseline_style_state_data_attributes`、`components/pressable-feedback/test/semantics.rs::pressable_feedback_state_markers_are_observable_queryable_and_closed_set`。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`PressableFeedback` 的状态分支已固定在语义标记与稳定 class：`data-state/data-effect/data-boundary/data-highlight/data-ripple`；`styles.rs` 不使用 `:nth-child/:nth-of-type` 等结构猜测选择器。`view.rs` 不含业务 inline style，且视觉节点（highlight/ripple）常驻挂载，通过 `data-highlight/data-ripple` 控制显隐，不再依赖节点是否存在来表达视觉状态。防回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_styles_include_effect_boundary_and_markers`、`components/pressable-feedback/test/semantics.rs::pressable_feedback_styles_are_driven_by_explicit_markers_not_dom_guesswork`。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`PressableFeedback` 已以语义断言为主：`role/aria/data-state/source markers` 由 `components/pressable-feedback/test/semantics.rs::pressable_feedback_state_markers_are_observable_queryable_and_closed_set` 与 `components/pressable-feedback/test/semantics.rs::pressable_feedback_emits_baseline_style_state_data_attributes` 覆盖；受控/非受控与 disabled 分支由 `components/pressable-feedback/test/logic.rs::{normalize_pressed_axis_reports_controlled_sources,normalize_pressed_axis_uncontrolled_uses_default_fallback,normalize_flags_prefers_explicit_inputs,normalize_state_contract_uses_fallback_markers}` 覆盖；键盘/指针路径与 SSR/wasm 分支证据由 `components/pressable-feedback/test/semantics.rs::pressable_feedback_semantics_matrix_covers_core_paths_without_snapshot_dependency`（含 `on:keydown/on:keyup/on:pointer*` 与 `motion.rs` `cfg(target_arch = \"wasm32\")/cfg(not(...))`）锁定。并明确禁止以 snapshot-only 断言替代语义契约。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`mod.rs` 仅保留稳定导出；`logic.rs` 仅桥接 `ui-state-primitives` 并做按压轴归一，不含 DOM/样式分支；`styles.rs` 仅 `pub const CSS` token-first 静态规则；`view.rs` 仅结构渲染与 headless 挂载，状态核归一来自 `logic`；`motion.rs` 仅做语义到 `ui-motion` contract 映射与 attach（含 wasm/non-wasm 分支），未重写通用动效引擎。防回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_component_files_respect_layered_responsibilities`。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（N/A：`PressableFeedback` 为简单按压反馈容器组件，不存在稳定外部 Schema Builder 或复杂配置固化需求；组件目录保持 `mod/logic/styles/view/motion/protocol`，未新增 `src/spec.rs`，`mod.rs` 也未导出 `spec` 面。说明文档已留在 `check2.md` 与 docs 页面，不通过 `spec.rs` 承载。防回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_keeps_spec_rs_opt_in_for_complex_components_only`。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`PressableFeedback` 样式规则集中在 `components/pressable-feedback/src/styles.rs`，视觉值通过 `var(--ui-*)`/`var(--ui-fallback-*)` 消费；组件 feature 在 `crates/ui/src/css.rs` 通过 `component-pressable_feedback` 聚合注入，`UiRoot` 通过 `inject_components_css` 路径统一下发；组件层未采用 Utility-First 或 CSS-in-Rust 作为默认样式范式。防回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_obeys_token_first_static_style_contract_and_uiroot_injection_pipeline`、`components/pressable-feedback/test/semantics.rs::pressable_feedback_styles_are_token_first_theme_driven`。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（已在 docs 增加 `Default Theme Visual Baseline (Visual Desire)` 基线章节与截图锚点 `data-slot=\"pressable-feedback-visual-baseline-screenshot\"`；组件样式新增默认主题 `hover/active/focus-visible` 反馈与对比层次；防回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_visual_desire_baseline_covers_docs_and_interaction_cues`。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui` 已提供组件级特性 `component-pressable_feedback = [\"component-ripple\", \"dep:ui-pressable-feedback\"]`；`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 对 `pressable_feedback` 导出与样式聚合均受 `#[cfg(feature = \"component-pressable_feedback\")]` 门控，且 `inject-css` 关闭时走 no-op；`apps/web-demo` 依赖 `ui` 使用 `default-features = false` + `web-demo-components`，未隐式开启 `all-components`。命令验证通过：`cargo tree -e features -p ui --no-default-features --features component-pressable_feedback,inject-css`、`cargo tree -e features -i ui -p web-demo`、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-pressable_feedback,inject-css`。防回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_tree_shaking_feature_gates_remain_component_scoped`。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -145,22 +145,22 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`PressableFeedback` 离散输入与状态轴均为类型化 `enum/newtype`（`PressableFeedbackTone/Effect/PressedMode/DefaultPressedSource/PressedChangeSource`），无效输入通过 `ui-state-primitives` 的 `normalize_state_contract/resolve_pressed_axis_state` 统一归一并在 `logic.rs` 桥接；`view.rs` 持续暴露稳定机器可读标记 `data-state/data-tone/data-effect/data-aria-source/data-class-source/data-motion-source/data-pressed-*`；回归定位由 `crates/ui-state-primitives/src/test/pressable_feedback.rs`、`components/pressable-feedback/test/logic.rs` 与 `components/pressable-feedback/test/semantics.rs::pressable_feedback_type_system_and_semantic_markers_form_machine_readable_state_contract` 共同覆盖。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（`PressableFeedback` 平台差异已显式封装在 `components/pressable-feedback/src/motion.rs`：`#[cfg(target_arch = "wasm32")]` 使用浏览器对象驱动动效，`#[cfg(not(target_arch = "wasm32"))]` 提供 no-op `attach_motion`，non-wasm 分支不触达 `web-sys`/浏览器对象；compile-only 路径由门禁命令矩阵覆盖。防回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_platform_matrix_keeps_cfg_boundaries_and_non_wasm_browser_free`。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（`crates/ui-headless/src/lib.rs` 已存在互斥保护：`#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)`；`PressableFeedback` 对 `ui-headless` 依赖未强制同时启用 `web+ssr`。compile-only 证据命令：`cargo check -p ui-headless --no-default-features --features web`、`cargo check -p ui-headless --no-default-features --features ssr`；冲突路径应失败：`cargo check -p ui-headless --no-default-features --features web,ssr`。防回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_preserves_ui_headless_web_ssr_feature_mutex_contract`。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（`crates/ui-motion/src/lib.rs` 已提供 `#[cfg(not(target_arch = "wasm32"))] pub mod web` no-op/stub：`prefers_reduced_motion() -> true` 与 `animate(..) {}`；组件 `components/pressable-feedback/src/motion.rs` 同步提供 `#[cfg(not(target_arch = "wasm32"))] attach_motion(..)` 空实现，`view.rs` 统一调用 `motion::attach_motion`，non-wasm/SSR/tooling 路径可预测且不触发 panic。防回归：`components/pressable-feedback/test/semantics.rs::pressable_feedback_motion_contract_keeps_non_wasm_noop_stub_predictable`。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
@@ -296,7 +296,7 @@
 - [ ] 架构正确（边界不破）。
 - [ ] 行为正确（状态与交互语义成立）。
 - [ ] 可访问性达标（默认可用）。
-- [ ] 默认主题美学质量达标（与可访问性同级门禁）。
+- [x] 默认主题美学质量达标（与可访问性同级门禁）。
 - [ ] 可测试（契约可断言）。
 - [ ] 可维护（命名和模式一致）。
 - [ ] 可解释（人和自动化都能读懂）。

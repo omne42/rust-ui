@@ -65,6 +65,36 @@ impl TextareaSourceAttr {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TextareaValueControlModeAttr {
+    Controlled,
+    Uncontrolled,
+}
+
+impl TextareaValueControlModeAttr {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Controlled => "controlled",
+            Self::Uncontrolled => "uncontrolled",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TextareaValueChangeSourceAttr {
+    OnValueChange,
+    None,
+}
+
+impl TextareaValueChangeSourceAttr {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::OnValueChange => "on_value_change",
+            Self::None => "none",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct TextareaStateInput {
     pub disabled: bool,
     pub read_only: bool,
@@ -164,6 +194,69 @@ pub fn resolve_state(input: TextareaStateInput) -> TextareaState {
             TextareaSourceAttr::Default
         },
         has_custom_class_name: input.has_custom_class_name,
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TextareaValueAxisInput {
+    pub is_controlled: bool,
+    pub has_default_value: bool,
+    pub has_on_value_change: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TextareaValueAxisState {
+    pub is_controlled: bool,
+    pub control_mode_attr: TextareaValueControlModeAttr,
+    pub default_value_source_attr: TextareaSourceAttr,
+    pub value_change_source_attr: TextareaValueChangeSourceAttr,
+    pub has_value_change_handler: bool,
+}
+
+pub fn normalize_default_value(default_value: Option<String>) -> String {
+    default_value.unwrap_or_default()
+}
+
+pub fn resolve_value_axis_state(input: TextareaValueAxisInput) -> TextareaValueAxisState {
+    TextareaValueAxisState {
+        is_controlled: input.is_controlled,
+        control_mode_attr: if input.is_controlled {
+            TextareaValueControlModeAttr::Controlled
+        } else {
+            TextareaValueControlModeAttr::Uncontrolled
+        },
+        default_value_source_attr: if input.has_default_value {
+            TextareaSourceAttr::Custom
+        } else {
+            TextareaSourceAttr::Default
+        },
+        value_change_source_attr: if input.has_on_value_change {
+            TextareaValueChangeSourceAttr::OnValueChange
+        } else {
+            TextareaValueChangeSourceAttr::None
+        },
+        has_value_change_handler: input.has_on_value_change,
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TextareaAccessibilityStateInput {
+    pub is_disabled: Option<bool>,
+    pub is_read_only: Option<bool>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TextareaAccessibilityState {
+    pub is_disabled: bool,
+    pub is_read_only: bool,
+}
+
+pub fn resolve_accessibility_state(
+    input: TextareaAccessibilityStateInput,
+) -> TextareaAccessibilityState {
+    TextareaAccessibilityState {
+        is_disabled: input.is_disabled.unwrap_or(false),
+        is_read_only: input.is_read_only.unwrap_or(false),
     }
 }
 

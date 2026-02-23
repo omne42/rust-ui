@@ -1,3 +1,6 @@
+use leptos::prelude::{ReadSignal, WriteSignal};
+use ui_state_primitives::segmented_control::SegmentedControlState;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum SegmentedControlOrientation {
     #[default]
@@ -50,13 +53,58 @@ impl SegmentedControlSize {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SegmentedControlControlMode {
     Controlled,
+    Uncontrolled,
 }
 
 impl SegmentedControlControlMode {
     pub fn as_attr(self) -> &'static str {
         match self {
             SegmentedControlControlMode::Controlled => "controlled",
+            SegmentedControlControlMode::Uncontrolled => "uncontrolled",
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct SegmentedControlSelectionAxisInput {
+    pub selected_index: Option<ReadSignal<Option<usize>>>,
+    pub on_selected_index_change: Option<WriteSignal<Option<usize>>>,
+    pub default_selected_index: Option<usize>,
+    pub item_count: usize,
+}
+
+#[derive(Clone)]
+pub struct SegmentedControlSelectionAxis {
+    pub selected_index: Option<ReadSignal<Option<usize>>>,
+    pub on_selected_index_change: Option<WriteSignal<Option<usize>>>,
+    pub default_selected_index: Option<usize>,
+    pub control_mode: SegmentedControlControlMode,
+}
+
+pub fn normalize_selection_axis(
+    input: SegmentedControlSelectionAxisInput,
+) -> SegmentedControlSelectionAxis {
+    let has_controlled_selected_index = input.selected_index.is_some();
+    let has_on_selected_index_change = input.on_selected_index_change.is_some();
+    assert!(
+        has_controlled_selected_index == has_on_selected_index_change,
+        "SegmentedControl: `selected_index` and `on_selected_index_change` must be provided together for controlled mode, or omitted together for uncontrolled mode."
+    );
+
+    let control_mode = if has_controlled_selected_index {
+        SegmentedControlControlMode::Controlled
+    } else {
+        SegmentedControlControlMode::Uncontrolled
+    };
+    let default_selected_index = input
+        .default_selected_index
+        .filter(|index| *index < input.item_count);
+
+    SegmentedControlSelectionAxis {
+        selected_index: input.selected_index,
+        on_selected_index_change: input.on_selected_index_change,
+        default_selected_index,
+        control_mode,
     }
 }
 
@@ -83,6 +131,57 @@ impl SegmentedControlSelectionSource {
             SegmentedControlSelectionSource::Selected => "external-selected",
             SegmentedControlSelectionSource::OutOfRange => "external-out-of-range",
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SegmentedControlSemanticStateInput {
+    pub control_mode: SegmentedControlControlMode,
+    pub raw_selected_index: Option<usize>,
+    pub normalized_state: SegmentedControlState,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SegmentedControlSemanticState {
+    pub control_mode: SegmentedControlControlMode,
+    pub selection_source: SegmentedControlSelectionSource,
+    pub item_count: usize,
+    pub is_empty: bool,
+    pub has_items: bool,
+    pub is_disabled: bool,
+    pub has_disabled_options: bool,
+    pub disabled_option_count: usize,
+    pub selected_index: Option<usize>,
+    pub has_selection: bool,
+    pub selection_empty: bool,
+    pub is_horizontal: bool,
+    pub is_vertical: bool,
+    pub has_label: bool,
+}
+
+pub fn normalize_semantic_state(
+    input: SegmentedControlSemanticStateInput,
+) -> SegmentedControlSemanticState {
+    let selection_source = SegmentedControlSelectionSource::from_indices(
+        input.raw_selected_index,
+        input.normalized_state.selected_index,
+    );
+
+    SegmentedControlSemanticState {
+        control_mode: input.control_mode,
+        selection_source,
+        item_count: input.normalized_state.item_count,
+        is_empty: input.normalized_state.is_empty,
+        has_items: input.normalized_state.has_items,
+        is_disabled: input.normalized_state.is_disabled,
+        has_disabled_options: input.normalized_state.has_disabled_options,
+        disabled_option_count: input.normalized_state.disabled_option_count,
+        selected_index: input.normalized_state.selected_index,
+        has_selection: input.normalized_state.has_selection,
+        selection_empty: input.normalized_state.selection_empty,
+        is_horizontal: input.normalized_state.is_horizontal,
+        is_vertical: input.normalized_state.is_vertical,
+        has_label: input.normalized_state.has_label,
     }
 }
 

@@ -1,169 +1,113 @@
-pub const DEFAULT_ARIA_LABEL: &str = "Progress";
+use leptos::prelude::{Callback, Signal};
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ProgressRange {
-    pub min: f64,
-    pub max: f64,
+pub use ui_state_primitives::progress::{
+    ProgressMode, ProgressPhase, ProgressRange, ProgressStateInput, ProgressValueAxisInput,
+    ProgressValueAxisState, clamp_to_range, compose_class_name, normalize_optional_text,
+    normalize_progress, resolve_aria_label, resolve_phase, resolve_state, resolve_value_axis,
+    resolve_value_label,
+};
+
+pub const DEFAULT_MIN: f64 = 0.0;
+pub const DEFAULT_MAX: f64 = 100.0;
+
+#[derive(Clone)]
+pub struct ProgressValueAxis {
+    pub value: Option<Signal<Option<f64>>>,
+    pub default_value: Option<f64>,
+    pub on_value_change: Option<Callback<Option<f64>>>,
+    pub is_controlled: bool,
+    pub has_custom_default_value: bool,
+    pub has_custom_on_value_change: bool,
+    pub mode_attr: &'static str,
+    pub value_source_attr: &'static str,
+    pub default_value_source_attr: &'static str,
+    pub value_change_source_attr: &'static str,
 }
 
-impl ProgressRange {
-    pub fn sanitized(min: f64, max: f64) -> Self {
-        let mut min = if min.is_finite() { min } else { 0.0 };
-        let mut max = if max.is_finite() { max } else { 1.0 };
-        if max <= min {
-            (min, max) = (0.0, 1.0);
-        }
-        Self { min, max }
-    }
+pub fn normalize_value_axis(
+    value: Option<Signal<Option<f64>>>,
+    default_value: Option<f64>,
+    on_value_change: Option<Callback<Option<f64>>>,
+) -> ProgressValueAxis {
+    let state: ProgressValueAxisState = resolve_value_axis(ProgressValueAxisInput {
+        is_controlled: value.is_some(),
+        has_default_value: default_value.is_some(),
+        has_on_value_change: on_value_change.is_some(),
+    });
 
-    pub fn span(self) -> f64 {
-        (self.max - self.min).max(f64::EPSILON)
-    }
-}
-
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
-}
-
-pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        let is_custom = label != DEFAULT_ARIA_LABEL;
-        return (label, is_custom);
-    }
-
-    (DEFAULT_ARIA_LABEL.into(), false)
-}
-
-pub fn resolve_value_label(value: Option<String>) -> (Option<String>, bool) {
-    let value = normalize_optional_text(value);
-    let has_custom_value_label = value.is_some();
-    (value, has_custom_value_label)
-}
-
-pub fn clamp_to_range(value: f64, range: ProgressRange) -> f64 {
-    if !value.is_finite() {
-        return range.min;
-    }
-    value.clamp(range.min, range.max)
-}
-
-pub fn normalize_progress(value: f64, range: ProgressRange) -> f64 {
-    ((value - range.min) / range.span()).clamp(0.0, 1.0)
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ProgressPhase {
-    Determinate,
-    Indeterminate,
-}
-
-impl ProgressPhase {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            ProgressPhase::Determinate => "ui-progress--state-determinate",
-            ProgressPhase::Indeterminate => "ui-progress--state-indeterminate",
-        }
-    }
-
-    pub fn as_str(self) -> &'static str {
-        match self {
-            ProgressPhase::Determinate => "determinate",
-            ProgressPhase::Indeterminate => "indeterminate",
-        }
+    ProgressValueAxis {
+        value,
+        default_value,
+        on_value_change,
+        is_controlled: state.is_controlled,
+        has_custom_default_value: state.has_default_value,
+        has_custom_on_value_change: state.has_on_value_change,
+        mode_attr: state.mode_attr,
+        value_source_attr: state.value_source_attr,
+        default_value_source_attr: state.default_value_source_attr,
+        value_change_source_attr: state.value_change_source_attr,
     }
 }
 
-pub fn resolve_phase(is_indeterminate: bool) -> ProgressPhase {
-    if is_indeterminate {
-        ProgressPhase::Indeterminate
+pub fn normalize_mode(is_indeterminate: bool) -> ProgressMode {
+    ui_state_primitives::progress::normalize_mode(is_indeterminate)
+}
+
+pub fn normalize_range(min: Option<f64>, max: Option<f64>) -> ProgressRange {
+    let min = min.unwrap_or(DEFAULT_MIN);
+    let max = max.unwrap_or(DEFAULT_MAX);
+    ProgressRange::sanitized(min, max)
+}
+
+pub fn normalize_progress_value(progress: Option<f64>) -> f64 {
+    progress.unwrap_or(0.0)
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ProgressRenderInput {
+    pub clamped_value: Option<f64>,
+    pub normalized_progress: Option<f64>,
+    pub mode: ProgressMode,
+    pub value_label_override: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ProgressRenderState {
+    pub mode: ProgressMode,
+    pub phase: ProgressPhase,
+    pub is_indeterminate: bool,
+    pub progress_value: f64,
+    pub aria_value_now: Option<f64>,
+    pub value_label_text: Option<String>,
+}
+
+pub fn resolve_render_state(input: ProgressRenderInput) -> ProgressRenderState {
+    let is_indeterminate = input.mode.is_indeterminate() || input.normalized_progress.is_none();
+    let phase = resolve_phase(is_indeterminate);
+    let progress_value = normalize_progress_value(input.normalized_progress);
+
+    let value_label_text = if is_indeterminate {
+        None
+    } else if let Some(value_label_override) = input.value_label_override {
+        Some(value_label_override)
     } else {
-        ProgressPhase::Determinate
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ProgressStateInput {
-    pub has_custom_aria_label: bool,
-    pub has_custom_value_label: bool,
-    pub has_custom_motion: bool,
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ProgressState {
-    pub has_custom_aria_label: bool,
-    pub has_custom_value_label: bool,
-    pub has_custom_motion: bool,
-    pub has_custom_class_name: bool,
-    pub label_source_class: &'static str,
-    pub value_label_source_class: &'static str,
-    pub motion_source_class: &'static str,
-    pub label_source_attr: &'static str,
-    pub value_label_source_attr: &'static str,
-    pub motion_source_attr: &'static str,
-    pub class_source_attr: &'static str,
-}
-
-pub fn resolve_state(input: ProgressStateInput) -> ProgressState {
-    let (label_source_class, label_source_attr) = if input.has_custom_aria_label {
-        ("ui-progress--label-custom", "custom")
-    } else {
-        ("ui-progress--label-default", "default")
+        input
+            .normalized_progress
+            .map(|progress| format!("{:.0}%", progress * 100.0))
     };
 
-    let (value_label_source_class, value_label_source_attr) = if input.has_custom_value_label {
-        ("ui-progress--value-label-custom", "custom")
-    } else {
-        ("ui-progress--value-label-auto", "auto")
-    };
-
-    let (motion_source_class, motion_source_attr) = if input.has_custom_motion {
-        ("ui-progress--motion-custom", "custom")
-    } else {
-        ("ui-progress--motion-default", "default")
-    };
-
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
-
-    ProgressState {
-        has_custom_aria_label: input.has_custom_aria_label,
-        has_custom_value_label: input.has_custom_value_label,
-        has_custom_motion: input.has_custom_motion,
-        has_custom_class_name: input.has_custom_class_name,
-        label_source_class,
-        value_label_source_class,
-        motion_source_class,
-        label_source_attr,
-        value_label_source_attr,
-        motion_source_attr,
-        class_source_attr,
+    ProgressRenderState {
+        mode: input.mode,
+        phase,
+        is_indeterminate,
+        progress_value,
+        aria_value_now: input.clamped_value,
+        value_label_text,
     }
 }
 
-pub fn compose_class_name(base_class_name: Option<String>, state: ProgressState) -> String {
-    let mut classes = vec![
-        "ui-progress".to_string(),
-        state.label_source_class.into(),
-        state.value_label_source_class.into(),
-        state.motion_source_class.into(),
-    ];
-
-    if state.has_custom_class_name {
-        classes.push("ui-progress--custom-class".to_string());
-        if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
-        }
-    }
-
-    classes.join(" ")
-}
+#[cfg(test)]
+pub use ui_state_primitives::progress::DEFAULT_ARIA_LABEL;
 
 #[cfg(test)]
 #[path = "../test/logic.rs"]

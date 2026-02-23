@@ -217,7 +217,8 @@
 
 ### Tabs 同步记录（2026-02-17）
 
-- 参数模型同步：`Tabs` 公开参数保持 `labels/id_base`、`keyboard_activation`、`default_selected_index/selected_index/on_selection_change`、`is_disabled/disabled/disabled_indices`、`motion`、`class_name/aria_label/lang/dir`，命名与受控/非受控契约保持一致。
+- 参数模型同步：`Tabs` 公开参数保持 `id_base` + 显式 `<TabsItem label=...>...</TabsItem>` 组合、`keyboard_activation`、`default_selected_index/selected_index/on_selection_change`、`is_disabled/disabled/disabled_indices`、`motion`、`class_name/aria_label/lang/dir`，命名与受控/非受控契约保持一致。
+- 兼容与迁移策略：`is_disabled` 为主命名，`disabled` 仅作 legacy alias（归一优先级 `is_disabled > disabled > false`）；文档与示例默认使用 `is_disabled`，后续大版本移除 alias 时提供 `disabled -> is_disabled` 迁移说明。
 - docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `collections_core_catalog::TABS_DOC` 暴露入口；`#/components/tabs` 可索引访问。
 - 示例矩阵同步：`apps/docs-app/src/pages/components/pages/collections.rs` 提供 `Hello World (Uncontrolled)`、`Automatic + Controlled`、`Manual + Disabled`、`Workbench (Isolated Canvas + Optional Persist)`，覆盖默认路径、受控/非受控与 disabled 状态矩阵。
 - Copy-Paste Ready 同步：Tabs playground 示例通过 `code_signal` 进入 `Playground`，由 `apps/docs-app/src/playground.rs` 的 `compose_copy_ready_code` 自动补齐 imports，并可直接复制运行。

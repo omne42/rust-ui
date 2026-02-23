@@ -5,4 +5,4 @@ mod view;
 
 pub use logic::{SegmentedControlOrientation, SegmentedControlSize};
 pub use motion::SegmentedControlMotion;
-pub use view::SegmentedControl;
+pub use view::{SegmentedControl, SegmentedControlItem, SegmentedControlItemSpec};

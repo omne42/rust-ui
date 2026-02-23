@@ -5633,6 +5633,9 @@ dependencies = [
  "serde",
  "ui-button",
  "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
 ]
 
 [[package]]
@@ -5644,6 +5647,7 @@ dependencies = [
  "ui-headless",
  "ui-motion",
  "ui-observability",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5656,6 +5660,7 @@ dependencies = [
  "ui-motion",
  "ui-observability",
  "ui-ripple",
+ "ui-state-primitives",
  "ui-visual-primitive",
 ]
 
@@ -5685,8 +5690,10 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-headless",
  "ui-motion",
  "ui-observability",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5762,6 +5769,9 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
 ]
 
 [[package]]
@@ -5854,6 +5864,8 @@ name = "ui-table"
 version = "0.0.0"
 dependencies = [
  "leptos",
+ "ui-headless",
+ "ui-state-primitives",
 ]
 
 [[package]]

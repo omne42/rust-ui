@@ -91,3 +91,67 @@ fn remove_drops_toast_by_id() {
     assert_eq!(state.toasts().len(), 1);
     assert_eq!(state.toasts()[0].id, "two");
 }
+
+#[test]
+fn text_normalization_helpers_trim_and_default() {
+    assert_eq!(normalize_optional_text(None), None);
+    assert_eq!(normalize_optional_text(Some(" \n ".to_string())), None);
+    assert_eq!(
+        normalize_optional_text(Some("  docs-toast  ".to_string())),
+        Some("docs-toast".to_string())
+    );
+
+    assert_eq!(
+        normalize_title("  Saved  ".to_string(), DEFAULT_TITLE),
+        "Saved"
+    );
+    assert_eq!(
+        normalize_title(" \t ".to_string(), DEFAULT_TITLE),
+        DEFAULT_TITLE
+    );
+    assert_eq!(
+        normalize_description(Some("  done  ".to_string())),
+        Some("done".to_string())
+    );
+}
+
+#[test]
+fn toast_state_markers_are_derived_from_input() {
+    let part = resolve_state(ToastPartStateInput {
+        slot: ToastSlot::Root,
+        variant: ToastVariant::Danger,
+        is_open: false,
+        has_description: true,
+        has_custom_id: true,
+        has_custom_description: true,
+        has_custom_class_name: false,
+        has_custom_motion: true,
+        has_custom_on_close: true,
+        has_custom_on_exit_complete: false,
+    });
+    assert_eq!(part.state_attr, "closing");
+    assert_eq!(part.variant_attr, "danger");
+    assert_eq!(part.description_attr, "present");
+    assert_eq!(part.close_mode_attr, "handler");
+    assert_eq!(part.id_source_attr, "custom");
+    assert_eq!(part.class_source_attr, "default");
+    assert_eq!(part.motion_source_attr, "custom");
+    assert_eq!(part.exit_source_attr, "default");
+
+    let viewport = resolve_viewport_state(ToastViewportStateInput {
+        slot: ToastViewportSlot::Root,
+        portal: false,
+        max_toasts: 0,
+        has_custom_portal: true,
+        has_custom_max_toasts: true,
+        has_custom_class_name: false,
+        has_custom_motion: true,
+        store_source: ToastStoreSource::Local,
+    });
+    assert_eq!(viewport.state_attr, "inline");
+    assert_eq!(viewport.queue_attr, "single");
+    assert_eq!(viewport.max_toasts, 1);
+    assert_eq!(viewport.portal_source_attr, "custom");
+    assert_eq!(viewport.max_toasts_source_attr, "custom");
+    assert_eq!(viewport.store_source_attr, "local");
+}

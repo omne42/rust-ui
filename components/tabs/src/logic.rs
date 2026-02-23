@@ -1,4 +1,5 @@
 use leptos::prelude::{Callback, ReadSignal, Signal};
+use std::collections::HashSet;
 
 pub use ui_state_primitives::tabs::{
     TabsKeyboardActivation, normalize_index_skipping_disabled, resolve_tabs_state,
@@ -94,11 +95,104 @@ pub fn normalize_is_disabled(is_disabled: Option<bool>, disabled: bool) -> bool 
     is_disabled.unwrap_or(disabled)
 }
 
+pub fn is_tab_disabled(disabled: bool, disabled_indices: &HashSet<usize>, index: usize) -> bool {
+    disabled || disabled_indices.contains(&index)
+}
+
+pub fn has_disabled_tabs(disabled: bool, disabled_indices: &HashSet<usize>) -> bool {
+    disabled || !disabled_indices.is_empty()
+}
+
+pub fn normalize_selected_with_disabled(
+    selected_index: usize,
+    item_count: usize,
+    is_disabled: impl Fn(usize) -> bool,
+) -> usize {
+    normalize_index_skipping_disabled(selected_index, item_count, is_disabled)
+}
+
+pub fn resolve_selection_request(
+    requested_index: usize,
+    current_selected_index: usize,
+    item_count: usize,
+    is_disabled: impl Fn(usize) -> bool,
+) -> Option<usize> {
+    if item_count == 0 {
+        return None;
+    }
+
+    let next = normalize_selected_with_disabled(requested_index, item_count, &is_disabled);
+    if is_disabled(next) || next == current_selected_index {
+        None
+    } else {
+        Some(next)
+    }
+}
+
 pub fn resolve_requested_selected_index(
     controlled_selected_index: Option<usize>,
     default_selected_index: usize,
 ) -> usize {
     controlled_selected_index.unwrap_or(default_selected_index)
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TabsRegistrationAction {
+    Register { registration_id: usize },
+    Unregister { registration_id: usize },
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
+pub struct TabsRegistrationState {
+    pub items_order: Vec<usize>,
+}
+
+pub fn apply_registration_action(
+    state: &mut TabsRegistrationState,
+    action: TabsRegistrationAction,
+) {
+    match action {
+        TabsRegistrationAction::Register { registration_id } => {
+            if !state.items_order.contains(&registration_id) {
+                state.items_order.push(registration_id);
+            }
+        }
+        TabsRegistrationAction::Unregister { registration_id } => {
+            state.items_order.retain(|id| *id != registration_id);
+        }
+    }
+}
+
+pub fn reduce_registration_actions(actions: &[TabsRegistrationAction]) -> TabsRegistrationState {
+    let mut state = TabsRegistrationState::default();
+    for action in actions {
+        apply_registration_action(&mut state, *action);
+    }
+    state
+}
+
+pub fn resolve_registered_items_order(
+    actions: &[TabsRegistrationAction],
+    active_registration_ids: &[usize],
+) -> Vec<usize> {
+    let items_order = reduce_registration_actions(actions).items_order;
+    let mut resolved = Vec::with_capacity(active_registration_ids.len());
+
+    for registration_id in items_order {
+        if active_registration_ids.contains(&registration_id)
+            && !resolved.contains(&registration_id)
+        {
+            resolved.push(registration_id);
+        }
+    }
+
+    for registration_id in active_registration_ids {
+        if !resolved.contains(registration_id) {
+            resolved.push(*registration_id);
+        }
+    }
+
+    resolved
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {

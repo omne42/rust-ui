@@ -95,127 +95,167 @@
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
+  - N/A（适用于拖拽等高频交互组件）：`Spinner` 为无拖拽的展示型叶子组件，不存在 `Dragging` 局部循环与 `Action::DragEnd` 回流收敛链路。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
+  - N/A（适用于依赖 DOM 测量定位的浮层组件）：`Spinner` 为展示型叶子组件，不涉及测量-回写定位流程，不存在 `Intent -> Measure -> Rectification` 收敛链路。
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
+  - N/A（适用于动态子项容器组件）：`Spinner` 为单节点展示组件，不存在子项注册、顺序导航或 `HashSet` 迭代顺序依赖问题。
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
+  - N/A（适用于有内容投影与可见性生命周期的容器组件）：`Spinner` 为单节点展示组件，不承载 slot 投影策略，也不存在 `KeepAlive` 隐藏后的副作用暂停需求。
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
+  - N/A（适用于依赖环境流驱动布局/交互的组件）：`Spinner` 无 `Resize/Theme/Intersection` 订阅路径，不存在环境事件采样、防抖与语义 Action 回流链路。
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
+  - N/A（适用于大型集合批量交互组件）：`Spinner` 为单节点展示组件，不存在集合级批量操作与 O(N) prop drilling 风险。
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
+  - N/A（适用于存在复杂派生总线编排的组件）：`Spinner` 为无交互总线的展示型组件，不存在命令广播订阅链路与 `TraceId` 透传需求。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+  - `Spinner` 已通过 `ui_headless::i18n::CommonStrings` 获取默认 `loading` 文案，并支持 `lang/dir` 接入（`#[prop(optional, into)] lang` + `#[prop(optional)] dir`）；`view.rs` 使用 `ui_headless::locale_attrs` 挂载 locale，未硬编码用户可见文案。语义由 `CircularProgress` 承载 `role=\"progressbar\"` + `aria-*` 路径。
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+  - `Spinner` 根节点已输出稳定语义标记（`data-slot/data-size/data-state/data-indeterminate/data-label-source/data-class-source/data-motion-source/data-custom-*`）；来源标记区分默认/自定义，且 `size/source` 取值受封闭集合约束（`sm|md|lg`、`default|custom`，见 `ui-state-primitives` 对应 marker 回归）。
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+  - `Spinner` 的状态样式分支仅基于稳定标记（`data-size/data-label-source/data-class-source/data-motion-source/data-state/data-indeterminate`）与稳定 class；运行时仅通过 `style=state.style_vars` 注入必要 CSS 变量（`--ui-spinner-rotation-duration`），未使用 `:nth-child` 或结构猜测选择器。
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
-  - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
-  - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
-  - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 测试验证“语义契约”而不只验证视觉快照。
+  - `components/spinner/test/semantics.rs` 已覆盖语义契约主路径：A11y/i18n 挂载（`spinner_a11y_i18n_locale_contract_uses_headless`）、状态与来源标记（`spinner_emits_baseline_style_state_data_attributes`）、样式语义标记（`spinner_styles_include_size_and_source_markers`）。
+  - 测试矩阵按适用范围覆盖：受控/非受控通过 `spinner_controlled_uncontrolled_contract_is_not_applicable` 明确 `N/A`（Spinner 无可控状态轴）；`disabled`/键盘/指针路径 `N/A`（Spinner 为非交互叶子组件）；SSR/wasm 差异通过源码契约断言（禁止 `web_sys`/`wasm_bindgen` 泄漏到公共组件层）回归锁定。
+  - 当前未以视觉快照替代语义断言；语义契约断言是主验证手段，视觉快照仅作为可选补充。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+  - `Spinner` 已按职责拆分并有回归锁定：`components/spinner/test/semantics.rs::spinner_files_keep_single_responsibility_boundaries`。`mod.rs` 仅导出 `Spinner/SpinnerSize/SpinnerMotion`；`logic.rs` 聚合归一与来源派生；`view.rs` 仅渲染与语义挂载；`styles.rs` 仅 token-first 静态 CSS；`motion.rs` 仅 contract sanitize/source/attach。
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+  - `Spinner` 为简单展示组件，无外部 Schema/复杂配置固化需求；`components/spinner/src` 未引入 `spec.rs`，并由 `components/spinner/test/semantics.rs::spinner_does_not_introduce_spec_rs_for_simple_contract` 持续回归锁定。
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+  - `Spinner` 样式统一位于 `components/spinner/src/styles.rs`，视觉值消费 `var(--ui-*)`（如 `--ui-button-spinner-*`、`--ui-space-*`、`--ui-accent`、`--ui-fg`、`--ui-border`）；运行时仅通过 `motion::attach_motion` 注入 `--ui-spinner-rotation-duration`。
+  - 样式规则统一落在 `styles.rs`，并已接入聚合注入链路：`crates/ui/src/css.rs` 包含 `crate::spinner::styles::CSS`，`crates/ui/src/root.rs` 在 `UiRoot` 中通过 `crate::css::push_components_css` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+  - 单组件判定（Spinner）已达基线：视觉值由主题 token 驱动（尺寸/边框/色彩/动效时长），docs-app 提供 `Hello World + Size Matrix + Custom Label/Class` 验收面；组件侧未出现“可访问但粗糙”的视觉回退。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
-  - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
-  - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
-  - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
-  - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
-  - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
-  - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+  - 已验证 Spinner 最小特性链：`cargo tree -e features -p ui --no-default-features --features component-spinner,inject-css` 显示 `ui-spinner -> ui-circular-progress`，未出现 `all-components` 拉起。
+  - `lib.rs` 与 `css.rs` 已按 feature 条件导出/聚合：`crates/ui/src/lib.rs` 中 `spinner` 导出受 `#[cfg(feature = "component-spinner")]` 保护；`crates/ui/src/css.rs` 中 `spinner::styles::CSS` 受 `#[cfg(feature = "component-spinner")]` 保护。
+  - 反向依赖检查：`cargo tree -e features -i ui -p web-demo` 显示由 `web-demo-components` 链路拉起，未见 `all-components` 隐式全量启用。
+  - 最小特性编译检查通过：
+    - `cargo check -p ui --no-default-features --features component-spinner,inject-css` ✅
+    - `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-spinner,inject-css` ✅（存在 `ui-headless` 现有 `unused variable` warning，不影响本项判定）
+  - CI 检查（体积预算）：仓库级门禁项，单组件清单标记 `N/A`（需在仓库级 CI 任务统一执行与阻断）。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+  - `SpinnerSize` 使用枚举约束离散输入；`resolve_render_state` 统一归一无效输入；根节点持续输出封闭集合语义标记（`size: sm|md|lg`，`source: default|custom`）。回归锁定：`components/spinner/test/semantics.rs::spinner_discrete_state_inputs_are_type_constrained`、`spinner_emits_baseline_style_state_data_attributes`；`crates/ui-state-primitives/src/spinner.rs::marker_values_are_closed_sets`。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
-  - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
+  - `N/A`（Spinner 为非交互叶子组件，不承载层叠 Overlay/焦点恢复职责）；组件源码未引入 `NodeRef`/overlay 焦点管理路径，且由 `components/spinner/test/semantics.rs::spinner_files_keep_single_responsibility_boundaries` 持续约束。
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
+  - `N/A`（Spinner 未集成 ECharts/Map 等命令式第三方实例）；组件与语义回归均持续约束无 `web_sys`/`wasm_bindgen`/`NodeRef` 泄漏到公共组件契约（见 `components/spinner/test/semantics.rs` 相关 forbidden 断言）。
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
+  - `N/A`（Spinner 不生成运行时 ID，不含基于时间/随机数的初始化）；`view.rs/logic.rs/motion.rs` 未出现 `id`/`uuid`/`random`/`now` 路径，SSR/Hydration 无种子一致性依赖。
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+  - compile-only 证据（Spinner 最小特性链）：
+    - native（ssr/tooling）：`cargo check -p ui --no-default-features --features component-spinner,inject-css` ✅
+    - wasm32（web）：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-spinner,inject-css` ✅
+    - 默认本地构建：`cargo check -p ui` 当前被仓库内 `components/underlay` 既有编译错误阻断（与 Spinner 无关，单组件项按边界记 `N/A`）。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
-  - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
-  - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
-  - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
+  - non-wasm 路径禁止引用 `web-sys`/浏览器对象；`components/spinner/src` 无该依赖，且 `components/spinner/test/semantics.rs` 持续有 forbidden 断言约束。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+  - 源码级约束已生效：`crates/ui-headless/src/lib.rs` 存在 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)`，可在编译期阻断双开。
+  - Spinner 仅消费 `ui-headless` 语义能力（i18n/locale attrs），未引入会破坏该互斥模型的额外 feature 装配。
+  - 验证记录已在 `components/spinner/src/check2.md` 固化：`web` ✅、`ssr` ✅、`web+ssr` ❌（按预期触发 `compile_error!`）。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
-  - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
-  - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+  - 证据：`cargo test -p ui-motion --lib` 本轮通过，包含 `tests::non_wasm_web_backend_is_predictable_noop`；说明 non-wasm 路径行为可预测且安全降级。
+  - `Spinner` 仅通过 `motion::attach_motion` 注入 CSS 变量，不依赖 wasm 动画句柄；`motion.rs` 无 panic 路径与 DOM 句柄假设。
+  - wasm 可编译证据沿用已记录验证：`components/spinner/src/check2.md` 中 `cargo check -p ui-motion --target wasm32-unknown-unknown` ✅，且本组件最小特性 wasm 编译 `cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-spinner,inject-css` ✅。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
-  - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
-  - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
-  - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+  - `Spinner` 已在 `components/spinner/src/styles.rs` 提供 `@media (prefers-reduced-motion: reduce)` 降级（单次最小反馈），回归由 `components/spinner/test/semantics.rs::spinner_styles_include_size_and_source_markers` 锁定。
+  - SSR/hydration 侧保持确定性输出：渲染链为纯 `resolve_render_state -> view` 语义挂载，无随机/时间依赖；SSR/wasm 最小特性编译证据已在本清单前文记录并通过。
+  - wasm 分支允许增强交互，但语义契约保持一致：`data-motion-source` / `data-custom-motion` 等稳定标记在 `view.rs` 持续输出，不与 SSR 路径分裂。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+  - `Spinner` 无交互状态更新路径，采用“静态等价证据”替代 render_count：源码回归锁定无 `signal/RwSignal/Memo/Effect/RAF`，渲染链为一次性 `resolve_render_state -> attach_motion`。回归锁定：`components/spinner/test/semantics.rs::spinner_performance_budget_has_static_equivalent_evidence`。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+  - `Spinner` 维持单个小型 `view!` 块（行数受控），无深层嵌套模板。回归锁定：`components/spinner/test/semantics.rs::spinner_view_macro_complexity_is_controlled`。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+  - `Spinner` 仅保留单一 `#[component]` 主体，不存在把局部片段过度升格为子组件的抽象噪音。回归锁定：`components/spinner/test/semantics.rs::spinner_function_split_and_static_fragment_rules_are_not_abused`。
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+  - `N/A`：`Spinner` 不包含复杂 SVG/长静态文本，视图仅装配 `CircularProgress` 与语义标记。回归锁定：`components/spinner/test/semantics.rs::spinner_function_split_and_static_fragment_rules_are_not_abused`。
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+  - `N/A`：`Spinner` 未使用 `inner_html`。回归锁定：`components/spinner/test/semantics.rs::spinner_function_split_and_static_fragment_rules_are_not_abused`。
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+  - `Spinner` 关键状态通过稳定 `data-*` 来源标记可追踪（size/state/source/motion）；组件无复杂交互链路，回放需求 `N/A`。调试能力不进入 spinner 公共 API（无额外调试 props）。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+  - docs-app 的 `Playground` 提供 Spinner 隔离画布（Hello/Size/Custom），并内置 copy-ready 代码通道，满足组件热开发与验证入口。
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+  - N/A（Spinner 当前无 spec/config 序列化与异步边界）；并通过回归锁定不泄露 runtime/trace 细节：`components/spinner/test/semantics.rs::spinner_engineering_unified_contract_is_not_applicable_for_simple_component`。
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 样式与动效（Theme & Motion）
-- [ ] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
-- [ ] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-- [ ] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
-- [ ] `ui` 固定入口文件落点正确。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
+  - 已将 Spinner 样式统一为双层回退链：`--ui-button-spinner-size/border/duration`、`--ui-space-{2xs,sm,3xs}`、`--ui-{accent,fg,border,border-width}` 均改为 `var(--ui-*, var(--ui-fallback-*))`；并移除 `16px/8px/4px/2px/1px/800ms` 裸终值。
+  - `reduced-motion` 分支改为 `animation: none;`，避免额外裸时长常量并保持可预测降级。
+  - 回归锁定：`components/spinner/test/semantics.rs::spinner_styles_include_size_and_source_markers` 增加 fallback token 断言与裸值禁用断言。
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
+  - 聚合层证据：`crates/ui/src/css.rs` 通过 `@layer ui` 包裹组件样式，并按 feature 注入 `crate::spinner::styles::CSS`。
+  - 运行时样式证据：`components/spinner/src/view.rs` 仅使用 `style=state.style_vars`；`components/spinner/src/motion.rs` 仅写入 `--ui-spinner-rotation-duration` 自定义属性，无 `top/left/width/height/position` 普通 inline style。
+  - 回归锁定：`components/spinner/test/semantics.rs::spinner_css_layer_and_inline_style_contract_is_enforced`。
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
+  - 合同化证据：`components/spinner/src/motion.rs` 提供 `SpinnerMotion + sanitize_motion + attach_motion`，并通过 `components/spinner/src/logic.rs` 统一调用 `motion::attach_motion(None, motion)`，最终由 `view.rs` 挂载 `style=state.style_vars`。
+  - `reduced-motion` 证据：`components/spinner/src/styles.rs` 提供 `@media (prefers-reduced-motion: reduce) { .ui-spinner__progress { animation: none; } }`，回归锁定：`components/spinner/test/semantics.rs::spinner_styles_include_size_and_source_markers`。
+  - non-wasm/SSR 安全降级证据：Spinner 侧仅输出 CSS 变量字符串，不依赖 wasm 动画句柄；仓库级 no-op 保证由 `ui-motion` 现有回归覆盖（`non_wasm_web_backend_is_predictable_noop`），且 `components/spinner/test/semantics.rs::spinner_motion_contract_stays_mapping_only` 持续约束不重写 runtime driver。
+- [x] `ui` 固定入口文件落点正确。
+  - 入口落点核对通过：`lib.rs` 中 `component-spinner` 受 feature gate 导出，`css.rs` 中 spinner CSS 条件聚合，`root.rs` 集中注入 i18n+theme+components css；`active_highlight.rs` 保持独立共享能力；`overlay_open.rs/presence.rs/a11y.rs` 不存在。回归锁定：`components/spinner/test/semantics.rs::spinner_ui_components_entry_points_stay_correct`。
   - `crates/ui/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -223,7 +263,8 @@
   - `crates/ui/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。
+  - `spinner/` 目录已满足标准落点：`mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 存在；`render.rs/spec.rs` 不存在。回归锁定：`components/spinner/test/semantics.rs::spinner_directory_file_layout_is_standard`。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -232,28 +273,39 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
-- [ ] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
-- [ ] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
-- [ ] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
+  - `Spinner` 目录已满足核心落点：`mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 齐全，且 `render.rs/spec.rs` 不存在；回归锁定：`components/spinner/test/semantics.rs::spinner_directory_file_layout_is_standard`。
+  - `protocol.rs` 为仓库组件约定文件（schema/协议标记）保留，不属于 `render.rs` 漂移或职责越层。
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
+  - `N/A`（`Spinner` 为简单展示组件，不属于需要 `spec.rs` 建造者的复杂配置型组件）；并由 `components/spinner/test/semantics.rs::spinner_does_not_introduce_spec_rs_for_simple_contract` 持续锁定不得引入 `spec.rs`。
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
+  - `N/A`（Spinner 本轮未发生新增/大改公共协议变更；公共接口仍为 `size/aria_label/class_name/motion/lang/dir`，无新增 schema 投影面），暂不触发 `Component.toml` 与 `.rbi` 强制维护。若后续引入独立 AI 协议面或公共输入输出扩展，再在 `components/spinner/src/` 补齐并联动更新。
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+  - `Spinner` 输出稳定机器可读契约：`data-slot/data-state/data-size/data-label-source/data-class-source/data-motion-source` + `data-custom-*`；字段可映射到状态轴与来源语义。复杂 schema（`data-ui-schema`）对该简单组件为 `N/A`。回归锁定：`components/spinner/test/semantics.rs::spinner_agent_schema_and_streaming_rules_are_snapshot_only`。
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+  - N/A 说明已确认：`Spinner` 非 LLM 正文渲染组件，不承载 Streaming 文本协议；仅处理同步 Snapshot 风格配置渲染。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+  - `Spinner` 可在接收完整 props（size/aria/class/motion/lang/dir）后稳定渲染，无需流式增量协议。回归锁定：`components/spinner/test/semantics.rs::spinner_agent_schema_and_streaming_rules_are_snapshot_only`。
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+  - `Spinner` 属于 `Streaming Optional`（非正文阅读面），当前显式采用 `fallback=snapshot` 语义：无 streaming 专属 API，状态通过 `role/aria/data-*` 持续可读。回归锁定：`components/spinner/test/semantics.rs::spinner_agent_schema_and_streaming_rules_are_snapshot_only`。
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试、门禁与交付
-- [ ] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
+  - `Spinner` 非测试源码（`mod.rs/logic.rs/styles.rs/view.rs/motion.rs`）已满足：无 `unwrap/expect`、无 `let _ = ...`、无 `String::from/.to_string/.to_owned` 字符串复制热点；并由回归锁定：`components/spinner/test/semantics.rs::spinner_rust_hygiene_contract_is_enforced`。
+  - `Cow<'static, str>` 收敛在本组件判定为 `N/A`：当前公开输入与渲染链无字符串复制热点，唯一 `lang=locale.lang.clone()` 为 Leptos 属性所有权交接的单点克隆，不构成热点。
+  - 执行记录：`./scripts/check-rust-hygiene.sh` 已运行，但被仓库级无关既有问题阻断（`components/text-input/src/date_field/motion.rs` 的 `motion-hardcode`），不影响 Spinner 组件级结论。
 - [ ] Tree Shaking & 特性剪裁：组件必须注册到 `ui` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
 - [ ] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
 - [ ] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。

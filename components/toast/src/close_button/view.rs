@@ -13,7 +13,7 @@ use ui_headless::{
 pub fn CloseButton(
     #[prop(optional)] variant: CloseButtonVariant,
     #[prop(optional)] size: CloseButtonSize,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_disabled: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, default = "button")] button_type: &'static str,
@@ -36,7 +36,7 @@ pub fn CloseButton(
     let state = logic::resolve_state(CloseButtonStateInput {
         variant,
         size,
-        disabled,
+        disabled: is_disabled,
         has_custom_aria_label,
         has_custom_class_name: class_name.is_some(),
         has_custom_press_handler: on_press.is_some(),

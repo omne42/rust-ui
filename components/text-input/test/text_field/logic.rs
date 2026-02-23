@@ -16,7 +16,7 @@ fn resolve_props_normalizes_text_and_tracks_sources() {
     assert_eq!(resolved.description.as_deref(), Some("description"));
     assert_eq!(resolved.error.as_deref(), Some("error"));
     assert_eq!(resolved.placeholder.as_deref(), Some("placeholder"));
-    assert_eq!(resolved.input_type, "email");
+    assert_eq!(resolved.input_type, TextFieldInputType::Email);
     assert_eq!(resolved.type_source_attr, "custom");
     assert!(resolved.has_custom_class_name);
     assert_eq!(resolved.class, "ui-text-field docs-class");
@@ -42,7 +42,7 @@ fn resolve_props_applies_defaults_for_blank_inputs() {
     assert_eq!(resolved.description, None);
     assert_eq!(resolved.error, None);
     assert_eq!(resolved.placeholder, None);
-    assert_eq!(resolved.input_type, "text");
+    assert_eq!(resolved.input_type, TextFieldInputType::Text);
     assert_eq!(resolved.type_source_attr, "default");
     assert!(!resolved.has_custom_class_name);
     assert_eq!(resolved.class, "ui-text-field");
@@ -149,4 +149,22 @@ fn text_field_agent_contract_is_typed_and_stable() {
         contract.source_axis_attr,
         "label|description|error|placeholder|type|class|motion|value-axis"
     );
+}
+
+#[test]
+fn normalize_input_type_maps_compat_strings_to_enum() {
+    let default_type = normalize_input_type(None);
+    assert_eq!(default_type.input_type, TextFieldInputType::Text);
+    assert_eq!(default_type.type_source_attr, "default");
+
+    let email_type = normalize_input_type(Some("email"));
+    assert_eq!(email_type.input_type, TextFieldInputType::Email);
+    assert_eq!(email_type.type_source_attr, "custom");
+
+    let custom_type = normalize_input_type(Some("datetime-local"));
+    assert_eq!(
+        custom_type.input_type,
+        TextFieldInputType::Custom("datetime-local")
+    );
+    assert_eq!(custom_type.type_source_attr, "custom");
 }

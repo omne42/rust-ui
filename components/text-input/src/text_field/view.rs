@@ -227,7 +227,7 @@ pub fn TextField(
                 data-slot=SLOT_INPUT
                 node_ref=node_ref
                 id=aria.input.id.clone()
-                type=input_type
+                type=input_type.as_html_attr()
                 placeholder=placeholder
                 prop:value=move || value.get()
                 disabled=is_disabled

@@ -2,15 +2,16 @@ use super::*;
 
 #[test]
 fn compose_class_name_includes_state_markers() {
-    let normalized = normalize_tag_input(
-        TagVariant::Default,
-        TagSize::Sm,
-        false,
-        false,
-        false,
-        None,
-        Some("docs-tag-custom".to_string()),
-    );
+    let normalized = normalize_tag_input(TagNormalizeInput {
+        variant: TagVariant::Default,
+        size: TagSize::Sm,
+        mode: None,
+        is_disabled: Some(false),
+        is_removable: Some(false),
+        has_remove_handler: false,
+        remove_aria_label: None,
+        class_name: Some("docs-tag-custom".to_string()),
+    });
 
     let class_name = compose_class_name(normalized.class_name, normalized.state);
 
@@ -32,20 +33,47 @@ fn compose_class_name_includes_state_markers() {
 
 #[test]
 fn normalize_tag_input_centralizes_trim_and_state_resolution() {
-    let normalized = normalize_tag_input(
-        TagVariant::Surface,
-        TagSize::Lg,
-        false,
-        true,
-        true,
-        Some("  Remove framework  ".to_string()),
-        Some("  docs-tag-custom  ".to_string()),
-    );
+    let normalized = normalize_tag_input(TagNormalizeInput {
+        variant: TagVariant::Surface,
+        size: TagSize::Lg,
+        mode: None,
+        is_disabled: Some(false),
+        is_removable: Some(true),
+        has_remove_handler: true,
+        remove_aria_label: Some("  Remove framework  ".to_string()),
+        class_name: Some("  docs-tag-custom  ".to_string()),
+    });
 
     assert_eq!(normalized.class_name, Some("docs-tag-custom".to_string()));
     assert_eq!(normalized.remove_aria_label, "Remove framework");
     assert!(normalized.state.is_removable);
     assert_eq!(normalized.state.remove_label_source_attr, "custom");
+}
+
+#[test]
+fn normalize_tag_bool_input_prefers_is_prefix_over_legacy_alias() {
+    let normalized = normalize_tag_bool_input(None, Some(true), Some(false));
+    assert!(normalized.is_disabled);
+    assert!(!normalized.is_removable);
+    assert_eq!(normalized.mode, TagInteractivityMode::Disabled);
+
+    let defaulted = normalize_tag_bool_input(None, None, None);
+    assert!(!defaulted.is_disabled);
+    assert!(!defaulted.is_removable);
+    assert_eq!(defaulted.mode, TagInteractivityMode::Static);
+}
+
+#[test]
+fn normalize_tag_interactivity_mode_prioritizes_enum_over_boolean_matrix() {
+    let normalized = normalize_tag_bool_input(
+        Some(TagInteractivityMode::Removable),
+        Some(true),
+        Some(false),
+    );
+
+    assert_eq!(normalized.mode, TagInteractivityMode::Removable);
+    assert!(!normalized.is_disabled);
+    assert!(normalized.is_removable);
 }
 
 #[test]

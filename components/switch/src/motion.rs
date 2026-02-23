@@ -1,5 +1,5 @@
 #[cfg(target_arch = "wasm32")]
-use crate::switch::logic::{THUMB_WIDTH_PX, checked_thumb_x_px};
+use crate::switch::logic::{checked_thumb_x_px, default_thumb_size_px};
 use ui_theme::default_switch_motion_tokens;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -80,10 +80,11 @@ pub fn attach_thumb_motion(
 
         let checked = is_checked.get_untracked();
         let pressed = is_pressed.get_untracked();
+        let default_thumb_size_px = default_thumb_size_px();
         let initial_width = if pressed {
             pressed_width_px
         } else {
-            THUMB_WIDTH_PX
+            default_thumb_size_px
         };
         let initial_x = if checked {
             checked_thumb_x_px(initial_width)
@@ -150,10 +151,11 @@ pub fn attach_thumb_motion(
             return;
         };
 
+        let default_thumb_size_px = default_thumb_size_px();
         let target_width = if pressed {
             pressed_width_px
         } else {
-            THUMB_WIDTH_PX
+            default_thumb_size_px
         };
         let target_x = if checked {
             checked_thumb_x_px(target_width)

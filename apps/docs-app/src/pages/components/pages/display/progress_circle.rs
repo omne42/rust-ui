@@ -78,7 +78,7 @@ pub(crate) fn progress_circle() -> AnyView {
 
     let workbench_code = Signal::derive(move || {
         format!(
-            "<ProgressCircle\n  aria_label={}\n  value=Signal::derive(move || {})\n  min={}\n  max={}\n  indeterminate={}\n  value_label={}\n  size_px={}\n  stroke_width_px={}\n  motion=ProgressCircleMotion {{ spring: /* ... */ }}\n  class_name={}\n/>",
+            "<ProgressCircle\n  aria_label={}\n  value=Signal::derive(move || {})\n  min={}\n  max={}\n  is_indeterminate={}\n  value_label={}\n  size_px={}\n  stroke_width_px={}\n  motion=ProgressCircleMotion {{ spring: /* ... */ }}\n  class_name={}\n/>",
             if workbench_custom_aria.get() {
                 "\"Sync progress\".to_string()".to_string()
             } else {
@@ -112,7 +112,7 @@ pub(crate) fn progress_circle() -> AnyView {
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "ProgressCircleWorkbenchActualConfig {{\n  aria_label: {:?},\n  value: {:?},\n  min: {},\n  max: {},\n  indeterminate: {},\n  value_label: {:?},\n  size_px: {:?},\n  stroke_width_px: {:?},\n  motion: {:?},\n  class_name: {:?},\n}}",
+            "ProgressCircleWorkbenchActualConfig {{\n  aria_label: {:?},\n  value: {:?},\n  min: {},\n  max: {},\n  is_indeterminate: {},\n  value_label: {:?},\n  size_px: {:?},\n  stroke_width_px: {:?},\n  motion: {:?},\n  class_name: {:?},\n}}",
             if workbench_custom_aria.get() {
                 Some("Sync progress")
             } else {
@@ -139,9 +139,9 @@ pub(crate) fn progress_circle() -> AnyView {
     });
 
     let matrix_code = Signal::derive(move || {
-        r#"<ProgressCircle aria_label="Determinate".to_string() value=Signal::derive(|| Some(42.0)) min=0.0 max=100.0 indeterminate=false value_label="42%".to_string() size_px=40.0 stroke_width_px=4.0 motion=ProgressCircleMotion::default() class_name="".to_string() />
-<ProgressCircle aria_label="Indeterminate".to_string() value=Signal::derive(|| None::<f64>) min=0.0 max=100.0 indeterminate=true value_label="".to_string() size_px=40.0 stroke_width_px=4.0 motion=ProgressCircleMotion::default() class_name="".to_string() />
-<ProgressCircle aria_label="Custom".to_string() value=Signal::derive(|| Some(72.0)) min=20.0 max=200.0 indeterminate=false value_label="72 done".to_string() size_px=56.0 stroke_width_px=6.0 motion=ProgressCircleMotion { spring: ProgressCircleMotion::default().spring } class_name="docs-progress-circle-custom".to_string() />"#.to_string()
+        r#"<ProgressCircle aria_label="Determinate".to_string() value=Signal::derive(|| Some(42.0)) min=0.0 max=100.0 is_indeterminate=false value_label="42%".to_string() size_px=40.0 stroke_width_px=4.0 motion=ProgressCircleMotion::default() class_name="".to_string() />
+<ProgressCircle aria_label="Indeterminate".to_string() value=Signal::derive(|| None::<f64>) min=0.0 max=100.0 is_indeterminate=true value_label="".to_string() size_px=40.0 stroke_width_px=4.0 motion=ProgressCircleMotion::default() class_name="".to_string() />
+<ProgressCircle aria_label="Custom".to_string() value=Signal::derive(|| Some(72.0)) min=20.0 max=200.0 is_indeterminate=false value_label="72 done".to_string() size_px=56.0 stroke_width_px=6.0 motion=ProgressCircleMotion { spring: ProgressCircleMotion::default().spring } class_name="docs-progress-circle-custom".to_string() />"#.to_string()
     });
 
     view! {
@@ -215,7 +215,7 @@ pub(crate) fn progress_circle() -> AnyView {
                             aria_label="ProgressCircle motion".to_string()
                         />
                         <Switch checked=workbench_indeterminate set_checked=set_workbench_indeterminate>
-                            "indeterminate"
+                            "is_indeterminate"
                         </Switch>
                         <Switch checked=workbench_custom_value_label set_checked=set_workbench_custom_value_label>
                             "value_label"
@@ -255,7 +255,7 @@ pub(crate) fn progress_circle() -> AnyView {
                         value=workbench_progress
                         min=workbench_min.get()
                         max=workbench_max.get()
-                        indeterminate=workbench_indeterminate.get()
+                        is_indeterminate=workbench_indeterminate.get()
                         value_label=if workbench_custom_value_label.get() {
                             format!("{} done", workbench_value.get().round() as i64)
                         } else {
@@ -301,7 +301,7 @@ pub(crate) fn progress_circle() -> AnyView {
                         value=Signal::derive(|| Some(42.0))
                         min=0.0
                         max=100.0
-                        indeterminate=false
+                        is_indeterminate=false
                         value_label="42%".to_string()
                         size_px=40.0
                         stroke_width_px=4.0
@@ -313,7 +313,7 @@ pub(crate) fn progress_circle() -> AnyView {
                         value=Signal::derive(|| None::<f64>)
                         min=0.0
                         max=100.0
-                        indeterminate=true
+                        is_indeterminate=true
                         value_label=String::new()
                         size_px=40.0
                         stroke_width_px=4.0
@@ -325,7 +325,7 @@ pub(crate) fn progress_circle() -> AnyView {
                         value=Signal::derive(|| Some(72.0))
                         min=20.0
                         max=200.0
-                        indeterminate=false
+                        is_indeterminate=false
                         value_label="72 done".to_string()
                         size_px=56.0
                         stroke_width_px=6.0

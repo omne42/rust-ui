@@ -23,7 +23,7 @@ pub const CSS: &str = r#"
 
 .ui-date-picker--tone-strong,
 .ui-date-picker[data-tone="strong"] {
-  color: color-mix(in oklab, var(--ui-fg) 88%, black 12%);
+  color: color-mix(in oklab, var(--ui-fg) 88%, var(--ui-common-black) 12%);
 }
 
 .ui-date-picker--open .ui-date-picker__trigger,

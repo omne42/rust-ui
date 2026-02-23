@@ -47,7 +47,7 @@ pub(crate) fn close_button() -> AnyView {
 
     let workbench_code = Signal::derive(move || {
         format!(
-            "<CloseButton\n  variant=CloseButtonVariant::{:?}\n  size=CloseButtonSize::{:?}\n  disabled={}\n  aria_label={}\n  class_name={}\n  button_type={}\n  node_ref=node_ref\n  on_press=Some(Callback::new(move |_| {{}}))\n>\n  {}\n</CloseButton>",
+            "<CloseButton\n  variant=CloseButtonVariant::{:?}\n  size=CloseButtonSize::{:?}\n  is_disabled={}\n  aria_label={}\n  class_name={}\n  button_type={}\n  node_ref=node_ref\n  on_press=Some(Callback::new(move |_| {{}}))\n>\n  {}\n</CloseButton>",
             workbench_variant.get(),
             workbench_size.get(),
             bool_word(disabled.get()),
@@ -68,7 +68,7 @@ pub(crate) fn close_button() -> AnyView {
 <CloseButton
   variant=CloseButtonVariant::Default
   size=CloseButtonSize::Xl
-  disabled=true
+  is_disabled=true
   aria_label="Dismiss dialog".to_string()
   class_name="docs-close-button-custom".to_string()
   button_type="submit"
@@ -89,7 +89,7 @@ pub(crate) fn close_button() -> AnyView {
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "CloseButtonActualConfig {{\n  variant: {:?},\n  size: {:?},\n  disabled: {},\n  aria_label: {:?},\n  class_name: {:?},\n  button_type: {:?},\n  node_ref: {:?},\n  on_press: {:?},\n  children: {:?},\n}}",
+            "CloseButtonActualConfig {{\n  variant: {:?},\n  size: {:?},\n  is_disabled: {},\n  aria_label: {:?},\n  class_name: {:?},\n  button_type: {:?},\n  node_ref: {:?},\n  on_press: {:?},\n  children: {:?},\n}}",
             workbench_variant.get(),
             workbench_size.get(),
             disabled.get(),
@@ -212,7 +212,7 @@ pub(crate) fn close_button() -> AnyView {
                     <CloseButton
                         variant=workbench_variant.get()
                         size=workbench_size.get()
-                        disabled=disabled.get()
+                        is_disabled=disabled.get()
                         aria_label=workbench_aria_label.get()
                         class_name=workbench_class_name.get()
                         button_type=if submit_type.get() { "submit" } else { "button" }
@@ -241,7 +241,7 @@ pub(crate) fn close_button() -> AnyView {
                     <CloseButton
                         variant=CloseButtonVariant::Default
                         size=CloseButtonSize::Xl
-                        disabled=true
+                        is_disabled=true
                         aria_label="Dismiss dialog".to_string()
                         class_name="docs-close-button-custom".to_string()
                         button_type="submit"

@@ -38,6 +38,7 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     let flip_card_layout = flip_card_layout_tokens(theme.ctx);
     let button_layout = &theme.tokens.button_layout;
     let checkbox_layout = &theme.tokens.checkbox_layout;
+    let switch_layout = &theme.tokens.switch_layout;
     let command_layout = &theme.tokens.command_layout;
     let checkbox_group_layout = &theme.tokens.checkbox_group_layout;
     let disabled_opacity = f64::from(checkbox_group_layout.disabled_opacity_percent) / 100.0;
@@ -1501,6 +1502,105 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
         css,
         "  --ui-button-size-xl-icon: {}px;",
         button_layout.xl.icon_size_px
+    );
+    css_writeln!(css);
+
+    let switch_disabled_opacity = f64::from(switch_layout.disabled_opacity_percent) / 100.0;
+    css_writeln!(css, "  --ui-switch-gap: {}px;", switch_layout.gap_px);
+    css_writeln!(
+        css,
+        "  --ui-fallback-switch-gap: {}px;",
+        switch_layout.gap_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-switch-track-width: {}px;",
+        switch_layout.track_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-switch-track-width: {}px;",
+        switch_layout.track_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-switch-track-height: {}px;",
+        switch_layout.track_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-switch-track-height: {}px;",
+        switch_layout.track_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-switch-track-padding: {}px;",
+        switch_layout.track_padding_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-switch-track-padding: {}px;",
+        switch_layout.track_padding_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-switch-thumb-size: {}px;",
+        switch_layout.thumb_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-switch-thumb-size: {}px;",
+        switch_layout.thumb_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-switch-thumb-checked-x: {}px;",
+        switch_layout.checked_thumb_x_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-switch-thumb-checked-x: {}px;",
+        switch_layout.checked_thumb_x_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-switch-focus-outline-width: {}px;",
+        switch_layout.focus_outline_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-switch-focus-outline-width: {}px;",
+        switch_layout.focus_outline_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-switch-focus-outline-offset: {}px;",
+        switch_layout.focus_outline_offset_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-switch-focus-outline-offset: {}px;",
+        switch_layout.focus_outline_offset_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-switch-disabled-opacity: {};",
+        switch_disabled_opacity
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-switch-disabled-opacity: {};",
+        switch_disabled_opacity
+    );
+    css_writeln!(
+        css,
+        "  --ui-switch-hover-brightness: {};",
+        switch_layout.hover_brightness
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-switch-hover-brightness: {};",
+        switch_layout.hover_brightness
     );
     css_writeln!(css);
 

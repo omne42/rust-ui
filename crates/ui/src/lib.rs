@@ -557,7 +557,8 @@ mod web_demo_components {
     pub use radio::{Radio, RadioGroup, RadioGroupOrientation, RadioMotion};
     pub use ripple::{MotionRipple, RippleMotion};
     pub use segmented_control::{
-        SegmentedControl, SegmentedControlMotion, SegmentedControlOrientation, SegmentedControlSize,
+        SegmentedControl, SegmentedControlItem, SegmentedControlItemSpec, SegmentedControlMotion,
+        SegmentedControlOrientation, SegmentedControlSize,
     };
     pub use select::{Select, SelectMotion};
     pub use sheet::{Sheet, SheetMotion, SheetPlacement};
@@ -566,8 +567,8 @@ mod web_demo_components {
     pub use spinner::{Spinner, SpinnerSize};
     pub use status_light::{StatusLight, StatusLightRole, StatusLightVariant};
     pub use switch::{Switch, SwitchMotion};
-    pub use tabs::{Tabs, TabsKeyboardActivation, TabsMotion};
-    pub use tag::group::{Tag, TagGroup};
+    pub use tabs::{Tabs, TabsItem, TabsKeyboardActivation, TabsMotion};
+    pub use tag::group::{Tag, TagGroup, TagGroupItem, TagGroupItemSpec};
     pub use tag::{TagSize, TagVariant};
     pub use text_input::input::{Input, InputLabelPlacement, InputMotion, InputSize, InputVariant};
     pub use text_input::input_otp::InputOtp;
@@ -759,12 +760,13 @@ mod all_components {
     pub use radio::{Radio, RadioGroup, RadioGroupOrientation, RadioMotion};
     pub use ripple::{MotionRipple, RippleMotion};
     pub use segmented_control::{
-        SegmentedControl, SegmentedControlMotion, SegmentedControlOrientation, SegmentedControlSize,
+        SegmentedControl, SegmentedControlItem, SegmentedControlItemSpec, SegmentedControlMotion,
+        SegmentedControlOrientation, SegmentedControlSize,
     };
     pub use select::{Select, SelectMotion};
     pub use sheet::{Sheet, SheetMotion, SheetPlacement};
     pub use sidebar::group::SidebarGroup;
-    pub use sidebar::{Sidebar, SidebarCollapsible, SidebarSide, SidebarVariant};
+    pub use sidebar::{Sidebar, SidebarCollapsible, SidebarMotion, SidebarSide, SidebarVariant};
     pub use sidebar_content::SidebarContent;
     pub use sidebar_footer::SidebarFooter;
     pub use sidebar_header::SidebarHeader;
@@ -791,8 +793,8 @@ mod all_components {
     pub use table::{
         Table, TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow, TableVariant,
     };
-    pub use tabs::{Tabs, TabsKeyboardActivation, TabsMotion};
-    pub use tag::group::{Tag, TagGroup};
+    pub use tabs::{Tabs, TabsItem, TabsKeyboardActivation, TabsMotion};
+    pub use tag::group::{Tag, TagGroup, TagGroupItem, TagGroupItemSpec};
     pub use tag::{TagSize, TagVariant};
     pub use text::{Text, TextAlign, TextElement, TextTone, TextWeight};
     pub use text_input::date_field::{DateField, DateFieldIds, DateFieldTone};

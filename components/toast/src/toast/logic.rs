@@ -1,7 +1,10 @@
+use crate::close_button::DEFAULT_ARIA_LABEL;
 use crate::toast::{
-    ToastPartState, ToastPartStateInput, ToastViewportState, ToastViewportStateInput,
+    ToastMotion, ToastPartState, ToastPartStateInput, ToastSlot, ToastStoreSource, ToastVariant,
+    ToastViewportSlot, ToastViewportState, ToastViewportStateInput,
 };
 use leptos::prelude::*;
+use ui_headless::{LiveRegionPriority, OnPress};
 use ui_state_primitives::toast as toast_state;
 
 fn next_id() -> u64 {
@@ -17,6 +20,7 @@ fn next_id() -> u64 {
 }
 
 pub const DEFAULT_TITLE: &str = "Notification";
+pub const DEFAULT_OPEN: bool = true;
 pub const DEFAULT_VIEWPORT_PORTAL: bool = true;
 pub const DEFAULT_VIEWPORT_MAX_TOASTS: usize = toast_state::DEFAULT_MAX_TOASTS;
 
@@ -79,67 +83,24 @@ pub fn toast_viewport_agent_contract() -> ToastAgentContract {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum ToastVariant {
-    #[default]
-    Default,
-    Accent,
-    Danger,
-}
-
-impl ToastVariant {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            ToastVariant::Default => "ui-toast--variant-default",
-            ToastVariant::Accent => "ui-toast--variant-accent",
-            ToastVariant::Danger => "ui-toast--variant-danger",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            ToastVariant::Default => "default",
-            ToastVariant::Accent => "accent",
-            ToastVariant::Danger => "danger",
-        }
-    }
-
-    pub fn aria_live(self) -> &'static str {
-        match self {
-            ToastVariant::Danger => "assertive",
-            _ => "polite",
-        }
-    }
-}
-
-fn source_attr(is_custom: bool) -> &'static str {
-    if is_custom { "custom" } else { "default" }
-}
-
 pub fn toast_state_attr(is_open: bool) -> &'static str {
-    if is_open { "open" } else { "closing" }
+    toast_state::toast_state_attr(is_open)
 }
 
 pub fn description_attr(has_description: bool) -> &'static str {
-    if has_description { "present" } else { "absent" }
+    toast_state::description_attr(has_description)
 }
 
 pub fn close_mode_attr(has_on_close: bool) -> &'static str {
-    if has_on_close { "handler" } else { "noop" }
+    toast_state::close_mode_attr(has_on_close)
 }
 
 pub fn viewport_state_attr(portal: bool) -> &'static str {
-    if portal { "portal" } else { "inline" }
+    toast_state::viewport_state_attr(portal)
 }
 
 pub fn viewport_queue_attr(max_toasts: usize) -> &'static str {
-    if max_toasts <= 1 {
-        "single"
-    } else if max_toasts <= 3 {
-        "bounded"
-    } else {
-        "extended"
-    }
+    toast_state::viewport_queue_attr(max_toasts)
 }
 
 pub fn normalize_viewport_max_toasts(max_toasts: usize) -> usize {
@@ -147,16 +108,32 @@ pub fn normalize_viewport_max_toasts(max_toasts: usize) -> usize {
 }
 
 pub fn resolve_state(input: ToastPartStateInput) -> ToastPartState {
+    let state = toast_state::resolve_state(input);
     ToastPartState {
-        slot: input.slot,
-        slot_attr: input.slot.as_attr(),
-        base_class: input.slot.base_class(),
-        state_attr: toast_state_attr(input.is_open),
+        state_attr: toast_state_attr(state.is_open),
+        description_attr: description_attr(state.has_description),
+        close_mode_attr: close_mode_attr(state.has_custom_on_close),
+        ..state
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ToastStateDerivationInput {
+    pub variant: ToastVariant,
+    pub is_open: bool,
+    pub has_description: bool,
+    pub has_custom_id: bool,
+    pub has_custom_description: bool,
+    pub has_custom_class_name: bool,
+    pub has_custom_motion: bool,
+    pub has_custom_on_close: bool,
+    pub has_custom_on_exit_complete: bool,
+}
+
+pub fn resolve_toast_part_state(input: ToastStateDerivationInput) -> ToastPartState {
+    resolve_state(ToastPartStateInput {
+        slot: ToastSlot::Root,
         variant: input.variant,
-        variant_attr: input.variant.as_attr(),
-        description_attr: description_attr(input.has_description),
-        close_mode_attr: close_mode_attr(input.has_custom_on_close),
-        open_attr: input.is_open.then_some("true"),
         is_open: input.is_open,
         has_description: input.has_description,
         has_custom_id: input.has_custom_id,
@@ -165,13 +142,7 @@ pub fn resolve_state(input: ToastPartStateInput) -> ToastPartState {
         has_custom_motion: input.has_custom_motion,
         has_custom_on_close: input.has_custom_on_close,
         has_custom_on_exit_complete: input.has_custom_on_exit_complete,
-        id_source_attr: source_attr(input.has_custom_id),
-        description_source_attr: source_attr(input.has_custom_description),
-        class_source_attr: source_attr(input.has_custom_class_name),
-        motion_source_attr: source_attr(input.has_custom_motion),
-        close_source_attr: source_attr(input.has_custom_on_close),
-        exit_source_attr: source_attr(input.has_custom_on_exit_complete),
-    }
+    })
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ToastPartState) -> String {
@@ -220,28 +191,38 @@ pub fn compose_class_name(base_class_name: Option<String>, state: ToastPartState
 }
 
 pub fn resolve_viewport_state(input: ToastViewportStateInput) -> ToastViewportState {
-    let max_toasts = normalize_viewport_max_toasts(input.max_toasts);
-
+    let state = toast_state::resolve_viewport_state(input);
     ToastViewportState {
-        slot: input.slot,
-        slot_attr: input.slot.as_attr(),
-        base_class: input.slot.base_class(),
-        state_attr: viewport_state_attr(input.portal),
-        queue_attr: viewport_queue_attr(max_toasts),
-        portal_attr: if input.portal { "true" } else { "false" },
-        max_toasts,
-        portal: input.portal,
+        state_attr: viewport_state_attr(state.portal),
+        queue_attr: viewport_queue_attr(state.max_toasts),
+        ..state
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ToastViewportStateDerivationInput {
+    pub is_portal: bool,
+    pub max_toasts: usize,
+    pub has_custom_portal: bool,
+    pub has_custom_max_toasts: bool,
+    pub has_custom_class_name: bool,
+    pub has_custom_motion: bool,
+    pub store_source: ToastStoreSource,
+}
+
+pub fn resolve_toast_viewport_state(
+    input: ToastViewportStateDerivationInput,
+) -> ToastViewportState {
+    resolve_viewport_state(ToastViewportStateInput {
+        slot: ToastViewportSlot::Root,
+        portal: input.is_portal,
+        max_toasts: input.max_toasts,
         has_custom_portal: input.has_custom_portal,
         has_custom_max_toasts: input.has_custom_max_toasts,
         has_custom_class_name: input.has_custom_class_name,
         has_custom_motion: input.has_custom_motion,
-        portal_source_attr: source_attr(input.has_custom_portal),
-        max_toasts_source_attr: source_attr(input.has_custom_max_toasts),
-        class_source_attr: source_attr(input.has_custom_class_name),
-        motion_source_attr: source_attr(input.has_custom_motion),
         store_source: input.store_source,
-        store_source_attr: input.store_source.as_attr(),
-    }
+    })
 }
 
 pub fn compose_viewport_class_name(
@@ -280,23 +261,56 @@ pub fn compose_viewport_class_name(
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+    toast_state::normalize_optional_text(value)
 }
 
 pub fn normalize_title(value: String) -> String {
-    let trimmed = value.trim();
-    if trimmed.is_empty() {
-        DEFAULT_TITLE.into()
-    } else {
-        trimmed.into()
-    }
+    toast_state::normalize_title(value, DEFAULT_TITLE)
 }
 
 pub fn normalize_description(value: Option<String>) -> Option<String> {
-    normalize_optional_text(value)
+    toast_state::normalize_description(value)
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ToastNormalizeInput {
+    pub title: String,
+    pub id: Option<String>,
+    pub description: Option<String>,
+    pub class_name: Option<String>,
+    pub motion: ToastMotion,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ToastNormalizedProps {
+    pub title: String,
+    pub id: Option<String>,
+    pub description: Option<String>,
+    pub class_name: Option<String>,
+    pub has_custom_id: bool,
+    pub has_description: bool,
+    pub has_custom_description: bool,
+    pub has_custom_class_name: bool,
+    pub has_custom_motion: bool,
+}
+
+pub fn normalize_props(input: ToastNormalizeInput) -> ToastNormalizedProps {
+    let id = normalize_optional_text(input.id);
+    let description = normalize_description(input.description);
+    let class_name = normalize_optional_text(input.class_name);
+    let has_description = description.is_some();
+
+    ToastNormalizedProps {
+        title: normalize_title(input.title),
+        has_custom_id: id.is_some(),
+        has_custom_description: has_description,
+        has_custom_class_name: class_name.is_some(),
+        has_custom_motion: input.motion != ToastMotion::default(),
+        id,
+        description,
+        class_name,
+        has_description,
+    }
 }
 
 #[derive(Clone)]
@@ -312,14 +326,11 @@ pub struct ToastOpenStateConfig {
 
 pub fn resolve_open_state_config(
     is_open: Option<Signal<bool>>,
-    open: Option<Signal<bool>>,
     default_open: Option<bool>,
     on_open_change: Option<Callback<bool>>,
 ) -> ToastOpenStateConfig {
     let (controlled_open, open_source_attr) = if let Some(is_open) = is_open {
         (Some(is_open), "is_open")
-    } else if let Some(open) = open {
-        (Some(open), "open")
     } else {
         (None, "implicit")
     };
@@ -330,12 +341,152 @@ pub fn resolve_open_state_config(
     ToastOpenStateConfig {
         is_controlled: controlled_open.is_some(),
         controlled_open,
-        default_open: default_open.or(Some(true)),
+        default_open: default_open.or(Some(DEFAULT_OPEN)),
         on_open_change,
         has_custom_default_open,
         has_custom_on_open_change,
         open_source_attr,
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ToastOpenStateMarkers {
+    pub control_mode_attr: &'static str,
+    pub default_open_source_attr: &'static str,
+    pub open_change_source_attr: &'static str,
+}
+
+pub fn resolve_open_state_markers(config: &ToastOpenStateConfig) -> ToastOpenStateMarkers {
+    ToastOpenStateMarkers {
+        control_mode_attr: if config.is_controlled {
+            "controlled"
+        } else {
+            "uncontrolled"
+        },
+        default_open_source_attr: if config.has_custom_default_open {
+            "provided"
+        } else {
+            "implicit"
+        },
+        open_change_source_attr: if config.has_custom_on_open_change {
+            "provided"
+        } else {
+            "none"
+        },
+    }
+}
+
+#[derive(Clone)]
+pub struct ToastCallbacksConfig {
+    pub on_close: OnPress,
+    pub on_exit_complete: Callback<()>,
+    pub has_custom_on_close: bool,
+    pub has_custom_on_exit_complete: bool,
+}
+
+pub fn resolve_callbacks_config(
+    on_close: Option<OnPress>,
+    on_exit_complete: Option<Callback<()>>,
+) -> ToastCallbacksConfig {
+    let has_custom_on_close = on_close.is_some();
+    let has_custom_on_exit_complete = on_exit_complete.is_some();
+
+    ToastCallbacksConfig {
+        on_close: on_close.unwrap_or_else(|| Callback::new(|_| {})),
+        on_exit_complete: on_exit_complete.unwrap_or_else(|| Callback::new(|_| {})),
+        has_custom_on_close,
+        has_custom_on_exit_complete,
+    }
+}
+
+pub fn resolve_close_aria_label(close_aria_label: Option<String>, default_label: &str) -> String {
+    normalize_optional_text(close_aria_label)
+        .or_else(|| normalize_optional_text(Some(default_label.to_string())))
+        .unwrap_or_else(|| DEFAULT_ARIA_LABEL.to_string())
+}
+
+pub fn resolve_live_region_priority(variant: ToastVariant) -> LiveRegionPriority {
+    match variant {
+        ToastVariant::Danger => LiveRegionPriority::Assertive,
+        ToastVariant::Default | ToastVariant::Accent => LiveRegionPriority::Polite,
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ToastViewportConfig {
+    pub is_portal: bool,
+    pub max_toasts: usize,
+    pub has_custom_portal: bool,
+    pub has_custom_max_toasts: bool,
+}
+
+pub fn resolve_viewport_config(is_portal: bool, max_toasts: usize) -> ToastViewportConfig {
+    ToastViewportConfig {
+        is_portal,
+        max_toasts,
+        has_custom_portal: is_portal != DEFAULT_VIEWPORT_PORTAL,
+        has_custom_max_toasts: max_toasts != DEFAULT_VIEWPORT_MAX_TOASTS,
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ToastViewportNormalizeInput {
+    pub is_portal: bool,
+    pub max_toasts: usize,
+    pub class_name: Option<String>,
+    pub motion: ToastMotion,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ToastViewportNormalizedProps {
+    pub viewport: ToastViewportConfig,
+    pub class_name: Option<String>,
+    pub normalized_max_toasts: usize,
+    pub has_custom_class_name: bool,
+    pub has_custom_motion: bool,
+}
+
+pub fn normalize_viewport_props(
+    input: ToastViewportNormalizeInput,
+) -> ToastViewportNormalizedProps {
+    let viewport = resolve_viewport_config(input.is_portal, input.max_toasts);
+    let class_name = normalize_optional_text(input.class_name);
+
+    ToastViewportNormalizedProps {
+        normalized_max_toasts: normalize_viewport_max_toasts(viewport.max_toasts),
+        has_custom_class_name: class_name.is_some(),
+        has_custom_motion: input.motion != ToastMotion::default(),
+        viewport,
+        class_name,
+    }
+}
+
+pub fn resolve_viewport_store(
+    store: Option<ToastStore>,
+    max_toasts: usize,
+) -> (ToastStore, ToastStoreSource) {
+    if let Some(provided_store) = store {
+        (provided_store, ToastStoreSource::Provided)
+    } else if let Some(context_store) = use_toast_store() {
+        (context_store, ToastStoreSource::Context)
+    } else {
+        (
+            provide_toast_store(ToastStoreOptions { max_toasts }),
+            ToastStoreSource::Local,
+        )
+    }
+}
+
+pub fn resolve_instance_open(toasts: &[ToastInstance], id: &str) -> bool {
+    toasts
+        .iter()
+        .find(|toast| toast.id == id)
+        .map(|toast| toast.is_open)
+        .unwrap_or(false)
+}
+
+pub fn resolve_instance_description(description: Option<String>) -> String {
+    description.unwrap_or_default()
 }
 
 #[derive(Clone, Debug)]

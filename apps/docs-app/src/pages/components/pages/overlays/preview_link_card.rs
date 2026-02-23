@@ -18,7 +18,7 @@ pub(crate) fn preview_link_card() -> AnyView {
 
     let workbench_code = Signal::derive(move || {
         format!(
-            "<PreviewLinkCard\n  trigger=move || view! {{ <Button variant=ButtonVariant::Secondary>\"Workbench trigger\"</Button> }}\n  title=Some(\"Workbench title\".to_string())\n  description=Some(\"Workbench description\".to_string())\n  url=Some(\"https://github.com/adobe/ui-baseline\".to_string())\n  site_label=Some(\"github.com\".to_string())\n  image_src=Some(\"https://avatars.githubusercontent.com/u/476009?v=4\".to_string())\n  disabled={}\n  placement={}\n  open_delay_ms={}\n  close_delay_ms={}\n  motion={}\n  class_name={}\n  id={}\n/>",
+            "<PreviewLinkCard\n  trigger=move || view! {{ <Button variant=ButtonVariant::Secondary>\"Workbench trigger\"</Button> }}\n  title=Some(\"Workbench title\".to_string())\n  description=Some(\"Workbench description\".to_string())\n  url=Some(\"https://github.com/adobe/ui-baseline\".to_string())\n  site_label=Some(\"github.com\".to_string())\n  image_src=Some(\"https://avatars.githubusercontent.com/u/476009?v=4\".to_string())\n  is_disabled={}\n  placement={}\n  open_delay_ms={}\n  close_delay_ms={}\n  motion={}\n  class_name={}\n  id={}\n/>",
             workbench_disabled.get(),
             if workbench_top_end.get() {
                 "ui_headless::PopoverPlacement::TopEnd"
@@ -47,7 +47,7 @@ pub(crate) fn preview_link_card() -> AnyView {
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "PreviewLinkCardActualConfig {{\n  trigger: \"Button(ViewFn)\",\n  title: Some(\"Workbench title\"),\n  description: Some(\"Workbench description\"),\n  url: Some(\"https://github.com/adobe/ui-baseline\"),\n  site_label: Some(\"github.com\"),\n  image_src: Some(\"https://avatars.githubusercontent.com/u/476009?v=4\"),\n  disabled: {},\n  placement: {},\n  open_delay_ms: {},\n  close_delay_ms: {},\n  motion: {},\n  class_name: {},\n  id: {},\n}}",
+            "PreviewLinkCardActualConfig {{\n  trigger: \"Button(ViewFn)\",\n  title: Some(\"Workbench title\"),\n  description: Some(\"Workbench description\"),\n  url: Some(\"https://github.com/adobe/ui-baseline\"),\n  site_label: Some(\"github.com\"),\n  image_src: Some(\"https://avatars.githubusercontent.com/u/476009?v=4\"),\n  is_disabled: {},\n  placement: {},\n  open_delay_ms: {},\n  close_delay_ms: {},\n  motion: {},\n  class_name: {},\n  id: {},\n}}",
             workbench_disabled.get(),
             if workbench_top_end.get() {
                 "PopoverPlacement::TopEnd"
@@ -76,7 +76,7 @@ pub(crate) fn preview_link_card() -> AnyView {
 
     let matrix_code = Signal::derive(move || {
         r##"<PreviewLinkCard trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Default"</Button> } />
-<PreviewLinkCard disabled=true placement=ui_headless::PopoverPlacement::TopEnd trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Disabled"</Button> } />
+<PreviewLinkCard is_disabled=true placement=ui_headless::PopoverPlacement::TopEnd trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Disabled"</Button> } />
 <PreviewLinkCard class_name="docs-preview-link-card-custom".to_string() trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Custom class"</Button> } />"##
             .to_string()
     });
@@ -157,7 +157,7 @@ pub(crate) fn preview_link_card() -> AnyView {
                     url="https://github.com/adobe/ui-baseline".to_string()
                     site_label="github.com".to_string()
                     image_src="https://avatars.githubusercontent.com/u/476009?v=4".to_string()
-                    disabled=workbench_disabled.get()
+                    is_disabled=workbench_disabled.get()
                     placement=if workbench_top_end.get() {
                         ui_headless::PopoverPlacement::TopEnd
                     } else {
@@ -195,7 +195,7 @@ pub(crate) fn preview_link_card() -> AnyView {
                         }
                     />
                     <PreviewLinkCard
-                        disabled=true
+                        is_disabled=true
                         placement=ui_headless::PopoverPlacement::TopEnd
                         trigger=move || {
                             view! { <Button variant=ButtonVariant::Secondary>"Disabled"</Button> }

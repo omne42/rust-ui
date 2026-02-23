@@ -1,77 +1,34 @@
-fn digits_only(value: &str) -> impl Iterator<Item = char> + '_ {
-    value.chars().filter(|c| c.is_ascii_digit())
+use leptos::prelude::*;
+
+pub use ui_state_primitives::input_otp::{
+    apply_otp_backspace, apply_otp_input, normalize_otp_value,
+};
+
+pub fn normalize_default_value(default_value: Option<String>) -> String {
+    default_value.unwrap_or_default()
 }
 
-pub fn normalize_otp_value(value: &str, length: usize) -> String {
-    digits_only(value).take(length).collect()
+pub struct AccessibilityStateInput {
+    pub is_disabled: Option<bool>,
+    pub disabled: bool,
+    pub is_required: Option<Signal<bool>>,
+    pub required: Signal<bool>,
+    pub is_invalid: Option<Signal<bool>>,
+    pub invalid: Signal<bool>,
 }
 
-pub fn apply_otp_input(
-    current: &str,
-    index: usize,
-    raw: &str,
-    length: usize,
-) -> (String, Option<usize>) {
-    if length == 0 {
-        return (String::new(), None);
-    }
-
-    let current = normalize_otp_value(current, length);
-    let inserted: String = digits_only(raw).collect();
-    let inserted_len = inserted.len();
-
-    if inserted.is_empty() {
-        // Treat empty input as delete-at-index when possible.
-        let mut chars: Vec<char> = current.chars().collect();
-        if index < chars.len() {
-            chars.remove(index);
-        }
-        return (chars.into_iter().take(length).collect(), None);
-    }
-
-    let mut chars: Vec<char> = current.chars().collect();
-    let mut pos = index.min(chars.len());
-    let start_pos = pos;
-
-    for digit in inserted.chars() {
-        if pos < chars.len() {
-            chars[pos] = digit;
-        } else {
-            chars.push(digit);
-        }
-        pos += 1;
-        if pos >= length {
-            break;
-        }
-    }
-
-    chars.truncate(length);
-    let next_focus = (start_pos + inserted_len).min(length);
-    let next_focus = (next_focus < length).then_some(next_focus);
-    (chars.into_iter().collect(), next_focus)
+pub struct AccessibilityState {
+    pub is_disabled: bool,
+    pub is_required: Signal<bool>,
+    pub is_invalid: Signal<bool>,
 }
 
-pub fn apply_otp_backspace(current: &str, index: usize, length: usize) -> (String, usize) {
-    if length == 0 {
-        return (String::new(), 0);
+pub fn normalize_accessibility_state(input: AccessibilityStateInput) -> AccessibilityState {
+    AccessibilityState {
+        is_disabled: input.is_disabled.unwrap_or(input.disabled),
+        is_required: input.is_required.unwrap_or(input.required),
+        is_invalid: input.is_invalid.unwrap_or(input.invalid),
     }
-
-    let current = normalize_otp_value(current, length);
-    let mut chars: Vec<char> = current.chars().collect();
-    if chars.is_empty() {
-        return (String::new(), index.min(length.saturating_sub(1)));
-    }
-
-    if index < chars.len() {
-        chars.remove(index);
-        let focus = index.min(length.saturating_sub(1));
-        return (chars.into_iter().collect(), focus);
-    }
-
-    // If the focused cell is empty, delete the last digit.
-    chars.pop();
-    let focus = chars.len().min(length.saturating_sub(1));
-    (chars.into_iter().collect(), focus)
 }
 
 #[cfg(test)]

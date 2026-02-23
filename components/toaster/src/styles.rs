@@ -1,7 +1,7 @@
 pub const CSS: &str = r#"
 .ui-toaster {
-  --ui-toaster-single-max-width: var(--ui-overlay-panel-min-width);
-  --ui-toaster-max-inline-width: calc(var(--ui-overlay-panel-min-width) + var(--ui-space-lg) * 9);
+  --ui-toaster-single-max-width: var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width));
+  --ui-toaster-max-inline-width: calc(var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width)) + var(--ui-space-lg, var(--ui-fallback-space-lg)) * 9);
   pointer-events: none;
 }
 

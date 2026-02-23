@@ -2,14 +2,8 @@ use super::*;
 
 pub(crate) fn sidebar() -> AnyView {
     let showcase_code = Signal::derive(move || {
-        r#"<Sidebar
-  side=SidebarSide::Left
-  variant=SidebarVariant::Sidebar
-  collapsible=SidebarCollapsible::Offcanvas
-  aria_label="Project navigation".to_string()
->
-  <div class="ui-sidebar__header"><strong>"Workspace"</strong></div>
-  <div class="ui-sidebar__content"><span>"Dashboard"</span><span>"Analytics"</span><span>"Settings"</span></div>
+        r#"<Sidebar>
+  <div class="ui-sidebar__content"><span>"Dashboard"</span></div>
 </Sidebar>"#
             .to_string()
     });
@@ -151,19 +145,9 @@ pub(crate) fn sidebar() -> AnyView {
             description="baseline-compatible sidebar primitive with controlled/uncontrolled open state, side+variant+collapsible contracts, keyboard shortcut toggle, and baseline-style data markers."
         >
             <Playground title="Hello World (Default Sidebar)" code_signal=showcase_code>
-                <Sidebar
-                    side=SidebarSide::Left
-                    variant=SidebarVariant::Sidebar
-                    collapsible=SidebarCollapsible::Offcanvas
-                    aria_label="Project navigation".to_string()
-                >
-                    <div class="ui-sidebar__header">
-                        <strong>"Workspace"</strong>
-                    </div>
+                <Sidebar>
                     <div class="ui-sidebar__content">
                         <span>"Dashboard"</span>
-                        <span>"Analytics"</span>
-                        <span>"Settings"</span>
                     </div>
                 </Sidebar>
             </Playground>

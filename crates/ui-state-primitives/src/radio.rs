@@ -31,6 +31,33 @@ impl RadioGroupOrientation {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RadioCheckedControlMode {
+    Controlled,
+    Uncontrolled,
+}
+
+impl RadioCheckedControlMode {
+    pub fn from_is_controlled(is_controlled: bool) -> Self {
+        if is_controlled {
+            Self::Controlled
+        } else {
+            Self::Uncontrolled
+        }
+    }
+
+    pub fn is_controlled(self) -> bool {
+        matches!(self, Self::Controlled)
+    }
+
+    pub fn data_attr(self) -> &'static str {
+        match self {
+            Self::Controlled => "controlled",
+            Self::Uncontrolled => "uncontrolled",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RadioCheckedAxisInput {
     pub has_is_checked: bool,
     pub has_checked: bool,
@@ -41,6 +68,7 @@ pub struct RadioCheckedAxisInput {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RadioCheckedAxisState {
+    pub control_mode: RadioCheckedControlMode,
     pub is_controlled: bool,
     pub control_mode_attr: &'static str,
     pub checked_source_attr: &'static str,
@@ -49,12 +77,10 @@ pub struct RadioCheckedAxisState {
 }
 
 pub fn resolve_checked_axis(input: RadioCheckedAxisInput) -> RadioCheckedAxisState {
-    let is_controlled = input.has_is_checked || input.has_checked;
-    let control_mode_attr = if is_controlled {
-        "controlled"
-    } else {
-        "uncontrolled"
-    };
+    let control_mode =
+        RadioCheckedControlMode::from_is_controlled(input.has_is_checked || input.has_checked);
+    let is_controlled = control_mode.is_controlled();
+    let control_mode_attr = control_mode.data_attr();
     let checked_source_attr = if input.has_is_checked {
         "is_checked"
     } else if input.has_checked {
@@ -76,6 +102,7 @@ pub fn resolve_checked_axis(input: RadioCheckedAxisInput) -> RadioCheckedAxisSta
     };
 
     RadioCheckedAxisState {
+        control_mode,
         is_controlled,
         control_mode_attr,
         checked_source_attr,

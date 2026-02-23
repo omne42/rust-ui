@@ -1,5 +1,6 @@
 use super::*;
-use crate::PreviewCardPartStateInput;
+use crate::PreviewCardMotion;
+use crate::{PreviewCardPartStateInput, PreviewCardSiteLabelSource};
 
 #[test]
 fn normalize_optional_text_trims_and_filters_blank_values() {
@@ -48,17 +49,23 @@ fn resolution_helpers_track_custom_and_default_sources() {
 fn resolve_site_label_supports_custom_derived_and_default_paths() {
     assert_eq!(
         resolve_site_label(Some(" Baseline ".to_string()), "https://example.com"),
-        ("Baseline".to_string(), "custom")
+        ("Baseline".to_string(), PreviewCardSiteLabelSource::Custom)
     );
 
     assert_eq!(
         resolve_site_label(None, "https://www.github.com/adobe/ui-baseline"),
-        ("github.com".to_string(), "derived")
+        (
+            "github.com".to_string(),
+            PreviewCardSiteLabelSource::Derived
+        )
     );
 
     assert_eq!(
         resolve_site_label(None, "   "),
-        (DEFAULT_SITE_LABEL.into(), "default")
+        (
+            DEFAULT_SITE_LABEL.into(),
+            PreviewCardSiteLabelSource::Default
+        )
     );
 }
 
@@ -66,7 +73,7 @@ fn resolve_site_label_supports_custom_derived_and_default_paths() {
 fn resolve_part_state_tracks_slot_content_and_sources() {
     let root = resolve_part_state(PreviewCardPartStateInput {
         slot: PreviewCardSlot::Root,
-        disabled: false,
+        is_disabled: false,
         has_image: true,
         has_custom_class_name: true,
         has_custom_delays: true,
@@ -74,7 +81,7 @@ fn resolve_part_state_tracks_slot_content_and_sources() {
         has_custom_title: true,
         has_custom_description: true,
         has_custom_url: true,
-        site_label_source_attr: "derived",
+        site_label_source: PreviewCardSiteLabelSource::Derived,
         has_custom_motion: true,
     });
 
@@ -82,12 +89,12 @@ fn resolve_part_state_tracks_slot_content_and_sources() {
     assert_eq!(root.content_attr, "media");
     assert_eq!(root.class_source_attr, "custom");
     assert_eq!(root.delay_source_attr, "custom");
-    assert_eq!(root.site_label_source_attr, "derived");
+    assert_eq!(root.site_label_source, PreviewCardSiteLabelSource::Derived);
     assert_eq!(root.motion_source_attr, "custom");
 
     let trigger = resolve_part_state(PreviewCardPartStateInput {
         slot: PreviewCardSlot::Trigger,
-        disabled: false,
+        is_disabled: false,
         has_image: true,
         has_custom_class_name: false,
         has_custom_delays: false,
@@ -95,7 +102,7 @@ fn resolve_part_state_tracks_slot_content_and_sources() {
         has_custom_title: false,
         has_custom_description: false,
         has_custom_url: false,
-        site_label_source_attr: "default",
+        site_label_source: PreviewCardSiteLabelSource::Default,
         has_custom_motion: false,
     });
 
@@ -109,7 +116,7 @@ fn compose_class_name_includes_custom_and_content_markers() {
         Some("docs-preview-card".to_string()),
         resolve_part_state(PreviewCardPartStateInput {
             slot: PreviewCardSlot::Root,
-            disabled: false,
+            is_disabled: false,
             has_image: true,
             has_custom_class_name: true,
             has_custom_delays: true,
@@ -117,7 +124,7 @@ fn compose_class_name_includes_custom_and_content_markers() {
             has_custom_title: true,
             has_custom_description: true,
             has_custom_url: true,
-            site_label_source_attr: "derived",
+            site_label_source: PreviewCardSiteLabelSource::Derived,
             has_custom_motion: true,
         }),
     );
@@ -162,10 +169,85 @@ fn misc_helpers_keep_contracts_stable() {
         compose_panel_vars(12.5, 24.0, 180.0),
         "--ui-preview-card-top: 12.5px; --ui-preview-card-left: 24px; --ui-preview-card-anchor-width: 180px;"
     );
+}
 
-    assert!(should_handle_escape("Escape", true, false));
-    assert!(!should_handle_escape("Escape", false, false));
-    assert!(!should_handle_escape("Escape", true, true));
+#[test]
+fn runtime_options_resolve_defaults_and_custom_overrides() {
+    let defaults = resolve_runtime_options(PreviewCardRuntimeOptionsInput {
+        is_disabled: None,
+        placement: None,
+        open_delay_ms: None,
+        close_delay_ms: None,
+        motion: None,
+    });
+    assert_eq!(defaults.is_disabled, DEFAULT_DISABLED);
+    assert_eq!(
+        defaults.placement,
+        ui_headless::PopoverPlacement::BottomStart
+    );
+    assert_eq!(defaults.open_delay_ms, DEFAULT_OPEN_DELAY_MS);
+    assert_eq!(defaults.close_delay_ms, DEFAULT_CLOSE_DELAY_MS);
+    assert_eq!(defaults.motion, PreviewCardMotion::default());
+    assert!(!defaults.has_custom_delays);
+    assert!(!defaults.has_custom_motion);
+
+    let custom_motion = PreviewCardMotion {
+        initial_scale: 0.95,
+        offset_y_px: 12.0,
+        ..PreviewCardMotion::default()
+    };
+    let custom = resolve_runtime_options(PreviewCardRuntimeOptionsInput {
+        is_disabled: Some(true),
+        placement: Some(ui_headless::PopoverPlacement::TopEnd),
+        open_delay_ms: Some(220),
+        close_delay_ms: Some(200),
+        motion: Some(custom_motion),
+    });
+    assert!(custom.is_disabled);
+    assert_eq!(custom.placement, ui_headless::PopoverPlacement::TopEnd);
+    assert_eq!(custom.open_delay_ms, 220);
+    assert_eq!(custom.close_delay_ms, 200);
+    assert_eq!(custom.motion, custom_motion);
+    assert!(custom.has_custom_delays);
+    assert!(custom.has_custom_motion);
+}
+
+#[test]
+fn state_model_derives_all_slots_from_single_input() {
+    let model = resolve_state_model(PreviewCardStateModelInput {
+        class_name: Some(" docs-preview-card ".to_string()),
+        is_disabled: true,
+        has_image: true,
+        has_custom_delays: true,
+        has_custom_id: true,
+        has_custom_title: true,
+        has_custom_description: true,
+        has_custom_url: true,
+        site_label_source: PreviewCardSiteLabelSource::Derived,
+        has_custom_motion: true,
+    });
+
+    assert_eq!(model.root_state.slot, PreviewCardSlot::Root);
+    assert_eq!(model.trigger_state.slot, PreviewCardSlot::Trigger);
+    assert_eq!(model.panel_state.slot, PreviewCardSlot::Panel);
+
+    assert_eq!(
+        model.root_state.site_label_source,
+        PreviewCardSiteLabelSource::Derived
+    );
+    assert_eq!(
+        model.trigger_state.site_label_source,
+        PreviewCardSiteLabelSource::Derived
+    );
+    assert_eq!(
+        model.panel_state.site_label_source,
+        PreviewCardSiteLabelSource::Derived
+    );
+
+    assert!(model.root_class.contains("ui-preview-card--disabled"));
+    assert!(model.root_class.contains("docs-preview-card"));
+    assert!(model.trigger_class.contains("ui-preview-card__trigger"));
+    assert!(model.panel_class.contains("ui-preview-card__panel"));
 }
 
 #[test]

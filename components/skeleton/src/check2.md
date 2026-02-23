@@ -98,6 +98,30 @@
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：`Skeleton/SkeletonGroup` 为非交互展示组件，组件无拖拽/指针追踪/逐帧物理循环；实现未定义 `Dragging` 态、`Action::DragEnd`、`on:pointermove`/`on:mousemove`/`on:touchmove` 或 RAF 驱动路径。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_macro_micro_duality_dragging_loop_is_explicitly_na_for_non_interactive_component`。）
+  - 仅当组件存在拖拽等高频交互时，才要求微观循环留在 `view/motion` 并在结束动作统一回流。
+  - 非交互组件必须明确标注 N/A，并通过语义测试锁定“无高频回流状态机”。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`Skeleton/SkeletonGroup` 为非交互展示组件，不承担 `Tooltip/Popover/Menu` 几何定位职责；实现未使用 `getBoundingClientRect`/`ResizeObserver` 等测量入口，也不存在测量后回写 `logic.rs` 的 Rectification 循环。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_two_pass_rendering_measure_rectification_is_explicitly_na_for_non_measurement_component`。）
+  - 仅当组件存在基于 DOM 几何测量的定位职责时，才要求完整 `Intent -> Measure -> Rectification` 两段式链路。
+  - 非测量组件必须明确标注 N/A，并通过语义测试锁定“无测量回写循环”。
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`Skeleton/SkeletonGroup` 不属于动态子项导航组件，不承担 `Accordion/Tabs/Menu` 的集合注册与顺序导航职责；实现未定义 `RegistrationContext`、`Register/Unregister` 或 `items_order`，也未使用 `HashSet` 迭代顺序作为导航依据。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_registration_protocol_is_explicitly_na_for_non_navigable_collection_component`。）
+  - 仅当组件存在动态子项注册与键盘/焦点导航语义时，才要求 `RegistrationContext + items_order` 协议闭环。
+  - 非导航集合组件必须明确标注 N/A，并通过语义测试锁定“无注册协议与顺序导航依赖”。
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`Skeleton/SkeletonGroup` 为展示型原子/轻容器组件，不承担多插槽投影策略与 keep-alive 生命周期管理职责；实现未定义 `Lazy/KeepAlive/Eager` 投影模式、`NotifyHidden` 通知链路，也未引入轮询定时器等需在隐藏时暂停的高耗能副作用。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_slot_projection_strategy_is_explicitly_na_for_non_projection_container`。）
+  - 仅当组件承担多插槽投影与可见性生命周期管理时，才要求 `Lazy/KeepAlive/Eager + NotifyHidden` 协议闭环。
+  - 非投影容器组件必须明确标注 N/A，并通过语义测试锁定“无 slot projection 生命周期协议”。
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`Skeleton/SkeletonGroup` 为静态展示组件，不承担响应式环境订阅职责；实现未引入 `ResizeObserver`/`IntersectionObserver`/`matchMedia` 订阅，也未定义 `BreakpointChanged` 等环境语义 action 与 `view -> logic` 事件流桥接。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_env_streams_are_explicitly_na_for_non_subscribing_display_component`。）
+  - 仅当组件需要随环境变化重排/重算语义时，才要求 `view` 采样防抖并上推高层 `Action`。
+  - 非订阅型展示组件必须明确标注 N/A，并通过语义测试锁定“无环境事件洪泛路径”。
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`Skeleton/SkeletonGroup` 非大型可交互集合组件，不承担 `Table/Grid` 批量选择与分发职责；实现未定义 `Context Bus`/`SelectionState::All` 等状态压缩协议，也未出现批量操作下的 O(N) 向下 prop drilling 路径。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_event_light_cone_is_explicitly_na_for_non_bulk_collection_component`。）
+  - 仅当组件承载大型集合批量交互时，才要求 `Context Bus + Selector` 与压缩状态表达闭环。
+  - 非集合批量组件必须明确标注 N/A，并通过语义测试锁定“无 O(N) 事件向下扩散协议”。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`Skeleton/SkeletonGroup` 为非交互展示组件，不承担层叠 `Overlay` 焦点管理职责；实现未定义 `NodeRef` 焦点恢复目标、`FallbackTo/Selector` 焦点回退协议或 `document.body` 回落分支。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_focus_stack_and_gc_is_explicitly_na_for_non_overlay_component`。）
+  - 仅当组件承担层叠 Overlay 焦点陷阱/恢复职责时，才要求接入全局 Focus Manager。
+  - 非 Overlay 展示组件必须明确标注 N/A，并通过语义测试锁定“无私存 NodeRef 焦点恢复路径”。
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`Skeleton/SkeletonGroup` 为纯展示占位组件，不承担 ECharts/Map 等命令式第三方运行时集成职责；实现未定义 `Foreign Zone`、`YieldControl/CleanupForeign` 协议，亦未暴露第三方实例句柄到公共 API。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_escape_hatches_foreign_zone_is_explicitly_na_for_non_imperative_integration_component`。）
+  - 仅当组件必须托管命令式第三方实例时，才允许进入受控外交特区，并强制生命周期清理闭环。
+  - 非命令式集成组件必须明确标注 N/A，并通过语义测试锁定“无第三方实例泄漏与状态机反向污染路径”。
 - [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`Skeleton` 保持 `aria-hidden`；`SkeletonGroup` 提供 `aria_label` 覆写入口、`DEFAULT_ARIA_LABEL` 兜底与 `data-label-source` 来源标记，挂载 `role/aria-busy`；组件不硬编码业务可见文案。共享 A11y 工具 canonical 仍在 `crates/ui-headless/src/a11y.rs`。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_a11y_i18n_l10n_contract_has_accessible_entrypoints_without_text_hardcoding_in_view`、`skeleton_semantic_contract_covers_aria_and_state_source_markers` 与 `components/skeleton/test/skeleton_group_semantics.rs` 的 `skeleton_group_semantic_contract_covers_role_aria_and_state_source_markers`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
@@ -112,6 +136,8 @@
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（`Skeleton/SkeletonGroup` 样式已统一使用双层变量链，如 `var(--ui-radius-md, var(--ui-fallback-radius-md))`、`var(--ui-bg, var(--ui-fallback-bg))`、`var(--ui-space-sm, var(--ui-fallback-space-sm))`、`var(--ui-accent, var(--ui-fallback-accent))`；并移除组件内裸尺寸终值（如 `9999px/8rem/1.25s/1.15s/2px/1px`）。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_defensive_variables_use_two_level_fallback_chain_and_no_hardcoded_terminal_sizes`。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style="top: 10px"`）。（`Skeleton/SkeletonGroup` 的组件样式通过 `crates/ui/src/css.rs::push_components_css` 统一聚合到 `@layer ui`；`view.rs` 与 `group/view.rs` 均未使用普通 `style=` 内联样式。当前组件无运行时数值内联调整需求（N/A），后续若引入仅允许 `style:--*` 形式。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_css_is_aggregated_under_layer_ui_and_runtime_styles_forbid_plain_inline_style`。）
 - [x] 测试验证“语义契约”而不只验证视觉快照。（语义断言覆盖 `role/aria/data-state/source markers` 与关键分支：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_semantic_contract_covers_aria_and_state_source_markers`、`skeleton_emits_baseline_style_state_data_attributes`、`skeleton_has_no_half_controlled_state_axis_contract`、`skeleton_is_non_interactive_and_does_not_mount_headless_handlers`；`components/skeleton/test/skeleton_group_semantics.rs` 的 `skeleton_group_semantic_contract_covers_role_aria_and_state_source_markers`、`skeleton_group_emits_baseline_style_state_data_attributes`、`skeleton_group_has_no_half_controlled_state_axis_contract`、`skeleton_group_remains_non_interactive_without_headless_handler_contract`。本组件未引入视觉快照测试作为主验收。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
@@ -168,6 +194,9 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（N/A：`Skeleton/SkeletonGroup` 为静态展示组件，不生成运行时随机 ID，也不维护基于时间/随机数的初始化状态；实现未使用 `now()`/`Date::now`/`SystemTime::now`/`Uuid::new_v4`/`rand::*`。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_hydration_discontinuity_contract_is_explicitly_na_for_static_idless_component`。）
+  - 仅当组件需要生成可寻址交互 ID（如 `aria-controls`/`for`/overlay anchors）时，才要求 `IdProvider` 注入确定性种子。
+  - 非 ID 驱动展示组件必须明确标注 N/A，并通过语义测试锁定“无时间/随机初始化路径”。
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`Skeleton/SkeletonGroup` 为非交互静态占位组件，采用“静态等价证据”替代当前框架暂不具备的精确 `render_count` 自动化：`components/skeleton/test/skeleton/semantics.rs` 新增 `skeleton_performance_governance_has_static_equivalent_evidence_and_blocking_contract`，同时锁定 `apps/docs-app/src/pages/components/shell.rs` 的预算入口、`apps/docs-app/src/perf_probe.rs` 的预算/违例标记、`e2e/tests/docs_app_components_coverage.spec.mjs` 的阻断断言，以及 skeleton/skeleton-group 渲染路径无额外响应式分配（无 `create_signal/Memo::new/Effect::new`）。`render_count` 后续自动化跟踪由 `docs/plan/TODO.md` 中既有任务约束。实测：`CARGO_TARGET_DIR=/tmp/codex-skeleton-target /root/.cargo/bin/cargo test -p ui --no-default-features --features component-skeleton_group,inject-css --test skeleton_semantics skeleton_performance_governance_has_static_equivalent_evidence_and_blocking_contract` 通过。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
@@ -203,6 +232,7 @@
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（组件范围内 `components/skeleton/src/**` 已锁定无 `unwrap(` / `expect(` / `let _ =`；`components/skeleton/src/group/logic.rs::compose_class_name` 已将 class 组装热点收敛为 `Vec<Cow<'static, str>>`，仅对用户传入 class 使用 `Cow::Owned`，其余稳定字面量与状态 class 使用 `Cow::Borrowed`。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_rust_hygiene_contract_is_enforced_for_component_scope`。实测：`./scripts/check-rust-hygiene.sh` 当前因仓库其他组件（`components/text-input/src/date_field/motion.rs` 的 motion-hardcode）失败；该失败与 skeleton 无关，组件内 hygiene 由语义回归持续阻断。）
 
 ### 5. 文件落点检查（必须提及）
 - [x] `ui` 固定入口文件落点正确。（回归：`components/skeleton/test/skeleton/semantics.rs` 新增 `skeleton_ui_components_entry_points_stay_correct`，逐项断言 `crates/ui/src/lib.rs`（`component-skeleton` feature gate + `UiRoot`/Skeleton 稳定导出）、`crates/ui/src/css.rs`（`push_components_css` 与 `component-skeleton`/`component-skeleton_group` 条件聚合）、`crates/ui/src/root.rs`（`BASE_CSS + theme vars + components css + provide_ui_i18n` 集中注入）、`crates/ui-visual-primitive/src/active_highlight.rs`（共享高亮动效原语无组件业务语义污染）；并断言 `crates/ui/src/overlay_open.rs`、`crates/ui/src/presence.rs`、`crates/ui/src/a11y.rs` 不存在且 canonical 落点在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。同步新增 `skeleton_check2_marks_ui_components_entry_points_complete` 锁定 checklist 证据文本。实测：`CARGO_TARGET_DIR=/tmp/codex-skeleton-target /root/.cargo/bin/cargo test -p ui --no-default-features --features component-skeleton_group,inject-css --test skeleton_semantics skeleton_ui_components_entry_points_stay_correct` 通过。）
@@ -220,6 +250,7 @@
   - `<component>/view.rs`：纯 Leptos 结构渲染 + headless 语义挂载；禁止 `render.rs` 漂移；不隐藏关键状态决策。
   - `<component>/motion.rs`：`XxxMotion + attach_motion`；交互组件必须有；只做语义到 motion contract 的映射与挂载。
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`Skeleton` 组件目录已新增 `components/skeleton/src/Component.toml` 与 `components/skeleton/src/skeleton.rbi`，并同步记录 `Skeleton/SkeletonGroup` 的输入轴、语义输出与能力项（`context_compression_manifest`、`rbi_signature_projection`）。回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_context_compression_manifest_and_rbi_projection_are_present_and_current`。）
 
 ### 6. AI 原生能力（Agent Contract + 流式）
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（回归：`components/skeleton/test/skeleton/semantics.rs` 的 `skeleton_agent_contract_semantics_are_typed_traceable_and_script_safe` 与 `skeleton_check2_marks_directory_layout_agent_and_semantic_suite_items_complete`，断言 `Skeleton/SkeletonGroup` 输出稳定 `data-*` 语义与来源标记（`data-state/data-variant/data-visibility/data-loading-mode/data-label-source/data-class-source`），并可追溯到类型化状态字段（`ui-state-primitives::skeleton::SkeletonState` 与 `skeleton/group::SkeletonGroupState` 的 `*_attr` 字段）；同时锁定逻辑层通过类型化输入归一（`unwrap_or_default`）映射到封闭集合，禁止 `data-*` 字符串拼接与脚本注入路径（`inner_html`/`<script>`/`javascript:`）。实测：`CARGO_TARGET_DIR=/tmp/codex-skeleton-target /root/.cargo/bin/cargo test -p ui --no-default-features --features component-skeleton_group,inject-css --test skeleton_semantics skeleton_agent_contract_semantics_are_typed_traceable_and_script_safe` 通过。）

@@ -201,6 +201,14 @@ cargo test -p ui --test button_semantics button_reduced_motion_and_ssr_wasm_sema
 echo "[platform] time-field reduced-motion/ssr/wasm contract"
 cargo test -p ui --test time_field_semantics --no-default-features --features component-time_field time_field_reduced_motion_ssr_wasm_branches_keep_semantics_consistent
 
+echo "[platform] tag motion contractualization (N/A runtime attach + reduced-motion + non-wasm no-op)"
+cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_motion_contract_uses_ui_motion_non_wasm_stub_and_keeps_component_safe_without_motion
+cargo test -p ui --test tag_semantics --no-default-features --features component-tag,inject-css tag_reduced_motion_ssr_wasm_contract_is_n_a_but_semantics_stay_platform_stable
+
+echo "[platform] tag-group motion contractualization (N/A runtime attach + reduced-motion + non-wasm no-op)"
+cargo test -p ui --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_motion_contract_uses_ui_motion_non_wasm_stub_and_keeps_component_safe_without_motion
+cargo test -p ui --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_reduced_motion_ssr_wasm_contract_is_n_a_but_semantics_stay_platform_stable
+
 echo "[platform] checkbox-field reduced-motion/ssr/wasm contract"
 cargo test -p ui --test checkbox_field_semantics --no-default-features --features component-checkbox_field,inject-css checkbox_field_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe
 

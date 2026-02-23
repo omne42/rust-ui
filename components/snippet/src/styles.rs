@@ -3,22 +3,23 @@ pub const CSS: &str = r#"
   --ui-snippet-scale: 1;
   display: inline-flex;
   align-items: center;
-  gap: var(--ui-space-sm);
+  gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
   min-width: 0;
 
   position: relative;
-  padding: var(--ui-space-sm) var(--ui-space-md);
+  padding: var(--ui-space-sm, var(--ui-fallback-space-sm))
+    var(--ui-space-md, var(--ui-fallback-space-md));
 
-  border-radius: var(--ui-radius-md);
-  border: 1px solid var(--ui-border);
-  background: var(--ui-bg-muted);
-  color: var(--ui-fg);
-  box-shadow: var(--ui-shadow-sm);
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
+  border: 1px solid var(--ui-border, var(--ui-fallback-border));
+  background: var(--ui-bg-muted, var(--ui-fallback-bg-muted));
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
   box-sizing: border-box;
   transform: scale(var(--ui-snippet-scale));
   transform-origin: center;
 
-  font-family: var(--ui-font-family-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+  font-family: var(--ui-font-family-mono, var(--ui-fallback-font-family-mono));
 }
 
 .ui-snippet--state-multiline,
@@ -80,18 +81,21 @@ pub const CSS: &str = r#"
   justify-content: center;
   flex-shrink: 0;
 
-  padding: 0 var(--ui-space-xs);
-  min-height: var(--ui-component-height-100);
+  padding: 0 var(--ui-space-xs, var(--ui-fallback-space-xs));
+  min-height: var(
+    --ui-component-height-100,
+    var(--ui-fallback-component-height-100)
+  );
 
-  border-radius: var(--ui-radius-sm);
-  border: 1px solid var(--ui-border);
-  background: var(--ui-bg);
-  color: var(--ui-fg-muted);
+  border-radius: var(--ui-radius-sm, var(--ui-fallback-radius-sm));
+  border: 1px solid var(--ui-border, var(--ui-fallback-border));
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
   box-sizing: border-box;
 
   font-family: inherit;
-  font-size: var(--ui-font-size-100);
-  line-height: var(--ui-line-height-100, 16px);
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
   user-select: none;
 }
 
@@ -103,8 +107,8 @@ pub const CSS: &str = r#"
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 
-  font-size: var(--ui-font-size-100);
-  line-height: var(--ui-line-height-100, 16px);
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
   user-select: text;
 }
 
@@ -114,13 +118,17 @@ pub const CSS: &str = r#"
   justify-content: center;
   flex-shrink: 0;
 
-  padding: calc(var(--ui-space-xs) / 2) var(--ui-space-sm);
-  min-height: var(--ui-component-height-100);
+  padding: calc(var(--ui-space-xs, var(--ui-fallback-space-xs)) / 2)
+    var(--ui-space-sm, var(--ui-fallback-space-sm));
+  min-height: var(
+    --ui-component-height-100,
+    var(--ui-fallback-component-height-100)
+  );
 
-  border-radius: var(--ui-radius-sm);
+  border-radius: var(--ui-radius-sm, var(--ui-fallback-radius-sm));
   border: 1px solid transparent;
   background: transparent;
-  color: var(--ui-fg-muted);
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
   box-sizing: border-box;
 
   user-select: none;
@@ -132,17 +140,17 @@ pub const CSS: &str = r#"
 }
 
 .ui-snippet__copy-button:hover:not(:disabled) {
-  background: var(--ui-bg);
-  color: var(--ui-fg);
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
 }
 
 .ui-snippet__copy-button:focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
+  outline: 3px solid var(--ui-focus-ring, var(--ui-fallback-focus-ring));
   outline-offset: 2px;
 }
 
 .ui-snippet[data-copy-status="idle"] .ui-snippet__copy-button {
-  color: var(--ui-fg-muted);
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
 }
 
 .ui-snippet[data-copy-status="loading"] .ui-snippet__copy-button,
@@ -152,12 +160,12 @@ pub const CSS: &str = r#"
 
 .ui-snippet[data-copy-status="error"] .ui-snippet__copy-button,
 .ui-snippet__copy-button[data-copy-error="true"] {
-  color: var(--ui-fg);
+  color: var(--ui-fg, var(--ui-fallback-fg));
 }
 
 .ui-snippet[data-copy-status="copied"] .ui-snippet__copy-button,
 .ui-snippet__copy-button[data-copied="true"] {
-  color: var(--ui-accent);
+  color: var(--ui-accent, var(--ui-fallback-accent));
 }
 
 .ui-snippet__copy-button:disabled {

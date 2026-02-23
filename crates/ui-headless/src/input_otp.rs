@@ -1,4 +1,4 @@
-use leptos::prelude::*;
+use leptos::{html, prelude::*};
 
 fn digits_only(value: &str) -> impl Iterator<Item = char> + '_ {
     value.chars().filter(|c| c.is_ascii_digit())
@@ -7,6 +7,85 @@ fn digits_only(value: &str) -> impl Iterator<Item = char> + '_ {
 fn normalize_otp_value(value: &str, length: usize) -> String {
     let length = length.max(1);
     digits_only(value).take(length).collect()
+}
+
+#[cfg(target_arch = "wasm32")]
+fn focus_input(input_ref: &NodeRef<html::Input>) {
+    let Some(el) = input_ref.get_untracked() else {
+        return;
+    };
+    ui_observability::observe_js_result!(el.focus());
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn focus_input(_input_ref: &NodeRef<html::Input>) {}
+
+#[cfg(target_arch = "wasm32")]
+fn set_selection_range(input_ref: &NodeRef<html::Input>, start: usize, end: usize) {
+    let Some(el) = input_ref.get_untracked() else {
+        return;
+    };
+    let start = start.min(u32::MAX as usize) as u32;
+    let end = end.min(u32::MAX as usize) as u32;
+    drop(el.set_selection_range(start, end));
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn set_selection_range(_input_ref: &NodeRef<html::Input>, _start: usize, _end: usize) {}
+
+#[cfg(target_arch = "wasm32")]
+fn selection_start(input_ref: &NodeRef<html::Input>) -> Option<usize> {
+    let el = input_ref.get_untracked()?;
+    el.selection_start()
+        .ok()
+        .flatten()
+        .and_then(|value| usize::try_from(value).ok())
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn selection_start(_input_ref: &NodeRef<html::Input>) -> Option<usize> {
+    None
+}
+
+pub fn input_otp_sync_caret_from_dom(
+    input_ref: &NodeRef<html::Input>,
+    fallback: usize,
+    on_caret_change: Callback<usize>,
+) {
+    let caret = selection_start(input_ref).unwrap_or(fallback);
+    on_caret_change.run(caret);
+}
+
+pub fn input_otp_focus_control(
+    input_ref: &NodeRef<html::Input>,
+    value_len: usize,
+    on_caret_change: Callback<usize>,
+) {
+    focus_input(input_ref);
+    set_selection_range(input_ref, value_len, value_len);
+    on_caret_change.run(value_len);
+}
+
+pub fn input_otp_focus_slot(
+    input_ref: &NodeRef<html::Input>,
+    slot_index: usize,
+    value_len: usize,
+    on_caret_change: Callback<usize>,
+) {
+    let (caret, end) = input_otp_slot_selection_range(slot_index, value_len);
+    focus_input(input_ref);
+    set_selection_range(input_ref, caret, end);
+    on_caret_change.run(caret);
+}
+
+pub fn input_otp_slot_selection_range(slot_index: usize, value_len: usize) -> (usize, usize) {
+    let caret = slot_index.min(value_len);
+    let end = if caret < value_len {
+        (caret + 1).min(value_len)
+    } else {
+        caret
+    };
+    (caret, end)
 }
 
 #[derive(Clone, Debug)]

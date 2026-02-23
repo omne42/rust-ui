@@ -38,43 +38,70 @@ fn switch_group_does_not_expose_logic_or_view_modules() {
 fn switch_group_uses_logic_state_model() {
     let logic_source = load_source("src/switch/group/logic.rs");
     let view_source = load_source("src/switch/group/view.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/switch_group.rs");
+    let primitive_lib_source = load_source("../ui-state-primitives/src/lib.rs");
 
     for needle in [
-        "pub enum SwitchGroupOrientation",
-        "pub enum SwitchGroupTone",
+        "pub use ui_state_primitives::switch_group::",
         "pub fn resolve_ids(",
         "pub fn normalize_optional_text(",
         "pub fn normalize_label(",
         "pub fn normalize_description(",
         "pub fn normalize_aria_label(",
         "pub fn normalize_error_message(",
-        "pub fn resolve_state(",
+        "pub fn resolve_state(input: SwitchGroupStateInput) -> SwitchGroupState",
+        "pub fn compose_describedby(state: SwitchGroupState, ids: &SwitchGroupIds) -> Option<String>",
+        "ui_state_primitives::switch_group::resolve_state(input)",
         "pub fn compose_class_name(",
-        "label_source_attr",
-        "aria_source_attr",
-        "error_source_attr",
-        "class_source_attr",
-        "message_kind_attr",
-        "data_state_attr",
     ] {
         assert!(
             logic_source.contains(needle),
-            "SwitchGroup logic should include `{needle}` for centralized state derivation."
+            "SwitchGroup logic should include `{needle}` while delegating state derivation."
         );
     }
+
+    for needle in [
+        "pub enum SwitchGroupOrientation",
+        "pub enum SwitchGroupTone",
+        "pub struct SwitchGroupStateInput",
+        "pub struct SwitchGroupState",
+        "pub fn resolve_state(input: SwitchGroupStateInput) -> SwitchGroupState",
+    ] {
+        assert!(
+            primitive_source.contains(needle),
+            "SwitchGroup primitive should define `{needle}` in ui-state-primitives."
+        );
+    }
+
+    assert!(
+        primitive_lib_source.contains("pub mod switch_group;"),
+        "ui-state-primitives should export `pub mod switch_group;`."
+    );
 
     for needle in [
         "logic::resolve_ids(id_base)",
         "logic::normalize_label(label)",
         "logic::normalize_description(description)",
         "logic::normalize_aria_label(aria_label)",
-        "logic::normalize_error_message(error_message, invalid)",
+        "logic::normalize_error_message(error_message, is_invalid)",
         "logic::resolve_state(SwitchGroupStateInput {",
+        "logic::compose_describedby(state.get(), &group_ids)",
         "logic::compose_class_name(class_name.get_value(), state.get())",
     ] {
         assert!(
             view_source.contains(needle),
             "SwitchGroup view should derive state via logic helpers; missing `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "let mut ids_out = Vec::new();",
+        "ids_out.push(group_ids.description_id.clone())",
+        "ids_out.push(group_ids.error_id.clone())",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "SwitchGroup view should not rebuild describedby state aggregation in view layer; found `{forbidden}`.",
         );
     }
 }
@@ -165,21 +192,83 @@ fn switch_group_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "title=\"Required + Description\"",
-        "required=true",
+        "is_required=true",
         "aria_label=\"Notification switches\".to_string()",
         "title=\"Horizontal + Invalid + Disabled + Custom Class\"",
         "orientation=SwitchGroupOrientation::Horizontal",
         "tone=SwitchGroupTone::Muted",
-        "invalid=true",
-        "disabled=true",
+        "is_invalid=true",
+        "is_disabled=true",
         "error_message=\"At least one critical channel must stay enabled.\".to_string()",
         "class_name=\"docs-switch-group-custom\".to_string()",
-        "<Switch checked=critical_alerts set_checked=set_critical_alerts disabled=true>",
-        "<Switch checked=maintenance_mode set_checked=set_maintenance_mode disabled=true>",
+        "<Switch checked=critical_alerts set_checked=set_critical_alerts is_disabled=true>",
+        "<Switch checked=maintenance_mode set_checked=set_maintenance_mode is_disabled=true>",
     ] {
         assert!(
             source.contains(needle),
             "forms_groups switch_group docs playgrounds should contain `{needle}` for state-matrix contracts.",
+        );
+    }
+}
+
+#[test]
+fn switch_group_public_boolean_props_use_is_prefix_and_drop_legacy_aliases() {
+    let source = load_source("src/switch/group/view.rs");
+
+    for needle in [
+        "#[prop(optional)] is_required: bool,",
+        "#[prop(optional)] is_disabled: bool,",
+        "#[prop(optional)] is_invalid: bool,",
+    ] {
+        assert!(
+            source.contains(needle),
+            "SwitchGroup public bool prop should use `is_*` naming `{needle}`.",
+        );
+    }
+
+    for legacy in [
+        "#[prop(optional)] required: bool,",
+        "#[prop(optional)] disabled: bool,",
+        "#[prop(optional)] invalid: bool,",
+    ] {
+        assert!(
+            !source.contains(legacy),
+            "SwitchGroup should remove legacy bool prop alias `{legacy}`.",
+        );
+    }
+}
+
+#[test]
+fn switch_group_discrete_axes_are_typed_enums_not_stringly_props() {
+    let view_source = load_source("src/switch/group/view.rs");
+    let logic_source = load_source("src/switch/group/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/switch_group.rs");
+
+    for needle in [
+        "#[prop(optional)] orientation: SwitchGroupOrientation,",
+        "#[prop(optional)] tone: SwitchGroupTone,",
+        "pub use ui_state_primitives::switch_group::{",
+        "pub enum SwitchGroupOrientation",
+        "pub enum SwitchGroupTone",
+        "pub struct SwitchGroupStateInput",
+    ] {
+        assert!(
+            view_source.contains(needle)
+                || logic_source.contains(needle)
+                || primitive_source.contains(needle),
+            "SwitchGroup discrete axes should stay enum-typed; missing `{needle}`.",
+        );
+    }
+
+    for forbidden in [
+        "#[prop(optional, into)] orientation: Option<String>",
+        "#[prop(optional, into)] tone: Option<String>",
+        "orientation: Option<bool>",
+        "tone: Option<bool>",
+    ] {
+        assert!(
+            !view_source.contains(forbidden) && !logic_source.contains(forbidden),
+            "SwitchGroup should not model discrete axes with string/bool unions; found `{forbidden}`.",
         );
     }
 }

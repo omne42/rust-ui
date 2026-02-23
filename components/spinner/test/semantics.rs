@@ -505,18 +505,81 @@ fn spinner_styles_include_size_and_source_markers() {
         ".ui-spinner[data-custom-motion=\"true\"]",
         "--ui-spinner-rotation-duration",
         "--ui-button-spinner-duration",
+        "--ui-fallback-button-spinner-duration",
         "--ui-button-spinner-size",
+        "--ui-fallback-button-spinner-size",
         "--ui-button-spinner-border",
+        "--ui-fallback-button-spinner-border",
         "--ui-space-2xs",
+        "--ui-fallback-space-2xs",
         "--ui-space-sm",
+        "--ui-fallback-space-sm",
         "--ui-space-3xs",
+        "--ui-fallback-space-3xs",
+        "--ui-fallback-accent",
+        "--ui-fallback-fg",
+        "--ui-fallback-border",
+        "--ui-fallback-border-width",
         ".ui-spinner[data-state=\"indeterminate\"] .ui-spinner__progress",
         "@media (prefers-reduced-motion: reduce)",
-        "animation-iteration-count: 1;",
+        "animation: none;",
     ] {
         assert!(
             source.contains(selector),
             "Spinner styles should include `{selector}` as stable state-marker contracts."
+        );
+    }
+
+    for forbidden in ["800ms", "16px", "8px", "4px", "2px", "1px"] {
+        assert!(
+            !source.contains(forbidden),
+            "Spinner styles should avoid hardcoded terminal defaults; found `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn spinner_css_layer_and_inline_style_contract_is_enforced() {
+    let css_source = load_source("src/css.rs");
+    let view_source = load_source("src/spinner/view.rs");
+    let motion_source = load_source("src/spinner/motion.rs");
+
+    for needle in ["@layer ui {", "out.push_str(crate::spinner::styles::CSS);"] {
+        assert!(
+            css_source.contains(needle),
+            "Spinner css aggregation should stay inside `@layer ui`; missing `{needle}`."
+        );
+    }
+
+    assert!(
+        view_source.contains("style=state.style_vars"),
+        "Spinner should keep runtime style writes centralized to `style_vars`."
+    );
+    assert!(
+        motion_source.contains("--ui-spinner-rotation-duration"),
+        "Spinner runtime style must express motion via css custom property."
+    );
+
+    for forbidden in [
+        "style=\"top:",
+        "style=\"left:",
+        "style=\"width:",
+        "style=\"height:",
+        "style=\"position:",
+        "style='top:",
+        "style='left:",
+        "style='width:",
+        "style='height:",
+        "style='position:",
+        "style:top=",
+        "style:left=",
+        "style:width=",
+        "style:height=",
+        "style:position=",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Spinner view must not use ordinary inline style declarations `{forbidden}`."
         );
     }
 }
@@ -818,6 +881,46 @@ fn spinner_engineering_unified_contract_is_not_applicable_for_simple_component()
             "Spinner should not leak non-applicable engineering runtime/spec concerns `{forbidden}`."
         );
     }
+}
+
+#[test]
+fn spinner_rust_hygiene_contract_is_enforced() {
+    let mod_source = load_source("src/spinner/mod.rs");
+    let logic_source = load_source("src/spinner/logic.rs");
+    let styles_source = load_source("src/spinner/styles.rs");
+    let view_source = load_source("src/spinner/view.rs");
+    let motion_source = load_source("src/spinner/motion.rs");
+
+    for source in [
+        &mod_source,
+        &logic_source,
+        &styles_source,
+        &view_source,
+        &motion_source,
+    ] {
+        for forbidden in ["unwrap(", "expect(", "let _ =", "#![allow("] {
+            assert!(
+                !source.contains(forbidden),
+                "Spinner non-test sources must stay rust-hygiene clean; found `{forbidden}`."
+            );
+        }
+    }
+
+    for forbidden in ["String::from(", ".to_string()", ".to_owned()"] {
+        assert!(
+            !mod_source.contains(forbidden)
+                && !logic_source.contains(forbidden)
+                && !styles_source.contains(forbidden)
+                && !view_source.contains(forbidden)
+                && !motion_source.contains(forbidden),
+            "Spinner string-copy hotspots should stay minimized; found `{forbidden}`."
+        );
+    }
+
+    assert!(
+        view_source.contains("lang=locale.lang.clone()"),
+        "Spinner keeps one explicit locale clone for attribute ownership handoff."
+    );
 }
 
 #[test]

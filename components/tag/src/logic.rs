@@ -1,6 +1,7 @@
 pub use ui_state_primitives::tag::{
-    DEFAULT_REMOVE_ARIA_LABEL, TagSize, TagState, TagStateInput, TagVariant,
-    normalize_optional_text, normalize_remove_aria_label, resolve_state,
+    DEFAULT_REMOVE_ARIA_LABEL, TagInteractivityMode, TagInteractivityModeInput, TagSize, TagState,
+    TagStateInput, TagVariant, normalize_interactivity_mode, normalize_optional_text,
+    normalize_remove_aria_label, resolve_state,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -8,6 +9,25 @@ pub struct TagNormalizedInput {
     pub class_name: Option<String>,
     pub remove_aria_label: String,
     pub state: TagState,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TagNormalizeInput {
+    pub variant: TagVariant,
+    pub size: TagSize,
+    pub mode: Option<TagInteractivityMode>,
+    pub is_disabled: Option<bool>,
+    pub is_removable: Option<bool>,
+    pub has_remove_handler: bool,
+    pub remove_aria_label: Option<String>,
+    pub class_name: Option<String>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TagBoolInput {
+    pub mode: TagInteractivityMode,
+    pub is_disabled: bool,
+    pub is_removable: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -144,25 +164,19 @@ pub struct TagAgentContract {
     pub capabilities: TagAgentCapabilities,
 }
 
-pub fn normalize_tag_input(
-    variant: TagVariant,
-    size: TagSize,
-    disabled: bool,
-    removable: bool,
-    has_remove_handler: bool,
-    remove_aria_label: Option<String>,
-    class_name: Option<String>,
-) -> TagNormalizedInput {
-    let class_name = normalize_optional_text(class_name);
+pub fn normalize_tag_input(input: TagNormalizeInput) -> TagNormalizedInput {
+    let normalized_bool_input =
+        normalize_tag_bool_input(input.mode, input.is_disabled, input.is_removable);
+    let class_name = normalize_optional_text(input.class_name);
     let (remove_aria_label, has_custom_remove_aria_label) =
-        normalize_remove_aria_label(remove_aria_label);
+        normalize_remove_aria_label(input.remove_aria_label);
 
     let state = resolve_state(TagStateInput {
-        variant,
-        size,
-        disabled,
-        removable,
-        has_remove_handler,
+        variant: input.variant,
+        size: input.size,
+        disabled: normalized_bool_input.is_disabled,
+        removable: normalized_bool_input.is_removable,
+        has_remove_handler: input.has_remove_handler,
         has_custom_remove_aria_label,
         has_custom_class_name: class_name.is_some(),
     });
@@ -172,6 +186,32 @@ pub fn normalize_tag_input(
         remove_aria_label,
         state,
     }
+}
+
+pub fn normalize_tag_bool_input(
+    mode: Option<TagInteractivityMode>,
+    is_disabled: Option<bool>,
+    is_removable: Option<bool>,
+) -> TagBoolInput {
+    let mode = normalize_tag_interactivity_mode(mode, is_disabled, is_removable);
+
+    TagBoolInput {
+        mode,
+        is_disabled: mode == TagInteractivityMode::Disabled,
+        is_removable: mode == TagInteractivityMode::Removable,
+    }
+}
+
+pub fn normalize_tag_interactivity_mode(
+    mode: Option<TagInteractivityMode>,
+    is_disabled: Option<bool>,
+    is_removable: Option<bool>,
+) -> TagInteractivityMode {
+    normalize_interactivity_mode(TagInteractivityModeInput {
+        mode,
+        is_disabled,
+        is_removable,
+    })
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: TagState) -> String {

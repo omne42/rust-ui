@@ -217,10 +217,10 @@ fn overlays_headless_semantics_are_delegated_to_ui_headless_layer() {
     );
 
     for needle in [
-        "use ui_headless::{A11yDirection, overlay_dialog_attrs};",
+        "use ui_headless::{A11yDirection, TrayA11yOptions, use_tray_a11y};",
         "lang: Option<String>",
         "dir: Option<A11yDirection>",
-        "overlay_dialog_attrs(",
+        "use_tray_a11y(TrayA11yOptions {",
     ] {
         assert!(
             tray_view.contains(needle),
@@ -235,6 +235,7 @@ fn overlays_open_state_pairing_contract_is_explicit_and_stable() {
     let modal_logic = load_source("../modal/src/logic.rs");
     let overlay_view = load_source("../overlay/src/view.rs");
     let popover_view = load_source("../popover/src/view.rs");
+    let popover_logic = load_source("../popover/src/logic.rs");
     let tray_view = load_source("../tray/src/view.rs");
 
     for needle in [
@@ -263,21 +264,66 @@ fn overlays_open_state_pairing_contract_is_explicit_and_stable() {
         );
     }
 
-    for (component, source) in [
-        ("Overlay", overlay_view),
-        ("Popover", popover_view),
-        ("Tray", tray_view),
+    assert!(
+        overlay_view.contains("open: Signal<bool>") && overlay_view.contains("on_close: OnPress"),
+        "Overlay should remain intent-only and consume parent-owned open signal."
+    );
+    for forbidden in ["default_open", "on_open_change"] {
+        assert!(
+            !overlay_view.contains(forbidden),
+            "Overlay should not introduce local open-state ownership via `{forbidden}`."
+        );
+    }
+
+    for needle in [
+        "#[prop(optional)] is_open: Option<Signal<bool>>",
+        "#[prop(optional)] default_open: Option<bool>",
+        "#[prop(optional)] on_open_change: Option<Callback<bool>>",
+        "#[prop(optional)] on_close: Option<OnPress>",
+        "let defaults = logic::normalize_defaults(logic::TrayDefaultsInput {",
+        "let open_state = logic::normalize_open_state(logic::TrayOpenStateInput {",
+        "let on_open_change = open_state.on_open_change;",
+        "let close_effects =",
+        "logic::resolve_close_effects(open_state.mode, open_state.has_open_change_handler);",
+        "let (uncontrolled_open, set_uncontrolled_open) = signal(open_state.default_open);",
+        "let resolved_open = logic::resolve_open_signal(",
+        "let on_close = logic::normalize_on_close(on_close);",
+        "if close_effects.should_close_uncontrolled {",
+        "if close_effects.should_emit_open_change {",
+        "set_uncontrolled_open.set(false);",
+        "on_open_change.run(false);",
     ] {
         assert!(
-            source.contains("open: Signal<bool>") && source.contains("on_close: OnPress"),
-            "{component} should remain intent-only and consume parent-owned open signal."
+            tray_view.contains(needle),
+            "Tray should expose explicit controlled/uncontrolled open-axis contract `{needle}`."
         );
-        for forbidden in ["default_open", "on_open_change"] {
-            assert!(
-                !source.contains(forbidden),
-                "{component} should not introduce local open-state ownership via `{forbidden}`."
-            );
-        }
+    }
+
+    for forbidden in [
+        "pub fn Tray(\n    open: Signal<bool>",
+        "#[prop(optional)] open: Option<Signal<bool>>",
+    ] {
+        assert!(
+            !tray_view.contains(forbidden),
+            "Tray should not keep legacy/alias open props `{forbidden}`."
+        );
+    }
+
+    for needle in [
+        "#[prop(optional)] is_open: Option<Signal<bool>>",
+        "#[prop(optional)] open: Option<Signal<bool>>",
+        "#[prop(optional)] default_open: Option<bool>",
+        "#[prop(optional)] on_open_change: Option<Callback<bool>>",
+        "#[prop(optional)] on_close: Option<OnPress>",
+        "logic::normalize_open_state(logic::PopoverOpenStateInput {",
+        "use_controllable_open_state_traced(",
+        "request_open_change.run(false);",
+        "let open = input.is_open.or(input.open);",
+    ] {
+        assert!(
+            popover_view.contains(needle) || popover_logic.contains(needle),
+            "Popover should expose explicit controlled/uncontrolled open axis contract via `{needle}`."
+        );
     }
 }
 
@@ -359,6 +405,16 @@ fn overlays_state_normalization_is_centralized_in_logic_layer() {
             "Sheet view should not carry local state-normalization helper `{forbidden}`."
         );
     }
+    for forbidden in [
+        "TrayStateInputs {",
+        "can_request_open_change(",
+        "TrayOpenMode::",
+    ] {
+        assert!(
+            !tray_view.contains(forbidden),
+            "Tray view should not rebuild state-machine rule `{forbidden}`."
+        );
+    }
 
     let overlay_logic = load_source("../overlay/src/logic.rs");
     let popover_logic = load_source("../popover/src/logic.rs");
@@ -392,6 +448,12 @@ fn overlays_state_normalization_is_centralized_in_logic_layer() {
             "{component} logic should own centralized state normalization via `{needle}`."
         );
     }
+    assert!(
+        tray_logic.contains(
+            "pub fn normalize_state_inputs(input: TrayStateBoundaryInput) -> TrayStateInputs",
+        ) && tray_logic.contains("pub fn resolve_close_effects("),
+        "Tray logic should own boundary->typed normalization and close-effect rule derivation.",
+    );
 
     for needle in [
         "pub enum OverlayDismissMode",
@@ -1184,6 +1246,7 @@ fn overlays_a11y_i18n_l10n_contracts_are_headless_first_and_text_source_driven()
     let overlay_view = load_source("../overlay/src/view.rs");
     let popover_view = load_source("../popover/src/view.rs");
     let modal_view = load_source("../modal/src/view.rs");
+    let tray_logic = load_source("../tray/src/logic.rs");
     let tray_view = load_source("../tray/src/view.rs");
     let sheet_view = load_source("../sheet/src/view.rs");
     let headless_a11y = load_source("../../crates/ui-headless/src/a11y.rs");
@@ -1269,10 +1332,8 @@ fn overlays_a11y_i18n_l10n_contracts_are_headless_first_and_text_source_driven()
     }
 
     assert!(
-        tray_view.contains(
-            "#[prop(optional, default = logic::DEFAULT_CLOSE_LABEL)] close_label: &'static str,"
-        ),
-        "Tray should keep visible close-label default in logic constant instead of view literal."
+        tray_logic.contains("close_label: input.close_label.unwrap_or(DEFAULT_CLOSE_LABEL),"),
+        "Tray should keep close-label default normalization in logic layer."
     );
     assert!(
         !tray_view.contains("\"Close tray\""),
@@ -3392,7 +3453,7 @@ fn overlays_context_compression_manifest_and_rbi_projection_are_present_and_curr
             vec![
                 "pub fn Tray(",
                 "#[prop(optional, into)] footer: Option<ViewFn>",
-                "#[prop(optional)] motion: TrayMotion",
+                "#[prop(optional)] motion: Option<TrayMotion>",
                 "#[prop(optional, into)] class_name: Option<String>",
             ],
         ),
@@ -6224,7 +6285,7 @@ fn overlays_module_docs_playgrounds_lock_state_matrix_contract_values() {
         "is_fixed_height=true",
         "is_dismissable=false",
         "is_keyboard_dismiss_disabled=true",
-        "show_close_button=false",
+        "is_show_close_button=false",
         "class_name=\"docs-tray-custom\".to_string()",
         "on_exit_complete=on_custom_exit_complete",
     ] {

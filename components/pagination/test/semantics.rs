@@ -62,11 +62,15 @@ fn pagination_does_not_expose_logic_or_view_modules() {
 fn pagination_uses_state_model_for_navigation_and_root_attrs() {
     let view_source = load_source("src/pagination/view.rs");
     let logic_source = load_source("src/pagination/logic.rs");
+    let primitive_source = load_source("../../crates/ui-state-primitives/src/pagination.rs");
 
     for needle in [
-        "resolve_pagination_state",
+        "let view_state = Signal::derive(move || {",
+        "logic::resolve_pagination_view_state(",
+        "let state = Signal::derive(move || view_state.get().state);",
         "data-slot=\"pagination\"",
-        "data-disabled=disabled.then_some(\"true\")",
+        "data-disabled=is_disabled.then_some(\"true\")",
+        "data-page-control=move || view_state.get().control_mode.as_data_attr()",
         "data-empty=(total_pages == 0).then_some(\"true\")",
         "data-page=move || state.get().current_page.to_string()",
         "data-total-pages=total_pages.to_string()",
@@ -79,14 +83,31 @@ fn pagination_uses_state_model_for_navigation_and_root_attrs() {
     }
 
     for needle in [
+        "pub use ui_state_primitives::pagination::{",
+        "resolve_pagination_range",
+        "resolve_pagination_state",
+        "PaginationPageControlMode",
+        "resolve_pagination_view_state",
+        "resolve_prev_page_target",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Pagination logic should bridge primitive `{needle}` from ui-state-primitives."
+        );
+    }
+
+    for needle in [
         "pub struct PaginationState",
         "pub is_empty: bool",
         "pub is_prev_disabled: bool",
         "pub is_next_disabled: bool",
+        "pub enum PaginationPageControlMode",
+        "pub struct PaginationViewState",
+        "pub fn resolve_pagination_view_state(",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "Pagination logic should define `{needle}` for centralized state derivation."
+            primitive_source.contains(needle),
+            "Pagination primitives should define `{needle}` in ui-state-primitives."
         );
     }
 }
@@ -119,6 +140,95 @@ fn pagination_prev_next_buttons_expose_slots_and_disabled_state() {
 }
 
 #[test]
+fn pagination_uses_headless_navigation_attrs_and_locale_contract() {
+    let source = load_source("src/pagination/view.rs");
+
+    for needle in [
+        "use ui_headless::{A11yDirection, OnPress, navigation_attrs};",
+        "#[prop(optional, into)] lang: Option<String>,",
+        "#[prop(optional)] dir: Option<A11yDirection>,",
+        "let nav_a11y = navigation_attrs(",
+        "logic::normalize_optional_text(lang)",
+        "aria-label=nav_aria_label",
+        "lang=nav_lang.clone()",
+        "dir=nav_dir",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Pagination should keep headless a11y contract marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn pagination_motion_contract_is_component_mapped_and_token_first() {
+    let mod_source = load_source("src/pagination/mod.rs");
+    let view_source = load_source("src/pagination/view.rs");
+    let motion_source = load_source("src/pagination/motion.rs");
+    let styles_source = load_source("src/pagination/styles.rs");
+
+    for needle in [
+        "mod motion;",
+        "pub use motion::PaginationMotion;",
+        "#[prop(optional)] motion: PaginationMotion,",
+        "let motion = motion::sanitize_motion(motion);",
+        "let motion_source = motion::source_attr(motion);",
+        "let style_vars = motion::attach_motion(None, motion);",
+        "style=style_vars",
+        "data-motion-source=motion_source",
+    ] {
+        assert!(
+            mod_source.contains(needle) || view_source.contains(needle),
+            "Pagination motion contract should include `{needle}`."
+        );
+    }
+
+    for needle in [
+        "default_text_field_motion_tokens()",
+        "ui_motion::web::prefers_reduced_motion()",
+        "--ui-pagination-motion-duration",
+        "--ui-pagination-motion-easing",
+    ] {
+        assert!(
+            motion_source.contains(needle) || styles_source.contains(needle),
+            "Pagination motion implementation should keep `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn pagination_theme_contract_consumes_ui_theme_tokens() {
+    let styles_source = load_source("src/pagination/styles.rs");
+    let motion_source = load_source("src/pagination/motion.rs");
+
+    for needle in [
+        "var(--ui-space-xs)",
+        "var(--ui-radius-md)",
+        "var(--ui-fg-muted)",
+        "--ui-pagination-motion-duration: var(",
+        "--ui-text-field-motion-duration",
+        "--ui-fallback-text-field-motion-duration",
+        "--ui-pagination-motion-easing: var(",
+        "--ui-text-field-motion-easing",
+    ] {
+        assert!(
+            styles_source.contains(needle),
+            "Pagination styles should consume theme token variable `{needle}`."
+        );
+    }
+
+    for needle in [
+        "use ui_theme::default_text_field_motion_tokens;",
+        "let tokens = default_text_field_motion_tokens();",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "Pagination motion defaults should map from ui-theme token source `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn pagination_items_expose_page_dots_and_current_states() {
     let source = load_source("src/pagination/view.rs");
 
@@ -144,15 +254,125 @@ fn pagination_on_press_guards_disabled_and_duplicate_navigation() {
     let source = load_source("src/pagination/view.rs");
 
     for needle in [
-        "if state.is_prev_disabled",
-        "if state.is_next_disabled",
-        "if next == state.current_page",
-        "if disabled {",
-        "if current == p {",
+        "logic::resolve_prev_page_target(current_view_state)",
+        "logic::resolve_next_page_target(current_view_state)",
+        "logic::resolve_direct_page_target(current_view_state, p)",
+        "logic::should_sync_uncontrolled_page(current_view_state.control_mode)",
     ] {
         assert!(
             source.contains(needle),
             "Pagination should guard `{needle}` so callbacks don't fire for blocked/no-op interactions."
+        );
+    }
+}
+
+#[test]
+fn pagination_public_bool_prop_uses_is_prefix() {
+    let source = load_source("src/pagination/view.rs");
+
+    assert!(
+        source.contains("#[prop(optional)] is_disabled: bool,"),
+        "Pagination public bool prop should follow `is_*` naming contract."
+    );
+    assert!(
+        !source.contains("#[prop(optional)] disabled: bool,"),
+        "Legacy bool prop name `disabled` should not remain in public API."
+    );
+}
+
+#[test]
+fn pagination_page_axis_supports_controlled_and_uncontrolled_contract() {
+    let view_source = load_source("src/pagination/view.rs");
+    let logic_source = load_source("src/pagination/logic.rs");
+    let primitive_source = load_source("../../crates/ui-state-primitives/src/pagination.rs");
+
+    for needle in [
+        "#[prop(optional, into)] page: Option<ReadSignal<usize>>,",
+        "#[prop(optional, into)] default_page: Option<usize>,",
+        "#[prop(optional, into)] on_page_change: Option<Callback<usize>>,",
+        "let resolved_default_page = logic::resolve_default_page(default_page);",
+        "let (uncontrolled_page, set_uncontrolled_page) =",
+        "signal(resolved_default_page);",
+        "data-page-control=move || view_state.get().control_mode.as_data_attr()",
+        "let view_state = Signal::derive(move || {",
+        "logic::resolve_pagination_view_state(",
+        "set_uncontrolled_page.set(next);",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Pagination controlled/uncontrolled contract should include `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub use ui_state_primitives::pagination::{",
+        "PaginationPageControlMode",
+        "resolve_default_page",
+        "resolve_pagination_view_state",
+        "resolve_prev_page_target",
+        "resolve_next_page_target",
+        "resolve_direct_page_target",
+        "should_sync_uncontrolled_page",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Pagination logic should bridge controlled/uncontrolled primitive `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub const DEFAULT_PAGE: usize = 1;",
+        "pub enum PaginationPageControlMode",
+        "pub fn resolve_default_page(default_page: Option<usize>) -> usize",
+        "pub fn normalize_default_page(default_page: usize) -> usize",
+        "pub fn resolve_page_control_mode(controlled_page: Option<usize>)",
+        "pub fn resolve_effective_page(controlled_page: Option<usize>, uncontrolled_page: usize)",
+        "pub fn resolve_prev_page_target(view_state: PaginationViewState) -> Option<usize>",
+        "pub fn resolve_next_page_target(view_state: PaginationViewState) -> Option<usize>",
+        "pub fn resolve_direct_page_target(",
+        "pub fn should_sync_uncontrolled_page(control_mode: PaginationPageControlMode) -> bool",
+    ] {
+        assert!(
+            primitive_source.contains(needle),
+            "Pagination primitives should define controlled/uncontrolled primitive `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn pagination_discrete_states_are_type_modeled() {
+    let view_source = load_source("src/pagination/view.rs");
+    let logic_source = load_source("src/pagination/logic.rs");
+    let primitive_source = load_source("../../crates/ui-state-primitives/src/pagination.rs");
+
+    for needle in [
+        "pub enum PaginationPageControlMode",
+        "pub struct PaginationViewState",
+        "pub control_mode: PaginationPageControlMode,",
+        "#[prop(optional)] dir: Option<A11yDirection>,",
+        "match item {",
+        "PaginationItem::Page(value)",
+        "PaginationItem::Dots",
+    ] {
+        assert!(
+            logic_source.contains(needle)
+                || view_source.contains(needle)
+                || primitive_source.contains(needle),
+            "Pagination discrete states should be type constrained via `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "mode: Option<String>",
+        "status: Option<String>",
+        "variant: Option<String>",
+        "size: Option<String>",
+        "mode: String",
+        "status: String",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Pagination should avoid free-form discrete input `{forbidden}`."
         );
     }
 }
@@ -177,9 +397,9 @@ fn pagination_docs_page_covers_primary_playgrounds() {
         "data-slot=\"pagination-css-test-playground\"",
         "data-slot=\"pagination-states-playground\"",
         "<Pagination",
-        "on_change=on_change",
+        "on_page_change=on_page_change",
         "class_name=\"docs-pagination-custom\".to_string()",
-        "disabled=true",
+        "is_disabled=true",
         "total_pages=0",
     ] {
         assert!(
@@ -196,7 +416,7 @@ fn pagination_docs_playgrounds_lock_state_matrix_contract_values() {
     for needle in [
         "let (page, set_page) = signal(1_usize);",
         "let (last_change, set_last_change) = signal(None::<usize>);",
-        "let on_change = Callback::new(move |next: usize| set_last_change.set(Some(next)));",
+        "let on_page_change = Callback::new(move |next: usize| set_last_change.set(Some(next)));",
         "let (compact_page, set_compact_page) = signal(8_usize);",
         "let (wide_page, set_wide_page) = signal(8_usize);",
         "let (code_page, set_code_page) = signal(3_usize);",
@@ -220,11 +440,11 @@ fn pagination_docs_playgrounds_lock_state_matrix_contract_values() {
         "let (empty_page, set_empty_page) = signal(1_usize);",
         "total_pages=1",
         "page=disabled_page",
-        "set_page=set_disabled_page",
+        "on_page_change=on_disabled_page_change",
         "\"disabled page: \"",
         "total_pages=0",
         "page=empty_page",
-        "set_page=set_empty_page",
+        "on_page_change=on_empty_page_change",
         "\"empty page signal: \"",
     ] {
         assert!(

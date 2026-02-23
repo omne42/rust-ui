@@ -29,6 +29,10 @@ pub fn normalize_default_open(value: Option<bool>) -> bool {
     value.unwrap_or(true)
 }
 
+pub fn resolve_disabled(is_disabled: Option<bool>, disabled: bool) -> bool {
+    is_disabled.unwrap_or(disabled)
+}
+
 pub fn resolve_state(input: SidebarTriggerStateInput) -> SidebarTriggerState {
     SidebarTriggerState {
         open: input.open,

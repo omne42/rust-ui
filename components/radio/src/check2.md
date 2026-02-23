@@ -20,7 +20,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（新增 `crates/ui-headless/src/radio.rs`：`use_radio(RadioOptions { ... })` 输出 `RadioContract { attrs, handlers, state }`，复用 `locale_attrs` 提供 `lang / dir` 接入；`radio/view.rs` 仅做挂载与组合。回归：`components/radio/test/radio_semantics.rs` + `e2e/tests/docs_app_radio.spec.mjs`。）
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（新增 `crates/ui-headless/src/radio.rs`：`use_radio(RadioOptions { ... })` 输出 `RadioContract { attrs, handlers, state }`，复用 `locale_attrs` 提供 `lang / dir` 接入；`radio/view.rs` 仅做挂载与组合。回归：`components/radio/test/semantics.rs` + `e2e/tests/docs_app_radio.spec.mjs`。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -46,7 +46,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`radio` 保持 `mod.rs / logic.rs / styles.rs / view.rs / motion.rs` 分层：`logic.rs` 仅桥接 `use ui_state_primitives::radio::{...}`，`view.rs` 通过 `use_radio(RadioOptions { ... })` 挂载 headless 契约并调用 `motion::attach_motion`，`styles.rs` 仅静态 token-first；同时 `Radio` 公共 API 移除 `node_ref: NodeRef<html::Button>`，不再暴露 DOM 细节类型。）
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`radio` 保持 `mod.rs / logic.rs / styles.rs / view.rs / motion.rs` 分层：`logic.rs` 仅桥接 `use ui_state_primitives::radio::{...}`，`view.rs` 通过 `use_radio(RadioOptions { ... })` 挂载 headless 契约并调用 `motion::attach_motion`，`styles.rs` 仅静态 token-first；同时 `Radio` 公共 API 移除 `node_ref: NodeRef<html::Button>`，不再暴露 DOM 细节类型；语义测试迁移为 `components/radio/test/semantics.rs` 并由 `mod.rs` 通过 `#[path = "../test/semantics.rs"]` 挂载。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -112,7 +112,7 @@
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（`components/radio/test/radio_semantics.rs` 覆盖 role/aria/data/source/control-mode 与 docs/e2e 契约；未使用视觉快照替代语义断言。）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`components/radio/test/semantics.rs` 覆盖 role/aria/data/source/control-mode 与 docs/e2e 契约；未使用视觉快照替代语义断言。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -126,11 +126,18 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`radio` 属于基础输入组件，当前无复杂结构化配置与独立 schema 演进需求，因此不引入 `spec.rs`/Builder。）
+  - 若后续将 `radio` 扩展为复杂结构化渲染组件（多层 slot/schema 驱动），必须新增 `spec.rs`，并提供 `*Spec::new()...render()` 路径及对应契约测试。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`radio/styles.rs` 仅静态 CSS + `var(--ui-*)`，运行时只写入必要 `--ui-radio-scale` 变量。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（`components/radio/src/styles.rs` 的主题变量已统一为双层回退链，如 `var(--ui-fg, var(--ui-fallback-fg))`、`var(--ui-font-size-150, var(--ui-fallback-font-size-150))`、`var(--ui-space-sm, var(--ui-fallback-space-sm))`；原 `14px/20px` 裸终值已移除。fallback 变量来源于 `crates/ui-theme/src/css/render/theme_to_css_variables.inc` 的统一输出。）
+  - 禁止在组件样式内写 `#hex` 颜色和 `var(--ui-*, 12px)` 这类裸终值；必须回退到 `--ui-fallback-*`。
+  - 新增主题变量时，先在 `ui-theme` 补齐对应 `--ui-fallback-*`，再在组件消费，保持 SSOT。
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style="top: 10px"`）。（`crates/ui/src/css.rs` 的 `push_components_css` 以 `out.push_str("\n@layer ui {\n");` 统一包裹组件样式，并按 `component-radio` feature 聚合 `crate::radio::styles::CSS`；`components/radio/src/view.rs` 未使用普通 `style=...` 行内样式，运行时动态值仅通过 motion 写入 `--ui-radio-scale` 自定义属性。）
+  - 若后续新增运行时样式调整，必须继续走 CSS 变量通道（`--ui-*`），禁止把布局/几何值直接塞进普通内联样式属性。
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（`radio/styles.rs` 采用 token 化层级（字号/间距/焦点/选中态）并在 docs-app 保持默认主题基线展示；交互反馈含 hover/press/focus-visible。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
@@ -168,6 +175,26 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：`radio` 不包含拖拽或同类高频连续交互，当前仅 click/keyboard 的离散状态切换；代码中无 `Dragging`/`DragEnd`/`pointermove`/RAF 每帧回流路径，因此该约束在本组件不适用。）
+  - 若后续引入拖拽类连续交互，必须新增 micro-loop 本地执行与 `DragEnd` 一次性收敛测试，禁止把每帧状态决策塞回 `logic.rs`。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`radio` 组件不承担 overlay 定位或几何测量职责；当前实现无 `Tooltip/Popover/Menu` 结构、无 `getBoundingClientRect`/`ResizeObserver` 等测量路径，也无基于测量结果的二次修正循环。）
+  - 若后续在 `radio` 引入浮层定位能力，必须补齐两段式收敛链路与“幂等不再更新”回归测试，防止 `view <-> logic` 循环抖动。
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`radio` 当前为 `options: Vec<String>` + `selected_index` 模型，不存在动态子项注册/注销；导航顺序由 `Vec` 索引稳定定义。`HashSet<usize>` 仅用于 disabled 索引 membership 查询，不用于顺序遍历或焦点导航决策。）
+  - 若后续支持动态插拔子项（slot children），必须引入 `RegistrationContext` 与 `items_order` 显式维护，并补齐 register/unregister 顺序回归测试。
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`radio` 非容器投影组件，不承载面板投影策略；当前实现无 `Lazy/KeepAlive/Eager` 模式切换、无隐藏生命周期通知、无轮询任务或隐藏态动画副作用需要暂停。）
+  - 若后续把 `radio` 扩展为承载复杂子树的容器组件，必须显式声明投影模式并补齐隐藏通知回归测试，防止隐藏态持续消耗资源。
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`radio` 当前不订阅窗口尺寸、主题媒体查询或交叉观察器事件；无 `ResizeObserver`/`IntersectionObserver`/`matchMedia` 监听路径，也不存在原始环境事件直推 `logic` 的洪泛风险。）
+  - 若后续引入环境订阅，必须在 `view.rs` 完成采样/防抖并以语义化 `Action` 回流 `logic`，同时补齐去抖与收敛回归测试。
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`radio` 仅维护单一 `selected_index` 选择轴，不承载大型集合批量选择语义；当前交互不需要 `Context Bus` 广播与压缩状态表达，也不存在批量操作导致的 O(N) prop drilling 链路。）
+  - 若后续扩展为大规模项集合并支持批量操作，必须引入 context bus + selector，并用压缩状态模型（如 all/partial/none）替代逐项透传。
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：`radio` 当前不存在跨模块事件总线与派生命令广播链路；交互为局部同步状态更新（选中/禁用），无需 `TraceId` 贯穿。）
+  - 若后续引入跨组件总线派生流程，必须把 `TraceId` 作为总线事件字段并补齐端到端因果链回归测试。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`radio` 非层叠 overlay 组件，不承担 overlay 关闭后的焦点恢复链路；当前 `NodeRef` 仅用于组内 roving 焦点移动，不作为全局恢复目标缓存。）
+  - 若后续引入 overlay 语义，必须接入全局 Focus Manager 并补齐“关闭后焦点不坠落”回归测试。
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`radio` 当前未接入命令式第三方实例，无 `ECharts/Map` 类外部对象生命周期管理需求；公共 API 也未暴露第三方实例句柄。）
+  - 若后续引入第三方命令式渲染能力，必须通过受控 Foreign Zone 封装并补齐 `YieldControl/CleanupForeign` 生命周期回归测试。
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（`RadioGroup` 使用外部注入的确定性 `id_base`，并在 headless 层按 `format!("{id_base}-radio-{index}")` 派生子项 ID；未使用 `now()`/随机 UUID 生成初始化标识，SSR 与 hydration 可保持稳定对齐。）
+  - 若后续改为组件内部分配 ID，必须接入 `IdProvider` 并补齐 SSR/hydration 一致性回归。
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（当前测试框架未提供精确 render_count 断言；本组件采用等价证据：稳定语义回归 + 重复交互 e2e + 最小特性编译链路，已在后续任务清单中保留 render_count 自动化补齐要求。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
@@ -187,7 +214,7 @@
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（`radio/view.rs` 无 `inner_html` 使用，语义与安全回归由 `radio_semantics.rs` 断言守卫。）
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（`radio/view.rs` 无 `inner_html` 使用，语义与安全回归由 `semantics.rs` 断言守卫。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
@@ -238,9 +265,13 @@
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（已新增 `components/radio/src/Component.toml` 与 `components/radio/src/radio.rbi`：Manifest 覆盖 `Radio/RadioGroup` 的输入轴、语义输出、能力与依赖；RBI 投影 `RadioGroupOrientation`、`RadioMotion`、`RadioGroup(...)`、`Radio(...)` 及 motion 公开函数签名。）
+  - 后续每次新增或变更 `radio` 公共输入/输出契约时，`Component.toml` 与 `radio.rbi` 必须同 PR 同步更新，防止 AI 检索与真实接口漂移。
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `radio` 未发生跨大版本 API 破坏升级；`components/radio/src/protocol.rs` 仍为 `RadioComponentSchemaVersion::V1`，`components/radio/src/Component.toml` 仍为 `schema_version = "1"`，且当前实现未引入 `migrate_v1_to_v2`/Registry 迁移链路。）
+  - 若后续引入 `v2` 破坏性变更，必须同步补齐 Schema Registry 弃用窗口与纯函数迁移层，并增加对应回归测试。
 
 ### 7. 测试与文档（验证闭环）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（回归集中在 `components/radio/test/radio_semantics.rs`，断言 headless 契约挂载、state/source markers、API 兼容来源标记与 docs 契约；无视觉快照替代语义断言。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（回归集中在 `components/radio/test/semantics.rs`，断言 headless 契约挂载、state/source markers、API 兼容来源标记与 docs 契约；无视觉快照替代语义断言。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
@@ -272,6 +303,9 @@
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/radio/src/*.rs` 已检索未发现 `unwrap(` / `expect(` / 无处理 `let _ = ...`；当前实现未出现可判定的字符串复制热点需额外引入 `Cow<'static, str>` 收敛。）
+  - 已执行 `./scripts/check-rust-hygiene.sh`：命中仓库既有失败 `components/text-input/src/date_field/motion.rs|DateFieldMotion|duration_ms` 的 `motion-hardcode` 规则，不属于 `radio` 变更面。
+  - 本组件范围内代码卫生约束满足；待仓库既有项修复后可复跑脚本补齐全绿日志。
 
 ### 8. 明确禁止的反模式
 - [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。（已核对 `crates/ui-state-primitives/src/radio.rs`：仅 Rust 数据结构与函数，无 `leptos` / `web-sys` / `class` / CSS 字符串。）
@@ -280,14 +314,14 @@
   - headless 只输出交互/A11y 契约；出现 class/CSS/动效时间线即判职责污染。
 - [x] 在 `view` 层隐藏关键状态决策。（checked 控制模式与默认值归一已上收至 `logic.rs::normalize_checked_axis` 与 `ui-state-primitives::resolve_checked_axis`，`view.rs` 仅消费输出并触发请求变更。）
   - `view.rs` 只消费归一化结果；关键业务分支若散落在 view，必须回收至 `logic.rs`。
-- [x] 新增参数但不纳入统一命名与契约。（本轮 `radio` 未新增公共 API 参数；现有命名与兼容归一仍由 `radio/logic.rs` 管理，并由 `radio_semantics.rs` 的 API 命名契约测试守卫。）
+- [x] 新增参数但不纳入统一命名与契约。（本轮 `radio` 未新增公共 API 参数；现有命名与兼容归一仍由 `radio/logic.rs` 管理，并由 `semantics.rs` 的 API 命名契约测试守卫。）
   - 新参数必须进入命名体系、类型约束、默认值归一和语义测试；缺任一项不得合并。
 - [x] 用并行数组/隐式约定替代显式语义结构（如 `labels + children`）。（`radio` API 未引入并行槽位约定；`RadioGroup` 为显式选项语义输入。）
   - 标题、语义、内容必须显式绑定在同一 item 结构；依赖位置索引配对视为反模式。
   - 发现“少写几行但语义变弱”的接口设计，默认拒绝合入。
-- [x] 公共 API 泄露底层实现细节类型。（`Radio` 对外未暴露 `NodeRef<html::Button>` 等 DOM 类型，`radio_semantics.rs` 有回归断言。）
+- [x] 公共 API 泄露底层实现细节类型。（`Radio` 对外未暴露 `NodeRef<html::Button>` 等 DOM 类型，`semantics.rs` 有回归断言。）
   - 公共接口不得暴露 `web-sys`/运行时私有类型；平台细节只允许存在于内部模块。
-- [x] 用临时补丁破坏跨组件一致性。（本轮命名、状态轴、语义标记均经 `radio_semantics.rs` 回归守卫，未引入绕过契约的临时分叉。）
+- [x] 用临时补丁破坏跨组件一致性。（本轮命名、状态轴、语义标记均经 `semantics.rs` 回归守卫，未引入绕过契约的临时分叉。）
   - 临时 patch 若绕开统一契约（命名/状态/语义），必须在同 PR 里修正或显式回退计划。
 - [x] 明明是跨组件可复用状态原语，却长期留在某个组件 `logic.rs` 不下沉。（checked 轴判定规则已下沉 `ui-state-primitives/src/radio.rs::resolve_checked_axis`。）
   - 一旦确认具备可复用状态不变量，应下沉至 `ui-state-primitives`/`ui-headless`，组件层仅保留装配映射。
@@ -297,7 +331,7 @@
 - [x] 行为正确（状态与交互语义成立）。（受控/非受控 checked 轴 + roving 语义 + e2e 路径已回归。）
 - [x] 可访问性达标（默认可用）。（`role`/`aria-*`/键盘路径 + `lang/dir` 接入齐全。）
 - [x] 默认主题美学质量达标（与可访问性同级门禁）。（默认 token-first 样式与交互反馈已建立基线。）
-- [x] 可测试（契约可断言）。（`radio_semantics.rs` + `docs_app_radio.spec.mjs` 覆盖语义契约。）
+- [x] 可测试（契约可断言）。（`semantics.rs` + `docs_app_radio.spec.mjs` 覆盖语义契约。）
 - [x] 可维护（命名和模式一致）。（`is_* / on_* / default_*` 与来源标记统一。）
 - [x] 可解释（人和自动化都能读懂）。（补齐 `README` + `check2` 证据 + `data-ui-*` 合约。）
 - [x] 改动在正确层。（原语下沉与层边界已核验。）

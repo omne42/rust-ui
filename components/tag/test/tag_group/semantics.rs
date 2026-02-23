@@ -194,11 +194,16 @@ fn tag_group_uses_logic_state_model() {
     for needle in [
         "pub use ui_state_primitives::tag_group::{",
         "TagGroupState",
+        "TagGroupItemState",
         "TagGroupItemStateInput",
         "resolve_state",
         "resolve_item_state",
         "merge_describedby_ids",
         "pub fn normalize_group_input(",
+        "pub fn resolve_group_state(",
+        "pub fn resolve_group_item_state(",
+        "pub struct TagGroupRootStateInput",
+        "pub struct TagGroupRenderableItemStateInput",
         "DEFAULT_ID_BASE",
         "DEFAULT_ARIA_LABEL",
         "pub enum TagGroupValueSource",
@@ -212,10 +217,11 @@ fn tag_group_uses_logic_state_model() {
 
     for needle in [
         "let state = Memo::new(move |_|",
-        "resolve_state(",
+        "resolve_group_state(",
+        "TagGroupRootStateInput {",
         "has_remove_callback",
         "normalize_group_input(",
-        "resolve_item_state(TagGroupItemStateInput",
+        "resolve_group_item_state(TagGroupRenderableItemStateInput",
         "ui_headless::{A11yDirection, OnPress, locale_attrs}",
         "lang=locale.lang.clone()",
         "dir=locale.dir",
@@ -228,7 +234,7 @@ fn tag_group_uses_logic_state_model() {
     ] {
         assert!(
             view_source.contains(needle),
-            "TagGroup view should derive root state via logic::resolve_state; missing `{needle}`."
+            "TagGroup view should derive root/item state via logic wrappers; missing `{needle}`."
         );
     }
 
@@ -323,7 +329,7 @@ fn tag_group_composes_tag_primitive_instead_of_chip() {
         "<TagPrimitive",
         "variant=variant",
         "size=size",
-        "removable=true",
+        "is_removable=true",
         "on_remove=on_remove",
     ] {
         assert!(
@@ -388,6 +394,124 @@ fn tag_group_styles_include_description_and_error_states() {
 }
 
 #[test]
+fn tag_group_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals() {
+    let styles_source = load_source("src/tag/group/styles.rs");
+    let theme_css_source = load_source("../../crates/ui-theme/src/css.rs");
+
+    for needle in [
+        "var(--ui-space-sm, var(--ui-fallback-space-sm))",
+        "var(--ui-space-xs, var(--ui-fallback-space-xs))",
+        "var(--ui-space-2xs, var(--ui-fallback-space-2xs))",
+        "var(--ui-button-size-s-font-size, var(--ui-fallback-button-size-s-font-size))",
+        "var(--ui-button-size-s-line-height, var(--ui-fallback-button-size-s-line-height))",
+        "var(--ui-font-size-100, var(--ui-fallback-font-size-100))",
+        "var(--ui-line-height-100, var(--ui-fallback-line-height-100))",
+        "var(--ui-fg, var(--ui-fallback-fg))",
+        "var(--ui-fg-muted, var(--ui-fallback-fg-muted))",
+        "var(--ui-danger-fg, var(--ui-fallback-danger-fg))",
+        "var(--ui-border-width, var(--ui-fallback-border-width)) solid",
+        "var(--ui-danger, var(--ui-fallback-danger))",
+        "var(--ui-radius-sm, var(--ui-fallback-radius-sm))",
+    ] {
+        assert!(
+            styles_source.contains(needle),
+            "TagGroup styles should keep defensive fallback-chain marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "--ui-fallback-space-sm:",
+        "--ui-fallback-space-xs:",
+        "--ui-fallback-space-2xs:",
+        "--ui-fallback-button-size-s-font-size:",
+        "--ui-fallback-button-size-s-line-height:",
+        "--ui-fallback-font-size-100:",
+        "--ui-fallback-line-height-100:",
+        "--ui-fallback-fg:",
+        "--ui-fallback-fg-muted:",
+        "--ui-fallback-danger-fg:",
+        "--ui-fallback-border-width:",
+        "--ui-fallback-danger:",
+        "--ui-fallback-radius-sm:",
+    ] {
+        assert!(
+            theme_css_source.contains(needle),
+            "ui-theme fallback SSOT should include `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "var(--ui-button-size-s-font-size, 13px)",
+        "var(--ui-button-size-s-line-height, 18px)",
+        "var(--ui-font-size-100, 12px)",
+        "var(--ui-line-height-100, 16px)",
+        "outline: 1px solid var(--ui-danger)",
+        "outline-offset: 4px",
+    ] {
+        assert!(
+            !styles_source.contains(forbidden),
+            "TagGroup styles should not keep bare fallback literal `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn tag_group_cascade_layer_and_runtime_style_contract_is_enforced() {
+    let checklist_source = load_source("src/tag/check2.md");
+    let view_source = load_source("src/tag/group/view.rs");
+    let ui_css_source = load_source("src/css.rs");
+    let ui_root_source = load_source("../../crates/ui/src/root.rs");
+    let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
+
+    for needle in [
+        "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
+        "crates/ui/src/css.rs",
+        "components/tag/src/view.rs` 与 `components/tag/src/group/view.rs` 均未使用普通 inline style",
+        "tag_cascade_layer_and_runtime_style_contract_is_enforced",
+        "tag_group_cascade_layer_and_runtime_style_contract_is_enforced",
+    ] {
+        assert!(
+            checklist_source.contains(needle),
+            "tag/check2.md should keep cascade-layer contract token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "out.push_str(\"\\n@layer ui {\\n\");",
+        "#[cfg(feature = \"component-tag_group\")]",
+        "out.push_str(crate::tag::group::styles::CSS);",
+        "out.push_str(\"\\n}\\n\");",
+    ] {
+        assert!(
+            ui_css_source.contains(needle),
+            "ui css aggregation should keep cascade-layer fragment `{needle}`."
+        );
+    }
+
+    assert!(
+        ui_root_source.contains("crate::css::push_components_css(&mut out);"),
+        "UiRoot should keep injecting component css aggregated by @layer ui."
+    );
+
+    for forbidden in ["style=", "style:top", "style:left", "style:transform"] {
+        assert!(
+            !view_source.contains(forbidden),
+            "tag/group/view.rs should avoid plain inline style token `{forbidden}`."
+        );
+    }
+
+    for needle in [
+        "tag-group css is aggregated in @layer ui and runtime style is css-variable-only",
+        "tag_group_cascade_layer_and_runtime_style_contract_is_enforced",
+    ] {
+        assert!(
+            script_source.contains(needle),
+            "contract-hygiene script should enforce `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn tag_group_tree_shaking_feature_wiring_is_component_scoped() {
     let cargo_source = load_source("Cargo.toml");
     let lib_source = load_source("src/lib.rs");
@@ -445,6 +569,8 @@ fn tag_group_platform_check_script_covers_native_ssr_and_wasm_compile_paths() {
         "cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-tag_group,inject-css",
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
+        "cargo test -p ui --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_motion_contract_uses_ui_motion_non_wasm_stub_and_keeps_component_safe_without_motion",
+        "cargo test -p ui --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_reduced_motion_ssr_wasm_contract_is_n_a_but_semantics_stay_platform_stable",
         "components/tag/src/group/view.rs",
         "components/tag/src/group/logic.rs",
     ] {
@@ -654,8 +780,8 @@ fn tag_group_docs_page_covers_primary_playgrounds() {
         "test_source_path=\"components/tag/src/group/view.rs\".to_string()",
         "<TagGroup",
         "on_remove=on_remove_removable",
-        "invalid=validation_invalid",
-        "disabled=true",
+        "is_invalid=validation_invalid",
+        "is_disabled=true",
     ] {
         assert!(
             source.contains(needle),
@@ -681,7 +807,7 @@ fn tag_group_docs_playgrounds_lock_state_matrix_contract_values() {
         "Tag::new(\"tag-baseline\", \"Baseline\")",
         "on_remove=on_remove_validation",
         "error=\"At least one tag is required\".to_string()",
-        "required=validation_required",
+        "is_required=validation_required",
         "\"invalid: \"",
         "tags=disabled_tags",
         "label=\"Disabled tags\".to_string()",
@@ -1060,7 +1186,7 @@ fn tag_group_engineering_contract_marks_spec_serde_path_as_na_for_simple_compone
     }
 
     for required in [
-        "- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。",
+        "- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。",
         "若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。",
         "关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。",
         "异步边界不得把具体 runtime 类型暴露到组件公共接口。",
@@ -1308,8 +1434,8 @@ fn tag_group_component_file_responsibilities_remain_scoped() {
         "#[component]",
         "pub fn TagGroup(",
         "normalize_group_input(",
-        "resolve_state(",
-        "resolve_item_state(TagGroupItemStateInput",
+        "resolve_group_state(",
+        "resolve_group_item_state(TagGroupRenderableItemStateInput",
         "ui_headless::{A11yDirection, OnPress, locale_attrs}",
         "data-ui-schema=move || agent_contract.get().schema_name",
         "data-ui-stream-fallback=move || agent_contract.get().stream_fallback.as_str()",
@@ -1429,7 +1555,7 @@ fn tag_group_snapshot_baseline_and_streaming_fallback_contract_are_explicit() {
     }
 
     for needle in [
-        "- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。",
+        "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。",
         "- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。",
         "`Streaming`：LLM 还在生成，界面边生成边显示。",
         "`Snapshot`：LLM 全部生成完成后，一次性显示。",
@@ -1532,6 +1658,8 @@ fn tag_group_contract_hygiene_script_covers_agent_contract_schema_guards() {
     let script_source = load_source("../../scripts/check-ui-contract-hygiene.sh");
 
     for needle in [
+        "cargo test -p ui --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
+        "cargo test -p ui --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_cascade_layer_and_runtime_style_contract_is_enforced",
         "cargo test -p ui --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_agent_contract_is_schema_typed_and_machine_readable",
         "cargo test -p ui --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
         "cargo test -p ui --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_check2_documents_semantics_first_testing_rules",
@@ -1541,6 +1669,61 @@ fn tag_group_contract_hygiene_script_covers_agent_contract_schema_guards() {
         assert!(
             script_source.contains(needle),
             "contract-hygiene script should enforce `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn tag_group_check2_marks_defensive_variables_contract_complete() {
+    let checklist_source = load_source("src/tag/check2.md");
+
+    for needle in [
+        "- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。",
+        "components/tag/src/styles.rs` 与 `components/tag/src/group/styles.rs`",
+        "tag_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
+        "tag_group_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
+    ] {
+        assert!(
+            checklist_source.contains(needle),
+            "tag/check2.md should keep defensive-variable completion evidence `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn tag_group_check2_marks_cascade_layer_contract_complete() {
+    let checklist_source = load_source("src/tag/check2.md");
+
+    for needle in [
+        "- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\\\"top: 10px\\\"`）。",
+        "crates/ui/src/css.rs",
+        "components/tag/src/view.rs` 与 `components/tag/src/group/view.rs` 均未使用普通 inline style",
+        "tag_cascade_layer_and_runtime_style_contract_is_enforced",
+        "tag_group_cascade_layer_and_runtime_style_contract_is_enforced",
+    ] {
+        assert!(
+            checklist_source.contains(needle),
+            "tag/check2.md should keep cascade-layer completion evidence `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn tag_group_check2_marks_motion_contract_complete() {
+    let checklist_source = load_source("src/tag/check2.md");
+
+    for needle in [
+        "- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。",
+        "N/A（`Tag/TagGroup` 当前无组件级 motion contract）",
+        "tag_motion_contract_uses_ui_motion_non_wasm_stub_and_keeps_component_safe_without_motion",
+        "tag_reduced_motion_ssr_wasm_contract_is_n_a_but_semantics_stay_platform_stable",
+        "tag_group_motion_contract_uses_ui_motion_non_wasm_stub_and_keeps_component_safe_without_motion",
+        "tag_group_reduced_motion_ssr_wasm_contract_is_n_a_but_semantics_stay_platform_stable",
+        "scripts/check-ui-platforms.sh` / `scripts/check-ui-layout-platforms.sh`",
+    ] {
+        assert!(
+            checklist_source.contains(needle),
+            "tag/check2.md should keep motion-contract completion evidence `{needle}`."
         );
     }
 }
@@ -1728,6 +1911,7 @@ fn tag_group_docs_examples_sync_with_logic_api_names_and_default_matrix() {
         "title=\"TagGroup\"",
         "slug=\"tag-group\"",
         "title=\"Hello World\"",
+        "<TagGroupItem slot:item",
         "title=\"Removable + State\"",
         "title=\"Validation + Required\"",
         "title=\"Disabled + Empty\"",
@@ -1735,8 +1919,8 @@ fn tag_group_docs_examples_sync_with_logic_api_names_and_default_matrix() {
         "Tag::new(\"tag-leptos\", \"Leptos\")",
         "Tag::disabled(\"tag-a11y\", \"Accessibility\")",
         "on_remove=on_remove_removable",
-        "invalid=validation_invalid",
-        "required=validation_required",
+        "is_invalid=validation_invalid",
+        "is_required=validation_required",
     ] {
         assert!(
             docs_source.contains(needle),
@@ -1745,16 +1929,20 @@ fn tag_group_docs_examples_sync_with_logic_api_names_and_default_matrix() {
     }
 
     for needle in [
-        "tags: ReadSignal<Vec<Tag>>",
-        "#[prop(optional)] disabled: bool,",
+        "#[slot]",
+        "pub struct TagGroupItem {",
+        "#[prop(optional)] item: Vec<TagGroupItem>,",
+        "#[prop(optional, into)] item_specs: Option<Signal<Vec<TagGroupItemSpec>>>",
+        "#[prop(optional, into)] tags: Option<Signal<Vec<Tag>>>",
+        "#[prop(optional)] is_disabled: Option<bool>,",
         "#[prop(optional)] on_remove: Option<Callback<Tag>>",
         "#[prop(optional)] variant: TagVariant,",
         "#[prop(optional)] size: TagSize,",
         "#[prop(optional, into)] label: Option<String>,",
         "#[prop(optional, into)] description: Option<String>,",
         "#[prop(optional, into)] error: Option<String>,",
-        "#[prop(optional, into)] invalid: Signal<bool>,",
-        "#[prop(optional, into)] required: Signal<bool>,",
+        "#[prop(optional, into)] is_invalid: Option<Signal<bool>>,",
+        "#[prop(optional, into)] is_required: Option<Signal<bool>>,",
     ] {
         assert!(
             view_source.contains(needle),
@@ -1787,6 +1975,7 @@ fn tag_group_docs_entry_exists_and_is_beginner_friendly_default_then_advanced() 
         "title=\"TagGroup\"",
         "slug=\"tag-group\"",
         "title=\"Hello World\"",
+        "<TagGroupItem slot:item",
         "title=\"Removable + State\"",
         "title=\"Validation + Required\"",
         "title=\"Disabled + Empty\"",
@@ -1866,6 +2055,73 @@ fn tag_group_docs_app_provides_interactive_playground_with_live_props_and_state_
 }
 
 #[test]
+fn tag_group_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
+    let source = load_source("../../apps/docs-app/src/playground.rs");
+
+    for needle in [
+        "<style>{move || compose_scoped_css(&scope_selector.get_value(), &test_css.get())}</style>",
+        "on:input=move |ev| set_test_css.set(event_target_value(&ev))",
+        "placeholder=\"/* Original CSS is loaded. Edit directly, or use :scope for local targeting. */\"",
+        "\"Restore original CSS\"",
+        "data-slot=\"playground-test\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Playground should keep CSS hot-reload contract marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn tag_group_dx_workbench_keeps_context_and_isolated_canvas_with_optional_persist_na() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections/tag_group.rs");
+
+    for needle in [
+        "title=\"Workbench (All API + Actual Config)\"",
+        "test_config_signal=workbench_actual_config",
+        "data-slot=\"tag-group-workbench-controls\"",
+        "data-slot=\"tag-group-workbench-display\"",
+        "data-slot=\"tag-group-workbench-feedback\"",
+        "let (workbench_remove_count, set_workbench_remove_count) = signal(0_u32);",
+        "let (workbench_last_removed, set_workbench_last_removed) = signal(None::<String>);",
+        "\"on_remove count: \" {move || workbench_remove_count.get()}",
+        "\" · last removed: \"",
+        "\" · remaining: \" {move || workbench_tags.get().len()}",
+    ] {
+        assert!(
+            source.contains(needle),
+            "TagGroup workbench should keep DX context marker `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "TAG_GROUP_WORKBENCH_STORAGE_KEY",
+        "local_storage",
+        "Persist workbench state",
+    ] {
+        assert!(
+            !source.contains(forbidden),
+            "TagGroup workbench should keep optional persist-state as explicit N/A; found `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn tag_group_dx_check_script_covers_hot_reload_and_workbench_contract() {
+    let script_source = load_source("../../scripts/check-ui-dx.sh");
+
+    for needle in [
+        "cargo test -p ui --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_dx_playground_supports_css_hot_reload_without_wasm_rebuild",
+        "cargo test -p ui --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_dx_workbench_keeps_context_and_isolated_canvas_with_optional_persist_na",
+    ] {
+        assert!(
+            script_source.contains(needle),
+            "DX check script should enforce `{needle}`."
+        );
+    }
+}
+
 fn tag_group_docs_source_first_copy_paste_ready_with_imports_source_paths_and_sync() {
     let check2_source = load_source("src/tag/check2.md");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
@@ -1976,8 +2232,11 @@ fn tag_group_heroui_strategy_and_component_docs_are_synced_for_parameter_model_c
     }
 
     for needle in [
-        "tags: ReadSignal<Vec<Tag>>",
-        "#[prop(optional)] disabled: bool,",
+        "#[slot]",
+        "#[prop(optional)] item: Vec<TagGroupItem>,",
+        "#[prop(optional, into)] item_specs: Option<Signal<Vec<TagGroupItemSpec>>>",
+        "#[prop(optional, into)] tags: Option<Signal<Vec<Tag>>>",
+        "#[prop(optional)] is_disabled: Option<bool>,",
         "#[prop(optional)] on_remove: Option<Callback<Tag>>",
         "#[prop(optional)] variant: TagVariant,",
         "#[prop(optional)] size: TagSize,",

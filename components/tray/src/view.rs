@@ -6,7 +6,7 @@ use crate::{
 };
 use leptos::children::ViewFn;
 use leptos::prelude::*;
-use ui_headless::{A11yDirection, overlay_dialog_attrs};
+use ui_headless::{A11yDirection, TrayA11yOptions, use_tray_a11y};
 
 const TRAY_CLOSE_ICON_VIEWBOX: &str = "0 0 20 20";
 const TRAY_CLOSE_ICON_PATH: &str = "M5 5l10 10M15 5L5 15";
@@ -20,10 +20,15 @@ let panel_lang = StoredValue::new(panel_a11y.lang);
 let panel_dir = panel_a11y.dir;
 aria_labelledby=panel_aria_labelledby.get_value()
 aria_describedby=panel_aria_describedby.get_value()
+overlay_dialog_attrs(
+data-open=move || open.get().then_some("true")
+data-closed=move || (!open.get()).then_some("true")
+let id_base = logic::normalize_id_base(id_base);
 "#;
 
 struct TrayPanelRenderInputs {
-    open: Signal<bool>,
+    is_open: Signal<bool>,
+    open_source_attr: &'static str,
     on_close: OnPress,
     close_label: &'static str,
     root_state: logic::TrayPartState,
@@ -48,6 +53,7 @@ struct TrayPanelRenderInputs {
     footer: StoredValue<Option<ViewFn>>,
     panel_lang: StoredValue<Option<String>>,
     panel_dir: Option<&'static str>,
+    panel_description_a11y_state: &'static str,
 }
 
 fn render_tray_close_icon() -> AnyView {
@@ -206,7 +212,8 @@ fn render_tray_footer_slot(
 
 fn render_tray_panel(inputs: TrayPanelRenderInputs) -> AnyView {
     let TrayPanelRenderInputs {
-        open,
+        is_open,
+        open_source_attr,
         on_close,
         close_label,
         root_state,
@@ -231,6 +238,7 @@ fn render_tray_panel(inputs: TrayPanelRenderInputs) -> AnyView {
         footer,
         panel_lang,
         panel_dir,
+        panel_description_a11y_state,
     } = inputs;
 
     let close_slot = render_tray_close_slot(
@@ -262,8 +270,9 @@ fn render_tray_panel(inputs: TrayPanelRenderInputs) -> AnyView {
             class=move || root_class.with_value(|class_name| class_name.clone())
             data-slot=root_state.slot_attr
             data-state=root_state.state_attr
-            data-open=move || open.get().then_some("true")
-            data-closed=move || (!open.get()).then_some("true")
+            data-open=move || is_open.get().then_some("true")
+            data-closed=move || (!is_open.get()).then_some("true")
+            data-open-source=open_source_attr
             data-description=root_state.description_attr
             data-footer=root_state.footer_attr
             data-close-button=root_state.close_button_attr
@@ -296,6 +305,7 @@ fn render_tray_panel(inputs: TrayPanelRenderInputs) -> AnyView {
             data-class-source=root_state.class_source_attr
             data-motion-source=root_state.motion_source_attr
             data-exit-source=root_state.exit_source_attr
+            data-description-a11y=panel_description_a11y_state
             lang=panel_lang.get_value()
             dir=panel_dir
         >
@@ -310,20 +320,21 @@ fn render_tray_panel(inputs: TrayPanelRenderInputs) -> AnyView {
 
 #[component]
 pub fn Tray(
-    open: Signal<bool>,
-    on_close: OnPress,
+    #[prop(optional)] is_open: Option<Signal<bool>>,
+    #[prop(optional)] default_open: Option<bool>,
+    #[prop(optional)] on_open_change: Option<Callback<bool>>,
+    #[prop(optional)] on_close: Option<OnPress>,
     id_base: String,
     title: String,
     children: ChildrenFn,
     #[prop(optional, into)] description: Option<String>,
     #[prop(optional, into)] footer: Option<ViewFn>,
-    #[prop(optional)] motion: TrayMotion,
-    #[prop(optional, default = logic::DEFAULT_SHOW_CLOSE_BUTTON)] show_close_button: bool,
-    #[prop(optional, default = logic::DEFAULT_CLOSE_LABEL)] close_label: &'static str,
-    #[prop(optional, default = logic::DEFAULT_FIXED_HEIGHT)] is_fixed_height: bool,
-    #[prop(optional, default = logic::DEFAULT_DISMISSABLE)] is_dismissable: bool,
-    #[prop(optional, default = logic::DEFAULT_KEYBOARD_DISMISS_DISABLED)]
-    is_keyboard_dismiss_disabled: bool,
+    #[prop(optional)] motion: Option<TrayMotion>,
+    #[prop(optional)] is_show_close_button: Option<bool>,
+    #[prop(optional)] close_label: Option<&'static str>,
+    #[prop(optional)] is_fixed_height: Option<bool>,
+    #[prop(optional)] is_dismissable: Option<bool>,
+    #[prop(optional)] is_keyboard_dismiss_disabled: Option<bool>,
     #[prop(optional, into)] lang: Option<String>,
     #[prop(optional)] dir: Option<A11yDirection>,
     /// Called after the close animation finishes (useful for presence/unmount).
@@ -331,40 +342,75 @@ pub fn Tray(
     on_exit_complete: Option<Callback<()>>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let has_custom_id_base = !id_base.trim().is_empty();
-    let has_custom_title = !title.trim().is_empty();
+    let defaults = logic::normalize_defaults(logic::TrayDefaultsInput {
+        is_show_close_button,
+        close_label,
+        is_fixed_height,
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        motion,
+    });
+    let open_state = logic::normalize_open_state(logic::TrayOpenStateInput {
+        is_open,
+        default_open,
+        on_open_change,
+    });
+    let open_source_attr = open_state.open_source_attr;
+    let on_open_change = open_state.on_open_change;
+    let close_effects =
+        logic::resolve_close_effects(open_state.mode, open_state.has_open_change_handler);
+    let (uncontrolled_open, set_uncontrolled_open) = signal(open_state.default_open);
+    let resolved_open = logic::resolve_open_signal(
+        open_state.open,
+        Signal::derive(move || uncontrolled_open.get()),
+    );
+    let on_close = logic::normalize_on_close(on_close);
+    let on_close_action: OnPress = Callback::new(move |_| {
+        if close_effects.should_close_uncontrolled {
+            set_uncontrolled_open.set(false);
+        }
+        if close_effects.should_emit_open_change {
+            on_open_change.run(false);
+        }
+        on_close.run(());
+    });
 
-    let id_base = logic::normalize_id_base(id_base);
-    let title = logic::normalize_required_text(title, logic::DEFAULT_TITLE);
-    let description = logic::normalize_optional_text(description);
-    let class_name = logic::normalize_optional_text(class_name);
+    let text = logic::normalize_text(logic::TrayTextInput {
+        id_base,
+        title,
+        description,
+        class_name,
+    });
+    let has_custom_id_base = text.has_custom_id_base;
+    let has_custom_title = text.has_custom_title;
+    let has_custom_description = text.description.is_some();
+    let has_footer = footer.is_some();
+    let has_custom_class_name = text.class_name.is_some();
+    let dismiss_policy = logic::resolve_dismiss_policy(
+        defaults.is_dismissable,
+        defaults.is_keyboard_dismiss_disabled,
+    );
 
-    let title = StoredValue::new(title);
-    let description = StoredValue::new(description);
+    let title = StoredValue::new(text.title);
+    let description = StoredValue::new(text.description);
     let footer = StoredValue::new(footer);
     let children = StoredValue::new(children);
-    let motion = crate::tray::motion::sanitize_motion(motion);
+    let motion = crate::tray::motion::sanitize_motion(defaults.motion);
 
-    let has_custom_description = description.get_value().is_some();
-    let has_footer = footer.get_value().is_some();
-    let has_custom_class_name = class_name.is_some();
     let has_custom_motion = motion != TrayMotion::default();
-    let state_inputs = logic::TrayStateInputs {
-        description_mode: logic::TrayDescriptionMode::from_has_description(has_custom_description),
-        footer_mode: logic::TrayFooterMode::from_has_footer(has_footer),
-        close_button_mode: logic::TrayCloseButtonMode::from_show_close_button(show_close_button),
-        size_mode: logic::TraySizeMode::from_is_fixed_height(is_fixed_height),
-        dismiss_mode: logic::TrayDismissMode::from_is_dismissable(is_dismissable),
-        keyboard_dismiss_mode: logic::TrayKeyboardDismissMode::from_is_disabled(
-            is_keyboard_dismiss_disabled,
-        ),
+    let state_inputs = logic::normalize_state_inputs(logic::TrayStateBoundaryInput {
+        has_description: has_custom_description,
+        has_footer,
+        is_show_close_button: defaults.is_show_close_button,
+        is_fixed_height: defaults.is_fixed_height,
+        dismiss_policy,
         has_custom_id_base,
         has_custom_title,
         has_custom_description,
         has_custom_class_name,
         has_custom_motion,
         has_on_exit_complete: on_exit_complete.is_some(),
-    };
+    });
     let resolved_states = logic::resolve_states(state_inputs);
     let root_state = resolved_states.root_state;
     let header_state = resolved_states.header_state;
@@ -374,7 +420,7 @@ pub fn Tray(
     let footer_state = resolved_states.footer_state;
     let close_state = resolved_states.close_state;
 
-    let root_class = StoredValue::new(logic::compose_class_name(class_name, root_state));
+    let root_class = StoredValue::new(logic::compose_class_name(text.class_name, root_state));
     let header_class = StoredValue::new(logic::compose_class_name(None, header_state));
     let title_class = StoredValue::new(logic::compose_class_name(None, title_state));
     let description_class = StoredValue::new(logic::compose_class_name(None, description_state));
@@ -382,32 +428,35 @@ pub fn Tray(
     let footer_class = StoredValue::new(logic::compose_class_name(None, footer_state));
     let close_class = StoredValue::new(logic::compose_class_name(None, close_state));
 
-    let title_id = format!("{id_base}-title");
-    let description_id = format!("{id_base}-description");
+    let title_id = format!("{}-title", text.id_base);
+    let description_id = format!("{}-description", text.id_base);
     let title_id_attr: Signal<String> = title_id.clone().into();
     let description_id_attr: Signal<String> = description_id.clone().into();
-    let panel_a11y = overlay_dialog_attrs(
-        Some(title_id.clone()),
-        root_state
-            .show_description
-            .then_some(description_id.clone()),
+    let panel_a11y = use_tray_a11y(TrayA11yOptions {
+        title_id: title_id.clone(),
+        description_id: Some(description_id.clone()),
+        has_description: root_state.show_description,
         lang,
         dir,
-    );
-    let panel_aria_labelledby = logic::normalize_optional_attr(panel_a11y.aria_labelledby);
-    let panel_aria_describedby = logic::normalize_optional_attr(panel_a11y.aria_describedby);
+    });
+    let panel_aria_labelledby = panel_a11y.attrs.aria_labelledby;
+    let panel_aria_describedby = panel_a11y.attrs.aria_describedby;
+    let panel_aria_labelledby = logic::normalize_optional_attr(panel_aria_labelledby);
+    let panel_aria_describedby = logic::normalize_optional_attr(panel_aria_describedby);
     let description_text = logic::normalize_optional_attr(description.get_value());
     let description_text = StoredValue::new(description_text);
-    let panel_lang = StoredValue::new(panel_a11y.lang);
-    let panel_dir = panel_a11y.dir;
+    let panel_lang = StoredValue::new(panel_a11y.attrs.lang);
+    let panel_dir = panel_a11y.attrs.dir;
+    let panel_description_a11y_state = panel_a11y.state.description_state.as_attr();
 
     let on_exit_complete = logic::normalize_on_exit_complete(on_exit_complete);
 
     let panel = move || {
         render_tray_panel(TrayPanelRenderInputs {
-            open,
-            on_close,
-            close_label,
+            is_open: resolved_open,
+            open_source_attr,
+            on_close: on_close_action,
+            close_label: defaults.close_label,
             root_state,
             header_state,
             title_state,
@@ -430,18 +479,19 @@ pub fn Tray(
             footer,
             panel_lang,
             panel_dir,
+            panel_description_a11y_state,
         })
     };
 
     view! {
         <Sheet
-            open=open
-            on_close=on_close
+            open=resolved_open
+            on_close=on_close_action
             placement=SheetPlacement::Bottom
             aria_labelledby=panel_aria_labelledby
             aria_describedby=panel_aria_describedby
-            is_dismissable=is_dismissable
-            is_keyboard_dismiss_disabled=is_keyboard_dismiss_disabled
+            is_dismissable=defaults.is_dismissable
+            is_keyboard_dismiss_disabled=defaults.is_keyboard_dismiss_disabled
             motion=motion.sheet
             on_exit_complete=on_exit_complete
         >

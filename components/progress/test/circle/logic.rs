@@ -1,4 +1,5 @@
 use super::*;
+use leptos::prelude::{Callback, signal};
 
 #[test]
 fn normalize_optional_text_filters_blank_values() {
@@ -163,4 +164,171 @@ fn compose_class_name_includes_state_markers() {
             "composed class name should include `{token}`"
         );
     }
+}
+
+#[test]
+fn normalize_value_axis_reports_controlled_contract() {
+    let (controlled, _set_controlled) = signal(Some(36.0));
+    let axis = normalize_value_axis(
+        Some(controlled.into()),
+        Some(8.0),
+        Some(Callback::new(|_value: Option<f64>| {})),
+    );
+
+    assert!(axis.is_controlled);
+    assert!(axis.has_custom_default_value);
+    assert!(axis.has_custom_on_value_change);
+    assert_eq!(axis.mode_attr, "controlled");
+    assert_eq!(axis.value_source_attr, "external");
+    assert_eq!(axis.default_value_source_attr, "provided");
+    assert_eq!(axis.value_change_source_attr, "provided");
+}
+
+#[test]
+fn normalize_value_axis_reports_uncontrolled_contract() {
+    let axis = normalize_value_axis(None, None, None);
+
+    assert!(!axis.is_controlled);
+    assert!(!axis.has_custom_default_value);
+    assert!(!axis.has_custom_on_value_change);
+    assert_eq!(axis.mode_attr, "uncontrolled");
+    assert_eq!(axis.value_source_attr, "default_value");
+    assert_eq!(axis.default_value_source_attr, "default");
+    assert_eq!(axis.value_change_source_attr, "none");
+}
+
+#[test]
+fn normalize_range_uses_single_default_source() {
+    let range = normalize_range(None, None);
+    assert_eq!(
+        range,
+        ProgressCircleRange::sanitized(DEFAULT_MIN, DEFAULT_MAX)
+    );
+
+    let custom = normalize_range(Some(-20.0), Some(220.0));
+    assert_eq!(custom, ProgressCircleRange::sanitized(-20.0, 220.0));
+}
+
+#[test]
+fn normalize_progress_value_uses_logic_fallback() {
+    assert_eq!(normalize_progress_value(Some(0.4)), 0.4);
+    assert_eq!(normalize_progress_value(None), 0.0);
+}
+
+#[test]
+fn normalize_mode_maps_bool_to_typed_enum() {
+    assert_eq!(normalize_mode(false), ProgressCircleMode::Auto);
+    assert_eq!(normalize_mode(true), ProgressCircleMode::Indeterminate);
+}
+
+#[test]
+fn resolve_kernel_state_centralizes_phase_value_and_label_derivation() {
+    let state = resolve_kernel_state(ProgressCircleKernelInput {
+        clamped_value: Some(50.0),
+        normalized_progress: Some(0.5),
+        mode: ProgressCircleMode::Auto,
+        value_label_override: Some("50 complete".to_string()),
+    });
+
+    assert_eq!(state.mode, ProgressCircleMode::Auto);
+    assert!(!state.is_indeterminate);
+    assert_eq!(state.phase, ProgressCirclePhase::Determinate);
+    assert_eq!(state.progress_value, 0.5);
+    assert_eq!(state.aria_value_now, Some(50.0));
+    assert_eq!(state.value_label_text.as_deref(), Some("50 complete"));
+}
+
+#[test]
+fn resolve_kernel_state_derives_indeterminate_from_prop_or_missing_value() {
+    let from_prop = resolve_kernel_state(ProgressCircleKernelInput {
+        clamped_value: Some(42.0),
+        normalized_progress: Some(0.42),
+        mode: ProgressCircleMode::Indeterminate,
+        value_label_override: Some("ignored".to_string()),
+    });
+    assert!(from_prop.is_indeterminate);
+    assert_eq!(from_prop.phase, ProgressCirclePhase::Indeterminate);
+    assert_eq!(from_prop.value_label_text, None);
+
+    let from_missing_value = resolve_kernel_state(ProgressCircleKernelInput {
+        clamped_value: None,
+        normalized_progress: None,
+        mode: ProgressCircleMode::Auto,
+        value_label_override: None,
+    });
+    assert!(from_missing_value.is_indeterminate);
+    assert_eq!(from_missing_value.phase, ProgressCirclePhase::Indeterminate);
+    assert_eq!(from_missing_value.progress_value, 0.0);
+    assert_eq!(from_missing_value.aria_value_now, None);
+    assert_eq!(from_missing_value.value_label_text, None);
+}
+
+#[test]
+fn resolve_stroke_state_uses_typed_input_for_dash_contract() {
+    let determinate = resolve_stroke_state(ProgressCircleStrokeInput {
+        circumference: 120.0,
+        is_indeterminate: false,
+        animated_progress: 0.5,
+    });
+    assert_eq!(determinate.dasharray, "120");
+    assert_eq!(determinate.dashoffset, "60");
+
+    let indeterminate = resolve_stroke_state(ProgressCircleStrokeInput {
+        circumference: 120.0,
+        is_indeterminate: true,
+        animated_progress: 0.9,
+    });
+    assert_eq!(indeterminate.dasharray, "30");
+    assert_eq!(indeterminate.dashoffset, "90");
+}
+
+#[test]
+fn resolve_kernel_state_centralizes_phase_and_label_derivation() {
+    let state = resolve_kernel_state(ProgressCircleKernelInput {
+        clamped_value: Some(64.0),
+        normalized_progress: Some(0.64),
+        mode: ProgressCircleMode::Auto,
+        value_label_override: None,
+    });
+
+    assert_eq!(state.phase, ProgressCirclePhase::Determinate);
+    assert!(!state.is_indeterminate);
+    assert_eq!(state.progress_value, 0.64);
+    assert_eq!(state.aria_value_now, Some(64.0));
+    assert_eq!(state.value_label_text, Some("64%".to_string()));
+}
+
+#[test]
+fn resolve_kernel_state_prefers_indeterminate_rules_over_value_label() {
+    let state = resolve_kernel_state(ProgressCircleKernelInput {
+        clamped_value: Some(72.0),
+        normalized_progress: Some(0.72),
+        mode: ProgressCircleMode::Indeterminate,
+        value_label_override: Some("custom".to_string()),
+    });
+
+    assert_eq!(state.phase, ProgressCirclePhase::Indeterminate);
+    assert!(state.is_indeterminate);
+    assert_eq!(state.progress_value, 0.72);
+    assert_eq!(state.aria_value_now, Some(72.0));
+    assert_eq!(state.value_label_text, None);
+}
+
+#[test]
+fn resolve_stroke_state_maps_phase_to_dash_contract() {
+    let determinate = resolve_stroke_state(ProgressCircleStrokeInput {
+        circumference: 100.0,
+        is_indeterminate: false,
+        animated_progress: 0.5,
+    });
+    assert_eq!(determinate.dasharray, "100");
+    assert_eq!(determinate.dashoffset, "50");
+
+    let indeterminate = resolve_stroke_state(ProgressCircleStrokeInput {
+        circumference: 100.0,
+        is_indeterminate: true,
+        animated_progress: 0.9,
+    });
+    assert_eq!(indeterminate.dasharray, "25");
+    assert_eq!(indeterminate.dashoffset, "75");
 }

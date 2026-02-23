@@ -19,36 +19,11 @@ impl Default for ProgressMotion {
     }
 }
 
-fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
-    let default = ProgressMotion::default().spring;
-
-    ui_motion::spring::SpringConfig {
-        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
-            value.stiffness
-        } else {
-            default.stiffness
-        },
-        damping: if value.damping.is_finite() && value.damping > 0.0 {
-            value.damping
-        } else {
-            default.damping
-        },
-        mass: if value.mass.is_finite() && value.mass > 0.0 {
-            value.mass
-        } else {
-            default.mass
-        },
-        precision: if value.precision.is_finite() && value.precision > 0.0 {
-            value.precision
-        } else {
-            default.precision
-        },
-    }
-}
-
 pub fn sanitize_motion(motion: ProgressMotion) -> ProgressMotion {
+    let fallback = ProgressMotion::default().spring;
+
     ProgressMotion {
-        spring: sanitize_spring(motion.spring),
+        spring: ui_motion::spring::sanitize_config(motion.spring, fallback),
     }
 }
 
@@ -76,13 +51,13 @@ pub fn attach_motion(
         let element: leptos::web_sys::HtmlElement = div.unchecked_into();
         let style = element.style();
 
-        ui_observability::set_css_property_observed_auto!(&(style), "--ui-progress-progress", "0");
+        ui_observability::set_css_property_observed_auto!(&(style), "--ui-meter-progress", "0");
         let style_for_apply = style.clone();
         let animator = ui_motion::spring::SpringAnimator::new(0.0, config, move |v| {
             let v = v.clamp(0.0, 1.0);
             ui_observability::set_css_property_observed_auto!(
                 &(style_for_apply),
-                "--ui-progress-progress",
+                "--ui-meter-progress",
                 &format!("{v}")
             );
         });

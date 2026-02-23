@@ -728,11 +728,11 @@ fn thumbnail_snapshot_mode_consumes_complete_input_and_renders_in_one_pass() {
 
     for needle in [
         "let view_state = logic::resolve_view_state(",
-        "logic::ThumbnailViewStateInput {",
+        "logic::normalize_view_state_input(logic::ThumbnailRawViewStateInput {",
         "logic::normalize_input(background, class_name),",
         "let state = view_state.state;",
         "let class = view_state.class_name;",
-        "let inline_style = StoredValue::new(Some(view_state.inline_css_vars));",
+        "let inline_style = view_state.inline_css_vars;",
         "let content = render_thumbnail_content(children);",
     ] {
         assert!(
@@ -743,10 +743,11 @@ fn thumbnail_snapshot_mode_consumes_complete_input_and_renders_in_one_pass() {
 
     for needle in [
         "pub fn normalize_input(",
+        "pub fn normalize_view_state_input(",
         "pub fn resolve_view_state(",
         "ThumbnailViewState {",
         "class_name: compose_class_name(normalized.class_name, state),",
-        "inline_css_vars: compose_inline_style(normalized.background.as_deref()).unwrap_or_default(),",
+        "inline_css_vars: resolve_inline_css_vars(normalized.background.as_deref()),",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -849,7 +850,7 @@ fn thumbnail_view_consumes_logic_outputs_without_rebuilding_state_machine() {
 
     for needle in [
         "let view_state = logic::resolve_view_state(",
-        "motion_source: logic::resolve_motion_source(motion),",
+        "logic::normalize_view_state_input(logic::ThumbnailRawViewStateInput {",
         "logic::normalize_input(background, class_name),",
     ] {
         assert!(
@@ -1865,8 +1866,12 @@ fn thumbnail_token_first_styles_are_static_and_aggregated_via_ui_root() {
     }
 
     assert!(
-        view_source.contains("style=inline_style.get_value().unwrap_or_default()"),
+        view_source.contains("style=inline_style"),
         "Thumbnail view should only mount precomputed css-variable style output."
+    );
+    assert!(
+        !view_source.contains("unwrap_or_default()"),
+        "Thumbnail view should not apply secondary default fallback logic."
     );
     assert!(
         logic_source.contains("format!(\"--ui-thumbnail-background: {background};\")"),
@@ -1892,8 +1897,12 @@ fn thumbnail_runtime_style_only_sets_css_custom_property() {
     let logic_source = load_source("../../components/thumbnail/src/logic.rs");
 
     assert!(
-        view_source.contains("style=inline_style.get_value().unwrap_or_default()"),
+        view_source.contains("style=inline_style"),
         "Thumbnail view should mount precomputed inline style only."
+    );
+    assert!(
+        !view_source.contains("unwrap_or_default()"),
+        "Thumbnail view should not reapply style defaults outside logic.rs."
     );
     assert!(
         logic_source.contains("format!(\"--ui-thumbnail-background: {background};\")"),

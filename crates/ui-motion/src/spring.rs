@@ -260,6 +260,16 @@ impl SpringAnimatorTriplet {
         self.third.set_target(targets[2]);
     }
 
+    pub fn clear_on_rest(&self) {
+        self.first.clear_on_rest();
+        self.second.clear_on_rest();
+        self.third.clear_on_rest();
+    }
+
+    pub fn set_on_rest_second(&self, on_rest: impl FnMut() + 'static) {
+        self.second.set_on_rest(on_rest);
+    }
+
     pub fn stop(&self) {
         self.first.stop();
         self.second.stop();

@@ -44,6 +44,7 @@ fn SlidingNumberRoller(digit: Signal<u8>, motion: SlidingNumberMotion) -> impl I
 #[component]
 pub fn StaticNumber(
     number: f64,
+    #[prop(optional)] is_pad_start: Option<bool>,
     #[prop(optional)] pad_start: bool,
     #[prop(optional, into)] decimal_separator: Option<String>,
     #[prop(optional)] decimal_places: Option<u32>,
@@ -52,6 +53,7 @@ pub fn StaticNumber(
     #[prop(optional, into)] lang: Option<String>,
     #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
+    let pad_start = is_pad_start.unwrap_or(pad_start);
     let class_name = logic::normalize_optional_text(class_name);
     let locale = locale_attrs(lang, dir);
     let (decimal_separator, has_custom_decimal_separator) =
@@ -109,6 +111,7 @@ pub fn StaticNumber(
 pub fn SlidingNumber(
     #[prop(into)] number: Signal<f64>,
     #[prop(optional)] motion: SlidingNumberMotion,
+    #[prop(optional)] is_pad_start: Option<bool>,
     #[prop(optional)] pad_start: bool,
     #[prop(optional, into)] decimal_separator: Option<String>,
     #[prop(optional)] decimal_places: Option<u32>,
@@ -117,6 +120,7 @@ pub fn SlidingNumber(
     #[prop(optional, into)] lang: Option<String>,
     #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
+    let pad_start = is_pad_start.unwrap_or(pad_start);
     // compatibility marker for source-contract tests:
     // let motion = crate::number::motion::sanitize_motion(motion);
     let motion = crate::text_input::number::motion::sanitize_motion(motion);

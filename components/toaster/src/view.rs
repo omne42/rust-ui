@@ -120,7 +120,7 @@ pub fn Toaster(
             <Sonner
                 store=store
                 position=sonner_position
-                portal=sonner_state.portal
+                is_portal=sonner_state.portal
                 max_toasts=sonner_state.max_toasts
                 motion=motion
                 class_name=sonner_class_name

@@ -1,5 +1,116 @@
 use super::*;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct ToasterWorkbenchState {
+    top_left: bool,
+    portal: bool,
+    max_toasts: u16,
+    custom_aria: bool,
+    custom_class: bool,
+    custom_motion: bool,
+    zh_lang: bool,
+    rtl_dir: bool,
+}
+
+impl Default for ToasterWorkbenchState {
+    fn default() -> Self {
+        Self {
+            top_left: false,
+            portal: true,
+            max_toasts: 3,
+            custom_aria: false,
+            custom_class: false,
+            custom_motion: false,
+            zh_lang: false,
+            rtl_dir: false,
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl ToasterWorkbenchState {
+    fn parse(raw: &str) -> Option<Self> {
+        let parts = raw.split(',').map(str::trim).collect::<Vec<_>>();
+        if parts.len() != 8 {
+            return None;
+        }
+
+        let parse_bool = |at: usize| match *parts.get(at)? {
+            "1" => Some(true),
+            "0" => Some(false),
+            _ => None,
+        };
+
+        Some(Self {
+            top_left: parse_bool(0)?,
+            portal: parse_bool(1)?,
+            max_toasts: parts.get(2)?.parse::<u16>().ok()?.clamp(1, 6),
+            custom_aria: parse_bool(3)?,
+            custom_class: parse_bool(4)?,
+            custom_motion: parse_bool(5)?,
+            zh_lang: parse_bool(6)?,
+            rtl_dir: parse_bool(7)?,
+        })
+    }
+
+    fn encode(self) -> String {
+        let bool_digit = |value: bool| if value { '1' } else { '0' };
+        format!(
+            "{},{},{},{},{},{},{},{}",
+            bool_digit(self.top_left),
+            bool_digit(self.portal),
+            self.max_toasts.clamp(1, 6),
+            bool_digit(self.custom_aria),
+            bool_digit(self.custom_class),
+            bool_digit(self.custom_motion),
+            bool_digit(self.zh_lang),
+            bool_digit(self.rtl_dir),
+        )
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+const TOASTER_WORKBENCH_STORAGE_KEY: &str = "docs:toaster:workbench:state";
+
+#[cfg(target_arch = "wasm32")]
+fn load_toaster_workbench_state() -> Option<ToasterWorkbenchState> {
+    let storage = web_sys::window().and_then(|window| window.local_storage().ok().flatten())?;
+    let raw = storage
+        .get_item(TOASTER_WORKBENCH_STORAGE_KEY)
+        .ok()
+        .flatten()?;
+    ToasterWorkbenchState::parse(&raw)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn load_toaster_workbench_state() -> Option<ToasterWorkbenchState> {
+    None
+}
+
+#[cfg(target_arch = "wasm32")]
+fn save_toaster_workbench_state(state: ToasterWorkbenchState) {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        drop(storage.set_item(TOASTER_WORKBENCH_STORAGE_KEY, &state.encode()));
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn save_toaster_workbench_state(_state: ToasterWorkbenchState) {}
+
+#[cfg(target_arch = "wasm32")]
+fn clear_toaster_workbench_state() {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        drop(storage.remove_item(TOASTER_WORKBENCH_STORAGE_KEY));
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn clear_toaster_workbench_state() {}
+
 pub(crate) fn toaster() -> AnyView {
     let portal_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 3 }));
     let inline_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 2 }));
@@ -86,16 +197,45 @@ store.push_simple("Synced");"#
         ..ToastMotion::default()
     };
 
-    let (workbench_top_left, set_workbench_top_left) = signal(false);
-    let (workbench_portal, set_workbench_portal) = signal(true);
-    let (workbench_max_toasts, set_workbench_max_toasts) = signal(3_u16);
-    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
-    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
-    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
-    let (workbench_zh_lang, set_workbench_zh_lang) = signal(false);
-    let (workbench_rtl_dir, set_workbench_rtl_dir) = signal(false);
+    let persisted_workbench_state = load_toaster_workbench_state();
+    let has_persisted_workbench_state = persisted_workbench_state.is_some();
+    let initial_workbench_state = persisted_workbench_state.unwrap_or_default();
+
+    let (workbench_top_left, set_workbench_top_left) = signal(initial_workbench_state.top_left);
+    let (workbench_portal, set_workbench_portal) = signal(initial_workbench_state.portal);
+    let (workbench_max_toasts, set_workbench_max_toasts) =
+        signal(initial_workbench_state.max_toasts);
+    let (workbench_custom_aria, set_workbench_custom_aria) =
+        signal(initial_workbench_state.custom_aria);
+    let (workbench_custom_class, set_workbench_custom_class) =
+        signal(initial_workbench_state.custom_class);
+    let (workbench_custom_motion, set_workbench_custom_motion) =
+        signal(initial_workbench_state.custom_motion);
+    let (workbench_zh_lang, set_workbench_zh_lang) = signal(initial_workbench_state.zh_lang);
+    let (workbench_rtl_dir, set_workbench_rtl_dir) = signal(initial_workbench_state.rtl_dir);
+    let (workbench_persist_state, set_workbench_persist_state) =
+        signal(has_persisted_workbench_state);
     let (workbench_push_count, set_workbench_push_count) = signal(0_u32);
     let (workbench_clear_count, set_workbench_clear_count) = signal(0_u32);
+
+    Effect::new(move |_| {
+        let state = ToasterWorkbenchState {
+            top_left: workbench_top_left.get(),
+            portal: workbench_portal.get(),
+            max_toasts: workbench_max_toasts.get().clamp(1, 6),
+            custom_aria: workbench_custom_aria.get(),
+            custom_class: workbench_custom_class.get(),
+            custom_motion: workbench_custom_motion.get(),
+            zh_lang: workbench_zh_lang.get(),
+            rtl_dir: workbench_rtl_dir.get(),
+        };
+
+        if workbench_persist_state.get() {
+            save_toaster_workbench_state(state);
+        } else {
+            clear_toaster_workbench_state();
+        }
+    });
 
     let push_workbench: OnPress = Callback::new(move |_| {
         workbench_store.get_value().push.run(ToastOptions {
@@ -151,7 +291,7 @@ store.push_simple("Synced");"#
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "ToasterActualConfig {{\n  position: {},\n  portal: {},\n  max_toasts: {},\n  aria_label: {},\n  class_name: {},\n  lang: {},\n  dir: {},\n  motion: {},\n  store: Some(workbench_store),\n  push_count: {},\n  clear_count: {},\n}}",
+            "ToasterActualConfig {{\n  position: {},\n  portal: {},\n  max_toasts: {},\n  aria_label: {},\n  class_name: {},\n  lang: {},\n  dir: {},\n  motion: {},\n  store: Some(workbench_store),\n  persist: {},\n  push_count: {},\n  clear_count: {},\n}}",
             if workbench_top_left.get() {
                 "ToasterPosition::TopLeft"
             } else {
@@ -183,6 +323,11 @@ store.push_simple("Synced");"#
                 "ToastMotion::custom"
             } else {
                 "ToastMotion::default"
+            },
+            if workbench_persist_state.get() {
+                "on"
+            } else {
+                "off"
             },
             workbench_push_count.get(),
             workbench_clear_count.get(),
@@ -229,6 +374,9 @@ store.push_simple("Synced");"#
                         </Switch>
                         <Switch checked=workbench_rtl_dir set_checked=set_workbench_rtl_dir>
                             "dir RTL"
+                        </Switch>
+                        <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
+                            "Persist workbench state"
                         </Switch>
                         <label class="docs-search__label">
                             "max_toasts (" {move || workbench_max_toasts.get()} ")"
@@ -342,7 +490,7 @@ store.push_simple("Synced");"#
             </Playground>
 
             <Playground
-                title="State Matrix (Source Markers)"
+                title="State + Source Markers"
                 description="Inspect `data-state`, `data-queue`, `data-position-source`, `data-portal-source`, `data-max-toasts-source`, `data-store-source`, and `data-motion-source` contracts."
                 code_signal=source_code
             >

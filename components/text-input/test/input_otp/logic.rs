@@ -40,3 +40,52 @@ fn backspace_deletes_current_or_last() {
     assert_eq!(next, "123");
     assert_eq!(focus, 3);
 }
+
+#[test]
+fn default_value_is_normalized_in_logic() {
+    assert_eq!(normalize_default_value(None), "");
+    assert_eq!(
+        normalize_default_value(Some("123456".to_string())),
+        "123456".to_string()
+    );
+}
+
+#[test]
+fn accessibility_state_prefers_is_prefixed_inputs() {
+    let required_alias: Signal<bool> = leptos::prelude::signal(false).0.into();
+    let required_prefixed: Signal<bool> = leptos::prelude::signal(true).0.into();
+    let invalid_alias: Signal<bool> = leptos::prelude::signal(false).0.into();
+    let invalid_prefixed: Signal<bool> = leptos::prelude::signal(true).0.into();
+
+    let state = normalize_accessibility_state(AccessibilityStateInput {
+        is_disabled: Some(true),
+        disabled: false,
+        is_required: Some(required_prefixed),
+        required: required_alias,
+        is_invalid: Some(invalid_prefixed),
+        invalid: invalid_alias,
+    });
+
+    assert!(state.is_disabled);
+    assert!(state.is_required.get_untracked());
+    assert!(state.is_invalid.get_untracked());
+}
+
+#[test]
+fn accessibility_state_falls_back_to_alias_inputs() {
+    let required: Signal<bool> = leptos::prelude::signal(true).0.into();
+    let invalid: Signal<bool> = leptos::prelude::signal(false).0.into();
+
+    let state = normalize_accessibility_state(AccessibilityStateInput {
+        is_disabled: None,
+        disabled: true,
+        is_required: None,
+        required,
+        is_invalid: None,
+        invalid,
+    });
+
+    assert!(state.is_disabled);
+    assert!(state.is_required.get_untracked());
+    assert!(!state.is_invalid.get_untracked());
+}

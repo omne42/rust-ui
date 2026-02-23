@@ -1,0 +1,92 @@
+schema_version = "1"
+
+[component]
+name = "Skeleton"
+crate = "ui-skeleton"
+
+[[inputs]]
+name = "variant"
+ty = "Option<SkeletonVariant>"
+default = "None (normalized in logic)"
+controlled = false
+
+[[inputs]]
+name = "is_shimmer"
+ty = "Option<bool>"
+default = "None (normalized to true in logic)"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_loading"
+ty = "Option<bool>"
+default = "None (SkeletonGroup only)"
+controlled = false
+
+[[inputs]]
+name = "is_skeleton_only"
+ty = "Option<bool>"
+default = "None (SkeletonGroup only)"
+controlled = false
+
+[[inputs]]
+name = "group_variant"
+ty = "Option<SkeletonGroupVariant>"
+default = "None (SkeletonGroup only)"
+controlled = false
+
+[[inputs]]
+name = "layout"
+ty = "Option<SkeletonGroupLayout>"
+default = "None (SkeletonGroup only)"
+controlled = false
+
+[[inputs]]
+name = "density"
+ty = "Option<SkeletonGroupDensity>"
+default = "None (SkeletonGroup only)"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None (SkeletonGroup only)"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-slot + data-state + data-variant + data-shimmer + data-loading-mode + data-visibility + data-*-source + aria-busy"
+scope = "skeleton/skeleton-group"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "structured_state_markers"
+enabled = true
+
+[[capabilities]]
+name = "snapshot_rendering"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"

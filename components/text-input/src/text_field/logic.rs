@@ -1,7 +1,12 @@
 pub use ui_state_primitives::text_field::DEFAULT_LABEL;
 
 use ui_state_primitives::text_field::{
-    normalize_optional_text, resolve_input_type, resolve_label, source_attr_from_presence,
+    TextFieldAccessibilityStateInput as PrimitiveAccessibilityStateInput,
+    TextFieldValueAxisInput as PrimitiveValueAxisInput,
+    normalize_default_value as primitive_normalize_default_value, normalize_optional_text,
+    resolve_accessibility_state as primitive_resolve_accessibility_state, resolve_input_type,
+    resolve_label, resolve_value_axis_state as primitive_resolve_value_axis_state,
+    source_attr_from_presence,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -110,35 +115,33 @@ pub struct ValueAxisState {
 }
 
 pub fn normalize_default_value(default_value: Option<String>) -> String {
-    default_value.unwrap_or_default()
+    primitive_normalize_default_value(default_value)
 }
 
 pub fn normalize_value_axis(input: ValueAxisInput) -> ValueAxisState {
-    let is_controlled = input.has_controlled_value;
     let has_default_value = input.default_value.is_some();
-    let has_on_value_change = input.has_on_value_change;
     let default_value = normalize_default_value(input.default_value);
-
-    let control_mode = if is_controlled {
-        ValueControlMode::Controlled
-    } else {
-        ValueControlMode::Uncontrolled
-    };
-    let value_change_source = if has_on_value_change {
-        ValueChangeSource::OnValueChange
-    } else {
-        ValueChangeSource::None
-    };
-    let default_value_source_attr = source_attr_from_presence(has_default_value);
-    let has_value_change_handler = has_on_value_change;
+    let markers = primitive_resolve_value_axis_state(PrimitiveValueAxisInput {
+        is_controlled: input.has_controlled_value,
+        has_default_value,
+        has_on_value_change: input.has_on_value_change,
+    });
 
     ValueAxisState {
         default_value,
-        is_controlled,
-        control_mode_attr: control_mode.as_attr(),
-        default_value_source_attr,
-        value_change_source_attr: value_change_source.as_attr(),
-        has_value_change_handler,
+        is_controlled: markers.is_controlled,
+        control_mode_attr: if markers.is_controlled {
+            ValueControlMode::Controlled.as_attr()
+        } else {
+            ValueControlMode::Uncontrolled.as_attr()
+        },
+        default_value_source_attr: markers.default_value_source_attr,
+        value_change_source_attr: if markers.has_value_change_handler {
+            ValueChangeSource::OnValueChange.as_attr()
+        } else {
+            ValueChangeSource::None.as_attr()
+        },
+        has_value_change_handler: markers.has_value_change_handler,
     }
 }
 
@@ -153,9 +156,67 @@ pub struct AccessibilityState {
 }
 
 pub fn normalize_accessibility_state(input: AccessibilityStateInput) -> AccessibilityState {
+    let state = primitive_resolve_accessibility_state(PrimitiveAccessibilityStateInput {
+        is_disabled: input.is_disabled,
+        is_read_only: input.is_read_only,
+    });
+
     AccessibilityState {
-        is_disabled: input.is_disabled.unwrap_or(false),
-        is_read_only: input.is_read_only.unwrap_or(false),
+        is_disabled: state.is_disabled,
+        is_read_only: state.is_read_only,
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum TextFieldInputType {
+    #[default]
+    Text,
+    Email,
+    Password,
+    Search,
+    Tel,
+    Url,
+    Number,
+    Custom(&'static str),
+}
+
+impl TextFieldInputType {
+    pub fn as_html_attr(self) -> &'static str {
+        match self {
+            Self::Text => "text",
+            Self::Email => "email",
+            Self::Password => "password",
+            Self::Search => "search",
+            Self::Tel => "tel",
+            Self::Url => "url",
+            Self::Number => "number",
+            Self::Custom(value) => value,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct InputTypeState {
+    pub input_type: TextFieldInputType,
+    pub type_source_attr: &'static str,
+}
+
+pub fn normalize_input_type(input_type: Option<&'static str>) -> InputTypeState {
+    let (input_type, type_source_attr) = resolve_input_type(input_type);
+    let input_type = match input_type {
+        "text" => TextFieldInputType::Text,
+        "email" => TextFieldInputType::Email,
+        "password" => TextFieldInputType::Password,
+        "search" => TextFieldInputType::Search,
+        "tel" => TextFieldInputType::Tel,
+        "url" => TextFieldInputType::Url,
+        "number" => TextFieldInputType::Number,
+        value => TextFieldInputType::Custom(value),
+    };
+
+    InputTypeState {
+        input_type,
+        type_source_attr,
     }
 }
 
@@ -166,7 +227,7 @@ pub struct TextFieldResolvedProps {
     pub description: Option<String>,
     pub error: Option<String>,
     pub placeholder: Option<String>,
-    pub input_type: &'static str,
+    pub input_type: TextFieldInputType,
     pub type_source_attr: &'static str,
     pub class: String,
     pub has_custom_class_name: bool,
@@ -193,7 +254,7 @@ pub fn resolve_props(
     let has_custom_class_name = class_name.is_some();
     let class = compose_class_name(class_name);
 
-    let (input_type, type_source_attr) = resolve_input_type(input_type);
+    let input_type_state = normalize_input_type(input_type);
     let description_source_attr = source_attr_from_presence(description.is_some());
     let error_source_attr = source_attr_from_presence(error.is_some());
     let placeholder_source_attr = source_attr_from_presence(placeholder.is_some());
@@ -205,8 +266,8 @@ pub fn resolve_props(
         description,
         error,
         placeholder,
-        input_type,
-        type_source_attr,
+        input_type: input_type_state.input_type,
+        type_source_attr: input_type_state.type_source_attr,
         class,
         has_custom_class_name,
         description_source_attr,

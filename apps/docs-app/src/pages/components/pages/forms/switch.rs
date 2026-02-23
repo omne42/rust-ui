@@ -39,10 +39,10 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
 <Switch checked=system_enabled set_checked=set_system_enabled>
   "System alerts"
 </Switch>
-<Switch checked=disabled_checked set_checked=set_disabled_checked disabled=true>
+<Switch checked=disabled_checked set_checked=set_disabled_checked is_disabled=true>
   "Disabled on"
 </Switch>
-<Switch checked=disabled_unchecked set_checked=set_disabled_unchecked disabled=true>
+<Switch checked=disabled_unchecked set_checked=set_disabled_unchecked is_disabled=true>
   "Disabled off"
 </Switch>"#
             .to_string()
@@ -65,7 +65,7 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
 
     let workbench_code = Signal::derive(move || {
         format!(
-            "<Switch\n  checked=checked\n  set_checked=set_checked\n  disabled={}\n  on_checked_change=Callback::new(move |_| {{}})\n  pressed_width_px={}\n  motion=SwitchMotion::default()\n  class_name={}\n  aria_label={}\n  node_ref=NodeRef::new()\n>\n  \"Notifications\"\n</Switch>",
+            "<Switch\n  checked=checked\n  set_checked=set_checked\n  is_disabled={}\n  on_checked_change=Callback::new(move |_| {{}})\n  pressed_width_px={}\n  motion=SwitchMotion::default()\n  class_name={}\n  aria_label={}\n  node_ref=NodeRef::new()\n>\n  \"Notifications\"\n</Switch>",
             workbench_disabled.get(),
             workbench_pressed_width.get(),
             if workbench_custom_class.get() {
@@ -83,7 +83,7 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "SwitchActualConfig {{\n  checked: {},\n  set_checked: \"bound(set_checked)\",\n  disabled: {},\n  on_checked_change: \"count={}\",\n  pressed_width_px: {},\n  motion: SwitchMotion::default(),\n  class_name: {},\n  aria_label: {},\n  node_ref: \"workbench_node_ref\",\n}}",
+            "SwitchActualConfig {{\n  checked: {},\n  set_checked: \"bound(set_checked)\",\n  is_disabled: {},\n  on_checked_change: \"count={}\",\n  pressed_width_px: {},\n  motion: SwitchMotion::default(),\n  class_name: {},\n  aria_label: {},\n  node_ref: \"workbench_node_ref\",\n}}",
             checked.get(),
             workbench_disabled.get(),
             workbench_change_count.get(),
@@ -138,7 +138,7 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
                                 prop:checked=move || workbench_disabled.get()
                                 on:change=move |ev| set_workbench_disabled.set(event_target_checked(&ev))
                             />
-                            " disabled"
+                            " is_disabled"
                         </label>
                         <label class="docs-search__label">
                             <input
@@ -180,7 +180,7 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
                     <Switch
                         checked=checked
                         set_checked=set_checked
-                        disabled=workbench_disabled.get()
+                        is_disabled=workbench_disabled.get()
                         on_checked_change=on_workbench_checked_change
                         pressed_width_px=f64::from(workbench_pressed_width.get())
                         motion=ui::SwitchMotion::default()
@@ -217,10 +217,10 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
                         </span>
                     </div>
                     <div class="docs-row">
-                        <Switch checked=disabled_checked set_checked=set_disabled_checked disabled=true>
+                        <Switch checked=disabled_checked set_checked=set_disabled_checked is_disabled=true>
                             "Disabled on"
                         </Switch>
-                        <Switch checked=disabled_unchecked set_checked=set_disabled_unchecked disabled=true>
+                        <Switch checked=disabled_unchecked set_checked=set_disabled_unchecked is_disabled=true>
                             "Disabled off"
                         </Switch>
                     </div>

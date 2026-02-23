@@ -443,8 +443,8 @@ fn skeleton_group_component_files_follow_responsibility_boundaries() {
 
     for needle in [
         "pub const CSS: &str = r#\"",
-        "var(--ui-space-sm)",
-        "var(--ui-accent)",
+        "var(--ui-space-sm, var(--ui-fallback-space-sm))",
+        "var(--ui-accent, var(--ui-fallback-accent))",
     ] {
         assert!(
             styles_source.contains(needle),
@@ -511,9 +511,9 @@ fn skeleton_group_theme_contract_is_token_first_and_ui_theme_owned() {
     let source = load_source("src/skeleton/group/styles.rs");
 
     for needle in [
-        "var(--ui-space-sm)",
-        "var(--ui-space-xs)",
-        "var(--ui-accent)",
+        "var(--ui-space-sm, var(--ui-fallback-space-sm))",
+        "var(--ui-space-xs, var(--ui-fallback-space-xs))",
+        "var(--ui-accent, var(--ui-fallback-accent))",
         "color-mix(",
     ] {
         assert!(
@@ -561,9 +561,9 @@ fn skeleton_group_token_first_styles_are_static_and_aggregated_via_ui_root_css_p
 
     for required in [
         "pub const CSS: &str = r#\"",
-        "var(--ui-space-sm)",
-        "var(--ui-space-xs)",
-        "var(--ui-accent)",
+        "var(--ui-space-sm, var(--ui-fallback-space-sm))",
+        "var(--ui-space-xs, var(--ui-fallback-space-xs))",
+        "var(--ui-accent, var(--ui-fallback-accent))",
         "color-mix(",
     ] {
         assert!(

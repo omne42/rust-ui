@@ -10,12 +10,6 @@ pub(crate) fn tag_group() -> AnyView {
         ]
     }
 
-    let (showcase_tags, _set_showcase_tags) = signal(vec![
-        Tag::new("tag-showcase-rust", "Rust"),
-        Tag::new("tag-showcase-leptos", "Leptos"),
-        Tag::new("tag-showcase-ui", "UI primitives"),
-    ]);
-
     let (workbench_tags, set_workbench_tags) = signal(default_workbench_tags());
     let (workbench_disabled, set_workbench_disabled) = signal(false);
     let (workbench_surface_variant, set_workbench_surface_variant) = signal(false);
@@ -75,13 +69,16 @@ pub(crate) fn tag_group() -> AnyView {
     });
 
     let hello_code = Signal::derive(move || {
-        r#"let (tags, _set_tags) = signal(vec![
-  Tag::new("tag-showcase-rust", "Rust"),
-  Tag::new("tag-showcase-leptos", "Leptos"),
-  Tag::new("tag-showcase-ui", "UI primitives"),
-]);
-
-<TagGroup tags=tags label=Some("Project labels".to_string()) />"#
+        r#"<TagGroup label=Some("Project labels".to_string())>
+  <TagGroupItem slot:item id="tag-showcase-rust".to_string() label="Rust".to_string() />
+  <TagGroupItem slot:item id="tag-showcase-leptos".to_string() label="Leptos".to_string() />
+  <TagGroupItem
+    slot:item
+    id="tag-showcase-a11y".to_string()
+    label="Accessibility".to_string()
+    is_disabled=true
+  />
+</TagGroup>"#
             .to_string()
     });
 
@@ -145,7 +142,7 @@ pub(crate) fn tag_group() -> AnyView {
             "});".to_string(),
             "<TagGroup".to_string(),
             "  tags=tags".to_string(),
-            format!("  disabled={}", bool_word(workbench_disabled.get())),
+            format!("  is_disabled={}", bool_word(workbench_disabled.get())),
             "  on_remove=on_remove".to_string(),
             format!("  variant={variant}"),
             format!("  size={size}"),
@@ -154,11 +151,11 @@ pub(crate) fn tag_group() -> AnyView {
             format!("  description={description}"),
             format!("  error={error}"),
             format!(
-                "  invalid=Signal::derive(|| {})",
+                "  is_invalid=Signal::derive(|| {})",
                 bool_word(workbench_invalid.get())
             ),
             format!(
-                "  required=Signal::derive(|| {})",
+                "  is_required=Signal::derive(|| {})",
                 bool_word(workbench_required_signal.get())
             ),
             format!("  aria_describedby={aria_describedby}"),
@@ -278,7 +275,7 @@ pub(crate) fn tag_group() -> AnyView {
 />
 <TagGroup
   tags=surface_tags
-  disabled=true
+  is_disabled=true
   variant=TagVariant::Surface
   size=TagSize::Lg
   label=Some("Disabled Surface".to_string())
@@ -289,8 +286,8 @@ pub(crate) fn tag_group() -> AnyView {
   size=TagSize::Md
   label=Some("Required".to_string())
   error=Some("At least one tag is required".to_string())
-  invalid=Signal::derive(|| true)
-  required=Signal::derive(|| true)
+  is_invalid=Signal::derive(|| true)
+  is_required=Signal::derive(|| true)
 />"#
         .to_string()
     });
@@ -307,10 +304,16 @@ pub(crate) fn tag_group() -> AnyView {
                 code_signal=hello_code
                 test_source_path="components/tag/src/group/view.rs".to_string()
             >
-                <TagGroup
-                    tags=showcase_tags
-                    label="Project labels".to_string()
-                />
+                <TagGroup label="Project labels".to_string()>
+                    <TagGroupItem slot:item id="tag-showcase-rust".to_string() label="Rust".to_string() />
+                    <TagGroupItem slot:item id="tag-showcase-leptos".to_string() label="Leptos".to_string() />
+                    <TagGroupItem
+                        slot:item
+                        id="tag-showcase-a11y".to_string()
+                        label="Accessibility".to_string()
+                        is_disabled=true
+                    />
+                </TagGroup>
             </Playground>
 
             <Playground
@@ -408,7 +411,7 @@ pub(crate) fn tag_group() -> AnyView {
                     </Show>
                     <TagGroup
                         tags=workbench_tags
-                        disabled=workbench_disabled.get()
+                        is_disabled=workbench_disabled.get()
                         on_remove=on_workbench_remove
                         variant=if workbench_surface_variant.get() {
                             ui::TagVariant::Surface
@@ -436,8 +439,8 @@ pub(crate) fn tag_group() -> AnyView {
                         } else {
                             String::new()
                         }
-                        invalid=workbench_invalid
-                        required=workbench_required_signal
+                        is_invalid=workbench_invalid
+                        is_required=workbench_required_signal
                         aria_describedby=workbench_aria_describedby_signal
                         aria_label=if workbench_custom_aria_label.get() {
                             "Selected framework tags".to_string()
@@ -492,7 +495,7 @@ pub(crate) fn tag_group() -> AnyView {
                     <div class="docs-stack">
                         <TagGroup
                             tags=matrix_surface_tags
-                            disabled=true
+                            is_disabled=true
                             variant=ui::TagVariant::Surface
                             size=ui::TagSize::Lg
                             label="Disabled Surface".to_string()
@@ -506,8 +509,8 @@ pub(crate) fn tag_group() -> AnyView {
                             size=ui::TagSize::Md
                             label="Required".to_string()
                             error="At least one tag is required".to_string()
-                            invalid=Signal::derive(|| true)
-                            required=Signal::derive(|| true)
+                            is_invalid=Signal::derive(|| true)
+                            is_required=Signal::derive(|| true)
                         />
                     </div>
                 </div>

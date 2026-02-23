@@ -13,6 +13,14 @@ fn normalize_aria_label_tracks_default_and_custom_sources() {
 }
 
 #[test]
+fn resolve_default_priority_prefers_prefixed_flags() {
+    assert!(resolve_muted(Some(true), false));
+    assert!(!resolve_muted(None, false));
+    assert!(resolve_disabled(Some(true), false));
+    assert!(!resolve_disabled(None, false));
+}
+
+#[test]
 fn resolve_state_tracks_tone_disabled_and_source_markers() {
     let muted = resolve_state(SidebarMenuBadgeStateInput {
         muted: true,

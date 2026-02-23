@@ -87,7 +87,7 @@ pub(super) fn visually_hidden() -> AnyView {
             group="Forms"
             description="@a11y-baseline/visually-hidden compatible utility for screen-reader-only content and focusable skip-link workflows."
         >
-            <Playground title="Hello World (Default API)" code_signal=hello_world_code>
+            <Playground title="Hello World" code_signal=hello_world_code>
                 <div class="docs-stack">
                     <VisuallyHidden>"Open account settings"</VisuallyHidden>
                     <p>

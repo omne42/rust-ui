@@ -13,6 +13,16 @@ fn normalize_aria_label_tracks_default_and_custom_sources() {
 }
 
 #[test]
+fn resolve_default_priority_prefers_prefixed_flags() {
+    assert!(resolve_padded(Some(true), false));
+    assert!(!resolve_padded(None, false));
+    assert!(resolve_recessed(Some(true), false));
+    assert!(!resolve_recessed(None, false));
+    assert!(resolve_disabled(Some(true), false));
+    assert!(!resolve_disabled(None, false));
+}
+
+#[test]
 fn resolve_state_reports_side_padding_and_surface_markers() {
     let state = resolve_state(SidebarInsetStateInput {
         side: SidebarSide::Right,

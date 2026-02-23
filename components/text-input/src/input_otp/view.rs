@@ -1,59 +1,28 @@
+use crate::text_input::input_otp::logic;
 use leptos::{ev, html, prelude::*};
 use ui_headless::{
-    A11yDirection, FocusRingOptions, InputOtpOptions, TextFieldOptions, i18n, locale_attrs,
-    use_focus_ring, use_input_otp, use_text_field,
+    A11yDirection, FocusRingOptions, InputOtpOptions, TextFieldOptions, i18n,
+    input_otp_focus_control, input_otp_focus_slot, input_otp_sync_caret_from_dom, locale_attrs,
+    use_controllable_state, use_focus_ring, use_input_otp, use_text_field,
 };
-
-#[cfg(target_arch = "wasm32")]
-fn focus_input(input_ref: &NodeRef<html::Input>) {
-    let Some(el) = input_ref.get_untracked() else {
-        return;
-    };
-    ui_observability::observe_js_result!(el.focus());
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-fn focus_input(_input_ref: &NodeRef<html::Input>) {}
-
-#[cfg(target_arch = "wasm32")]
-fn set_selection_range(input_ref: &NodeRef<html::Input>, start: usize, end: usize) {
-    let Some(el) = input_ref.get_untracked() else {
-        return;
-    };
-    let start = start.min(u32::MAX as usize) as u32;
-    let end = end.min(u32::MAX as usize) as u32;
-    drop(el.set_selection_range(start, end));
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-fn set_selection_range(_input_ref: &NodeRef<html::Input>, _start: usize, _end: usize) {}
-
-#[cfg(target_arch = "wasm32")]
-fn selection_start(input_ref: &NodeRef<html::Input>) -> Option<usize> {
-    let el = input_ref.get_untracked()?;
-    el.selection_start()
-        .ok()
-        .flatten()
-        .and_then(|value| usize::try_from(value).ok())
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-fn selection_start(_input_ref: &NodeRef<html::Input>) -> Option<usize> {
-    None
-}
 
 #[component]
 pub fn InputOtp(
     id_base: String,
-    value: ReadSignal<String>,
-    set_value: WriteSignal<String>,
+    #[prop(optional, into)] value: Option<Signal<String>>,
+    #[prop(optional, into)] default_value: Option<String>,
+    #[prop(optional)] on_value_change: Option<Callback<String>>,
+    #[prop(optional)] set_value: Option<WriteSignal<String>>,
     #[prop(optional)] length: usize,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] on_change: Option<Callback<String>>,
     #[prop(optional)] on_complete: Option<Callback<String>>,
     #[prop(optional, into)] label: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] is_required: Option<Signal<bool>>,
     #[prop(optional, into)] required: Signal<bool>,
+    #[prop(optional, into)] is_invalid: Option<Signal<bool>>,
     #[prop(optional, into)] invalid: Signal<bool>,
     #[prop(optional, into)] aria_describedby: Signal<Option<String>>,
     #[prop(optional, into)] description: Option<String>,
@@ -63,10 +32,29 @@ pub fn InputOtp(
     #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] node_ref: NodeRef<html::Input>,
 ) -> impl IntoView {
+    let on_value_change = on_value_change
+        .or(on_change)
+        .or_else(|| set_value.map(|setter| Callback::new(move |next: String| setter.set(next))));
+    let controlled_default_value = logic::normalize_default_value(default_value);
+    let value_state =
+        use_controllable_state(value, Some(controlled_default_value), on_value_change);
+    let value = value_state.value;
+    let request_value_change = value_state.request_change;
+    let accessibility = logic::normalize_accessibility_state(logic::AccessibilityStateInput {
+        is_disabled,
+        disabled,
+        is_required,
+        required,
+        is_invalid,
+        invalid,
+    });
+    let is_disabled = accessibility.is_disabled;
+    let is_required = accessibility.is_required;
+    let is_invalid = accessibility.is_invalid;
+
     let i18n = i18n::use_ui_i18n();
     let strings = i18n.strings::<super::i18n::InputOtpStrings>();
     let length = length.clamp(1, 12);
-    let on_change = StoredValue::new(on_change);
     let locale = locale_attrs(lang, dir);
 
     let label = label.filter(|value| !value.trim().is_empty());
@@ -82,9 +70,7 @@ pub fn InputOtp(
     let description = StoredValue::new(description);
     let error = StoredValue::new(error);
 
-    let focus_ring = use_focus_ring(FocusRingOptions {
-        is_disabled: disabled,
-    });
+    let focus_ring = use_focus_ring(FocusRingOptions { is_disabled });
 
     let input_id = format!("{id_base}-input");
     let aria = use_text_field(TextFieldOptions {
@@ -92,11 +78,11 @@ pub fn InputOtp(
         has_description: description.get_value().is_some(),
         has_error: error.get_value().is_some(),
         aria_describedby,
-        is_invalid: invalid,
-        is_required: required,
+        is_invalid,
+        is_required,
     });
 
-    let base_class = if disabled {
+    let base_class = if is_disabled {
         "ui-input-otp ui-input-otp--disabled".to_string()
     } else {
         "ui-input-otp".to_string()
@@ -106,18 +92,11 @@ pub fn InputOtp(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
-    let set_and_notify = move |next: String| {
-        set_value.set(next.clone());
-        if let Some(on_change) = on_change.get_value() {
-            on_change.run(next);
-        }
-    };
-
     let otp = use_input_otp(InputOtpOptions {
-        is_disabled: disabled,
+        is_disabled,
         length,
-        value: value.into(),
-        on_value_change: Callback::new(set_and_notify),
+        value,
+        on_value_change: request_value_change,
         on_complete,
     });
 
@@ -130,9 +109,11 @@ pub fn InputOtp(
     let on_caret_change = otp.handlers.on_caret_change;
 
     let sync_caret: Callback<()> = Callback::new(move |_| {
-        let caret = selection_start(&node_ref)
-            .unwrap_or_else(|| input_value.get_untracked().chars().count());
-        on_caret_change.run(caret);
+        input_otp_sync_caret_from_dom(
+            &node_ref,
+            input_value.get_untracked().chars().count(),
+            on_caret_change,
+        );
     });
 
     let on_input = move |ev| {
@@ -143,10 +124,11 @@ pub fn InputOtp(
     let on_focus = move |_| {
         focus_ring.handlers.on_focus.run(());
         on_focus_hook.run(());
-
-        let caret = input_value.get_untracked().chars().count();
-        set_selection_range(&node_ref, caret, caret);
-        sync_caret.run(());
+        input_otp_focus_control(
+            &node_ref,
+            input_value.get_untracked().chars().count(),
+            on_caret_change,
+        );
     };
 
     let on_blur = move |_| {
@@ -155,36 +137,31 @@ pub fn InputOtp(
     };
 
     let on_control_pointer_down = move |ev: ev::PointerEvent| {
-        if disabled {
+        if is_disabled {
             return;
         }
         ev.prevent_default();
-        focus_input(&node_ref);
-        let caret = input_value.get_untracked().chars().count();
-        set_selection_range(&node_ref, caret, caret);
-        on_caret_change.run(caret);
+        input_otp_focus_control(
+            &node_ref,
+            input_value.get_untracked().chars().count(),
+            on_caret_change,
+        );
     };
 
     let slots = (0..length)
         .map(|index| {
             let on_slot_pointer_down = move |ev: ev::PointerEvent| {
-                if disabled {
+                if is_disabled {
                     return;
                 }
                 ev.prevent_default();
                 ev.stop_propagation();
-
-                let current_len = input_value.get_untracked().chars().count();
-                let caret = index.min(current_len);
-                let end = if caret < current_len {
-                    (caret + 1).min(current_len)
-                } else {
-                    caret
-                };
-
-                focus_input(&node_ref);
-                set_selection_range(&node_ref, caret, end);
-                on_caret_change.run(caret);
+                input_otp_focus_slot(
+                    &node_ref,
+                    index,
+                    input_value.get_untracked().chars().count(),
+                    on_caret_change,
+                );
             };
 
             let slot_value = move || input_value.get().chars().nth(index).unwrap_or_default();
@@ -201,7 +178,7 @@ pub fn InputOtp(
             let slot_is_active =
                 move || (is_focused.get() && active_slot.get() == index).then_some("true");
 
-            let show_caret = move || is_focused.get() && !disabled && active_slot.get() == index;
+            let show_caret = move || is_focused.get() && !is_disabled && active_slot.get() == index;
 
             view! {
                 <div
@@ -209,8 +186,8 @@ pub fn InputOtp(
                     data-slot="input-otp-slot"
                     data-active=slot_is_active
                     data-filled=slot_is_filled
-                    data-disabled=disabled.then_some("true")
-                    data-invalid=move || invalid.get().then_some("true")
+                    data-disabled=is_disabled.then_some("true")
+                    data-invalid=move || is_invalid.get().then_some("true")
                     aria-hidden="true"
                     on:pointerdown=on_slot_pointer_down
                 >
@@ -231,7 +208,7 @@ pub fn InputOtp(
             lang=locale.lang.clone()
             dir=locale.dir
             class:ui-input-otp--focus-visible=move || focus_ring.is_focus_visible.get()
-            class:ui-input-otp--invalid=move || invalid.get()
+            class:ui-input-otp--invalid=move || is_invalid.get()
             data-slot="input-otp"
         >
             <Show when=move || label.get_value().is_some()>
@@ -260,8 +237,8 @@ pub fn InputOtp(
                     pattern="[0-9]*"
                     maxlength=length
                     prop:value=move || input_value.get()
-                    disabled=disabled
-                    required=move || required.get()
+                    disabled=is_disabled
+                    required=move || is_required.get()
                     aria-label=move || aria_label.get_value()
                     aria-describedby=move || aria.input.aria_describedby.get()
                     aria-invalid=move || aria.input.aria_invalid.get()
@@ -297,7 +274,7 @@ pub fn InputOtp(
                 let error_id = StoredValue::new(error_id);
                 let error = StoredValue::new(error);
                 view! {
-                    <Show when=move || invalid.get()>
+                    <Show when=move || is_invalid.get()>
                         <div
                             class="ui-input-otp__error"
                             id=move || error_id.get_value()

@@ -1,3 +1,78 @@
+pub const DEFAULT_CHECKED: bool = false;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SwitchCheckedControlMode {
+    Controlled,
+    Uncontrolled,
+}
+
+impl SwitchCheckedControlMode {
+    pub const fn from_is_controlled(is_controlled: bool) -> Self {
+        if is_controlled {
+            Self::Controlled
+        } else {
+            Self::Uncontrolled
+        }
+    }
+
+    pub const fn is_controlled(self) -> bool {
+        matches!(self, Self::Controlled)
+    }
+
+    pub const fn data_attr(self) -> &'static str {
+        match self {
+            Self::Controlled => "controlled",
+            Self::Uncontrolled => "uncontrolled",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SwitchCheckedAxisInput {
+    pub has_checked: bool,
+    pub has_default_checked: bool,
+    pub has_on_checked_change: bool,
+    pub has_set_checked: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SwitchCheckedAxisState {
+    pub control_mode: SwitchCheckedControlMode,
+    pub is_controlled: bool,
+    pub checked_source_attr: &'static str,
+    pub default_checked_source_attr: &'static str,
+    pub checked_change_source_attr: &'static str,
+}
+
+pub fn resolve_checked_axis(input: SwitchCheckedAxisInput) -> SwitchCheckedAxisState {
+    let control_mode = SwitchCheckedControlMode::from_is_controlled(input.has_checked);
+    let is_controlled = control_mode.is_controlled();
+    let checked_source_attr = if input.has_checked {
+        "checked"
+    } else {
+        "default"
+    };
+    let default_checked_source_attr = if input.has_default_checked {
+        "provided"
+    } else {
+        "default"
+    };
+    let checked_change_source_attr = match (input.has_on_checked_change, input.has_set_checked) {
+        (true, true) => "on_checked_change+set_checked",
+        (true, false) => "on_checked_change",
+        (false, true) => "set_checked",
+        (false, false) => "none",
+    };
+
+    SwitchCheckedAxisState {
+        control_mode,
+        is_controlled,
+        checked_source_attr,
+        default_checked_source_attr,
+        checked_change_source_attr,
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SwitchStateInput {
     pub is_checked: bool,

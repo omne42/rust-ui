@@ -1,7 +1,7 @@
 pub const CSS: &str = r#"
 .ui-skeleton-group {
   display: grid;
-  gap: var(--ui-space-sm);
+  gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
   min-width: 0;
 }
 
@@ -12,18 +12,21 @@ pub const CSS: &str = r#"
 
 .ui-skeleton-group--layout-horizontal,
 .ui-skeleton-group[data-layout="horizontal"] {
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(calc(var(--ui-space-xl, var(--ui-fallback-space-xl)) * 6), 1fr)
+  );
   align-items: center;
 }
 
 .ui-skeleton-group--density-compact,
 .ui-skeleton-group[data-density="compact"] {
-  gap: var(--ui-space-xs);
+  gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
 }
 
 .ui-skeleton-group--density-comfortable,
 .ui-skeleton-group[data-density="comfortable"] {
-  gap: var(--ui-space-sm);
+  gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
 }
 
 .ui-skeleton-group[data-loading-source="prop"],
@@ -36,7 +39,9 @@ pub const CSS: &str = r#"
 
 .ui-skeleton-group--variant-pulse .ui-skeleton,
 .ui-skeleton-group[data-variant="pulse"] .ui-skeleton {
-  animation: ui-skeleton-group-pulse 1.15s ease-in-out infinite alternate;
+  animation: ui-skeleton-group-pulse
+    var(--ui-image-skeleton-duration, var(--ui-fallback-image-skeleton-duration))
+    ease-in-out infinite alternate;
 }
 
 .ui-skeleton-group--variant-pulse .ui-skeleton::after,
@@ -58,8 +63,13 @@ pub const CSS: &str = r#"
 
 .ui-skeleton-group--custom-class,
 .ui-skeleton-group[data-custom-class="true"] {
-  outline: 1px solid color-mix(in oklab, var(--ui-accent) 24%, transparent);
-  outline-offset: 2px;
+  outline: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    color-mix(
+      in oklab,
+      var(--ui-accent, var(--ui-fallback-accent)) 24%,
+      transparent
+    );
+  outline-offset: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
 }
 
 @keyframes ui-skeleton-group-pulse {

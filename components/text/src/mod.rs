@@ -2,7 +2,7 @@ pub(crate) mod logic;
 pub mod styles;
 mod view;
 
-pub use logic::{DEFAULT_ARIA_LABEL, DEFAULT_TEXT, TextAlign, TextElement, TextTone, TextWeight};
+pub use logic::{DEFAULT_TEXT, TextAlign, TextDirection, TextElement, TextTone, TextWeight};
 pub use view::Text;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -38,3 +38,7 @@ pub struct TextState {
     pub slot_kind_attr: &'static str,
     pub has_named_slot: bool,
 }
+
+#[cfg(test)]
+#[path = "test/semantics.rs"]
+mod semantics_tests;

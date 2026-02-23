@@ -93,6 +93,37 @@ pub struct OverlayDialogA11yAttrs {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TooltipPanelA11yAttrs {
+    pub role: &'static str,
+    pub id: String,
+    pub lang: Option<String>,
+    pub dir: Option<&'static str>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub struct TooltipPanelA11yHandlers;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TooltipPanelA11yState {
+    pub is_open: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TooltipPanelA11yContract {
+    pub attrs: TooltipPanelA11yAttrs,
+    pub handlers: TooltipPanelA11yHandlers,
+    pub state: TooltipPanelA11yState,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TooltipPanelA11yOptions {
+    pub tooltip_id: String,
+    pub is_open: bool,
+    pub lang: Option<String>,
+    pub dir: Option<A11yDirection>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RegionA11yAttrs {
     pub role: &'static str,
     pub aria_label: String,
@@ -114,6 +145,65 @@ pub struct FieldsetA11yAttrs {
     pub aria_invalid: Option<&'static str>,
     pub lang: Option<String>,
     pub dir: Option<&'static str>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub struct ProgressbarA11yHandlers;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ProgressbarA11yPhase {
+    Determinate,
+    Indeterminate,
+}
+
+impl ProgressbarA11yPhase {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Determinate => "determinate",
+            Self::Indeterminate => "indeterminate",
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ProgressbarA11yAttrs {
+    pub role: &'static str,
+    pub aria_label: String,
+    pub aria_valuemin: String,
+    pub aria_valuemax: String,
+    pub aria_valuenow: Option<String>,
+    pub aria_valuetext: Option<String>,
+    pub lang: Option<String>,
+    pub dir: Option<&'static str>,
+    pub data_state: &'static str,
+    pub data_indeterminate: Option<&'static str>,
+    pub data_determinate: Option<&'static str>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ProgressbarA11yState {
+    pub phase: ProgressbarA11yPhase,
+    pub is_indeterminate: bool,
+    pub is_determinate: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ProgressbarA11yContract {
+    pub attrs: ProgressbarA11yAttrs,
+    pub handlers: ProgressbarA11yHandlers,
+    pub state: ProgressbarA11yState,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ProgressbarA11yOptions {
+    pub aria_label: String,
+    pub aria_valuemin: f64,
+    pub aria_valuemax: f64,
+    pub aria_valuenow: Option<f64>,
+    pub aria_valuetext: Option<String>,
+    pub is_indeterminate: bool,
+    pub lang: Option<String>,
+    pub dir: Option<A11yDirection>,
 }
 
 pub fn is_focusable_element_kind(
@@ -265,6 +355,23 @@ pub fn overlay_dialog_attrs(
     }
 }
 
+pub fn tooltip_panel_attrs(options: TooltipPanelA11yOptions) -> TooltipPanelA11yContract {
+    let locale = locale_attrs(options.lang, options.dir);
+
+    TooltipPanelA11yContract {
+        attrs: TooltipPanelA11yAttrs {
+            role: "tooltip",
+            id: options.tooltip_id,
+            lang: locale.lang,
+            dir: locale.dir,
+        },
+        handlers: TooltipPanelA11yHandlers,
+        state: TooltipPanelA11yState {
+            is_open: options.is_open,
+        },
+    }
+}
+
 pub fn region_attrs(
     aria_label: String,
     lang: Option<String>,
@@ -309,6 +416,56 @@ pub fn fieldset_attrs(
         aria_invalid: is_invalid.then_some("true"),
         lang: locale.lang,
         dir: locale.dir,
+    }
+}
+
+pub fn progressbar_attrs(options: ProgressbarA11yOptions) -> ProgressbarA11yContract {
+    fn finite_or(default_value: f64, value: f64) -> f64 {
+        if value.is_finite() {
+            value
+        } else {
+            default_value
+        }
+    }
+
+    let locale = locale_attrs(options.lang, options.dir);
+    let phase = if options.is_indeterminate {
+        ProgressbarA11yPhase::Indeterminate
+    } else {
+        ProgressbarA11yPhase::Determinate
+    };
+
+    let aria_valuemin = finite_or(0.0, options.aria_valuemin).to_string();
+    let aria_valuemax = finite_or(100.0, options.aria_valuemax).to_string();
+    let aria_valuenow = if phase == ProgressbarA11yPhase::Indeterminate {
+        None
+    } else {
+        options
+            .aria_valuenow
+            .filter(|value| value.is_finite())
+            .map(|value| value.to_string())
+    };
+
+    ProgressbarA11yContract {
+        attrs: ProgressbarA11yAttrs {
+            role: "progressbar",
+            aria_label: options.aria_label,
+            aria_valuemin,
+            aria_valuemax,
+            aria_valuenow,
+            aria_valuetext: options.aria_valuetext,
+            lang: locale.lang,
+            dir: locale.dir,
+            data_state: phase.as_attr(),
+            data_indeterminate: (phase == ProgressbarA11yPhase::Indeterminate).then_some("true"),
+            data_determinate: (phase == ProgressbarA11yPhase::Determinate).then_some("true"),
+        },
+        handlers: ProgressbarA11yHandlers,
+        state: ProgressbarA11yState {
+            phase,
+            is_indeterminate: phase == ProgressbarA11yPhase::Indeterminate,
+            is_determinate: phase == ProgressbarA11yPhase::Determinate,
+        },
     }
 }
 

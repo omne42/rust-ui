@@ -17,6 +17,14 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
     (DEFAULT_ARIA_LABEL.into(), false)
 }
 
+pub fn resolve_muted(is_muted: Option<bool>, muted: bool) -> bool {
+    is_muted.unwrap_or(muted)
+}
+
+pub fn resolve_disabled(is_disabled: Option<bool>, disabled: bool) -> bool {
+    is_disabled.unwrap_or(disabled)
+}
+
 pub fn resolve_state(input: SidebarMenuBadgeStateInput) -> SidebarMenuBadgeState {
     SidebarMenuBadgeState {
         muted: input.muted,

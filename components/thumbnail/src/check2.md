@@ -10,7 +10,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 大骨架（架构边界与层职责）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`thumbnail` 的稳定状态归一与派生已下沉到 `crates/ui-state-primitives/src/thumbnail.rs`（`ThumbnailStateInput`/`ThumbnailState`/`resolve_state`/`sanitize_background`），并由 `crates/ui-state-primitives/src/test/thumbnail.rs` 回归；组件侧 `components/thumbnail/src/logic.rs` 仅做 props 装配、来源标记与 `ui-state-primitives` 输出映射，`components/thumbnail/src/view.rs` 仅负责语义挂载与渲染。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -20,7 +20,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`thumbnail` 当前为非交互展示组件：`components/thumbnail/src/view.rs` 仅消费 `ui_headless::locale_attrs` 与 `A11yDirection` 挂载 `lang/dir`，未在组件层重写键盘/焦点/指针语义契约；交互模型（press/focus ring/roving 等）在本组件范围 `N/A`。回归见 `components/thumbnail/test/semantics.rs::{thumbnail_mounts_locale_attrs_from_headless_a11y_helpers,thumbnail_a11y_contract_is_non_interactive_by_design}`。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -31,14 +31,14 @@
   - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`components/thumbnail/src/motion.rs` 仅将组件语义状态 `active` 映射为动效目标值并调用 `ui_motion::spring::SpringAnimator` 驱动；未在组件侧重写 spring 求解器/driver 算法。`reduced-motion` 通过 `!motion.enabled || ui_motion::web::prefers_reduced_motion()` 降级，且 `#[cfg(not(target_arch = "wasm32"))] pub fn attach_motion(...) {}` 提供 non-wasm no-op/stub。回归见 `components/thumbnail/test/semantics.rs::{thumbnail_motion_covers_wasm_and_non_wasm_contract_paths,thumbnail_motion_web_sys_usage_is_explicitly_cfg_gated,thumbnail_reduced_motion_degrades_via_ui_motion_fast_path}` 与 `components/thumbnail/test/motion.rs`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`thumbnail` 未重建主题系统：`components/thumbnail/src/styles.rs` 仅消费 `var(--ui-*)`（如 `--ui-radius-sm` / `--ui-accent` / `--ui-fg`）并在组件内做语义变量映射（`--ui-thumbnail-*`）；主题三轴与变量注入由 `crates/ui-theme/src/theme.rs`（`ThemeSystem/ThemeColor/ThemeScale`）和 `crates/ui/src/root.rs`（`to_css_variables` + `data-theme-*`）统一承载。token 基线与 Light/Dark/OLED/scale 回归由 `crates/ui-theme/tests/token_scale_baseline.rs` 覆盖；规范锚点在 `docs/spec/styling.md`。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -46,7 +46,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`components/thumbnail/src/mod.rs` 仅暴露 `Thumbnail`/`ThumbnailSize`/`ThumbnailMotion` 的最小公共面；`logic.rs` 仅做 props 归一与状态派生映射并消费 `ui-state-primitives`，`view.rs` 仅做结构渲染与 `ui-headless` 语义挂载，`styles.rs` 保持 token-first 静态 CSS，`motion.rs` 仅负责 attach 动效契约；平台差异封装在 `motion.rs` 的 wasm/non-wasm `cfg` 分支。语义回归主入口位于 `components/thumbnail/test/semantics.rs`，并保留 `components/thumbnail/tests/semantics.rs` 的公共导出契约冒烟校验。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -58,75 +58,75 @@
   - 通知边界：切片值实现 `PartialEq` 时，若值未变化则不通知下游，相关 DOM 绑定不更新。
   - 成本边界：每次 `set/update` 仍会执行状态转移与切片重算；大状态或高频路径必须拆分 `Signal`/状态域，避免把 clone 成本当作恒定可忽略。
   - 反模式禁止：`view.rs` 只做挂载与消费切片，禁止重新实现状态机分支或复制 `logic.rs` 判定规则。
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`Thumbnail` 已补齐规范命名布尔 props：`is_cover/is_layer/is_selected/is_focused`，并在 `components/thumbnail/src/view.rs` 通过 `logic::normalize_bool_alias` 统一归一；为兼容既有调用暂保留 `cover/layer/selected/focused` 别名，且优先级固定为 `is_* > legacy`。迁移路径：现有调用可无缝运行，新接入统一使用 `is_*`，后续大版本移除 legacy 别名。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`N/A`：`thumbnail` 是非交互展示组件，不维护内部可控状态轴，不存在 `open/selected` 等需内部写回的状态机；当前 `is_cover/is_layer/is_selected/is_focused` 仅为静态展示输入，不触发组件内状态转移。相关边界由 `components/thumbnail/test/semantics.rs::thumbnail_interaction_matrix_is_not_applicable_for_display_primitive` 约束，禁止出现 `default_*`/`on_*_change`/键盘指针交互契约。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`components/thumbnail/src/logic.rs` 新增 `resolve_inline_css_vars` 统一将 `background -> inline_css_vars` 显式归一；`resolve_view_state` 仅调用该入口，不再分散 `unwrap_or`。`components/thumbnail/src/view.rs` 改为直接 `style=inline_style` 消费 `logic.rs` 输出，移除 `unwrap_or_default` 二次兜底。回归覆盖：`components/thumbnail/test/logic.rs::resolve_inline_css_vars_centralizes_default_fallback` 与 `components/thumbnail/test/semantics.rs::thumbnail_runtime_style_only_sets_css_custom_property`（含禁止 `view.rs` 出现 `unwrap_or_default` 断言）。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`components/thumbnail/src/logic.rs` 新增 `ThumbnailRawViewStateInput` 与 `normalize_view_state_input`，将 `is_* + legacy + motion` 的输入归一化集中到 `logic.rs`；`components/thumbnail/src/view.rs` 仅调用 `resolve_view_state(normalize_view_state_input(...), normalize_input(...))` 并消费 `view_state` 输出，不再拼装状态机字段。回归见 `components/thumbnail/test/logic.rs::normalize_view_state_input_centralizes_input_boundary_mapping` 与 `components/thumbnail/test/semantics.rs::thumbnail_view_consumes_logic_outputs_without_rebuilding_state_machine`。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`thumbnail` 的离散轴已类型化：尺寸轴由 `crates/ui-state-primitives/src/thumbnail.rs::ThumbnailSize` 建模，互斥状态轴由 `ThumbnailDataState` 建模并在 `resolve_state` 统一收敛；组件侧 `components/thumbnail/src/logic.rs` 与 `view.rs` 仅消费类型化结果，不接受 `String` 状态协议。`Option<bool>` 仅用于非互斥视觉标记输入，互斥 `status` 轴最终以 `enum`（`data_state`）对外暴露。回归见 `components/thumbnail/test/semantics.rs::thumbnail_discrete_axes_are_type_constrained_by_enums` 与 `crates/ui-state-primitives/src/test/thumbnail.rs::resolve_state_tracks_priority_and_flags`。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`components/thumbnail/src/logic.rs` 通过 `pub use ui_state_primitives::thumbnail::{... resolve_state, ThumbnailStateInput ...}` 仅消费状态原语；组件状态收敛点在 `resolve_view_state` 内调用 `resolve_state(ThumbnailStateInput { ... })`，未在组件层重写原语状态机；`components/thumbnail/src/*` 未出现业务 store 依赖。现有回归 `components/thumbnail/test/semantics.rs` 已锁定 `logic_source.contains(\"pub use ui_state_primitives::thumbnail::\")` 与 `!logic_source.contains(\"pub fn resolve_state(\")`，防止组件层重复实现状态原语。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（`N/A`：`thumbnail` 为静态展示组件，无远程请求与异步状态机；`components/thumbnail/src/view.rs` 不包含 `is_loading`/`aria-busy`/`on_retry`/`data-error` 协议。回归由 `components/thumbnail/test/semantics.rs::thumbnail_async_semantics_are_not_applicable` 锁定。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`thumbnail` 基础用法为直接 `<Thumbnail>...</Thumbnail>`，无需手动接线 `ui-state-primitives/ui-headless`；`apps/docs-app/src/pages/components/pages/display_extra_thumbnail.rs` 已将 Hello World 作为首个 Playground 展示（`title=\"Hello World (Default API)\"`），且示例片段为 3 行（`showcase_code`）。复杂场景通过后续 Workbench/State Matrix 与可选 props（`size/background/cover/layer/selected/focused/motion/class_name/lang/dir`）按需开启；公共 API 未暴露 `state=...` 之类内部状态对象必填项。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（`N/A`：`thumbnail` 是单槽位展示原语而非组合型容器组件；对外仅 `Thumbnail(..., children: Children)`，不存在 `Parent/Item` 集合 API 语义。并行数组/隐式约定语法已由回归锁定：`components/thumbnail/test/semantics.rs::thumbnail_is_not_collection_composition_api` 与 `components/thumbnail/test/semantics.rs` 中 `labels/titles/panels/ItemSpec/default_items` 禁止断言。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`thumbnail` 为非交互展示原语：`components/thumbnail/src/view.rs` 通过 `ui_headless::locale_attrs` + `A11yDirection` 透传 `lang/dir`，并未硬编码用户可见文案；组件无可操作交互元素，因此 `role/aria-*`/键盘可达路径在本组件语义为 `N/A`。共享 A11y 工具直接来自 `ui-headless`，未在组件层重写。回归由 `components/thumbnail/test/semantics.rs::{thumbnail_mounts_locale_attrs_from_headless_a11y_helpers,thumbnail_a11y_contract_is_non_interactive_by_design}` 与 `components/thumbnail/test/logic.rs::normalize_lang_filters_blank_values` 锁定。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`thumbnail` 已通过稳定 `data-*` 暴露状态与来源：`components/thumbnail/src/view.rs` 挂载 `data-state/data-size/data-selected/data-focused` 与 `data-*-source`、`data-ui-*` 契约字段；标记值来自 `components/thumbnail/src/logic.rs` 的 `enum + as_attr/as_str`（封闭集合），无自由文本拼接。自动化选择器与样式分支均围绕语义标记，未依赖 DOM 顺序/层级猜测。`aria-*` 在本组件为 `N/A`（非交互展示原语），由 `components/thumbnail/test/semantics.rs::thumbnail_a11y_contract_is_non_interactive_by_design` 锁定；其余约束由 `thumbnail_semantic_contract_exposes_state_and_source_markers`、`thumbnail_emits_state_source_marker_attributes`、`thumbnail_source_marker_values_are_closed_sets`、`thumbnail_styles_state_selectors_use_explicit_markers`、`thumbnail_styles_avoid_fragile_structure_guessing_selectors` 回归覆盖。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`components/thumbnail/src/styles.rs` 的状态分支均基于稳定 class 与 `data-*`（如 `data-cover/data-layer/data-selected/data-focused/data-size`），未使用 `:nth-child` 或深层级结构猜测；`components/thumbnail/src/view.rs` 显式输出上述语义标记，视觉状态可直接解释。运行时 inline style 仅由 `components/thumbnail/src/logic.rs::compose_inline_style` 传递 `--ui-thumbnail-background` custom property，不承载业务样式分支。回归由 `components/thumbnail/test/semantics.rs::{thumbnail_styles_state_selectors_use_explicit_markers,thumbnail_styles_avoid_fragile_structure_guessing_selectors,thumbnail_semantic_contract_exposes_state_and_source_markers}` 锁定。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`thumbnail` 已以语义契约断言为主：`components/thumbnail/test/semantics.rs::thumbnail_semantic_contract_exposes_state_and_source_markers` 覆盖 `data-state/source` 等机器可读标记；`thumbnail_semantics_suite_is_contract_first_not_visual_snapshot_only` 明确约束“语义优先、快照仅补充”。关键分支按适用范围覆盖：`thumbnail_interaction_matrix_is_not_applicable_for_display_primitive` 将受控/非受控、disabled、键盘/指针路径标记为本组件 `N/A`（非交互展示原语）；平台差异由 `thumbnail_motion_covers_wasm_and_non_wasm_contract_paths` 与 `thumbnail_ssr_and_wasm_keep_single_semantic_contract_surface` 覆盖 SSR/wasm 一致性。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`components/thumbnail/src/mod.rs` 仅最小导出 `Thumbnail/ThumbnailSize/ThumbnailMotion`；`logic.rs` 负责输入归一、状态派生与来源标记，未包含 DOM/render 细节；`styles.rs` 为静态 `CSS` 常量；`view.rs` 仅渲染结构并消费 `logic::resolve_view_state` + `ui_headless::locale_attrs`；`motion.rs` 仅做语义到 `ui_motion::spring::SpringAnimator` 映射与 `attach_motion`，未重写通用引擎。边界回归由 `components/thumbnail/test/semantics.rs::{thumbnail_component_directory_has_standard_file_layout,thumbnail_styles_file_is_static_css_contract_only,thumbnail_view_consumes_logic_outputs_without_rebuilding_state_machine,thumbnail_motion_file_stays_in_motion_contract_scope,thumbnail_antipattern_guardrails_are_explicit_and_enforced}` 覆盖。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`thumbnail` 作为简单展示组件未引入 `components/thumbnail/src/spec.rs`，说明契约保留在 `check2.md` 与组件文档；未在 `mod.rs` 暴露 `spec` 模块。回归已锁定：`components/thumbnail/test/semantics.rs::{thumbnail_keeps_spec_out_and_docs_in_check2,thumbnail_engineering_contract_stays_spec_free_and_runtime_agnostic,thumbnail_ai_spec_playground_linkage_is_not_applicable_because_component_has_no_spec_surface}`。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`components/thumbnail/src/styles.rs` 为静态 `CSS` 常量并使用 `var(--ui-*)`（如 `--ui-radius-sm/--ui-accent/--ui-fg`）；`crates/ui/src/css.rs` 通过 `out.push_str(crate::thumbnail::styles::CSS)` 聚合，`crates/ui/src/root.rs` 通过 `crate::css::push_components_css(&mut out)` 统一注入。运行时仅传 `--ui-thumbnail-background` 变量（`logic.rs::compose_inline_style` + `view.rs::style=inline_style`），无业务样式分支。回归由 `components/thumbnail/test/semantics.rs::thumbnail_token_first_styles_are_static_and_aggregated_via_ui_root` 与 `thumbnail_runtime_style_only_sets_css_custom_property` 锁定，并明确禁止 `@apply/styled(/css!/tailwind/tw-` 等 Utility/CSS-in-Rust 污染。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。

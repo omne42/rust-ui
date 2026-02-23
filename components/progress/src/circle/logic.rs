@@ -1,250 +1,176 @@
-use std::f64::consts::PI;
+use leptos::prelude::{Callback, Signal};
 
-pub const DEFAULT_ARIA_LABEL: &str = "Progress";
-pub const DEFAULT_SIZE_PX: f64 = 24.0;
-pub const DEFAULT_STROKE_WIDTH_PX: f64 = 3.0;
+pub use ui_state_primitives::progress_circle::{
+    ProgressCircleMetrics, ProgressCircleMetricsInput, ProgressCircleMode, ProgressCirclePhase,
+    ProgressCircleRange, ProgressCircleStateInput, ProgressCircleValueAxisInput,
+    ProgressCircleValueAxisState, clamp_to_range, compose_class_name, normalize_optional_text,
+    normalize_progress, resolve_aria_label, resolve_metrics, resolve_phase, resolve_state,
+    resolve_value_axis, resolve_value_label,
+};
+
+pub const DEFAULT_MIN: f64 = 0.0;
+pub const DEFAULT_MAX: f64 = 100.0;
+
+#[derive(Clone)]
+pub struct ProgressCircleSvgTemplate {
+    pub size_attr: String,
+    pub view_box_attr: String,
+    pub center_attr: String,
+    pub radius_attr: String,
+    pub stroke_width_attr: String,
+    pub circumference_attr: String,
+}
+
+pub fn build_progress_circle_svg_template(
+    size_px: f64,
+    radius_px: f64,
+    stroke_width_px: f64,
+    circumference: f64,
+) -> ProgressCircleSvgTemplate {
+    let size_attr = size_px.to_string();
+    ProgressCircleSvgTemplate {
+        view_box_attr: format!("0 0 {} {}", size_px, size_px),
+        center_attr: (size_px / 2.0).to_string(),
+        radius_attr: radius_px.to_string(),
+        stroke_width_attr: stroke_width_px.to_string(),
+        circumference_attr: circumference.to_string(),
+        size_attr,
+    }
+}
+
+#[derive(Clone)]
+pub struct ProgressCircleValueAxis {
+    pub value: Option<Signal<Option<f64>>>,
+    pub default_value: Option<f64>,
+    pub on_value_change: Option<Callback<Option<f64>>>,
+    pub is_controlled: bool,
+    pub has_custom_default_value: bool,
+    pub has_custom_on_value_change: bool,
+    pub mode_attr: &'static str,
+    pub value_source_attr: &'static str,
+    pub default_value_source_attr: &'static str,
+    pub value_change_source_attr: &'static str,
+}
+
+pub fn normalize_value_axis(
+    value: Option<Signal<Option<f64>>>,
+    default_value: Option<f64>,
+    on_value_change: Option<Callback<Option<f64>>>,
+) -> ProgressCircleValueAxis {
+    let state: ProgressCircleValueAxisState = resolve_value_axis(ProgressCircleValueAxisInput {
+        is_controlled: value.is_some(),
+        has_default_value: default_value.is_some(),
+        has_on_value_change: on_value_change.is_some(),
+    });
+
+    ProgressCircleValueAxis {
+        value,
+        default_value,
+        on_value_change,
+        is_controlled: state.is_controlled,
+        has_custom_default_value: state.has_default_value,
+        has_custom_on_value_change: state.has_on_value_change,
+        mode_attr: state.mode_attr,
+        value_source_attr: state.value_source_attr,
+        default_value_source_attr: state.default_value_source_attr,
+        value_change_source_attr: state.value_change_source_attr,
+    }
+}
+
+pub fn normalize_mode(is_indeterminate: bool) -> ProgressCircleMode {
+    ui_state_primitives::progress_circle::normalize_mode(is_indeterminate)
+}
+
+pub fn normalize_range(min: Option<f64>, max: Option<f64>) -> ProgressCircleRange {
+    let min = min.unwrap_or(DEFAULT_MIN);
+    let max = max.unwrap_or(DEFAULT_MAX);
+    ProgressCircleRange::sanitized(min, max)
+}
+
+pub fn normalize_progress_value(progress: Option<f64>) -> f64 {
+    progress.unwrap_or(0.0)
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ProgressCircleKernelInput {
+    pub clamped_value: Option<f64>,
+    pub normalized_progress: Option<f64>,
+    pub mode: ProgressCircleMode,
+    pub value_label_override: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ProgressCircleKernelState {
+    pub mode: ProgressCircleMode,
+    pub phase: ProgressCirclePhase,
+    pub is_indeterminate: bool,
+    pub progress_value: f64,
+    pub aria_value_now: Option<f64>,
+    pub value_label_text: Option<String>,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ProgressCircleRange {
-    pub min: f64,
-    pub max: f64,
-}
-
-impl ProgressCircleRange {
-    pub fn sanitized(min: f64, max: f64) -> Self {
-        let mut min = if min.is_finite() { min } else { 0.0 };
-        let mut max = if max.is_finite() { max } else { 1.0 };
-        if max <= min {
-            (min, max) = (0.0, 1.0);
-        }
-        Self { min, max }
-    }
-
-    pub fn span(self) -> f64 {
-        (self.max - self.min).max(f64::EPSILON)
-    }
-}
-
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
-}
-
-pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        let is_custom = label != DEFAULT_ARIA_LABEL;
-        return (label, is_custom);
-    }
-
-    (DEFAULT_ARIA_LABEL.into(), false)
-}
-
-pub fn resolve_value_label(value: Option<String>) -> (Option<String>, bool) {
-    let value = normalize_optional_text(value);
-    let has_custom_value_label = value.is_some();
-    (value, has_custom_value_label)
-}
-
-pub fn sanitize_dimension(value: Option<f64>, fallback: f64) -> (f64, bool) {
-    if let Some(value) = value.filter(|value| value.is_finite() && *value > 0.0) {
-        return (value, true);
-    }
-
-    (fallback, false)
-}
-
-pub fn clamp_to_range(value: f64, range: ProgressCircleRange) -> f64 {
-    if !value.is_finite() {
-        return range.min;
-    }
-    value.clamp(range.min, range.max)
-}
-
-pub fn normalize_progress(value: f64, range: ProgressCircleRange) -> f64 {
-    ((value - range.min) / range.span()).clamp(0.0, 1.0)
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ProgressCircleMetrics {
-    pub size_px: f64,
-    pub stroke_width_px: f64,
-    pub radius_px: f64,
+pub struct ProgressCircleStrokeInput {
     pub circumference: f64,
+    pub is_indeterminate: bool,
+    pub animated_progress: f64,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ProgressCircleMetricsInput {
-    pub size_px: Option<f64>,
-    pub stroke_width_px: Option<f64>,
+#[derive(Clone, Debug, PartialEq)]
+pub struct ProgressCircleStrokeState {
+    pub dasharray: String,
+    pub dashoffset: String,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ProgressCircleResolvedMetrics {
-    pub metrics: ProgressCircleMetrics,
-    pub has_custom_size: bool,
-    pub has_custom_stroke_width: bool,
-}
+pub fn resolve_kernel_state(input: ProgressCircleKernelInput) -> ProgressCircleKernelState {
+    let is_indeterminate = input.mode.is_indeterminate() || input.normalized_progress.is_none();
+    let phase = resolve_phase(is_indeterminate);
+    let progress_value = normalize_progress_value(input.normalized_progress);
 
-pub fn resolve_metrics(input: ProgressCircleMetricsInput) -> ProgressCircleResolvedMetrics {
-    let (size_px, has_custom_size) = sanitize_dimension(input.size_px, DEFAULT_SIZE_PX);
-    let (stroke_width_px, has_custom_stroke_width) =
-        sanitize_dimension(input.stroke_width_px, DEFAULT_STROKE_WIDTH_PX);
+    let value_label_text = if is_indeterminate {
+        None
+    } else if let Some(value_label_override) = input.value_label_override {
+        Some(value_label_override)
+    } else {
+        input
+            .normalized_progress
+            .map(|progress| format!("{:.0}%", progress * 100.0))
+    };
 
-    let radius_px = (size_px - stroke_width_px).max(1.0) / 2.0;
-    let circumference = 2.0 * PI * radius_px;
-
-    ProgressCircleResolvedMetrics {
-        metrics: ProgressCircleMetrics {
-            size_px,
-            stroke_width_px,
-            radius_px,
-            circumference,
-        },
-        has_custom_size,
-        has_custom_stroke_width,
+    ProgressCircleKernelState {
+        mode: input.mode,
+        phase,
+        is_indeterminate,
+        progress_value,
+        aria_value_now: input.clamped_value,
+        value_label_text,
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ProgressCirclePhase {
-    Determinate,
-    Indeterminate,
-}
+pub fn resolve_stroke_state(input: ProgressCircleStrokeInput) -> ProgressCircleStrokeState {
+    let progress = if input.is_indeterminate {
+        0.25
+    } else {
+        input.animated_progress
+    };
 
-impl ProgressCirclePhase {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            ProgressCirclePhase::Determinate => "ui-progress-circle--state-determinate",
-            ProgressCirclePhase::Indeterminate => "ui-progress-circle--state-indeterminate",
-        }
-    }
+    let dasharray = if input.is_indeterminate {
+        (input.circumference * 0.25).to_string()
+    } else {
+        input.circumference.to_string()
+    };
+    let dashoffset = (input.circumference * (1.0 - progress)).to_string();
 
-    pub fn as_str(self) -> &'static str {
-        match self {
-            ProgressCirclePhase::Determinate => "determinate",
-            ProgressCirclePhase::Indeterminate => "indeterminate",
-        }
+    ProgressCircleStrokeState {
+        dasharray,
+        dashoffset,
     }
 }
 
-pub fn resolve_phase(is_indeterminate: bool) -> ProgressCirclePhase {
-    if is_indeterminate {
-        ProgressCirclePhase::Indeterminate
-    } else {
-        ProgressCirclePhase::Determinate
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ProgressCircleStateInput {
-    pub has_custom_aria_label: bool,
-    pub has_custom_value_label: bool,
-    pub has_custom_size: bool,
-    pub has_custom_stroke_width: bool,
-    pub has_custom_motion: bool,
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ProgressCircleState {
-    pub has_custom_aria_label: bool,
-    pub has_custom_value_label: bool,
-    pub has_custom_size: bool,
-    pub has_custom_stroke_width: bool,
-    pub has_custom_motion: bool,
-    pub has_custom_class_name: bool,
-    pub label_source_class: &'static str,
-    pub value_label_source_class: &'static str,
-    pub size_source_class: &'static str,
-    pub stroke_source_class: &'static str,
-    pub motion_source_class: &'static str,
-    pub label_source_attr: &'static str,
-    pub value_label_source_attr: &'static str,
-    pub size_source_attr: &'static str,
-    pub stroke_source_attr: &'static str,
-    pub motion_source_attr: &'static str,
-    pub class_source_attr: &'static str,
-}
-
-pub fn resolve_state(input: ProgressCircleStateInput) -> ProgressCircleState {
-    let (label_source_class, label_source_attr) = if input.has_custom_aria_label {
-        ("ui-progress-circle--label-custom", "custom")
-    } else {
-        ("ui-progress-circle--label-default", "default")
-    };
-
-    let (value_label_source_class, value_label_source_attr) = if input.has_custom_value_label {
-        ("ui-progress-circle--value-label-custom", "custom")
-    } else {
-        ("ui-progress-circle--value-label-auto", "auto")
-    };
-
-    let (size_source_class, size_source_attr) = if input.has_custom_size {
-        ("ui-progress-circle--size-custom", "custom")
-    } else {
-        ("ui-progress-circle--size-default", "default")
-    };
-
-    let (stroke_source_class, stroke_source_attr) = if input.has_custom_stroke_width {
-        ("ui-progress-circle--stroke-custom", "custom")
-    } else {
-        ("ui-progress-circle--stroke-default", "default")
-    };
-
-    let (motion_source_class, motion_source_attr) = if input.has_custom_motion {
-        ("ui-progress-circle--motion-custom", "custom")
-    } else {
-        ("ui-progress-circle--motion-default", "default")
-    };
-
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
-
-    ProgressCircleState {
-        has_custom_aria_label: input.has_custom_aria_label,
-        has_custom_value_label: input.has_custom_value_label,
-        has_custom_size: input.has_custom_size,
-        has_custom_stroke_width: input.has_custom_stroke_width,
-        has_custom_motion: input.has_custom_motion,
-        has_custom_class_name: input.has_custom_class_name,
-        label_source_class,
-        value_label_source_class,
-        size_source_class,
-        stroke_source_class,
-        motion_source_class,
-        label_source_attr,
-        value_label_source_attr,
-        size_source_attr,
-        stroke_source_attr,
-        motion_source_attr,
-        class_source_attr,
-    }
-}
-
-pub fn compose_class_name(base_class_name: Option<String>, state: ProgressCircleState) -> String {
-    let mut classes = vec![
-        "ui-progress-circle".to_string(),
-        state.label_source_class.into(),
-        state.value_label_source_class.into(),
-        state.size_source_class.into(),
-        state.stroke_source_class.into(),
-        state.motion_source_class.into(),
-    ];
-
-    if state.has_custom_class_name {
-        classes.push("ui-progress-circle--custom-class".to_string());
-        if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
-        }
-    }
-
-    classes.join(" ")
-}
+#[cfg(test)]
+pub use ui_state_primitives::progress_circle::{
+    DEFAULT_ARIA_LABEL, DEFAULT_SIZE_PX, DEFAULT_STROKE_WIDTH_PX, sanitize_dimension,
+};
 
 #[cfg(test)]
 #[path = "../../test/circle/logic.rs"]

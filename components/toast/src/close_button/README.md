@@ -17,7 +17,7 @@ docs-app `close-button` 页面提供多场景对比：
 
 - `variant`（default / over-background）
 - `size`（sm / md / lg / xl）
-- `disabled`
+- `is_disabled`
 - `aria_label`
 - `class_name`
 
@@ -26,7 +26,7 @@ docs-app `close-button` 页面提供多场景对比：
 ```rust
 <CloseButton />
 <CloseButton variant=CloseButtonVariant::OverBackground />
-<CloseButton size=CloseButtonSize::Lg disabled=true />
+<CloseButton size=CloseButtonSize::Lg is_disabled=true />
 ```
 
 ## css test

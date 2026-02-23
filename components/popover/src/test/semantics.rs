@@ -76,6 +76,8 @@ fn popover_logic_exposes_state_helpers() {
         "pub fn state_attr_for_open(is_open: bool)",
         "pub fn modal_attr(is_modal: bool)",
         "pub fn normalize_optional_text(value: Option<String>)",
+        "pub fn normalize_open_state(input: PopoverOpenStateInput) -> PopoverOpenState",
+        "popover_state::resolve_open_state(",
         "pub fn resolve_state(input: PopoverPartStateInput)",
         "pub fn compose_class_name(base_class_name: Option<String>, state: PopoverPartState)",
         "pub fn compose_panel_vars(top_px: f64, left_px: f64, anchor_width_px: f64)",
@@ -111,12 +113,14 @@ fn popover_view_uses_logic_state_contracts() {
 
     for needle in [
         "logic::normalize_optional_text(class_name)",
-        "logic::resolve_state(PopoverPartStateInput {",
+        "logic::normalize_open_state(logic::PopoverOpenStateInput {",
+        "use_controllable_open_state_traced(",
+        "logic::resolve_states(logic::PopoverStateInputs {",
         "logic::compose_class_name(class_name, root_state)",
         "logic::compose_panel_vars(",
         "data-slot=root_state.slot_attr",
         "data-state=move || logic::state_attr_for_open(open.get())",
-        "data-modal=root_state.modal_attr",
+        "data-modal=logic::modal_attr(root_state.is_modal)",
         "data-motion-source=root_state.motion_source_attr",
         "data-placement-source=root_state.placement_source_attr",
         "data-modal-source=root_state.modal_source_attr",
@@ -126,13 +130,64 @@ fn popover_view_uses_logic_state_contracts() {
         "data-non-modal=(!root_state.is_modal).then_some(\"true\")",
         "data-custom-modal=(!root_state.is_modal).then_some(\"true\")",
         "data-custom-exit=root_state.has_on_exit_complete.then_some(\"true\")",
+        "data-open-mode=move || open_state.with_value(|state| state.mode.as_attr())",
+        "data-open-state-source=move || {",
+        "data-open-source=move || open_state.with_value(|state| state.open_prop_source_attr)",
+        "data-default-open-source=move || {",
+        "data-open-change-source=move || {",
+        "data-dismiss-source=move || dismiss_source.get()",
+        "request_open_change.run(false)",
         "data-slot=panel_state.slot_attr",
         "data-state=panel_state.state_attr",
-        "data-modal=panel_state.modal_attr",
+        "data-modal=logic::modal_attr(panel_state.is_modal)",
     ] {
         assert!(
             source.contains(needle),
             "Popover view should include `{needle}` for stable marker contracts."
+        );
+    }
+}
+
+#[test]
+fn popover_view_tracks_dismiss_and_open_sources_with_closed_markers() {
+    let source = load_source("src/popover/view.rs");
+
+    for needle in [
+        "const DISMISS_SOURCE_NONE: &str = \"none\"",
+        "const DISMISS_SOURCE_OUTSIDE_PRESS: &str = \"outside-press\"",
+        "const DISMISS_SOURCE_ESCAPE_KEY: &str = \"escape-key\"",
+        "open_state.with_value(|state| state.open_state_source_attr)",
+        "dismiss_source.set(DISMISS_SOURCE_ESCAPE_KEY);",
+        "dismiss_source.set(DISMISS_SOURCE_OUTSIDE_PRESS);",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Popover view should include `{needle}` for closed-set source markers.",
+        );
+    }
+}
+
+#[test]
+fn popover_view_mounts_dialog_a11y_and_locale_attrs() {
+    let source = load_source("src/popover/view.rs");
+
+    for needle in [
+        "A11yDirection",
+        "overlay_dialog_attrs",
+        "#[prop(optional, into)] aria_labelledby: Option<String>",
+        "#[prop(optional, into)] aria_describedby: Option<String>",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "role=\"dialog\"",
+        "aria-modal=panel_state.is_modal.then_some(\"true\")",
+        "aria-labelledby=move || panel_aria_labelledby.get_value()",
+        "aria-describedby=move || panel_aria_describedby.get_value()",
+        "lang=move || panel_lang.get_value()",
+        "dir=panel_dir",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Popover view should include `{needle}` for dialog a11y and lang/dir contracts.",
         );
     }
 }

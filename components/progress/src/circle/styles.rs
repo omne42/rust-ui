@@ -3,12 +3,16 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  --ui-progress-circle-indicator-color: var(--ui-accent);
+  --ui-meter-indicator-color: var(--ui-accent, var(--ui-fallback-accent));
 }
 
 .ui-progress-circle--label-custom,
 .ui-progress-circle[data-label-source="custom"] {
-  --ui-progress-circle-indicator-color: color-mix(in oklch, var(--ui-accent), var(--ui-fg) 12%);
+  --ui-meter-indicator-color: color-mix(
+    in oklch,
+    var(--ui-accent, var(--ui-fallback-accent)),
+    var(--ui-fg, var(--ui-fallback-fg)) 12%
+  );
 }
 
 .ui-progress-circle__svg {
@@ -18,16 +22,16 @@ pub const CSS: &str = r#"
 }
 
 .ui-progress-circle__track {
-  color: var(--ui-border);
+  color: var(--ui-border, var(--ui-fallback-border));
 }
 
 .ui-progress-circle__indicator {
-  color: var(--ui-progress-circle-indicator-color);
+  color: var(--ui-meter-indicator-color, var(--ui-fallback-meter-indicator-color));
 }
 
 .ui-progress-circle--size-custom,
 .ui-progress-circle[data-size-source="custom"] {
-  border-radius: 9999px;
+  border-radius: var(--ui-radius-full, var(--ui-fallback-radius-full));
 }
 
 .ui-progress-circle--stroke-custom .ui-progress-circle__track,
@@ -37,7 +41,8 @@ pub const CSS: &str = r#"
 
 .ui-progress-circle--motion-custom,
 .ui-progress-circle[data-motion-source="custom"] {
-  transition: box-shadow 160ms ease;
+  transition: box-shadow var(--ui-meter-shadow-transition-duration, var(--ui-fallback-meter-shadow-transition-duration))
+    var(--ui-meter-shadow-transition-easing, var(--ui-fallback-meter-shadow-transition-easing));
 }
 
 .ui-progress-circle--custom-class,
@@ -47,7 +52,9 @@ pub const CSS: &str = r#"
 
 .ui-progress-circle--state-indeterminate .ui-progress-circle__svg,
 .ui-progress-circle[data-state="indeterminate"] .ui-progress-circle__svg {
-  animation: ui-progress-circle-spin 1s linear infinite;
+  animation: ui-progress-circle-spin
+    var(--ui-meter-indeterminate-duration, var(--ui-fallback-meter-indeterminate-duration))
+    var(--ui-meter-indeterminate-easing, var(--ui-fallback-meter-indeterminate-easing)) infinite;
 }
 
 .ui-progress-circle--state-determinate .ui-progress-circle__svg,

@@ -20,6 +20,7 @@ pub mod color_wheel;
 pub mod combo_box;
 pub mod command;
 pub mod controllable_state;
+pub mod date_field;
 pub mod direction;
 pub mod divider;
 pub mod error_message;
@@ -48,9 +49,11 @@ pub mod modality;
 pub mod native_select;
 pub mod number_field;
 pub mod overlay_stack;
+pub mod popover;
 pub mod popover_position;
 pub mod presence;
 pub mod press;
+pub mod pressable_feedback;
 pub mod radio;
 pub mod radio_group;
 pub mod resizable;
@@ -58,6 +61,8 @@ pub mod roving_tabindex;
 pub mod scroll_area;
 pub mod search_field;
 pub mod separator;
+pub mod sidebar;
+pub mod sidebar_menu;
 pub mod slider;
 pub mod snippet;
 pub mod spacer;
@@ -66,13 +71,16 @@ pub mod step_list;
 pub mod surface;
 pub mod swatch;
 pub mod switch;
+pub mod table;
 pub mod tabs;
 pub mod text_field;
 #[cfg(feature = "logic-calendar")]
 pub mod time_field;
+pub mod toast;
 pub mod tooltip;
 pub mod tooltip_position;
 pub mod trace;
+pub mod tray;
 pub mod tree;
 pub mod underlay;
 
@@ -80,10 +88,12 @@ pub use a11y::{
     A11yDirection, A11yLocaleAttrs, DisclosureTriggerA11yAttrs, ErrorViewA11yAttrs,
     FieldsetA11yAttrs, ImageFallbackA11yAttrs, LabeledGroupA11yAttrs, LabeledToolbarA11yAttrs,
     LiveRegionA11yAttrs, LiveRegionPriority, NavigationA11yAttrs, OverlayDialogA11yAttrs,
-    PopupTriggerA11yAttrs, RegionA11yAttrs, aria_controls_when_open, aria_expanded,
-    disclosure_trigger_attrs, error_view_attrs, fieldset_attrs, image_fallback_attrs,
-    labeled_group_attrs, labeled_toolbar_attrs, live_region_attrs, locale_attrs, navigation_attrs,
-    overlay_dialog_attrs, popup_trigger_attrs, region_attrs,
+    PopupTriggerA11yAttrs, ProgressbarA11yAttrs, ProgressbarA11yContract, ProgressbarA11yHandlers,
+    ProgressbarA11yOptions, ProgressbarA11yPhase, ProgressbarA11yState, RegionA11yAttrs,
+    aria_controls_when_open, aria_expanded, disclosure_trigger_attrs, error_view_attrs,
+    fieldset_attrs, image_fallback_attrs, labeled_group_attrs, labeled_toolbar_attrs,
+    live_region_attrs, locale_attrs, navigation_attrs, overlay_dialog_attrs, popup_trigger_attrs,
+    progressbar_attrs, region_attrs,
 };
 pub use aspect_ratio::{
     AspectRatioAttrs, AspectRatioContract, AspectRatioHandlers, AspectRatioOptions,
@@ -152,6 +162,10 @@ pub use controllable_state::{
     ControllableOpenState, ControllableState, use_controllable_open_state_traced,
     use_controllable_state,
 };
+pub use date_field::{
+    DateFieldAttrs, DateFieldContract, DateFieldHandlers, DateFieldOptions, DateFieldState,
+    use_date_field,
+};
 pub use direction::{
     DirectionAttrs, DirectionContract, DirectionHandlers, DirectionOptions, DirectionSemanticState,
     use_direction,
@@ -202,7 +216,10 @@ pub use hover_card::{
 };
 pub use i18n::{CommonStrings, UiI18n, provide_ui_i18n, use_ui_i18n};
 pub use id_provider::{UiIdProvider, provide_ui_id_provider, use_ui_id_provider};
-pub use input_otp::{InputOtpAria, InputOtpHandlers, InputOtpOptions, use_input_otp};
+pub use input_otp::{
+    InputOtpAria, InputOtpHandlers, InputOtpOptions, input_otp_focus_control, input_otp_focus_slot,
+    input_otp_slot_selection_range, input_otp_sync_caret_from_dom, use_input_otp,
+};
 pub use keyboard::{
     KeyboardAttrs, KeyboardContract, KeyboardHandlers, KeyboardOptions, KeyboardSemanticState,
     use_keyboard,
@@ -238,11 +255,16 @@ pub use number_field::{
 pub use overlay_stack::{
     OverlayRegistration, provide_overlay_stack, use_overlay_stack, use_overlay_stack_registration,
 };
+pub use popover::should_dismiss_popover_on_escape;
 pub use popover_position::{
     PopoverPlacement, PopoverPositionOptions, PopoverPositionState, use_popover_position,
 };
 pub use presence::{Presence, use_presence};
 pub use press::{OnPress, PressActivationKeys, PressHandlers, PressOptions, PressState, use_press};
+pub use pressable_feedback::{
+    PressableFeedbackA11yAttrs, PressableFeedbackA11yContract, PressableFeedbackA11yHandlers,
+    PressableFeedbackA11yOptions, PressableFeedbackA11yState, use_pressable_feedback_a11y,
+};
 pub use radio::{RadioAttrs, RadioContract, RadioOptions, RadioState, use_radio};
 pub use radio_group::{RadioGroupAria, RadioGroupHandlers, RadioGroupOptions, use_radio_group};
 pub use resizable::{
@@ -264,6 +286,18 @@ pub use search_field::{
 pub use separator::{
     SeparatorAttrs, SeparatorContract, SeparatorHandlers, SeparatorOptions, SeparatorSemanticState,
     use_separator,
+};
+pub use sidebar::{
+    SidebarKeyDownInput, SidebarRootAttrs, SidebarRootContract, SidebarRootHandlers,
+    SidebarRootOptions, SidebarRootState, SidebarToggleButtonA11yAttrs,
+    SidebarToggleButtonA11yOptions, shortcut_hint as sidebar_shortcut_hint,
+    should_toggle_for_shortcut as sidebar_should_toggle_for_shortcut,
+    sidebar_toggle_button_a11y_attrs, use_sidebar_root,
+};
+pub use sidebar_menu::{
+    SidebarMenuKeyAction, SidebarMenuKeyDownInput, SidebarMenuKeyboardAttrs,
+    SidebarMenuKeyboardContract, SidebarMenuKeyboardHandlers, SidebarMenuKeyboardOptions,
+    SidebarMenuKeyboardState, resolve_sidebar_menu_key_action, use_sidebar_menu_keyboard,
 };
 pub use slider::{
     SliderAria, SliderHandlers, SliderInputAttrs, SliderOptions, SliderState, use_slider,
@@ -290,6 +324,10 @@ pub use surface::{
 };
 pub use swatch::{SwatchAria, SwatchAttrs, SwatchHandlers, SwatchOptions, SwatchState, use_swatch};
 pub use switch::{SwitchAria, SwitchAttrs, SwitchHandlers, SwitchOptions, use_switch};
+pub use table::{
+    TableA11yAttrs, TableA11yContract, TableA11yHandlers, TableA11yOptions, TableA11yState,
+    use_table_a11y,
+};
 pub use tabs::{
     TabsInteractionKind, TabsListA11yAttrs, TabsTabA11yAttrs, resolve_tabs_selection_intent,
     tabs_list_a11y_attrs, tabs_tab_a11y_attrs,
@@ -303,6 +341,10 @@ pub use time_field::{
     TimeFieldAria, TimeFieldAttrs, TimeFieldHandlers, TimeFieldOptions, TimeFieldState,
     use_time_field,
 };
+pub use toast::{
+    ToastA11yAttrs, ToastA11yContract, ToastA11yHandlers, ToastA11yOptions, ToastA11yState,
+    should_dismiss_toast_on_escape, toast_priority_attr, use_toast_a11y,
+};
 pub use tooltip::{
     TooltipFocusA11yOptions, TooltipFocusHandlers, TooltipTriggerAria, TooltipTriggerHandlers,
     TooltipTriggerMode, TooltipTriggerOptions, TooltipTriggerState, use_tooltip_focus_a11y,
@@ -312,6 +354,10 @@ pub use tooltip_position::{
     TooltipPlacement, TooltipPositionOptions, TooltipPositionState, use_tooltip_position,
 };
 pub use trace::{UiTrace, UiTraceEvent, UiTraceEventKind, provide_ui_trace, use_ui_trace};
+pub use tray::{
+    TrayA11yAttrs, TrayA11yContract, TrayA11yHandlers, TrayA11yOptions, TrayA11yState,
+    TrayDescriptionA11yState, use_tray_a11y,
+};
 pub use tree::{
     TreeItemA11yInput, TreeItemAttrs, TreeItemContract, TreeItemHandlers, TreeItemOptions,
     TreeItemState, TreeRootAttrs, tree_root_attrs, use_tree_item,

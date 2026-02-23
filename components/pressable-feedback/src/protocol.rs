@@ -11,12 +11,13 @@ pub enum PressableFeedbackComponentSchemaVersion {
     V1,
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
-pub struct PressableFeedbackComponentSpec {
+pub struct PressableFeedbackProtocol {
     #[serde(default)]
     pub schema_version: PressableFeedbackComponentSchemaVersion,
 }
+
+pub type PressableFeedbackComponentSpec = PressableFeedbackProtocol;
 
 #[cfg(test)]
 #[path = "../test/protocol.rs"]

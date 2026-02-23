@@ -1,0 +1,70 @@
+schema_version = "1"
+
+[component]
+name = "StatusLight"
+crate = "ui-status-light"
+
+[[inputs]]
+name = "children"
+ty = "leptos::children::Children"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "variant"
+ty = "Option<StatusLightVariant>"
+default = "None (normalized to StatusLightVariant::Default)"
+controlled = false
+
+[[inputs]]
+name = "role"
+ty = "Option<StatusLightRole>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-slot + data-variant + data-state + data-live + data-static + data-role + data-role-source + data-class-source + role + aria-live + lang + dir"
+scope = "status-light-root/indicator/label"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "serde"
+kind = "protocol-schema"

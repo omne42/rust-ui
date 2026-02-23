@@ -20,6 +20,38 @@ fn slot_attrs_and_classes_follow_contract() {
 }
 
 #[test]
+fn open_config_tracks_mode_default_and_source() {
+    let uncontrolled = resolve_open_config(TrayOpenConfigInput {
+        has_open: false,
+        default_open: None,
+        has_on_open_change: false,
+    });
+    assert_eq!(uncontrolled.mode, TrayOpenMode::Uncontrolled);
+    assert_eq!(uncontrolled.default_open, DEFAULT_OPEN);
+    assert!(!uncontrolled.has_default_open);
+    assert!(!uncontrolled.has_open_change_handler);
+    assert_eq!(uncontrolled.open_source_attr, "uncontrolled");
+
+    let controlled = resolve_open_config(TrayOpenConfigInput {
+        has_open: true,
+        default_open: Some(true),
+        has_on_open_change: true,
+    });
+    assert_eq!(controlled.mode, TrayOpenMode::Controlled);
+    assert!(controlled.default_open);
+    assert!(controlled.has_default_open);
+    assert!(controlled.has_open_change_handler);
+    assert_eq!(controlled.open_source_attr, "controlled");
+}
+
+#[test]
+fn open_change_request_policy_follows_control_mode() {
+    assert!(can_request_open_change(TrayOpenMode::Uncontrolled, false));
+    assert!(!can_request_open_change(TrayOpenMode::Controlled, false));
+    assert!(can_request_open_change(TrayOpenMode::Controlled, true));
+}
+
+#[test]
 fn state_attrs_follow_contract() {
     assert_eq!(state_attr(true), "with-description");
     assert_eq!(state_attr(false), "title-only");

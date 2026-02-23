@@ -639,13 +639,16 @@ fn step_list_styles_are_token_first_and_theme_consuming() {
     let styles_source = load_source("src/step_list/styles.rs");
 
     for required in [
-        "var(--ui-space-sm)",
-        "var(--ui-fg-muted)",
-        "var(--ui-fg)",
-        "var(--ui-accent)",
-        "var(--ui-success)",
-        "var(--ui-bg)",
-        "var(--ui-radius-sm)",
+        "var(--ui-space-sm, var(--ui-fallback-space-sm))",
+        "var(--ui-fg-muted, var(--ui-fallback-fg-muted))",
+        "var(--ui-fg, var(--ui-fallback-fg))",
+        "var(--ui-accent, var(--ui-fallback-accent))",
+        "var(--ui-success, var(--ui-accent, var(--ui-fallback-accent)))",
+        "var(--ui-bg, var(--ui-fallback-bg))",
+        "var(--ui-radius-sm, var(--ui-fallback-radius-sm))",
+        "var(--ui-font-size-100, var(--ui-fallback-font-size-100))",
+        "var(--ui-line-height-100, var(--ui-fallback-line-height-100))",
+        "var(--ui-component-height-100, var(--ui-fallback-component-height-100))",
     ] {
         assert!(
             styles_source.contains(required),
@@ -653,10 +656,53 @@ fn step_list_styles_are_token_first_and_theme_consuming() {
         );
     }
 
-    for forbidden in ["rgb(", "hsl(", "styled(", "tailwind", "@apply"] {
+    for forbidden in [
+        "rgb(",
+        "hsl(",
+        "styled(",
+        "tailwind",
+        "@apply",
+        "1.5rem",
+        "1.25rem",
+        "1.75rem",
+        "2rem",
+        "0.125rem",
+        "9999px",
+        "12px",
+        "14px",
+        "16px",
+        "2px",
+        "1px",
+        "#",
+    ] {
         assert!(
             !styles_source.contains(forbidden),
             "step-list styles should avoid private hardcoded token/style system `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn step_list_css_is_layered_under_ui_and_view_avoids_inline_style_leaks() {
+    let ui_css_source = load_source("../../crates/ui/src/css.rs");
+    let view_source = load_source("src/step_list/view.rs");
+
+    for required in [
+        "out.push_str(\"\\n@layer ui {\\n\");",
+        "#[cfg(feature = \"component-step_list\")]",
+        "out.push_str(crate::step_list::styles::CSS);",
+        "out.push_str(\"}\\n\");",
+    ] {
+        assert!(
+            ui_css_source.contains(required),
+            "ui css aggregator should keep step-list layered contract marker `{required}`."
+        );
+    }
+
+    for forbidden in ["style=\"", "style=move", "style={", "style:top", "style:left"] {
+        assert!(
+            !view_source.contains(forbidden),
+            "step-list view should avoid raw inline style token `{forbidden}`."
         );
     }
 }
@@ -1703,9 +1749,9 @@ fn step_list_merge_gate_items_have_contract_evidence() {
     }
 
     for required in [
-        "var(--ui-fg)",
-        "var(--ui-accent)",
-        "var(--ui-success)",
+        "var(--ui-fg, var(--ui-fallback-fg))",
+        "var(--ui-accent, var(--ui-fallback-accent))",
+        "var(--ui-success, var(--ui-accent, var(--ui-fallback-accent)))",
         ".ui-step-list[data-orientation=\"vertical\"]",
     ] {
         assert!(

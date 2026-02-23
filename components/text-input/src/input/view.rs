@@ -5,8 +5,8 @@ use crate::text_input::input::{
 use leptos::{children::ViewFn, ev, html, prelude::*};
 use ui_headless::{
     A11yDirection, ClearableTextFieldOptions, FocusWithinOptions, PressOptions, TextFieldOptions,
-    locale_attrs, use_clearable_text_field, use_focus_visible, use_focus_within, use_hover,
-    use_press, use_text_field,
+    locale_attrs, use_clearable_text_field, use_controllable_state, use_focus_visible,
+    use_focus_within, use_hover, use_press, use_text_field,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -23,15 +23,21 @@ fn focus_input(_input_ref: &NodeRef<html::Input>) {}
 #[component]
 pub fn Input(
     id: String,
-    value: ReadSignal<String>,
-    set_value: WriteSignal<String>,
+    #[prop(optional, into)] value: Option<Signal<String>>,
+    #[prop(optional, into)] default_value: Option<String>,
+    #[prop(optional)] on_value_change: Option<Callback<String>>,
+    #[prop(optional)] set_value: Option<WriteSignal<String>>,
     #[prop(optional, into)] label: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] start_content: Option<ViewFn>,
     #[prop(optional, into)] end_content: Option<ViewFn>,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_read_only: Option<bool>,
     #[prop(optional)] read_only: bool,
+    #[prop(optional, into)] is_required: Option<Signal<bool>>,
     #[prop(optional, into)] required: Signal<bool>,
+    #[prop(optional, into)] is_invalid: Option<Signal<bool>>,
     #[prop(optional, into)] invalid: Signal<bool>,
     #[prop(optional, into)] aria_describedby: Signal<Option<String>>,
     #[prop(optional, into)] description: Option<String>,
@@ -40,6 +46,7 @@ pub fn Input(
     #[prop(optional, into)] clear_aria_label: Option<String>,
     #[prop(optional)] input_type: Option<&'static str>,
     #[prop(optional)] is_clearable: bool,
+    #[prop(optional)] is_label_hidden: Option<bool>,
     #[prop(optional)] label_hidden: bool,
     #[prop(optional)] label_placement: InputLabelPlacement,
     #[prop(optional)] size: InputSize,
@@ -50,9 +57,33 @@ pub fn Input(
     #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] node_ref: NodeRef<html::Input>,
 ) -> impl IntoView {
-    let focus_within = use_focus_within(FocusWithinOptions {
-        is_disabled: disabled,
+    let on_value_change = on_value_change
+        .or_else(|| set_value.map(|setter| Callback::new(move |next: String| setter.set(next))));
+    let controlled_default_value = logic::normalize_default_value(default_value);
+    let value_state =
+        use_controllable_state(value, Some(controlled_default_value), on_value_change);
+    let value = value_state.value;
+    let request_value_change = value_state.request_change;
+
+    let accessibility = logic::normalize_accessibility_state(logic::AccessibilityStateInput {
+        is_disabled,
+        disabled,
+        is_read_only,
+        read_only,
+        is_required,
+        required,
+        is_invalid,
+        invalid,
+        is_label_hidden,
+        label_hidden,
     });
+    let is_disabled = accessibility.is_disabled;
+    let is_read_only = accessibility.is_read_only;
+    let is_required = accessibility.is_required;
+    let is_invalid = accessibility.is_invalid;
+    let is_label_hidden = accessibility.is_label_hidden;
+
+    let focus_within = use_focus_within(FocusWithinOptions { is_disabled });
 
     let global_focus_visible = use_focus_visible()
         .map(|state| state.is_focus_visible())
@@ -64,9 +95,9 @@ pub fn Input(
     let is_empty = Memo::new(move |_| value.get().trim().is_empty());
     let is_focused = Memo::new(move |_| focus_within.is_focus_within.get());
     let logic_state = Memo::new(move |_| logic::InputLogicState {
-        is_disabled: disabled,
-        is_read_only: read_only,
-        is_invalid: invalid.get(),
+        is_disabled,
+        is_read_only,
+        is_invalid: is_invalid.get(),
         is_empty: is_empty.get(),
         is_focused: is_focused.get(),
     });
@@ -97,8 +128,8 @@ pub fn Input(
         has_description: description.get_value().is_some(),
         has_error: error.get_value().is_some(),
         aria_describedby,
-        is_invalid: invalid,
-        is_required: required,
+        is_invalid,
+        is_required,
     });
 
     let base_class = format!(
@@ -119,35 +150,38 @@ pub fn Input(
     };
     let custom_motion = (motion != InputMotion::default()).then_some("true");
 
-    let input_type = input_type.unwrap_or("text");
+    let input_type_state = logic::normalize_input_type(input_type);
+    let input_type = input_type_state.input_type;
     let clear_button_ref: NodeRef<html::Button> = NodeRef::new();
     let locale = locale_attrs(lang, dir);
 
     let clear_press = use_press(PressOptions {
-        is_disabled: disabled || read_only,
+        is_disabled: is_disabled || is_read_only,
         prevent_default_for_keyboard: true,
         ..Default::default()
     });
     let clear_hover = use_hover(ui_headless::HoverOptions {
-        is_disabled: disabled || read_only,
+        is_disabled: is_disabled || is_read_only,
     });
     motion::attach_clear_button_motion(
         clear_button_ref,
         Signal::derive(move || view_state.get().show_clear),
         clear_hover.is_hovered,
         clear_press.is_pressed,
-        disabled || read_only,
+        is_disabled || is_read_only,
         motion,
     );
 
     let clearable = use_clearable_text_field(ClearableTextFieldOptions {
-        is_disabled: disabled,
-        is_read_only: read_only,
+        is_disabled,
+        is_read_only,
         is_clearable,
         is_empty: Signal::derive(move || is_empty.get()),
-        on_clear: Some(Callback::new(move |_| set_value.set(String::new()))),
+        on_clear: Some(Callback::new(move |_| {
+            request_value_change.run(String::new())
+        })),
     });
-    let on_clear = Callback::new(move |_: ()| set_value.set(String::new()));
+    let on_clear = Callback::new(move |_: ()| request_value_change.run(String::new()));
     let clear_pointer_down_handler = clear_press.handlers.on_pointer_down;
     let clear_pointer_up_handler = clear_press.handlers.on_pointer_up;
     let clear_pointer_cancel_handler = clear_press.handlers.on_pointer_cancel;
@@ -170,24 +204,25 @@ pub fn Input(
             lang=locale.lang.clone()
             dir=locale.dir
             class:ui-input--focus-visible=move || is_focus_visible.get()
-            class:ui-input--invalid=move || invalid.get()
-            class:ui-input--disabled=disabled
+            class:ui-input--invalid=move || is_invalid.get()
+            class:ui-input--disabled=is_disabled
             data-slot="input"
             data-focused=move || is_focused.get().then_some("true")
             data-focus-visible=move || is_focus_visible.get().then_some("true")
-            data-invalid=move || invalid.get().then_some("true")
-            data-disabled=disabled.then_some("true")
-            data-read-only=read_only.then_some("true")
-            data-required=move || required.get().then_some("true")
+            data-invalid=move || is_invalid.get().then_some("true")
+            data-disabled=is_disabled.then_some("true")
+            data-read-only=is_read_only.then_some("true")
+            data-required=move || is_required.get().then_some("true")
             data-filled=move || view_state.get().is_filled.then_some("true")
             data-filled-within=move || view_state.get().is_filled_within.then_some("true")
+            data-type-source=input_type_state.type_source_attr
             data-motion-source=motion_source
             data-custom-motion=custom_motion
         >
             <Show when=move || view_state.get().show_label>
                 <label
                     class="ui-input__label"
-                    class:ui-input__label--hidden=label_hidden
+                    class:ui-input__label--hidden=is_label_hidden
                     for=aria.label.for_attr.clone()
                     data-slot="input-label"
                 >
@@ -216,18 +251,18 @@ pub fn Input(
                     data-slot="input-input"
                     node_ref=node_ref
                     id=aria.input.id.clone()
-                    type=input_type
+                    type=input_type.as_html_attr()
                     placeholder=placeholder
                     prop:value=move || value.get()
-                    disabled=disabled
-                    readonly=read_only
-                    required=move || required.get()
+                    disabled=is_disabled
+                    readonly=is_read_only
+                    required=move || is_required.get()
                     aria-label=move || aria_label.get_value()
                     aria-describedby=move || aria.input.aria_describedby.get()
                     aria-invalid=move || aria.input.aria_invalid.get()
                     aria-required=move || aria.input.aria_required.get()
                     aria-keyshortcuts=move || clearable.attrs.aria_keyshortcuts.get()
-                    on:input=move |ev| set_value.set(event_target_value(&ev))
+                    on:input=move |ev| request_value_change.run(event_target_value(&ev))
                     on:keydown=move |ev: ev::KeyboardEvent| {
                         if clearable.handlers.on_key_down.run(ev.key()) {
                             ev.stop_propagation();
@@ -244,7 +279,9 @@ pub fn Input(
                     on_press=on_clear
                     is_visible=Signal::derive(move || view_state.get().show_clear)
                     is_disabled_signal=
-                        Signal::derive(move || disabled || read_only || !view_state.get().show_clear)
+                        Signal::derive(move || {
+                            is_disabled || is_read_only || !view_state.get().show_clear
+                        })
                     aria_hidden_when_invisible=true
                     focus_mode=ClearButtonFocusMode::ExcludeTab
                     on_pointer_down=on_clear_pointer_down
@@ -292,7 +329,7 @@ pub fn Input(
                 let error_id = StoredValue::new(error_id);
                 let error = StoredValue::new(error);
                 view! {
-                    <Show when=move || invalid.get()>
+                    <Show when=move || is_invalid.get()>
                         <div class="ui-input__error" id=move || error_id.get_value() data-slot="input-error">
                             {move || error.get_value()}
                         </div>

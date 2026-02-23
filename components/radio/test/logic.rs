@@ -37,6 +37,7 @@ fn normalize_checked_axis_prefers_is_checked_alias() {
         on_checked_change: Some(Callback::new(|_: bool| {})),
         on_change: Some(Callback::new(|_: bool| {})),
     });
+    assert_eq!(from_new.control_mode, RadioCheckedControlMode::Controlled);
     assert!(from_new.is_controlled);
     assert_eq!(from_new.control_mode_attr, "controlled");
     assert_eq!(from_new.checked_source_attr, "is_checked");
@@ -50,6 +51,10 @@ fn normalize_checked_axis_prefers_is_checked_alias() {
         on_checked_change: None,
         on_change: Some(Callback::new(|_: bool| {})),
     });
+    assert_eq!(
+        uncontrolled.control_mode,
+        RadioCheckedControlMode::Uncontrolled
+    );
     assert!(!uncontrolled.is_controlled);
     assert_eq!(uncontrolled.control_mode_attr, "uncontrolled");
     assert_eq!(uncontrolled.checked_source_attr, "default");

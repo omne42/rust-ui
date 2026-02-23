@@ -42,7 +42,7 @@
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
 - [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
-  - `RippleMotion::default()` 与 `easing()` 统一来自 `ui_theme::default_text_field_motion_tokens()`；`styles.rs` 默认动效变量改为 `var(--ui-text-field-motion-duration, 180ms)`，组件不再散落硬编码时长/曲线常量。
+  - `RippleMotion::default()` 与 `easing()` 统一来自 `ui_theme::default_text_field_motion_tokens()`；`styles.rs` 动效变量使用 `var(--ui-text-field-motion-duration, var(--ui-fallback-text-field-motion-duration))`，组件不再散落硬编码时长/曲线常量。
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。

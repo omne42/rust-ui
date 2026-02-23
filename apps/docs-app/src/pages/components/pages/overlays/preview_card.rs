@@ -2,9 +2,7 @@ use super::*;
 
 pub(crate) fn preview_card() -> AnyView {
     let hello_code = Signal::derive(move || {
-        r##"<PreviewCard
-  trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Open preview"</Button> }
-/>"##
+        r##"<PreviewCard trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Open preview"</Button> } />"##
             .to_string()
     });
 
@@ -18,7 +16,7 @@ pub(crate) fn preview_card() -> AnyView {
 
     let workbench_code = Signal::derive(move || {
         format!(
-            "<PreviewCard\n  trigger=move || view! {{ <Button variant=ButtonVariant::Secondary>\"Workbench trigger\"</Button> }}\n  title=Some(\"Workbench title\".to_string())\n  description=Some(\"Workbench description\".to_string())\n  url=Some(\"https://ui-baseline.adobe.com\".to_string())\n  site_label=Some(\"ui-baseline.adobe.com\".to_string())\n  image_src=Some(\"https://ui-baseline.adobe.com/static/logo.png\".to_string())\n  disabled={}\n  placement={}\n  open_delay_ms={}\n  close_delay_ms={}\n  motion={}\n  class_name={}\n  id={}\n/>",
+            "<PreviewCard\n  trigger=move || view! {{ <Button variant=ButtonVariant::Secondary>\"Workbench trigger\"</Button> }}\n  title=Some(\"Workbench title\".to_string())\n  description=Some(\"Workbench description\".to_string())\n  url=Some(\"https://ui-baseline.adobe.com\".to_string())\n  site_label=Some(\"ui-baseline.adobe.com\".to_string())\n  image_src=Some(\"https://ui-baseline.adobe.com/static/logo.png\".to_string())\n  is_disabled={}\n  placement={}\n  open_delay_ms={}\n  close_delay_ms={}\n  motion={}\n  class_name={}\n  id={}\n/>",
             workbench_disabled.get(),
             if workbench_top_end.get() {
                 "ui_headless::PopoverPlacement::TopEnd"
@@ -47,7 +45,7 @@ pub(crate) fn preview_card() -> AnyView {
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "PreviewCardActualConfig {{\n  trigger: \"Button(ViewFn)\",\n  title: Some(\"Workbench title\"),\n  description: Some(\"Workbench description\"),\n  url: Some(\"https://ui-baseline.adobe.com\"),\n  site_label: Some(\"ui-baseline.adobe.com\"),\n  image_src: Some(\"https://ui-baseline.adobe.com/static/logo.png\"),\n  disabled: {},\n  placement: {},\n  open_delay_ms: {},\n  close_delay_ms: {},\n  motion: {},\n  class_name: {},\n  id: {},\n}}",
+            "PreviewCardActualConfig {{\n  trigger: \"Button(ViewFn)\",\n  title: Some(\"Workbench title\"),\n  description: Some(\"Workbench description\"),\n  url: Some(\"https://ui-baseline.adobe.com\"),\n  site_label: Some(\"ui-baseline.adobe.com\"),\n  image_src: Some(\"https://ui-baseline.adobe.com/static/logo.png\"),\n  is_disabled: {},\n  placement: {},\n  open_delay_ms: {},\n  close_delay_ms: {},\n  motion: {},\n  class_name: {},\n  id: {},\n}}",
             workbench_disabled.get(),
             if workbench_top_end.get() {
                 "PopoverPlacement::TopEnd"
@@ -76,7 +74,7 @@ pub(crate) fn preview_card() -> AnyView {
 
     let matrix_code = Signal::derive(move || {
         r##"<PreviewCard trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Default"</Button> } />
-<PreviewCard disabled=true placement=ui_headless::PopoverPlacement::TopEnd trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Disabled"</Button> } />
+<PreviewCard is_disabled=true placement=ui_headless::PopoverPlacement::TopEnd trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Disabled"</Button> } />
 <PreviewCard class_name="docs-preview-card-custom".to_string() trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Custom class"</Button> } />"##
             .to_string()
     });
@@ -89,11 +87,7 @@ pub(crate) fn preview_card() -> AnyView {
             description="PreviewCard playground with full API workbench and matrix comparison."
         >
             <Playground title="Hello World (Default PreviewCard)" code_signal=hello_code>
-                <PreviewCard
-                    trigger=move || {
-                        view! { <Button variant=ButtonVariant::Secondary>"Open preview"</Button> }
-                    }
-                />
+                <PreviewCard trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Open preview"</Button> } />
             </Playground>
 
             <Playground
@@ -103,7 +97,7 @@ pub(crate) fn preview_card() -> AnyView {
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
                         <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
-                            "disabled"
+                            "is_disabled"
                         </Switch>
                         <Switch checked=workbench_top_end set_checked=set_workbench_top_end>
                             "placement top-end"
@@ -157,7 +151,7 @@ pub(crate) fn preview_card() -> AnyView {
                     url="https://ui-baseline.adobe.com".to_string()
                     site_label="ui-baseline.adobe.com".to_string()
                     image_src="https://ui-baseline.adobe.com/static/logo.png".to_string()
-                    disabled=workbench_disabled.get()
+                    is_disabled=workbench_disabled.get()
                     placement=if workbench_top_end.get() {
                         ui_headless::PopoverPlacement::TopEnd
                     } else {
@@ -195,7 +189,7 @@ pub(crate) fn preview_card() -> AnyView {
                         }
                     />
                     <PreviewCard
-                        disabled=true
+                        is_disabled=true
                         placement=ui_headless::PopoverPlacement::TopEnd
                         trigger=move || {
                             view! { <Button variant=ButtonVariant::Secondary>"Disabled"</Button> }

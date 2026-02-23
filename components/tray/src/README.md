@@ -20,23 +20,38 @@
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `open` | `Signal<bool>` | required |
-| `on_close` | `OnPress` | required |
+| `is_open` | `Option<Signal<bool>>` | `None` |
+| `default_open` | `Option<bool>` | `None`（归一化为 `false`） |
+| `on_open_change` | `Option<Callback<bool>>` | `None` |
+| `on_close` | `Option<OnPress>` | `None` |
 | `id_base` | `String` | required（空白归一为 `"ui-tray"`） |
 | `title` | `String` | required（空白归一为 `"Tray"`） |
 | `children` | `ChildrenFn` | required |
 | `description` | `Option<String>` | `None` |
 | `footer` | `Option<ViewFn>` | `None` |
-| `motion` | `TrayMotion` | `TrayMotion::default()` |
-| `show_close_button` | `bool` | `true` |
-| `close_label` | `&'static str` | `"Close tray"` |
-| `is_fixed_height` | `bool` | `false` |
-| `is_dismissable` | `bool` | `true` |
-| `is_keyboard_dismiss_disabled` | `bool` | `false` |
+| `motion` | `Option<TrayMotion>` | `None`（归一化为 `TrayMotion::default()`） |
+| `is_show_close_button` | `Option<bool>` | `None`（归一化为 `true`） |
+| `close_label` | `Option<&'static str>` | `None`（归一化为 `"Close tray"`） |
+| `is_fixed_height` | `Option<bool>` | `None`（归一化为 `false`） |
+| `is_dismissable` | `Option<bool>` | `None`（归一化为 `true`） |
+| `is_keyboard_dismiss_disabled` | `Option<bool>` | `None`（归一化为 `false`） |
 | `lang` | `Option<String>` | `None` |
 | `dir` | `Option<A11yDirection>` | `None` |
 | `on_exit_complete` | `Option<Callback<()>>` | `None` |
 | `class_name` | `Option<String>` | `None` |
+
+## Naming Migration
+
+- `open` 已统一为 `is_open`（布尔状态轴统一 `is_*`）。
+- `show_close_button` 已统一为 `is_show_close_button`（布尔状态轴统一 `is_*`）。
+- 迁移方式：将所有 `<Tray open=... show_close_button=...>` 调整为 `<Tray is_open=... is_show_close_button=...>`。
+
+## Open State Contract
+
+- 默认值优先级统一在 `logic.rs::normalize_defaults` 与 `logic.rs::normalize_open_state` 归一化，`view.rs` 仅消费归一化输出。
+- 受控：`is_open + on_open_change`，外部状态为单一事实来源。
+- 非受控：仅传 `default_open` 初始化，后续由组件内部状态管理。
+- `on_close` 是可选副作用回调，不替代 `on_open_change` 状态轴。
 
 ## Hello World（最小可用）
 
@@ -44,17 +59,8 @@
 use leptos::prelude::*;
 use ui::Tray;
 
-let (open, set_open) = signal(true);
-let open_signal = Signal::derive(move || open.get());
-let on_close = Callback::new(move |_| set_open.set(false));
-
 view! {
-  <Tray
-    open=open_signal
-    on_close=on_close
-    id_base="docs-tray".to_string()
-    title="Notifications".to_string()
-  >
+  <Tray default_open=true id_base="docs-tray".to_string() title="Notifications".to_string()>
     <p>"Tray body"</p>
   </Tray>
 }
@@ -62,7 +68,7 @@ view! {
 
 ## Semantics and Accessibility
 
-- `Tray` 通过 `overlay_dialog_attrs` 生成 `aria-labelledby` / `aria-describedby` / `lang` / `dir`。
+- `Tray` 通过 `use_tray_a11y(TrayA11yOptions)` 生成 `aria-labelledby` / `aria-describedby` / `lang` / `dir`。
 - 根节点暴露完整状态和来源字段，覆盖 description/footer/close/size/dismiss/motion/exit 等轴。
 - 关闭按钮通过 `Button`（`is_icon_only=true`）暴露可访问标签（`close_label`）。
 

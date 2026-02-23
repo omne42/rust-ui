@@ -9,12 +9,18 @@ use leptos::prelude::*;
 pub fn SidebarInset(
     children: Children,
     #[prop(optional)] side: SidebarSide,
+    #[prop(optional)] is_padded: Option<bool>,
     #[prop(optional, default = true)] padded: bool,
+    #[prop(optional)] is_recessed: Option<bool>,
     #[prop(optional, default = true)] recessed: bool,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let is_padded = logic::resolve_padded(is_padded, padded);
+    let is_recessed = logic::resolve_recessed(is_recessed, recessed);
+    let is_disabled = logic::resolve_disabled(is_disabled, disabled);
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
@@ -23,9 +29,9 @@ pub fn SidebarInset(
     let state = Memo::new(move |_| {
         logic::resolve_state(SidebarInsetStateInput {
             side,
-            padded,
-            recessed,
-            disabled,
+            padded: is_padded,
+            recessed: is_recessed,
+            disabled: is_disabled,
             has_custom_aria_label,
             has_custom_class_name,
         })

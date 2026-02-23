@@ -1,8 +1,12 @@
 use leptos::prelude::*;
 
 pub use ui_state_primitives::text_area::{
-    TextAreaState, TextAreaStateInput, normalize_optional_text, resolve_label_with_fallback,
-    resolve_state,
+    TextAreaAccessibilityStateInput as PrimitiveAccessibilityStateInput, TextAreaState,
+    TextAreaStateInput, TextAreaValueAxisInput as PrimitiveValueAxisInput,
+    normalize_default_value as primitive_normalize_default_value, normalize_optional_text,
+    resolve_accessibility_state as primitive_resolve_accessibility_state,
+    resolve_label_with_fallback, resolve_state,
+    resolve_value_axis_state as primitive_resolve_value_axis_state,
 };
 
 pub struct ValueAxisInput {
@@ -23,7 +27,7 @@ pub struct ValueAxisState {
 }
 
 pub fn normalize_default_value(default_value: Option<String>) -> String {
-    default_value.unwrap_or_default()
+    primitive_normalize_default_value(default_value)
 }
 
 pub fn normalize_on_value_change_handler(
@@ -33,38 +37,24 @@ pub fn normalize_on_value_change_handler(
 }
 
 pub fn normalize_value_axis(input: ValueAxisInput) -> ValueAxisState {
-    let is_controlled = input.value.is_some();
     let has_default_value = input.default_value.is_some();
-    let has_on_value_change = input.on_value_change.is_some();
     let default_value = normalize_default_value(input.default_value);
     let on_value_change = normalize_on_value_change_handler(input.on_value_change);
-
-    let control_mode_attr = if is_controlled {
-        "controlled"
-    } else {
-        "uncontrolled"
-    };
-    let default_value_source_attr = if has_default_value {
-        "custom"
-    } else {
-        "default"
-    };
-    let value_change_source_attr = if has_on_value_change {
-        "on_value_change"
-    } else {
-        "none"
-    };
-    let has_value_change_handler = has_on_value_change;
+    let markers = primitive_resolve_value_axis_state(PrimitiveValueAxisInput {
+        is_controlled: input.value.is_some(),
+        has_default_value,
+        has_on_value_change: on_value_change.is_some(),
+    });
 
     ValueAxisState {
         value: input.value,
         default_value,
         on_value_change,
-        is_controlled,
-        control_mode_attr,
-        default_value_source_attr,
-        value_change_source_attr,
-        has_value_change_handler,
+        is_controlled: markers.is_controlled,
+        control_mode_attr: markers.control_mode_attr,
+        default_value_source_attr: markers.default_value_source_attr,
+        value_change_source_attr: markers.value_change_source_attr,
+        has_value_change_handler: markers.has_value_change_handler,
     }
 }
 
@@ -83,14 +73,18 @@ pub struct AccessibilityState {
 }
 
 pub fn normalize_accessibility_state(input: AccessibilityStateInput) -> AccessibilityState {
+    let primitive = primitive_resolve_accessibility_state(PrimitiveAccessibilityStateInput {
+        is_disabled: input.is_disabled,
+        is_read_only: input.is_read_only,
+    });
     let is_required = input
         .is_required
         .unwrap_or_else(|| Signal::derive(|| false));
     let is_invalid = input.is_invalid.unwrap_or_else(|| Signal::derive(|| false));
 
     AccessibilityState {
-        is_disabled: input.is_disabled.unwrap_or(false),
-        is_read_only: input.is_read_only.unwrap_or(false),
+        is_disabled: primitive.is_disabled,
+        is_read_only: primitive.is_read_only,
         is_required,
         is_invalid,
     }

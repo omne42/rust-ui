@@ -24,7 +24,6 @@ pub(super) fn tooltip() -> AnyView {
     let (workbench_open_change_count, set_workbench_open_change_count) = signal(0_u32);
 
     let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
-    let (workbench_disabled_alias, set_workbench_disabled_alias) = signal(false);
     let (workbench_top_placement, set_workbench_top_placement) = signal(true);
     let (workbench_focus_trigger, set_workbench_focus_trigger) = signal(false);
     let (workbench_should_close_on_press, set_workbench_should_close_on_press) = signal(true);
@@ -84,10 +83,8 @@ pub(super) fn tooltip() -> AnyView {
             "<Tooltip".to_string(),
             "  content=move || view! { \"Workbench content\" }".to_string(),
             format!("  is_disabled={}", bool_word(workbench_is_disabled.get())),
-            format!("  disabled={}", bool_word(workbench_disabled_alias.get())),
             format!("  placement={placement}"),
             "  is_open=Signal::derive(move || open_raw.get())".to_string(),
-            "  open=Signal::derive(move || open_raw.get())".to_string(),
             "  default_open=false".to_string(),
             "  on_open_change=Callback::new(move |next| set_open_raw.set(next))".to_string(),
             format!("  delay_ms={}", workbench_delay_ms.get()),
@@ -138,10 +135,8 @@ pub(super) fn tooltip() -> AnyView {
         };
 
         format!(
-            "TooltipActualConfig {{\n  content: \"Workbench content\",\n  is_disabled: Some({}),\n  disabled: {},\n  placement: {placement},\n  is_open: Some({}),\n  open: Some({}),\n  default_open: Some(false),\n  on_open_change: \"count={}\",\n  delay_ms: {},\n  close_delay_ms: {},\n  trigger: {trigger},\n  should_close_on_press: {},\n  motion: {motion},\n  class_name: {class_name:?},\n  id: {id:?},\n}}",
+            "TooltipActualConfig {{\n  content: \"Workbench content\",\n  is_disabled: Some({}),\n  placement: {placement},\n  is_open: Some({}),\n  default_open: Some(false),\n  on_open_change: \"count={}\",\n  delay_ms: {},\n  close_delay_ms: {},\n  trigger: {trigger},\n  should_close_on_press: {},\n  motion: {motion},\n  class_name: {class_name:?},\n  id: {id:?},\n}}",
             bool_word(workbench_is_disabled.get()),
-            bool_word(workbench_disabled_alias.get()),
-            bool_word(workbench_open_raw.get()),
             bool_word(workbench_open_raw.get()),
             workbench_open_change_count.get(),
             workbench_delay_ms.get(),
@@ -163,7 +158,6 @@ pub(super) fn tooltip() -> AnyView {
 </Tooltip>
 <Tooltip
   is_disabled=Some(true)
-  disabled=true
   content=move || view! { \"Disabled tooltip\" }
 >
   <Button variant=ButtonVariant::Secondary is_disabled=true>\"Disabled\"</Button>
@@ -194,9 +188,6 @@ pub(super) fn tooltip() -> AnyView {
                     <div class="docs-stack docs-stack--tight" data-slot="tooltip-workbench-controls">
                         <Switch checked=workbench_is_disabled set_checked=set_workbench_is_disabled>
                             "is_disabled"
-                        </Switch>
-                        <Switch checked=workbench_disabled_alias set_checked=set_workbench_disabled_alias>
-                            "disabled alias"
                         </Switch>
                         <Switch checked=workbench_top_placement set_checked=set_workbench_top_placement>
                             "placement top"
@@ -251,10 +242,18 @@ pub(super) fn tooltip() -> AnyView {
                             "id"
                         </Switch>
                         <div class="docs-row docs-row--tight">
-                            <Button variant=ButtonVariant::Secondary on_press=open_workbench>
+                            <Button
+                                attr:data-slot="tooltip-e2e-open"
+                                variant=ButtonVariant::Secondary
+                                on_press=open_workbench
+                            >
                                 "Open"
                             </Button>
-                            <Button variant=ButtonVariant::Secondary on_press=close_workbench>
+                            <Button
+                                attr:data-slot="tooltip-e2e-close"
+                                variant=ButtonVariant::Secondary
+                                on_press=close_workbench
+                            >
                                 "Close"
                             </Button>
                         </div>
@@ -270,14 +269,12 @@ pub(super) fn tooltip() -> AnyView {
                 <Tooltip
                     content=move || view! { "Workbench content" }
                     is_disabled=workbench_is_disabled.get()
-                    disabled=workbench_disabled_alias.get()
                     placement=if workbench_top_placement.get() {
                         ui_headless::TooltipPlacement::Top
                     } else {
                         ui_headless::TooltipPlacement::Bottom
                     }
                     is_open=workbench_open
-                    open=workbench_open
                     default_open=false
                     on_open_change=on_workbench_open_change
                     delay_ms=workbench_delay_ms.get()
@@ -300,7 +297,9 @@ pub(super) fn tooltip() -> AnyView {
                         String::new()
                     }
                 >
-                    <Button variant=ButtonVariant::Secondary>"Workbench trigger"</Button>
+                    <Button attr:data-slot="tooltip-e2e-trigger" variant=ButtonVariant::Secondary>
+                        "Workbench trigger"
+                    </Button>
                 </Tooltip>
             </Playground>
 
@@ -318,7 +317,6 @@ pub(super) fn tooltip() -> AnyView {
                     </Tooltip>
                     <Tooltip
                         is_disabled=true
-                        disabled=true
                         content=move || view! { "Disabled tooltip" }
                     >
                         <Button variant=ButtonVariant::Secondary is_disabled=true>

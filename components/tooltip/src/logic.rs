@@ -1,6 +1,7 @@
 use crate::{TooltipPartState, TooltipPartStateInput, TooltipSlot};
 use leptos::prelude::*;
 use ui_headless::TooltipTriggerMode;
+use ui_headless::a11y::A11yDirection;
 use ui_state_primitives::tooltip as tooltip_state;
 
 pub const DEFAULT_DELAY_MS: u64 = tooltip_state::DEFAULT_DELAY_MS;
@@ -9,7 +10,6 @@ pub const DEFAULT_SHOULD_CLOSE_ON_PRESS: bool = tooltip_state::DEFAULT_SHOULD_CL
 
 pub struct AccessibilityStateInput {
     pub is_disabled: Option<bool>,
-    pub disabled: bool,
 }
 
 pub struct AccessibilityState {
@@ -18,13 +18,12 @@ pub struct AccessibilityState {
 
 pub fn normalize_accessibility_state(input: AccessibilityStateInput) -> AccessibilityState {
     AccessibilityState {
-        is_disabled: input.is_disabled.unwrap_or(input.disabled),
+        is_disabled: input.is_disabled.unwrap_or(false),
     }
 }
 
 pub struct OpenStateInput {
     pub is_open: Option<Signal<bool>>,
-    pub open: Option<Signal<bool>>,
     pub default_open: Option<bool>,
     pub on_open_change: Option<Callback<bool>>,
 }
@@ -44,7 +43,7 @@ pub struct OpenState {
 }
 
 pub fn normalize_open_state(input: OpenStateInput) -> OpenState {
-    let open = input.is_open.or(input.open);
+    let open = input.is_open;
     let has_custom_open = open.is_some();
     let has_custom_default_open = input.default_open.is_some();
     let has_custom_on_open_change = input.on_open_change.is_some();
@@ -96,6 +95,20 @@ pub fn press_behavior_attr(should_close_on_press: bool) -> &'static str {
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     tooltip_state::normalize_optional_text(value)
+}
+
+pub fn normalize_a11y_direction(value: Option<String>) -> Option<A11yDirection> {
+    normalize_optional_text(value).and_then(|value| {
+        if value.eq_ignore_ascii_case("ltr") {
+            return Some(A11yDirection::Ltr);
+        }
+
+        if value.eq_ignore_ascii_case("rtl") {
+            return Some(A11yDirection::Rtl);
+        }
+
+        None
+    })
 }
 
 pub fn resolve_id(custom_id: Option<String>, fallback_id: String) -> (String, bool) {

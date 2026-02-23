@@ -21,6 +21,14 @@ pub fn normalize_label(value: Option<String>) -> String {
     normalize_optional_text(value).unwrap_or_else(|| DEFAULT_LABEL.into())
 }
 
+pub fn resolve_hover_only(is_hover_only: Option<bool>, hover_only: bool) -> bool {
+    is_hover_only.unwrap_or(hover_only)
+}
+
+pub fn resolve_disabled(is_disabled: Option<bool>, disabled: bool) -> bool {
+    is_disabled.unwrap_or(disabled)
+}
+
 pub fn resolve_state(input: SidebarMenuActionStateInput) -> SidebarMenuActionState {
     SidebarMenuActionState {
         hover_only: input.hover_only,

@@ -538,9 +538,9 @@ component-popover = ["dep:ui-popover"]
 component-pressable_feedback = ["component-ripple", "dep:ui-pressable-feedback"]
 component-preview_card = ["dep:ui-preview-card"]
 component-preview_link_card = []
-component-progress = ["dep:ui-progress"]
-component-progress_bar = ["dep:ui-progress"]
-component-progress_circle = ["dep:ui-progress"]
+component-progress = ["dep:ui-progress", "ui-progress/progress"]
+component-progress_bar = ["dep:ui-progress", "ui-progress/progress_bar"]
+component-progress_circle = ["dep:ui-progress", "ui-progress/progress_circle"]
 component-radio = ["dep:ui-radio"]
 component-ripple = ["dep:ui-ripple"]
 component-search_field = ["component-clear_button"]
@@ -676,7 +676,7 @@ ui-snippet = { path = "../../components/snippet", optional = true }
 ui-tag = { path = "../../components/tag", optional = true }
 ui-text = { path = "../../components/text", optional = true }
 ui-table = { path = "../../components/table", optional = true }
-ui-progress = { path = "../../components/progress", optional = true }
+ui-progress = { path = "../../components/progress", optional = true, default-features = false }
 ui-tray = { path = "../../components/tray", optional = true }
 ui-tooltip = { path = "../../components/tooltip", optional = true }
 ui-toast = { path = "../../components/toast", optional = true }

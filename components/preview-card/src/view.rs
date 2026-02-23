@@ -1,8 +1,12 @@
-use crate::{PreviewCardMotion, PreviewCardPartStateInput, PreviewCardSlot, logic, motion};
-use leptos::{children::ViewFn, ev, html, portal::Portal, prelude::*};
+use crate::{PreviewCardMotion, logic, motion};
+use leptos::{children::ViewFn, html, portal::Portal, prelude::*};
+use ui_headless::a11y::{
+    A11yDirection, TooltipPanelA11yOptions, locale_attrs, tooltip_panel_attrs,
+};
 use ui_headless::{
-    HoverCardTriggerOptions, PopoverPlacement, PopoverPositionOptions, use_hover_card_trigger,
-    use_popover_position,
+    HoverCardDismissOptions, HoverCardFocusA11yOptions, HoverCardTriggerOptions, PopoverPlacement,
+    PopoverPositionOptions, use_hover_card_dismiss, use_hover_card_focus_a11y,
+    use_hover_card_trigger, use_popover_position,
 };
 
 fn next_id() -> u64 {
@@ -25,17 +29,23 @@ pub fn PreviewCard(
     #[prop(optional, into)] url: Option<String>,
     #[prop(optional, into)] site_label: Option<String>,
     #[prop(optional, into)] image_src: Option<String>,
-    #[prop(optional)] disabled: bool,
-    #[prop(optional)] placement: PopoverPlacement,
-    #[prop(optional, default = logic::DEFAULT_OPEN_DELAY_MS)] open_delay_ms: u64,
-    #[prop(optional, default = logic::DEFAULT_CLOSE_DELAY_MS)] close_delay_ms: u64,
-    #[prop(optional)] motion: PreviewCardMotion,
+    #[prop(optional, into)] is_disabled: Option<bool>,
+    #[prop(optional, into)] placement: Option<PopoverPlacement>,
+    #[prop(optional, into)] open_delay_ms: Option<u64>,
+    #[prop(optional, into)] close_delay_ms: Option<u64>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
+    #[prop(optional, into)] motion: Option<PreviewCardMotion>,
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, into)] id: Option<String>,
 ) -> impl IntoView {
-    let class_name = logic::normalize_optional_text(class_name);
-    let has_custom_motion = motion != PreviewCardMotion::default();
-    let has_custom_delays = logic::has_custom_delays(open_delay_ms, close_delay_ms);
+    let runtime = logic::resolve_runtime_options(logic::PreviewCardRuntimeOptionsInput {
+        is_disabled,
+        placement,
+        open_delay_ms,
+        close_delay_ms,
+        motion,
+    });
 
     let (id, has_custom_id) = logic::resolve_id(id, format!("ui-preview-card-{}", next_id()));
     let id = StoredValue::new(id);
@@ -47,68 +57,54 @@ pub fn PreviewCard(
     let (url, has_custom_url) = logic::resolve_url(url);
     let url = StoredValue::new(url);
 
-    let (site_label, site_label_source_attr) =
-        logic::resolve_site_label(site_label, &url.get_value());
+    let (site_label, site_label_source) = logic::resolve_site_label(site_label, &url.get_value());
     let site_label = StoredValue::new(site_label);
 
     let image_src = logic::resolve_image_src(image_src);
     let has_image = image_src.is_some();
     let image_src = StoredValue::new(image_src);
 
+    let state_model = logic::resolve_state_model(logic::PreviewCardStateModelInput {
+        class_name,
+        is_disabled: runtime.is_disabled,
+        has_image,
+        has_custom_delays: runtime.has_custom_delays,
+        has_custom_id,
+        has_custom_title,
+        has_custom_description,
+        has_custom_url,
+        site_label_source,
+        has_custom_motion: runtime.has_custom_motion,
+    });
+    let root_state = state_model.root_state;
+    let trigger_state = state_model.trigger_state;
+    let panel_state = state_model.panel_state;
+    let root_class = state_model.root_class;
+    let trigger_class = state_model.trigger_class;
+    let panel_class = StoredValue::new(state_model.panel_class);
+
     let trigger_aria = use_hover_card_trigger(HoverCardTriggerOptions {
-        is_disabled: disabled,
-        open_delay_ms,
-        close_delay_ms,
+        is_disabled: runtime.is_disabled,
+        open_delay_ms: runtime.open_delay_ms,
+        close_delay_ms: runtime.close_delay_ms,
         ..Default::default()
     });
     let open_signal = trigger_aria.state.is_open;
     let presence = ui_headless::use_presence(open_signal);
-
-    let root_state = logic::resolve_part_state(PreviewCardPartStateInput {
-        slot: PreviewCardSlot::Root,
-        disabled,
-        has_image,
-        has_custom_class_name: class_name.is_some(),
-        has_custom_delays,
-        has_custom_id,
-        has_custom_title,
-        has_custom_description,
-        has_custom_url,
-        site_label_source_attr,
-        has_custom_motion,
+    let dismiss_a11y = use_hover_card_dismiss(HoverCardDismissOptions {
+        is_open: open_signal,
+        dismiss: trigger_aria.state.dismiss,
     });
-    let root_class = logic::compose_class_name(class_name, root_state);
-
-    let trigger_state = logic::resolve_part_state(PreviewCardPartStateInput {
-        slot: PreviewCardSlot::Trigger,
-        disabled,
-        has_image,
-        has_custom_class_name: false,
-        has_custom_delays,
-        has_custom_id,
-        has_custom_title,
-        has_custom_description,
-        has_custom_url,
-        site_label_source_attr,
-        has_custom_motion,
+    let focus_a11y = use_hover_card_focus_a11y(HoverCardFocusA11yOptions {
+        hover_card_id: id,
+        is_open: open_signal,
+        on_focus_in: trigger_aria.handlers.on_trigger_focus_in,
+        on_focus_out: trigger_aria.handlers.on_trigger_focus_out,
     });
-    let trigger_class = logic::compose_class_name(None, trigger_state);
-
-    let panel_state = logic::resolve_part_state(PreviewCardPartStateInput {
-        slot: PreviewCardSlot::Panel,
-        disabled,
-        has_image,
-        has_custom_class_name: false,
-        has_custom_delays,
-        has_custom_id,
-        has_custom_title,
-        has_custom_description,
-        has_custom_url,
-        site_label_source_attr,
-        has_custom_motion,
-    });
-    let panel_class = logic::compose_class_name(None, panel_state);
-    let panel_class = StoredValue::new(panel_class);
+    let trigger_on_key_down = dismiss_a11y.handlers.on_key_down;
+    let panel_on_key_down = trigger_on_key_down;
+    let trigger_on_focus_in = focus_a11y.handlers.on_focus_in;
+    let trigger_on_focus_out = focus_a11y.handlers.on_focus_out;
 
     let anchor_ref: NodeRef<html::Span> = NodeRef::new();
     let panel_ref: NodeRef<html::Div> = NodeRef::new();
@@ -116,7 +112,7 @@ pub fn PreviewCard(
     let position = use_popover_position(PopoverPositionOptions {
         anchor_ref,
         panel_ref,
-        placement,
+        placement: runtime.placement,
         ..Default::default()
     });
 
@@ -125,92 +121,10 @@ pub fn PreviewCard(
         open_signal,
         position.placement.into(),
         presence.finish_exit,
-        motion,
+        runtime.motion,
     );
 
     let trigger = StoredValue::new(trigger);
-
-    let on_key_down = move |ev: ev::KeyboardEvent| {
-        #[cfg(target_arch = "wasm32")]
-        let is_composing = ev.is_composing();
-        #[cfg(not(target_arch = "wasm32"))]
-        let is_composing = false;
-
-        if !logic::should_handle_escape(&ev.key(), open_signal.get_untracked(), is_composing) {
-            return;
-        }
-
-        ev.stop_propagation();
-        ev.prevent_default();
-        trigger_aria.state.dismiss.run(());
-    };
-
-    #[cfg(target_arch = "wasm32")]
-    let focus_target = StoredValue::new_local(None::<leptos::web_sys::Element>);
-
-    #[cfg(target_arch = "wasm32")]
-    on_cleanup(move || {
-        if let Some(target) = focus_target.get_value() {
-            drop(target.remove_attribute("aria-describedby"));
-        }
-    });
-
-    #[cfg(target_arch = "wasm32")]
-    Effect::new(move |_| {
-        let is_open = open_signal.get();
-        let Some(target) = focus_target.get_value() else {
-            return;
-        };
-
-        let id = id.with_value(|id| id.clone());
-        if is_open {
-            drop(target.set_attribute("aria-describedby", &id));
-        } else {
-            drop(target.remove_attribute("aria-describedby"));
-        }
-    });
-
-    let on_focus_in = move |_ev: ev::FocusEvent| {
-        trigger_aria.handlers.on_trigger_focus_in.run(());
-
-        #[cfg(target_arch = "wasm32")]
-        {
-            use leptos::wasm_bindgen::JsCast;
-
-            if let Some(target) = focus_target.get_value() {
-                drop(target.remove_attribute("aria-describedby"));
-            }
-
-            let Some(target) = _ev.target() else {
-                focus_target.set_value(None);
-                return;
-            };
-
-            let Ok(target) = target.dyn_into::<leptos::web_sys::Element>() else {
-                focus_target.set_value(None);
-                return;
-            };
-
-            if open_signal.get_untracked() {
-                let id = id.with_value(|id| id.clone());
-                drop(target.set_attribute("aria-describedby", &id));
-            }
-
-            focus_target.set_value(Some(target));
-        }
-    };
-
-    let on_focus_out = move |_ev: ev::FocusEvent| {
-        trigger_aria.handlers.on_trigger_focus_out.run(());
-
-        #[cfg(target_arch = "wasm32")]
-        {
-            if let Some(target) = focus_target.get_value() {
-                drop(target.remove_attribute("aria-describedby"));
-            }
-            focus_target.set_value(None);
-        }
-    };
 
     let panel_vars = move || {
         logic::compose_panel_vars(
@@ -219,10 +133,24 @@ pub fn PreviewCard(
             position.anchor_width_px.get(),
         )
     };
+    let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
+    let root_lang = locale.lang.clone();
+    let root_dir = locale.dir;
+    let panel_lang = locale.lang.clone();
+    let panel_a11y = Memo::new(move |_| {
+        tooltip_panel_attrs(TooltipPanelA11yOptions {
+            tooltip_id: id.with_value(|id| id.clone()),
+            is_open: open_signal.get(),
+            lang: panel_lang.clone(),
+            dir,
+        })
+    });
 
     view! {
         <span
             class=root_class
+            lang=root_lang.clone()
+            dir=root_dir
             data-slot=root_state.slot_attr
             data-state=move || logic::state_attr_for_open(open_signal.get())
             data-open=move || open_signal.get().then_some("true")
@@ -237,7 +165,7 @@ pub fn PreviewCard(
             data-title-source=root_state.title_source_attr
             data-description-source=root_state.description_source_attr
             data-url-source=root_state.url_source_attr
-            data-site-label-source=root_state.site_label_source_attr
+            data-site-label-source=root_state.site_label_source.as_attr()
             data-motion-source=root_state.motion_source_attr
             data-custom-class=root_state.has_custom_class_name.then_some("true")
             data-custom-delay=root_state.has_custom_delays.then_some("true")
@@ -259,14 +187,16 @@ pub fn PreviewCard(
                 data-title-source=trigger_state.title_source_attr
                 data-description-source=trigger_state.description_source_attr
                 data-url-source=trigger_state.url_source_attr
-                data-site-label-source=trigger_state.site_label_source_attr
+                data-site-label-source=trigger_state.site_label_source.as_attr()
                 data-motion-source=trigger_state.motion_source_attr
+                data-focus-a11y-managed=focus_a11y.attrs.manages_aria_describedby.then_some("true")
+                aria-keyshortcuts=dismiss_a11y.attrs.aria_keyshortcuts
                 node_ref=anchor_ref
                 on:pointerenter=move |_| trigger_aria.handlers.on_trigger_pointer_enter.run(())
                 on:pointerleave=move |_| trigger_aria.handlers.on_trigger_pointer_leave.run(())
-                on:focusin=on_focus_in
-                on:focusout=on_focus_out
-                on:keydown=on_key_down
+                on:focusin=move |ev| trigger_on_focus_in.run(ev)
+                on:focusout=move |ev| trigger_on_focus_out.run(ev)
+                on:keydown=move |ev| trigger_on_key_down.run(ev)
             >
                 {move || trigger.with_value(|trigger| trigger.run())}
             </span>
@@ -276,8 +206,10 @@ pub fn PreviewCard(
                     <div
                         class=move || panel_class.with_value(|class_name| class_name.clone())
                         node_ref=panel_ref
-                        id=move || id.with_value(|id| id.clone())
-                        role="tooltip"
+                        id=move || panel_a11y.get().attrs.id.clone()
+                        role=move || panel_a11y.get().attrs.role
+                        lang=move || panel_a11y.get().attrs.lang.clone()
+                        dir=move || panel_a11y.get().attrs.dir
                         data-ui-overlay-portal=""
                         data-placement=move || position.placement.get().as_str()
                         data-slot=panel_state.slot_attr
@@ -294,14 +226,15 @@ pub fn PreviewCard(
                         data-title-source=panel_state.title_source_attr
                         data-description-source=panel_state.description_source_attr
                         data-url-source=panel_state.url_source_attr
-                        data-site-label-source=panel_state.site_label_source_attr
+                        data-site-label-source=panel_state.site_label_source.as_attr()
                         data-motion-source=panel_state.motion_source_attr
+                        aria-keyshortcuts=dismiss_a11y.attrs.aria_keyshortcuts
                         style=panel_vars
                         on:pointerenter=move |_| trigger_aria.handlers.on_panel_pointer_enter.run(())
                         on:pointerleave=move |_| trigger_aria.handlers.on_panel_pointer_leave.run(())
                         on:focusin=move |_| trigger_aria.handlers.on_panel_focus_in.run(())
                         on:focusout=move |_| trigger_aria.handlers.on_panel_focus_out.run(())
-                        on:keydown=on_key_down
+                        on:keydown=move |ev| panel_on_key_down.run(ev)
                     >
                         <Show
                             when=move || image_src.with_value(|value| value.is_some())

@@ -52,22 +52,42 @@ fn progress_bar_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
+fn progress_bar_public_api_exposes_value_triplet_contract() {
+    let source = load_source("src/bar/view.rs");
+
+    for needle in [
+        "#[prop(optional)] value: Option<f64>",
+        "#[prop(optional)] default_value: Option<f64>",
+        "#[prop(optional)] on_value_change: Option<Callback<Option<f64>>>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ProgressBar public value axis should expose `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn progress_bar_uses_logic_state_model() {
     let view_source = load_source("src/bar/view.rs");
     let logic_source = load_source("src/bar/logic.rs");
 
     for needle in [
-        "pub struct ProgressBarStateInput",
-        "pub struct ProgressBarState",
-        "pub enum ProgressBarPhase",
-        "pub fn normalize_optional_text(",
-        "pub fn resolve_aria_label(",
-        "pub fn sanitize_max(",
-        "pub fn sanitize_value(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
-        "label_source_attr",
-        "class_source_attr",
+        "pub use ui_state_primitives::progress_bar::{",
+        "ProgressBarStateInput",
+        "ProgressBarState",
+        "ProgressBarPhase",
+        "ProgressBarMode",
+        "ProgressBarValueAxis",
+        "normalize_mode(",
+        "normalize_value_axis(",
+        "normalize_max(",
+        "normalize_optional_text",
+        "resolve_aria_label",
+        "sanitize_max",
+        "sanitize_value",
+        "resolve_state",
+        "compose_class_name",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -78,14 +98,44 @@ fn progress_bar_uses_logic_state_model() {
     for needle in [
         "logic::normalize_optional_text(class_name)",
         "logic::resolve_aria_label(aria_label)",
+        "let mode = logic::normalize_mode(is_indeterminate);",
+        "logic::normalize_value_axis(value, default_value, on_value_change)",
+        "logic::normalize_max(max)",
+        "indeterminate: mode.is_indeterminate(),",
         "logic::resolve_state(logic::ProgressBarStateInput {",
         "logic::compose_class_name(class_name, state)",
+        "progressbar_attrs(ProgressbarA11yOptions {",
     ] {
         assert!(
             view_source.contains(needle),
             "ProgressBar view should derive wrapper state via logic helpers; missing `{needle}`."
         );
     }
+}
+
+#[test]
+fn progress_bar_logic_consumes_state_primitives_for_value_axis_and_mode() {
+    let logic_source = load_source("src/bar/logic.rs");
+
+    for needle in [
+        "pub use ui_state_primitives::progress_bar::{",
+        "ProgressBarMode",
+        "ProgressBarValueAxisInput",
+        "ProgressBarValueAxisState",
+        "normalize_mode",
+        "resolve_value_axis",
+        "resolve_value_axis(ProgressBarValueAxisInput {",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "ProgressBar logic should consume state primitives via `{needle}`."
+        );
+    }
+
+    assert!(
+        !logic_source.contains("pub enum ProgressBarMode"),
+        "ProgressBar mode enum should live in ui-state-primitives, not component logic.",
+    );
 }
 
 #[test]
@@ -96,17 +146,33 @@ fn progress_bar_emits_baseline_style_state_data_attributes() {
         "data-slot=\"progress-bar\"",
         "data-variant=state.variant_attr",
         "data-size=state.size_attr",
-        "data-state=state.phase_attr",
-        "data-indeterminate=state.is_indeterminate.then_some(\"true\")",
-        "data-determinate=state.is_determinate.then_some(\"true\")",
+        "data-state=semantics.attrs.data_state",
+        "data-status-mode=mode.as_str()",
+        "data-indeterminate=semantics.attrs.data_indeterminate",
+        "data-determinate=semantics.attrs.data_determinate",
         "data-has-value=state.has_value.then_some(\"true\")",
         "data-label-source=state.label_source_attr",
         "data-custom-aria-label=state.has_custom_aria_label.then_some(\"true\")",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
         "data-class-source=state.class_source_attr",
-        "aria-label=aria_label",
-        "max=state.max.to_string()",
-        "value=state.value.map(|value| value.to_string())",
+        "data-value-mode=value_mode_attr",
+        "data-value-source=value_source_attr",
+        "data-default-value-source=default_value_source_attr",
+        "data-value-change-source=value_change_source_attr",
+        "data-value-controlled=is_value_controlled.then_some(\"true\")",
+        "data-value-uncontrolled=(!is_value_controlled).then_some(\"true\")",
+        "data-custom-default-value=has_custom_default_value.then_some(\"true\")",
+        "data-custom-value-change=has_custom_on_value_change.then_some(\"true\")",
+        "role=semantics.attrs.role",
+        "aria-label=semantics.attrs.aria_label",
+        "aria-valuemin=semantics.attrs.aria_valuemin",
+        "aria-valuemax=semantics.attrs.aria_valuemax",
+        "aria-valuenow=semantics.attrs.aria_valuenow",
+        "aria-valuetext=semantics.attrs.aria_valuetext",
+        "lang=semantics.attrs.lang",
+        "dir=semantics.attrs.dir",
+        "max=max_attr_value",
+        "value=value_attr_value",
     ] {
         assert!(
             source.contains(attr),
@@ -167,7 +233,7 @@ fn progress_bar_docs_playgrounds_lock_state_matrix_contract_values() {
         "<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Sm value=24.0 max=100.0 />",
         "<ProgressBar variant=ProgressBarVariant::Accent size=ProgressBarSize::Md value=72.0 max=100.0 />",
         "<ProgressBar variant=ProgressBarVariant::Danger size=ProgressBarSize::Lg value=54.0 max=100.0 />",
-        "<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Md indeterminate=true />",
+        "<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Md is_indeterminate=true />",
         "title=\"Custom Label + Class\"",
         "aria_label=\"Upload completion\".to_string()",
         "value=64.0",

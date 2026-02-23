@@ -77,7 +77,7 @@ pub(crate) fn progress() -> AnyView {
 
     let workbench_code = Signal::derive(move || {
         format!(
-            "<Progress\n  aria_label={}\n  value=Signal::derive(|| {:?})\n  min={:.1}\n  max={:.1}\n  indeterminate={}\n  value_label={}\n  motion={}\n  class_name={}\n/>",
+            "<Progress\n  aria_label={}\n  value=Signal::derive(|| {:?})\n  min={:.1}\n  max={:.1}\n  is_indeterminate={}\n  value_label={}\n  motion={}\n  class_name={}\n/>",
             rust_string_literal(&workbench_aria_label.get()),
             workbench_value.get(),
             workbench_min.get(),
@@ -95,7 +95,7 @@ pub(crate) fn progress() -> AnyView {
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "ProgressActualConfig {{\n  aria_label: {:?},\n  value: {:?},\n  min: {:.1},\n  max: {:.1},\n  indeterminate: {},\n  value_label: {:?},\n  motion: {:?},\n  class_name: {:?},\n}}",
+            "ProgressActualConfig {{\n  aria_label: {:?},\n  value: {:?},\n  min: {:.1},\n  max: {:.1},\n  is_indeterminate: {},\n  value_label: {:?},\n  motion: {:?},\n  class_name: {:?},\n}}",
             workbench_aria_label.get(),
             workbench_value.get(),
             workbench_min.get(),
@@ -126,7 +126,7 @@ pub(crate) fn progress() -> AnyView {
 <Progress
   aria_label="Indeterminate".to_string()
   value=Signal::derive(|| None)
-  indeterminate=true
+  is_indeterminate=true
 />"#
         .to_string()
     });
@@ -223,7 +223,7 @@ pub(crate) fn progress() -> AnyView {
                                 prop:checked=move || workbench_indeterminate.get()
                                 on:change=move |event| set_workbench_indeterminate.set(event_target_checked(&event))
                             />
-                            <span>"indeterminate"</span>
+                            <span>"is_indeterminate"</span>
                         </label>
                         <label class="docs-choice-row">
                             <input
@@ -266,7 +266,7 @@ pub(crate) fn progress() -> AnyView {
                         value=workbench_value
                         min=workbench_min.get()
                         max=workbench_max.get()
-                        indeterminate=workbench_indeterminate.get()
+                        is_indeterminate=workbench_indeterminate.get()
                         value_label=workbench_value_label.get()
                         motion=workbench_motion.get()
                         class_name=workbench_class_name.get()
@@ -308,7 +308,7 @@ pub(crate) fn progress() -> AnyView {
                     <Progress
                         aria_label="Indeterminate".to_string()
                         value=Signal::derive(|| None)
-                        indeterminate=true
+                        is_indeterminate=true
                     />
                 </div>
             </Playground>

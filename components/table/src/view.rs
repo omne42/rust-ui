@@ -1,8 +1,9 @@
 use crate::table::{
-    TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow, TableStateInput,
+    TableColumn, TableDensity, TableLayout, TableRow, TableStateInput,
     logic::{self, TableVariant},
 };
 use leptos::prelude::*;
+use ui_headless::{A11yDirection, TableA11yOptions, use_table_a11y};
 
 #[component]
 pub fn Table(
@@ -11,17 +12,21 @@ pub fn Table(
     #[prop(optional)] variant: TableVariant,
     #[prop(optional)] density: TableDensity,
     #[prop(optional)] layout: TableLayout,
-    #[prop(optional)] striped: bool,
-    #[prop(optional)] sticky_header: bool,
+    #[prop(optional)] is_striped: bool,
+    #[prop(optional)] is_sticky_header: bool,
     #[prop(optional, into)] caption: Option<String>,
     #[prop(optional, into)] empty_label: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
     let columns = logic::normalize_columns(columns);
     let rows = logic::normalize_rows(rows, columns.len());
-    let column_keys: Vec<String> = columns.iter().map(|column| column.key.clone()).collect();
-    let column_aligns: Vec<TableCellAlign> = columns.iter().map(|column| column.align).collect();
+    let column_cells = columns
+        .iter()
+        .map(|column| (column.key.clone(), column.align))
+        .collect::<Vec<_>>();
 
     let caption = logic::normalize_optional_text(caption);
     let has_caption = caption.is_some();
@@ -33,20 +38,26 @@ pub fn Table(
         variant,
         density,
         layout,
-        striped,
-        sticky_header,
+        striped: is_striped,
+        sticky_header: is_sticky_header,
         has_caption,
         row_count: rows.len(),
         has_custom_aria_label,
         has_custom_class_name: class_name.is_some(),
     });
+    let table_a11y = use_table_a11y(TableA11yOptions {
+        state,
+        aria_label,
+        lang,
+        dir,
+    });
+    let table_a11y_attrs = table_a11y.attrs;
 
     let class = logic::compose_class_name(class_name, state);
 
     let columns = StoredValue::new(columns);
     let rows = StoredValue::new(rows);
-    let column_keys = StoredValue::new(column_keys);
-    let column_aligns = StoredValue::new(column_aligns);
+    let column_cells = StoredValue::new(column_cells);
     let caption = StoredValue::new(caption);
     let empty_label = StoredValue::new(empty_label);
 
@@ -54,19 +65,21 @@ pub fn Table(
         <div
             class=class
             data-slot="table"
-            data-variant=state.variant_attr
-            data-density=state.density_attr
-            data-layout=state.layout_attr
-            data-state=state.data_state_attr
-            data-striped=state.is_striped.then_some("true")
-            data-sticky-header=state.has_sticky_header.then_some("true")
-            data-has-caption=state.has_caption.then_some("true")
-            data-row-count=state.row_count.to_string()
-            data-aria-source=state.aria_source_attr
-            data-custom-class=state.has_custom_class_name.then_some("true")
-            data-class-source=state.class_source_attr
-            role="region"
-            aria-label=aria_label
+            data-variant=table_a11y_attrs.data_variant
+            data-density=table_a11y_attrs.data_density
+            data-layout=table_a11y_attrs.data_layout
+            data-state=table_a11y_attrs.data_state
+            data-striped=table_a11y_attrs.data_striped
+            data-sticky-header=table_a11y_attrs.data_sticky_header
+            data-has-caption=table_a11y_attrs.data_has_caption
+            data-row-count=table_a11y_attrs.data_row_count
+            data-aria-source=table_a11y_attrs.data_aria_source
+            data-custom-class=table_a11y_attrs.data_custom_class
+            data-class-source=table_a11y_attrs.data_class_source
+            role=table_a11y_attrs.role
+            aria-label=table_a11y_attrs.aria_label
+            lang=table_a11y_attrs.lang
+            dir=table_a11y_attrs.dir
         >
             <table class="ui-table__table" data-slot="table-element">
                 {caption.get_value().map(|caption| {
@@ -138,23 +151,14 @@ pub fn Table(
                             .into_iter()
                             .map(|row| {
                                 let row_id_attr = row.id.clone();
+                                let column_cells = column_cells.get_value();
                                 view! {
                                     <tr class="ui-table__row" data-slot="table-row" data-row-id=row_id_attr>
                                         {row
                                             .cells
                                             .into_iter()
-                                            .enumerate()
-                                            .map(|(index, cell)| {
-                                                let column_keys = column_keys.get_value();
-                                                let column_aligns = column_aligns.get_value();
-                                                let column_key = column_keys
-                                                    .get(index)
-                                                    .cloned()
-                                                    .unwrap_or_else(|| format!("col-{}", index + 1));
-                                                let align = column_aligns
-                                                    .get(index)
-                                                    .copied()
-                                                    .unwrap_or(TableCellAlign::Start);
+                                            .zip(column_cells.into_iter())
+                                            .map(|(cell, (column_key, align))| {
                                                 let class = format!("ui-table__cell {}", align.class_name());
 
                                                 view! {

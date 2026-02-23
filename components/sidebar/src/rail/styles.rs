@@ -1,21 +1,44 @@
 pub const CSS: &str = r#"
 .ui-sidebar-rail {
+  --ui-sidebar-rail-accent-solid: var(
+    --ui-accent-solid,
+    var(--ui-accent, var(--ui-fallback-accent))
+  );
+  --ui-sidebar-rail-bg: color-mix(
+    in oklab,
+    var(--ui-border, var(--ui-fallback-border)) 52%,
+    transparent
+  );
+  --ui-sidebar-rail-motion-duration: var(
+    --ui-text-field-motion-duration,
+    var(--ui-fallback-text-field-motion-duration)
+  );
+  --ui-sidebar-rail-motion-easing: var(
+    --ui-text-field-motion-easing,
+    var(--ui-fallback-text-field-motion-easing)
+  );
+  --ui-sidebar-rail-disabled-opacity: var(
+    --ui-disabled-opacity,
+    var(--ui-fallback-disabled-opacity)
+  );
   align-self: stretch;
   width: 0.625rem;
   min-height: 2.5rem;
   border: 0;
   border-radius: 999px;
-  background: color-mix(in oklab, currentColor 12%, transparent);
+  background: var(--ui-sidebar-rail-bg);
   cursor: pointer;
-  transition: background 160ms ease, transform 160ms ease;
+  transition:
+    background var(--ui-sidebar-rail-motion-duration) var(--ui-sidebar-rail-motion-easing),
+    transform var(--ui-sidebar-rail-motion-duration) var(--ui-sidebar-rail-motion-easing);
 }
 
 .ui-sidebar-rail:hover {
-  background: color-mix(in oklab, var(--ui-accent-solid, currentColor) 30%, transparent);
+  background: color-mix(in oklab, var(--ui-sidebar-rail-accent-solid) 30%, transparent);
 }
 
 .ui-sidebar-rail:focus-visible {
-  outline: 2px solid var(--ui-accent-solid, color-mix(in oklab, currentColor 62%, transparent));
+  outline: 2px solid var(--ui-sidebar-rail-accent-solid);
   outline-offset: 1px;
 }
 
@@ -31,7 +54,7 @@ pub const CSS: &str = r#"
 
 .ui-sidebar-rail--disabled,
 .ui-sidebar-rail[data-disabled="true"] {
-  opacity: 0.62;
+  opacity: var(--ui-sidebar-rail-disabled-opacity);
   transform: none;
   cursor: default;
 }

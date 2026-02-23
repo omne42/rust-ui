@@ -5,15 +5,9 @@ pub(crate) fn toast() -> AnyView {
         r#"<Toast
   title="Saved".to_string()
   default_open=true
-  on_close=Callback::new(move |_| {})
 />"#
         .to_string()
     });
-
-    let (hello_open_raw, set_hello_open_raw) = signal(false);
-    let hello_open: Signal<bool> = Signal::derive(move || hello_open_raw.get());
-    let open_hello_toast: OnPress = Callback::new(move |_| set_hello_open_raw.set(true));
-    let close_hello_toast: OnPress = Callback::new(move |_| set_hello_open_raw.set(false));
 
     let (workbench_open_raw, set_workbench_open_raw) = signal(false);
     let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
@@ -197,19 +191,7 @@ pub(crate) fn toast() -> AnyView {
             description="Toast playground with full API workbench and matrix comparison."
         >
             <Playground title="Hello World (Default Toast)" code_signal=hello_code>
-                <div class="docs-stack docs-stack--tight">
-                    <div class="docs-row">
-                        <Button variant=ButtonVariant::Secondary on_press=open_hello_toast>
-                            "Open toast"
-                        </Button>
-                    </div>
-                    <Toast
-                        title="Saved".to_string()
-                        open=hello_open
-                        on_close=close_hello_toast
-                        default_open=false
-                    />
-                </div>
+                <Toast title="Saved".to_string() default_open=true />
             </Playground>
 
             <Playground

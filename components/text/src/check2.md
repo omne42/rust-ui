@@ -11,7 +11,9 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+  - `Text` 当前为展示型组件，无受控/非受控状态机；组件侧仅保留 props 归一与来源标记装配逻辑（`components/text/src/logic.rs`），未在组件层实现可复用状态原语。
+  - 回归防线已就位：`components/text/src/test/semantics.rs` 的 `text_state_source_stays_decoupled_from_business_store_bindings` 与 `components/text/src/test/logic.rs` 约束了无 `ui-state-primitives` 误依赖、无业务 store 直绑。
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,8 +23,10 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（N/A：`Text` 为展示型组件，不存在可复用交互语义。）
   **`ui-headless` 落位硬规则（必须执行）**：
+  - `Text` 不依赖 `ui-headless`（`components/text/Cargo.toml`），`view.rs` 无 `on:*` 事件处理器，仅挂载静态 `data-*` / `aria-*` 语义标记。
+  - 已补回归防线：`components/text/src/test/logic.rs` 断言禁止引入 `ui_headless` 与交互事件绑定，防止后续越层。
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
   - 下沉判定依据是“交互/A11y 语义契约”；凡属于键盘/焦点/指针归一、ARIA 映射、交互状态语义能力，默认先进入 `ui-headless`。
@@ -32,14 +36,18 @@
   - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（N/A：`Text` 为静态展示组件，无 enter/exit/active 等动效语义状态。）
+  - `Text` 不依赖 `ui-motion`（`components/text/Cargo.toml`），组件目录无 `motion.rs`。
+  - 已补回归防线：`components/text/src/test/logic.rs` 断言禁止引入 `ui-motion` 依赖、`mod motion` 导出与组件级 CSS 动效执行器关键字。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（组件侧通过：`Text` 仅消费 `var(--ui-*)`，不重建主题映射。）
+  - `Text` 不依赖 `ui-theme` 运行时接口（`components/text/Cargo.toml`），仅在 `styles.rs` 消费 `--ui-*` 变量。
+  - 已补回归防线：`components/text/src/test/logic.rs` 断言禁止私有 token 前缀、禁止主题上下文选择器与硬编码色值，确保主题 SSOT 仍在 `ui-theme`。
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,98 +55,157 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`Text` 为展示型组件：`logic/view/styles` 职责明确，`motion.rs` 当前 N/A。）
+  - 组件职责落点已满足：`components/text/src/logic.rs`（归一化/派生）、`components/text/src/view.rs`（结构渲染与语义挂载）、`components/text/src/styles.rs`（token-first 样式）。
+  - 公共 API 未暴露 `web-sys`/DOM 细节；已由 `components/text/src/test/semantics.rs` 覆盖断言。
+  - `semantics.rs` 已迁移并接入执行路径：`components/text/src/test/semantics.rs` + `components/text/src/mod.rs` 的 `#[cfg(test)]` 挂载。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+  - `Text` 公共布尔 props 已统一为 `is_disabled` / `is_truncated`（`components/text/src/view.rs`）。
+  - 兼容与迁移：旧示例中的 `disabled` / `truncate` 已迁移到新命名（`apps/docs-app/src/pages/components/pages/display_extra/text.rs`），不再继续扩散旧别名。
+  - 回归约束：`components/text/src/test/semantics.rs` 断言 `is_*` 存在且旧布尔命名不存在。
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（N/A：`Text` 为无状态展示组件，不存在可控状态轴。）
+  - 组件不维护内部可变状态，不接受 `value` / `on_value_change` / `default_value` 类受控 API；避免制造“半受控”假语义。
+  - 回归约束：`components/text/src/test/semantics.rs` 断言 `view.rs` 不出现 `on_*` / `default_*` 受控轴 API。
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+  - `Text` 已在 `components/text/src/logic.rs` 通过 `resolve_content` 统一处理 `text` 默认值与 `content_source` 优先级。
+  - `view.rs` 仅消费 `resolve_content` 结果，不再执行 `unwrap_or_default` 或独立默认值分支。
+  - 回归约束：`components/text/src/test/logic.rs` 的 `resolve_content_centralizes_default_priority` 覆盖默认值优先级矩阵。
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+  - `Text` 状态派生统一由 `components/text/src/logic.rs` 完成（`resolve_content` / `resolve_state` / `compose_class_name`），`view.rs` 仅消费输出并挂载语义标记。
+  - 组件无事件处理器重建状态机路径；`styles.rs` 只消费 `data-*` 标记，不承担状态判定。
+  - 回归约束：`components/text/src/test/semantics.rs` 断言 `view.rs` 不出现本地 `data_state` 派生分支。
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+  - `Text` 离散输入轴在 `components/text/src/logic.rs` 统一使用 `enum`（`TextTone`、`TextAlign`、`TextWeight`、`TextElement`），`view.rs` props 直接消费这些枚举类型。
+  - 组件未暴露 `tone/align/weight/element` 的字符串离散输入，也未使用多个 `Option<bool>` 组合表达互斥离散状态。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_discrete_axes_use_enums_not_stringly_typed_props` 锁定枚举入参与禁用字符串轴。
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（N/A：`Text` 为展示型组件，无受控/非受控等可复用状态轴。）
+  - `Text` 未直接依赖 `ui-state-primitives`，且不存在受控/非受控、展开规则、选择归一等可复用状态机实现；当前仅做文本语义装配与样式来源映射。
+  - `logic.rs` 维持纯装配职责：`TextStateInput -> TextState` 映射，不持有业务 store 类型，不引入应用级全局状态容器。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_state_source_stays_decoupled_from_business_store_bindings` 锁定“无业务 store 直绑、无状态原语误引入”边界。
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`Text` 为静态展示组件，无远程请求与异步状态轴。）
+  - `Text` 不暴露 `is_loading` / `error` / `retry` 协议面，也未挂载 `aria-busy`；组件仅消费静态输入并渲染语义标记。
+  - `components/text/Cargo.toml` 无 async 运行时或传输依赖（如 `tokio` / `reqwest` / `gloo-net`），不存在组件内自定义加载/错误协议。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_has_no_async_interaction_protocol_surface` 锁定“无异步协议面、无 async 依赖漂移”。
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+  - `Text` 基础调用路径保持最小：所有公开 props 均为 `optional`，不要求手动接线 `ui-state-primitives`/`ui-headless` 或传入内部状态对象。
+  - docs 默认示例已落到真实组件调用路径：`apps/docs-app/src/pages/components/pages/display_extra/text.rs` 的 “Hello World (Default API)” 使用 `<Text text="Primary body copy".into() />`，示例主体 1 行（≤ 5 行）。
+  - 简单需求走默认 API，高级需求（tone/align/weight/element/slot/class）通过可选 props 按需开启，不引入受控状态面。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_dx_default_path_is_state_free_and_docs_minimal` 锁定“无 state 必填 + docs 最小默认示例”。
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A：`Text` 为单节点展示组件，不是 `Parent/Item` 组合容器。）
+  - `Text` 仅提供单内容槽位（`children` 或 `text`）的渲染能力，不存在集合项注册或容器-子项编排语义。
+  - 组件未暴露 `labels/titles/panels/items` 并行数组式 API，也未引入 `ItemSpec` 配置语法糖。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_non_composite_api_avoids_parallel_slot_pairing_contracts` 锁定“无并行配对 API”边界。
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：`Text` 为静态展示组件，无拖拽或高频连续交互。）
+  - `Text` 不存在 `Dragging` 阶段、`Action::DragEnd` 收敛动作或每帧交互循环路径；组件不暴露拖拽事件协议。
+  - 组件目录无 `motion.rs`，`logic/view` 不承载拖拽状态机语义。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_has_no_macro_micro_dragging_state_machine_surface` 锁定“无拖拽双状态机接口”边界。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`Text` 为静态展示组件，不依赖 DOM 测量与几何纠偏。）
+  - `Text` 不涉及 overlay 定位、浮层避让或尺寸测量后的二次修正流程，`logic/view` 无 `Intent/Measure/Rectification` 语义路径。
+  - 组件不调用 `getBoundingClientRect`/`client*`/`offset*`/`scroll*` 等 DOM 几何读取 API，不存在测量-纠偏循环与收敛问题。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_has_no_two_pass_geometry_measurement_surface` 锁定“无两段式几何测量接口”边界。
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`Text` 为单节点展示组件，无动态子项集合与导航语义。）
+  - `Text` 不承担容器-子项编排，不存在 `RegistrationContext`、`Register/Unregister` 生命周期或 `items_order` 维护需求。
+  - 组件无集合导航行为，因此不存在依赖 `HashSet` 迭代顺序做导航的风险面。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_has_no_collection_registration_protocol_surface` 锁定“无集合注册协议接口”边界。
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`Text` 为单节点展示组件，不是投影容器。）
+  - `Text` 不存在插槽投影策略面，不提供 `Lazy/KeepAlive/Eager` 模式切换。
+  - 组件无隐藏态生命周期通知语义，不存在 `NotifyHidden` 触发的轮询/动画暂停职责。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_has_no_slot_projection_lifecycle_surface` 锁定“无投影生命周期协议接口”边界。
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`Text` 为静态展示组件，不订阅环境流。）
+  - `Text` 不采样 `Resize/Theme/Intersection` 环境事件，`logic/view` 无 `BreakpointChanged` 等环境语义动作。
+  - 组件无 `debounce/throttle` 环境事件管线，因为不存在原始环境事件接入面，也不存在洪泛风险。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_has_no_env_stream_subscription_surface` 锁定“无环境订阅流接口”边界。
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`Text` 非大型集合组件，无批量选择与集合总线路径。）
+  - `Text` 不存在 `Table/Grid` 级集合批量操作语义，不需要 `Context Bus + Selector` 或 `SelectionState::All` 状态压缩模型。
+  - 组件不执行集合级事件分发，因此不存在 O(N) 向下 prop drilling 的批量操作风险。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_has_no_event_light_cone_surface` 锁定“无事件光锥接口”边界。
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：`Text` 为静态展示组件，无复杂派生总线与命令广播链路。）
+  - `Text` 不存在命令总线、订阅广播或跨模块派生命令回流，因此无 `TraceId` 透传需求。
+  - 组件仅执行本地 props 归一与语义标记挂载，不承载“触发 -> 派生命令 -> 总线 -> 订阅者”因果链。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_has_no_causality_bus_trace_surface` 锁定“无因果总线 Trace 接口”边界。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`Text` 已补 `lang` / `dir` 接入点：`components/text/src/view.rs` 新增 `lang: Option<String>` 与 `dir: Option<TextDirection>` 并透传到 DOM 属性；`aria_label` 仍可由 props 覆盖，`logic.rs::normalize_aria_label` 改为 `Option<String>`，移除组件内硬编码默认 `aria-label` 文案。`Text` 为非交互展示节点，键盘交互路径要求 N/A；组件未重写 `ui-headless` 共享 A11y 工具。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_a11y_i18n_l10n_contract_has_locale_entrypoints_without_hardcoded_view_copy` 与 `components/text/src/test/logic.rs` 的 `normalization_helpers_use_defaults`、`resolve_state_marks_absent_aria_label_source_as_none` 锁定该契约。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`Text` 根节点已稳定输出 `data-state/data-content-source/data-aria-source/data-class-source/data-slot-kind` 与 `aria-label`；状态来源通过 `logic.rs` 统一归一为封闭集合（如 `default|disabled|truncate`、`children|text|default`、`custom|none`、`custom|default`）。已移除开放文本型 `data-slot-name`，避免 marker 漂移与脆弱选择器。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+  - 回归约束：`components/text/src/test/logic.rs` 的 `observable_marker_domains_stay_closed_and_enumerable` 与 `components/text/src/test/semantics.rs` 的 `text_state_markers_are_stable_and_closed_surface_only` 锁定状态/来源 marker 的封闭值域与稳定挂载面。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`Text` 的状态样式选择器全部基于稳定 class 与 `data-*` 标记（如 `data-tone/data-align/data-weight/data-disabled/data-truncate`），未使用 `:nth-child`/深层结构选择器猜测状态；`view.rs` 未引入 `style=`/`style:*` 运行时业务样式注入。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_styles_depend_on_explicit_state_markers_without_structural_guessing` 锁定“显式状态选择器 + 无结构猜测 + 无运行时业务 style 注入”。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`Text` 已由语义断言覆盖关键契约：`data-*`/`aria-*`/source markers（`text_emits_baseline_style_state_data_attributes`、`text_state_markers_are_stable_and_closed_surface_only`、`text_a11y_i18n_l10n_contract_has_locale_entrypoints_without_hardcoded_view_copy`）；无快照依赖（禁止 `insta/assert_snapshot`）；矩阵按适用范围覆盖：`disabled` 轴已测，受控/非受控与键盘/指针路径对展示组件判 N/A 并由“无对应 API/事件面”测试锁定，SSR/wasm 差异由平台无关边界测试约束。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_semantics_contract_tests_cover_applicable_matrix_without_snapshot_dependency`。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`Text` 当前文件职责边界清晰：`mod.rs` 仅最小导出；`logic.rs` 仅归一/派生/来源标记；`styles.rs` 为 token-first 静态 CSS；`view.rs` 仅结构渲染与语义挂载。`motion.rs` 对展示型 `Text` 判 N/A：组件无动效契约与 `ui-motion` 依赖。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_component_file_responsibilities_stay_layered_and_motion_is_na`，以及 `components/text/src/test/logic.rs` 的 `text_stays_motionless_without_motion_dependency_or_executor`。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（N/A：`Text` 为简单展示组件，不存在需要独立 `spec.rs` 固化的复杂外部配置契约；当前 schema 契约保持在 `protocol.rs`（`TextComponentSpec`）。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_simple_component_avoids_spec_rs_surface_sprawl`。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`Text` 样式规则统一在 `styles.rs` 的 `CSS` 常量中维护并由组件层聚合注入；视觉值使用 `var(--ui-*)` token（如 `--ui-font-size-150/--ui-line-height-150/--ui-fg/--ui-fg-muted/--ui-accent`）；`view.rs` 无 `style=`/`style:*` 运行时业务样式注入；crate 未引入 Utility-First 或 CSS-in-Rust 依赖。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_token_first_static_style_contract_avoids_utility_and_css_in_rust_defaults`。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（N/A：该条中“docs-app 默认主题基线页面 + 关键组件（Button/Input/Overlay）截图回归”属于仓库级视觉治理，不是 `Text` 单组件可独立闭环项；`Text` 侧可控边界已满足：默认排版层级与对比通过 `var(--ui-*)` token 消费实现，不引入旧式 Bootstrap 风格私有样式体系。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_styles_use_typography_tokens_for_default_metrics` 锁定 `Text` 在单组件边界内的默认排版 token 基线。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`Text` 在 `ui` package 模式按 feature 裁剪：`crates/ui/Cargo.toml` 存在 `component-text = ["dep:ui-text"]` 且 `ui-text` 为 `optional`；`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 对 `text` re-export/CSS 聚合均受 `#[cfg(feature = "component-text")]` 门控。命令验证：`cargo tree -e features -p ui --no-default-features --features component-text,inject-css` 仅出现 `ui-text` 特性链；`cargo tree -e features -i ui -p web-demo` 未出现 `all-components`；`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-text,inject-css` 已通过。体积预算阈值阻断属于仓库 CI 基建项，单组件侧记为 N/A。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -147,21 +214,26 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_tree_shaking_contract_is_feature_gated_in_ui_aggregation_layer` 锁定 `component-text` 的 feature 门控与样式聚合裁剪契约。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`Text` 的离散状态轴（`tone/align/weight/element`）已由 `enum` 类型公开，避免字符串协议与布尔爆炸；`logic.rs` 统一将输入归一为封闭语义集合（如 `data_state_attr: default|disabled|truncate`、`content_source: default|text|children`、`slot_kind: none|label|description|icon|custom`）；`view.rs` 稳定暴露 `data-state/data-content-source/data-aria-source/data-class-source/data-slot-kind` 供自动化检索；若契约漂移将由语义测试直接失败定位。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_discrete_axes_use_enums_not_stringly_typed_props`、`text_state_markers_are_stable_and_closed_surface_only`，以及 `components/text/src/test/logic.rs` 的 `observable_marker_domains_stay_closed_and_enumerable`。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`Text` 为非 overlay 的展示组件，不承担焦点捕获/恢复职责，也不暴露 `NodeRef`/Focus Manager/`document.body` 回退路径；该能力边界应由 overlay 类组件与 headless 焦点管理层承担。）
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_has_no_focus_stack_overlay_surface` 锁定“Text 不暴露 Overlay Focus Stack 接口”。
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`Text` 为纯展示组件，不集成命令式第三方实例，也不提供 `Foreign Zone`/`YieldControl`/`CleanupForeign` 逃逸接口；该职责应落在集成型 overlay/可视化组件边界。）
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_has_no_foreign_zone_escape_hatch_surface` 锁定“Text 不暴露第三方命令式外交特区接口”。
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（N/A：`Text` 为展示组件，不生成随机 ID，也不存在依赖时间/随机源的初始化逻辑；因此不需要 `IdProvider` 注入链路。）
+  - 回归约束：`components/text/src/test/semantics.rs` 的 `text_has_no_hydration_discontinuity_surface` 锁定“无 `now()/UUID/random` 初始化面与依赖”。
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（compile-only 证据已执行并通过：`CARGO_TARGET_DIR=/tmp/codex-text-platform cargo --config /tmp/cargo-local-config.toml check -p ui --no-default-features --features component-text,inject-css`（默认本地构建）、`CARGO_TARGET_DIR=/tmp/codex-text-platform cargo --config /tmp/cargo-local-config.toml check -p ui --target wasm32-unknown-unknown --no-default-features --features component-text,inject-css`（web/wasm32）、`CARGO_TARGET_DIR=/tmp/codex-text-platform cargo --config /tmp/cargo-local-config.toml check -p ui-headless --no-default-features --features ssr`（ssr/native）。组件源码 `components/text/src/{mod,logic,styles,view}.rs` 无 `web_sys/web-sys/js_sys/wasm_bindgen/window/document` 直接引用；平台差异通过 `crates/ui-headless/src/lib.rs` 的 `web+ssr` 互斥 `compile_error!` 与 `crates/ui/Cargo.toml` 的 wasm target 依赖门控显式管理。回归：`components/text/src/test/semantics.rs::text_cross_platform_compile_contract_uses_explicit_cfg_and_keeps_non_wasm_browser_free`。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（证据：`CARGO_TARGET_DIR=/tmp/codex-text-headless-web cargo --config /tmp/cargo-local-config.toml check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web` 与 `CARGO_TARGET_DIR=/tmp/codex-text-headless-ssr cargo --config /tmp/cargo-local-config.toml check -p ui-headless --no-default-features --features ssr` 均编译通过；`CARGO_TARGET_DIR=/tmp/codex-text-headless-ssr CARGO_INCREMENTAL=0 cargo --config /tmp/cargo-local-config.toml check -p ui-headless --no-default-features --features web,ssr` 预期失败并命中 `crates/ui-headless/src/lib.rs:4` 的 `compile_error!(\"features \`web\` and \`ssr\` are mutually exclusive; enable exactly one\")`。`Text` 组件本身未接入 `ui-headless`，回归由 `components/text/src/test/logic.rs::text_stays_non_interactive_without_headless_dependency` 与 `components/text/src/test/semantics.rs::text_cross_platform_compile_contract_uses_explicit_cfg_and_keeps_non_wasm_browser_free` 锁定。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。

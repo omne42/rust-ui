@@ -12,9 +12,9 @@ pub fn SwitchGroup(
     #[prop(optional, into)] error_message: Option<String>,
     #[prop(optional)] orientation: SwitchGroupOrientation,
     #[prop(optional)] tone: SwitchGroupTone,
-    #[prop(optional)] required: bool,
-    #[prop(optional)] disabled: bool,
-    #[prop(optional)] invalid: bool,
+    #[prop(optional)] is_required: bool,
+    #[prop(optional)] is_disabled: bool,
+    #[prop(optional)] is_invalid: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
@@ -30,7 +30,7 @@ pub fn SwitchGroup(
     let description = StoredValue::new(description);
 
     let (error_message, has_custom_error_message) =
-        logic::normalize_error_message(error_message, invalid);
+        logic::normalize_error_message(error_message, is_invalid);
     let has_error_message = error_message.is_some();
     let error_message = StoredValue::new(error_message);
 
@@ -44,9 +44,9 @@ pub fn SwitchGroup(
         logic::resolve_state(SwitchGroupStateInput {
             orientation,
             tone,
-            required,
-            disabled,
-            invalid,
+            required: is_required,
+            disabled: is_disabled,
+            invalid: is_invalid,
             has_label: true,
             has_description,
             has_error_message,
@@ -60,30 +60,15 @@ pub fn SwitchGroup(
     let class = Memo::new(move |_| logic::compose_class_name(class_name.get_value(), state.get()));
 
     let describedby = Memo::new(move |_| {
-        let mut ids_out = Vec::new();
         let group_ids = ids.get_value();
-        let state = state.get();
-
-        if state.has_description {
-            ids_out.push(group_ids.description_id.clone());
-        }
-
-        if state.shows_error {
-            ids_out.push(group_ids.error_id.clone());
-        }
-
-        if ids_out.is_empty() {
-            None
-        } else {
-            Some(ids_out.join(" "))
-        }
+        logic::compose_describedby(state.get(), &group_ids)
     });
 
     view! {
         <fieldset
             id=move || ids.get_value().root_id.clone()
             class=move || class.get()
-            disabled=disabled
+            disabled=is_disabled
             data-slot="switch-group"
             data-orientation=move || state.get().orientation_attr
             data-tone=move || state.get().tone_attr

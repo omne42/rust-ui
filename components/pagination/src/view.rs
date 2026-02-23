@@ -1,26 +1,49 @@
-use crate::{PaginationItem, PaginationStrings, logic, resolve_pagination_range};
+use crate::{
+    PaginationItem, PaginationMotion, PaginationStrings, logic, motion, resolve_pagination_range,
+};
 use leptos::prelude::*;
 use ui_button::{Button, ButtonSize, ButtonVariant};
-use ui_headless::OnPress;
 use ui_headless::i18n;
+use ui_headless::{A11yDirection, OnPress, navigation_attrs};
 
 #[component]
 pub fn Pagination(
     total_pages: usize,
-    page: ReadSignal<usize>,
-    set_page: WriteSignal<usize>,
+    #[prop(optional, into)] page: Option<ReadSignal<usize>>,
+    #[prop(optional, into)] set_page: Option<WriteSignal<usize>>,
+    #[prop(optional, into)] default_page: Option<usize>,
+    #[prop(optional, into)] on_page_change: Option<Callback<usize>>,
     #[prop(optional)] siblings: usize,
     #[prop(optional)] boundaries: usize,
-    #[prop(optional)] disabled: bool,
-    #[prop(optional)] on_change: Option<Callback<usize>>,
+    #[prop(optional)] is_disabled: bool,
+    #[prop(optional, into)] on_change: Option<Callback<usize>>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional)] motion: PaginationMotion,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
     let i18n = i18n::use_ui_i18n();
     let strings = i18n.strings::<PaginationStrings>();
+    let page = StoredValue::new(page);
+    let set_page = StoredValue::new(set_page);
+    let on_page_change = StoredValue::new(on_page_change);
+    // Backward-compatible alias. New call sites should use `on_page_change`.
     let on_change = StoredValue::new(on_change);
+    let resolved_default_page = logic::resolve_default_page(default_page);
+    let (uncontrolled_page, set_uncontrolled_page) = signal(resolved_default_page);
 
-    let aria_label = logic::normalize_aria_label(aria_label, strings.aria_label.as_ref());
+    let nav_a11y = navigation_attrs(
+        logic::normalize_aria_label(aria_label, strings.aria_label.as_ref()),
+        logic::normalize_optional_text(lang),
+        dir,
+    );
+    let nav_aria_label = nav_a11y.aria_label;
+    let nav_lang = nav_a11y.lang;
+    let nav_dir = nav_a11y.dir;
+    let motion = motion::sanitize_motion(motion);
+    let motion_source = motion::source_attr(motion);
+    let style_vars = motion::attach_motion(None, motion);
 
     let base_class = "ui-pagination".to_string();
     let class = class_name
@@ -28,10 +51,16 @@ pub fn Pagination(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
-    let state = Signal::derive(move || {
-        let current = page.get();
-        logic::resolve_pagination_state(total_pages, current, disabled)
+    let view_state = Signal::derive(move || {
+        let controlled_page = page.get_value().map(|controlled| controlled.get());
+        logic::resolve_pagination_view_state(
+            total_pages,
+            controlled_page,
+            uncontrolled_page.get(),
+            is_disabled,
+        )
     });
+    let state = Signal::derive(move || view_state.get().state);
 
     let page_items = move || {
         let current = state.get().current_page;
@@ -39,35 +68,39 @@ pub fn Pagination(
     };
 
     let prev_on_press: OnPress = Callback::new(move |_| {
-        let state = logic::resolve_pagination_state(total_pages, page.get_untracked(), disabled);
-        if state.is_prev_disabled {
+        let current_view_state = view_state.get_untracked();
+        let Some(next) = logic::resolve_prev_page_target(current_view_state) else {
             return;
-        }
+        };
 
-        let next = state.current_page.saturating_sub(1).max(1);
-        if next == state.current_page {
-            return;
+        if logic::should_sync_uncontrolled_page(current_view_state.control_mode) {
+            set_uncontrolled_page.set(next);
         }
-
-        set_page.set(next);
-        if let Some(on_change) = on_change.get_value() {
+        if let Some(set_page) = set_page.get_value() {
+            set_page.set(next);
+        }
+        if let Some(on_page_change) = on_page_change.get_value() {
+            on_page_change.run(next);
+        } else if let Some(on_change) = on_change.get_value() {
             on_change.run(next);
         }
     });
 
     let next_on_press: OnPress = Callback::new(move |_| {
-        let state = logic::resolve_pagination_state(total_pages, page.get_untracked(), disabled);
-        if state.is_next_disabled {
+        let current_view_state = view_state.get_untracked();
+        let Some(next) = logic::resolve_next_page_target(current_view_state) else {
             return;
-        }
+        };
 
-        let next = (state.current_page + 1).min(state.effective_total_pages);
-        if next == state.current_page {
-            return;
+        if logic::should_sync_uncontrolled_page(current_view_state.control_mode) {
+            set_uncontrolled_page.set(next);
         }
-
-        set_page.set(next);
-        if let Some(on_change) = on_change.get_value() {
+        if let Some(set_page) = set_page.get_value() {
+            set_page.set(next);
+        }
+        if let Some(on_page_change) = on_page_change.get_value() {
+            on_page_change.run(next);
+        } else if let Some(on_change) = on_change.get_value() {
             on_change.run(next);
         }
     });
@@ -80,9 +113,15 @@ pub fn Pagination(
     view! {
         <nav
             class=class
-            aria-label=aria_label
+            style=style_vars
+            aria-label=nav_aria_label
+            lang=nav_lang.clone()
+            dir=nav_dir
             data-slot="pagination"
-            data-disabled=disabled.then_some("true")
+            data-motion-source=motion_source
+            data-custom-motion=(motion_source == "custom").then_some("true")
+            data-disabled=is_disabled.then_some("true")
+            data-page-control=move || view_state.get().control_mode.as_data_attr()
             data-empty=(total_pages == 0).then_some("true")
             data-page=move || state.get().current_page.to_string()
             data-total-pages=total_pages.to_string()
@@ -137,29 +176,31 @@ pub fn Pagination(
                                 .into_any(),
                                 PaginationItem::Page(p) => {
                                     let on_press: OnPress = Callback::new(move |_| {
-                                        if disabled {
+                                        let current_view_state = view_state.get_untracked();
+                                        let Some(next) =
+                                            logic::resolve_direct_page_target(current_view_state, p)
+                                        else {
                                             return;
-                                        }
+                                        };
 
-                                        let current = logic::resolve_pagination_state(
-                                            total_pages,
-                                            page.get_untracked(),
-                                            disabled,
-                                        )
-                                        .current_page;
-                                        if current == p {
-                                            return;
+                                        if logic::should_sync_uncontrolled_page(
+                                            current_view_state.control_mode,
+                                        ) {
+                                            set_uncontrolled_page.set(next);
                                         }
-
-                                        set_page.set(p);
-                                        if let Some(on_change) = on_change.get_value() {
-                                            on_change.run(p);
+                                        if let Some(set_page) = set_page.get_value() {
+                                            set_page.set(next);
+                                        }
+                                        if let Some(on_page_change) = on_page_change.get_value() {
+                                            on_page_change.run(next);
+                                        } else if let Some(on_change) = on_change.get_value() {
+                                            on_change.run(next);
                                         }
                                     });
 
                                     view! {
                                         <Button
-                                            is_disabled=disabled
+                                            is_disabled=is_disabled
                                             variant=ButtonVariant::Ghost
                                             size=ButtonSize::Sm
                                             on_press=on_press

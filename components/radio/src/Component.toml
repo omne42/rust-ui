@@ -1,0 +1,205 @@
+schema_version = "1"
+
+[component]
+name = "Radio"
+crate = "ui-radio"
+
+[[inputs]]
+name = "id_base"
+ty = "String"
+default = "required"
+controlled = false
+scope = "RadioGroup"
+
+[[inputs]]
+name = "options"
+ty = "Vec<String>"
+default = "required"
+controlled = false
+scope = "RadioGroup"
+
+[[inputs]]
+name = "selected_index"
+ty = "ReadSignal<Option<usize>>"
+default = "required"
+controlled = true
+scope = "RadioGroup"
+
+[[inputs]]
+name = "set_selected_index"
+ty = "WriteSignal<Option<usize>>"
+default = "required"
+controlled = true
+scope = "RadioGroup"
+
+[[inputs]]
+name = "is_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+scope = "RadioGroup + Radio"
+
+[[inputs]]
+name = "disabled"
+ty = "bool"
+default = "false"
+controlled = false
+scope = "RadioGroup + Radio"
+
+[[inputs]]
+name = "disabled_indices"
+ty = "Vec<usize>"
+default = "[]"
+controlled = false
+scope = "RadioGroup"
+
+[[inputs]]
+name = "orientation"
+ty = "RadioGroupOrientation"
+default = "RadioGroupOrientation::Vertical"
+controlled = false
+scope = "RadioGroup"
+
+[[inputs]]
+name = "label"
+ty = "String"
+default = "required for Radio, optional for RadioGroup"
+controlled = false
+scope = "RadioGroup + Radio"
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+scope = "RadioGroup"
+
+[[inputs]]
+name = "aria_labelledby"
+ty = "Option<String>"
+default = "None"
+controlled = false
+scope = "RadioGroup"
+
+[[inputs]]
+name = "is_checked"
+ty = "Option<Signal<bool>>"
+default = "None"
+controlled = true
+scope = "Radio"
+
+[[inputs]]
+name = "checked"
+ty = "Option<Signal<bool>>"
+default = "None"
+controlled = true
+scope = "Radio"
+
+[[inputs]]
+name = "default_checked"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+scope = "Radio"
+
+[[inputs]]
+name = "on_checked_change"
+ty = "Option<Callback<bool>>"
+default = "None"
+controlled = false
+scope = "Radio"
+
+[[inputs]]
+name = "on_change"
+ty = "Option<Callback<bool>>"
+default = "None"
+controlled = false
+scope = "Radio"
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+scope = "RadioGroup"
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+scope = "RadioGroup"
+
+[[inputs]]
+name = "motion"
+ty = "RadioMotion"
+default = "RadioMotion::default()"
+controlled = false
+scope = "RadioGroup + Radio"
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+scope = "RadioGroup + Radio"
+
+[[outputs]]
+name = "semantic-markers"
+ty = "role/aria/data-* + data-ui-* + lang/dir + checked/disabled/control-mode source markers"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "structured_state_markers"
+enabled = true
+
+[[capabilities]]
+name = "controlled_uncontrolled_state_pair"
+enabled = true
+
+[[capabilities]]
+name = "i18n_locale_direction_context"
+enabled = true
+
+[[capabilities]]
+name = "motion_contract_with_non_wasm_noop"
+enabled = true
+
+[[capabilities]]
+name = "snapshot_rendering"
+enabled = true
+
+[[capabilities]]
+name = "streaming_optional_with_snapshot_fallback"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"
+
+[[dependencies]]
+name = "ui-observability"
+kind = "runtime-observability"

@@ -1,13 +1,10 @@
 use super::*;
 
 pub(crate) fn segmented_control() -> AnyView {
-    let showcase_options = vec!["Overview".to_string(), "Details".to_string()];
-    let (showcase_selected, set_showcase_selected) = signal(Some(0_usize));
-
-    let workbench_options = vec![
-        "Overview".to_string(),
-        "Details".to_string(),
-        "Settings".to_string(),
+    let workbench_item_specs = vec![
+        SegmentedControlItemSpec::new("Overview"),
+        SegmentedControlItemSpec::new("Details"),
+        SegmentedControlItemSpec::new("Settings"),
     ];
     let (workbench_selected, set_workbench_selected) = signal(Some(0_usize));
     let (workbench_disabled, set_workbench_disabled) = signal(false);
@@ -30,24 +27,21 @@ pub(crate) fn segmented_control() -> AnyView {
         }
     });
 
-    let matrix_options = vec![
-        "System".to_string(),
-        "Manual".to_string(),
-        "Hybrid".to_string(),
+    let matrix_item_specs = vec![
+        SegmentedControlItemSpec::new("System"),
+        SegmentedControlItemSpec::new("Manual"),
+        SegmentedControlItemSpec::new("Hybrid"),
     ];
     let (matrix_horizontal_selected, set_matrix_horizontal_selected) = signal(Some(1_usize));
     let (matrix_vertical_selected, set_matrix_vertical_selected) = signal(Some(0_usize));
     let (matrix_disabled_selected, set_matrix_disabled_selected) = signal(Some(2_usize));
 
     let hello_code = Signal::derive(move || {
-        r#"let (selected, set_selected) = signal(Some(0_usize));
-<SegmentedControl
-  id_base="seg-default".to_string()
-  options=vec!["Overview".to_string(), "Details".to_string()]
-  selected_index=selected
-  set_selected_index=set_selected
-/>"#
-        .to_string()
+        r#"<SegmentedControl id_base="seg-default".to_string() default_selected_index=0_usize>
+  <SegmentedControlItem slot:item label="Overview".to_string() />
+  <SegmentedControlItem slot:item label="Details".to_string() />
+</SegmentedControl>"#
+            .to_string()
     });
 
     let workbench_code = Signal::derive(move || {
@@ -83,17 +77,17 @@ pub(crate) fn segmented_control() -> AnyView {
         };
 
         format!(
-            "let (selected, set_selected) = signal(Some(0_usize));\n\n<SegmentedControl\n  id_base=\"docs-segments-workbench\".to_string()\n  options=vec![\"Overview\".to_string(), \"Details\".to_string(), \"Settings\".to_string()]\n  selected_index=selected\n  set_selected_index=set_selected\n  disabled={}\n  disabled_indices={disabled_indices}\n  orientation={orientation}\n  size={size}\n  motion={motion}\n  label=\"Workspace section\".to_string()\n  aria_label=\"Workspace segmented control\".to_string()\n  lang={}.to_string()\n  dir={dir}\n  class_name={class_name}\n/>",
+            "let (selected, set_selected) = signal(Some(0_usize));\n\n<SegmentedControl\n  id_base=\"docs-segments-workbench\".to_string()\n  item_specs=vec![\n    SegmentedControlItemSpec::new(\"Overview\"),\n    SegmentedControlItemSpec::new(\"Details\"),\n    SegmentedControlItemSpec::new(\"Settings\"),\n  ]\n  selected_index=selected\n  on_selected_index_change=set_selected\n  is_disabled={}\n  disabled_indices={disabled_indices}\n  orientation={orientation}\n  size={size}\n  motion={motion}\n  label=\"Workspace section\".to_string()\n  aria_label=\"Workspace segmented control\".to_string()\n  lang={}.to_string()\n  dir={dir}\n  class_name={class_name}\n/>",
             bool_word(workbench_disabled.get()),
             rust_string_literal(if workbench_rtl.get() { "ar" } else { "en-US" }),
         )
     });
 
-    let workbench_options_for_config = workbench_options.clone();
+    let workbench_item_specs_for_config = workbench_item_specs.clone();
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "SegmentedControlWorkbenchActualConfig {{\n  id_base: \"docs-segments-workbench\",\n  options: {:?},\n  selected_index: {:?},\n  set_selected_index: \"bound(set_workbench_selected)\",\n  disabled: {},\n  disabled_indices: {:?},\n  orientation: {:?},\n  size: {:?},\n  motion: {:?},\n  label: Some(\"Workspace section\"),\n  aria_label: Some(\"Workspace segmented control\"),\n  lang: Some({:?}),\n  dir: Some({:?}),\n  class_name: {:?},\n}}",
-            workbench_options_for_config.clone(),
+            "SegmentedControlWorkbenchActualConfig {{\n  id_base: \"docs-segments-workbench\",\n  item_specs: {:?},\n  selected_index: {:?},\n  on_selected_index_change: \"bound(set_workbench_selected)\",\n  is_disabled: {},\n  disabled_indices: {:?},\n  orientation: {:?},\n  size: {:?},\n  motion: {:?},\n  label: Some(\"Workspace section\"),\n  aria_label: Some(\"Workspace segmented control\"),\n  lang: Some({:?}),\n  dir: Some({:?}),\n  class_name: {:?},\n}}",
+            workbench_item_specs_for_config.clone(),
             workbench_selected.get(),
             bool_word(workbench_disabled.get()),
             if workbench_disable_last.get() {
@@ -127,9 +121,9 @@ pub(crate) fn segmented_control() -> AnyView {
     });
 
     let matrix_code = Signal::derive(move || {
-        r#"<SegmentedControl id_base="seg-horizontal".to_string() options=vec!["System".to_string(), "Manual".to_string(), "Hybrid".to_string()] selected_index=selected set_selected_index=set_selected />
-<SegmentedControl id_base="seg-vertical".to_string() options=vec!["System".to_string(), "Manual".to_string(), "Hybrid".to_string()] selected_index=selected_vertical set_selected_index=set_selected_vertical orientation=SegmentedControlOrientation::Vertical size=SegmentedControlSize::Sm disabled_indices=vec![2] />
-<SegmentedControl id_base="seg-disabled".to_string() options=vec!["System".to_string(), "Manual".to_string(), "Hybrid".to_string()] selected_index=selected_disabled set_selected_index=set_selected_disabled disabled=true aria_label="Disabled options".to_string() />"#.to_string()
+        r#"<SegmentedControl id_base="seg-horizontal".to_string() item_specs=vec![SegmentedControlItemSpec::new("System"), SegmentedControlItemSpec::new("Manual"), SegmentedControlItemSpec::new("Hybrid")] selected_index=selected on_selected_index_change=set_selected />
+<SegmentedControl id_base="seg-vertical".to_string() item_specs=vec![SegmentedControlItemSpec::new("System"), SegmentedControlItemSpec::new("Manual"), SegmentedControlItemSpec::new("Hybrid")] selected_index=selected_vertical on_selected_index_change=set_selected_vertical orientation=SegmentedControlOrientation::Vertical size=SegmentedControlSize::Sm disabled_indices=vec![2] />
+<SegmentedControl id_base="seg-disabled".to_string() item_specs=vec![SegmentedControlItemSpec::new("System"), SegmentedControlItemSpec::new("Manual"), SegmentedControlItemSpec::new("Hybrid")] selected_index=selected_disabled on_selected_index_change=set_selected_disabled is_disabled=true aria_label="Disabled options".to_string() />"#.to_string()
     });
 
     view! {
@@ -142,10 +136,11 @@ pub(crate) fn segmented_control() -> AnyView {
             <Playground title="Hello World (Default)" code_signal=hello_code>
                 <SegmentedControl
                     id_base="docs-segments-hello".to_string()
-                    options=showcase_options
-                    selected_index=showcase_selected
-                    set_selected_index=set_showcase_selected
-                />
+                    default_selected_index=0_usize
+                >
+                    <SegmentedControlItem slot:item label="Overview".to_string() />
+                    <SegmentedControlItem slot:item label="Details".to_string() />
+                </SegmentedControl>
             </Playground>
 
             <Playground
@@ -187,10 +182,10 @@ pub(crate) fn segmented_control() -> AnyView {
                 <div class="docs-stack">
                     <SegmentedControl
                         id_base="docs-segments-workbench".to_string()
-                        options=workbench_options.clone()
+                        item_specs=workbench_item_specs.clone()
                         selected_index=workbench_selected
-                        set_selected_index=set_workbench_selected
-                        disabled=workbench_disabled.get()
+                        on_selected_index_change=set_workbench_selected
+                        is_disabled=workbench_disabled.get()
                         disabled_indices=if workbench_disable_last.get() {
                             vec![2_usize]
                         } else {
@@ -236,25 +231,25 @@ pub(crate) fn segmented_control() -> AnyView {
                 <div class="docs-row">
                     <SegmentedControl
                         id_base="docs-segments-matrix-horizontal".to_string()
-                        options=matrix_options.clone()
+                        item_specs=matrix_item_specs.clone()
                         selected_index=matrix_horizontal_selected
-                        set_selected_index=set_matrix_horizontal_selected
+                        on_selected_index_change=set_matrix_horizontal_selected
                     />
                     <SegmentedControl
                         id_base="docs-segments-matrix-vertical".to_string()
-                        options=matrix_options.clone()
+                        item_specs=matrix_item_specs.clone()
                         selected_index=matrix_vertical_selected
-                        set_selected_index=set_matrix_vertical_selected
+                        on_selected_index_change=set_matrix_vertical_selected
                         orientation=SegmentedControlOrientation::Vertical
                         size=SegmentedControlSize::Sm
                         disabled_indices=vec![2_usize]
                     />
                     <SegmentedControl
                         id_base="docs-segments-matrix-disabled".to_string()
-                        options=matrix_options
+                        item_specs=matrix_item_specs
                         selected_index=matrix_disabled_selected
-                        set_selected_index=set_matrix_disabled_selected
-                        disabled=true
+                        on_selected_index_change=set_matrix_disabled_selected
+                        is_disabled=true
                         aria_label="Disabled options".to_string()
                     />
                 </div>

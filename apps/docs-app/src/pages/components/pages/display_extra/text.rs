@@ -1,4 +1,5 @@
 use super::*;
+use ui::Text;
 
 pub(crate) fn text() -> AnyView {
     let text_imports =
@@ -62,7 +63,7 @@ pub(crate) fn text() -> AnyView {
 
     let workbench_code = Signal::derive(move || {
         format!(
-            "<Text\n  text=\"{}\".into()\n  tone=TextTone::{:?}\n  align=TextAlign::{:?}\n  weight=TextWeight::{:?}\n  disabled={}\n  truncate={}\n  element=TextElement::{:?}\n  aria_label={}\n  class_name={}\n  slot={}\n/>",
+            "<Text\n  text=\"{}\".into()\n  tone=TextTone::{:?}\n  align=TextAlign::{:?}\n  weight=TextWeight::{:?}\n  is_disabled={}\n  is_truncated={}\n  element=TextElement::{:?}\n  aria_label={}\n  class_name={}\n  slot={}\n/>",
             if disabled.get() {
                 "Read-only release summary"
             } else {
@@ -94,8 +95,8 @@ pub(crate) fn text() -> AnyView {
   tone=TextTone::Strong
   align=TextAlign::End
   weight=TextWeight::Bold
-  disabled=true
-  truncate=true
+  is_disabled=true
+  is_truncated=true
   element=TextElement::Div
   aria_label=\"Release status\".into()
   class_name=\"docs-text-custom\".into()
@@ -113,7 +114,7 @@ pub(crate) fn text() -> AnyView {
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "TextActualConfig {{\\n  text: {:?},\\n  tone: {:?},\\n  align: {:?},\\n  weight: {:?},\\n  disabled: {},\\n  truncate: {},\\n  element: {:?},\\n  aria_label: {:?},\\n  class_name: {:?},\\n  slot: {:?},\\n}}",
+            "TextActualConfig {{\\n  text: {:?},\\n  tone: {:?},\\n  align: {:?},\\n  weight: {:?},\\n  is_disabled: {},\\n  is_truncated: {},\\n  element: {:?},\\n  aria_label: {:?},\\n  class_name: {:?},\\n  slot: {:?},\\n}}",
             if disabled.get() {
                 "Read-only release summary"
             } else {
@@ -143,7 +144,7 @@ pub(crate) fn text() -> AnyView {
                 code_signal=showcase_code
                 code_imports=text_imports.clone()
             >
-                <div class="ui-text">"Primary body copy"</div>
+                <Text text="Primary body copy".to_string() />
             </Playground>
 
             <Playground

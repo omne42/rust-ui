@@ -258,6 +258,91 @@ fn overlay_dialog_attrs_drops_blank_optional_ids() {
 }
 
 #[test]
+fn tooltip_panel_attrs_exposes_typed_role_id_locale_and_open_state() {
+    let contract = tooltip_panel_attrs(TooltipPanelA11yOptions {
+        tooltip_id: " docs-tooltip ".to_string(),
+        is_open: true,
+        lang: Some(" zh-CN ".to_string()),
+        dir: Some(A11yDirection::Rtl),
+    });
+
+    assert_eq!(contract.attrs.role, "tooltip");
+    assert_eq!(contract.attrs.id, " docs-tooltip ");
+    assert_eq!(contract.attrs.lang.as_deref(), Some("zh-CN"));
+    assert_eq!(contract.attrs.dir, Some("rtl"));
+    assert!(contract.state.is_open);
+}
+
+#[test]
+fn tooltip_panel_attrs_drops_blank_lang_and_tracks_closed_state() {
+    let contract = tooltip_panel_attrs(TooltipPanelA11yOptions {
+        tooltip_id: "docs-tooltip".to_string(),
+        is_open: false,
+        lang: Some("   ".to_string()),
+        dir: None,
+    });
+
+    assert_eq!(contract.attrs.role, "tooltip");
+    assert_eq!(contract.attrs.id, "docs-tooltip");
+    assert_eq!(contract.attrs.lang, None);
+    assert_eq!(contract.attrs.dir, None);
+    assert!(!contract.state.is_open);
+}
+
+#[test]
+fn progressbar_attrs_maps_determinate_values_and_locale() {
+    let contract = progressbar_attrs(ProgressbarA11yOptions {
+        aria_label: "Upload progress".to_string(),
+        aria_valuemin: 0.0,
+        aria_valuemax: 100.0,
+        aria_valuenow: Some(42.0),
+        aria_valuetext: Some("42%".to_string()),
+        is_indeterminate: false,
+        lang: Some(" en-US ".to_string()),
+        dir: Some(A11yDirection::Rtl),
+    });
+
+    assert_eq!(contract.attrs.role, "progressbar");
+    assert_eq!(contract.attrs.aria_label, "Upload progress");
+    assert_eq!(contract.attrs.aria_valuemin, "0");
+    assert_eq!(contract.attrs.aria_valuemax, "100");
+    assert_eq!(contract.attrs.aria_valuenow.as_deref(), Some("42"));
+    assert_eq!(contract.attrs.aria_valuetext.as_deref(), Some("42%"));
+    assert_eq!(contract.attrs.lang.as_deref(), Some("en-US"));
+    assert_eq!(contract.attrs.dir, Some("rtl"));
+    assert_eq!(contract.attrs.data_state, "determinate");
+    assert_eq!(contract.attrs.data_determinate, Some("true"));
+    assert_eq!(contract.attrs.data_indeterminate, None);
+    assert_eq!(contract.state.phase, ProgressbarA11yPhase::Determinate);
+    assert!(contract.state.is_determinate);
+    assert!(!contract.state.is_indeterminate);
+}
+
+#[test]
+fn progressbar_attrs_hides_valuenow_when_indeterminate() {
+    let contract = progressbar_attrs(ProgressbarA11yOptions {
+        aria_label: "Syncing".to_string(),
+        aria_valuemin: f64::NAN,
+        aria_valuemax: f64::INFINITY,
+        aria_valuenow: Some(64.0),
+        aria_valuetext: None,
+        is_indeterminate: true,
+        lang: None,
+        dir: Some(A11yDirection::Ltr),
+    });
+
+    assert_eq!(contract.attrs.aria_valuemin, "0");
+    assert_eq!(contract.attrs.aria_valuemax, "100");
+    assert_eq!(contract.attrs.aria_valuenow, None);
+    assert_eq!(contract.attrs.data_state, "indeterminate");
+    assert_eq!(contract.attrs.data_indeterminate, Some("true"));
+    assert_eq!(contract.attrs.data_determinate, None);
+    assert_eq!(contract.state.phase, ProgressbarA11yPhase::Indeterminate);
+    assert!(contract.state.is_indeterminate);
+    assert!(!contract.state.is_determinate);
+}
+
+#[test]
 fn focusable_element_kind_covers_tag_and_tabindex_rules() {
     assert!(is_focusable_element_kind("button", false, false, None));
     assert!(is_focusable_element_kind("a", true, false, None));

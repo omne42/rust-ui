@@ -6,7 +6,7 @@ use ui_headless::{A11yDirection, region_attrs};
 #[component]
 pub fn Sonner(
     #[prop(optional)] position: SonnerPosition,
-    #[prop(optional, default = logic::DEFAULT_PORTAL)] portal: bool,
+    #[prop(optional, default = logic::DEFAULT_PORTAL)] is_portal: bool,
     #[prop(optional, default = logic::DEFAULT_MAX_TOASTS)] max_toasts: usize,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
@@ -18,7 +18,7 @@ pub fn Sonner(
     let motion = crate::sonner::motion::sanitize_motion(motion);
     let normalized = logic::normalize_props(logic::SonnerNormalizeInput {
         position,
-        portal,
+        portal: is_portal,
         max_toasts,
         aria_label,
         class_name,
@@ -115,7 +115,7 @@ pub fn Sonner(
             <ToastViewport
                 store=store
                 motion=motion
-                portal=viewport_state.portal
+                is_portal=viewport_state.portal
                 max_toasts=viewport_state.max_toasts
                 class_name=viewport_class_name
             />

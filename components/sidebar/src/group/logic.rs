@@ -1,4 +1,4 @@
-use super::{DEFAULT_ACTION_LABEL, DEFAULT_ARIA_LABEL, DEFAULT_LABEL};
+use super::{DEFAULT_ACTION_LABEL, DEFAULT_ARIA_LABEL, DEFAULT_LABEL, DEFAULT_TOGGLE_LABEL};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SidebarGroupStateInput {
@@ -52,8 +52,40 @@ pub fn normalize_action_label(value: Option<String>) -> String {
     normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ACTION_LABEL.into())
 }
 
+pub fn normalize_toggle_label(value: Option<String>) -> String {
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_TOGGLE_LABEL.into())
+}
+
 pub fn normalize_default_open(value: Option<bool>) -> bool {
     value.unwrap_or(true)
+}
+
+pub fn resolve_collapsible(is_collapsible: Option<bool>, collapsible: bool) -> bool {
+    is_collapsible.unwrap_or(collapsible)
+}
+
+pub fn resolve_disabled(is_disabled: Option<bool>, disabled: bool) -> bool {
+    is_disabled.unwrap_or(disabled)
+}
+
+pub fn resolve_label_visibility(is_label_visible: Option<bool>, show_label: bool) -> bool {
+    is_label_visible.unwrap_or(show_label)
+}
+
+pub fn resolve_action_visibility(is_action_visible: Option<bool>, show_action: bool) -> bool {
+    is_action_visible.unwrap_or(show_action)
+}
+
+pub fn resolve_effective_open(open: bool, collapsible: bool) -> bool {
+    if collapsible { open } else { true }
+}
+
+pub fn can_toggle_open(disabled: bool, collapsible: bool) -> bool {
+    !disabled && collapsible
+}
+
+pub fn next_toggled_open(open: bool) -> bool {
+    !open
 }
 
 pub fn resolve_state(input: SidebarGroupStateInput) -> SidebarGroupState {

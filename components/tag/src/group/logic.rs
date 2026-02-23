@@ -1,6 +1,8 @@
+use leptos::prelude::Signal;
+
 pub use ui_state_primitives::tag_group::{
-    Tag, TagGroupItemStateInput, TagGroupState, merge_describedby_ids, normalize_optional_text,
-    resolve_item_state, resolve_state,
+    Tag, TagGroupItemState, TagGroupItemStateInput, TagGroupState, merge_describedby_ids,
+    normalize_optional_text, resolve_item_state, resolve_state,
 };
 
 pub const DEFAULT_ID_BASE: &str = "tag-group";
@@ -49,6 +51,28 @@ pub struct TagGroupNormalizedInput {
     pub aria_label_source: TagGroupValueSource,
     pub class_name_source: TagGroupValueSource,
     pub lang_source: TagGroupPresenceSource,
+}
+
+#[derive(Clone)]
+pub struct TagGroupBooleanInput {
+    pub is_disabled: bool,
+    pub is_invalid: Signal<bool>,
+    pub is_required: Signal<bool>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TagGroupRootStateInput {
+    pub is_disabled: bool,
+    pub has_remove_callback: bool,
+    pub is_invalid: bool,
+    pub is_required: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TagGroupRenderableItemStateInput {
+    pub is_group_disabled: bool,
+    pub has_remove_callback: bool,
+    pub is_tag_disabled: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -248,6 +272,36 @@ pub fn normalize_group_input(
         class_name_source,
         lang_source,
     }
+}
+
+pub fn normalize_group_bool_input(
+    is_disabled: Option<bool>,
+    is_invalid: Option<Signal<bool>>,
+    is_required: Option<Signal<bool>>,
+) -> TagGroupBooleanInput {
+    TagGroupBooleanInput {
+        is_disabled: is_disabled.unwrap_or(false),
+        is_invalid: is_invalid.unwrap_or_else(|| Signal::derive(|| false)),
+        is_required: is_required.unwrap_or_else(|| Signal::derive(|| false)),
+    }
+}
+
+pub fn resolve_group_state(tags: &[Tag], input: TagGroupRootStateInput) -> TagGroupState {
+    resolve_state(
+        tags,
+        input.is_disabled,
+        input.has_remove_callback,
+        input.is_invalid,
+        input.is_required,
+    )
+}
+
+pub fn resolve_group_item_state(input: TagGroupRenderableItemStateInput) -> TagGroupItemState {
+    resolve_item_state(TagGroupItemStateInput {
+        group_disabled: input.is_group_disabled,
+        supports_removal: input.has_remove_callback,
+        tag_disabled: input.is_tag_disabled,
+    })
 }
 
 pub fn resolve_agent_action(source: TagGroupAgentSource) -> TagGroupAgentAction {

@@ -72,11 +72,11 @@ pub const CSS: &str = r#"
   pointer-events: none;
 }
 
-.ui-slider__input:active + .ui-slider__track .ui-slider__thumb {
+.ui-slider[data-pressed="true"] .ui-slider__thumb {
   transform: translate(-50%, -50%) scale(0.94);
 }
 
-.ui-slider__input:focus-visible + .ui-slider__track {
+.ui-slider[data-focus-visible="true"] .ui-slider__track {
   box-shadow: 0 0 0 var(--ui-slider-focus-ring-width, 2px) color-mix(in oklch, var(--ui-focus-ring), transparent 68%);
 }
 

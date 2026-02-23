@@ -15,6 +15,18 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
     (DEFAULT_ARIA_LABEL.into(), false)
 }
 
+pub fn resolve_disabled(is_disabled: Option<bool>, disabled: bool) -> bool {
+    is_disabled.unwrap_or(disabled)
+}
+
+pub fn resolve_padded(is_padded: Option<bool>, padded: bool) -> bool {
+    is_padded.unwrap_or(padded)
+}
+
+pub fn resolve_scrollable(is_scrollable: Option<bool>, scrollable: bool) -> bool {
+    is_scrollable.unwrap_or(scrollable)
+}
+
 pub fn resolve_state(input: SidebarContentStateInput) -> SidebarContentState {
     SidebarContentState {
         disabled: input.disabled,

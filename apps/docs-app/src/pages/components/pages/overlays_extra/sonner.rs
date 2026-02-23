@@ -52,7 +52,7 @@ store.push_simple("Saved");"#
 
 <Sonner
   store=store.clone()
-  portal=false
+  is_portal=false
   position=SonnerPosition::TopCenter
   max_toasts=2
   class_name="docs-sonner-inline".to_string()
@@ -65,7 +65,7 @@ store.push_simple("Saved");"#
 
 <Sonner
   store=store.clone()
-  portal=false
+  is_portal=false
   position=SonnerPosition::TopLeft
   max_toasts=4
   aria_label="Status updates".to_string()
@@ -112,7 +112,7 @@ store.push_simple("Saved");"#
 
     let workbench_code = Signal::derive(move || {
         format!(
-            "<Sonner\n  position={}\n  portal={}\n  max_toasts={}\n  aria_label={}\n  class_name={}\n  motion={}\n  store=Some(store)\n  lang={}\n  dir={}\n/>",
+            "<Sonner\n  position={}\n  is_portal={}\n  max_toasts={}\n  aria_label={}\n  class_name={}\n  motion={}\n  store=Some(store)\n  lang={}\n  dir={}\n/>",
             if workbench_top_left.get() {
                 "SonnerPosition::TopLeft"
             } else {
@@ -150,7 +150,7 @@ store.push_simple("Saved");"#
 
     let workbench_actual_config = Signal::derive(move || {
         format!(
-            "SonnerActualConfig {{\n  position: {},\n  portal: {},\n  max_toasts: {},\n  aria_label: {},\n  class_name: {},\n  motion: {},\n  store: Some(workbench_store),\n  lang: {},\n  dir: {},\n  push_count: {},\n  clear_count: {},\n}}",
+            "SonnerActualConfig {{\n  position: {},\n  is_portal: {},\n  max_toasts: {},\n  aria_label: {},\n  class_name: {},\n  motion: {},\n  store: Some(workbench_store),\n  lang: {},\n  dir: {},\n  push_count: {},\n  clear_count: {},\n}}",
             if workbench_top_left.get() {
                 "SonnerPosition::TopLeft"
             } else {
@@ -212,7 +212,7 @@ store.push_simple("Saved");"#
                             "position TopLeft"
                         </Switch>
                         <Switch checked=workbench_portal set_checked=set_workbench_portal>
-                            "portal"
+                            "is_portal"
                         </Switch>
                         <Switch checked=workbench_custom_aria set_checked=set_workbench_custom_aria>
                             "aria_label"
@@ -266,7 +266,7 @@ store.push_simple("Saved");"#
                         } else {
                             SonnerPosition::BottomRight
                         }
-                        portal=workbench_portal.get()
+                        is_portal=workbench_portal.get()
                         max_toasts=usize::from(workbench_max_toasts.get())
                         aria_label=if workbench_custom_aria.get() {
                             "Status updates".to_string()
@@ -332,7 +332,7 @@ store.push_simple("Saved");"#
                     </div>
                     <Sonner
                         store=inline_store.get_value()
-                        portal=false
+                        is_portal=false
                         position=SonnerPosition::TopCenter
                         max_toasts=2
                         class_name="docs-sonner-inline".to_string()
@@ -361,7 +361,7 @@ store.push_simple("Saved");"#
                     </div>
                     <Sonner
                         store=source_store.get_value()
-                        portal=false
+                        is_portal=false
                         position=SonnerPosition::TopLeft
                         max_toasts=4
                         aria_label="Status updates".to_string()
@@ -384,7 +384,7 @@ store.push_simple("Saved");"#
                         )}
                     </li>
                     <li>
-                        <code>"portal: bool"</code>
+                        <code>"is_portal: bool"</code>
                         " "
                         {format!("default = {}", ui::sonner::DEFAULT_PORTAL)}
                     </li>

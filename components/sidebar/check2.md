@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -32,14 +32,14 @@
   - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,100 +47,124 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/semantics.rs的旧版实现，需要迁移到新目录。
+  - 已补齐并迁移语义测试入口：`components/sidebar/test/semantics.rs`（旧 `sidebar_semantics.rs` 已迁移），并在 `components/sidebar/src/mod.rs` 通过 `#[cfg(test)] #[path = "../test/semantics.rs"] mod semantics_tests;` 挂载。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+  - 已完成命名升级：`components/sidebar/src/*/view.rs` 统一新增 `is_*` 布尔 props，保持 `on_*`/`default_*` 命名；为避免破坏现有调用，旧布尔命名以兼容桥接方式保留并由新命名优先归一（`is_*` 优先于旧字段）。语义回归：`components/sidebar/test/semantics.rs::sidebar_api_naming_contract_prefers_prefixed_names_with_compatibility_bridge`。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+  - 已核对并补齐：`Sidebar/SidebarGroup/SidebarRail/SidebarTrigger` 使用 `open + default_open + on_open_change`；`SidebarMenu` 使用 `active_id + default_active_id + on_active_id_change`。全部通过 `ui_headless::use_controllable_state` / `use_controllable_open_state_traced` 管理，受控模式不写回本地、非受控模式仅初始化一次并由内部原语更新。回归：`components/sidebar/test/semantics.rs::sidebar_controllable_axes_are_paired_and_state_updates_follow_control_mode`。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+  - 已回收默认值归一到 `components/sidebar/src/*/logic.rs`：统一新增 `resolve_*`（如 `resolve_disabled/resolve_show_badges/resolve_recessed`）与归一函数（如 `normalize_trigger_label/normalize_keyboard_shortcut_key`）；`components/sidebar/src/*/view.rs` 已改为仅调用 logic 函数，不再出现 `unwrap_or/unwrap_or_else` 默认值分支。回归：`components/sidebar/test/semantics.rs::sidebar_default_priority_is_centralized_in_logic_modules`。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+  - 已完成：`components/sidebar/src/*/view.rs` 统一通过 `logic::resolve_state(*StateInput)` 派生渲染状态；`SidebarGroup` 的开合规则与可切换判定已回收至 `components/sidebar/src/group/logic.rs`（`resolve_effective_open/can_toggle_open/next_toggled_open`），`view.rs` 仅触发 `request_open_change`。`SidebarMenu` 子菜单开合更新通过 `logic::toggle_open_sub_ids` 完成。回归：`components/sidebar/test/semantics.rs::sidebar_state_normalization_is_centralized_in_logic_modules`。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+  - 已完成：`Sidebar` 离散主轴已由 `SidebarSide/SidebarVariant/SidebarCollapsible` 建模（`components/sidebar/src/logic.rs`），`Sidebar`/`SidebarInset`/`SidebarRail` 以类型化 enum props 消费，`logic.rs` 通过 `match` 做语义映射；未出现 `side/variant/collapsible` 的字符串入参或多 bool 互斥编码。回归：`components/sidebar/test/semantics.rs::sidebar_discrete_state_axes_are_modeled_by_enums`。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+  - 已完成：`SidebarMenu` 的选择/展开可复用原语统一来自 `ui_state_primitives::sidebar_menu`（`components/sidebar/src/menu/logic.rs`），组件层仅在 `view.rs` 装配调用；`Sidebar/SidebarGroup/SidebarRail/SidebarTrigger` 的受控/非受控开合使用共享 `ui_headless::use_controllable_open_state_traced`，未直接依赖业务 store 类型。回归：`components/sidebar/test/semantics.rs::sidebar_state_primitive_origin_contract_is_respected`。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+  - N/A（适用性说明）：`Sidebar` 当前无远程请求与异步状态轴，不涉及 `use_async_action` / `is_loading` / `aria-busy` / retry 协议；因此按“无异步相关直接打勾”执行，并通过语义回归锁定：`components/sidebar/test/semantics.rs::sidebar_async_interaction_contract_is_not_applicable`。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+  - 已完成：`Sidebar` 基础 API 仅暴露 `open/default_open/on_open_change`（可选），未引入 `state=...` 必填对象；docs 的 `Hello World (Default Sidebar)` 已收敛为默认最小调用路径（3 行示例），复杂控制保留在 `Workbench (All API + Actual Config)`。回归：`components/sidebar/test/semantics.rs::sidebar_dx_paradox_api_is_simple_and_docs_have_minimal_path`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
+  - 已完成：`Sidebar` 主 API 采用显式组合（`children: Children`，docs 默认示例为 `<Sidebar>...</Sidebar>`）；`SidebarMenu` 的配置式入口仅为类型化 `Vec<SidebarMenuItem>`（源自 `ui-state-primitives`），`SidebarMenuItem/SidebarMenuSubItem` 在同一结构体层级绑定 `id/label/sub_items` 语义，未引入 `labels/titles/panels` 并行数组约定。回归：`components/sidebar/test/semantics.rs::sidebar_composite_api_prefers_explicit_composition_or_typed_itemspec`。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
+  - N/A（适用性说明）：`Sidebar` 当前不包含拖拽交互状态轴（无 pointermove/drag 事件流、无 `DragEnd` 动作与逐帧回流 `logic.rs` 路径），因此本项按“不适用但需可回归”处理；通过语义回归锁定：`components/sidebar/test/semantics.rs::sidebar_macro_micro_duality_is_not_applicable_without_drag_interaction`。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
+  - N/A（适用性说明）：`Sidebar` 当前无 `Tooltip/Popover/Floating` 几何纠偏场景，不存在组件层 `Intent -> Measure -> Rectification(logic)` 的 overlay 流程；`SidebarMenu` 唯一测量仅用于视觉高亮，已委托 `ui_visual_primitive::active_highlight::attach_active_highlight_motion`，并由共享原语内的幂等收敛保护（`unchanged` 分支）避免测量回环。回归：`components/sidebar/test/semantics.rs::sidebar_two_pass_rendering_is_n_a_for_overlay_geometry_with_idempotent_visual_measurement`。
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
+  - N/A（适用性说明）：`SidebarMenu` 当前采用 `items: Vec<SidebarMenuItem>` 的配置输入模型，不是动态子项注册容器，不引入 `RegistrationContext/Register/Unregister`；导航顺序由 `ui-state-primitives::sidebar_menu::linear_enabled_ids/next_enabled_id` 按 `Vec` 顺序推导，未依赖 `HashSet` 迭代顺序。回归：`components/sidebar/test/semantics.rs::sidebar_registration_protocol_is_n_a_and_navigation_order_is_vec_based`。
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
+  - N/A（适用性说明）：`Sidebar` 当前不实现容器级 `Lazy/KeepAlive/Eager` 投影策略，未引入 `NotifyHidden` 生命周期协议；`SidebarGroup` 的 `hidden` 仅用于可见性切换，不承载 KeepAlive 隐藏通知与副作用暂停语义。回归：`components/sidebar/test/semantics.rs::sidebar_slot_projection_policy_is_n_a_without_keepalive_lifecycle_contract`。
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
+  - N/A（适用性说明）：`Sidebar` 组件层当前不建模 `Resize/Theme/Intersection` 语义流（无 `on:resize/on:scroll/on:intersection`、无 `BreakpointChanged` 动作与防抖管线）；唯一与环境尺寸相关的行为为 `SidebarMenu` 通过 `attach_active_highlight_motion` 委托共享视觉原语处理，组件层未直接接入原始环境事件洪泛。回归：`components/sidebar/test/semantics.rs::sidebar_env_streams_are_not_modeled_in_component_layer`。
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
+  - N/A（适用性说明）：`Sidebar` 当前不属于 `Table/Grid` 级大型集合批量操作场景；`SidebarMenu` 交互模型为 `items: Vec<SidebarMenuItem>` 的局部导航/点击处理，不引入 `Context Bus + Selector` 或 `SelectionState::All` 压缩语义，也未出现跨层批量 prop drilling 协议。回归：`components/sidebar/test/semantics.rs::sidebar_event_light_cone_is_n_a_without_large_collection_bus_selector_contract`。
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
+  - N/A（适用性说明）：`Sidebar` 当前未引入复杂派生总线与跨订阅广播链路，不存在 `TraceId` 透传管线；组件行为以本地 `Callback` 直连分发为主（如 `on_action/on_item_action/on_open_change`），无需 `Causality Bus` 收敛。回归：`components/sidebar/test/semantics.rs::sidebar_causality_bus_is_n_a_without_trace_id_pipeline`。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+  - 已完成：`Sidebar`/`SidebarMenu` 挂载 headless 语义契约（`use_sidebar_root`、`sidebar_toggle_button_a11y_attrs`、`navigation_attrs`），`SidebarGroup` 迁移到 `labeled_group_attrs` 并补齐 `lang/dir` 接入；`toggle submenu`/`Toggle group`/rail sr-only 文案从 `view.rs` 硬编码回收为可覆盖输入（`submenu_toggle_label`、`toggle_label`、`trigger_label`）+ logic fallback。回归：`components/sidebar/test/semantics.rs::sidebar_a11y_i18n_contract_is_headless_driven_and_text_is_overrideable`。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+  - 已完成：`Sidebar`/`SidebarMenu`/`SidebarGroup`/`SidebarTrigger`/`SidebarRail` 均暴露稳定 `data-* + aria-*` 状态轴（open/closed/disabled/expanded/selected/control-mode/source）；移除自由文本状态 marker（`data-shortcut`、`data-active-id`），改为封闭集合语义（`data-has-shortcut`、`data-selection`、`data-has-selection`）；`focus-visible` 路径由稳定语义选择器覆盖。回归：`components/sidebar/test/semantics.rs::sidebar_state_markers_are_observable_queryable_and_closed_set`。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+  - 已完成：`Sidebar` 各 `styles.rs` 状态分支统一通过稳定语义标记驱动（如 `data-state/data-collapsible/data-active/data-open`），无 `:nth-child/:nth-of-type/:has` 结构猜测；组件视图运行时仅保留单一 `style=motion_style` 注入，且来源 `motion::attach_motion` 仅输出 `--ui-sidebar-motion-*` CSS 变量。回归：`components/sidebar/test/semantics.rs::sidebar_styles_use_explicit_state_markers_and_css_var_runtime_styles_only`。
+- [x] 测试验证“语义契约”而不只验证视觉快照。
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+  - 已完成：`sidebar` 语义测试矩阵已显式覆盖 `role/aria/data-state/source` 标记、受控/非受控、disabled、键盘与指针路径（`components/sidebar/test/semantics.rs::sidebar_semantic_tests_cover_contract_matrix_and_do_not_depend_on_snapshot_only`），并通过 `components/sidebar/test/motion.rs::attach_motion_emits_css_variable_contract` 覆盖 wasm/non-wasm 语义分支；测试套件未使用 snapshot-only 断言。回归：`components/sidebar/test/semantics.rs::sidebar_semantic_tests_cover_contract_matrix_and_do_not_depend_on_snapshot_only`。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+  - 已完成：`sidebar` 根模块默认常量从 `mod.rs` 回收至 `logic.rs`，`mod.rs` 收敛为导出边界；并新增职责分层回归测试，约束 `logic/styles/view/motion` 不跨层承载实现细节。回归：`components/sidebar/test/semantics.rs::sidebar_component_file_responsibilities_are_separated_by_layer`。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+  - N/A（适用性说明）：`sidebar` 当前无稳定外部 Schema 契约或复杂配置固化需求，不应引入 `spec.rs`；源码目录已锁定无 `spec.rs`，且模块导出面不暴露 `Spec` 构建器。回归：`components/sidebar/test/semantics.rs::sidebar_spec_rs_is_not_introduced_without_schema_contract_need`。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
   - 样式规则统一落在 `styles.rs`，由 `crates/ui/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+  - 已完成：`sidebar` 与其子组件样式统一落在 `components/sidebar/src/**/styles.rs` 并以 `var(--ui-*)` token-first 变量消费；`crates/ui/src/css.rs` 已按 `component-sidebar*` feature 聚合对应 CSS，`crates/ui/src/root.rs` 通过 `UiRoot` 的 `inject_components_css` 路径注入；组件源码未引入 Utility-First/CSS-in-Rust 范式，运行时样式仅保留 motion CSS 变量绑定。回归：`components/sidebar/test/semantics.rs::sidebar_styles_follow_token_first_contract_and_ui_root_css_injection_path`。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+  - 已完成：`sidebar` 默认样式已具备层级/对比/交互反馈契约（如 `--ui-sidebar-line-height-100`、`--ui-sidebar-panel-surface`、`trigger/rail/menu/group` 的 hover+focus-visible 反馈）；视觉基线与截图回归复用 docs-app 全局 `theme-visual-baseline` 页面与 `e2e/tests/docs_app_theme_visual_baseline.spec.mjs`（覆盖 Button/Input/Overlay 截图基线）；并显式守卫禁用旧式 Bootstrap 退化标记。回归：`components/sidebar/test/semantics.rs::sidebar_visual_desire_reuses_theme_visual_baseline_and_heroui_contracts`。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -149,6 +173,10 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
+  - 已完成：`crates/ui/Cargo.toml` 保持 `component-sidebar*` 独立 feature；`crates/ui/src/lib.rs` 与 `crates/ui/src/css.rs` 均按 `component-sidebar*` 做条件导出与样式聚合；`apps/web-demo/Cargo.toml` 使用 `default-features = false + web-demo-components`（不拉起 `all-components`），`apps/docs-app/Cargo.toml` 显式声明 `all-components`。
+  - 回归：`components/sidebar/test/semantics.rs::sidebar_tree_shaking_keeps_component_feature_and_css_boundaries`、`components/sidebar/test/semantics.rs::sidebar_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget`、`components/sidebar/test/semantics.rs::sidebar_check2_marks_tree_shaking_feature_pruning_contract_complete`。
+  - 验证命令（sidebar）：`cargo tree -e features -i ui -p ui --no-default-features --features component-sidebar,inject-css`、`cargo tree -e features -i ui -p web-demo`、`cargo check -p ui --target wasm32-unknown-unknown --no-default-features --features component-sidebar,inject-css`。
+  - 门禁脚本：`scripts/check-ui-tree-shaking.sh` 已新增 `SIDEBAR_MIN_FEATURES` 路径并串联上述最小特性树/wasm 检查；体积预算继续由 `scripts/tree_shaking_budget.env` 阻断回归。
 - [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。

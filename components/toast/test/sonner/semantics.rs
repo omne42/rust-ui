@@ -72,7 +72,7 @@ fn sonner_api_naming_contract_matches_overlay_family_without_alias_drift() {
     let toast_view = load_source("../../components/toast/src/toast/view.rs");
 
     for needle in [
-        "#[prop(optional, default = logic::DEFAULT_PORTAL)] portal: bool",
+        "#[prop(optional, default = logic::DEFAULT_PORTAL)] is_portal: bool",
         "#[prop(optional, default = logic::DEFAULT_MAX_TOASTS)] max_toasts: usize",
         "#[prop(optional, into)] aria_label: Option<String>",
         "#[prop(optional, into)] class_name: Option<String>",
@@ -85,7 +85,7 @@ fn sonner_api_naming_contract_matches_overlay_family_without_alias_drift() {
     }
 
     for needle in [
-        "#[prop(optional, default = logic::DEFAULT_VIEWPORT_PORTAL)] portal: bool",
+        "#[prop(optional, default = logic::DEFAULT_VIEWPORT_PORTAL)] is_portal: bool",
         "#[prop(optional, default = logic::DEFAULT_VIEWPORT_MAX_TOASTS)] max_toasts: usize",
         "#[prop(optional, into)] class_name: Option<String>",
     ] {
@@ -96,7 +96,7 @@ fn sonner_api_naming_contract_matches_overlay_family_without_alias_drift() {
     }
 
     for forbidden in [
-        "is_portal",
+        "#[prop(optional)] portal: bool",
         "default_portal",
         "on_portal_change",
         "is_max_toasts",
@@ -116,7 +116,7 @@ fn sonner_has_no_controllable_state_axis_and_no_half_controlled_api() {
 
     for needle in [
         "#[prop(optional)] position: SonnerPosition",
-        "#[prop(optional, default = logic::DEFAULT_PORTAL)] portal: bool",
+        "#[prop(optional, default = logic::DEFAULT_PORTAL)] is_portal: bool",
         "#[prop(optional, default = logic::DEFAULT_MAX_TOASTS)] max_toasts: usize",
         "if let Some(provided_store) = store",
         "SonnerStoreSource::Provided",
@@ -471,7 +471,7 @@ fn sonner_composes_toast_viewport_and_forwards_stateful_props() {
         "store=store",
         "class_name=viewport_class_name",
         "max_toasts=viewport_state.max_toasts",
-        "portal=viewport_state.portal",
+        "is_portal=viewport_state.portal",
         "motion=motion",
     ] {
         assert!(
@@ -507,10 +507,11 @@ fn sonner_delegates_interaction_semantics_to_toast_headless_layer() {
 
     for needle in [
         "use ui_headless::{",
-        "live_region_attrs",
-        "on:keydown=on_key_down",
-        "role=live_region.role",
-        "aria-live=live_region.aria_live",
+        "use_toast_a11y",
+        "use_toast_a11y(ToastA11yOptions {",
+        "on:keydown=move |ev| toast_on_key_down.run(ev)",
+        "role=toast_role",
+        "aria-live=toast_aria_live",
     ] {
         assert!(
             toast_view.contains(needle),
@@ -556,7 +557,7 @@ fn sonner_default_values_have_single_logic_source() {
     );
 
     for needle in [
-        "#[prop(optional, default = logic::DEFAULT_PORTAL)] portal: bool",
+        "#[prop(optional, default = logic::DEFAULT_PORTAL)] is_portal: bool",
         "#[prop(optional, default = logic::DEFAULT_MAX_TOASTS)] max_toasts: usize",
     ] {
         assert!(
@@ -1960,7 +1961,7 @@ fn sonner_forbidden_antipatterns_are_blocked_by_layer_and_contract_guards() {
 
     for needle in [
         "#[prop(optional)] position: SonnerPosition",
-        "#[prop(optional, default = logic::DEFAULT_PORTAL)] portal: bool",
+        "#[prop(optional, default = logic::DEFAULT_PORTAL)] is_portal: bool",
         "#[prop(optional, default = logic::DEFAULT_MAX_TOASTS)] max_toasts: usize",
         "#[prop(optional, into)] aria_label: Option<String>",
         "#[prop(optional, into)] class_name: Option<String>",
@@ -1991,7 +1992,6 @@ fn sonner_forbidden_antipatterns_are_blocked_by_layer_and_contract_guards() {
     );
 
     for needle in [
-        "#[prop(optional, default = logic::DEFAULT_PORTAL)] portal: bool",
         "#[prop(optional, default = logic::DEFAULT_MAX_TOASTS)] max_toasts: usize",
         "#[prop(optional, into)] aria_label: Option<String>",
         "#[prop(optional, into)] class_name: Option<String>",
@@ -2164,7 +2164,7 @@ fn sonner_docs_custom_motion_playground_locks_contract_values() {
 
     for needle in [
         "title=\"State + Source Markers\"",
-        "portal=false",
+        "is_portal=false",
         "position=SonnerPosition::TopLeft",
         "max_toasts=4",
         "aria_label=\"Status updates\".to_string()",
@@ -2484,7 +2484,7 @@ fn sonner_snapshot_baseline_consumes_complete_configuration_and_renders_stably()
 
     for needle in [
         "#[prop(optional)] position: SonnerPosition",
-        "#[prop(optional, default = logic::DEFAULT_PORTAL)] portal: bool",
+        "#[prop(optional, default = logic::DEFAULT_PORTAL)] is_portal: bool",
         "#[prop(optional, default = logic::DEFAULT_MAX_TOASTS)] max_toasts: usize",
         "#[prop(optional, into)] aria_label: Option<String>",
         "#[prop(optional, into)] class_name: Option<String>",
@@ -2517,7 +2517,7 @@ fn sonner_snapshot_baseline_consumes_complete_configuration_and_renders_stably()
         "<Sonner />",
         "<Sonner store=portal_store.get_value() />",
         "store=inline_store.get_value()",
-        "portal=false",
+        "is_portal=false",
         "position=SonnerPosition::TopCenter",
         "max_toasts=2",
         "aria_label=\"Status updates\".to_string()",

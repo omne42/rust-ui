@@ -1,213 +1,63 @@
-pub const DEFAULT_ARIA_LABEL: &str = "Progress";
-pub const DEFAULT_MAX: f64 = 100.0;
-pub const MIN_MAX: f64 = 1.0;
+use leptos::prelude::Callback;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum ProgressBarVariant {
-    #[default]
-    Default,
-    Accent,
-    Danger,
-}
+pub use ui_state_primitives::progress_bar::{
+    DEFAULT_ARIA_LABEL, DEFAULT_MAX, ProgressBarMode, ProgressBarSize, ProgressBarStateInput,
+    ProgressBarValueAxisInput, ProgressBarValueAxisState, ProgressBarVariant, compose_class_name,
+    normalize_optional_text, resolve_aria_label, resolve_state, resolve_value_axis,
+};
 
-impl ProgressBarVariant {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            ProgressBarVariant::Default => "ui-progress-bar--variant-default",
-            ProgressBarVariant::Accent => "ui-progress-bar--variant-accent",
-            ProgressBarVariant::Danger => "ui-progress-bar--variant-danger",
-        }
-    }
-
-    pub fn as_str(self) -> &'static str {
-        match self {
-            ProgressBarVariant::Default => "default",
-            ProgressBarVariant::Accent => "accent",
-            ProgressBarVariant::Danger => "danger",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum ProgressBarSize {
-    Sm,
-    #[default]
-    Md,
-    Lg,
-}
-
-impl ProgressBarSize {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            ProgressBarSize::Sm => "ui-progress-bar--size-sm",
-            ProgressBarSize::Md => "ui-progress-bar--size-md",
-            ProgressBarSize::Lg => "ui-progress-bar--size-lg",
-        }
-    }
-
-    pub fn as_str(self) -> &'static str {
-        match self {
-            ProgressBarSize::Sm => "sm",
-            ProgressBarSize::Md => "md",
-            ProgressBarSize::Lg => "lg",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ProgressBarPhase {
-    Determinate,
-    Indeterminate,
-}
-
-impl ProgressBarPhase {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            ProgressBarPhase::Determinate => "ui-progress-bar--state-determinate",
-            ProgressBarPhase::Indeterminate => "ui-progress-bar--state-indeterminate",
-        }
-    }
-
-    pub fn as_str(self) -> &'static str {
-        match self {
-            ProgressBarPhase::Determinate => "determinate",
-            ProgressBarPhase::Indeterminate => "indeterminate",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ProgressBarStateInput {
-    pub variant: ProgressBarVariant,
-    pub size: ProgressBarSize,
+#[derive(Clone)]
+pub struct ProgressBarValueAxis {
     pub value: Option<f64>,
-    pub max: f64,
-    pub indeterminate: bool,
-    pub has_custom_aria_label: bool,
-    pub has_custom_class_name: bool,
+    pub is_controlled: bool,
+    pub has_custom_default_value: bool,
+    pub has_custom_on_value_change: bool,
+    pub mode_attr: &'static str,
+    pub value_source_attr: &'static str,
+    pub default_value_source_attr: &'static str,
+    pub value_change_source_attr: &'static str,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ProgressBarState {
-    pub variant: ProgressBarVariant,
-    pub size: ProgressBarSize,
-    pub phase: ProgressBarPhase,
-    pub variant_class: &'static str,
-    pub size_class: &'static str,
-    pub phase_class: &'static str,
-    pub variant_attr: &'static str,
-    pub size_attr: &'static str,
-    pub phase_attr: &'static str,
-    pub value: Option<f64>,
-    pub max: f64,
-    pub has_value: bool,
-    pub is_determinate: bool,
-    pub is_indeterminate: bool,
-    pub has_custom_aria_label: bool,
-    pub has_custom_class_name: bool,
-    pub label_source_class: &'static str,
-    pub label_source_attr: &'static str,
-    pub class_source_attr: &'static str,
-}
-
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
-}
-
-pub fn resolve_aria_label(value: String) -> (String, bool) {
-    let trimmed = value.trim();
-
-    if trimmed.is_empty() {
-        return (DEFAULT_ARIA_LABEL.into(), false);
-    }
-
-    let normalized = trimmed.into();
-    let has_custom_aria_label = normalized != DEFAULT_ARIA_LABEL;
-
-    (normalized, has_custom_aria_label)
-}
-
-pub fn sanitize_max(value: f64) -> f64 {
-    if value.is_finite() && value > 0.0 {
+pub fn normalize_value_axis(
+    value: Option<f64>,
+    default_value: Option<f64>,
+    on_value_change: Option<Callback<Option<f64>>>,
+) -> ProgressBarValueAxis {
+    let state: ProgressBarValueAxisState = resolve_value_axis(ProgressBarValueAxisInput {
+        is_controlled: value.is_some(),
+        has_default_value: default_value.is_some(),
+        has_on_value_change: on_value_change.is_some(),
+    });
+    let value = if state.is_controlled {
         value
     } else {
-        MIN_MAX
-    }
-}
-
-pub fn sanitize_value(value: Option<f64>, max: f64) -> Option<f64> {
-    value
-        .filter(|value| value.is_finite())
-        .map(|value| value.clamp(0.0, max))
-}
-
-pub fn resolve_state(input: ProgressBarStateInput) -> ProgressBarState {
-    let max = sanitize_max(input.max);
-    let value = sanitize_value(input.value, max);
-    let is_indeterminate = input.indeterminate || value.is_none();
-    let value = (!is_indeterminate).then_some(value).flatten();
-    let phase = if is_indeterminate {
-        ProgressBarPhase::Indeterminate
-    } else {
-        ProgressBarPhase::Determinate
+        default_value
     };
 
-    let (label_source_class, label_source_attr) = if input.has_custom_aria_label {
-        ("ui-progress-bar--label-custom", "custom")
-    } else {
-        ("ui-progress-bar--label-default", "default")
-    };
-
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
-
-    ProgressBarState {
-        variant: input.variant,
-        size: input.size,
-        phase,
-        variant_class: input.variant.class_name(),
-        size_class: input.size.class_name(),
-        phase_class: phase.class_name(),
-        variant_attr: input.variant.as_str(),
-        size_attr: input.size.as_str(),
-        phase_attr: phase.as_str(),
+    ProgressBarValueAxis {
         value,
-        max,
-        has_value: value.is_some(),
-        is_determinate: !is_indeterminate,
-        is_indeterminate,
-        has_custom_aria_label: input.has_custom_aria_label,
-        has_custom_class_name: input.has_custom_class_name,
-        label_source_class,
-        label_source_attr,
-        class_source_attr,
+        is_controlled: state.is_controlled,
+        has_custom_default_value: state.has_default_value,
+        has_custom_on_value_change: state.has_on_value_change,
+        mode_attr: state.mode_attr,
+        value_source_attr: state.value_source_attr,
+        default_value_source_attr: state.default_value_source_attr,
+        value_change_source_attr: state.value_change_source_attr,
     }
 }
 
-pub fn compose_class_name(base_class_name: Option<String>, state: ProgressBarState) -> String {
-    let mut classes = vec![
-        "ui-progress-bar".to_string(),
-        state.variant_class.into(),
-        state.size_class.into(),
-        state.phase_class.into(),
-        state.label_source_class.into(),
-    ];
-
-    if state.has_custom_class_name {
-        classes.push("ui-progress-bar--custom-class".to_string());
-        if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
-        }
-    }
-
-    classes.join(" ")
+pub fn normalize_mode(is_indeterminate: bool) -> ProgressBarMode {
+    ui_state_primitives::progress_bar::normalize_mode(is_indeterminate)
 }
+
+pub fn normalize_max(max: Option<f64>) -> f64 {
+    max.unwrap_or(DEFAULT_MAX)
+}
+
+#[cfg(test)]
+pub use ui_state_primitives::progress_bar::{
+    MIN_MAX, ProgressBarPhase, sanitize_max, sanitize_value,
+};
 
 #[cfg(test)]
 #[path = "../../test/bar/logic.rs"]

@@ -281,16 +281,16 @@ fn snippet_token_first_static_style_contract_is_css_registry_injected_without_ut
 
     for required in [
         "pub const CSS: &str = r#\"",
-        "var(--ui-space-sm)",
-        "var(--ui-radius-md)",
-        "var(--ui-border)",
-        "var(--ui-bg-muted)",
-        "var(--ui-fg)",
-        "var(--ui-shadow-sm)",
-        "var(--ui-component-height-100)",
-        "var(--ui-font-size-100)",
-        "var(--ui-focus-ring)",
-        "var(--ui-accent)",
+        "var(--ui-space-sm, var(--ui-fallback-space-sm))",
+        "var(--ui-radius-md, var(--ui-fallback-radius-md))",
+        "var(--ui-border, var(--ui-fallback-border))",
+        "var(--ui-bg-muted, var(--ui-fallback-bg-muted))",
+        "var(--ui-fg, var(--ui-fallback-fg))",
+        "var(--ui-shadow-sm, var(--ui-fallback-shadow-sm))",
+        "var(--ui-component-height-100, var(--ui-fallback-component-height-100))",
+        "var(--ui-font-size-100, var(--ui-fallback-font-size-100))",
+        "var(--ui-focus-ring, var(--ui-fallback-focus-ring))",
+        "var(--ui-accent, var(--ui-fallback-accent))",
     ] {
         assert!(
             styles_source.contains(required),
