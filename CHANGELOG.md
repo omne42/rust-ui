@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `docs-shell` + `docs-pack-actions` + `docs-pack-collections` + `docs-pack-forms` + `docs-pack-layout` + `scripts`: adds standalone docs shell/pack apps with dedicated bundle/serve scripts, updates `dev-docs-app` flow, and syncs workspace lockfile plus accordion motion wiring for the new docs packaging path.
+
 - `ui-radio` + `ui-sidebar` + `ui-toast`: repairs migration-phase source-contract stability by updating moved semantic-test source paths to canonical `crates/*`/`components/*` locations, aligning radio docs-contract assertions with split `forms/*` modules, restoring explicit radio theme-token markers in styles, and syncing toast slot attr expectations so `./scripts/check.sh` passes end-to-end again.
 
 - `workspace` (**breaking**): completes `crates/ui-components` 拆分迁移收尾（组件语义测试统一落位到 `components/*/test(s)`、`*_semantics.rs` 收敛为 `semantics.rs`、docs-app 组件页拆分为父页+子页目录结构），并通过语义测试 source-loader 合成适配保持 source-contract 断言稳定，最终全量通过 `cargo fmt --all`、`./scripts/check.sh` 与 `cargo test --workspace`。

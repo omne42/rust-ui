@@ -810,6 +810,52 @@ dependencies = [
 ]
 
 [[package]]
+name = "docs-pack-actions"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui",
+ "web-sys",
+]
+
+[[package]]
+name = "docs-pack-collections"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui",
+ "web-sys",
+]
+
+[[package]]
+name = "docs-pack-forms"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui",
+ "web-sys",
+]
+
+[[package]]
+name = "docs-pack-layout"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui",
+ "ui-layout",
+ "web-sys",
+]
+
+[[package]]
+name = "docs-shell"
+version = "0.0.0"
+dependencies = [
+ "gloo-events",
+ "leptos",
+ "web-sys",
+]
+
+[[package]]
 name = "dpi"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"

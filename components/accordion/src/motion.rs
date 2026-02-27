@@ -244,6 +244,14 @@ struct PanelMotionDriver {
 
 #[cfg(any(test, target_arch = "wasm32"))]
 impl PanelMotionDriver {
+    fn close_spring_config(&self) -> SpringConfig {
+        // Use a more damped spring on collapse to avoid visual wobble while keeping spring timing.
+        let spring = self.motion.spring;
+        let critical_damping = 2.0 * (spring.stiffness * spring.mass).sqrt();
+        let damping = spring.damping.max(critical_damping * 0.92);
+        SpringConfig { damping, ..spring }
+    }
+
     fn new(
         motion: AccordionMotion,
         set_hidden: impl FnMut(bool) + 'static,
@@ -304,8 +312,13 @@ impl PanelMotionDriver {
     ) -> ui_motion::spring::SpringAnimator {
         let set_opacity = Rc::clone(&self.set_opacity);
         let current_opacity = Rc::clone(&self.current_opacity);
+        let is_closing = Rc::clone(&self.is_closing);
         ui_motion::spring::SpringAnimator::new(initial, config, move |value| {
-            let value = value.clamp(0.0, 1.0);
+            let mut value = value.clamp(0.0, 1.0);
+            let prev = current_opacity.get();
+            if is_closing.get() {
+                value = value.min(prev);
+            }
             current_opacity.set(value);
             (set_opacity.borrow_mut())(value);
         })
@@ -318,8 +331,13 @@ impl PanelMotionDriver {
     ) -> ui_motion::spring::SpringAnimator {
         let set_y = Rc::clone(&self.set_y);
         let current_y_px = Rc::clone(&self.current_y_px);
+        let is_closing = Rc::clone(&self.is_closing);
         ui_motion::spring::SpringAnimator::new(initial, config, move |value| {
-            let value = value.clamp(-1000.0, 1000.0);
+            let mut value = value.clamp(-1000.0, 1000.0);
+            let prev = current_y_px.get();
+            if is_closing.get() {
+                value = value.max(prev);
+            }
             current_y_px.set(value);
             (set_y.borrow_mut())(value);
         })
@@ -382,6 +400,8 @@ impl PanelMotionDriver {
 
     fn open_panel(&mut self) {
         self.is_closing.set(false);
+        // Restore default motion contract and clear residual velocity from collapse.
+        self.reset_springs(self.motion.spring);
 
         let Some(height) = self.height_spring.as_ref() else {
             return;
@@ -410,6 +430,8 @@ impl PanelMotionDriver {
 
     fn close_panel(&mut self) {
         self.is_closing.set(true);
+        // Collapse uses a dedicated damped config to remove weird wobble on close.
+        self.reset_springs(self.close_spring_config());
 
         let Some(height) = self.height_spring.as_ref() else {
             return;

@@ -66,4 +66,19 @@ EOF
 fi
 
 cd "$ROOT_DIR/apps/docs-app"
-exec trunk serve --open true "$@"
+
+# docs-app defaults to release builds to avoid extremely large dev-mode wasm payloads.
+# Set DOCS_APP_PROFILE=dev for faster incremental local iteration when needed.
+profile="${DOCS_APP_PROFILE:-release}"
+case "$profile" in
+  release)
+    exec trunk serve --open true --release "$@"
+    ;;
+  dev|debug)
+    exec trunk serve --open true "$@"
+    ;;
+  *)
+    echo "dev-docs-app: invalid DOCS_APP_PROFILE='$profile' (expected: release|dev)" >&2
+    exit 1
+    ;;
+esac

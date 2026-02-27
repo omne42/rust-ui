@@ -1,0 +1,19 @@
+body {
+  margin: 0;
+  font-family: "Iosevka Aile", "IBM Plex Sans", sans-serif;
+  background: #ffffff;
+}
+
+.shell {
+  padding: 12px;
+}
+
+.panel {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.muted {
+  color: #64748b;
+}
